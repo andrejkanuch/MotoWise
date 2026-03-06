@@ -1,4 +1,13 @@
 import type { Metadata, Viewport } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import { GeistMono } from 'geist/font/mono';
+import './globals.css';
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-sans',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -15,8 +24,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>{children}</body>
+    <html lang="en" className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
+      <body className="bg-[--color-surface] text-[--color-on-surface] m-0">{children}</body>
     </html>
   );
 }

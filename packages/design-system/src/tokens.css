@@ -1,0 +1,61 @@
+@theme {
+  /* Primary — Deep Blue (Trust) */
+  --color-primary-50: oklch(0.97 0.01 230);
+  --color-primary-100: oklch(0.93 0.03 230);
+  --color-primary-200: oklch(0.86 0.06 230);
+  --color-primary-300: oklch(0.76 0.1 230);
+  --color-primary-400: oklch(0.65 0.14 230);
+  --color-primary-500: oklch(0.55 0.17 230);
+  --color-primary-600: oklch(0.47 0.16 230);
+  --color-primary-700: oklch(0.4 0.14 230);
+  --color-primary-800: oklch(0.33 0.11 230);
+  --color-primary-900: oklch(0.25 0.08 230);
+  --color-primary-950: oklch(0.18 0.06 230);
+
+  /* Accent — Teal Green (Growth) */
+  --color-accent-50: oklch(0.97 0.02 160);
+  --color-accent-100: oklch(0.93 0.04 160);
+  --color-accent-200: oklch(0.86 0.08 160);
+  --color-accent-300: oklch(0.76 0.12 160);
+  --color-accent-400: oklch(0.65 0.15 160);
+  --color-accent-500: oklch(0.6 0.15 160);
+  --color-accent-600: oklch(0.5 0.13 160);
+  --color-accent-700: oklch(0.42 0.12 160);
+
+  /* Warm — Amber/Gold (Encouragement) */
+  --color-warm-50: oklch(0.97 0.01 70);
+  --color-warm-100: oklch(0.94 0.03 70);
+  --color-warm-200: oklch(0.88 0.06 70);
+  --color-warm-300: oklch(0.82 0.1 70);
+  --color-warm-400: oklch(0.76 0.13 70);
+  --color-warm-500: oklch(0.7 0.12 70);
+
+  /* Neutral — True Gray */
+  --color-neutral-50: oklch(0.98 0 0);
+  --color-neutral-100: oklch(0.96 0 0);
+  --color-neutral-200: oklch(0.92 0 0);
+  --color-neutral-300: oklch(0.87 0 0);
+  --color-neutral-400: oklch(0.71 0 0);
+  --color-neutral-500: oklch(0.55 0 0);
+  --color-neutral-600: oklch(0.44 0 0);
+  --color-neutral-700: oklch(0.37 0 0);
+  --color-neutral-800: oklch(0.27 0 0);
+  --color-neutral-900: oklch(0.18 0 0);
+  --color-neutral-950: oklch(0.1 0 0);
+
+  /* Semantic */
+  --color-danger-500: oklch(0.58 0.22 25);
+  --color-success-500: oklch(0.62 0.18 145);
+  --color-warning-500: oklch(0.75 0.15 80);
+
+  /* Typography */
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* Border Radius */
+  --radius-card: 0.75rem;
+  --radius-button: 0.5rem;
+  --radius-input: 0.5rem;
+  --radius-pill: 9999px;
+}

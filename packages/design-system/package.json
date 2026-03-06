@@ -1,0 +1,15 @@
+{
+  "name": "@motolearn/design-system",
+  "private": true,
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./semantic.css": "./src/semantic.css",
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "devDependencies": {
+    "@motolearn/tsconfig": "workspace:*"
+  }
+}

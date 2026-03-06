@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@motolearn/types', '@motolearn/graphql'],
+  transpilePackages: ['@motolearn/types', '@motolearn/graphql', '@motolearn/design-system'],
   headers: async () => [
     {
       source: '/(.*)',
