@@ -55,14 +55,19 @@ export class MotorcyclesService {
     if (error) throw new InternalServerErrorException('Failed to delete motorcycle');
   }
 
-  private mapRow(row: Tables<'motorcycles'>): Motorcycle {
+  private mapRow(
+    row: Pick<
+      Tables<'motorcycles'>,
+      'id' | 'user_id' | 'make' | 'model' | 'year' | 'nickname' | 'is_primary' | 'created_at'
+    >,
+  ): Motorcycle {
     return {
       id: row.id,
       userId: row.user_id,
       make: row.make,
       model: row.model,
       year: row.year,
-      nickname: row.nickname,
+      nickname: row.nickname ?? undefined,
       isPrimary: row.is_primary,
       createdAt: row.created_at,
     };

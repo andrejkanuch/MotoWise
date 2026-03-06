@@ -12,7 +12,7 @@ export class UsersService {
     return {
       id: row.id,
       email: row.email,
-      fullName: row.full_name,
+      fullName: row.full_name ?? undefined,
       role: row.role,
       createdAt: row.created_at,
       updatedAt: row.updated_at,

@@ -28,19 +28,31 @@ export class LearningProgressService {
       .single();
 
     if (error || !data) throw new InternalServerErrorException('Failed to mark article as read');
-    return this.mapRow(data);
+    return this.mapRow(data as Tables<'learning_progress'>);
   }
 
-  private mapRow(row: Tables<'learning_progress'>): LearningProgress {
+  private mapRow(
+    row: Pick<
+      Tables<'learning_progress'>,
+      | 'id'
+      | 'user_id'
+      | 'article_id'
+      | 'article_read'
+      | 'quiz_completed'
+      | 'quiz_best_score'
+      | 'first_read_at'
+      | 'last_read_at'
+    >,
+  ): LearningProgress {
     return {
       id: row.id,
       userId: row.user_id,
       articleId: row.article_id,
       articleRead: row.article_read,
       quizCompleted: row.quiz_completed,
-      quizBestScore: row.quiz_best_score,
-      firstReadAt: row.first_read_at,
-      lastReadAt: row.last_read_at,
+      quizBestScore: row.quiz_best_score ?? undefined,
+      firstReadAt: row.first_read_at ?? undefined,
+      lastReadAt: row.last_read_at ?? undefined,
     };
   }
 }
