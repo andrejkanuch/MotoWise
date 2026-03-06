@@ -29,7 +29,7 @@ export default function LoginScreen() {
         className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
         style={{ borderCurve: 'continuous' }}
         placeholder={t('auth.email')}
-        placeholderTextColor="#999"
+        placeholderTextColor="oklch(0.71 0 0)"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -39,7 +39,7 @@ export default function LoginScreen() {
         className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
         style={{ borderCurve: 'continuous' }}
         placeholder={t('auth.password')}
-        placeholderTextColor="#999"
+        placeholderTextColor="oklch(0.71 0 0)"
         value={password}
         onChangeText={setPassword}
         secureTextEntry

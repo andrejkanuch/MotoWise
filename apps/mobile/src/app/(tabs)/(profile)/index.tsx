@@ -12,11 +12,7 @@ const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   de: 'Deutsch',
 };
 
-const THEME_OPTIONS = [
-  { value: 'system', label: 'System' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-] as const;
+const THEME_OPTIONS = ['system', 'light', 'dark'] as const;
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
@@ -71,31 +67,31 @@ export default function ProfileScreen() {
       </View>
 
       <Text className="text-lg font-semibold mb-1 text-neutral-950 dark:text-neutral-50">
-        Theme
+        {t('profile.theme')}
       </Text>
       <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-        Choose your preferred appearance
+        {t('profile.themeDescription')}
       </Text>
       <View className="flex-row gap-2 mb-6">
-        {THEME_OPTIONS.map((option) => (
+        {THEME_OPTIONS.map((value) => (
           <Pressable
-            key={option.value}
+            key={value}
             className={`flex-1 rounded-xl p-4 items-center ${
-              storedScheme === option.value
+              storedScheme === value
                 ? 'bg-primary-500'
                 : 'bg-neutral-100 dark:bg-neutral-800'
             }`}
             style={{ borderCurve: 'continuous' }}
-            onPress={() => handleThemeChange(option.value)}
+            onPress={() => handleThemeChange(value)}
           >
             <Text
               className={`text-base font-semibold ${
-                storedScheme === option.value
+                storedScheme === value
                   ? 'text-white'
                   : 'text-neutral-700 dark:text-neutral-300'
               }`}
             >
-              {option.label}
+              {t(`profile.theme${value.charAt(0).toUpperCase()}${value.slice(1)}`)}
             </Text>
           </Pressable>
         ))}

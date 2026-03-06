@@ -10,6 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@motolearn/design-system": "workspace:*",
     "@motolearn/graphql": "workspace:*",
     "@motolearn/types": "workspace:*",
     "@supabase/ssr": "^0.6.0",

@@ -17,7 +17,7 @@ export default function AddBikeScreen() {
         className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
         style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.makePlaceholder')}
-        placeholderTextColor="#999"
+        placeholderTextColor="oklch(0.71 0 0)"
         value={make}
         onChangeText={setMake}
       />
@@ -25,7 +25,7 @@ export default function AddBikeScreen() {
         className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
         style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.modelPlaceholder')}
-        placeholderTextColor="#999"
+        placeholderTextColor="oklch(0.71 0 0)"
         value={model}
         onChangeText={setModel}
       />
@@ -33,7 +33,7 @@ export default function AddBikeScreen() {
         className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
         style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.yearPlaceholder')}
-        placeholderTextColor="#999"
+        placeholderTextColor="oklch(0.71 0 0)"
         value={year}
         onChangeText={setYear}
         keyboardType="numeric"

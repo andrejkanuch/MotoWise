@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@motolearn/design-system": "workspace:*",
     "@motolearn/graphql": "workspace:*",
     "@motolearn/types": "workspace:*",
     "@react-native-async-storage/async-storage": "^3.0.1",
