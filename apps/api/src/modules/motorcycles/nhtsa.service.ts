@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, type OnModuleInit, ServiceUnavailableException } from '@nestjs/common';
 
 interface NhtsaMakeResponse {
   Results: Array<{ MakeId: number; MakeName: string }>;
@@ -68,10 +68,21 @@ const MAKES_TTL = MS_PER_DAY; // 24 hours
 const MODELS_TTL = MS_PER_DAY * 7; // 7 days
 
 @Injectable()
-export class NhtsaService {
+export class NhtsaService implements OnModuleInit {
+  private static readonly MAX_MODELS_CACHE = 500;
+
   private readonly logger = new Logger(NhtsaService.name);
   private makesCache: CacheEntry<MotorcycleMakeDto[]> | null = null;
   private readonly modelsCache = new Map<string, CacheEntry<MotorcycleModelDto[]>>();
+
+  async onModuleInit() {
+    try {
+      await this.getMakes();
+      this.logger.log('NHTSA makes cache warmed');
+    } catch (e) {
+      this.logger.warn('Failed to warm NHTSA cache', e);
+    }
+  }
 
   async getMakes(): Promise<MotorcycleMakeDto[]> {
     if (this.makesCache && Date.now() < this.makesCache.expiresAt) {
@@ -81,13 +92,25 @@ export class NhtsaService {
     const url =
       'https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/motorcycle?format=json';
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      this.logger.error(`NHTSA makes request failed: ${response.status}`);
-      throw new Error('Failed to fetch motorcycle makes from NHTSA');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    let json: NhtsaMakeResponse;
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        this.logger.error(`NHTSA makes request failed: ${response.status}`);
+        throw new ServiceUnavailableException('Failed to fetch motorcycle makes from NHTSA');
+      }
+      json = (await response.json()) as NhtsaMakeResponse;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ServiceUnavailableException('NHTSA API request timed out');
+      }
+      throw new ServiceUnavailableException('Failed to reach NHTSA API');
+    } finally {
+      clearTimeout(timeout);
     }
-
-    const json = (await response.json()) as NhtsaMakeResponse;
 
     const makes: MotorcycleMakeDto[] = json.Results.map((r) => ({
       makeId: r.MakeId,
@@ -117,19 +140,35 @@ export class NhtsaService {
 
     const url = `https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeIdYear/makeId/${makeId}/modelyear/${year}/vehicletype/motorcycle?format=json`;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      this.logger.error(`NHTSA models request failed: ${response.status}`);
-      throw new Error('Failed to fetch motorcycle models from NHTSA');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+    let json: NhtsaModelResponse;
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) {
+        this.logger.error(`NHTSA models request failed: ${response.status}`);
+        throw new ServiceUnavailableException('Failed to fetch motorcycle models from NHTSA');
+      }
+      json = (await response.json()) as NhtsaModelResponse;
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new ServiceUnavailableException('NHTSA API request timed out');
+      }
+      throw new ServiceUnavailableException('Failed to reach NHTSA API');
+    } finally {
+      clearTimeout(timeout);
     }
-
-    const json = (await response.json()) as NhtsaModelResponse;
 
     const models: MotorcycleModelDto[] = json.Results.map((r) => ({
       modelId: r.Model_ID,
       modelName: r.Model_Name,
     })).sort((a, b) => a.modelName.localeCompare(b.modelName));
 
+    if (this.modelsCache.size >= NhtsaService.MAX_MODELS_CACHE) {
+      const oldestKey = this.modelsCache.keys().next().value;
+      if (oldestKey) this.modelsCache.delete(oldestKey);
+    }
     this.modelsCache.set(cacheKey, { data: models, expiresAt: Date.now() + MODELS_TTL });
     return models;
   }
