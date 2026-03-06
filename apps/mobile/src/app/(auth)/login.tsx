@@ -93,6 +93,7 @@ export default function LoginScreen() {
                 width: 88,
                 height: 88,
                 borderRadius: 22,
+                // @ts-expect-error borderCurve works on RN Image but isn't in ImageStyle types
                 borderCurve: 'continuous',
                 marginBottom: 8,
               }}
