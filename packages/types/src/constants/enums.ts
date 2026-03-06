@@ -28,14 +28,6 @@ export const DiagnosticSeverity = {
 } as const;
 export type DiagnosticSeverity = (typeof DiagnosticSeverity)[keyof typeof DiagnosticSeverity];
 
-export const DiagnosticDifficulty = {
-  EASY: 'easy',
-  MODERATE: 'moderate',
-  HARD: 'hard',
-  PROFESSIONAL: 'professional',
-} as const;
-export type DiagnosticDifficulty = (typeof DiagnosticDifficulty)[keyof typeof DiagnosticDifficulty];
-
 export const FlagStatus = {
   PENDING: 'pending',
   REVIEWED: 'reviewed',

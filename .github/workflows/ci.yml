@@ -61,5 +61,4 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --audit-level moderate
-        continue-on-error: true
+      - run: pnpm audit --audit-level=critical

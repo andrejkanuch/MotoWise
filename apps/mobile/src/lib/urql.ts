@@ -2,9 +2,14 @@ import { authExchange } from '@urql/exchange-auth';
 import { Client, cacheExchange, fetchExchange } from 'urql';
 import { supabase } from './supabase';
 
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+if (!apiUrl) {
+  throw new Error('Missing EXPO_PUBLIC_API_URL environment variable');
+}
+
 export function createUrqlClient() {
   return new Client({
-    url: process.env.EXPO_PUBLIC_API_URL!,
+    url: apiUrl,
     exchanges: [
       cacheExchange,
       authExchange(async (utils) => {

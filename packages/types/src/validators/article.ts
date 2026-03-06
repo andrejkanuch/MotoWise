@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import { ArticleDifficulty, ArticleCategory } from '../constants/enums';
+
+const difficulties = Object.values(ArticleDifficulty) as [string, ...string[]];
+const categories = Object.values(ArticleCategory) as [string, ...string[]];
 
 export const ArticleSectionSchema = z.object({ heading: z.string(), body: z.string() });
 export type ArticleSection = z.infer<typeof ArticleSectionSchema>;
@@ -6,17 +10,8 @@ export type ArticleSection = z.infer<typeof ArticleSectionSchema>;
 export const ArticleContentSchema = z.object({
   title: z.string(),
   slug: z.string(),
-  difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
-  category: z.enum([
-    'engine',
-    'brakes',
-    'electrical',
-    'suspension',
-    'drivetrain',
-    'tires',
-    'fuel',
-    'general',
-  ]),
+  difficulty: z.enum(difficulties),
+  category: z.enum(categories),
   sections: z.array(ArticleSectionSchema),
   keyTakeaways: z.array(z.string()),
   relatedTopics: z.array(z.string()),

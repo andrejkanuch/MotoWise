@@ -10,7 +10,6 @@ const config = getDefaultConfig(projectRoot);
 config.watchFolders = [
   path.resolve(monorepoRoot, 'packages', 'types'),
   path.resolve(monorepoRoot, 'packages', 'graphql'),
-  path.resolve(monorepoRoot, 'node_modules'),
 ];
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),

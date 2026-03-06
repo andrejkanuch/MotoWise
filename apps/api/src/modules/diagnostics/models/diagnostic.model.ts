@@ -1,4 +1,5 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
+import { GqlDiagnosticSeverity } from '../../../common/enums/graphql-enums';
 
 @ObjectType()
 export class Diagnostic {
@@ -11,7 +12,7 @@ export class Diagnostic {
   @Field()
   motorcycleId: string;
 
-  @Field({ nullable: true })
+  @Field(() => GqlDiagnosticSeverity, { nullable: true })
   severity?: string;
 
   @Field(() => Float, { nullable: true })

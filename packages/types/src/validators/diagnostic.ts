@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { DiagnosticSeverity } from '../constants/enums';
+
+const severities = Object.values(DiagnosticSeverity) as [string, ...string[]];
 
 export const DiagnosticIssueSchema = z.object({
   description: z.string(),
@@ -9,7 +12,7 @@ export type DiagnosticIssue = z.infer<typeof DiagnosticIssueSchema>;
 export const DiagnosticResultSchema = z.object({
   part: z.string(),
   issues: z.array(DiagnosticIssueSchema),
-  severity: z.enum(['low', 'medium', 'high', 'critical']),
+  severity: z.enum(severities),
   toolsNeeded: z.array(z.string()),
   difficulty: z.enum(['easy', 'moderate', 'hard', 'professional']),
   nextSteps: z.array(z.string()),

@@ -1,16 +1,16 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider } from 'urql';
 import { supabase } from '../lib/supabase';
 import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
 
-const urqlClient = createUrqlClient();
-
 export default function RootLayout() {
   const { session, isLoading, setSession, setLoading } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+
+  const urqlClient = useMemo(() => createUrqlClient(), [session?.user?.id]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,7 +35,7 @@ export default function RootLayout() {
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
-      router.replace('/(learn)');
+      router.replace('/(tabs)/(learn)');
     }
   }, [session, segments, isLoading, router.replace]);
 

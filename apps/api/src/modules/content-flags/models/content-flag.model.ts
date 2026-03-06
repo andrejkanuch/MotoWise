@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { GqlFlagStatus } from '../../../common/enums/graphql-enums';
 
 @ObjectType()
 export class ContentFlag {
@@ -17,7 +18,7 @@ export class ContentFlag {
   @Field()
   comment: string;
 
-  @Field()
+  @Field(() => GqlFlagStatus)
   status: string;
 
   @Field()

@@ -1,4 +1,8 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import {
+  GqlArticleCategory,
+  GqlArticleDifficulty,
+} from '../../../common/enums/graphql-enums';
 
 @ObjectType()
 export class Article {
@@ -11,10 +15,10 @@ export class Article {
   @Field()
   title: string;
 
-  @Field()
+  @Field(() => GqlArticleDifficulty)
   difficulty: string;
 
-  @Field()
+  @Field(() => GqlArticleCategory)
   category: string;
 
   @Field(() => Int)

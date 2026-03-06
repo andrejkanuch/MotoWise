@@ -27,7 +27,10 @@ export class GqlAuthGuard implements CanActivate {
       request.user = {
         id: payload.sub,
         email: payload.email,
-        role: payload.user_role ?? 'user',
+        // TODO 030 fix: prefer app_metadata.role (set by Supabase DB trigger, not user-editable)
+        // over user_role claim. This value is INFORMATIONAL ONLY — do NOT use for authorization
+        // decisions. All access control must go through RLS policies or a DB query on public.users.role.
+        role: (payload.app_metadata as Record<string, unknown>)?.role ?? payload.user_role ?? 'user',
       };
       request.accessToken = token;
       return true;

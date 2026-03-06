@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
@@ -10,12 +10,13 @@ export class MotorcyclesService {
   async findByUser(userId: string): Promise<Motorcycle[]> {
     const { data, error } = await this.supabase
       .from('motorcycles')
-      .select('*')
+      .select('id, user_id, make, model, year, nickname, is_primary, created_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-    if (error) throw error;
-    return (data ?? []).map(this.mapRow);
+    if (error) throw new InternalServerErrorException('Failed to fetch motorcycles');
+    return (data ?? []).map((row) => this.mapRow(row));
   }
 
   async create(

@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { QuizQuestionSchema } from '@motolearn/types';
+import { z } from 'zod';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Quiz, QuizAttempt } from './models/quiz.model';
@@ -12,7 +14,7 @@ export class QuizzesService {
   ) {}
 
   async findByArticle(articleId: string): Promise<Quiz | null> {
-    const { data, error } = await this.adminClient
+    const { data, error } = await this.userClient
       .from('quizzes')
       .select('*')
       .eq('article_id', articleId)
@@ -22,7 +24,7 @@ export class QuizzesService {
     return {
       id: data.id,
       articleId: data.article_id,
-      questions: data.questions_json as any,
+      questions: z.array(QuizQuestionSchema).parse(data.questions_json),
       generatedAt: data.generated_at,
     };
   }
@@ -31,14 +33,16 @@ export class QuizzesService {
     userId: string,
     input: { quizId: string; answers: number[] },
   ): Promise<QuizAttempt> {
-    const quiz = await this.adminClient
+    // Quiz read uses userClient — quizzes have SELECT USING (true) RLS policy.
+    // Scoring happens server-side to prevent correct-answer leakage to clients.
+    const quiz = await this.userClient
       .from('quizzes')
       .select('questions_json')
       .eq('id', input.quizId)
       .single();
     if (!quiz.data) throw new Error('Quiz not found');
 
-    const questions = quiz.data.questions_json as any[];
+    const questions = z.array(QuizQuestionSchema).parse(quiz.data.questions_json);
     const score = input.answers.reduce((acc, answer, i) => {
       return acc + (questions[i]?.correctIndex === answer ? 1 : 0);
     }, 0);

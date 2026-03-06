@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -5,19 +7,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <h2>MotoLearn Admin</h2>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           <li>
-            <a href="/dashboard">Overview</a>
+            <Link href="/dashboard">Overview</Link>
           </li>
           <li>
-            <a href="/dashboard/articles">Articles</a>
+            <Link href="/dashboard/articles">Articles</Link>
           </li>
           <li>
-            <a href="/dashboard/users">Users</a>
+            <Link href="/dashboard/users">Users</Link>
           </li>
           <li>
-            <a href="/dashboard/diagnostics">Diagnostics</a>
+            <Link href="/dashboard/diagnostics">Diagnostics</Link>
           </li>
           <li>
-            <a href="/dashboard/flags">Content Flags</a>
+            <Link href="/dashboard/flags">Content Flags</Link>
           </li>
         </ul>
       </nav>

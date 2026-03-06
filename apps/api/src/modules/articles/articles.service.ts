@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -8,7 +8,7 @@ import { ArticleConnection } from './models/article-connection.model';
 @Injectable()
 export class ArticlesService {
   constructor(
-    @Inject(SUPABASE_ADMIN) readonly _adminClient: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     @Inject(SUPABASE_USER) private readonly userClient: SupabaseClient,
   ) {}
 
@@ -20,9 +20,9 @@ export class ArticlesService {
     after?: string;
   }): Promise<ArticleConnection> {
     const limit = input.first ?? 20;
-    let query = this.userClient
+    let query = this.adminClient
       .from('articles')
-      .select('*', { count: 'exact' })
+      .select('id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at', { count: 'exact' })
       .eq('is_hidden', false)
       .order('generated_at', { ascending: false })
       .limit(limit + 1);
@@ -33,19 +33,19 @@ export class ArticlesService {
       query = query.textSearch('search_vector', input.query, { type: 'websearch' });
     }
     if (input.after) {
-      const cursorId = Buffer.from(input.after, 'base64').toString('utf-8');
-      query = query.lt('id', cursorId);
+      const cursorDate = Buffer.from(input.after, 'base64').toString('utf-8');
+      query = query.lt('generated_at', cursorDate);
     }
 
     const { data, count, error } = await query;
-    if (error) throw error;
+    if (error) throw new InternalServerErrorException('Failed to search articles');
 
     const hasNextPage = (data?.length ?? 0) > limit;
     const rows = hasNextPage ? data?.slice(0, limit) : (data ?? []);
 
     const edges = rows.map((row) => ({
       node: this.mapRow(row),
-      cursor: Buffer.from(row.id).toString('base64'),
+      cursor: Buffer.from(row.generated_at).toString('base64'),
     }));
 
     return {
@@ -61,7 +61,7 @@ export class ArticlesService {
   }
 
   async findBySlug(slug: string): Promise<Article | null> {
-    const { data, error } = await this.userClient
+    const { data, error } = await this.adminClient
       .from('articles')
       .select('*')
       .eq('slug', slug)

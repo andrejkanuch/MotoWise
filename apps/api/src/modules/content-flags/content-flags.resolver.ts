@@ -1,7 +1,9 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { CreateContentFlagSchema } from '@motolearn/types';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { ContentFlagsService } from './content-flags.service';
 import { CreateFlagInput } from './dto/create-flag.input';
 import { ContentFlag } from './models/content-flag.model';
@@ -14,7 +16,7 @@ export class ContentFlagsResolver {
   @UseGuards(GqlAuthGuard)
   async createFlag(
     @CurrentUser() user: AuthUser,
-    @Args('input') input: CreateFlagInput,
+    @Args('input', new ZodValidationPipe(CreateContentFlagSchema)) input: CreateFlagInput,
   ): Promise<ContentFlag> {
     return this.contentFlagsService.create(user.id, input);
   }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Diagnostic } from './models/diagnostic.model';
@@ -10,12 +10,13 @@ export class DiagnosticsService {
   async findByUser(userId: string): Promise<Diagnostic[]> {
     const { data, error } = await this.supabase
       .from('diagnostics')
-      .select('*')
+      .select('id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, created_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(50);
 
-    if (error) throw error;
-    return (data ?? []).map(this.mapRow);
+    if (error) throw new InternalServerErrorException('Failed to fetch diagnostics');
+    return (data ?? []).map((row) => this.mapRow(row));
   }
 
   async create(
@@ -38,7 +39,7 @@ export class DiagnosticsService {
       .select()
       .single();
 
-    if (error || !data) throw new Error('Failed to create diagnostic');
+    if (error || !data) throw new InternalServerErrorException('Failed to create diagnostic');
     return this.mapRow(data);
   }
 

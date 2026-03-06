@@ -7,18 +7,22 @@ import { User } from './models/user.model';
 export class UsersService {
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
+  private mapRow(row: Record<string, unknown>): User {
+    return {
+      id: row.id as string,
+      email: row.email as string,
+      fullName: row.full_name as string,
+      role: row.role as string,
+      createdAt: row.created_at as string,
+      updatedAt: row.updated_at as string,
+    };
+  }
+
   async findById(id: string): Promise<User> {
     const { data, error } = await this.supabase.from('users').select('*').eq('id', id).single();
 
     if (error || !data) throw new NotFoundException('User not found');
-    return {
-      id: data.id,
-      email: data.email,
-      fullName: data.full_name,
-      role: data.role,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.mapRow(data);
   }
 
   async update(id: string, input: Partial<{ fullName: string }>): Promise<User> {
@@ -30,13 +34,6 @@ export class UsersService {
       .single();
 
     if (error || !data) throw new NotFoundException('User not found');
-    return {
-      id: data.id,
-      email: data.email,
-      fullName: data.full_name,
-      role: data.role,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    };
+    return this.mapRow(data);
   }
 }
