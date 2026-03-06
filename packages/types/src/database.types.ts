@@ -508,6 +508,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      increment_article_view_count: {
+        Args: { p_article_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       mark_article_read: {
         Args: { p_article_id: string; p_user_id: string }
