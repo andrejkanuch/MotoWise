@@ -1,6 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export const metadata: Metadata = {
+  title: 'Admin',
+};
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <nav style={{ width: 240, padding: 16, borderRight: '1px solid #eee' }}>
