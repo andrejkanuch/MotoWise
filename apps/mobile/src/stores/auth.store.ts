@@ -28,7 +28,8 @@ export const useAuthStore = create<AuthState>()(
       locale: 'en',
       colorScheme: 'system',
       onboardingCompleted: false,
-      setSession: (session) => set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
+      setSession: (session) =>
+        set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
       setLoading: (isLoading) => set({ isLoading }),
       setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
       setLocale: (locale) => {

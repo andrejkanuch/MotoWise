@@ -83,7 +83,7 @@ export default function PersonalizingScreen() {
           });
       }
     });
-  }, [experienceLevel, ridingGoals, updateUser, reset]);
+  }, [experienceLevel, ridingGoals, updateUser, reset, setOnboardingCompleted]);
 
   // Animation steps + minimum display time
   useEffect(() => {

@@ -1,4 +1,3 @@
-import { View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const STEP_KEYS = ['s1', 's2', 's3', 's4'] as const;

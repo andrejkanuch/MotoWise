@@ -1,7 +1,7 @@
 import '../global.css';
 import { MeDocument } from '@motolearn/graphql';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider, useQuery } from 'urql';
 import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,12 @@ import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
 
 function NavigationGate({ children }: { children: React.ReactNode }) {
-  const { session, isLoading, onboardingCompleted: storeOnboardingCompleted, setOnboardingCompleted } = useAuthStore();
+  const {
+    session,
+    isLoading,
+    onboardingCompleted: storeOnboardingCompleted,
+    setOnboardingCompleted,
+  } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -39,7 +44,14 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
 
-    console.log('[NavGate]', { segments: segments[0], session: !!session, onboardingCompleted, serverOnboardingCompleted, storeOnboardingCompleted, fetching: meResult.fetching });
+    console.log('[NavGate]', {
+      segments: segments[0],
+      session: !!session,
+      onboardingCompleted,
+      serverOnboardingCompleted,
+      storeOnboardingCompleted,
+      fetching: meResult.fetching,
+    });
 
     let target: string | null = null;
 
@@ -56,9 +68,19 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     if (target) {
       console.log('[NavGate] →', target);
       // Defer navigation to avoid setState-during-render warning
+      // biome-ignore lint/suspicious/noExplicitAny: expo-router replace expects typed route literal
       setTimeout(() => router.replace(target as any), 0);
     }
-  }, [session, segments, isLoading, router, onboardingCompleted, meResult.fetching]);
+  }, [
+    session,
+    segments,
+    isLoading,
+    router,
+    onboardingCompleted,
+    meResult.fetching,
+    serverOnboardingCompleted,
+    storeOnboardingCompleted,
+  ]);
 
   if (isLoading || (session && meResult.fetching)) return null;
 

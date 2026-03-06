@@ -421,9 +421,7 @@ export default function SelectBikeScreen() {
                             backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
                           })}
                         >
-                          <Text style={{ fontSize: 16, color: '#FFFFFF' }}>
-                            {model.modelName}
-                          </Text>
+                          <Text style={{ fontSize: 16, color: '#FFFFFF' }}>{model.modelName}</Text>
                         </Pressable>
                       ))}
                     </ScrollView>

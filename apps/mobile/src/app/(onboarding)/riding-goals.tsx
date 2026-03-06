@@ -1,6 +1,13 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { GraduationCap, Map, Mountain, Navigation, Timer, Wrench } from 'lucide-react-native';
+import {
+  GraduationCap,
+  Map as MapIcon,
+  Mountain,
+  Navigation,
+  Timer,
+  Wrench,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -12,7 +19,7 @@ const GOAL_ICONS = {
   goalCommute: Navigation,
   goalWeekend: Mountain,
   goalTrack: Timer,
-  goalTouring: Map,
+  goalTouring: MapIcon,
   goalLearning: GraduationCap,
   goalMaintenance: Wrench,
 } as const;
