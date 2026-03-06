@@ -2,15 +2,18 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-);
+import { useMemo, useState } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+      ),
+    [],
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +24,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/dashboard');
+      router.push('/');
     }
   };
 
@@ -38,7 +41,7 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         style={{ width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}
       >
-        <h1>MotoLearn Admin</h1>
+        <h1>MotoLearn Sign In</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <input
           type="email"
