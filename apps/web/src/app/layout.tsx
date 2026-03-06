@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'MotoLearn Admin',
-  description: 'Admin dashboard for MotoLearn',
+  title: 'MotoLearn',
+  description: 'AI-powered motorcycle learning & diagnostics platform',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

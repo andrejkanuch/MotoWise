@@ -6,7 +6,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - **Monorepo**: Turborepo + pnpm workspaces
 - **apps/mobile**: Expo 55 (RN 0.83, React 19.2) — user-facing mobile app
 - **apps/api**: NestJS 11 — GraphQL API (code-first, Apollo Server driver) + Claude AI
-- **apps/admin**: Next.js 16 — admin dashboard
+- **apps/web**: Next.js 16 — web app (public pages + admin dashboard)
 - **packages/types**: @motolearn/types — Zod schemas, shared TS types, DB types
 - **packages/graphql**: @motolearn/graphql — generated GraphQL client types (TypedDocumentNode)
 - **packages/tsconfig**: @motolearn/tsconfig — shared TypeScript configurations
@@ -26,7 +26,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - **database.types.ts**: DB row shapes — use ONLY in NestJS services
 - **Zod schemas**: Validation/input types — use at API boundaries, forms, AI response validation
 - **NestJS @ObjectType()**: API contract — defines what GraphQL clients see
-- **TypedDocumentNode**: Generated client types — use in mobile + admin with urql
+- **TypedDocumentNode**: Generated client types — use in mobile + web with urql
 
 ## Update Sequence (when modifying data models)
 1. Update Supabase migration SQL

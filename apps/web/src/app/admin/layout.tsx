@@ -7,19 +7,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <h2>MotoLearn Admin</h2>
         <ul style={{ listStyle: 'none', padding: 0 }}>
           <li>
-            <Link href="/dashboard">Overview</Link>
+            <Link href="/admin">Overview</Link>
           </li>
           <li>
-            <Link href="/dashboard/articles">Articles</Link>
+            <Link href="/admin/articles">Articles</Link>
           </li>
           <li>
-            <Link href="/dashboard/users">Users</Link>
+            <Link href="/admin/users">Users</Link>
           </li>
           <li>
-            <Link href="/dashboard/diagnostics">Diagnostics</Link>
+            <Link href="/admin/diagnostics">Diagnostics</Link>
           </li>
           <li>
-            <Link href="/dashboard/flags">Content Flags</Link>
+            <Link href="/admin/flags">Content Flags</Link>
           </li>
         </ul>
       </nav>

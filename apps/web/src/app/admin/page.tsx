@@ -2,7 +2,7 @@ export default function DashboardPage() {
   return (
     <div>
       <h1>Dashboard</h1>
-      <p>Welcome to MotoLearn Admin Dashboard</p>
+      <p>Welcome to the MotoLearn Admin Dashboard</p>
       <div
         style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 24 }}
       >

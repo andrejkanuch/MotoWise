@@ -22,13 +22,13 @@ export async function middleware(request: NextRequest) {
   });
 
   // Security tradeoff: we use getSession() instead of getUser() here to avoid
-  // a network round-trip to Supabase Auth on every /dashboard/* navigation.
+  // a network round-trip to Supabase Auth on every /admin/* navigation.
   // getSession() reads from the cookie-cached JWT — no network call. The JWT is
   // cryptographically signed, so the claims (including the user role stored in
   // app_metadata) can be trusted for middleware-level routing decisions.
   //
   // For sensitive operations (data mutations, role changes, etc.), individual
-  // dashboard pages / API routes should still verify via getUser() + a DB query
+  // admin pages / API routes should still verify via getUser() + a DB query
   // against public.users to guard against stale JWTs.
   const {
     data: { session },
@@ -63,5 +63,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/admin/:path*'],
 };

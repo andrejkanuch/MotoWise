@@ -1,19 +1,20 @@
-# Admin — Next.js 16
+# Web — Next.js 16
 
 ## Commands
-- `pnpm --filter admin dev` — start dev server (port 3000)
-- `pnpm --filter admin build` — production build
-- `pnpm --filter admin test` — Vitest tests
+- `pnpm --filter web dev` — start dev server (port 3000)
+- `pnpm --filter web build` — production build
+- `pnpm --filter web test` — Vitest tests
 
 ## Architecture
 - Next.js 16 with App Router and Turbopack
 - Supabase SSR auth via @supabase/ssr
 - urql for GraphQL client
-- Admin-only access (checks role='admin' from public.users)
+- Public pages at root, admin pages under /admin (protected by middleware)
+- Admin access requires role='admin' from public.users
 
 ## Patterns
 - Server components by default; 'use client' only when needed
-- Admin role check in middleware/proxy
+- Admin role check in middleware for /admin/* routes
 - Security headers configured in next.config.ts
 - Import types from @motolearn/types and @motolearn/graphql
 

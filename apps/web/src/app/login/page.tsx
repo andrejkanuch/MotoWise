@@ -21,7 +21,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/dashboard');
+      router.push('/admin');
     }
   };
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
         onSubmit={handleLogin}
         style={{ width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}
       >
-        <h1>MotoLearn Admin</h1>
+        <h1>MotoLearn Sign In</h1>
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <input
           type="email"

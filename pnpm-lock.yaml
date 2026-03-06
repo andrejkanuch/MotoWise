@@ -26,55 +26,6 @@ importers:
         specifier: ~5.7.0
         version: 5.7.3
 
-  apps/admin:
-    dependencies:
-      '@motolearn/graphql':
-        specifier: workspace:*
-        version: link:../../packages/graphql
-      '@motolearn/types':
-        specifier: workspace:*
-        version: link:../../packages/types
-      '@supabase/ssr':
-        specifier: ^0.6.0
-        version: 0.6.1(@supabase/supabase-js@2.98.0)
-      '@supabase/supabase-js':
-        specifier: ^2.98.0
-        version: 2.98.0
-      graphql:
-        specifier: ^16.10.0
-        version: 16.13.1
-      next:
-        specifier: ^16.0.0
-        version: 16.1.6(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      react:
-        specifier: 19.2.0
-        version: 19.2.0
-      react-dom:
-        specifier: 19.2.0
-        version: 19.2.0(react@19.2.0)
-      urql:
-        specifier: ^4.2.0
-        version: 4.2.2(@urql/core@5.2.0(graphql@16.13.1))(react@19.2.0)
-    devDependencies:
-      '@motolearn/tsconfig':
-        specifier: workspace:*
-        version: link:../../packages/tsconfig
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.19.15
-      '@types/react':
-        specifier: ~19.2.0
-        version: 19.2.14
-      '@types/react-dom':
-        specifier: ~19.2.0
-        version: 19.2.3(@types/react@19.2.14)
-      typescript:
-        specifier: ~5.7.0
-        version: 5.7.3
-      vitest:
-        specifier: ^3.0.0
-        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(jsdom@20.0.3)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
-
   apps/api:
     dependencies:
       '@apollo/server':
@@ -250,6 +201,55 @@ importers:
       typescript:
         specifier: ~5.7.0
         version: 5.7.3
+
+  apps/web:
+    dependencies:
+      '@motolearn/graphql':
+        specifier: workspace:*
+        version: link:../../packages/graphql
+      '@motolearn/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@supabase/ssr':
+        specifier: ^0.6.0
+        version: 0.6.1(@supabase/supabase-js@2.98.0)
+      '@supabase/supabase-js':
+        specifier: ^2.98.0
+        version: 2.98.0
+      graphql:
+        specifier: ^16.10.0
+        version: 16.13.1
+      next:
+        specifier: ^16.0.0
+        version: 16.1.6(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      react-dom:
+        specifier: 19.2.0
+        version: 19.2.0(react@19.2.0)
+      urql:
+        specifier: ^4.2.0
+        version: 4.2.2(@urql/core@5.2.0(graphql@16.13.1))(react@19.2.0)
+    devDependencies:
+      '@motolearn/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.15
+      '@types/react':
+        specifier: ~19.2.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ~19.2.0
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: ~5.7.0
+        version: 5.7.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@22.19.15)(jiti@2.6.1)(jsdom@20.0.3)(lightningcss@1.31.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/graphql:
     devDependencies:
@@ -8611,7 +8611,7 @@ snapshots:
   '@graphql-tools/optimize@2.0.0(graphql@16.13.1)':
     dependencies:
       graphql: 16.13.1
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   '@graphql-tools/prisma-loader@8.0.17(@types/node@22.19.15)(graphql@16.13.1)':
     dependencies:
@@ -8646,7 +8646,7 @@ snapshots:
       '@ardatan/relay-compiler': 13.0.0(graphql@16.13.1)
       '@graphql-tools/utils': 11.0.0(graphql@16.13.1)
       graphql: 16.13.1
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   '@graphql-tools/schema@10.0.31(graphql@16.13.1)':
     dependencies:
