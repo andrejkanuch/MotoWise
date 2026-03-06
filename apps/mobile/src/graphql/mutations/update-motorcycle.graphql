@@ -1,0 +1,9 @@
+mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {
+  updateMotorcycle(id: $id, input: $input) {
+    id
+    make
+    model
+    year
+    nickname
+  }
+}

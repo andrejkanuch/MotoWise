@@ -1,0 +1,7 @@
+query MotorcycleMakes {
+  motorcycleMakes {
+    makeId
+    makeName
+    isPopular
+  }
+}

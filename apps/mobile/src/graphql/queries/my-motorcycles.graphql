@@ -1,0 +1,12 @@
+query MyMotorcycles {
+  myMotorcycles {
+    id
+    userId
+    make
+    model
+    year
+    nickname
+    isPrimary
+    createdAt
+  }
+}

@@ -1,0 +1,11 @@
+mutation CreateMotorcycle($input: CreateMotorcycleInput!) {
+  createMotorcycle(input: $input) {
+    id
+    make
+    model
+    year
+    nickname
+    isPrimary
+    createdAt
+  }
+}
