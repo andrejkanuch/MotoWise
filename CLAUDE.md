@@ -9,6 +9,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - **apps/web**: Next.js 16 — web app (public pages + admin dashboard)
 - **packages/types**: @motolearn/types — Zod schemas, shared TS types, DB types
 - **packages/graphql**: @motolearn/graphql — generated GraphQL client types (TypedDocumentNode)
+- **packages/design-system**: @motolearn/design-system — CSS tokens, semantic colors, JS color/typography/spacing constants
 - **packages/tsconfig**: @motolearn/tsconfig — shared TypeScript configurations
 - **supabase/**: Database migrations, seeds, RLS policies
 
@@ -60,6 +61,29 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced
 - NEVER use service-role for user-scoped queries
 - NEVER expose service-role key to clients
+
+## Auth Pattern
+- Supabase Auth for all auth (email, Google, Apple)
+- Mobile stores tokens in expo-secure-store (NEVER AsyncStorage)
+- API validates JWT locally via jose (no network call) in GqlAuthGuard
+- @CurrentUser() decorator extracts AuthUser from context
+- OAuth uses `signInWithIdToken` (native) not `signInWithOAuth` (browser)
+
+## Mobile UI Patterns
+- Use react-native-reanimated v4 for animations (never RN Animated API)
+- Use expo-haptics on iOS for interactive feedback
+- Use `borderCurve: 'continuous'` on all rounded elements
+- Use `presentation: 'formSheet'` for modals (add-bike, confirm dialogs)
+- Use FadeIn/FadeInUp/SlideInUp from reanimated for enter animations
+- Stagger list items: `FadeInUp.delay(index * 50)`
+- Keep animations under 300ms
+- Use inline styles (not StyleSheet.create) unless reusing across components
+
+## External APIs
+- NHTSA vPIC API (https://vpic.nhtsa.dot.gov/api/) for motorcycle make/model/year data
+  - `GetMakesForVehicleType/motorcycle` — all motorcycle makes
+  - `GetModelsForMakeIdYear/makeId/{id}/modelyear/{year}/vehicletype/motorcycle` — models
+  - Free, no API key required
 
 ## Do NOT
 - Import from apps/ into packages/

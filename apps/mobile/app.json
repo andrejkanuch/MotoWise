@@ -22,11 +22,14 @@
           "photosPermission": "MotoLearn needs photo library access to upload diagnostic images."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "ios": {
       "bundleIdentifier": "com.motolearn.app",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.motolearn.app",

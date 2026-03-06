@@ -45,7 +45,30 @@ export class MotorcyclesService {
     return this.mapRow(data);
   }
 
-  async softDelete(userId: string, motorcycleId: string): Promise<void> {
+  async update(
+    userId: string,
+    motorcycleId: string,
+    input: { make?: string; model?: string; year?: number; nickname?: string },
+  ): Promise<Motorcycle> {
+    const updates: Record<string, unknown> = {};
+    if (input.make != null) updates.make = input.make;
+    if (input.model != null) updates.model = input.model;
+    if (input.year != null) updates.year = input.year;
+    if (input.nickname != null) updates.nickname = input.nickname;
+
+    const { data, error } = await this.supabase
+      .from('motorcycles')
+      .update(updates)
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error || !data) throw new BadRequestException('Failed to update motorcycle');
+    return this.mapRow(data);
+  }
+
+  async softDelete(userId: string, motorcycleId: string): Promise<boolean> {
     const { error } = await this.supabase
       .from('motorcycles')
       .update({ deleted_at: new Date().toISOString() })
@@ -53,6 +76,7 @@ export class MotorcyclesService {
       .eq('user_id', userId);
 
     if (error) throw new InternalServerErrorException('Failed to delete motorcycle');
+    return true;
   }
 
   private mapRow(

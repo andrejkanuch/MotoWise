@@ -20,7 +20,10 @@
     "fullName": "Full Name",
     "noAccount": "Don't have an account? Sign Up",
     "hasAccount": "Already have an account? Sign In",
-    "tagline": "Learn Your Bike. Fix Your Bike."
+    "tagline": "Learn Your Bike. Fix Your Bike.",
+    "continueWithApple": "Continue with Apple",
+    "continueWithGoogle": "Continue with Google",
+    "orContinueWithEmail": "or continue with email"
   },
   "tabs": {
     "learn": "Learn",
@@ -46,7 +49,17 @@
     "makePlaceholder": "Make (e.g. Honda)",
     "modelPlaceholder": "Model (e.g. CB500F)",
     "yearPlaceholder": "Year",
-    "bikePrefix": "Bike: {{id}}"
+    "bikePrefix": "Bike: {{id}}",
+    "noBikes": "No bikes in your garage yet",
+    "addFirstBike": "Add your first bike",
+    "year": "Year",
+    "make": "Make",
+    "model": "Model",
+    "nickname": "Nickname (optional)",
+    "saving": "Saving...",
+    "deleteBike": "Delete Bike",
+    "confirmDelete": "Are you sure you want to remove this bike?",
+    "bikeDeleted": "Bike removed from garage"
   },
   "profile": {
     "title": "Profile",
@@ -57,6 +70,36 @@
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to MotoWise",
+    "welcomeSubtitle": "Tell us about your riding experience",
+    "beginner": "Beginner",
+    "beginnerDesc": "Just getting started or considering riding",
+    "intermediate": "Intermediate",
+    "intermediateDesc": "Comfortable riding, learning maintenance",
+    "advanced": "Advanced",
+    "advancedDesc": "Experienced rider, deep into DIY",
+    "continue": "Continue",
+    "addBikeTitle": "Add Your First Bike",
+    "addBikeSubtitle": "We'll personalize content for your motorcycle",
+    "searchMake": "Search make...",
+    "selectModel": "Select model",
+    "yearPlaceholder": "Year (e.g. 2024)",
+    "nicknamePlaceholder": "Nickname (optional)",
+    "skipForNow": "Skip for now",
+    "goalsTitle": "What are your riding goals?",
+    "goalsSubtitle": "Select all that apply",
+    "goalCommute": "Daily Commute",
+    "goalWeekend": "Weekend Rides",
+    "goalTrack": "Track Days",
+    "goalTouring": "Touring",
+    "goalLearning": "Learning to Ride",
+    "goalMaintenance": "DIY Maintenance",
+    "personalizingTitle": "Personalizing your experience...",
+    "personalizingStep1": "Analyzing your preferences...",
+    "personalizingStep2": "Curating content for your bike...",
+    "personalizingStep3": "Setting up your dashboard..."
   },
   "notFound": {
     "message": "Page not found",

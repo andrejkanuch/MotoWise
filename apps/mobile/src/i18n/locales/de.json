@@ -20,7 +20,10 @@
     "fullName": "Vollständiger Name",
     "noAccount": "Kein Konto? Registrieren",
     "hasAccount": "Bereits ein Konto? Anmelden",
-    "tagline": "Lerne dein Motorrad. Repariere dein Motorrad."
+    "tagline": "Lerne dein Motorrad. Repariere dein Motorrad.",
+    "continueWithApple": "Weiter mit Apple",
+    "continueWithGoogle": "Weiter mit Google",
+    "orContinueWithEmail": "oder weiter mit E-Mail"
   },
   "tabs": {
     "learn": "Lernen",
@@ -46,7 +49,17 @@
     "makePlaceholder": "Marke (z.B. Honda)",
     "modelPlaceholder": "Modell (z.B. CB500F)",
     "yearPlaceholder": "Jahr",
-    "bikePrefix": "Motorrad: {{id}}"
+    "bikePrefix": "Motorrad: {{id}}",
+    "noBikes": "Noch keine Motorraeder in deiner Garage",
+    "addFirstBike": "Fuege dein erstes Motorrad hinzu",
+    "year": "Jahr",
+    "make": "Marke",
+    "model": "Modell",
+    "nickname": "Spitzname (optional)",
+    "saving": "Speichern...",
+    "deleteBike": "Motorrad loeschen",
+    "confirmDelete": "Bist du sicher, dass du dieses Motorrad entfernen moechtest?",
+    "bikeDeleted": "Motorrad aus der Garage entfernt"
   },
   "profile": {
     "title": "Profil",
@@ -57,6 +70,36 @@
     "themeSystem": "System",
     "themeLight": "Hell",
     "themeDark": "Dunkel"
+  },
+  "onboarding": {
+    "welcomeTitle": "Willkommen bei MotoWise",
+    "welcomeSubtitle": "Erzähl uns von deiner Fahrerfahrung",
+    "beginner": "Anfänger",
+    "beginnerDesc": "Gerade erst angefangen oder überlegst zu fahren",
+    "intermediate": "Fortgeschritten",
+    "intermediateDesc": "Sicher im Sattel, lerne Wartung",
+    "advanced": "Experte",
+    "advancedDesc": "Erfahrener Fahrer, tief in DIY",
+    "continue": "Weiter",
+    "addBikeTitle": "Füge dein erstes Motorrad hinzu",
+    "addBikeSubtitle": "Wir passen Inhalte für dein Motorrad an",
+    "searchMake": "Marke suchen...",
+    "selectModel": "Modell auswählen",
+    "yearPlaceholder": "Baujahr (z.B. 2024)",
+    "nicknamePlaceholder": "Spitzname (optional)",
+    "skipForNow": "Vorerst überspringen",
+    "goalsTitle": "Was sind deine Fahrziele?",
+    "goalsSubtitle": "Wähle alle zutreffenden aus",
+    "goalCommute": "Tägliches Pendeln",
+    "goalWeekend": "Wochenendfahrten",
+    "goalTrack": "Renntage",
+    "goalTouring": "Touren",
+    "goalLearning": "Fahren lernen",
+    "goalMaintenance": "Eigene Wartung",
+    "personalizingTitle": "Dein Erlebnis wird personalisiert...",
+    "personalizingStep1": "Deine Vorlieben werden analysiert...",
+    "personalizingStep2": "Inhalte für dein Motorrad werden zusammengestellt...",
+    "personalizingStep3": "Dein Dashboard wird eingerichtet..."
   },
   "notFound": {
     "message": "Seite nicht gefunden",

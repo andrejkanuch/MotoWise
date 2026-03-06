@@ -1,0 +1,6 @@
+query MotorcycleModels($makeId: Int!, $year: Int!) {
+  motorcycleModels(makeId: $makeId, year: $year) {
+    modelId
+    modelName
+  }
+}
