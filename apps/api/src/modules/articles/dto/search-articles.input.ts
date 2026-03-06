@@ -1,8 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import {
-  GqlArticleCategory,
-  GqlArticleDifficulty,
-} from '../../../common/enums/graphql-enums';
+import { GqlArticleCategory, GqlArticleDifficulty } from '../../../common/enums/graphql-enums';
 
 @InputType()
 export class SearchArticlesInput {

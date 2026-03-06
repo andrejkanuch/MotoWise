@@ -10,7 +10,9 @@ export class LearningProgressService {
   async findByUser(userId: string): Promise<LearningProgress[]> {
     const { data, error } = await this.supabase
       .from('learning_progress')
-      .select('id, user_id, article_id, article_read, quiz_completed, quiz_best_score, first_read_at, last_read_at')
+      .select(
+        'id, user_id, article_id, article_read, quiz_completed, quiz_best_score, first_read_at, last_read_at',
+      )
       .eq('user_id', userId)
       .order('last_read_at', { ascending: false })
       .limit(50);
@@ -38,7 +40,8 @@ export class LearningProgressService {
       .select()
       .single();
 
-    if (error || !data) throw new InternalServerErrorException('Failed to update learning progress');
+    if (error || !data)
+      throw new InternalServerErrorException('Failed to update learning progress');
 
     // For newly-inserted rows first_read_at will be NULL — set it once.
     if (!data.first_read_at) {
@@ -51,7 +54,8 @@ export class LearningProgressService {
         .select()
         .single();
 
-      if (updateError || !updated) throw new InternalServerErrorException('Failed to update learning progress');
+      if (updateError || !updated)
+        throw new InternalServerErrorException('Failed to update learning progress');
       return this.mapRow(updated);
     }
 

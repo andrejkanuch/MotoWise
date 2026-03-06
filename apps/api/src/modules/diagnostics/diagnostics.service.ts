@@ -10,7 +10,9 @@ export class DiagnosticsService {
   async findByUser(userId: string): Promise<Diagnostic[]> {
     const { data, error } = await this.supabase
       .from('diagnostics')
-      .select('id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, created_at')
+      .select(
+        'id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, created_at',
+      )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50);

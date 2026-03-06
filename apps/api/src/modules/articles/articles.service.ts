@@ -22,7 +22,10 @@ export class ArticlesService {
     const limit = input.first ?? 20;
     let query = this.adminClient
       .from('articles')
-      .select('id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at', { count: 'exact' })
+      .select(
+        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
+        { count: 'exact' },
+      )
       .eq('is_hidden', false)
       .order('generated_at', { ascending: false })
       .limit(limit + 1);

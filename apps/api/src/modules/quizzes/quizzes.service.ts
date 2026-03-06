@@ -1,6 +1,6 @@
+import { QuizQuestionSchema } from '@motolearn/types';
 import { Inject, Injectable } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { QuizQuestionSchema } from '@motolearn/types';
 import { z } from 'zod';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
