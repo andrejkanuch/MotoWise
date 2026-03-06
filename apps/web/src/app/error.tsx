@@ -14,30 +14,22 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        gap: 16,
-      }}
-    >
-      <h1>Something went wrong</h1>
-      <p>An unexpected error occurred. Please try again.</p>
-      {error.digest && <p style={{ fontSize: 12, color: '#999' }}>Reference: {error.digest}</p>}
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[--color-surface] dark:bg-neutral-900">
+      <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">
+        Something went wrong
+      </h1>
+      <p className="text-[--color-on-surface-muted] dark:text-neutral-300">
+        An unexpected error occurred. Please try again.
+      </p>
+      {error.digest && (
+        <p className="text-xs text-neutral-400 dark:text-neutral-500">
+          Reference: {error.digest}
+        </p>
+      )}
       <button
         type="button"
         onClick={reset}
-        style={{
-          padding: '12px 24px',
-          background: '#007AFF',
-          color: '#fff',
-          borderRadius: 8,
-          border: 'none',
-          cursor: 'pointer',
-        }}
+        className="px-6 py-3 bg-primary-500 text-white rounded-[--radius-button] border-none cursor-pointer hover:bg-primary-600 transition-colors"
       >
         Try Again
       </button>

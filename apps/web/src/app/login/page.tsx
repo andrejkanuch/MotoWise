@@ -29,26 +29,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-      }}
-    >
+    <div className="flex justify-center items-center min-h-screen bg-[--color-surface] dark:bg-neutral-900">
       <form
         onSubmit={handleLogin}
-        style={{ width: 360, display: 'flex', flexDirection: 'column', gap: 16 }}
+        className="w-[360px] flex flex-col gap-4"
       >
-        <h1>MotoLearn Sign In</h1>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">
+          MotoLearn Sign In
+        </h1>
+        {error && <p className="text-danger-500">{error}</p>}
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="px-3 py-2 bg-[--color-input-bg] border border-[--color-input-border] rounded-[--radius-input] text-[--color-on-surface] dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
         <input
           type="password"
@@ -56,8 +52,14 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className="px-3 py-2 bg-[--color-input-bg] border border-[--color-input-border] rounded-[--radius-input] text-[--color-on-surface] dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
-        <button type="submit">Sign In</button>
+        <button
+          type="submit"
+          className="px-6 py-3 bg-primary-500 text-white rounded-[--radius-button] border-none cursor-pointer hover:bg-primary-600 transition-colors"
+        >
+          Sign In
+        </button>
       </form>
     </div>
   );

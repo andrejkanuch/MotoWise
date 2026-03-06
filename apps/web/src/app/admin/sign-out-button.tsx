@@ -19,14 +19,7 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={handleSignOut}
-      style={{
-        background: 'none',
-        border: 'none',
-        color: '#e74c3c',
-        cursor: 'pointer',
-        padding: 0,
-        fontSize: 14,
-      }}
+      className="bg-transparent border-none text-danger-500 cursor-pointer p-0 text-sm hover:text-danger-600 dark:text-danger-400 dark:hover:text-danger-300 transition-colors"
     >
       Sign Out
     </button>
