@@ -32,4 +32,4 @@
 - Not handling loading/error states in urql queries
 - Missing expo-camera permissions in app.json
 - Storing tokens in AsyncStorage instead of expo-secure-store
-- Using @expo/vector-icons (use expo-symbols/SymbolView or SF Symbols)
+- Using @expo/vector-icons or expo-symbols (use lucide-react-native)

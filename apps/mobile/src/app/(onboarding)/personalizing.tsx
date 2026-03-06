@@ -1,4 +1,3 @@
-import { colors } from '@motolearn/design-system';
 import { UpdateUserDocument } from '@motolearn/graphql';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -12,8 +11,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useMutation } from 'urql';
+import { Search, Bike, LayoutDashboard, Sparkles, Check } from 'lucide-react-native';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
+const STEP_ICONS = [Search, Bike, LayoutDashboard] as const;
 const STEPS = ['personalizingStep1', 'personalizingStep2', 'personalizingStep3'] as const;
 const MIN_ANIMATION_MS = 3200;
 
@@ -96,13 +97,13 @@ export default function PersonalizingScreen() {
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.primary[950],
+        backgroundColor: '#0F172A',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
       }}
     >
-      {/* Pulsing ring */}
+      {/* Pulsing ring + Sparkles icon */}
       <View
         style={{
           width: 120,
@@ -121,7 +122,7 @@ export default function PersonalizingScreen() {
               borderRadius: 60,
               borderCurve: 'continuous',
               borderWidth: 3,
-              borderColor: colors.primary[500],
+              borderColor: '#818CF8',
             },
             pulseStyle,
           ]}
@@ -132,9 +133,13 @@ export default function PersonalizingScreen() {
             height: 60,
             borderRadius: 30,
             borderCurve: 'continuous',
-            backgroundColor: colors.primary[500],
+            backgroundColor: '#818CF8',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
-        />
+        >
+          <Sparkles size={28} color="#FFFFFF" strokeWidth={2} />
+        </View>
       </View>
 
       <Text
@@ -149,22 +154,32 @@ export default function PersonalizingScreen() {
         {t('onboarding.personalizingTitle')}
       </Text>
 
-      <View style={{ gap: 16, alignItems: 'center' }}>
-        {STEPS.map((stepKey, index) =>
-          visibleSteps > index ? (
-            <Animated.Text
+      <View style={{ gap: 16, alignItems: 'flex-start' }}>
+        {STEPS.map((stepKey, index) => {
+          const StepIcon = STEP_ICONS[index];
+          return visibleSteps > index ? (
+            <Animated.View
               key={stepKey}
               entering={FadeInUp.duration(400)}
               style={{
-                fontSize: 16,
-                color: 'rgba(255,255,255,0.6)',
-                textAlign: 'center',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
               }}
             >
-              {t(`onboarding.${stepKey}`)}
-            </Animated.Text>
-          ) : null,
-        )}
+              <StepIcon size={18} color="rgba(255,255,255,0.5)" />
+              <Text
+                style={{
+                  fontSize: 16,
+                  color: 'rgba(255,255,255,0.6)',
+                }}
+              >
+                {t(`onboarding.${stepKey}`)}
+              </Text>
+              <Check size={16} color="#34D399" />
+            </Animated.View>
+          ) : null;
+        })}
       </View>
     </View>
   );

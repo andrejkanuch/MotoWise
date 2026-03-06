@@ -23,7 +23,9 @@
     "tagline": "Learn Your Bike. Fix Your Bike.",
     "continueWithApple": "Continue with Apple",
     "continueWithGoogle": "Continue with Google",
-    "orContinueWithEmail": "or continue with email"
+    "orContinueWithEmail": "or continue with email",
+    "checkEmail": "Check Your Email",
+    "confirmationSent": "We sent a confirmation link to your email. Please verify to continue."
   },
   "tabs": {
     "learn": "Learn",

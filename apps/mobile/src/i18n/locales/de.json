@@ -23,7 +23,9 @@
     "tagline": "Lerne dein Motorrad. Repariere dein Motorrad.",
     "continueWithApple": "Weiter mit Apple",
     "continueWithGoogle": "Weiter mit Google",
-    "orContinueWithEmail": "oder weiter mit E-Mail"
+    "orContinueWithEmail": "oder weiter mit E-Mail",
+    "checkEmail": "E-Mail prüfen",
+    "confirmationSent": "Wir haben einen Bestätigungslink an deine E-Mail gesendet. Bitte bestätige, um fortzufahren."
   },
   "tabs": {
     "learn": "Lernen",
