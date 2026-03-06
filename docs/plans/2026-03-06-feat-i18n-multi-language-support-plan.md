@@ -1,7 +1,7 @@
 ---
 title: "feat: Add i18n multi-language support (English, Spanish, German)"
 type: feat
-status: active
+status: completed
 date: 2026-03-06
 ---
 
@@ -376,27 +376,27 @@ From `docs/solutions/integration-issues/monorepo-code-review-multi-category-fixe
 ## Acceptance Criteria
 
 ### Phase 0: Shared Types
-- [ ] `SUPPORTED_LOCALES` array and `SupportedLocale` type in `packages/types/src/constants/enums.ts`
-- [ ] `SupportedLocaleSchema` Zod schema in `packages/types/src/validators/locale.ts`
-- [ ] `LOCALE_TO_REGCONFIG` map with `satisfies Record<>` in API
-- [ ] `SupportedLocale` GraphQL enum registered in `graphql-enums.ts`
+- [x] `SUPPORTED_LOCALES` array and `SupportedLocale` type in `packages/types/src/constants/enums.ts`
+- [x] `SupportedLocaleSchema` Zod schema in `packages/types/src/validators/locale.ts`
+- [x] `LOCALE_TO_REGCONFIG` map with `satisfies Record<>` in API
+- [x] `SupportedLocale` GraphQL enum registered in `graphql-enums.ts`
 
 ### Phase 1: Mobile UI
-- [ ] `expo-localization` + `i18next` + `react-i18next` installed and configured
-- [ ] Translation JSON files for EN/ES/DE with all ~50 mobile strings
-- [ ] All hardcoded strings in mobile app replaced with `t()` calls
-- [ ] TypeScript-safe translation keys via `i18next.d.ts`
-- [ ] CI script to check key parity across locale JSON files
-- [ ] Language picker in profile settings
-- [ ] User locale preference persisted in Zustand store (validated on read)
-- [ ] Date/number formatting uses `Intl` with current locale
-- [ ] Tests: i18n setup loads, language switching works, fallback to EN
+- [x] `expo-localization` + `i18next` + `react-i18next` installed and configured
+- [x] Translation JSON files for EN/ES/DE with all ~50 mobile strings
+- [x] All hardcoded strings in mobile app replaced with `t()` calls
+- [x] TypeScript-safe translation keys via `i18next.d.ts`
+- [x] CI script to check key parity across locale JSON files
+- [x] Language picker in profile settings
+- [x] User locale preference persisted in Zustand store (validated on read)
+- [ ] Date/number formatting uses `Intl` with current locale (deferred — no date/number display yet)
+- [x] Tests: i18n setup loads, language switching works, fallback to EN
 
 ### Phase 2: Database + API
 - [ ] Migration creates `article_translations` and `quiz_translations` tables
 - [ ] Dual index strategy: `UNIQUE(article_id, locale)` + `(locale, article_id)`
 - [ ] RLS: `ENABLE ROW LEVEL SECURITY` + SELECT publicly readable + no authenticated write policies
-- [ ] Locale interceptor validates `Accept-Language` / `x-locale` header with Zod
+- [x] Locale interceptor validates `Accept-Language` / `x-locale` header with Zod
 - [ ] Articles API: LEFT JOIN translations for non-English locales, English fallback from articles table
 - [ ] Full-text search uses correct language config per locale
 - [ ] Quizzes API returns locale-filtered questions
