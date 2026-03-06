@@ -19,6 +19,15 @@ export class LearningProgressService {
 
   async markRead(userId: string, articleId: string): Promise<LearningProgress> {
     const now = new Date().toISOString();
+
+    // Try to find existing progress
+    const { data: existing } = await this.supabase
+      .from('learning_progress')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('article_id', articleId)
+      .single();
+
     const { data, error } = await this.supabase
       .from('learning_progress')
       .upsert(
@@ -26,7 +35,7 @@ export class LearningProgressService {
           user_id: userId,
           article_id: articleId,
           article_read: true,
-          first_read_at: now,
+          first_read_at: existing ? undefined : now,
           last_read_at: now,
         },
         { onConflict: 'user_id,article_id' },

@@ -9,9 +9,6 @@ export class QuizQuestion {
   options: string[];
 
   @Field()
-  correctIndex: number;
-
-  @Field()
   explanation: string;
 }
 

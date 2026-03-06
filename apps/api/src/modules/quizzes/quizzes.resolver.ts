@@ -11,6 +11,7 @@ export class QuizzesResolver {
   constructor(private readonly quizzesService: QuizzesService) {}
 
   @Query(() => Quiz, { nullable: true })
+  @UseGuards(GqlAuthGuard)
   async quizByArticle(@Args('articleId') articleId: string): Promise<Quiz | null> {
     return this.quizzesService.findByArticle(articleId);
   }

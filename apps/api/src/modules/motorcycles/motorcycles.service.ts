@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
@@ -34,7 +34,7 @@ export class MotorcyclesService {
       .select()
       .single();
 
-    if (error || !data) throw new NotFoundException('Failed to create motorcycle');
+    if (error || !data) throw new BadRequestException('Failed to create motorcycle');
     return this.mapRow(data);
   }
 

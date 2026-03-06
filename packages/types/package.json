@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@motolearn/tsconfig": "workspace:*"
   }
 }

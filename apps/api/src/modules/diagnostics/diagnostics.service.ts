@@ -20,7 +20,11 @@ export class DiagnosticsService {
 
   async create(
     userId: string,
-    input: { motorcycleId: string; wizardAnswers?: string; dataSharingOptedIn: boolean },
+    input: {
+      motorcycleId: string;
+      wizardAnswers?: Record<string, string> | null;
+      dataSharingOptedIn: boolean;
+    },
   ): Promise<Diagnostic> {
     const { data, error } = await this.supabase
       .from('diagnostics')
@@ -28,7 +32,7 @@ export class DiagnosticsService {
         user_id: userId,
         motorcycle_id: input.motorcycleId,
         result_json: {},
-        wizard_answers: input.wizardAnswers ? JSON.parse(input.wizardAnswers) : null,
+        wizard_answers: input.wizardAnswers ?? null,
         data_sharing_opted_in: input.dataSharingOptedIn,
       })
       .select()

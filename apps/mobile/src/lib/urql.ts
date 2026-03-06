@@ -1,6 +1,6 @@
 import { authExchange } from '@urql/exchange-auth';
-import * as SecureStore from 'expo-secure-store';
 import { Client, cacheExchange, fetchExchange } from 'urql';
+import { supabase } from './supabase';
 
 export function createUrqlClient() {
   return new Client({
@@ -8,7 +8,13 @@ export function createUrqlClient() {
     exchanges: [
       cacheExchange,
       authExchange(async (utils) => {
-        let token = await SecureStore.getItemAsync('supabase_token');
+        let token: string | null = null;
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        token = session?.access_token ?? null;
+
         return {
           addAuthToOperation(operation) {
             if (!token) return operation;
@@ -20,7 +26,8 @@ export function createUrqlClient() {
           didAuthError: (error) =>
             error.graphQLErrors.some((e) => e.extensions?.code === 'UNAUTHENTICATED'),
           async refreshAuth() {
-            token = null;
+            const { data } = await supabase.auth.refreshSession();
+            token = data.session?.access_token ?? null;
           },
         };
       }),
