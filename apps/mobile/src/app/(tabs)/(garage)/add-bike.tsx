@@ -1,35 +1,37 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function AddBikeScreen() {
+  const { t } = useTranslation();
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add a Bike</Text>
+      <Text style={styles.title}>{t('garage.addBikeTitle')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Make (e.g. Honda)"
+        placeholder={t('garage.makePlaceholder')}
         value={make}
         onChangeText={setMake}
       />
       <TextInput
         style={styles.input}
-        placeholder="Model (e.g. CB500F)"
+        placeholder={t('garage.modelPlaceholder')}
         value={model}
         onChangeText={setModel}
       />
       <TextInput
         style={styles.input}
-        placeholder="Year"
+        placeholder={t('garage.yearPlaceholder')}
         value={year}
         onChangeText={setYear}
         keyboardType="numeric"
       />
       <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Add Bike</Text>
+        <Text style={styles.buttonText}>{t('garage.addBike')}</Text>
       </Pressable>
     </View>
   );

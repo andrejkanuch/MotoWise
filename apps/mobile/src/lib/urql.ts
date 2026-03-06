@@ -1,11 +1,9 @@
 import { authExchange } from '@urql/exchange-auth';
 import { Client, cacheExchange, fetchExchange } from 'urql';
+import { useAuthStore } from '../stores/auth.store';
 import { supabase } from './supabase';
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL;
-if (!apiUrl) {
-  throw new Error('Missing EXPO_PUBLIC_API_URL environment variable');
-}
+const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 export function createUrqlClient() {
   return new Client({
@@ -22,9 +20,13 @@ export function createUrqlClient() {
 
         return {
           addAuthToOperation(operation) {
-            if (!token) return operation;
+            const locale = useAuthStore.getState().locale;
+            if (!token) {
+              return utils.appendHeaders(operation, { 'x-locale': locale });
+            }
             return utils.appendHeaders(operation, {
               Authorization: `Bearer ${token}`,
+              'x-locale': locale,
             });
           },
           willAuthError: () => !token,

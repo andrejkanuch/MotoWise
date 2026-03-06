@@ -1,12 +1,14 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function QuizScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Quiz: {id}</Text>
+      <Text style={styles.text}>{t('learn.quizPrefix', { id })}</Text>
     </View>
   );
 }

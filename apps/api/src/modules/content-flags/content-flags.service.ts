@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import type { Tables } from '@motolearn/types/database';
+import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { ContentFlag } from './models/content-flag.model';
@@ -22,15 +23,19 @@ export class ContentFlagsService {
       .select()
       .single();
 
-    if (error || !data) throw new Error('Failed to create flag');
+    if (error || !data) throw new InternalServerErrorException('Failed to create flag');
+    return this.mapRow(data);
+  }
+
+  private mapRow(row: Tables<'content_flags'>): ContentFlag {
     return {
-      id: data.id,
-      articleId: data.article_id,
-      userId: data.user_id,
-      sectionReference: data.section_reference,
-      comment: data.comment,
-      status: data.status,
-      createdAt: data.created_at,
+      id: row.id,
+      articleId: row.article_id,
+      userId: row.user_id,
+      sectionReference: row.section_reference ?? undefined,
+      comment: row.comment,
+      status: row.status,
+      createdAt: row.created_at,
     };
   }
 }

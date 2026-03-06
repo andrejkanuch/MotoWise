@@ -22,6 +22,9 @@ export class Diagnostic {
   relatedArticleId?: string;
 
   @Field()
+  status: string;
+
+  @Field()
   dataSharingOptedIn: boolean;
 
   @Field()

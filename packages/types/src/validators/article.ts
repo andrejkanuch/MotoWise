@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ArticleDifficulty, ArticleCategory } from '../constants/enums';
+import { ArticleCategory, ArticleDifficulty } from '../constants/enums';
 
 const difficulties = Object.values(ArticleDifficulty) as [string, ...string[]];
 const categories = Object.values(ArticleCategory) as [string, ...string[]];

@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider } from 'urql';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
@@ -10,6 +11,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: recreate client when user changes
   const urqlClient = useMemo(() => createUrqlClient(), [session?.user?.id]);
 
   useEffect(() => {
@@ -26,6 +28,11 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
+
+  useEffect(() => {
+    const locale = useAuthStore.getState().locale;
+    if (locale !== 'en') i18n.changeLanguage(locale);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;

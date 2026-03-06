@@ -1,12 +1,14 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function DiagnosticResultScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Diagnostic Result: {id}</Text>
+      <Text style={styles.text}>{t('diagnose.resultPrefix', { id })}</Text>
     </View>
   );
 }

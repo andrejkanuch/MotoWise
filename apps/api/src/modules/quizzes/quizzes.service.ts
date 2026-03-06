@@ -1,17 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { QuizQuestionSchema } from '@motolearn/types';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Quiz, QuizAttempt } from './models/quiz.model';
 
 @Injectable()
 export class QuizzesService {
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-    @Inject(SUPABASE_USER) private readonly userClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_USER) private readonly userClient: SupabaseClient) {}
 
   async findByArticle(articleId: string): Promise<Quiz | null> {
     const { data, error } = await this.userClient
@@ -40,7 +41,7 @@ export class QuizzesService {
       .select('questions_json')
       .eq('id', input.quizId)
       .single();
-    if (!quiz.data) throw new Error('Quiz not found');
+    if (!quiz.data) throw new NotFoundException('Quiz not found');
 
     const questions = z.array(QuizQuestionSchema).parse(quiz.data.questions_json);
     const score = input.answers.reduce((acc, answer, i) => {
@@ -59,7 +60,7 @@ export class QuizzesService {
       .select()
       .single();
 
-    if (error || !data) throw new Error('Failed to submit quiz attempt');
+    if (error || !data) throw new InternalServerErrorException('Failed to submit quiz attempt');
     return {
       id: data.id,
       quizId: data.quiz_id,

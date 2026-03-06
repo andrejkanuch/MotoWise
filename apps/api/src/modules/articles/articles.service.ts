@@ -1,16 +1,18 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+import type { Tables } from '@motolearn/types/database';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
-import { Article } from './models/article.model';
+import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
 
 @Injectable()
 export class ArticlesService {
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-    @Inject(SUPABASE_USER) private readonly userClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_USER) private readonly userClient: SupabaseClient) {}
 
   async search(input: {
     query?: string;
@@ -20,9 +22,12 @@ export class ArticlesService {
     after?: string;
   }): Promise<ArticleConnection> {
     const limit = input.first ?? 20;
-    let query = this.adminClient
+    let query = this.userClient
       .from('articles')
-      .select('id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at', { count: 'exact' })
+      .select(
+        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
+        { count: 'exact' },
+      )
       .eq('is_hidden', false)
       .order('generated_at', { ascending: false })
       .limit(limit + 1);
@@ -34,6 +39,9 @@ export class ArticlesService {
     }
     if (input.after) {
       const cursorDate = Buffer.from(input.after, 'base64').toString('utf-8');
+      if (Number.isNaN(Date.parse(cursorDate))) {
+        throw new BadRequestException('Invalid cursor');
+      }
       query = query.lt('generated_at', cursorDate);
     }
 
@@ -61,7 +69,7 @@ export class ArticlesService {
   }
 
   async findBySlug(slug: string): Promise<Article | null> {
-    const { data, error } = await this.adminClient
+    const { data, error } = await this.userClient
       .from('articles')
       .select('*')
       .eq('slug', slug)
@@ -69,10 +77,27 @@ export class ArticlesService {
       .single();
 
     if (error || !data) return null;
+
+    // Fire-and-forget view count increment
+    this.userClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+
     return this.mapRow(data);
   }
 
-  private mapRow(row: any): Article {
+  private mapRow(
+    row: Pick<
+      Tables<'articles'>,
+      | 'id'
+      | 'slug'
+      | 'title'
+      | 'difficulty'
+      | 'category'
+      | 'view_count'
+      | 'is_safety_critical'
+      | 'generated_at'
+      | 'updated_at'
+    >,
+  ): Article {
     return {
       id: row.id,
       slug: row.slug,

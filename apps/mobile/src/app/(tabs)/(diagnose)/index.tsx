@@ -1,13 +1,15 @@
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function DiagnoseScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
       <Pressable style={styles.button} onPress={() => router.push('/(diagnose)/new')}>
-        <Text style={styles.buttonText}>Start New Diagnosis</Text>
+        <Text style={styles.buttonText}>{t('diagnose.startNew')}</Text>
       </Pressable>
     </View>
   );

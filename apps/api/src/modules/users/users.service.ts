@@ -1,3 +1,4 @@
+import type { Tables } from '@motolearn/types/database';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -7,14 +8,14 @@ import { User } from './models/user.model';
 export class UsersService {
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
-  private mapRow(row: Record<string, unknown>): User {
+  private mapRow(row: Tables<'users'>): User {
     return {
-      id: row.id as string,
-      email: row.email as string,
-      fullName: row.full_name as string,
-      role: row.role as string,
-      createdAt: row.created_at as string,
-      updatedAt: row.updated_at as string,
+      id: row.id,
+      email: row.email,
+      fullName: row.full_name,
+      role: row.role,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 
@@ -25,10 +26,18 @@ export class UsersService {
     return this.mapRow(data);
   }
 
-  async update(id: string, input: Partial<{ fullName: string }>): Promise<User> {
+  async update(
+    id: string,
+    input: Partial<{ fullName: string; avatarUrl: string; yearsRiding: number }>,
+  ): Promise<User> {
+    const payload: Record<string, unknown> = {};
+    if (input.fullName !== undefined) payload.full_name = input.fullName;
+    if (input.avatarUrl !== undefined) payload.avatar_url = input.avatarUrl;
+    if (input.yearsRiding !== undefined) payload.years_riding = input.yearsRiding;
+
     const { data, error } = await this.supabase
       .from('users')
-      .update({ full_name: input.fullName })
+      .update(payload)
       .eq('id', id)
       .select()
       .single();

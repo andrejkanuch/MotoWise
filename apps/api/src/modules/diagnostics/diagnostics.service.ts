@@ -1,3 +1,4 @@
+import type { Tables } from '@motolearn/types/database';
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -10,7 +11,9 @@ export class DiagnosticsService {
   async findByUser(userId: string): Promise<Diagnostic[]> {
     const { data, error } = await this.supabase
       .from('diagnostics')
-      .select('id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, created_at')
+      .select(
+        'id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, status, created_at',
+      )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -43,14 +46,28 @@ export class DiagnosticsService {
     return this.mapRow(data);
   }
 
-  private mapRow(row: any): Diagnostic {
+  private mapRow(
+    row: Pick<
+      Tables<'diagnostics'>,
+      | 'id'
+      | 'user_id'
+      | 'motorcycle_id'
+      | 'severity'
+      | 'confidence'
+      | 'related_article_id'
+      | 'data_sharing_opted_in'
+      | 'status'
+      | 'created_at'
+    >,
+  ): Diagnostic {
     return {
       id: row.id,
       userId: row.user_id,
       motorcycleId: row.motorcycle_id,
-      severity: row.severity,
-      confidence: row.confidence,
-      relatedArticleId: row.related_article_id,
+      severity: row.severity ?? undefined,
+      confidence: row.confidence ?? undefined,
+      relatedArticleId: row.related_article_id ?? undefined,
+      status: row.status ?? 'pending',
       dataSharingOptedIn: row.data_sharing_opted_in,
       createdAt: row.created_at,
     };

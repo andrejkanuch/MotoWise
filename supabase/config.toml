@@ -1,6 +1,3 @@
-[project]
-id = "motolearn-local"
-
 [api]
 enabled = true
 port = 54321

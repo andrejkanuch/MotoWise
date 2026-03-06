@@ -1,3 +1,4 @@
+import type { Tables } from '@motolearn/types/database';
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
@@ -10,7 +11,9 @@ export class LearningProgressService {
   async findByUser(userId: string): Promise<LearningProgress[]> {
     const { data, error } = await this.supabase
       .from('learning_progress')
-      .select('id, user_id, article_id, article_read, quiz_completed, quiz_best_score, first_read_at, last_read_at')
+      .select(
+        'id, user_id, article_id, article_read, quiz_completed, quiz_best_score, first_read_at, last_read_at',
+      )
       .eq('user_id', userId)
       .order('last_read_at', { ascending: false })
       .limit(50);
@@ -20,45 +23,15 @@ export class LearningProgressService {
   }
 
   async markRead(userId: string, articleId: string): Promise<LearningProgress> {
-    const now = new Date().toISOString();
-
-    // Upsert without first_read_at to avoid overwriting it on conflict.
-    // On INSERT the column stays NULL; on UPDATE (conflict) it is untouched.
     const { data, error } = await this.supabase
-      .from('learning_progress')
-      .upsert(
-        {
-          user_id: userId,
-          article_id: articleId,
-          article_read: true,
-          last_read_at: now,
-        },
-        { onConflict: 'user_id,article_id' },
-      )
-      .select()
+      .rpc('mark_article_read', { p_user_id: userId, p_article_id: articleId })
       .single();
 
-    if (error || !data) throw new InternalServerErrorException('Failed to update learning progress');
-
-    // For newly-inserted rows first_read_at will be NULL — set it once.
-    if (!data.first_read_at) {
-      const { data: updated, error: updateError } = await this.supabase
-        .from('learning_progress')
-        .update({ first_read_at: now })
-        .eq('user_id', userId)
-        .eq('article_id', articleId)
-        .is('first_read_at', null)
-        .select()
-        .single();
-
-      if (updateError || !updated) throw new InternalServerErrorException('Failed to update learning progress');
-      return this.mapRow(updated);
-    }
-
+    if (error || !data) throw new InternalServerErrorException('Failed to mark article as read');
     return this.mapRow(data);
   }
 
-  private mapRow(row: any): LearningProgress {
+  private mapRow(row: Tables<'learning_progress'>): LearningProgress {
     return {
       id: row.id,
       userId: row.user_id,

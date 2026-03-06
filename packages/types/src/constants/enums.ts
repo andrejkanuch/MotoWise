@@ -35,3 +35,18 @@ export const FlagStatus = {
   DISMISSED: 'dismissed',
 } as const;
 export type FlagStatus = (typeof FlagStatus)[keyof typeof FlagStatus];
+
+export const MotorcycleType = {
+  CRUISER: 'cruiser',
+  SPORTBIKE: 'sportbike',
+  STANDARD: 'standard',
+  TOURING: 'touring',
+  DUAL_SPORT: 'dual_sport',
+  DIRT_BIKE: 'dirt_bike',
+  SCOOTER: 'scooter',
+  OTHER: 'other',
+} as const;
+export type MotorcycleType = (typeof MotorcycleType)[keyof typeof MotorcycleType];
+
+export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

@@ -1,0 +1,60 @@
+{
+  "common": {
+    "appName": "MotoLearn",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "back": "Zurück",
+    "retry": "Erneut versuchen"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signingIn": "Anmeldung...",
+    "signUp": "Konto erstellen",
+    "signingUp": "Erstellen...",
+    "signOut": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "fullName": "Vollständiger Name",
+    "noAccount": "Kein Konto? Registrieren",
+    "hasAccount": "Bereits ein Konto? Anmelden",
+    "tagline": "Lerne dein Motorrad. Repariere dein Motorrad."
+  },
+  "tabs": {
+    "learn": "Lernen",
+    "diagnose": "Diagnose",
+    "garage": "Garage",
+    "profile": "Profil"
+  },
+  "learn": {
+    "explore": "Motorradthemen erkunden",
+    "articlePrefix": "Artikel: {{slug}}",
+    "quizPrefix": "Quiz: {{id}}"
+  },
+  "diagnose": {
+    "startNew": "Neue Diagnose starten",
+    "wizardTitle": "Diagnose-Assistent",
+    "wizardSubtitle": "Mach ein Foto oder beschreibe das Problem",
+    "resultPrefix": "Diagnoseergebnis: {{id}}"
+  },
+  "garage": {
+    "title": "Meine Garage",
+    "addBike": "Motorrad hinzufügen",
+    "addBikeTitle": "Motorrad hinzufügen",
+    "makePlaceholder": "Marke (z.B. Honda)",
+    "modelPlaceholder": "Modell (z.B. CB500F)",
+    "yearPlaceholder": "Jahr",
+    "bikePrefix": "Motorrad: {{id}}"
+  },
+  "profile": {
+    "title": "Profil",
+    "language": "Sprache",
+    "languageDescription": "Wähle deine bevorzugte Sprache"
+  },
+  "notFound": {
+    "message": "Seite nicht gefunden",
+    "goToLearn": "Zu Lernen gehen"
+  }
+}

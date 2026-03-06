@@ -5,7 +5,14 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "package.json", "tsconfig.json", "tsconfig.*.json", "next.config.*", "app.json"],
+      "inputs": [
+        "src/**",
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.*.json",
+        "next.config.*",
+        "app.json"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": ["SUPABASE_URL", "SUPABASE_ANON_KEY", "NEXT_PUBLIC_*", "EXPO_PUBLIC_*"]
     },
