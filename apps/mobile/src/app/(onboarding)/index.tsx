@@ -1,10 +1,12 @@
 import { colors } from '@motolearn/design-system';
+import type { ExperienceLevel } from '@motolearn/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { ProgressBar } from './progress-bar';
 
 const EXPERIENCE_LEVELS = [
@@ -16,6 +18,7 @@ const EXPERIENCE_LEVELS = [
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const setExperienceLevel = useOnboardingStore((s) => s.setExperienceLevel);
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleSelect = (key: string) => {
@@ -26,6 +29,9 @@ export default function WelcomeScreen() {
   };
 
   const handleContinue = () => {
+    if (selected) {
+      setExperienceLevel(selected as ExperienceLevel);
+    }
     router.push('/(onboarding)/select-bike');
   };
 

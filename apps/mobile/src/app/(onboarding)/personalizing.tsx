@@ -1,6 +1,7 @@
 import { colors } from '@motolearn/design-system';
+import { UpdateUserDocument } from '@motolearn/graphql';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, {
@@ -10,6 +11,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { useMutation } from 'urql';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const STEPS = ['personalizingStep1', 'personalizingStep2', 'personalizingStep3'] as const;
 
@@ -17,6 +20,9 @@ export default function PersonalizingScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [visibleSteps, setVisibleSteps] = useState(0);
+  const { experienceLevel, ridingGoals, reset } = useOnboardingStore();
+  const [, updateUser] = useMutation(UpdateUserDocument);
+  const persisted = useRef(false);
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -30,6 +36,23 @@ export default function PersonalizingScreen() {
     transform: [{ scale: pulseScale.value }],
     opacity: pulseOpacity.value,
   }));
+
+  useEffect(() => {
+    if (persisted.current) return;
+    persisted.current = true;
+
+    updateUser({
+      input: {
+        preferences: {
+          onboardingCompleted: true,
+          ...(experienceLevel ? { experienceLevel } : {}),
+          ...(ridingGoals.length > 0 ? { ridingGoals } : {}),
+        },
+      },
+    }).then(() => {
+      reset();
+    });
+  }, [experienceLevel, ridingGoals, updateUser, reset]);
 
   useEffect(() => {
     const timers = [

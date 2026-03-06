@@ -25,12 +25,10 @@ const initialState = {
   ridingGoals: [] as string[],
 };
 
-export const useOnboardingStore = create<OnboardingState>()(
-  (set, _get, store) => ({
-    ...initialState,
-    setExperienceLevel: (level) => set({ experienceLevel: level }),
-    setBikeData: (data) => set({ bikeData: data }),
-    setRidingGoals: (goals) => set({ ridingGoals: goals }),
-    reset: () => set(store.getInitialState(), true),
-  }),
-);
+export const useOnboardingStore = create<OnboardingState>()((set, _get, store) => ({
+  ...initialState,
+  setExperienceLevel: (level) => set({ experienceLevel: level }),
+  setBikeData: (data) => set({ bikeData: data }),
+  setRidingGoals: (goals) => set({ ridingGoals: goals }),
+  reset: () => set(store.getInitialState(), true),
+}));

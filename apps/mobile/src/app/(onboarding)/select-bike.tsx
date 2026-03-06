@@ -1,61 +1,101 @@
 import { colors } from '@motolearn/design-system';
+import {
+  CreateMotorcycleDocument,
+  MotorcycleMakesDocument,
+  MotorcycleModelsDocument,
+} from '@motolearn/graphql';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useMutation, useQuery } from 'urql';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { ProgressBar } from './progress-bar';
-
-const POPULAR_MAKES = [
-  'Honda',
-  'Yamaha',
-  'Kawasaki',
-  'Suzuki',
-  'Ducati',
-  'BMW',
-  'KTM',
-  'Harley-Davidson',
-  'Triumph',
-  'Aprilia',
-  'Indian',
-  'Royal Enfield',
-  'Husqvarna',
-  'Moto Guzzi',
-  'MV Agusta',
-  'Benelli',
-  'CFMoto',
-  'Zero',
-  'Can-Am',
-  'Vespa',
-] as const;
 
 export default function SelectBikeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const setBikeData = useOnboardingStore((s) => s.setBikeData);
+
   const [year, setYear] = useState('');
-  const [selectedMake, setSelectedMake] = useState<string | null>(null);
+  const [selectedMake, setSelectedMake] = useState<{
+    makeId: number;
+    makeName: string;
+  } | null>(null);
+  const [selectedModel, setSelectedModel] = useState<{
+    modelId: number;
+    modelName: string;
+  } | null>(null);
   const [makeSearch, setMakeSearch] = useState('');
   const [nickname, setNickname] = useState('');
 
-  const filteredMakes = POPULAR_MAKES.filter((make) =>
-    make.toLowerCase().includes(makeSearch.toLowerCase()),
-  );
+  const [makesResult] = useQuery({ query: MotorcycleMakesDocument });
+  const yearNum = Number.parseInt(year, 10);
+  const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
 
-  const handleSelectMake = (make: string) => {
+  const [modelsResult] = useQuery({
+    query: MotorcycleModelsDocument,
+    variables: { makeId: selectedMake?.makeId ?? 0, year: yearNum },
+    pause: !selectedMake || !validYear,
+  });
+
+  const [, createMotorcycle] = useMutation(CreateMotorcycleDocument);
+
+  const makes = makesResult.data?.motorcycleMakes ?? [];
+  const filteredMakes = makes.filter((make) =>
+    make.makeName.toLowerCase().includes(makeSearch.toLowerCase()),
+  );
+  const models = modelsResult.data?.motorcycleModels ?? [];
+
+  const handleSelectMake = (make: { makeId: number; makeName: string }) => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setSelectedMake(make);
+    setSelectedModel(null);
   };
 
-  const handleContinue = () => {
-    router.push('/(onboarding)/riding-goals');
+  const handleSelectModel = (model: { modelId: number; modelName: string }) => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setSelectedModel(model);
+  };
+
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleContinue = async () => {
+    if (!selectedMake || !selectedModel || !validYear) return;
+    setIsCreating(true);
+    const result = await createMotorcycle({
+      input: {
+        make: selectedMake.makeName,
+        model: selectedModel.modelName,
+        year: yearNum,
+        nickname: nickname.trim() || undefined,
+      },
+    });
+    setIsCreating(false);
+
+    if (!result.error) {
+      setBikeData({
+        year: yearNum,
+        make: selectedMake.makeName,
+        makeId: selectedMake.makeId,
+        model: selectedModel.modelName,
+        nickname: nickname.trim() || undefined,
+      });
+      router.push('/(onboarding)/riding-goals');
+    }
   };
 
   const handleSkip = () => {
     router.push('/(onboarding)/riding-goals');
   };
+
+  const canContinue = selectedMake && selectedModel && validYear && !isCreating;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.primary[950] }}>
@@ -136,62 +176,115 @@ export default function SelectBikeScreen() {
 
         {/* Makes chip grid */}
         <Animated.View entering={FadeInUp.delay(360).duration(400)}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-            {filteredMakes.map((make) => {
-              const isSelected = selectedMake === make;
-              return (
-                <Pressable
-                  key={make}
-                  onPress={() => handleSelectMake(make)}
-                  style={({ pressed }) => ({
-                    backgroundColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.08)',
-                    borderWidth: 1,
-                    borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 16,
-                    paddingVertical: 10,
-                    transform: [{ scale: pressed ? 0.95 : 1 }],
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '600',
-                      color: isSelected ? colors.primary[950] : '#FFFFFF',
-                    }}
+          {makesResult.fetching ? (
+            <ActivityIndicator color={colors.primary[400]} style={{ marginVertical: 20 }} />
+          ) : (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+              {filteredMakes.map((make) => {
+                const isSelected = selectedMake?.makeId === make.makeId;
+                return (
+                  <Pressable
+                    key={make.makeId}
+                    onPress={() => handleSelectMake(make)}
+                    style={({ pressed }) => ({
+                      backgroundColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.08)',
+                      borderWidth: 1,
+                      borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      transform: [{ scale: pressed ? 0.95 : 1 }],
+                    })}
                   >
-                    {make}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '600',
+                        color: isSelected ? colors.primary[950] : '#FFFFFF',
+                      }}
+                    >
+                      {make.makeName}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </Animated.View>
 
-        {/* Model placeholder */}
+        {/* Model selector */}
         <Animated.View entering={FadeInUp.delay(440).duration(400)}>
-          <View
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.04)',
-              borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.08)',
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              padding: 16,
-              marginBottom: 20,
-              opacity: selectedMake ? 1 : 0.4,
-            }}
-          >
-            <Text
+          {selectedMake && validYear ? (
+            modelsResult.fetching ? (
+              <ActivityIndicator color={colors.primary[400]} style={{ marginVertical: 20 }} />
+            ) : models.length > 0 ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+                {models.map((model) => {
+                  const isSelected = selectedModel?.modelId === model.modelId;
+                  return (
+                    <Pressable
+                      key={model.modelId}
+                      onPress={() => handleSelectModel(model)}
+                      style={({ pressed }) => ({
+                        backgroundColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.08)',
+                        borderWidth: 1,
+                        borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        transform: [{ scale: pressed ? 0.95 : 1 }],
+                      })}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: '600',
+                          color: isSelected ? colors.primary[950] : '#FFFFFF',
+                        }}
+                      >
+                        {model.modelName}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <View
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  padding: 16,
+                  marginBottom: 20,
+                }}
+              >
+                <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)' }}>
+                  {t('onboarding.noModelsFound')}
+                </Text>
+              </View>
+            )
+          ) : (
+            <View
               style={{
-                fontSize: 17,
-                color: 'rgba(255,255,255,0.35)',
+                backgroundColor: 'rgba(255,255,255,0.04)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.08)',
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                marginBottom: 20,
+                opacity: 0.4,
               }}
             >
-              {t('onboarding.selectModel')}
-            </Text>
-          </View>
+              <Text style={{ fontSize: 17, color: 'rgba(255,255,255,0.35)' }}>
+                {t('onboarding.selectModel')}
+              </Text>
+            </View>
+          )}
         </Animated.View>
 
         {/* Nickname */}
@@ -218,20 +311,25 @@ export default function SelectBikeScreen() {
       <View style={{ paddingHorizontal: 24, paddingBottom: 48, gap: 12 }}>
         <Pressable
           onPress={handleContinue}
+          disabled={!canContinue}
           style={({ pressed }) => ({
-            backgroundColor: '#FFFFFF',
+            backgroundColor: canContinue ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
             borderRadius: 20,
             borderCurve: 'continuous',
             paddingVertical: 16,
             alignItems: 'center',
             opacity: pressed ? 0.85 : 1,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: 8,
           })}
         >
+          {isCreating && <ActivityIndicator color={colors.primary[950]} size="small" />}
           <Text
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: colors.primary[950],
+              color: canContinue ? colors.primary[950] : 'rgba(255,255,255,0.4)',
             }}
           >
             {t('onboarding.continue')}

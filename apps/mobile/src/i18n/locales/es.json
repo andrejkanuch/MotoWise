@@ -85,6 +85,7 @@
     "addBikeSubtitle": "Personalizaremos el contenido para tu motocicleta",
     "searchMake": "Buscar marca...",
     "selectModel": "Seleccionar modelo",
+    "noModelsFound": "No se encontraron modelos para esta marca y año",
     "yearPlaceholder": "Año (ej. 2024)",
     "nicknamePlaceholder": "Apodo (opcional)",
     "skipForNow": "Omitir por ahora",

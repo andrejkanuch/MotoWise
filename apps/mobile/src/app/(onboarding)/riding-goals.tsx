@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useOnboardingStore } from '../../stores/onboarding.store';
 import { ProgressBar } from './progress-bar';
 
 const GOALS = [
@@ -19,6 +20,7 @@ const GOALS = [
 export default function RidingGoalsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
   const [selectedGoals, setSelectedGoals] = useState<Set<string>>(new Set());
 
   const toggleGoal = (goal: string) => {
@@ -37,6 +39,7 @@ export default function RidingGoalsScreen() {
   };
 
   const handleContinue = () => {
+    setRidingGoals([...selectedGoals]);
     router.push('/(onboarding)/personalizing');
   };
 
