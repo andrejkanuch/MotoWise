@@ -43,7 +43,11 @@ export class UsersService {
     if (input.yearsRiding !== undefined) payload.years_riding = input.yearsRiding;
 
     if (input.preferences) {
-      const validatedPrefs = UserPreferencesSchema.parse(input.preferences);
+      const result = UserPreferencesSchema.safeParse(input.preferences);
+      if (!result.success) {
+        throw new BadRequestException(result.error.flatten().fieldErrors);
+      }
+      const validatedPrefs = result.data;
 
       const { data: current } = await this.supabase
         .from('users')

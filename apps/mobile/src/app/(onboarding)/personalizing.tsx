@@ -15,6 +15,7 @@ import { useMutation } from 'urql';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const STEPS = ['personalizingStep1', 'personalizingStep2', 'personalizingStep3'] as const;
+const MIN_ANIMATION_MS = 3200;
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
@@ -23,6 +24,8 @@ export default function PersonalizingScreen() {
   const { experienceLevel, ridingGoals, reset } = useOnboardingStore();
   const [, updateUser] = useMutation(UpdateUserDocument);
   const persisted = useRef(false);
+  const [mutationDone, setMutationDone] = useState(false);
+  const [animationDone, setAnimationDone] = useState(false);
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -37,6 +40,7 @@ export default function PersonalizingScreen() {
     opacity: pulseOpacity.value,
   }));
 
+  // Persist preferences to server
   useEffect(() => {
     if (persisted.current) return;
     persisted.current = true;
@@ -49,25 +53,44 @@ export default function PersonalizingScreen() {
           ...(ridingGoals.length > 0 ? { ridingGoals } : {}),
         },
       },
-    }).then(() => {
-      reset();
+    }).then((result) => {
+      if (!result.error) {
+        reset();
+        setMutationDone(true);
+      } else {
+        // Retry once on failure
+        updateUser({
+          input: {
+            preferences: { onboardingCompleted: true },
+          },
+        }).then(() => {
+          reset();
+          setMutationDone(true);
+        });
+      }
     });
   }, [experienceLevel, ridingGoals, updateUser, reset]);
 
+  // Animation steps + minimum display time
   useEffect(() => {
     const timers = [
       setTimeout(() => setVisibleSteps(1), 400),
       setTimeout(() => setVisibleSteps(2), 1200),
       setTimeout(() => setVisibleSteps(3), 2000),
-      setTimeout(() => {
-        router.replace('/(tabs)/(learn)');
-      }, 3200),
+      setTimeout(() => setAnimationDone(true), MIN_ANIMATION_MS),
     ];
 
     return () => {
       for (const timer of timers) clearTimeout(timer);
     };
-  }, [router]);
+  }, []);
+
+  // Navigate only when BOTH mutation succeeded AND animation finished
+  useEffect(() => {
+    if (mutationDone && animationDone) {
+      router.replace('/(tabs)/(learn)');
+    }
+  }, [mutationDone, animationDone, router]);
 
   return (
     <View

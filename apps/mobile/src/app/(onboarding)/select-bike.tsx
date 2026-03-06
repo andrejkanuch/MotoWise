@@ -31,6 +31,11 @@ export default function SelectBikeScreen() {
   const [makeSearch, setMakeSearch] = useState('');
   const [nickname, setNickname] = useState('');
 
+  const handleYearChange = (text: string) => {
+    setYear(text);
+    setSelectedModel(null);
+  };
+
   const [makesResult] = useQuery({ query: MotorcycleMakesDocument });
   const yearNum = Number.parseInt(year, 10);
   const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
@@ -134,7 +139,7 @@ export default function SelectBikeScreen() {
         <Animated.View entering={FadeInUp.delay(200).duration(400)}>
           <TextInput
             value={year}
-            onChangeText={setYear}
+            onChangeText={handleYearChange}
             placeholder={t('onboarding.yearPlaceholder')}
             placeholderTextColor="rgba(255,255,255,0.35)"
             keyboardType="number-pad"
@@ -178,6 +183,10 @@ export default function SelectBikeScreen() {
         <Animated.View entering={FadeInUp.delay(360).duration(400)}>
           {makesResult.fetching ? (
             <ActivityIndicator color={colors.primary[400]} style={{ marginVertical: 20 }} />
+          ) : makesResult.error ? (
+            <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
+              {t('onboarding.makesLoadError')}
+            </Text>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
               {filteredMakes.map((make) => {

@@ -86,6 +86,7 @@
     "searchMake": "Buscar marca...",
     "selectModel": "Seleccionar modelo",
     "noModelsFound": "No se encontraron modelos para esta marca y año",
+    "makesLoadError": "No se pudieron cargar las marcas. Intenta de nuevo.",
     "yearPlaceholder": "Año (ej. 2024)",
     "nicknamePlaceholder": "Apodo (opcional)",
     "skipForNow": "Omitir por ahora",

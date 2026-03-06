@@ -86,6 +86,7 @@
     "searchMake": "Marke suchen...",
     "selectModel": "Modell auswählen",
     "noModelsFound": "Keine Modelle für diese Marke und dieses Jahr gefunden",
+    "makesLoadError": "Motorradmarken konnten nicht geladen werden. Bitte versuche es erneut.",
     "yearPlaceholder": "Baujahr (z.B. 2024)",
     "nicknamePlaceholder": "Spitzname (optional)",
     "skipForNow": "Vorerst überspringen",
