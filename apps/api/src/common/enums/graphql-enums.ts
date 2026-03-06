@@ -1,4 +1,12 @@
-import type { SupportedLocale } from '@motolearn/types';
+import type {
+  ArticleCategory,
+  ArticleDifficulty,
+  DiagnosticSeverity,
+  FlagStatus,
+  MotorcycleType,
+  SupportedLocale,
+  UserRole,
+} from '@motolearn/types';
 import { registerEnumType } from '@nestjs/graphql';
 
 // NestJS code-first requires actual TS enums for registerEnumType.
@@ -57,10 +65,16 @@ registerEnumType(GqlArticleCategory, { name: 'ArticleCategory' });
 registerEnumType(GqlUserRole, { name: 'UserRole' });
 registerEnumType(GqlFlagStatus, { name: 'FlagStatus' });
 registerEnumType(GqlDiagnosticSeverity, { name: 'DiagnosticSeverity' });
+export enum GqlMileageUnit {
+  mi = 'mi',
+  km = 'km',
+}
+
 registerEnumType(GqlMotorcycleType, {
   name: 'MotorcycleType',
   description: 'Type/category of motorcycle',
 });
+registerEnumType(GqlMileageUnit, { name: 'MileageUnit' });
 
 export enum GqlSupportedLocale {
   en = 'en',
@@ -70,9 +84,56 @@ export enum GqlSupportedLocale {
 
 registerEnumType(GqlSupportedLocale, { name: 'SupportedLocale' });
 
-// Compile-time sync guard: fails if SUPPORTED_LOCALES gains a value not in GqlSupportedLocale
+// Compile-time sync guards: fail if enums.ts gains a value not in Gql enum
 const _localeSync: Record<SupportedLocale, GqlSupportedLocale> = {
   en: GqlSupportedLocale.en,
   es: GqlSupportedLocale.es,
   de: GqlSupportedLocale.de,
+};
+
+const _difficultySync: Record<ArticleDifficulty, GqlArticleDifficulty> = {
+  beginner: GqlArticleDifficulty.beginner,
+  intermediate: GqlArticleDifficulty.intermediate,
+  advanced: GqlArticleDifficulty.advanced,
+};
+
+const _categorySync: Record<ArticleCategory, GqlArticleCategory> = {
+  engine: GqlArticleCategory.engine,
+  brakes: GqlArticleCategory.brakes,
+  electrical: GqlArticleCategory.electrical,
+  suspension: GqlArticleCategory.suspension,
+  drivetrain: GqlArticleCategory.drivetrain,
+  tires: GqlArticleCategory.tires,
+  fuel: GqlArticleCategory.fuel,
+  general: GqlArticleCategory.general,
+};
+
+const _roleSync: Record<UserRole, GqlUserRole> = {
+  user: GqlUserRole.user,
+  admin: GqlUserRole.admin,
+};
+
+const _flagStatusSync: Record<FlagStatus, GqlFlagStatus> = {
+  pending: GqlFlagStatus.pending,
+  reviewed: GqlFlagStatus.reviewed,
+  resolved: GqlFlagStatus.resolved,
+  dismissed: GqlFlagStatus.dismissed,
+};
+
+const _severitySync: Record<DiagnosticSeverity, GqlDiagnosticSeverity> = {
+  low: GqlDiagnosticSeverity.low,
+  medium: GqlDiagnosticSeverity.medium,
+  high: GqlDiagnosticSeverity.high,
+  critical: GqlDiagnosticSeverity.critical,
+};
+
+const _motorcycleTypeSync: Record<MotorcycleType, GqlMotorcycleType> = {
+  cruiser: GqlMotorcycleType.cruiser,
+  sportbike: GqlMotorcycleType.sportbike,
+  standard: GqlMotorcycleType.standard,
+  touring: GqlMotorcycleType.touring,
+  dual_sport: GqlMotorcycleType.dual_sport,
+  dirt_bike: GqlMotorcycleType.dirt_bike,
+  scooter: GqlMotorcycleType.scooter,
+  other: GqlMotorcycleType.other,
 };

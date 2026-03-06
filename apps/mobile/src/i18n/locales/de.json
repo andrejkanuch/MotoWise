@@ -5,8 +5,8 @@
     "error": "Fehler",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "delete": "Loschen",
-    "back": "Zuruck",
+    "delete": "Löschen",
+    "back": "Zurück",
     "retry": "Erneut versuchen"
   },
   "auth": {
@@ -17,7 +17,7 @@
     "signOut": "Abmelden",
     "email": "E-Mail",
     "password": "Passwort",
-    "fullName": "Vollstandiger Name",
+    "fullName": "Vollständiger Name",
     "noAccount": "Kein Konto? Registrieren",
     "hasAccount": "Bereits ein Konto? Anmelden",
     "tagline": "Lerne dein Motorrad. Repariere dein Motorrad."
@@ -41,8 +41,8 @@
   },
   "garage": {
     "title": "Meine Garage",
-    "addBike": "Motorrad hinzufugen",
-    "addBikeTitle": "Motorrad hinzufugen",
+    "addBike": "Motorrad hinzufügen",
+    "addBikeTitle": "Motorrad hinzufügen",
     "makePlaceholder": "Marke (z.B. Honda)",
     "modelPlaceholder": "Modell (z.B. CB500F)",
     "yearPlaceholder": "Jahr",
@@ -51,7 +51,7 @@
   "profile": {
     "title": "Profil",
     "language": "Sprache",
-    "languageDescription": "Wahle deine bevorzugte Sprache"
+    "languageDescription": "Wähle deine bevorzugte Sprache"
   },
   "notFound": {
     "message": "Seite nicht gefunden",

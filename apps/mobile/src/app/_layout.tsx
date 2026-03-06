@@ -1,4 +1,3 @@
-import '../i18n';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider } from 'urql';
@@ -12,6 +11,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: recreate client when user changes
   const urqlClient = useMemo(() => createUrqlClient(), [session?.user?.id]);
 
   useEffect(() => {

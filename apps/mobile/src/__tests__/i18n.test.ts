@@ -43,7 +43,7 @@ describe('i18n', () => {
 
   it('can switch language to Spanish', async () => {
     await i18n.changeLanguage('es');
-    expect(i18n.t('auth.signIn')).toBe('Iniciar Sesion');
+    expect(i18n.t('auth.signIn')).toBe('Iniciar Sesión');
   });
 
   it('can switch language to German', async () => {

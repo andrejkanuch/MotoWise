@@ -10,16 +10,16 @@
     "retry": "Reintentar"
   },
   "auth": {
-    "signIn": "Iniciar Sesion",
-    "signingIn": "Iniciando sesion...",
+    "signIn": "Iniciar Sesión",
+    "signingIn": "Iniciando sesión...",
     "signUp": "Crear Cuenta",
     "signingUp": "Creando...",
-    "signOut": "Cerrar Sesion",
-    "email": "Correo electronico",
-    "password": "Contrasena",
+    "signOut": "Cerrar Sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
     "fullName": "Nombre completo",
-    "noAccount": "No tienes cuenta? Registrate",
-    "hasAccount": "Ya tienes cuenta? Inicia Sesion",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "hasAccount": "¿Ya tienes cuenta? Inicia Sesión",
     "tagline": "Aprende tu moto. Repara tu moto."
   },
   "tabs": {
@@ -30,14 +30,14 @@
   },
   "learn": {
     "explore": "Explora temas de motocicletas",
-    "articlePrefix": "Articulo: {{slug}}",
+    "articlePrefix": "Artículo: {{slug}}",
     "quizPrefix": "Cuestionario: {{id}}"
   },
   "diagnose": {
-    "startNew": "Iniciar Nuevo Diagnostico",
-    "wizardTitle": "Asistente de Diagnostico",
+    "startNew": "Iniciar Nuevo Diagnóstico",
+    "wizardTitle": "Asistente de Diagnóstico",
     "wizardSubtitle": "Toma una foto o describe el problema",
-    "resultPrefix": "Resultado del Diagnostico: {{id}}"
+    "resultPrefix": "Resultado del Diagnóstico: {{id}}"
   },
   "garage": {
     "title": "Mi Garaje",
@@ -45,7 +45,7 @@
     "addBikeTitle": "Agregar una Moto",
     "makePlaceholder": "Marca (ej. Honda)",
     "modelPlaceholder": "Modelo (ej. CB500F)",
-    "yearPlaceholder": "Ano",
+    "yearPlaceholder": "Año",
     "bikePrefix": "Moto: {{id}}"
   },
   "profile": {
@@ -54,7 +54,7 @@
     "languageDescription": "Elige tu idioma preferido"
   },
   "notFound": {
-    "message": "Pagina no encontrada",
+    "message": "Página no encontrada",
     "goToLearn": "Ir a Aprender"
   }
 }

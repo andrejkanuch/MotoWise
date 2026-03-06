@@ -12,16 +12,19 @@ const resolvedLang: SupportedLocale = (SUPPORTED_LOCALES as readonly string[]).i
   ? (deviceLang as SupportedLocale)
   : 'en';
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    es: { translation: es },
-    de: { translation: de },
-  },
-  lng: resolvedLang,
-  fallbackLng: 'en',
-  interpolation: { escapeValue: false },
-  react: { useSuspense: false },
-});
+i18n
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: { translation: en },
+      es: { translation: es },
+      de: { translation: de },
+    },
+    lng: resolvedLang,
+    fallbackLng: 'en',
+    interpolation: { escapeValue: false },
+    react: { useSuspense: false },
+  })
+  .catch(console.error);
 
 export default i18n;

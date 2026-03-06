@@ -2,8 +2,8 @@ import type { SupportedLocale } from '@motolearn/types';
 import { SUPPORTED_LOCALES } from '@motolearn/types';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useAuthStore } from '../../../stores/auth.store';
 import { supabase } from '../../../lib/supabase';
+import { useAuthStore } from '../../../stores/auth.store';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   en: 'English',

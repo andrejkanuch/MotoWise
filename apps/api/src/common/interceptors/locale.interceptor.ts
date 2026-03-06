@@ -8,8 +8,8 @@ export class LocaleInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const ctx = GqlExecutionContext.create(context);
     const req = ctx.getContext().req;
-    const acceptLang = req.headers['accept-language']?.split(',')[0]?.split('-')[0];
-    const xLocale = req.headers['x-locale'];
+    const acceptLang = req.headers['accept-language']?.slice(0, 20)?.split(',')[0]?.split('-')[0];
+    const xLocale = req.headers['x-locale']?.slice(0, 5);
     const raw = xLocale ?? acceptLang ?? 'en';
     req.locale = SupportedLocaleSchema.catch('en').parse(raw);
     return next.handle();

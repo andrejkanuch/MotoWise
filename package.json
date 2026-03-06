@@ -14,14 +14,16 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "generate": "turbo generate:types generate:schema generate:graphql",
-    "db:start": "supabase start",
+    "db:start": "supabase start --exclude storage-api,imgproxy,logflare,vector",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:migration": "supabase migration new",
-    "db:types": "turbo generate:types"
+    "db:types": "turbo generate:types",
+    "check:i18n": "tsx scripts/check-i18n-keys.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
+    "tsx": "^4.21.0",
     "turbo": "^2.8.0",
     "typescript": "~5.7.0"
   },
