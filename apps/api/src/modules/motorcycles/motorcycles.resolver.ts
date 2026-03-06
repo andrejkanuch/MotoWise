@@ -27,13 +27,11 @@ export class MotorcyclesResolver {
   }
 
   @Query(() => [MotorcycleMake], { name: 'motorcycleMakes' })
-  @UseGuards(GqlAuthGuard)
   async motorcycleMakes(): Promise<MotorcycleMake[]> {
     return this.nhtsaService.getMakes();
   }
 
   @Query(() => [MotorcycleModelResult], { name: 'motorcycleModels' })
-  @UseGuards(GqlAuthGuard)
   async motorcycleModels(
     @Args('makeId', { type: () => Int }) makeId: number,
     @Args('year', { type: () => Int }) year: number,

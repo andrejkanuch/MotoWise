@@ -28,18 +28,47 @@
     "confirmationSent": "We sent a confirmation link to your email. Please verify to continue."
   },
   "tabs": {
+    "home": "Home",
     "learn": "Learn",
     "diagnose": "Diagnose",
     "garage": "Garage",
     "profile": "Profile"
   },
+  "home": {
+    "setupProfile": "Setup Rider Profile",
+    "setupProfileDesc": "Get personalized AI diagnostics and learning paths for your motorcycle.",
+    "heroTitle": "Visual Education &\nAI Diagnostics: Understand and Fix Your Bike",
+    "checkBike": "Check Your Bike",
+    "checkBikeDesc": "Scan with Moto Learn AI",
+    "category": {
+      "engine": "Engine",
+      "brakes": "Brakes",
+      "suspension": "Suspension"
+    }
+  },
   "learn": {
     "explore": "Explore motorcycle topics",
+    "searchPlaceholder": "Search topics...",
+    "motorcycleBasics": "Motorcycle Basics",
+    "articlesRead": "{{count}} articles read",
+    "progressLabel": "{{current}} of {{total}} completed",
+    "modules": "Learning Modules",
+    "lessonsCount": "{{count}} lessons",
+    "module": {
+      "engine": "Engine",
+      "suspension": "Suspension",
+      "electrical": "Electrical",
+      "maintenance": "Maintenance"
+    },
     "articlePrefix": "Article: {{slug}}",
     "quizPrefix": "Quiz: {{id}}"
   },
   "diagnose": {
     "startNew": "Start New Diagnosis",
+    "subtitle": "AI-powered photo diagnostics for your bike",
+    "scanDescription": "Take a photo or describe the issue to get AI-powered diagnostics",
+    "recent": "Recent Diagnostics",
+    "noDiagnostics": "No diagnostics yet. Start a scan to check your bike.",
     "wizardTitle": "Diagnostic Wizard",
     "wizardSubtitle": "Take a photo or describe the issue",
     "resultPrefix": "Diagnostic Result: {{id}}"
@@ -65,6 +94,16 @@
   },
   "profile": {
     "title": "Profile",
+    "rider": "Rider",
+    "level": "Level",
+    "rank": "Rank",
+    "badges": "Badges",
+    "proBanner": "MotoLearn PRO",
+    "proDescription": "Unlock AI diagnostics & premium lessons",
+    "settings": "Profile Settings",
+    "privacy": "Privacy",
+    "subscriptions": "Subscriptions",
+    "support": "Support",
     "language": "Language",
     "languageDescription": "Choose your preferred language",
     "theme": "Theme",
@@ -89,6 +128,9 @@
     "selectModel": "Select model",
     "noModelsFound": "No models found for this make and year",
     "makesLoadError": "Could not load motorcycle makes. Please try again.",
+    "noMakesFound": "No makes found",
+    "tapToChange": "Tap to change",
+    "searchModel": "Search model...",
     "yearPlaceholder": "Year (e.g. 2024)",
     "nicknamePlaceholder": "Nickname (optional)",
     "skipForNow": "Skip for now",

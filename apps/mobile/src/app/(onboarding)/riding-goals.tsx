@@ -1,13 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import {
-  GraduationCap,
-  Map,
-  Mountain,
-  Navigation,
-  Timer,
-  Wrench,
-} from 'lucide-react-native';
+import { GraduationCap, Map, Mountain, Navigation, Timer, Wrench } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -109,9 +102,7 @@ export default function RidingGoalsScreen() {
                   style={({ pressed }) => ({
                     backgroundColor: isSelected ? '#FFFFFF' : 'transparent',
                     borderWidth: 1.5,
-                    borderColor: isSelected
-                      ? '#FFFFFF'
-                      : 'rgba(255,255,255,0.15)',
+                    borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
                     borderRadius: 20,
                     borderCurve: 'continuous',
                     paddingVertical: 24,
@@ -119,16 +110,10 @@ export default function RidingGoalsScreen() {
                     alignItems: 'center',
                     gap: 10,
                     transform: [{ scale: pressed ? 0.95 : 1 }],
-                    boxShadow: isSelected
-                      ? '0px 4px 16px rgba(255,255,255,0.1)'
-                      : 'none',
+                    boxShadow: isSelected ? '0px 4px 16px rgba(255,255,255,0.1)' : 'none',
                   })}
                 >
-                  <Icon
-                    size={24}
-                    color={isSelected ? '#0F172A' : '#FFFFFF'}
-                    strokeWidth={2}
-                  />
+                  <Icon size={24} color={isSelected ? '#0F172A' : '#FFFFFF'} strokeWidth={2} />
                   <Text
                     style={{
                       fontSize: 15,
@@ -151,8 +136,7 @@ export default function RidingGoalsScreen() {
           onPress={handleContinue}
           disabled={selectedGoals.size === 0}
           style={({ pressed }) => ({
-            backgroundColor:
-              selectedGoals.size > 0 ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
+            backgroundColor: selectedGoals.size > 0 ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
             borderRadius: 20,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -164,8 +148,7 @@ export default function RidingGoalsScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color:
-                selectedGoals.size > 0 ? '#0F172A' : 'rgba(255,255,255,0.4)',
+              color: selectedGoals.size > 0 ? '#0F172A' : 'rgba(255,255,255,0.4)',
             }}
           >
             {t('onboarding.continue')}

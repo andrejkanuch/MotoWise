@@ -35,14 +35,14 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       router.replace('/(auth)/login');
     } else if (session && inAuthGroup) {
       if (onboardingCompleted) {
-        router.replace('/(tabs)/(learn)');
+        router.replace('/(tabs)/(home)');
       } else {
         router.replace('/(onboarding)');
       }
     } else if (session && !inOnboarding && !onboardingCompleted) {
       router.replace('/(onboarding)');
     } else if (session && inOnboarding && onboardingCompleted) {
-      router.replace('/(tabs)/(learn)');
+      router.replace('/(tabs)/(home)');
     }
   }, [session, segments, isLoading, router.replace, onboardingCompleted, meResult.fetching]);
 

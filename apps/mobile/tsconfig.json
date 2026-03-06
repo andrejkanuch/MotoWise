@@ -6,5 +6,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "*.ts", "*.tsx"]
+  "include": ["src", "*.ts", "*.tsx", "react-native-css-env.d.ts", "nativewind-env.d.ts"]
 }

@@ -8,7 +8,15 @@ import { useRouter } from 'expo-router';
 import { Bike, Calendar, ChevronRight, Search, SkipForward, Tag } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useMutation, useQuery } from 'urql';
 import { ProgressBar } from '../../components/progress-bar';
@@ -29,6 +37,7 @@ export default function SelectBikeScreen() {
     modelName: string;
   } | null>(null);
   const [makeSearch, setMakeSearch] = useState('');
+  const [modelSearch, setModelSearch] = useState('');
   const [nickname, setNickname] = useState('');
 
   const handleYearChange = (text: string) => {
@@ -54,12 +63,17 @@ export default function SelectBikeScreen() {
   );
   const models = modelsResult.data?.motorcycleModels ?? [];
 
+  const filteredModels = models.filter((model) =>
+    model.modelName.toLowerCase().includes(modelSearch.toLowerCase()),
+  );
+
   const handleSelectMake = (make: { makeId: number; makeName: string }) => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setSelectedMake(make);
     setSelectedModel(null);
+    setModelSearch('');
   };
 
   const handleSelectModel = (model: { modelId: number; modelName: string }) => {
@@ -150,7 +164,15 @@ export default function SelectBikeScreen() {
             }}
           >
             <Calendar size={18} color="rgba(255,255,255,0.4)" />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               {t('onboarding.yearPlaceholder')}
             </Text>
           </View>
@@ -186,7 +208,15 @@ export default function SelectBikeScreen() {
             }}
           >
             <Search size={18} color="rgba(255,255,255,0.4)" />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               {t('onboarding.searchMake')}
             </Text>
           </View>
@@ -209,7 +239,7 @@ export default function SelectBikeScreen() {
           />
         </Animated.View>
 
-        {/* Makes chip grid */}
+        {/* Makes dropdown */}
         <Animated.View entering={FadeInUp.delay(360).duration(400)}>
           {makesResult.fetching ? (
             <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
@@ -217,38 +247,73 @@ export default function SelectBikeScreen() {
             <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
               {t('onboarding.makesLoadError')}
             </Text>
-          ) : (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-              {filteredMakes.map((make) => {
-                const isSelected = selectedMake?.makeId === make.makeId;
-                return (
+          ) : selectedMake && !makeSearch ? (
+            <Pressable
+              onPress={() => {
+                setMakeSearch(selectedMake.makeName);
+                setSelectedMake(null);
+                setSelectedModel(null);
+              }}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                borderWidth: 1,
+                borderColor: '#818CF8',
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                marginBottom: 24,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Text style={{ fontSize: 17, color: '#FFFFFF', fontWeight: '600' }}>
+                {selectedMake.makeName}
+              </Text>
+              <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                {t('onboarding.tapToChange')}
+              </Text>
+            </Pressable>
+          ) : makeSearch.length > 0 && filteredMakes.length > 0 ? (
+            <View
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.06)',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.12)',
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                marginBottom: 24,
+                maxHeight: 220,
+                overflow: 'hidden',
+              }}
+            >
+              <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                {filteredMakes.slice(0, 20).map((make) => (
                   <Pressable
                     key={make.makeId}
-                    onPress={() => handleSelectMake(make)}
+                    onPress={() => {
+                      handleSelectMake(make);
+                      setMakeSearch('');
+                    }}
                     style={({ pressed }) => ({
-                      backgroundColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
-                      borderWidth: 1,
-                      borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.12)',
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
                       paddingHorizontal: 16,
-                      paddingVertical: 10,
-                      transform: [{ scale: pressed ? 0.95 : 1 }],
+                      paddingVertical: 14,
+                      borderBottomWidth: 1,
+                      borderBottomColor: 'rgba(255,255,255,0.06)',
+                      backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
                     })}
                   >
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '600',
-                        color: isSelected ? '#0F172A' : '#FFFFFF',
-                      }}
-                    >
-                      {make.makeName}
-                    </Text>
+                    <Text style={{ fontSize: 16, color: '#FFFFFF' }}>{make.makeName}</Text>
                   </Pressable>
-                );
-              })}
+                ))}
+              </ScrollView>
             </View>
+          ) : makeSearch.length > 0 ? (
+            <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginBottom: 24 }}>
+              {t('onboarding.noMakesFound')}
+            </Text>
+          ) : (
+            <View style={{ marginBottom: 24 }} />
           )}
         </Animated.View>
 
@@ -263,61 +328,119 @@ export default function SelectBikeScreen() {
             }}
           >
             <Bike size={18} color="rgba(255,255,255,0.4)" />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               {t('onboarding.selectModel')}
             </Text>
           </View>
           {selectedMake && validYear ? (
             modelsResult.fetching ? (
               <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
-            ) : models.length > 0 ? (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                {models.map((model) => {
-                  const isSelected = selectedModel?.modelId === model.modelId;
-                  return (
-                    <Pressable
-                      key={model.modelId}
-                      onPress={() => handleSelectModel(model)}
-                      style={({ pressed }) => ({
-                        backgroundColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
-                        borderWidth: 1,
-                        borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.12)',
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        paddingHorizontal: 16,
-                        paddingVertical: 10,
-                        transform: [{ scale: pressed ? 0.95 : 1 }],
-                      })}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          fontWeight: '600',
-                          color: isSelected ? '#0F172A' : '#FFFFFF',
-                        }}
-                      >
-                        {model.modelName}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : (
-              <View
+            ) : selectedModel && !modelSearch ? (
+              <Pressable
+                onPress={() => {
+                  setModelSearch(selectedModel.modelName);
+                  setSelectedModel(null);
+                }}
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  backgroundColor: 'rgba(255,255,255,0.06)',
                   borderWidth: 1,
-                  borderColor: 'rgba(255,255,255,0.08)',
+                  borderColor: '#818CF8',
                   borderRadius: 16,
                   borderCurve: 'continuous',
                   padding: 16,
                   marginBottom: 24,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                 }}
               >
-                <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)' }}>
-                  {t('onboarding.noModelsFound')}
+                <Text style={{ fontSize: 17, color: '#FFFFFF', fontWeight: '600' }}>
+                  {selectedModel.modelName}
                 </Text>
-              </View>
+                <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+                  {t('onboarding.tapToChange')}
+                </Text>
+              </Pressable>
+            ) : (
+              <>
+                <TextInput
+                  value={modelSearch}
+                  onChangeText={(text) => {
+                    setModelSearch(text);
+                    setSelectedModel(null);
+                  }}
+                  placeholder={t('onboarding.searchModel')}
+                  placeholderTextColor="rgba(255,255,255,0.25)"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.10)',
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    padding: 16,
+                    fontSize: 17,
+                    color: '#FFFFFF',
+                    marginBottom: filteredModels.length > 0 ? 0 : 24,
+                  }}
+                />
+                {filteredModels.length > 0 ? (
+                  <View
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.06)',
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      marginTop: 8,
+                      marginBottom: 24,
+                      maxHeight: 220,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                      {filteredModels.slice(0, 20).map((model) => (
+                        <Pressable
+                          key={model.modelId}
+                          onPress={() => {
+                            handleSelectModel(model);
+                            setModelSearch('');
+                          }}
+                          style={({ pressed }) => ({
+                            paddingHorizontal: 16,
+                            paddingVertical: 14,
+                            borderBottomWidth: 1,
+                            borderBottomColor: 'rgba(255,255,255,0.06)',
+                            backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
+                          })}
+                        >
+                          <Text style={{ fontSize: 16, color: '#FFFFFF' }}>
+                            {model.modelName}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                ) : models.length > 0 && modelSearch.length > 0 ? (
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      color: 'rgba(255,255,255,0.4)',
+                      marginTop: 8,
+                      marginBottom: 24,
+                    }}
+                  >
+                    {t('onboarding.noModelsFound')}
+                  </Text>
+                ) : null}
+              </>
             )
           ) : (
             <View
@@ -350,7 +473,15 @@ export default function SelectBikeScreen() {
             }}
           >
             <Tag size={18} color="rgba(255,255,255,0.4)" />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               {t('onboarding.nicknamePlaceholder')}
             </Text>
           </View>
@@ -399,7 +530,9 @@ export default function SelectBikeScreen() {
           >
             {t('onboarding.continue')}
           </Text>
-          {!isCreating && <ChevronRight size={20} color={canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)'} />}
+          {!isCreating && (
+            <ChevronRight size={20} color={canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)'} />
+          )}
         </Pressable>
 
         <Pressable

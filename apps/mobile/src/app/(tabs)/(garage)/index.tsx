@@ -1,4 +1,4 @@
-import { colors } from '@motolearn/design-system';
+import { palette } from '@motolearn/design-system';
 import { useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useCallback } from 'react';
@@ -38,7 +38,7 @@ export default function GarageScreen() {
     <View className="flex-1 bg-white dark:bg-neutral-900">
       {fetching && !data ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={colors.primary[500]} />
+          <ActivityIndicator size="large" color={palette.primary500} />
           <Text className="mt-3 text-sm text-neutral-500">{t('common.loading')}</Text>
         </View>
       ) : error ? (
@@ -73,7 +73,7 @@ export default function GarageScreen() {
             <RefreshControl
               refreshing={fetching}
               onRefresh={onRefresh}
-              tintColor={colors.primary[500]}
+              tintColor={palette.primary500}
             />
           }
         >
@@ -131,7 +131,7 @@ export default function GarageScreen() {
             }}
             onPress={() => router.push('/(garage)/add-bike')}
           >
-            <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
+            <Plus size={24} color={palette.white} strokeWidth={2.5} />
           </Pressable>
         </View>
       )}

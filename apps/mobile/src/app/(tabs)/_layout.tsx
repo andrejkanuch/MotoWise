@@ -1,13 +1,12 @@
+import { palette } from '@motolearn/design-system';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
-import { BookOpen, Home, Bike, User, Wrench } from 'lucide-react-native';
+import { Bike, BookOpen, Home, User, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useColorScheme } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const ACTIVE_COLOR = '#4F6BED';
-const INACTIVE_COLOR = '#9CA3AF';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -17,9 +16,10 @@ const TAB_CONFIG = [
   { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
 ] as const;
 
-function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const isDark = useColorScheme() === 'dark';
 
   return (
     <Animated.View
@@ -29,7 +29,7 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         bottom: Math.max(insets.bottom, 12),
         left: 20,
         right: 20,
-        backgroundColor: '#fff',
+        backgroundColor: isDark ? palette.tabBarDark : palette.tabBarLight,
         borderRadius: 28,
         flexDirection: 'row',
         alignItems: 'center',
@@ -37,7 +37,7 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         paddingVertical: 10,
         paddingHorizontal: 8,
         borderCurve: 'continuous',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+        boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 8px 24px rgba(0, 0, 0, 0.12)',
       }}
     >
       {state.routes.map((route, index) => {
@@ -55,6 +55,9 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             canPreventDefault: true,
           });
           if (!isFocused && !event.defaultPrevented) {
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
             navigation.navigate(route.name, route.params);
           }
         };
@@ -72,14 +75,14 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           >
             <Icon
               size={22}
-              color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
+              color={isFocused ? palette.tabActive : palette.tabInactive}
               strokeWidth={isFocused ? 2.5 : 1.8}
             />
             <Text
               style={{
                 fontSize: 10,
                 fontWeight: isFocused ? '700' : '500',
-                color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
+                color: isFocused ? palette.tabActive : palette.tabInactive,
                 marginTop: 3,
               }}
             >

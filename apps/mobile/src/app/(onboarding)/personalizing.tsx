@@ -1,5 +1,6 @@
 import { UpdateUserDocument } from '@motolearn/graphql';
 import { useRouter } from 'expo-router';
+import { Bike, Check, LayoutDashboard, Search, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -11,7 +12,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useMutation } from 'urql';
-import { Search, Bike, LayoutDashboard, Sparkles, Check } from 'lucide-react-native';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const STEP_ICONS = [Search, Bike, LayoutDashboard] as const;

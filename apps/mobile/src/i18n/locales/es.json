@@ -10,39 +10,68 @@
     "retry": "Reintentar"
   },
   "auth": {
-    "signIn": "Iniciar Sesión",
-    "signingIn": "Iniciando sesión...",
+    "signIn": "Iniciar Sesion",
+    "signingIn": "Iniciando sesion...",
     "signUp": "Crear Cuenta",
     "signingUp": "Creando...",
-    "signOut": "Cerrar Sesión",
-    "email": "Correo electrónico",
-    "password": "Contraseña",
+    "signOut": "Cerrar Sesion",
+    "email": "Correo electronico",
+    "password": "Contrasena",
     "fullName": "Nombre completo",
-    "noAccount": "¿No tienes cuenta? Regístrate",
-    "hasAccount": "¿Ya tienes cuenta? Inicia Sesión",
+    "noAccount": "No tienes cuenta? Registrate",
+    "hasAccount": "Ya tienes cuenta? Inicia Sesion",
     "tagline": "Aprende tu moto. Repara tu moto.",
     "continueWithApple": "Continuar con Apple",
     "continueWithGoogle": "Continuar con Google",
     "orContinueWithEmail": "o continuar con correo",
     "checkEmail": "Revisa tu correo",
-    "confirmationSent": "Enviamos un enlace de confirmación a tu correo. Verifica para continuar."
+    "confirmationSent": "Enviamos un enlace de confirmacion a tu correo. Verifica para continuar."
   },
   "tabs": {
+    "home": "Inicio",
     "learn": "Aprender",
     "diagnose": "Diagnosticar",
     "garage": "Garaje",
     "profile": "Perfil"
   },
+  "home": {
+    "setupProfile": "Configura tu Perfil de Piloto",
+    "setupProfileDesc": "Obtiene diagnosticos IA personalizados y rutas de aprendizaje para tu moto.",
+    "heroTitle": "Educacion Visual &\nDiagnosticos IA: Entiende y Repara tu Moto",
+    "checkBike": "Revisa tu Moto",
+    "checkBikeDesc": "Escanea con Moto Learn IA",
+    "category": {
+      "engine": "Motor",
+      "brakes": "Frenos",
+      "suspension": "Suspension"
+    }
+  },
   "learn": {
     "explore": "Explora temas de motocicletas",
-    "articlePrefix": "Artículo: {{slug}}",
+    "searchPlaceholder": "Buscar temas...",
+    "motorcycleBasics": "Basicos de Motocicleta",
+    "articlesRead": "{{count}} articulos leidos",
+    "progressLabel": "{{current}} de {{total}} completados",
+    "modules": "Modulos de Aprendizaje",
+    "lessonsCount": "{{count}} lecciones",
+    "module": {
+      "engine": "Motor",
+      "suspension": "Suspension",
+      "electrical": "Electrica",
+      "maintenance": "Mantenimiento"
+    },
+    "articlePrefix": "Articulo: {{slug}}",
     "quizPrefix": "Cuestionario: {{id}}"
   },
   "diagnose": {
-    "startNew": "Iniciar Nuevo Diagnóstico",
-    "wizardTitle": "Asistente de Diagnóstico",
+    "startNew": "Iniciar Nuevo Diagnostico",
+    "subtitle": "Diagnosticos con IA para tu moto",
+    "scanDescription": "Toma una foto o describe el problema para obtener diagnosticos con IA",
+    "recent": "Diagnosticos Recientes",
+    "noDiagnostics": "Sin diagnosticos aun. Inicia un escaneo para revisar tu moto.",
+    "wizardTitle": "Asistente de Diagnostico",
     "wizardSubtitle": "Toma una foto o describe el problema",
-    "resultPrefix": "Resultado del Diagnóstico: {{id}}"
+    "resultPrefix": "Resultado del Diagnostico: {{id}}"
   },
   "garage": {
     "title": "Mi Garaje",
@@ -65,6 +94,16 @@
   },
   "profile": {
     "title": "Perfil",
+    "rider": "Piloto",
+    "level": "Nivel",
+    "rank": "Rango",
+    "badges": "Insignias",
+    "proBanner": "MotoLearn PRO",
+    "proDescription": "Desbloquea diagnosticos IA y lecciones premium",
+    "settings": "Configuracion del Perfil",
+    "privacy": "Privacidad",
+    "subscriptions": "Suscripciones",
+    "support": "Soporte",
     "language": "Idioma",
     "languageDescription": "Elige tu idioma preferido",
     "theme": "Tema",
@@ -75,11 +114,11 @@
   },
   "onboarding": {
     "welcomeTitle": "Bienvenido a MotoWise",
-    "welcomeSubtitle": "Cuéntanos sobre tu experiencia como motociclista",
+    "welcomeSubtitle": "Cuentanos sobre tu experiencia como motociclista",
     "beginner": "Principiante",
-    "beginnerDesc": "Recién empezando o considerando montar",
+    "beginnerDesc": "Recien empezando o considerando montar",
     "intermediate": "Intermedio",
-    "intermediateDesc": "Cómodo montando, aprendiendo mantenimiento",
+    "intermediateDesc": "Comodo montando, aprendiendo mantenimiento",
     "advanced": "Avanzado",
     "advancedDesc": "Motociclista experimentado, experto en bricolaje",
     "continue": "Continuar",
@@ -87,16 +126,19 @@
     "addBikeSubtitle": "Personalizaremos el contenido para tu motocicleta",
     "searchMake": "Buscar marca...",
     "selectModel": "Seleccionar modelo",
-    "noModelsFound": "No se encontraron modelos para esta marca y año",
+    "noModelsFound": "No se encontraron modelos para esta marca y ano",
     "makesLoadError": "No se pudieron cargar las marcas. Intenta de nuevo.",
-    "yearPlaceholder": "Año (ej. 2024)",
+    "noMakesFound": "No se encontraron marcas",
+    "tapToChange": "Toca para cambiar",
+    "searchModel": "Buscar modelo...",
+    "yearPlaceholder": "Ano (ej. 2024)",
     "nicknamePlaceholder": "Apodo (opcional)",
     "skipForNow": "Omitir por ahora",
-    "goalsTitle": "¿Cuáles son tus objetivos como motociclista?",
+    "goalsTitle": "Cuales son tus objetivos como motociclista?",
     "goalsSubtitle": "Selecciona todos los que apliquen",
     "goalCommute": "Viaje diario",
     "goalWeekend": "Paseos de fin de semana",
-    "goalTrack": "Días de pista",
+    "goalTrack": "Dias de pista",
     "goalTouring": "Turismo",
     "goalLearning": "Aprender a montar",
     "goalMaintenance": "Mantenimiento propio",
@@ -106,7 +148,7 @@
     "personalizingStep3": "Configurando tu panel..."
   },
   "notFound": {
-    "message": "Página no encontrada",
+    "message": "Pagina no encontrada",
     "goToLearn": "Ir a Aprender"
   }
 }

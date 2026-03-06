@@ -5,12 +5,7 @@ import { Bike, Check, Flame, Gauge } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeInUp,
-  ZoomIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { ProgressBar } from '../../components/progress-bar';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -101,12 +96,17 @@ export default function WelcomeScreen() {
             return (
               <Animated.View
                 key={level.key}
-                entering={FadeInUp.delay(250 + index * 100).duration(500).springify().damping(18)}
+                entering={FadeInUp.delay(250 + index * 100)
+                  .duration(500)
+                  .springify()
+                  .damping(18)}
               >
                 <Pressable
                   onPress={() => handleSelect(level.key)}
                   style={({ pressed }) => ({
-                    backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                    backgroundColor: isSelected
+                      ? 'rgba(255, 255, 255, 0.12)'
+                      : 'rgba(255, 255, 255, 0.05)',
                     borderWidth: isSelected ? 2 : 1,
                     borderColor: isSelected ? level.color : 'rgba(255, 255, 255, 0.08)',
                     borderRadius: 20,

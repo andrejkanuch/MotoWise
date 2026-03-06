@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 
 const logo = require('../../assets/images/MotoWise.png');
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -82,7 +83,10 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Brand header */}
-          <Animated.View entering={FadeInDown.duration(600)} style={{ alignItems: 'center', gap: 12 }}>
+          <Animated.View
+            entering={FadeInDown.duration(600)}
+            style={{ alignItems: 'center', gap: 12 }}
+          >
             <Image
               source={logo}
               style={{
@@ -246,9 +250,14 @@ export default function LoginScreen() {
           </Animated.View>
 
           {/* Footer */}
-          <Animated.View entering={FadeIn.delay(500).duration(400)} style={{ alignItems: 'center' }}>
+          <Animated.View
+            entering={FadeIn.delay(500).duration(400)}
+            style={{ alignItems: 'center' }}
+          >
             <Link href="/(auth)/register" asChild>
-              <Pressable style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 8 })}>
+              <Pressable
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 8 })}
+              >
                 <Text style={{ fontSize: 15, color: '#60A5FA', fontWeight: '600' }}>
                   {t('auth.noAccount')}
                 </Text>
