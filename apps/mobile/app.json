@@ -32,7 +32,7 @@
       "package": "com.motolearn.app",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#1b2e4b"
       }
     }
   }

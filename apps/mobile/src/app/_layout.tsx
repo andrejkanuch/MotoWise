@@ -1,3 +1,4 @@
+import '../global.css';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider } from 'urql';
