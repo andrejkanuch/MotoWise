@@ -1,7 +1,7 @@
 import '../global.css';
 import { MeDocument } from '@motolearn/graphql';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider, useQuery } from 'urql';
 import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,7 @@ import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
 
 function NavigationGate({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuthStore();
+  const { session, isLoading, onboardingCompleted: storeOnboardingCompleted, setOnboardingCompleted } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -22,7 +22,15 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     | { onboardingCompleted?: boolean }
     | null
     | undefined;
-  const onboardingCompleted = preferences?.onboardingCompleted === true;
+  const serverOnboardingCompleted = preferences?.onboardingCompleted === true;
+  const onboardingCompleted = storeOnboardingCompleted || serverOnboardingCompleted;
+
+  // Sync server state to store
+  useEffect(() => {
+    if (serverOnboardingCompleted && !storeOnboardingCompleted) {
+      setOnboardingCompleted(true);
+    }
+  }, [serverOnboardingCompleted, storeOnboardingCompleted, setOnboardingCompleted]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -31,20 +39,26 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
 
+    console.log('[NavGate]', { segments: segments[0], session: !!session, onboardingCompleted, serverOnboardingCompleted, storeOnboardingCompleted, fetching: meResult.fetching });
+
+    let target: string | null = null;
+
     if (!session && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      target = '/(auth)/login';
     } else if (session && inAuthGroup) {
-      if (onboardingCompleted) {
-        router.replace('/(tabs)/(home)');
-      } else {
-        router.replace('/(onboarding)');
-      }
+      target = onboardingCompleted ? '/(tabs)/(home)' : '/(onboarding)';
     } else if (session && !inOnboarding && !onboardingCompleted) {
-      router.replace('/(onboarding)');
+      target = '/(onboarding)';
     } else if (session && inOnboarding && onboardingCompleted) {
-      router.replace('/(tabs)/(home)');
+      target = '/(tabs)/(home)';
     }
-  }, [session, segments, isLoading, router.replace, onboardingCompleted, meResult.fetching]);
+
+    if (target) {
+      console.log('[NavGate] →', target);
+      // Defer navigation to avoid setState-during-render warning
+      setTimeout(() => router.replace(target as any), 0);
+    }
+  }, [session, segments, isLoading, router, onboardingCompleted, meResult.fetching]);
 
   if (isLoading || (session && meResult.fetching)) return null;
 

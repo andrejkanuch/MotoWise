@@ -12,10 +12,12 @@ interface AuthState {
   isLoading: boolean;
   locale: SupportedLocale;
   colorScheme: ColorScheme;
+  onboardingCompleted: boolean;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setLocale: (locale: SupportedLocale) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
+  setOnboardingCompleted: (completed: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,8 +27,10 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       locale: 'en',
       colorScheme: 'system',
-      setSession: (session) => set({ session }),
+      onboardingCompleted: false,
+      setSession: (session) => set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
       setLoading: (isLoading) => set({ isLoading }),
+      setOnboardingCompleted: (onboardingCompleted) => set({ onboardingCompleted }),
       setLocale: (locale) => {
         i18n.changeLanguage(locale);
         set({ locale });

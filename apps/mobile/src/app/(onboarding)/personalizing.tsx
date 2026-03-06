@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useMutation } from 'urql';
+import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 const STEP_ICONS = [Search, Bike, LayoutDashboard] as const;
@@ -24,6 +25,7 @@ export default function PersonalizingScreen() {
   const [visibleSteps, setVisibleSteps] = useState(0);
   const { experienceLevel, ridingGoals, reset } = useOnboardingStore();
   const [, updateUser] = useMutation(UpdateUserDocument);
+  const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const persisted = useRef(false);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
@@ -56,9 +58,12 @@ export default function PersonalizingScreen() {
       },
     }).then((result) => {
       if (!result.error) {
+        console.log('[Personalizing] mutation success, setting onboardingCompleted');
         reset();
+        setOnboardingCompleted(true);
         setMutationDone(true);
       } else {
+        console.log('[Personalizing] mutation failed, retrying:', result.error.message);
         // Retry once on failure, proceed regardless so user isn't stuck
         updateUser({
           input: {
@@ -67,10 +72,13 @@ export default function PersonalizingScreen() {
         })
           .then(() => {
             reset();
+            setOnboardingCompleted(true);
             setMutationDone(true);
           })
           .catch(() => {
+            console.log('[Personalizing] retry also failed, proceeding anyway');
             reset();
+            setOnboardingCompleted(true);
             setMutationDone(true);
           });
       }
