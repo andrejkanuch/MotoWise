@@ -1,3 +1,4 @@
+import type { Tables } from '@motolearn/types/database';
 import {
   BadRequestException,
   Inject,
@@ -6,7 +7,6 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
-import type { Tables } from '@motolearn/types/database';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
 
@@ -84,7 +84,20 @@ export class ArticlesService {
     return this.mapRow(data);
   }
 
-  private mapRow(row: Tables<'articles'>): Article {
+  private mapRow(
+    row: Pick<
+      Tables<'articles'>,
+      | 'id'
+      | 'slug'
+      | 'title'
+      | 'difficulty'
+      | 'category'
+      | 'view_count'
+      | 'is_safety_critical'
+      | 'generated_at'
+      | 'updated_at'
+    >,
+  ): Article {
     return {
       id: row.id,
       slug: row.slug,
