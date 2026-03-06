@@ -1,12 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function ErrorPage({
   error,
   reset,
 }: {
-  error: globalThis.Error & { digest?: string };
+  error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
     <div
       style={{
@@ -19,7 +25,8 @@ export default function ErrorPage({
       }}
     >
       <h1>Something went wrong</h1>
-      <p>{error.message}</p>
+      <p>An unexpected error occurred. Please try again.</p>
+      {error.digest && <p style={{ fontSize: 12, color: '#999' }}>Reference: {error.digest}</p>}
       <button
         type="button"
         onClick={reset}
