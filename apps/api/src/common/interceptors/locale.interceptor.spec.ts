@@ -36,11 +36,11 @@ describe('LocaleInterceptor', () => {
     expect(mockRequest.locale).toBe('de');
   });
 
-  it('should prefer Accept-Language over x-locale', () => {
+  it('should prefer x-locale over Accept-Language', () => {
     mockRequest.headers['accept-language'] = 'de';
     mockRequest.headers['x-locale'] = 'es';
     interceptor.intercept({} as never, mockNext);
-    expect(mockRequest.locale).toBe('de');
+    expect(mockRequest.locale).toBe('es');
   });
 
   it('should fall back to en for invalid locale', () => {

@@ -10,7 +10,7 @@ export class LocaleInterceptor implements NestInterceptor {
     const req = ctx.getContext().req;
     const acceptLang = req.headers['accept-language']?.split(',')[0]?.split('-')[0];
     const xLocale = req.headers['x-locale'];
-    const raw = acceptLang ?? xLocale ?? 'en';
+    const raw = xLocale ?? acceptLang ?? 'en';
     req.locale = SupportedLocaleSchema.catch('en').parse(raw);
     return next.handle();
   }
