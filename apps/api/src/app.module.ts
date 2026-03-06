@@ -1,13 +1,14 @@
 import './common/enums/graphql-enums';
 import { join } from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import depthLimit from 'graphql-depth-limit';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ThrottlerModule } from '@nestjs/throttler';
+import depthLimit from 'graphql-depth-limit';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
+import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
@@ -57,6 +58,10 @@ import { UsersModule } from './modules/users/users.module';
     {
       provide: APP_GUARD,
       useClass: GqlThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LocaleInterceptor,
     },
   ],
 })

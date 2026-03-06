@@ -1,9 +1,11 @@
 import { Link } from 'expo-router';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { supabase } from '../../lib/supabase';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -22,16 +24,16 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.title}>{t('auth.signUp')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Full Name"
+        placeholder={t('auth.fullName')}
         value={fullName}
         onChangeText={setFullName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder={t('auth.email')}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -39,16 +41,16 @@ export default function RegisterScreen() {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder={t('auth.password')}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
       <Pressable style={styles.button} onPress={handleRegister} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? 'Creating...' : 'Create Account'}</Text>
+        <Text style={styles.buttonText}>{loading ? t('auth.signingUp') : t('auth.signUp')}</Text>
       </Pressable>
       <Link href="/(auth)/login" style={styles.link}>
-        <Text>Already have an account? Sign In</Text>
+        <Text>{t('auth.hasAccount')}</Text>
       </Link>
     </View>
   );

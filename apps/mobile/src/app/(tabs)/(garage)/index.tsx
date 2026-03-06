@@ -1,14 +1,16 @@
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function GarageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Garage</Text>
+      <Text style={styles.title}>{t('garage.title')}</Text>
       <Pressable style={styles.button} onPress={() => router.push('/(garage)/add-bike')}>
-        <Text style={styles.buttonText}>Add a Bike</Text>
+        <Text style={styles.buttonText}>{t('garage.addBike')}</Text>
       </Pressable>
     </View>
   );

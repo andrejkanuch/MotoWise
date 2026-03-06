@@ -1,12 +1,15 @@
 import { Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function NotFoundScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Page not found</Text>
+      <Text style={styles.text}>{t('notFound.message')}</Text>
       <Link href="/(learn)">
-        <Text style={styles.link}>Go to Learn</Text>
+        <Text style={styles.link}>{t('notFound.goToLearn')}</Text>
       </Link>
     </View>
   );

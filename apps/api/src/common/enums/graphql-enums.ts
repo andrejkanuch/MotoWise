@@ -40,8 +40,31 @@ export enum GqlDiagnosticSeverity {
   critical = 'critical',
 }
 
+export enum GqlMotorcycleType {
+  cruiser = 'cruiser',
+  sportbike = 'sportbike',
+  standard = 'standard',
+  touring = 'touring',
+  dual_sport = 'dual_sport',
+  dirt_bike = 'dirt_bike',
+  scooter = 'scooter',
+  other = 'other',
+}
+
 registerEnumType(GqlArticleDifficulty, { name: 'ArticleDifficulty' });
 registerEnumType(GqlArticleCategory, { name: 'ArticleCategory' });
 registerEnumType(GqlUserRole, { name: 'UserRole' });
 registerEnumType(GqlFlagStatus, { name: 'FlagStatus' });
 registerEnumType(GqlDiagnosticSeverity, { name: 'DiagnosticSeverity' });
+registerEnumType(GqlMotorcycleType, {
+  name: 'MotorcycleType',
+  description: 'Type/category of motorcycle',
+});
+
+export enum GqlSupportedLocale {
+  en = 'en',
+  es = 'es',
+  de = 'de',
+}
+
+registerEnumType(GqlSupportedLocale, { name: 'SupportedLocale' });

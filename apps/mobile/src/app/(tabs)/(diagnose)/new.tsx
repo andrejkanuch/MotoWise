@@ -1,10 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function NewDiagnosticScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Diagnostic Wizard</Text>
-      <Text style={styles.subtitle}>Take a photo or describe the issue</Text>
+      <Text style={styles.text}>{t('diagnose.wizardTitle')}</Text>
+      <Text style={styles.subtitle}>{t('diagnose.wizardSubtitle')}</Text>
     </View>
   );
 }

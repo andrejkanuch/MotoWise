@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function LearnScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Explore motorcycle topics</Text>
+      <Text style={styles.text}>{t('learn.explore')}</Text>
     </View>
   );
 }

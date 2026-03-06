@@ -1,6 +1,8 @@
+import '../i18n';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { Provider as UrqlProvider } from 'urql';
+import i18n from '../i18n';
 import { supabase } from '../lib/supabase';
 import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
@@ -26,6 +28,11 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
+
+  useEffect(() => {
+    const locale = useAuthStore.getState().locale;
+    if (locale !== 'en') i18n.changeLanguage(locale);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
