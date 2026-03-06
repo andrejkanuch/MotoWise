@@ -1,0 +1,12 @@
+query GetQuizByArticle($articleId: String!) {
+  quizByArticle(articleId: $articleId) {
+    id
+    articleId
+    questions {
+      question
+      options
+      explanation
+    }
+    generatedAt
+  }
+}

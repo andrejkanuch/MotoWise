@@ -1,0 +1,12 @@
+mutation MarkArticleRead($articleId: String!) {
+  markArticleRead(articleId: $articleId) {
+    id
+    userId
+    articleId
+    articleRead
+    quizCompleted
+    quizBestScore
+    firstReadAt
+    lastReadAt
+  }
+}

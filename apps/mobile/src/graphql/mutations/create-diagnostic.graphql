@@ -1,0 +1,13 @@
+mutation CreateDiagnostic($input: CreateDiagnosticInput!) {
+  createDiagnostic(input: $input) {
+    id
+    userId
+    motorcycleId
+    severity
+    confidence
+    relatedArticleId
+    status
+    dataSharingOptedIn
+    createdAt
+  }
+}
