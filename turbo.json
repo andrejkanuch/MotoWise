@@ -1,0 +1,47 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalEnv": ["CI", "NODE_ENV"],
+  "globalDependencies": [".env"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": ["SUPABASE_URL", "SUPABASE_ANON_KEY", "NEXT_PUBLIC_*", "EXPO_PUBLIC_*"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "persistent": true,
+      "cache": false
+    },
+    "lint": {
+      "cache": true,
+      "inputs": ["src/**", "biome.json", "tsconfig.json"]
+    },
+    "check": {
+      "cache": true,
+      "inputs": ["src/**", "biome.json"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "cache": true,
+      "env": ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "inputs": ["src/**", "tsconfig.json"]
+    },
+    "generate:schema": {
+      "dependsOn": ["^build"],
+      "outputs": ["schema.graphql"]
+    },
+    "generate:graphql": {
+      "dependsOn": ["api#generate:schema"],
+      "outputs": ["src/generated/**"]
+    },
+    "generate:types": {
+      "outputs": ["src/database.types.ts"]
+    }
+  }
+}

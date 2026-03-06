@@ -1,0 +1,13 @@
+{
+  "name": "@motolearn/types",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./database": "./src/database.types.ts",
+    "./validators": "./src/validators/index.ts",
+    "./constants": "./src/constants/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  }
+}

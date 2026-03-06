@@ -1,0 +1,41 @@
+{
+  "name": "@motolearn/api",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "build": "nest build",
+    "dev": "nest start --watch",
+    "start": "node dist/main",
+    "start:debug": "nest start --debug --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "generate:schema": "ts-node scripts/generate-schema.ts"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@nestjs/apollo": "^13.0.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/graphql": "^13.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/throttler": "^6.0.0",
+    "@supabase/supabase-js": "^2.98.0",
+    "graphql": "^16.10.0",
+    "helmet": "^8.0.0",
+    "jose": "^6.0.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0",
+    "zod": "^3.23.0",
+    "@motolearn/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "~5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

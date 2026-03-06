@@ -1,0 +1,10 @@
+{
+  "name": "@motolearn/tsconfig",
+  "private": true,
+  "files": [
+    "base.json",
+    "nestjs.json",
+    "nextjs.json",
+    "expo.json"
+  ]
+}

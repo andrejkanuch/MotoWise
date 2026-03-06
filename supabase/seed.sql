@@ -1,0 +1,11 @@
+-- Seed data for local development
+-- Note: Auth users must be created via Supabase Auth API, not direct SQL insert
+-- Use supabase dashboard or API to create test users, then the handle_new_user trigger
+-- will auto-create rows in public.users
+
+-- Sample articles (inserted via service role / admin)
+INSERT INTO public.articles (id, slug, title, raw_text, difficulty, category, content_json, is_safety_critical)
+VALUES
+  (gen_random_uuid(), 'how-motorcycle-brakes-work', 'How Motorcycle Brakes Work', 'Motorcycle braking systems use hydraulic pressure to convert lever force into stopping power. Modern motorcycles use disc brakes with calipers that squeeze brake pads against a spinning rotor.', 'beginner', 'brakes', '{"sections": [{"heading": "Introduction", "body": "Understanding your motorcycle braking system is one of the most important safety skills."}], "keyTakeaways": ["Hydraulic brakes multiply your lever force", "Disc brakes are standard on modern motorcycles"], "relatedTopics": ["brake fluid types", "brake pad replacement"]}', true),
+  (gen_random_uuid(), 'basic-motorcycle-chain-maintenance', 'Basic Motorcycle Chain Maintenance', 'A well-maintained chain ensures smooth power delivery and extends the life of your sprockets. Regular cleaning, lubrication, and tension adjustment are essential.', 'beginner', 'drivetrain', '{"sections": [{"heading": "Why Chain Maintenance Matters", "body": "Your chain transfers engine power to the rear wheel. A neglected chain can break, causing loss of power or worse."}], "keyTakeaways": ["Clean and lube every 500 miles", "Check tension regularly"], "relatedTopics": ["chain replacement", "sprocket wear"]}', false),
+  (gen_random_uuid(), 'understanding-motorcycle-electrical-systems', 'Understanding Motorcycle Electrical Systems', 'The electrical system powers everything from ignition to lights. It consists of a battery, alternator/stator, regulator/rectifier, and wiring harness.', 'intermediate', 'electrical', '{"sections": [{"heading": "Components Overview", "body": "Every motorcycle electrical system has three main jobs: generate electricity, store it, and distribute it."}], "keyTakeaways": ["Battery voltage should read 12.6-12.8V at rest", "Charging system output should be 13.5-14.5V at 3000 RPM"], "relatedTopics": ["battery testing", "stator diagnosis"]}', false);

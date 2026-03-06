@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "MotoLearn",
+    "slug": "motolearn",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "motolearn",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "MotoLearn needs camera access for diagnostic photo capture."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MotoLearn needs photo library access to upload diagnostic images."
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.motolearn.app",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.motolearn.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      }
+    }
+  }
+}
