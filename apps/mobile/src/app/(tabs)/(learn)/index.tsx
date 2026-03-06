@@ -1,17 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function LearnScreen() {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{t('learn.explore')}</Text>
+    <View className="flex-1 justify-center items-center bg-white dark:bg-neutral-900">
+      <Text className="text-base text-neutral-500 dark:text-neutral-400">{t('learn.explore')}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 16, color: '#666' },
-});
