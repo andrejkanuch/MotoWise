@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     .single();
 
   if (profile?.role !== 'admin') {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return response;
