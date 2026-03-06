@@ -19,7 +19,9 @@
     "db:reset": "supabase db reset",
     "db:migration": "supabase migration new",
     "db:types": "turbo generate:types",
-    "check:i18n": "tsx scripts/check-i18n-keys.ts"
+    "check:i18n": "tsx scripts/check-i18n-keys.ts",
+    "precheck": "pnpm lint && pnpm typecheck && pnpm test",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
