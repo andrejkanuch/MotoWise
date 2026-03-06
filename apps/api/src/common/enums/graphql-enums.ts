@@ -1,3 +1,4 @@
+import type { SupportedLocale } from '@motolearn/types';
 import { registerEnumType } from '@nestjs/graphql';
 
 // NestJS code-first requires actual TS enums for registerEnumType.
@@ -68,3 +69,10 @@ export enum GqlSupportedLocale {
 }
 
 registerEnumType(GqlSupportedLocale, { name: 'SupportedLocale' });
+
+// Compile-time sync guard: fails if SUPPORTED_LOCALES gains a value not in GqlSupportedLocale
+const _localeSync: Record<SupportedLocale, GqlSupportedLocale> = {
+  en: GqlSupportedLocale.en,
+  es: GqlSupportedLocale.es,
+  de: GqlSupportedLocale.de,
+};
