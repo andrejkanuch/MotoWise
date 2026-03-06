@@ -51,7 +51,12 @@
   "profile": {
     "title": "Profil",
     "language": "Sprache",
-    "languageDescription": "Wähle deine bevorzugte Sprache"
+    "languageDescription": "Wähle deine bevorzugte Sprache",
+    "theme": "Darstellung",
+    "themeDescription": "Wähle dein bevorzugtes Erscheinungsbild",
+    "themeSystem": "System",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel"
   },
   "notFound": {
     "message": "Seite nicht gefunden",

@@ -1,22 +1,20 @@
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function NotFoundScreen() {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{t('notFound.message')}</Text>
+    <View className="flex-1 justify-center items-center bg-white dark:bg-neutral-900">
+      <Text className="text-xl mb-4 text-neutral-950 dark:text-neutral-50">
+        {t('notFound.message')}
+      </Text>
       <Link href="/(learn)">
-        <Text style={styles.link}>{t('notFound.goToLearn')}</Text>
+        <Text className="text-base text-primary-950 dark:text-primary-400">
+          {t('notFound.goToLearn')}
+        </Text>
       </Link>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 20, marginBottom: 16 },
-  link: { color: '#1a1a2e', fontSize: 16 },
-});

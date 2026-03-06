@@ -1,24 +1,23 @@
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 export default function GarageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('garage.title')}</Text>
-      <Pressable style={styles.button} onPress={() => router.push('/(garage)/add-bike')}>
-        <Text style={styles.buttonText}>{t('garage.addBike')}</Text>
+    <View className="flex-1 p-4 bg-white dark:bg-neutral-900">
+      <Text className="text-2xl font-bold mb-4 text-neutral-950 dark:text-neutral-50">
+        {t('garage.title')}
+      </Text>
+      <Pressable
+        className="bg-primary-950 dark:bg-primary-500 rounded-xl p-4 items-center"
+        style={{ borderCurve: 'continuous' }}
+        onPress={() => router.push('/(garage)/add-bike')}
+      >
+        <Text className="text-white text-base font-semibold">{t('garage.addBike')}</Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  button: { backgroundColor: '#1a1a2e', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});

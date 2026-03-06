@@ -1,8 +1,10 @@
 export default function UsersPage() {
   return (
     <div>
-      <h1>Users</h1>
-      <p>View and manage user accounts.</p>
+      <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">Users</h1>
+      <p className="mt-2 text-[--color-on-surface-muted] dark:text-neutral-300">
+        View and manage user accounts.
+      </p>
     </div>
   );
 }

@@ -1,0 +1,21 @@
+:root {
+  --color-surface: var(--color-neutral-50);
+  --color-surface-elevated: white;
+  --color-on-surface: var(--color-neutral-900);
+  --color-on-surface-muted: var(--color-neutral-500);
+  --color-border: var(--color-neutral-200);
+  --color-border-muted: var(--color-neutral-100);
+  --color-input-bg: white;
+  --color-input-border: var(--color-neutral-300);
+}
+
+.dark {
+  --color-surface: var(--color-neutral-950);
+  --color-surface-elevated: var(--color-neutral-900);
+  --color-on-surface: var(--color-neutral-50);
+  --color-on-surface-muted: var(--color-neutral-400);
+  --color-border: var(--color-neutral-800);
+  --color-border-muted: var(--color-neutral-900);
+  --color-input-bg: var(--color-neutral-900);
+  --color-input-border: var(--color-neutral-700);
+}

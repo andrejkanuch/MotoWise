@@ -5,13 +5,17 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import i18n from '../i18n';
 
+type ColorScheme = 'system' | 'light' | 'dark';
+
 interface AuthState {
   session: Session | null;
   isLoading: boolean;
   locale: SupportedLocale;
+  colorScheme: ColorScheme;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setLocale: (locale: SupportedLocale) => void;
+  setColorScheme: (colorScheme: ColorScheme) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,17 +24,19 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       isLoading: true,
       locale: 'en',
+      colorScheme: 'system',
       setSession: (session) => set({ session }),
       setLoading: (isLoading) => set({ isLoading }),
       setLocale: (locale) => {
         i18n.changeLanguage(locale);
         set({ locale });
       },
+      setColorScheme: (colorScheme) => set({ colorScheme }),
     }),
     {
       name: 'auth-preferences',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ locale: state.locale }),
+      partialize: (state) => ({ locale: state.locale, colorScheme: state.colorScheme }),
     },
   ),
 );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
 export default function AddBikeScreen() {
   const { t } = useTranslation();
@@ -9,45 +9,41 @@ export default function AddBikeScreen() {
   const [year, setYear] = useState('');
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('garage.addBikeTitle')}</Text>
+    <View className="flex-1 p-6 bg-white dark:bg-neutral-900">
+      <Text className="text-2xl font-bold mb-6 text-neutral-950 dark:text-neutral-50">
+        {t('garage.addBikeTitle')}
+      </Text>
       <TextInput
-        style={styles.input}
+        className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
+        style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.makePlaceholder')}
+        placeholderTextColor="oklch(0.71 0 0)"
         value={make}
         onChangeText={setMake}
       />
       <TextInput
-        style={styles.input}
+        className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
+        style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.modelPlaceholder')}
+        placeholderTextColor="oklch(0.71 0 0)"
         value={model}
         onChangeText={setModel}
       />
       <TextInput
-        style={styles.input}
+        className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
+        style={{ borderCurve: 'continuous' }}
         placeholder={t('garage.yearPlaceholder')}
+        placeholderTextColor="oklch(0.71 0 0)"
         value={year}
         onChangeText={setYear}
         keyboardType="numeric"
       />
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>{t('garage.addBike')}</Text>
+      <Pressable
+        className="bg-primary-950 dark:bg-primary-500 rounded-xl p-4 items-center"
+        style={{ borderCurve: 'continuous' }}
+      >
+        <Text className="text-white text-base font-semibold">{t('garage.addBike')}</Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  button: { backgroundColor: '#1a1a2e', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});

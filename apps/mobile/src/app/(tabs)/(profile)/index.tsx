@@ -1,7 +1,8 @@
 import type { SupportedLocale } from '@motolearn/types';
 import { SUPPORTED_LOCALES } from '@motolearn/types';
+import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/auth.store';
 
@@ -11,57 +12,100 @@ const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   de: 'Deutsch',
 };
 
+const THEME_LABEL_KEYS = {
+  system: 'profile.themeSystem',
+  light: 'profile.themeLight',
+  dark: 'profile.themeDark',
+} as const;
+
+const THEME_OPTIONS = ['system', 'light', 'dark'] as const;
+
 export default function ProfileScreen() {
   const { t } = useTranslation();
-  const { locale, setLocale } = useAuthStore();
+  const {
+    locale,
+    setLocale,
+    colorScheme: storedScheme,
+    setColorScheme: setStoredScheme,
+  } = useAuthStore();
+  const { setColorScheme } = useColorScheme();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
 
+  const handleThemeChange = (value: 'system' | 'light' | 'dark') => {
+    setStoredScheme(value);
+    setColorScheme(value);
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('profile.title')}</Text>
-      <Text style={styles.sectionTitle}>{t('profile.language')}</Text>
-      <Text style={styles.description}>{t('profile.languageDescription')}</Text>
-      <View style={styles.localeRow}>
+    <View className="flex-1 p-4 bg-white dark:bg-neutral-900">
+      <Text className="text-2xl font-bold mb-4 text-neutral-950 dark:text-neutral-50">
+        {t('profile.title')}
+      </Text>
+
+      <Text className="text-lg font-semibold mb-1 text-neutral-950 dark:text-neutral-50">
+        {t('profile.language')}
+      </Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+        {t('profile.languageDescription')}
+      </Text>
+      <View className="flex-row gap-2 mb-6">
         {SUPPORTED_LOCALES.map((loc) => (
           <Pressable
             key={loc}
-            style={[styles.localeButton, locale === loc && styles.localeButtonActive]}
+            className={`flex-1 rounded-xl p-4 items-center ${
+              locale === loc ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
+            }`}
+            style={{ borderCurve: 'continuous' }}
             onPress={() => setLocale(loc)}
           >
-            <Text style={[styles.localeText, locale === loc && styles.localeTextActive]}>
+            <Text
+              className={`text-base font-semibold ${
+                locale === loc ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
+              }`}
+            >
               {LOCALE_DISPLAY_NAMES[loc]}
             </Text>
           </Pressable>
         ))}
       </View>
-      <Pressable style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>{t('auth.signOut')}</Text>
+
+      <Text className="text-lg font-semibold mb-1 text-neutral-950 dark:text-neutral-50">
+        {t('profile.theme')}
+      </Text>
+      <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
+        {t('profile.themeDescription')}
+      </Text>
+      <View className="flex-row gap-2 mb-6">
+        {THEME_OPTIONS.map((value) => (
+          <Pressable
+            key={value}
+            className={`flex-1 rounded-xl p-4 items-center ${
+              storedScheme === value ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
+            }`}
+            style={{ borderCurve: 'continuous' }}
+            onPress={() => handleThemeChange(value)}
+          >
+            <Text
+              className={`text-base font-semibold ${
+                storedScheme === value ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
+              }`}
+            >
+              {t(THEME_LABEL_KEYS[value])}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Pressable
+        className="bg-danger-500 rounded-xl p-4 items-center"
+        style={{ borderCurve: 'continuous' }}
+        onPress={handleLogout}
+      >
+        <Text className="text-white text-base font-semibold">{t('auth.signOut')}</Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
-  description: { fontSize: 14, color: '#666', marginBottom: 16 },
-  localeRow: { flexDirection: 'row', gap: 8, marginBottom: 24 },
-  localeButton: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  localeButtonActive: {
-    backgroundColor: '#007AFF',
-  },
-  localeText: { fontSize: 16, fontWeight: '600', color: '#333' },
-  localeTextActive: { color: '#fff' },
-  button: { backgroundColor: '#e74c3c', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});

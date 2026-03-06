@@ -1,22 +1,32 @@
 export default function AdminPage() {
   return (
     <div>
-      <h1>Dashboard</h1>
-      <p>Welcome to the MotoLearn Admin Dashboard</p>
-      <div
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 24 }}
-      >
-        <div style={{ padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
-          <h3>Articles</h3>
-          <p>Manage AI-generated content</p>
+      <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">
+        Dashboard
+      </h1>
+      <p className="mt-2 text-[--color-on-surface-muted] dark:text-neutral-300">
+        Welcome to the MotoLearn Admin Dashboard
+      </p>
+      <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="p-6 border border-[--color-border] dark:border-neutral-700 rounded-[--radius-card] bg-[--color-surface-elevated] dark:bg-neutral-800 hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-[--color-on-surface] dark:text-neutral-50">Articles</h3>
+          <p className="mt-1 text-sm text-[--color-on-surface-muted] dark:text-neutral-400">
+            Manage AI-generated content
+          </p>
         </div>
-        <div style={{ padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
-          <h3>Users</h3>
-          <p>View user activity</p>
+        <div className="p-6 border border-[--color-border] dark:border-neutral-700 rounded-[--radius-card] bg-[--color-surface-elevated] dark:bg-neutral-800 hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-[--color-on-surface] dark:text-neutral-50">Users</h3>
+          <p className="mt-1 text-sm text-[--color-on-surface-muted] dark:text-neutral-400">
+            View user activity
+          </p>
         </div>
-        <div style={{ padding: 24, border: '1px solid #eee', borderRadius: 8 }}>
-          <h3>Diagnostics</h3>
-          <p>Review diagnostic data</p>
+        <div className="p-6 border border-[--color-border] dark:border-neutral-700 rounded-[--radius-card] bg-[--color-surface-elevated] dark:bg-neutral-800 hover:shadow-md transition-shadow">
+          <h3 className="font-semibold text-[--color-on-surface] dark:text-neutral-50">
+            Diagnostics
+          </h3>
+          <p className="mt-1 text-sm text-[--color-on-surface-muted] dark:text-neutral-400">
+            Review diagnostic data
+          </p>
         </div>
       </div>
     </div>
