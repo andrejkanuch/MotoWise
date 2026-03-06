@@ -4,6 +4,7 @@ query Me {
     email
     fullName
     role
+    preferences
     createdAt
     updatedAt
   }
