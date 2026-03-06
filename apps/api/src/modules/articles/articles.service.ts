@@ -77,6 +77,10 @@ export class ArticlesService {
       .single();
 
     if (error || !data) return null;
+
+    // Fire-and-forget view count increment
+    this.userClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+
     return this.mapRow(data);
   }
 

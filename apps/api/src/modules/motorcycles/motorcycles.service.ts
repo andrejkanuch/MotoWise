@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import type { Tables } from '@motolearn/types/database';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
@@ -39,7 +45,17 @@ export class MotorcyclesService {
     return this.mapRow(data);
   }
 
-  private mapRow(row: any): Motorcycle {
+  async softDelete(userId: string, motorcycleId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('motorcycles')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', motorcycleId)
+      .eq('user_id', userId);
+
+    if (error) throw new InternalServerErrorException('Failed to delete motorcycle');
+  }
+
+  private mapRow(row: Tables<'motorcycles'>): Motorcycle {
     return {
       id: row.id,
       userId: row.user_id,

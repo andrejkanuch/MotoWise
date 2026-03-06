@@ -1,6 +1,6 @@
+import { SubmitQuizSchema } from '@motolearn/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { SubmitQuizSchema } from '@motolearn/types';
 import { AuthUser, CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
