@@ -1,5 +1,5 @@
-import type { Tables } from '@motolearn/types/database';
 import { UserPreferencesSchema } from '@motolearn/types';
+import type { Tables } from '@motolearn/types/database';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
