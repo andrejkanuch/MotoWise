@@ -1,17 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
 import { QuizQuestionSchema } from '@motolearn/types';
+import { Inject, Injectable } from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Quiz, QuizAttempt } from './models/quiz.model';
 
 @Injectable()
 export class QuizzesService {
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-    @Inject(SUPABASE_USER) private readonly userClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_USER) private readonly userClient: SupabaseClient) {}
 
   async findByArticle(articleId: string): Promise<Quiz | null> {
     const { data, error } = await this.userClient
