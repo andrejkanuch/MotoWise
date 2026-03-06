@@ -10,10 +10,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "generate:schema": "ts-node scripts/generate-schema.ts"
+    "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.11.0",
+    "@as-integrations/express5": "^1.1.2",
     "@motolearn/types": "workspace:*",
     "@nestjs/apollo": "^13.0.0",
     "@nestjs/common": "^11.0.0",

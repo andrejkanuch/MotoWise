@@ -13,6 +13,7 @@ const config: CodegenConfig = {
         fragmentMasking: false,
       },
       config: {
+        useTypeImports: true,
         scalars: {
           UUID: 'string',
           DateTime: 'string',

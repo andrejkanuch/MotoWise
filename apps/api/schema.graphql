@@ -1,0 +1,224 @@
+type Article {
+  category: ArticleCategory!
+  difficulty: ArticleDifficulty!
+  generatedAt: String!
+  id: ID!
+  isSafetyCritical: Boolean!
+  slug: String!
+  title: String!
+  updatedAt: String!
+  viewCount: Int!
+}
+
+enum ArticleCategory {
+  brakes
+  drivetrain
+  electrical
+  engine
+  fuel
+  general
+  suspension
+  tires
+}
+
+type ArticleConnection {
+  edges: [ArticleEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+enum ArticleDifficulty {
+  advanced
+  beginner
+  intermediate
+}
+
+type ArticleEdge {
+  cursor: String!
+  node: Article!
+}
+
+type ContentFlag {
+  articleId: String!
+  comment: String!
+  createdAt: String!
+  id: ID!
+  sectionReference: String
+  status: FlagStatus!
+  userId: String!
+}
+
+input CreateDiagnosticInput {
+  dataSharingOptedIn: Boolean! = false
+  motorcycleId: String!
+  wizardAnswers: JSON
+}
+
+input CreateFlagInput {
+  articleId: String!
+  comment: String!
+  sectionReference: String
+}
+
+input CreateMotorcycleInput {
+  make: String!
+  model: String!
+  nickname: String
+  year: Int!
+}
+
+type Diagnostic {
+  confidence: Float
+  createdAt: String!
+  dataSharingOptedIn: Boolean!
+  id: ID!
+  motorcycleId: String!
+  relatedArticleId: String
+  severity: DiagnosticSeverity
+  status: String!
+  userId: String!
+}
+
+enum DiagnosticSeverity {
+  critical
+  high
+  low
+  medium
+}
+
+enum FlagStatus {
+  dismissed
+  pending
+  resolved
+  reviewed
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type LearningProgress {
+  articleId: String!
+  articleRead: Boolean!
+  firstReadAt: String
+  id: ID!
+  lastReadAt: String
+  quizBestScore: Int
+  quizCompleted: Boolean!
+  userId: String!
+}
+
+type Motorcycle {
+  createdAt: String!
+  id: ID!
+  isPrimary: Boolean!
+  make: String!
+  model: String!
+  nickname: String
+  userId: String!
+  year: Int!
+}
+
+type MotorcycleMake {
+  isPopular: Boolean!
+  makeId: Int!
+  makeName: String!
+}
+
+type MotorcycleModelResult {
+  modelId: Int!
+  modelName: String!
+}
+
+type Mutation {
+  createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
+  createFlag(input: CreateFlagInput!): ContentFlag!
+  createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  deleteMotorcycle(id: String!): Boolean!
+  markArticleRead(articleId: String!): LearningProgress!
+  submitQuiz(input: SubmitQuizInput!): QuizAttempt!
+  updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
+  updateUser(input: UpdateUserInput!): User!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  articleBySlug(slug: String!): Article
+  me: User!
+  motorcycleMakes: [MotorcycleMake!]!
+  motorcycleModels(makeId: Int!, year: Int!): [MotorcycleModelResult!]!
+  myDiagnostics: [Diagnostic!]!
+  myMotorcycles: [Motorcycle!]!
+  myProgress: [LearningProgress!]!
+  quizByArticle(articleId: String!): Quiz
+  searchArticles(input: SearchArticlesInput!): ArticleConnection!
+  user: User!
+}
+
+type Quiz {
+  articleId: String!
+  generatedAt: String!
+  id: ID!
+  questions: [QuizQuestion!]!
+}
+
+type QuizAttempt {
+  completedAt: String!
+  id: ID!
+  quizId: String!
+  score: Float!
+  totalQuestions: Float!
+}
+
+type QuizQuestion {
+  explanation: String!
+  options: [String!]!
+  question: String!
+}
+
+input SearchArticlesInput {
+  after: String
+  category: ArticleCategory
+  difficulty: ArticleDifficulty
+  first: Int = 20
+  query: String
+}
+
+input SubmitQuizInput {
+  answers: [Int!]!
+  quizId: String!
+}
+
+input UpdateMotorcycleInput {
+  make: String
+  model: String
+  nickname: String
+  year: Int
+}
+
+input UpdateUserInput {
+  fullName: String
+  preferences: JSON
+}
+
+type User {
+  createdAt: String!
+  email: String!
+  fullName: String
+  id: ID!
+  preferences: JSON
+  role: UserRole!
+  updatedAt: String!
+}
+
+enum UserRole {
+  admin
+  user
+}
