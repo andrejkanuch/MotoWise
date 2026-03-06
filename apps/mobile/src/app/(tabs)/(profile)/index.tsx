@@ -12,6 +12,12 @@ const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   de: 'Deutsch',
 };
 
+const THEME_LABEL_KEYS = {
+  system: 'profile.themeSystem',
+  light: 'profile.themeLight',
+  dark: 'profile.themeDark',
+} as const;
+
 const THEME_OPTIONS = ['system', 'light', 'dark'] as const;
 
 export default function ProfileScreen() {
@@ -77,21 +83,17 @@ export default function ProfileScreen() {
           <Pressable
             key={value}
             className={`flex-1 rounded-xl p-4 items-center ${
-              storedScheme === value
-                ? 'bg-primary-500'
-                : 'bg-neutral-100 dark:bg-neutral-800'
+              storedScheme === value ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
             }`}
             style={{ borderCurve: 'continuous' }}
             onPress={() => handleThemeChange(value)}
           >
             <Text
               className={`text-base font-semibold ${
-                storedScheme === value
-                  ? 'text-white'
-                  : 'text-neutral-700 dark:text-neutral-300'
+                storedScheme === value ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
               }`}
             >
-              {t(`profile.theme${value.charAt(0).toUpperCase()}${value.slice(1)}`)}
+              {t(THEME_LABEL_KEYS[value])}
             </Text>
           </Pressable>
         ))}
