@@ -91,4 +91,64 @@ describe('GqlAuthGuard', () => {
     await expect(guard.canActivate({} as never)).rejects.toThrow(UnauthorizedException);
     await expect(guard.canActivate({} as never)).rejects.toThrow('Invalid or expired token');
   });
+
+  it('should use user_role when app_metadata.role is missing', async () => {
+    mockRequest.headers.authorization = 'Bearer valid.jwt.token';
+    mockJwtVerify.mockResolvedValue({
+      payload: {
+        sub: 'user-456',
+        email: 'mod@example.com',
+        app_metadata: {},
+        user_role: 'moderator',
+      },
+      protectedHeader: { alg: 'HS256' },
+    } as never);
+
+    await guard.canActivate({} as never);
+
+    expect(mockRequest.user).toEqual({
+      id: 'user-456',
+      email: 'mod@example.com',
+      role: 'moderator',
+    });
+  });
+
+  it('should default to user when both app_metadata.role and user_role are absent', async () => {
+    mockRequest.headers.authorization = 'Bearer valid.jwt.token';
+    mockJwtVerify.mockResolvedValue({
+      payload: {
+        sub: 'user-789',
+        email: 'basic@example.com',
+        app_metadata: {},
+      },
+      protectedHeader: { alg: 'HS256' },
+    } as never);
+
+    await guard.canActivate({} as never);
+
+    expect(mockRequest.user).toEqual({
+      id: 'user-789',
+      email: 'basic@example.com',
+      role: 'user',
+    });
+  });
+
+  it('should default to user when app_metadata is undefined', async () => {
+    mockRequest.headers.authorization = 'Bearer valid.jwt.token';
+    mockJwtVerify.mockResolvedValue({
+      payload: {
+        sub: 'user-000',
+        email: 'none@example.com',
+      },
+      protectedHeader: { alg: 'HS256' },
+    } as never);
+
+    await guard.canActivate({} as never);
+
+    expect(mockRequest.user).toEqual({
+      id: 'user-000',
+      email: 'none@example.com',
+      role: 'user',
+    });
+  });
 });

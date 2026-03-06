@@ -73,12 +73,6 @@ export function createMockSupabaseClient() {
       getUser: vi.fn(),
       getSession: vi.fn(),
     },
-    storage: {
-      from: vi.fn().mockReturnValue({
-        upload: vi.fn(),
-        getPublicUrl: vi.fn(),
-      }),
-    },
   };
 
   return { client, queryBuilder };

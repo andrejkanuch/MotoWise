@@ -72,6 +72,44 @@ describe('ArticlesService', () => {
       expect(result.pageInfo.hasNextPage).toBe(true);
     });
 
+    it('should filter by category', async () => {
+      adminMock.queryBuilder.resolveWith({ data: [], error: null, count: 0 });
+
+      await service.search({ category: 'maintenance' });
+
+      expect(adminMock.queryBuilder.eq).toHaveBeenCalledWith('category', 'maintenance');
+    });
+
+    it('should filter by difficulty', async () => {
+      adminMock.queryBuilder.resolveWith({ data: [], error: null, count: 0 });
+
+      await service.search({ difficulty: 'beginner' });
+
+      expect(adminMock.queryBuilder.eq).toHaveBeenCalledWith('difficulty', 'beginner');
+    });
+
+    it('should apply text search', async () => {
+      adminMock.queryBuilder.resolveWith({ data: [], error: null, count: 0 });
+
+      await service.search({ query: 'oil change' });
+
+      expect(adminMock.queryBuilder.textSearch).toHaveBeenCalledWith(
+        'search_vector',
+        'oil change',
+        { type: 'websearch' },
+      );
+    });
+
+    it('should apply cursor pagination with base64 after param', async () => {
+      adminMock.queryBuilder.resolveWith({ data: [], error: null, count: 0 });
+      const cursorDate = '2025-06-01T00:00:00Z';
+      const afterCursor = Buffer.from(cursorDate).toString('base64');
+
+      await service.search({ after: afterCursor });
+
+      expect(adminMock.queryBuilder.lt).toHaveBeenCalledWith('generated_at', cursorDate);
+    });
+
     it('should throw InternalServerErrorException on error', async () => {
       adminMock.queryBuilder.resolveWith({
         data: null,
