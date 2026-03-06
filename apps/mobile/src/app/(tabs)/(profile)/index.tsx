@@ -20,7 +20,12 @@ const THEME_OPTIONS = [
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
-  const { locale, setLocale, colorScheme: storedScheme, setColorScheme: setStoredScheme } = useAuthStore();
+  const {
+    locale,
+    setLocale,
+    colorScheme: storedScheme,
+    setColorScheme: setStoredScheme,
+  } = useAuthStore();
   const { setColorScheme } = useColorScheme();
 
   const handleLogout = async () => {
@@ -49,9 +54,7 @@ export default function ProfileScreen() {
           <Pressable
             key={loc}
             className={`flex-1 rounded-xl p-4 items-center ${
-              locale === loc
-                ? 'bg-primary-500'
-                : 'bg-neutral-100 dark:bg-neutral-800'
+              locale === loc ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
             }`}
             style={{ borderCurve: 'continuous' }}
             onPress={() => setLocale(loc)}
@@ -87,7 +90,9 @@ export default function ProfileScreen() {
           >
             <Text
               className={`text-base font-semibold ${
-                storedScheme === option.value ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
+                storedScheme === option.value
+                  ? 'text-white'
+                  : 'text-neutral-700 dark:text-neutral-300'
               }`}
             >
               {option.label}

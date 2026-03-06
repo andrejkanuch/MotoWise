@@ -22,9 +22,7 @@ export default function ErrorPage({
         An unexpected error occurred. Please try again.
       </p>
       {error.digest && (
-        <p className="text-xs text-neutral-400 dark:text-neutral-500">
-          Reference: {error.digest}
-        </p>
+        <p className="text-xs text-neutral-400 dark:text-neutral-500">Reference: {error.digest}</p>
       )}
       <button
         type="button"

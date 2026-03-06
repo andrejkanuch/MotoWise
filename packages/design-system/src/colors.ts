@@ -46,6 +46,6 @@ export const colors = {
   danger: { 500: 'oklch(0.58 0.22 25)' },
   success: { 500: 'oklch(0.62 0.18 145)' },
   warning: { 500: 'oklch(0.75 0.15 80)' },
-} as const
+} as const;
 
-export type ColorToken = typeof colors
+export type ColorToken = typeof colors;

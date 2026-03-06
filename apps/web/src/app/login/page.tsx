@@ -30,10 +30,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-[--color-surface] dark:bg-neutral-900">
-      <form
-        onSubmit={handleLogin}
-        className="w-[360px] flex flex-col gap-4"
-      >
+      <form onSubmit={handleLogin} className="w-[360px] flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">
           MotoLearn Sign In
         </h1>

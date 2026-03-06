@@ -21,9 +21,7 @@ export default function TabsLayout() {
         name="(learn)"
         options={{
           title: t('tabs.learn'),
-          tabBarIcon: ({ color }) => (
-            <SymbolView name="book.fill" tintColor={color} size={22} />
-          ),
+          tabBarIcon: ({ color }) => <SymbolView name="book.fill" tintColor={color} size={22} />,
         }}
       />
       <Tabs.Screen
@@ -39,18 +37,14 @@ export default function TabsLayout() {
         name="(garage)"
         options={{
           title: t('tabs.garage'),
-          tabBarIcon: ({ color }) => (
-            <SymbolView name="car.fill" tintColor={color} size={22} />
-          ),
+          tabBarIcon: ({ color }) => <SymbolView name="car.fill" tintColor={color} size={22} />,
         }}
       />
       <Tabs.Screen
         name="(profile)"
         options={{
           title: t('tabs.profile'),
-          tabBarIcon: ({ color }) => (
-            <SymbolView name="person.fill" tintColor={color} size={22} />
-          ),
+          tabBarIcon: ({ color }) => <SymbolView name="person.fill" tintColor={color} size={22} />,
         }}
       />
     </Tabs>

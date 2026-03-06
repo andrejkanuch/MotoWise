@@ -15,27 +15,42 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </h2>
         <ul className="list-none p-0 flex-1 space-y-1">
           <li>
-            <Link href="/admin" className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline">
+            <Link
+              href="/admin"
+              className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline"
+            >
               Overview
             </Link>
           </li>
           <li>
-            <Link href="/admin/articles" className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline">
+            <Link
+              href="/admin/articles"
+              className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline"
+            >
               Articles
             </Link>
           </li>
           <li>
-            <Link href="/admin/users" className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline">
+            <Link
+              href="/admin/users"
+              className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline"
+            >
               Users
             </Link>
           </li>
           <li>
-            <Link href="/admin/diagnostics" className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline">
+            <Link
+              href="/admin/diagnostics"
+              className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline"
+            >
               Diagnostics
             </Link>
           </li>
           <li>
-            <Link href="/admin/flags" className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline">
+            <Link
+              href="/admin/flags"
+              className="block px-3 py-2 rounded-[--radius-button] text-[--color-on-surface] dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors no-underline"
+            >
               Content Flags
             </Link>
           </li>

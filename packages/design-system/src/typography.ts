@@ -2,7 +2,7 @@ export const fontFamily = {
   sans: '"Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif',
   heading: '"Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif',
   mono: '"Geist Mono", ui-monospace, monospace',
-} as const
+} as const;
 
 export const typeScale = {
   display: { size: 32, weight: '700', lineHeight: 1.2 },
@@ -12,7 +12,7 @@ export const typeScale = {
   body: { size: 16, weight: '400', lineHeight: 1.5 },
   bodySm: { size: 14, weight: '400', lineHeight: 1.5 },
   caption: { size: 12, weight: '500', lineHeight: 1.4 },
-} as const
+} as const;
 
-export type FontFamily = typeof fontFamily
-export type TypeScale = typeof typeScale
+export type FontFamily = typeof fontFamily;
+export type TypeScale = typeof typeScale;
