@@ -113,6 +113,9 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@motolearn/design-system':
+        specifier: workspace:*
+        version: link:../../packages/design-system
       '@motolearn/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
@@ -222,6 +225,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@motolearn/design-system':
+        specifier: workspace:*
+        version: link:../../packages/design-system
       '@motolearn/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
