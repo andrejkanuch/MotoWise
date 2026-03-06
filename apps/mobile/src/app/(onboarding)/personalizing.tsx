@@ -59,15 +59,20 @@ export default function PersonalizingScreen() {
         reset();
         setMutationDone(true);
       } else {
-        // Retry once on failure
+        // Retry once on failure, proceed regardless so user isn't stuck
         updateUser({
           input: {
             preferences: { onboardingCompleted: true },
           },
-        }).then(() => {
-          reset();
-          setMutationDone(true);
-        });
+        })
+          .then(() => {
+            reset();
+            setMutationDone(true);
+          })
+          .catch(() => {
+            reset();
+            setMutationDone(true);
+          });
       }
     });
   }, [experienceLevel, ridingGoals, updateUser, reset]);

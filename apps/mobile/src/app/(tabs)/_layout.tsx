@@ -1,4 +1,3 @@
-import { colors } from '@motolearn/design-system';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Tabs } from 'expo-router';
 import { BookOpen, Home, Bike, User, Wrench } from 'lucide-react-native';
@@ -6,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const ACTIVE_COLOR = '#4F6BED';
+const INACTIVE_COLOR = '#9CA3AF';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -35,11 +37,7 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         paddingVertical: 10,
         paddingHorizontal: 8,
         borderCurve: 'continuous',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
-        elevation: 12,
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
       }}
     >
       {state.routes.map((route, index) => {
@@ -74,14 +72,14 @@ function IslandTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           >
             <Icon
               size={22}
-              color={isFocused ? colors.primary[500] : colors.neutral[400]}
+              color={isFocused ? ACTIVE_COLOR : INACTIVE_COLOR}
               strokeWidth={isFocused ? 2.5 : 1.8}
             />
             <Text
               style={{
                 fontSize: 10,
                 fontWeight: isFocused ? '700' : '500',
-                color: isFocused ? colors.primary[500] : colors.neutral[400],
+                color: isFocused ? ACTIVE_COLOR : INACTIVE_COLOR,
                 marginTop: 3,
               }}
             >

@@ -31,7 +31,7 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         Alert.alert(t('common.error'), error.message);
       }

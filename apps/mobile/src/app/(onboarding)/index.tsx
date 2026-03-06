@@ -52,12 +52,11 @@ export default function WelcomeScreen() {
   };
 
   const handleContinue = () => {
-    if (selected) {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-      setExperienceLevel(selected as ExperienceLevel);
+    if (!selected) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    setExperienceLevel(selected as ExperienceLevel);
     router.push('/(onboarding)/select-bike');
   };
 

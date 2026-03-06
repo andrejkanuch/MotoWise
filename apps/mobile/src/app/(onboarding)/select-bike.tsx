@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { Bike, Calendar, ChevronRight, Search, SkipForward, Tag } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useMutation, useQuery } from 'urql';
 import { ProgressBar } from '../../components/progress-bar';
@@ -84,16 +84,18 @@ export default function SelectBikeScreen() {
     });
     setIsCreating(false);
 
-    if (!result.error) {
-      setBikeData({
-        year: yearNum,
-        make: selectedMake.makeName,
-        makeId: selectedMake.makeId,
-        model: selectedModel.modelName,
-        nickname: nickname.trim() || undefined,
-      });
-      router.push('/(onboarding)/riding-goals');
+    if (result.error) {
+      Alert.alert(t('common.error'), result.error.message);
+      return;
     }
+    setBikeData({
+      year: yearNum,
+      make: selectedMake.makeName,
+      makeId: selectedMake.makeId,
+      model: selectedModel.modelName,
+      nickname: nickname.trim() || undefined,
+    });
+    router.push('/(onboarding)/riding-goals');
   };
 
   const handleSkip = () => {
