@@ -10,13 +10,13 @@
     "retry": "Reintentar"
   },
   "auth": {
-    "signIn": "Iniciar Sesion",
-    "signingIn": "Iniciando sesion...",
+    "signIn": "Iniciar Sesión",
+    "signingIn": "Iniciando sesión...",
     "signUp": "Crear Cuenta",
     "signingUp": "Creando...",
-    "signOut": "Cerrar Sesion",
-    "email": "Correo electronico",
-    "password": "Contrasena",
+    "signOut": "Cerrar Sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
     "fullName": "Nombre completo",
     "noAccount": "No tienes cuenta? Registrate",
     "hasAccount": "Ya tienes cuenta? Inicia Sesion",
