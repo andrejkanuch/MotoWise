@@ -17,6 +17,11 @@ export const queryKeys = {
     makes: ['nhtsa', 'makes'] as const,
     models: (params: { makeId: number; year: number }) => ['nhtsa', 'models', params] as const,
   },
+  maintenanceTasks: {
+    all: ['maintenance-tasks'] as const,
+    byMotorcycle: (motorcycleId: string) =>
+      ['maintenance-tasks', 'motorcycle', motorcycleId] as const,
+  },
   articles: {
     all: ['articles'] as const,
     list: (filters?: Record<string, unknown>) =>

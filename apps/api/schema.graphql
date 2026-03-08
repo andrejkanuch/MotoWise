@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 type Article {
   category: ArticleCategory!
   contentJson: JSON
@@ -66,6 +62,17 @@ input CreateFlagInput {
   sectionReference: String
 }
 
+input CreateMaintenanceTaskInput {
+  description: String
+  dueDate: String
+  motorcycleId: String!
+  notes: String
+  partsNeeded: [String!]
+  priority: MaintenancePriority = medium
+  targetMileage: Int
+  title: String!
+}
+
 input CreateMotorcycleInput {
   make: String!
   model: String!
@@ -123,6 +130,38 @@ type LearningProgress {
   userId: String!
 }
 
+enum MaintenancePriority {
+  critical
+  high
+  low
+  medium
+}
+
+type MaintenanceTask {
+  completedAt: String
+  completedMileage: Int
+  createdAt: String!
+  description: String
+  dueDate: String
+  id: ID!
+  motorcycleId: String!
+  notes: String
+  partsNeeded: [String!]
+  priority: MaintenancePriority!
+  status: MaintenanceTaskStatus!
+  targetMileage: Int
+  title: String!
+  updatedAt: String!
+  userId: String!
+}
+
+enum MaintenanceTaskStatus {
+  completed
+  in_progress
+  pending
+  skipped
+}
+
 type Motorcycle {
   createdAt: String!
   id: ID!
@@ -146,14 +185,18 @@ type MotorcycleModelResult {
 }
 
 type Mutation {
+  completeMaintenanceTask(completedMileage: Int, id: String!): MaintenanceTask!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
+  createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
   markArticleRead(articleId: String!): LearningProgress!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
+  updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateUser(input: UpdateUserInput!): User!
 }
@@ -169,6 +212,7 @@ type Query {
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic
+  maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
   me: User!
   motorcycleMakes: [MotorcycleMake!]!
   motorcycleModels(makeId: Int!, year: Int!): [MotorcycleModelResult!]!
@@ -220,6 +264,16 @@ input SubmitDiagnosticInput {
 input SubmitQuizInput {
   answers: [Int!]!
   quizId: String!
+}
+
+input UpdateMaintenanceTaskInput {
+  description: String
+  dueDate: String
+  notes: String
+  partsNeeded: [String!]
+  priority: MaintenancePriority
+  targetMileage: Int
+  title: String
 }
 
 input UpdateMotorcycleInput {

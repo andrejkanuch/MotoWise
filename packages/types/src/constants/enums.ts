@@ -55,5 +55,22 @@ export const ExperienceLevel = {
 } as const;
 export type ExperienceLevel = (typeof ExperienceLevel)[keyof typeof ExperienceLevel];
 
+export const MaintenanceTaskStatus = {
+  PENDING: 'pending',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  SKIPPED: 'skipped',
+} as const;
+export type MaintenanceTaskStatus =
+  (typeof MaintenanceTaskStatus)[keyof typeof MaintenanceTaskStatus];
+
+export const MaintenancePriority = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+} as const;
+export type MaintenancePriority = (typeof MaintenancePriority)[keyof typeof MaintenancePriority];
+
 export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

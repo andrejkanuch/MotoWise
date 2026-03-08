@@ -1,0 +1,19 @@
+query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
+  maintenanceTasks(motorcycleId: $motorcycleId) {
+    id
+    userId
+    motorcycleId
+    title
+    description
+    dueDate
+    targetMileage
+    priority
+    status
+    notes
+    partsNeeded
+    completedAt
+    completedMileage
+    createdAt
+    updatedAt
+  }
+}

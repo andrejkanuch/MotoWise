@@ -1,0 +1,11 @@
+mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {
+  createMaintenanceTask(input: $input) {
+    id
+    title
+    priority
+    status
+    dueDate
+    targetMileage
+    createdAt
+  }
+}

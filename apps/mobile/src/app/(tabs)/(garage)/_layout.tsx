@@ -28,6 +28,13 @@ export default function GarageLayout() {
         }}
       />
       <Stack.Screen
+        name="add-maintenance-task"
+        options={{
+          title: t('garage.addMaintenanceTask', { defaultValue: 'Add Task' }),
+          presentation: 'formSheet',
+        }}
+      />
+      <Stack.Screen
         name="edit-bike"
         options={{
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
