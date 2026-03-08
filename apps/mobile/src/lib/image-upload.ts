@@ -38,7 +38,7 @@ export async function uploadMaintenancePhoto(
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const compressedUri = await compressImage(uri);
   const base64 = await FileSystem.readAsStringAsync(compressedUri, {
-    encoding: FileSystem.EncodingType.Base64,
+    encoding: 'base64',
   });
   const filePath = `${userId}/${taskId}/${Date.now()}.webp`;
   const { error } = await supabase.storage

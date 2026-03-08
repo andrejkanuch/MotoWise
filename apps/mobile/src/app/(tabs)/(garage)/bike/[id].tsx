@@ -127,7 +127,7 @@ function MaintenanceTab({
 }: {
   motorcycleId: string;
   isDark: boolean;
-  bike: { make: string; model: string; year: number; nickname?: string };
+  bike: { make: string; model: string; year: number; nickname?: string | null };
 }) {
   const { t } = useTranslation();
   const router = useRouter();
