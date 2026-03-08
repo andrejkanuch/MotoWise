@@ -1,0 +1,152 @@
+{
+  "Metadata": {
+    "title": "MotoWise — KI-gestütztes Motorrad-Lernen & Diagnose",
+    "titleTemplate": "%s | MotoWise",
+    "description": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und überwache den Zustand deines Motorrads. Lerne dein Bike. Repariere dein Bike.",
+    "ogDescription": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und überwache den Zustand deines Motorrads. Lerne dein Bike. Repariere dein Bike."
+  },
+  "Navbar": {
+    "features": "Funktionen",
+    "faq": "Häufige Fragen",
+    "download": "App Herunterladen",
+    "openMenu": "Navigationsmenü öffnen",
+    "closeMenu": "Navigationsmenü schließen"
+  },
+  "Hero": {
+    "line1": "LERNE DEIN BIKE.",
+    "line2": "REPARIERE",
+    "line3": "DEIN BIKE.",
+    "subtitle": "KI-gestützte Motorraddiagnose & Lernen — alles in einer App.",
+    "downloadCta": "Kostenlos Herunterladen",
+    "exploreFeatures": "Funktionen Entdecken",
+    "scrollDown": "Nach unten scrollen"
+  },
+  "Features": {
+    "sectionTitle": "Für Motorradfahrer Entwickelt",
+    "sectionSubtitle": "Alles, was du brauchst, um dein Motorrad zu lernen, zu warten und zu meistern.",
+    "diag": {
+      "title": "KI-Diagnose",
+      "tagline": "Mach ein Foto. Erhalte Antworten.",
+      "description": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor — alles in Sekunden."
+    },
+    "learn": {
+      "title": "Lernpfade",
+      "tagline": "Strukturierte Kurse für jedes Niveau.",
+      "description": "Tauche ein in Motorinterna, Fahrwerkseinstellung, Elektrik und Routinewartung — jeweils mit Lektionen, Quizzen und praktischen Herausforderungen."
+    },
+    "garage": {
+      "title": "Garagenverwaltung",
+      "tagline": "Verwalte deine Bikes.",
+      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Protokolliere Wartungen, stelle Serviceerinnerungen ein und führe eine vollständige Historie, damit nichts vergessen wird."
+    },
+    "progress": {
+      "title": "Fortschrittsverfolgung",
+      "tagline": "Meistere dein Wissen.",
+      "description": "Steige auf, wenn du Lektionen abschließt und Quizze bestehst. Verdiene Abzeichen, verfolge Punkte über alle Module hinweg und beobachte, wie dein Fachwissen mit der Zeit wächst."
+    },
+    "community": {
+      "title": "Community",
+      "tagline": "Schließe dich anderen Fahrern an.",
+      "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser."
+    }
+  },
+  "Cta": {
+    "headline": "Bereit, Dein Motorrad zu Meistern?",
+    "subtitle": "Schließe dich Tausenden von Fahrern an, die bereits mit KI lernen.",
+    "appStorePrefix": "Laden im",
+    "appStore": "App Store",
+    "playStorePrefix": "Jetzt bei",
+    "playStore": "Google Play",
+    "disclaimer": "Kostenloser Download. Keine Kreditkarte erforderlich."
+  },
+  "Faq": {
+    "sectionTitle": "Häufig Gestellte Fragen",
+    "items": [
+      {
+        "question": "Was ist MotoWise?",
+        "answer": "MotoWise ist eine KI-gestützte Plattform für Motorradbegeisterte. Sie hilft dir, Wartung zu lernen, Probleme mittels fotobasierter KI-Analyse zu diagnostizieren, deine Bikes in einer digitalen Garage zu verfolgen und dein Wissen durch strukturierte Kurse und Quizze aufzubauen."
+      },
+      {
+        "question": "Ist MotoWise kostenlos?",
+        "answer": "Ja! MotoWise bietet einen kostenlosen Plan, der grundlegende Lerninhalte, ein Bike in deiner Garage und begrenzte KI-Diagnosen umfasst. Für unbegrenzte Diagnosen, alle Lerninhalte und unbegrenzte Bikes kannst du in der App auf MotoWise Pro upgraden."
+      },
+      {
+        "question": "Welche Motorräder werden unterstützt?",
+        "answer": "MotoWise unterstützt alle Motorradmarken und -modelle. Unsere Datenbank nutzt die offiziellen NHTSA-Fahrzeugdaten und umfasst Tausende von Marken und Modellen über alle Baujahre hinweg. Suche einfach nach deinem Bike, wenn du es zu deiner Garage hinzufügst."
+      },
+      {
+        "question": "Wie funktioniert die KI-Diagnose?",
+        "answer": "Mache ein Foto von einem beliebigen Teil deines Motorrads und beschreibe das Problem. Unsere KI analysiert das Bild und liefert eine diagnostische Bewertung mit Schweregradeinschätzung — von kritischen Problemen, die sofortige Aufmerksamkeit erfordern, bis hin zu kleineren Wartungsvorschlägen."
+      },
+      {
+        "question": "Sind meine Daten sicher?",
+        "answer": "Absolut. MotoWise verwendet Supabase mit Sicherheit auf Zeilenebene, um deine Daten zu schützen. Authentifizierungstoken werden sicher gespeichert, und wir geben deine persönlichen Informationen oder Bike-Daten niemals an Dritte weiter."
+      },
+      {
+        "question": "Was ist in MotoWise Pro enthalten?",
+        "answer": "MotoWise Pro schaltet unbegrenzte KI-Diagnosen, Zugang zu allen Lernmodulen und Kursen, unbegrenzte Bikes in deiner Garage, bevorzugten Support und exklusive Inhalte frei. Du kannst monatlich oder jährlich über die App abonnieren."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Produkt",
+    "company": "Unternehmen",
+    "connect": "Verbinden",
+    "tagline": "Lerne dein Bike. Repariere dein Bike.",
+    "copyright": "© 2026 MotoWise. Alle Rechte vorbehalten.",
+    "features": "Funktionen",
+    "download": "Herunterladen",
+    "faq": "Häufige Fragen",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "admin": "Admin",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "x": "X"
+  },
+  "Privacy": {
+    "title": "Datenschutzrichtlinie",
+    "lastUpdated": "Zuletzt aktualisiert: 8. März 2026",
+    "infoCollectTitle": "Informationen, die wir Erfassen",
+    "infoCollect": "Wenn du ein MotoWise-Konto erstellst, erfassen wir deine E-Mail-Adresse und deinen Anzeigenamen. Wenn du die KI-Diagnose nutzt, werden hochgeladene Bilder für die Analyse verarbeitet und nicht dauerhaft gespeichert. Motorraddaten, die du zu deiner Garage hinzufügst, werden sicher in deinem Konto gespeichert.",
+    "howWeUseTitle": "Wie wir Deine Informationen Verwenden",
+    "howWeUse": "Wir verwenden deine Informationen, um die Dienste von MotoWise bereitzustellen und zu verbessern, einschließlich personalisierter Lernempfehlungen, KI-Diagnoseanalyse und Garagenverwaltung. Wir verkaufen deine persönlichen Daten nicht an Dritte.",
+    "securityTitle": "Datensicherheit",
+    "security": "MotoWise verwendet Supabase mit Sicherheitsrichtlinien auf Zeilenebene, um deine Daten zu schützen. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert. Alle Daten werden über HTTPS übertragen.",
+    "rightsTitle": "Deine Rechte",
+    "rights": "Du kannst deine Daten jederzeit über deine Profileinstellungen exportieren oder löschen. Bei Fragen zu deinen Daten kontaktiere uns unter privacy@motowise.app."
+  },
+  "Terms": {
+    "title": "Nutzungsbedingungen",
+    "lastUpdated": "Zuletzt aktualisiert: 8. März 2026",
+    "acceptanceTitle": "Annahme der Bedingungen",
+    "acceptance": "Durch den Zugriff auf oder die Nutzung von MotoWise erklärst du dich mit diesen Nutzungsbedingungen einverstanden. Wenn du nicht einverstanden bist, nutze bitte unsere Dienste nicht.",
+    "useTitle": "Nutzung des Dienstes",
+    "use": "MotoWise bietet KI-gestützte Lerninhalte und Diagnosewerkzeuge für Motorräder zu Informationszwecken. Unsere KI-Diagnose ist darauf ausgelegt, professionelle Motorradmechaniker-Beratung zu unterstützen — nicht zu ersetzen. Konsultiere bei kritischen Sicherheitsproblemen immer einen qualifizierten Mechaniker.",
+    "accountsTitle": "Benutzerkonten",
+    "accounts": "Du bist für die Wahrung der Vertraulichkeit deiner Kontodaten verantwortlich. Du erklärst dich damit einverstanden, bei der Erstellung deines Kontos korrekte Angaben zu machen und diese bei Bedarf zu aktualisieren.",
+    "ipTitle": "Geistiges Eigentum",
+    "ip": "Alle Inhalte, Funktionen und Funktionalitäten von MotoWise sind Eigentum von MotoWise und durch Urheberrecht und andere Gesetze zum Schutz geistigen Eigentums geschützt. Lerninhalte dürfen ohne Genehmigung nicht vervielfältigt werden.",
+    "liabilityTitle": "Haftungsbeschränkung",
+    "liability": "MotoWise wird \"wie besehen\" ohne Gewährleistungen jeglicher Art bereitgestellt. Wir haften nicht für Schäden, die aus der Nutzung des Dienstes oder dem Vertrauen auf KI-Diagnoseergebnisse entstehen."
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "Diese Seite existiert nicht.",
+    "backHome": "Zurück zur Startseite"
+  },
+  "Error": {
+    "title": "Etwas ist schiefgelaufen",
+    "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "retry": "Erneut versuchen"
+  },
+  "LanguageSwitcher": {
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch"
+  },
+  "JsonLd": {
+    "organizationName": "MotoWise",
+    "organizationDescription": "KI-gestützte Plattform für Motorrad-Lernen und Diagnose"
+  }
+}

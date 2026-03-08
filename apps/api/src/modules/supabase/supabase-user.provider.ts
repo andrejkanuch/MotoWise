@@ -5,17 +5,23 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 export const SUPABASE_USER = 'SUPABASE_USER';
 
-// biome-ignore lint/suspicious/noExplicitAny: REQUEST shape varies between HTTP and GraphQL contexts
-type RequestContext = any;
-
 export const supabaseUserProvider: Provider = {
   provide: SUPABASE_USER,
   scope: Scope.REQUEST,
   inject: [ConfigService, REQUEST],
-  useFactory: (configService: ConfigService, context: RequestContext): SupabaseClient => {
-    // In NestJS GraphQL, REQUEST may inject the GqlContext ({ req }) or the raw HTTP request.
-    // The access token is set by GqlAuthGuard on the HTTP request object.
-    const accessToken = context?.req?.accessToken ?? context?.accessToken;
+  useFactory: (
+    configService: ConfigService,
+    // biome-ignore lint/suspicious/noExplicitAny: REQUEST shape varies between HTTP and GraphQL contexts
+    context: any,
+  ): SupabaseClient => {
+    // In NestJS GraphQL, the REQUEST injection gives { req } where req is the
+    // raw Express request. Custom properties set by guards (like accessToken)
+    // are NOT visible here due to object identity differences. Read the token
+    // from the Authorization header directly.
+    const req = context?.req ?? context;
+    const authHeader: string | undefined = req?.headers?.authorization;
+    const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+
     return createClient(
       configService.getOrThrow('SUPABASE_URL'),
       configService.getOrThrow('SUPABASE_ANON_KEY'),
