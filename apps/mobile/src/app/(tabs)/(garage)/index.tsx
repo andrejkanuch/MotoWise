@@ -93,8 +93,8 @@ function BikeCard({
           >
             <BikeIcon
               variant={variant}
-              size={56}
-              color={isDark ? 'rgba(255,255,255,0.25)' : palette.primary300}
+              size={80}
+              color={isDark ? 'rgba(255,255,255,0.55)' : palette.primary400}
             />
 
             {bike.isPrimary && (

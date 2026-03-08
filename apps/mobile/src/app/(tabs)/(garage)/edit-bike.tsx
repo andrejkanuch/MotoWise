@@ -215,7 +215,7 @@ export default function EditBikeScreen() {
             <LinearGradient
               colors={
                 saved
-                  ? [palette.success500, palette.success600]
+                  ? [palette.success500, palette.success500]
                   : [palette.primary600, palette.primary500]
               }
               start={{ x: 0, y: 0 }}
