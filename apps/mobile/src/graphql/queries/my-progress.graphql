@@ -1,0 +1,12 @@
+query MyProgress {
+  myProgress {
+    id
+    userId
+    articleId
+    articleRead
+    quizCompleted
+    quizBestScore
+    firstReadAt
+    lastReadAt
+  }
+}

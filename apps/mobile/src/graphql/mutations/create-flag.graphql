@@ -1,0 +1,11 @@
+mutation CreateFlag($input: CreateFlagInput!) {
+  createFlag(input: $input) {
+    id
+    articleId
+    userId
+    sectionReference
+    comment
+    status
+    createdAt
+  }
+}

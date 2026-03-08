@@ -1,0 +1,13 @@
+query GetArticleBySlug($slug: String!) {
+  articleBySlug(slug: $slug) {
+    id
+    slug
+    title
+    difficulty
+    category
+    viewCount
+    isSafetyCritical
+    generatedAt
+    updatedAt
+  }
+}

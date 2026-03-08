@@ -24,7 +24,7 @@ export async function signInWithApple() {
 }
 
 export async function signInWithGoogle() {
-  const redirectTo = makeRedirectUri();
+  const redirectTo = makeRedirectUri({ scheme: 'motowise', path: 'auth/callback' });
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo, skipBrowserRedirect: true },

@@ -1,8 +1,22 @@
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
+
+const logo = require('../../assets/images/MotoWise.png');
+
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -13,10 +27,15 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) Alert.alert(t('common.error'), error.message);
+      if (error) {
+        Alert.alert(t('common.error'), error.message);
+      }
     } catch (err) {
       Alert.alert(t('common.error'), (err as Error).message);
     } finally {
@@ -25,6 +44,9 @@ export default function LoginScreen() {
   };
 
   const handleAppleSignIn = async () => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     try {
       await signInWithApple();
     } catch (err) {
@@ -33,6 +55,9 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     try {
       await signInWithGoogle();
     } catch (err) {
@@ -40,99 +65,208 @@ export default function LoginScreen() {
     }
   };
 
+  const canSubmit = email.length > 0 && password.length > 0 && !loading;
+
   return (
-    <View className="flex-1 justify-center p-6 bg-white dark:bg-neutral-900">
-      {/* Header */}
-      <Animated.View entering={FadeInUp.duration(500)}>
-        <Text className="text-3xl font-bold text-center mb-2 text-neutral-950 dark:text-neutral-50">
-          {t('common.appName')}
-        </Text>
-        <Text className="text-base text-center mb-8 text-neutral-500 dark:text-neutral-400">
-          {t('auth.tagline')}
-        </Text>
-      </Animated.View>
-
-      {/* Social auth buttons */}
-      <Animated.View entering={FadeInUp.duration(500).delay(100)}>
-        {process.env.EXPO_OS === 'ios' && (
-          <Pressable
-            className="flex-row items-center justify-center bg-black rounded-2xl py-4 mb-3"
-            style={{ borderCurve: 'continuous' }}
-            onPress={handleAppleSignIn}
+    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            paddingHorizontal: 24,
+            paddingVertical: 48,
+            gap: 32,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Brand header */}
+          <Animated.View
+            entering={FadeInDown.duration(600)}
+            style={{ alignItems: 'center', gap: 12 }}
           >
-            <Text className="text-white text-lg mr-2">{'\uF8FF'}</Text>
-            <Text className="text-white text-base font-semibold">
-              {t('auth.continueWithApple')}
+            <Image
+              source={logo}
+              style={{
+                width: 88,
+                height: 88,
+                borderRadius: 22,
+                // @ts-expect-error borderCurve works on RN Image but isn't in ImageStyle types
+                borderCurve: 'continuous',
+                marginBottom: 8,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 32,
+                fontWeight: '800',
+                color: '#FFFFFF',
+                letterSpacing: -0.5,
+                textAlign: 'center',
+              }}
+            >
+              {t('common.appName')}
             </Text>
-          </Pressable>
-        )}
+            <Text
+              style={{
+                fontSize: 17,
+                color: 'rgba(255, 255, 255, 0.5)',
+                textAlign: 'center',
+              }}
+            >
+              {t('auth.tagline')}
+            </Text>
+          </Animated.View>
 
-        <Pressable
-          className="flex-row items-center justify-center bg-white dark:bg-neutral-100 rounded-2xl py-4 mb-3 border border-neutral-200 dark:border-neutral-300"
-          style={{ borderCurve: 'continuous' }}
-          onPress={handleGoogleSignIn}
-        >
-          <Text className="text-neutral-900 text-lg font-bold mr-2">G</Text>
-          <Text className="text-neutral-900 text-base font-semibold">
-            {t('auth.continueWithGoogle')}
-          </Text>
-        </Pressable>
-      </Animated.View>
+          {/* Social auth */}
+          <Animated.View entering={FadeInUp.delay(150).duration(500)} style={{ gap: 12 }}>
+            {process.env.EXPO_OS === 'ios' && (
+              <Pressable
+                onPress={handleAppleSignIn}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  paddingVertical: 16,
+                  gap: 10,
+                  opacity: pressed ? 0.85 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                })}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#000000' }}>
+                  {t('auth.continueWithApple')}
+                </Text>
+              </Pressable>
+            )}
 
-      {/* Divider */}
-      <Animated.View
-        entering={FadeInUp.duration(500).delay(200)}
-        className="flex-row items-center my-6"
-      >
-        <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-        <Text className="mx-4 text-sm text-neutral-400 dark:text-neutral-500">
-          {t('auth.orContinueWithEmail')}
-        </Text>
-        <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-      </Animated.View>
+            <Pressable
+              onPress={handleGoogleSignIn}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.12)',
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                paddingVertical: 16,
+                gap: 10,
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.98 : 1 }],
+              })}
+            >
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF' }}>G</Text>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFFFFF' }}>
+                {t('auth.continueWithGoogle')}
+              </Text>
+            </Pressable>
+          </Animated.View>
 
-      {/* Email + Password fields */}
-      <Animated.View entering={FadeInUp.duration(500).delay(300)}>
-        <TextInput
-          className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
-          style={{ borderCurve: 'continuous' }}
-          placeholder={t('auth.email')}
-          placeholderTextColor="oklch(0.71 0 0)"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          className="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 mb-4 text-base text-neutral-950 dark:text-neutral-50 bg-white dark:bg-neutral-800"
-          style={{ borderCurve: 'continuous' }}
-          placeholder={t('auth.password')}
-          placeholderTextColor="oklch(0.71 0 0)"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <Pressable
-          className="bg-primary-950 dark:bg-primary-500 rounded-xl p-4 items-center mb-4"
-          style={{ borderCurve: 'continuous' }}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <Text className="text-white text-base font-semibold">
-            {loading ? t('auth.signingIn') : t('auth.signIn')}
-          </Text>
-        </Pressable>
-      </Animated.View>
+          {/* Divider */}
+          <Animated.View
+            entering={FadeIn.delay(300).duration(400)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}
+          >
+            <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
+            <Text style={{ fontSize: 13, color: 'rgba(255, 255, 255, 0.35)', fontWeight: '500' }}>
+              {t('auth.orContinueWithEmail')}
+            </Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: 'rgba(255, 255, 255, 0.08)' }} />
+          </Animated.View>
 
-      {/* Footer link */}
-      <Animated.View entering={FadeInUp.duration(500).delay(400)}>
-        <Link
-          href="/(auth)/register"
-          className="text-center text-primary-950 dark:text-primary-400"
-        >
-          <Text>{t('auth.noAccount')}</Text>
-        </Link>
-      </Animated.View>
+          {/* Email form */}
+          <Animated.View entering={FadeInUp.delay(350).duration(500)} style={{ gap: 14 }}>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t('auth.email')}
+              placeholderTextColor="rgba(255, 255, 255, 0.3)"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingHorizontal: 18,
+                paddingVertical: 16,
+                fontSize: 16,
+                color: '#FFFFFF',
+              }}
+            />
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder={t('auth.password')}
+              placeholderTextColor="rgba(255, 255, 255, 0.3)"
+              secureTextEntry
+              autoComplete="password"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingHorizontal: 18,
+                paddingVertical: 16,
+                fontSize: 16,
+                color: '#FFFFFF',
+              }}
+            />
+            <Pressable
+              onPress={handleLogin}
+              disabled={!canSubmit}
+              style={({ pressed }) => ({
+                backgroundColor: canSubmit ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+                opacity: pressed ? 0.85 : 1,
+                transform: [{ scale: pressed ? 0.98 : 1 }],
+              })}
+            >
+              {loading && <ActivityIndicator size="small" color="#0F172A" />}
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: '700',
+                  color: canSubmit ? '#0F172A' : 'rgba(255, 255, 255, 0.3)',
+                }}
+              >
+                {loading ? t('auth.signingIn') : t('auth.signIn')}
+              </Text>
+            </Pressable>
+          </Animated.View>
+
+          {/* Footer */}
+          <Animated.View
+            entering={FadeIn.delay(500).duration(400)}
+            style={{ alignItems: 'center' }}
+          >
+            <Link href="/(auth)/register" asChild>
+              <Pressable
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 8 })}
+              >
+                <Text style={{ fontSize: 15, color: '#60A5FA', fontWeight: '600' }}>
+                  {t('auth.noAccount')}
+                </Text>
+              </Pressable>
+            </Link>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

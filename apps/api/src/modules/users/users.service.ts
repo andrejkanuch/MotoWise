@@ -1,5 +1,6 @@
+import { UserPreferencesSchema } from '@motolearn/types';
 import type { Tables } from '@motolearn/types/database';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { User } from './models/user.model';
@@ -14,6 +15,7 @@ export class UsersService {
       email: row.email,
       fullName: row.full_name ?? undefined,
       role: row.role,
+      preferences: (row.preferences as Record<string, unknown>) ?? undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -28,12 +30,36 @@ export class UsersService {
 
   async update(
     id: string,
-    input: Partial<{ fullName: string; avatarUrl: string; yearsRiding: number }>,
+    input: Partial<{
+      fullName: string;
+      avatarUrl: string;
+      yearsRiding: number;
+      preferences: Record<string, unknown>;
+    }>,
   ): Promise<User> {
     const payload: Record<string, unknown> = {};
     if (input.fullName !== undefined) payload.full_name = input.fullName;
     if (input.avatarUrl !== undefined) payload.avatar_url = input.avatarUrl;
     if (input.yearsRiding !== undefined) payload.years_riding = input.yearsRiding;
+
+    if (input.preferences) {
+      const result = UserPreferencesSchema.safeParse(input.preferences);
+      if (!result.success) {
+        throw new BadRequestException(result.error.flatten().fieldErrors);
+      }
+      const validatedPrefs = result.data;
+
+      const { data: current } = await this.supabase
+        .from('users')
+        .select('preferences')
+        .eq('id', id)
+        .single();
+
+      payload.preferences = {
+        ...((current?.preferences as object) ?? {}),
+        ...validatedPrefs,
+      };
+    }
 
     const { data, error } = await this.supabase
       .from('users')
@@ -42,7 +68,7 @@ export class UsersService {
       .select()
       .single();
 
-    if (error || !data) throw new NotFoundException('User not found');
+    if (error || !data) throw new BadRequestException(error?.message ?? 'Failed to update user');
     return this.mapRow(data);
   }
 }

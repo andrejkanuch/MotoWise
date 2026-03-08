@@ -7,3 +7,4 @@ export * from './validators/locale';
 export * from './validators/motorcycle';
 export * from './validators/quiz';
 export * from './validators/user';
+export * from './validators/user-preferences';

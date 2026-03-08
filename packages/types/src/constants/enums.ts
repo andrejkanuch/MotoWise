@@ -48,5 +48,12 @@ export const MotorcycleType = {
 } as const;
 export type MotorcycleType = (typeof MotorcycleType)[keyof typeof MotorcycleType];
 
+export const ExperienceLevel = {
+  BEGINNER: 'beginner',
+  INTERMEDIATE: 'intermediate',
+  ADVANCED: 'advanced',
+} as const;
+export type ExperienceLevel = (typeof ExperienceLevel)[keyof typeof ExperienceLevel];
+
 export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

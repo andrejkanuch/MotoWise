@@ -1,0 +1,13 @@
+query MyDiagnostics {
+  myDiagnostics {
+    id
+    userId
+    motorcycleId
+    severity
+    confidence
+    relatedArticleId
+    status
+    dataSharingOptedIn
+    createdAt
+  }
+}

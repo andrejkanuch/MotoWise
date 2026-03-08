@@ -1,0 +1,25 @@
+query SearchArticles($input: SearchArticlesInput!) {
+  searchArticles(input: $input) {
+    edges {
+      node {
+        id
+        slug
+        title
+        difficulty
+        category
+        viewCount
+        isSafetyCritical
+        generatedAt
+        updatedAt
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}

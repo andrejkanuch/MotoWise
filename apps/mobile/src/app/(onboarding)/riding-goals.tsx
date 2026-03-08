@@ -1,11 +1,28 @@
-import { colors } from '@motolearn/design-system';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
+import {
+  GraduationCap,
+  Map as MapIcon,
+  Mountain,
+  Navigation,
+  Timer,
+  Wrench,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { ProgressBar } from './progress-bar';
+import { ProgressBar } from '../../components/progress-bar';
+import { useOnboardingStore } from '../../stores/onboarding.store';
+
+const GOAL_ICONS = {
+  goalCommute: Navigation,
+  goalWeekend: Mountain,
+  goalTrack: Timer,
+  goalTouring: MapIcon,
+  goalLearning: GraduationCap,
+  goalMaintenance: Wrench,
+} as const;
 
 const GOALS = [
   'goalCommute',
@@ -19,6 +36,7 @@ const GOALS = [
 export default function RidingGoalsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const setRidingGoals = useOnboardingStore((s) => s.setRidingGoals);
   const [selectedGoals, setSelectedGoals] = useState<Set<string>>(new Set());
 
   const toggleGoal = (goal: string) => {
@@ -37,20 +55,22 @@ export default function RidingGoalsScreen() {
   };
 
   const handleContinue = () => {
+    setRidingGoals([...selectedGoals]);
     router.push('/(onboarding)/personalizing');
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.primary[950] }}>
+    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
       <ProgressBar step={3} total={4} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text
           entering={FadeInDown.duration(500)}
           style={{
-            fontSize: 34,
+            fontSize: 36,
             fontWeight: '800',
             color: '#FFFFFF',
+            letterSpacing: -0.5,
             marginBottom: 8,
           }}
         >
@@ -61,7 +81,7 @@ export default function RidingGoalsScreen() {
           entering={FadeInUp.delay(100).duration(500)}
           style={{
             fontSize: 17,
-            color: 'rgba(255,255,255,0.7)',
+            color: 'rgba(255,255,255,0.6)',
             marginBottom: 32,
           }}
         >
@@ -77,6 +97,7 @@ export default function RidingGoalsScreen() {
         >
           {GOALS.map((goal, index) => {
             const isSelected = selectedGoals.has(goal);
+            const Icon = GOAL_ICONS[goal];
             return (
               <Animated.View
                 key={goal}
@@ -88,21 +109,23 @@ export default function RidingGoalsScreen() {
                   style={({ pressed }) => ({
                     backgroundColor: isSelected ? '#FFFFFF' : 'transparent',
                     borderWidth: 1.5,
-                    borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.25)',
-                    borderRadius: 16,
+                    borderColor: isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                    borderRadius: 20,
                     borderCurve: 'continuous',
-                    paddingVertical: 20,
+                    paddingVertical: 24,
                     paddingHorizontal: 16,
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    gap: 10,
                     transform: [{ scale: pressed ? 0.95 : 1 }],
+                    boxShadow: isSelected ? '0px 4px 16px rgba(255,255,255,0.1)' : 'none',
                   })}
                 >
+                  <Icon size={24} color={isSelected ? '#0F172A' : '#FFFFFF'} strokeWidth={2} />
                   <Text
                     style={{
                       fontSize: 15,
                       fontWeight: '700',
-                      color: isSelected ? colors.primary[950] : '#FFFFFF',
+                      color: isSelected ? '#0F172A' : '#FFFFFF',
                       textAlign: 'center',
                     }}
                   >
@@ -132,7 +155,7 @@ export default function RidingGoalsScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: selectedGoals.size > 0 ? colors.primary[950] : 'rgba(255,255,255,0.4)',
+              color: selectedGoals.size > 0 ? '#0F172A' : 'rgba(255,255,255,0.4)',
             }}
           >
             {t('onboarding.continue')}

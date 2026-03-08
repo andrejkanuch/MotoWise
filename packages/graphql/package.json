@@ -2,7 +2,7 @@
   "name": "@motolearn/graphql",
   "private": true,
   "exports": {
-    ".": "./src/generated/index.ts"
+    ".": "./src/index.ts"
   },
   "scripts": {
     "generate:graphql": "graphql-codegen --config codegen.ts"

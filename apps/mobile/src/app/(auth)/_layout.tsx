@@ -2,9 +2,12 @@ import { Stack } from 'expo-router';
 
 export default function AuthLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="login" options={{ title: 'Sign In' }} />
-      <Stack.Screen name="register" options={{ title: 'Create Account' }} />
-    </Stack>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: '#0F172A' },
+        animation: 'slide_from_right',
+      }}
+    />
   );
 }

@@ -1,4 +1,5 @@
 import { QuizQuestionSchema } from '@motolearn/types';
+import type { Tables } from '@motolearn/types/database';
 import {
   Inject,
   Injectable,
@@ -22,12 +23,7 @@ export class QuizzesService {
       .single();
 
     if (error || !data) return null;
-    return {
-      id: data.id,
-      articleId: data.article_id,
-      questions: z.array(QuizQuestionSchema).parse(data.questions_json),
-      generatedAt: data.generated_at,
-    };
+    return this.mapQuizRow(data);
   }
 
   async submitAttempt(
@@ -61,12 +57,32 @@ export class QuizzesService {
       .single();
 
     if (error || !data) throw new InternalServerErrorException('Failed to submit quiz attempt');
+    return this.mapAttemptRow(data);
+  }
+
+  private mapQuizRow(
+    row: Pick<Tables<'quizzes'>, 'id' | 'article_id' | 'questions_json' | 'generated_at'>,
+  ): Quiz {
     return {
-      id: data.id,
-      quizId: data.quiz_id,
-      score: data.score,
-      totalQuestions: data.total_questions,
-      completedAt: data.completed_at,
+      id: row.id,
+      articleId: row.article_id,
+      questions: z.array(QuizQuestionSchema).parse(row.questions_json),
+      generatedAt: row.generated_at,
+    };
+  }
+
+  private mapAttemptRow(
+    row: Pick<
+      Tables<'quiz_attempts'>,
+      'id' | 'quiz_id' | 'score' | 'total_questions' | 'completed_at'
+    >,
+  ): QuizAttempt {
+    return {
+      id: row.id,
+      quizId: row.quiz_id,
+      score: row.score,
+      totalQuestions: row.total_questions,
+      completedAt: row.completed_at,
     };
   }
 }

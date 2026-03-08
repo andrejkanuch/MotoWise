@@ -7,7 +7,7 @@
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "scheme": "motolearn",
+    "scheme": "motowise",
     "plugins": [
       "expo-router",
       [
@@ -24,11 +24,12 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-localization"
     ],
     "ios": {
       "bundleIdentifier": "com.motolearn.app",
-      "supportsTablet": false,
+      "supportsTablet": true,
       "usesAppleSignIn": true
     },
     "android": {
