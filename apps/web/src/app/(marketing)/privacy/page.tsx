@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'MotoLearn privacy policy — how we collect, use, and protect your data.',
+  description: 'MotoWise privacy policy — how we collect, use, and protect your data.',
 };
 
 export default function PrivacyPage() {
@@ -13,29 +13,29 @@ export default function PrivacyPage() {
 
       <h2>Information We Collect</h2>
       <p>
-        When you create a MotoLearn account, we collect your email address and display name. When
-        you use AI diagnostics, uploaded images are processed for analysis and are not stored
+        When you create a MotoWise account, we collect your email address and display name. When you
+        use AI diagnostics, uploaded images are processed for analysis and are not stored
         permanently. Motorcycle data you add to your garage is stored securely in your account.
       </p>
 
       <h2>How We Use Your Information</h2>
       <p>
-        We use your information to provide and improve MotoLearn&apos;s services, including
+        We use your information to provide and improve MotoWise&apos;s services, including
         personalized learning recommendations, AI diagnostic analysis, and garage management. We do
         not sell your personal information to third parties.
       </p>
 
       <h2>Data Security</h2>
       <p>
-        MotoLearn uses Supabase with row-level security policies to protect your data.
-        Authentication tokens are stored securely using platform-native secure storage. All data is
-        transmitted over HTTPS.
+        MotoWise uses Supabase with row-level security policies to protect your data. Authentication
+        tokens are stored securely using platform-native secure storage. All data is transmitted
+        over HTTPS.
       </p>
 
       <h2>Your Rights</h2>
       <p>
         You can export or delete your data at any time from your profile settings. For questions
-        about your data, contact us at privacy@motolearn.app.
+        about your data, contact us at privacy@motowise.app.
       </p>
     </article>
   );

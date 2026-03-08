@@ -14,9 +14,9 @@ function JsonLd({ data }: { data: Record<string, unknown> }) {
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'MotoLearn',
-  url: 'https://motolearn.app',
-  logo: 'https://motolearn.app/icon.png',
+  name: 'MotoWise',
+  url: 'https://motowise.app',
+  logo: 'https://motowise.app/icon.png',
   description: 'AI-powered motorcycle learning & diagnostics platform',
 };
 

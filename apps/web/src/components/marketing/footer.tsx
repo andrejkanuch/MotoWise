@@ -67,12 +67,12 @@ export function Footer() {
 
         <div className="border-t border-neutral-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-neutral-50">MotoLearn</p>
+            <p className="text-sm font-semibold text-neutral-50">MotoWise</p>
             <p className="text-xs text-neutral-500 mt-1">Learn your bike. Fix your bike.</p>
           </div>
 
           <div className="flex items-center gap-4">
-            <p className="text-xs text-neutral-500">&copy; 2026 MotoLearn. All rights reserved.</p>
+            <p className="text-xs text-neutral-500">&copy; 2026 MotoWise. All rights reserved.</p>
             <Link
               href="/admin"
               className="text-xs text-neutral-500 hover:text-neutral-400 transition-colors"

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'MotoLearn terms of service — rules and guidelines for using our platform.',
+  description: 'MotoWise terms of service — rules and guidelines for using our platform.',
 };
 
 export default function TermsPage() {
@@ -13,13 +13,13 @@ export default function TermsPage() {
 
       <h2>Acceptance of Terms</h2>
       <p>
-        By accessing or using MotoLearn, you agree to be bound by these Terms of Service. If you do
+        By accessing or using MotoWise, you agree to be bound by these Terms of Service. If you do
         not agree, please do not use our services.
       </p>
 
       <h2>Use of Service</h2>
       <p>
-        MotoLearn provides AI-powered motorcycle learning content and diagnostic tools for
+        MotoWise provides AI-powered motorcycle learning content and diagnostic tools for
         informational purposes. Our AI diagnostics are designed to assist — not replace —
         professional motorcycle mechanic advice. Always consult a qualified mechanic for critical
         safety issues.
@@ -33,15 +33,15 @@ export default function TermsPage() {
 
       <h2>Intellectual Property</h2>
       <p>
-        All content, features, and functionality of MotoLearn are owned by MotoLearn and are
-        protected by copyright and other intellectual property laws. Learning content may not be
-        reproduced without permission.
+        All content, features, and functionality of MotoWise are owned by MotoWise and are protected
+        by copyright and other intellectual property laws. Learning content may not be reproduced
+        without permission.
       </p>
 
       <h2>Limitation of Liability</h2>
       <p>
-        MotoLearn is provided &quot;as is&quot; without warranties of any kind. We are not liable
-        for any damages arising from your use of the service or reliance on AI diagnostic results.
+        MotoWise is provided &quot;as is&quot; without warranties of any kind. We are not liable for
+        any damages arising from your use of the service or reliance on AI diagnostic results.
       </p>
     </article>
   );

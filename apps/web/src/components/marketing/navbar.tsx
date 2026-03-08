@@ -93,7 +93,7 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         {/* Logo */}
         <a href="/" className="text-lg font-bold text-neutral-50">
-          MotoLearn
+          MotoWise
         </a>
 
         {/* Desktop nav */}

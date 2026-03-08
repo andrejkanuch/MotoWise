@@ -10,10 +10,10 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://motolearn.app'),
+  metadataBase: new URL('https://motowise.app'),
   title: {
-    default: 'MotoLearn',
-    template: '%s | MotoLearn',
+    default: 'MotoWise',
+    template: '%s | MotoWise',
   },
   description: 'AI-powered motorcycle learning & diagnostics platform',
 };

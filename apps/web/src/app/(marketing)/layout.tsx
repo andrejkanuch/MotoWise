@@ -4,13 +4,13 @@ import { Navbar } from '@/components/marketing/navbar';
 
 export const metadata: Metadata = {
   title: {
-    default: 'MotoLearn — AI-Powered Motorcycle Learning & Diagnostics',
-    template: '%s | MotoLearn',
+    default: 'MotoWise — AI-Powered Motorcycle Learning & Diagnostics',
+    template: '%s | MotoWise',
   },
   description:
     "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
   openGraph: {
-    siteName: 'MotoLearn',
+    siteName: 'MotoWise',
     locale: 'en_US',
     type: 'website',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
