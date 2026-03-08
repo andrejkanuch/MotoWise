@@ -1,18 +1,23 @@
 import { palette } from '@motolearn/design-system';
-import { MeDocument } from '@motolearn/graphql';
+import { MeDocument, MyMotorcyclesDocument } from '@motolearn/graphql';
 import type { SupportedLocale } from '@motolearn/types';
 import { SUPPORTED_LOCALES } from '@motolearn/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import {
+  Bike,
   ChevronRight,
+  CreditCard,
   Crown,
   HelpCircle,
   Lock,
   LogOut,
   Moon,
   Palette,
+  Pencil,
+  Plus,
   Settings,
   Shield,
   Star,
@@ -145,6 +150,13 @@ export default function ProfileScreen() {
     queryFn: () => gqlFetcher(MeDocument),
   });
   const user = meQuery.data?.me;
+
+  const bikesQuery = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
+
   const preferences = user?.preferences as
     | { experienceLevel?: string; ridingGoals?: string[] }
     | null
@@ -237,6 +249,41 @@ export default function ProfileScreen() {
             {experienceLevel} {t('profile.rider')}
           </Text>
 
+          {/* Edit Profile button */}
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push('/(profile)/settings');
+            }}
+            style={{
+              marginTop: 14,
+              paddingHorizontal: 20,
+              paddingVertical: 8,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              borderWidth: 1.5,
+              borderColor: isDark ? palette.primary600 : palette.primary500,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Pencil
+              size={14}
+              color={isDark ? palette.primary400 : palette.primary600}
+              strokeWidth={2}
+            />
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? palette.primary400 : palette.primary600,
+              }}
+            >
+              {t('profile.editProfile', { defaultValue: 'Edit Profile' })}
+            </Text>
+          </Pressable>
+
           {/* Stats row */}
           <View
             style={{
@@ -284,8 +331,170 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
-      {/* Pro Banner */}
+      {/* My Bikes */}
       <Animated.View entering={FadeInUp.delay(80).duration(400)}>
+        <SectionHeader label={t('profile.myBikes', { defaultValue: 'My Bikes' })} />
+        <View
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          {motorcycles.length === 0 ? (
+            <Pressable
+              onPress={() => {
+                haptic();
+                router.push('/(garage)/add-bike');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 16,
+                gap: 12,
+              }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: isDark ? 'rgba(51,102,230,0.15)' : palette.primary50,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Plus size={20} color={palette.primary500} strokeWidth={2} />
+              </View>
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: palette.primary500,
+                }}
+              >
+                {t('profile.addFirstBike', { defaultValue: 'Add Your First Bike' })}
+              </Text>
+              <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+            </Pressable>
+          ) : (
+            <>
+              {motorcycles.map((bike, index) => (
+                <Pressable
+                  key={bike.id}
+                  onPress={() => {
+                    haptic();
+                    router.push(`/(garage)/bike/${bike.id}`);
+                  }}
+                  style={({ pressed }) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    backgroundColor: pressed
+                      ? isDark
+                        ? 'rgba(255,255,255,0.05)'
+                        : 'rgba(0,0,0,0.03)'
+                      : 'transparent',
+                    borderBottomWidth: index < motorcycles.length - 1 ? 0.5 : 0,
+                    borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}
+                  >
+                    <Bike
+                      size={20}
+                      color={isDark ? palette.neutral300 : palette.neutral600}
+                      strokeWidth={1.8}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '600',
+                        color: isDark ? palette.neutral50 : palette.neutral950,
+                      }}
+                      numberOfLines={1}
+                    >
+                      {bike.make} {bike.model}
+                    </Text>
+                    <Text style={{ fontSize: 13, color: palette.neutral500, marginTop: 1 }}>
+                      {bike.year}
+                      {bike.nickname ? ` · "${bike.nickname}"` : ''}
+                    </Text>
+                  </View>
+                  {bike.isPrimary && (
+                    <View
+                      style={{
+                        backgroundColor: 'rgba(245,158,11,0.15)',
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        borderCurve: 'continuous',
+                        marginRight: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '600',
+                          color: palette.warning500,
+                        }}
+                      >
+                        {t('profile.primaryBike', { defaultValue: 'Primary' })}
+                      </Text>
+                    </View>
+                  )}
+                  <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+                </Pressable>
+              ))}
+              <Pressable
+                onPress={() => {
+                  haptic();
+                  router.push('/(garage)/add-bike');
+                }}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 12,
+                  gap: 6,
+                  borderTopWidth: 0.5,
+                  borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  backgroundColor: pressed
+                    ? isDark
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.03)'
+                    : 'transparent',
+                })}
+              >
+                <Plus size={15} color={palette.primary500} strokeWidth={2.5} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
+                  {t('profile.addAnotherBike', { defaultValue: 'Add Another Bike' })}
+                </Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      </Animated.View>
+
+      {/* Pro Banner */}
+      <Animated.View entering={FadeInUp.delay(160).duration(400)}>
         <Pressable
           onPress={haptic}
           style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
@@ -328,7 +537,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Settings */}
-      <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(240).duration(400)}>
         <SectionHeader label={t('profile.settings')} />
         <View
           style={{
@@ -339,14 +548,31 @@ export default function ProfileScreen() {
             boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
           }}
         >
-          <SettingsRow icon={Settings} label={t('profile.settings')} isDark={isDark} />
-          <SettingsRow icon={Lock} label={t('profile.privacy')} isDark={isDark} />
-          <SettingsRow icon={HelpCircle} label={t('profile.support')} isDark={isDark} isLast />
+          <SettingsRow
+            icon={Settings}
+            label={t('profile.settings')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/settings')}
+          />
+          <SettingsRow
+            icon={Lock}
+            label={t('profile.privacy')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/privacy')}
+          />
+          <SettingsRow icon={CreditCard} label={t('profile.subscriptions')} isDark={isDark} />
+          <SettingsRow
+            icon={HelpCircle}
+            label={t('profile.support')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/support')}
+            isLast
+          />
         </View>
       </Animated.View>
 
       {/* Language */}
-      <Animated.View entering={FadeInUp.delay(240).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(320).duration(400)}>
         <SectionHeader label={t('profile.language')} />
         <View
           style={{
@@ -400,7 +626,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Theme */}
-      <Animated.View entering={FadeInUp.delay(320).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
         <SectionHeader label={t('profile.theme')} />
         <View
           style={{
@@ -462,7 +688,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Logout */}
-      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(480).duration(400)}>
         <View
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,
