@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
+  Bell,
   Bike,
   ChevronRight,
   CreditCard,
@@ -553,6 +554,12 @@ export default function ProfileScreen() {
             label={t('profile.settings')}
             isDark={isDark}
             onPress={() => router.push('/(profile)/settings')}
+          />
+          <SettingsRow
+            icon={Bell}
+            label={t('profile.notifications', { defaultValue: 'Notifications' })}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/notifications')}
           />
           <SettingsRow
             icon={Lock}

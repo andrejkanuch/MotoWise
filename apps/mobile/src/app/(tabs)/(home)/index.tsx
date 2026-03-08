@@ -16,7 +16,15 @@ import {
 } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -43,7 +51,6 @@ const QUICK_ACTIONS = [
     key: 'diagnostic',
     icon: Camera,
     titleKey: 'home.takeDiagnostic',
-    descKey: 'home.takeDiagnosticDesc',
     route: '/(tabs)/(diagnose)',
     color: palette.moduleEngine,
     bgLight: palette.dangerBgLight,
@@ -53,7 +60,6 @@ const QUICK_ACTIONS = [
     key: 'learn',
     icon: BookOpen,
     titleKey: 'home.learnNew',
-    descKey: 'home.learnNewDesc',
     route: '/(tabs)/(learn)',
     color: palette.moduleSuspension,
     bgLight: palette.primary100,
@@ -63,7 +69,6 @@ const QUICK_ACTIONS = [
     key: 'quiz',
     icon: Brain,
     titleKey: 'home.testKnowledge',
-    descKey: 'home.testKnowledgeDesc',
     route: '/(tabs)/(learn)',
     color: palette.moduleMaintenance,
     bgLight: palette.successBgLight,
@@ -76,6 +81,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const isDark = useColorScheme() === 'dark';
 
   const meQuery = useQuery({
     queryKey: queryKeys.user.me,
@@ -105,7 +111,8 @@ export default function HomeScreen() {
   const articles = articlesQuery.data?.searchArticles?.edges ?? [];
 
   const showSetupCta = !preferences?.onboardingCompleted || motorcycles.length === 0;
-  const isLoading = meQuery.isLoading && bikesQuery.isLoading;
+  const isLoading = meQuery.isLoading || bikesQuery.isLoading;
+  const hasCriticalError = meQuery.isError || bikesQuery.isError;
   const isRefreshing =
     meQuery.isRefetching || bikesQuery.isRefetching || articlesQuery.isRefetching;
 
@@ -122,6 +129,26 @@ export default function HomeScreen() {
     return (
       <View className="flex-1 bg-neutral-50 dark:bg-neutral-950 items-center justify-center">
         <ActivityIndicator size="large" color={palette.primary500} />
+      </View>
+    );
+  }
+
+  if (hasCriticalError) {
+    return (
+      <View className="flex-1 bg-neutral-50 dark:bg-neutral-950 items-center justify-center px-6">
+        <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50 mb-2 text-center">
+          {t('common.error')}
+        </Text>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4 text-center">
+          {(meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message}
+        </Text>
+        <Pressable
+          onPress={onRefresh}
+          className="bg-primary-950 dark:bg-primary-500 rounded-xl px-6 py-3"
+          style={{ borderCurve: 'continuous' }}
+        >
+          <Text className="text-white text-base font-semibold">{t('common.retry')}</Text>
+        </Pressable>
       </View>
     );
   }
@@ -173,7 +200,7 @@ export default function HomeScreen() {
 
         {/* Setup Rider Profile CTA */}
         {showSetupCta && (
-          <Animated.View entering={FadeInUp.delay(50).duration(400)} className="px-5 mt-4">
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} className="px-5 mt-4">
             <Pressable
               onPress={() => {
                 if (process.env.EXPO_OS === 'ios')
@@ -211,7 +238,7 @@ export default function HomeScreen() {
 
         {/* Rider Profile Card */}
         {!showSetupCta && user && (
-          <Animated.View entering={FadeInUp.delay(50).duration(400)} className="px-5 mt-4">
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} className="px-5 mt-4">
             <Pressable
               onPress={() => {
                 if (process.env.EXPO_OS === 'ios')
@@ -262,7 +289,7 @@ export default function HomeScreen() {
         )}
 
         {/* Quick Actions */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)} className="px-5 mt-5">
+        <Animated.View entering={FadeInUp.delay(150).duration(300)} className="px-5 mt-5">
           <Text className="text-base font-bold text-neutral-950 dark:text-neutral-50 mb-3">
             {t('home.quickActions')}
           </Text>
@@ -272,7 +299,7 @@ export default function HomeScreen() {
               return (
                 <Animated.View
                   key={action.key}
-                  entering={FadeInUp.delay(200 + index * 50).duration(400)}
+                  entering={FadeInUp.delay(200 + index * 50).duration(300)}
                   className="flex-1"
                 >
                   <Pressable
@@ -287,7 +314,7 @@ export default function HomeScreen() {
                     <View
                       className="w-11 h-11 rounded-xl items-center justify-center mb-2"
                       style={{
-                        backgroundColor: action.bgLight,
+                        backgroundColor: isDark ? action.bgDark : action.bgLight,
                         borderCurve: 'continuous',
                       }}
                     >
@@ -307,7 +334,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* Popular Topics */}
-        <Animated.View entering={FadeInUp.delay(350).duration(400)} className="mt-6">
+        <Animated.View entering={FadeInUp.delay(350).duration(300)} className="mt-6">
           <View className="flex-row items-center justify-between px-5 mb-3">
             <Text className="text-base font-bold text-neutral-950 dark:text-neutral-50">
               {t('home.popularTopics')}
@@ -321,7 +348,16 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          {articlesQuery.isLoading ? (
+          {articlesQuery.isError ? (
+            <View className="h-36 items-center justify-center px-5">
+              <Text className="text-sm text-neutral-400 dark:text-neutral-500 mb-2">
+                {t('common.error')}
+              </Text>
+              <Pressable onPress={() => articlesQuery.refetch()}>
+                <Text className="text-sm font-medium text-primary-500">{t('common.retry')}</Text>
+              </Pressable>
+            </View>
+          ) : articlesQuery.isLoading ? (
             <View className="h-36 items-center justify-center">
               <ActivityIndicator size="small" color={palette.primary500} />
             </View>
@@ -358,13 +394,13 @@ export default function HomeScreen() {
                   return (
                     <Animated.View
                       key={article.id}
-                      entering={FadeInUp.delay(400 + index * 50).duration(400)}
+                      entering={FadeInUp.delay(400 + index * 50).duration(300)}
                     >
                       <Pressable
                         onPress={() => {
                           if (process.env.EXPO_OS === 'ios')
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                          router.push(`/(tabs)/(learn)` as never);
+                          router.push('/(tabs)/(learn)' as never);
                         }}
                         className="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden"
                         style={{ width: 200, borderCurve: 'continuous' }}
@@ -416,7 +452,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* Check Your Bike CTA */}
-        <Animated.View entering={FadeInUp.delay(450).duration(400)} className="px-5 mt-5">
+        <Animated.View entering={FadeInUp.delay(450).duration(300)} className="px-5 mt-5">
           <Pressable
             className="bg-white dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center"
             style={{ borderCurve: 'continuous' }}

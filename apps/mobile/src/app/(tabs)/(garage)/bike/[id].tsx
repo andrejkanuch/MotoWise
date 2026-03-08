@@ -9,6 +9,7 @@ import {
 } from '@motolearn/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Calendar,
@@ -16,8 +17,10 @@ import {
   ChevronDown,
   ChevronRight,
   Circle,
+  Edit3,
   Gauge,
   Plus,
+  Star,
   Wrench,
 } from 'lucide-react-native';
 import { useState } from 'react';
@@ -33,8 +36,11 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BikeIcon } from '../../../../components/BikeIcon';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
+
+const BIKE_VARIANTS = ['sport', 'cruiser', 'adventure', 'standard'] as const;
 
 const PRIORITY_COLORS: Record<string, string> = {
   critical: palette.danger500,
@@ -58,22 +64,21 @@ function haptic() {
 
 function InfoRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
   return (
-    <View style={{ marginBottom: 12 }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+      }}
+    >
+      <Text style={{ fontSize: 14, color: palette.neutral500 }}>{label}</Text>
       <Text
         style={{
-          fontSize: 12,
+          fontSize: 15,
           fontWeight: '600',
-          color: palette.neutral400,
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-          marginBottom: 2,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontSize: 16,
           color: isDark ? palette.neutral50 : palette.neutral950,
         }}
       >
@@ -484,13 +489,13 @@ export default function BikeDetailScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const isDark = useColorScheme() === 'dark';
+  const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState<'details' | 'maintenance'>('details');
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
@@ -502,9 +507,13 @@ export default function BikeDetailScreen() {
     },
   });
 
-  const bike = (data?.myMotorcycles ?? []).find((m: { id: string }) => m.id === id);
+  const motorcycles = data?.myMotorcycles ?? [];
+  const bikeIndex = motorcycles.findIndex((m: { id: string }) => m.id === id);
+  const bike = motorcycles[bikeIndex];
+  const variant = BIKE_VARIANTS[Math.max(bikeIndex, 0) % BIKE_VARIANTS.length];
 
   const handleDelete = () => {
+    haptic();
     Alert.alert(t('garage.deleteBike'), t('garage.confirmDelete'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -529,7 +538,7 @@ export default function BikeDetailScreen() {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.white,
+          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
         }}
       >
         <ActivityIndicator size="large" color={palette.primary500} />
@@ -537,19 +546,19 @@ export default function BikeDetailScreen() {
     );
   }
 
-  if (error || !bike) {
+  if (!bike) {
     return (
       <View
         style={{
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.white,
+          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
           padding: 24,
         }}
       >
         <Text style={{ fontSize: 16, color: palette.neutral500, textAlign: 'center' }}>
-          {error ? t('common.error') : t('notFound.message')}
+          {t('notFound.message', { defaultValue: 'Not found' })}
         </Text>
       </View>
     );
@@ -557,80 +566,118 @@ export default function BikeDetailScreen() {
 
   return (
     <ScrollView
-      style={{
-        flex: 1,
-        backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-      }}
+      style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Hero Section */}
+      {/* Hero */}
+      <Animated.View entering={FadeInUp.duration(400)}>
+        <LinearGradient
+          colors={isDark ? ['#1a1a2e', '#16213e'] : [palette.primary50, palette.primary100]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            height: 200,
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+        >
+          <BikeIcon
+            variant={variant}
+            size={80}
+            color={isDark ? 'rgba(255,255,255,0.2)' : palette.primary300}
+          />
+
+          {bike.isPrimary && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 16,
+                left: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: 'rgba(245,158,11,0.9)',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 20,
+                borderCurve: 'continuous',
+              }}
+            >
+              <Star size={13} color={palette.white} strokeWidth={2.5} fill={palette.white} />
+              <Text style={{ fontSize: 12, fontWeight: '700', color: palette.white }}>Primary</Text>
+            </View>
+          )}
+
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push({ pathname: '/(garage)/edit-bike', params: { id: bike.id } });
+            }}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Edit3 size={16} color={isDark ? palette.white : palette.neutral700} strokeWidth={2} />
+          </Pressable>
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Info */}
       <Animated.View
-        entering={FadeInUp.duration(400)}
-        style={{
-          marginHorizontal: 20,
-          marginTop: 20,
-          backgroundColor: isDark ? palette.neutral800 : palette.white,
-          borderRadius: 20,
-          borderCurve: 'continuous',
-          padding: 24,
-        }}
+        entering={FadeInUp.delay(80).duration(400)}
+        style={{ paddingHorizontal: 20, marginTop: 20 }}
       >
+        {bike.nickname && (
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: palette.primary500,
+              marginBottom: 4,
+            }}
+          >
+            &ldquo;{bike.nickname}&rdquo;
+          </Text>
+        )}
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: '700',
+            fontSize: 26,
+            fontWeight: '800',
             color: isDark ? palette.neutral50 : palette.neutral950,
-            marginBottom: 4,
           }}
         >
           {bike.make} {bike.model}
         </Text>
-        <Text style={{ fontSize: 16, color: palette.neutral500 }}>{bike.year}</Text>
 
-        {bike.nickname && (
-          <View style={{ marginTop: 12 }}>
-            <Text
-              style={{
-                fontSize: 12,
-                color: palette.neutral400,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-              }}
-            >
-              {t('garage.nickname')}
-            </Text>
-            <Text
-              style={{
-                fontSize: 16,
-                color: isDark ? palette.neutral50 : palette.neutral950,
-                marginTop: 2,
-              }}
-            >
-              {bike.nickname}
+        <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Calendar size={14} color={palette.neutral400} strokeWidth={2} />
+            <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
+              {bike.year}
             </Text>
           </View>
-        )}
-
-        {bike.isPrimary && (
-          <View
-            style={{
-              backgroundColor: palette.primary500,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              paddingHorizontal: 12,
-              paddingVertical: 4,
-              alignSelf: 'flex-start',
-              marginTop: 12,
-            }}
-          >
-            <Text style={{ color: palette.white, fontSize: 12, fontWeight: '600' }}>Primary</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Wrench size={14} color={palette.neutral400} strokeWidth={2} />
+            <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
+              {t('garage.serviceRecords', { defaultValue: 'Service' })}
+            </Text>
           </View>
-        )}
+        </View>
       </Animated.View>
 
       {/* Tab Bar */}
-      <Animated.View entering={FadeInUp.delay(50).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(120).duration(400)}>
         <View
           style={{
             flexDirection: 'row',
@@ -685,64 +732,81 @@ export default function BikeDetailScreen() {
 
       {/* Tab Content */}
       {activeTab === 'details' ? (
-        <Animated.View
-          entering={FadeInUp.delay(80).duration(400)}
-          style={{ paddingHorizontal: 20, paddingTop: 20 }}
-        >
-          <View
-            style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              padding: 20,
-            }}
+        <>
+          {/* Details Card */}
+          <Animated.View
+            entering={FadeInUp.delay(160).duration(400)}
+            style={{ paddingHorizontal: 20, marginTop: 24 }}
           >
-            <InfoRow
-              label={t('garage.make', { defaultValue: 'Make' })}
-              value={bike.make}
-              isDark={isDark}
-            />
-            <InfoRow
-              label={t('garage.model', { defaultValue: 'Model' })}
-              value={bike.model}
-              isDark={isDark}
-            />
-            <InfoRow
-              label={t('garage.year', { defaultValue: 'Year' })}
-              value={String(bike.year)}
-              isDark={isDark}
-            />
-            {bike.nickname && (
+            <View
+              style={{
+                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+              }}
+            >
               <InfoRow
-                label={t('garage.nickname', { defaultValue: 'Nickname' })}
-                value={bike.nickname}
+                label={t('garage.make', { defaultValue: 'Make' })}
+                value={bike.make}
                 isDark={isDark}
               />
-            )}
-          </View>
+              <InfoRow
+                label={t('garage.model', { defaultValue: 'Model' })}
+                value={bike.model}
+                isDark={isDark}
+              />
+              <InfoRow
+                label={t('garage.year', { defaultValue: 'Year' })}
+                value={String(bike.year)}
+                isDark={isDark}
+              />
+              {bike.nickname && (
+                <InfoRow
+                  label={t('garage.nickname', { defaultValue: 'Nickname' })}
+                  value={bike.nickname}
+                  isDark={isDark}
+                />
+              )}
+              <InfoRow
+                label={t('garage.primary', { defaultValue: 'Primary' })}
+                value={
+                  bike.isPrimary
+                    ? t('common.yes', { defaultValue: 'Yes' })
+                    : t('common.no', { defaultValue: 'No' })
+                }
+                isDark={isDark}
+              />
+            </View>
+          </Animated.View>
 
-          {/* Delete Button */}
-          <Pressable
-            onPress={handleDelete}
-            disabled={deleting}
-            style={{
-              backgroundColor: palette.danger500,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              padding: 16,
-              alignItems: 'center',
-              marginTop: 20,
-            }}
+          {/* Delete */}
+          <Animated.View
+            entering={FadeInUp.delay(240).duration(400)}
+            style={{ paddingHorizontal: 20, marginTop: 32 }}
           >
-            {deleting ? (
-              <ActivityIndicator size="small" color={palette.white} />
-            ) : (
-              <Text style={{ color: palette.white, fontSize: 16, fontWeight: '600' }}>
-                {t('garage.deleteBike')}
-              </Text>
-            )}
-          </Pressable>
-        </Animated.View>
+            <Pressable
+              onPress={handleDelete}
+              disabled={deleting}
+              style={{
+                backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingVertical: 16,
+                alignItems: 'center',
+              }}
+            >
+              {deleting ? (
+                <ActivityIndicator size="small" color={palette.danger500} />
+              ) : (
+                <Text style={{ fontSize: 16, fontWeight: '600', color: palette.danger500 }}>
+                  {t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' })}
+                </Text>
+              )}
+            </Pressable>
+          </Animated.View>
+        </>
       ) : (
         <MaintenanceTab motorcycleId={id} isDark={isDark} />
       )}
