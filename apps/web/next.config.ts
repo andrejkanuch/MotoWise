@@ -16,7 +16,7 @@ const cspDirectives = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  cacheComponents: false,
   reactCompiler: true,
   transpilePackages: ['@motolearn/types', '@motolearn/graphql', '@motolearn/design-system'],
   headers: async () => [
