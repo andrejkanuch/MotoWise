@@ -10,6 +10,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://motolearn.app'),
   title: {
     default: 'MotoLearn',
     template: '%s | MotoLearn',
