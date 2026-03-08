@@ -1,0 +1,10 @@
+mutation CreateShareLink($input: CreateShareLinkInput!) {
+  createShareLink(input: $input) {
+    id
+    token
+    motorcycleId
+    expiresAt
+    createdAt
+    url
+  }
+}

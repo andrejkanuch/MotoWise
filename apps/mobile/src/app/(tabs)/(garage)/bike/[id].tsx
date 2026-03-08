@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Circle,
   Edit3,
+  FileText,
   Gauge,
   Plus,
   Star,
@@ -37,7 +38,11 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeIcon } from '../../../../components/BikeIcon';
+import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+import { TaskPhotoGallery } from '../../../../components/TaskPhotoGallery';
 import { gqlFetcher } from '../../../../lib/graphql-client';
+import { computeHealthScore, getRelativeDueDate } from '../../../../lib/health-score';
+import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 
 const BIKE_VARIANTS = ['sport', 'cruiser', 'adventure', 'standard'] as const;
@@ -115,12 +120,21 @@ function PriorityBadge({ priority }: { priority: string }) {
   );
 }
 
-function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark: boolean }) {
+function MaintenanceTab({
+  motorcycleId,
+  isDark,
+  bike,
+}: {
+  motorcycleId: string;
+  isDark: boolean;
+  bike: { make: string; model: string; year: number; nickname?: string };
+}) {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -133,6 +147,7 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
       queryClient.invalidateQueries({
         queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
     },
   });
 
@@ -142,6 +157,7 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
       queryClient.invalidateQueries({
         queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
     },
   });
 
@@ -153,6 +169,19 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
       (a: Task, b: Task) => (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99),
     );
   const completedTasks = tasks.filter((t: Task) => t.status === 'completed');
+
+  const healthScore = computeHealthScore(
+    tasks.map((t) => ({
+      dueDate: t.dueDate,
+      priority: t.priority,
+      status: t.status,
+      completedAt: t.completedAt,
+    })),
+  );
+
+  // Find next upcoming task
+  const nextTask = activeTasks.find((t) => t.dueDate);
+  const nextTaskRelative = nextTask?.dueDate ? getRelativeDueDate(nextTask.dueDate) : null;
 
   const handleComplete = (taskId: string) => {
     haptic();
@@ -177,6 +206,39 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
     );
   };
 
+  const handleExportPdf = async () => {
+    haptic();
+    setExporting(true);
+    try {
+      const pdfBike: PdfBike = {
+        make: bike.make,
+        model: bike.model,
+        year: bike.year,
+        nickname: bike.nickname ?? undefined,
+        mileageUnit: 'mi',
+      };
+      const pdfTasks: PdfTask[] = tasks.map((task) => ({
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        dueDate: task.dueDate ?? undefined,
+        completedAt: task.completedAt ?? undefined,
+        completedMileage: task.completedMileage ?? undefined,
+        targetMileage: task.targetMileage ?? undefined,
+        notes: task.notes ?? undefined,
+        photoCount: 0,
+      }));
+      await exportMaintenanceHistory(pdfBike, pdfTasks);
+    } catch (_e) {
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        t('maintenance.exportError', { defaultValue: 'Failed to export PDF. Please try again.' }),
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={{ padding: 40, alignItems: 'center' }}>
@@ -198,6 +260,7 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
   const renderTask = (task: Task, index: number) => {
     const isExpanded = expandedId === task.id;
     const isCompleted = task.status === 'completed';
+    const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
 
     return (
       <Animated.View key={task.id} entering={FadeInUp.delay(index * 50).duration(300)}>
@@ -208,11 +271,19 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
           }}
           onLongPress={() => handleDelete(task.id, task.title)}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: relative?.isOverdue
+              ? isDark
+                ? 'rgba(239,68,68,0.08)'
+                : 'rgba(239,68,68,0.05)'
+              : isDark
+                ? palette.neutral800
+                : palette.white,
             borderRadius: 14,
             borderCurve: 'continuous',
             padding: 14,
             marginBottom: 10,
+            borderLeftWidth: relative?.isOverdue ? 3 : 0,
+            borderLeftColor: palette.danger500,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -241,7 +312,7 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
               >
                 {task.title}
               </Text>
-              {task.dueDate && !isCompleted && (
+              {relative && (
                 <View
                   style={{
                     flexDirection: 'row',
@@ -250,8 +321,18 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
                     marginTop: 4,
                   }}
                 >
-                  <Calendar size={12} color={palette.neutral400} />
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>{task.dueDate}</Text>
+                  <Calendar
+                    size={12}
+                    color={relative.isOverdue ? palette.danger500 : palette.neutral400}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: relative.isOverdue ? palette.danger500 : palette.neutral400,
+                    }}
+                  >
+                    {relative.text}
+                  </Text>
                 </View>
               )}
               {task.targetMileage && !isCompleted && (
@@ -265,14 +346,38 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
                 >
                   <Gauge size={12} color={palette.neutral400} />
                   <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-                    {task.targetMileage.toLocaleString()} km
+                    {task.targetMileage.toLocaleString()} mi
                   </Text>
                 </View>
               )}
             </View>
 
-            {/* Priority badge + chevron */}
-            {!isCompleted && <PriorityBadge priority={task.priority} />}
+            {/* Priority badge or OVERDUE badge */}
+            {!isCompleted &&
+              (relative?.isOverdue ? (
+                <View
+                  style={{
+                    backgroundColor: `${palette.danger500}20`,
+                    borderRadius: 6,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 8,
+                    paddingVertical: 3,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: palette.danger500,
+                      letterSpacing: 0.3,
+                    }}
+                  >
+                    OVERDUE
+                  </Text>
+                </View>
+              ) : (
+                <PriorityBadge priority={task.priority} />
+              ))}
             {isExpanded ? (
               <ChevronDown size={16} color={palette.neutral400} />
             ) : (
@@ -365,9 +470,18 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
                 >
                   {t('maintenance.completedOn', { defaultValue: 'Completed' })}{' '}
                   {new Date(task.completedAt).toLocaleDateString()}
-                  {task.completedMileage ? ` @ ${task.completedMileage.toLocaleString()} km` : ''}
+                  {task.completedMileage ? ` @ ${task.completedMileage.toLocaleString()} mi` : ''}
                 </Text>
               )}
+
+              {/* Photo Gallery */}
+              <TaskPhotoGallery
+                taskId={task.id}
+                userId={task.userId}
+                motorcycleId={motorcycleId}
+                photos={task.photos ?? []}
+                isDark={isDark}
+              />
             </View>
           )}
         </Pressable>
@@ -377,6 +491,108 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+      {/* Health Score Gauge */}
+      {tasks.length > 0 && (
+        <Animated.View
+          entering={FadeInUp.duration(400)}
+          style={{
+            alignItems: 'center',
+            marginBottom: 20,
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            padding: 20,
+          }}
+        >
+          <HealthScoreRing
+            score={healthScore.score}
+            grade={healthScore.grade}
+            hasData={healthScore.hasData}
+            isDark={isDark}
+          />
+          {healthScore.hasData && (
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: palette.neutral500,
+                marginTop: 8,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
+              {t('maintenance.healthScore', { defaultValue: 'Health Score' })}
+            </Text>
+          )}
+          {nextTask && nextTaskRelative && (
+            <View
+              style={{
+                marginTop: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Calendar
+                size={14}
+                color={nextTaskRelative.isOverdue ? palette.danger500 : palette.neutral400}
+              />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: nextTaskRelative.isOverdue
+                    ? palette.danger500
+                    : isDark
+                      ? palette.neutral300
+                      : palette.neutral600,
+                }}
+              >
+                {nextTask.title} — {nextTaskRelative.text}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
+      )}
+
+      {/* Export PDF Button */}
+      {tasks.length > 0 && (
+        <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+          <Pressable
+            onPress={handleExportPdf}
+            disabled={exporting}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              paddingVertical: 12,
+              marginBottom: 20,
+            }}
+          >
+            {exporting ? (
+              <ActivityIndicator size="small" color={palette.primary500} />
+            ) : (
+              <>
+                <FileText size={16} color={palette.primary500} strokeWidth={2} />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: palette.primary500,
+                  }}
+                >
+                  {t('maintenance.exportPdf', { defaultValue: 'Export PDF' })}
+                </Text>
+              </>
+            )}
+          </Pressable>
+        </Animated.View>
+      )}
+
       {tasks.length === 0 ? (
         <Animated.View
           entering={FadeInUp.duration(400)}
@@ -458,7 +674,10 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
           haptic();
           router.push({
             pathname: '/(tabs)/(garage)/add-maintenance-task',
-            params: { motorcycleId },
+            params: {
+              motorcycleId,
+              bikeName: bike.nickname || `${bike.year} ${bike.make} ${bike.model}`,
+            },
           });
         }}
         style={{
@@ -568,6 +787,7 @@ export default function BikeDetailScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
+      contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
       {/* Hero */}
@@ -808,7 +1028,7 @@ export default function BikeDetailScreen() {
           </Animated.View>
         </>
       ) : (
-        <MaintenanceTab motorcycleId={id} isDark={isDark} />
+        <MaintenanceTab motorcycleId={id} isDark={isDark} bike={bike} />
       )}
     </ScrollView>
   );

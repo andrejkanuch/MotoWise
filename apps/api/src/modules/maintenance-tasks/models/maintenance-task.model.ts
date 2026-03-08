@@ -1,8 +1,10 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 import {
   GqlMaintenancePriority,
+  GqlMaintenanceTaskSource,
   GqlMaintenanceTaskStatus,
 } from '../../../common/enums/graphql-enums';
+import { TaskPhoto } from './task-photo.model';
 
 @ObjectType()
 export class MaintenanceTask {
@@ -44,6 +46,24 @@ export class MaintenanceTask {
 
   @Field(() => Int, { nullable: true })
   completedMileage?: number;
+
+  @Field(() => GqlMaintenanceTaskSource)
+  source: string;
+
+  @Field({ nullable: true })
+  oemScheduleId?: string;
+
+  @Field(() => Int, { nullable: true })
+  intervalKm?: number;
+
+  @Field(() => Int, { nullable: true })
+  intervalDays?: number;
+
+  @Field()
+  isRecurring: boolean;
+
+  @Field(() => [TaskPhoto])
+  photos: TaskPhoto[];
 
   @Field()
   createdAt: string;

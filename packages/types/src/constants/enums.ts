@@ -117,5 +117,13 @@ export const InsightType = {
 } as const;
 export type InsightType = (typeof InsightType)[keyof typeof InsightType];
 
+export const MaintenanceTaskSource = {
+  USER: 'user',
+  OEM: 'oem',
+  IMPORTED: 'imported',
+} as const;
+export type MaintenanceTaskSource =
+  (typeof MaintenanceTaskSource)[keyof typeof MaintenanceTaskSource];
+
 export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

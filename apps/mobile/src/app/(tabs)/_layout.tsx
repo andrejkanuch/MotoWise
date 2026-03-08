@@ -1,12 +1,17 @@
 import { palette } from '@motolearn/design-system';
+import { AllMaintenanceTasksDocument } from '@motolearn/graphql';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs } from 'expo-router';
 import { Bike, BookOpen, Home, User, Wrench } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -20,6 +25,33 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const isDark = useColorScheme() === 'dark';
+
+  // Badge count for garage tab
+  const { data: maintenanceData } = useQuery({
+    queryKey: queryKeys.maintenanceTasks.allUser,
+    queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
+  });
+
+  const garageBadgeCount = useMemo(() => {
+    const tasks = maintenanceData?.allMaintenanceTasks ?? [];
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let count = 0;
+    for (const task of tasks) {
+      if (!task.dueDate) continue;
+      const due = new Date(task.dueDate);
+      const daysUntil = Math.floor((due.getTime() - today.getTime()) / 86400000);
+      // Overdue tasks
+      if (daysUntil < 0) {
+        count++;
+      }
+      // Critical/high due within 3 days
+      else if (daysUntil <= 3 && (task.priority === 'critical' || task.priority === 'high')) {
+        count++;
+      }
+    }
+    return count;
+  }, [maintenanceData]);
 
   return (
     <Animated.View
@@ -62,6 +94,9 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
           }
         };
 
+        const showBadge = config.name === '(garage)' && garageBadgeCount > 0 && !isFocused;
+        const badgeDisplay = garageBadgeCount >= 10 ? '9+' : String(garageBadgeCount);
+
         return (
           <Pressable
             key={route.key}
@@ -73,11 +108,40 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               paddingVertical: 4,
             }}
           >
-            <Icon
-              size={22}
-              color={isFocused ? palette.tabActive : palette.tabInactive}
-              strokeWidth={isFocused ? 2.5 : 1.8}
-            />
+            <View>
+              <Icon
+                size={22}
+                color={isFocused ? palette.tabActive : palette.tabInactive}
+                strokeWidth={isFocused ? 2.5 : 1.8}
+              />
+              {showBadge && (
+                <Animated.View
+                  entering={ZoomIn.springify()}
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -10,
+                    backgroundColor: palette.danger500,
+                    borderRadius: 9,
+                    minWidth: 18,
+                    height: 18,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingHorizontal: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: palette.white,
+                    }}
+                  >
+                    {badgeDisplay}
+                  </Text>
+                </Animated.View>
+              )}
+            </View>
             <Text
               style={{
                 fontSize: 10,

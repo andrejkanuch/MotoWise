@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddTaskPhotoInput {
+  fileSizeBytes: Int
+  storagePath: String!
+  taskId: String!
+}
+
 type Article {
   category: ArticleCategory!
   contentJson: JSON
@@ -98,6 +104,11 @@ input CreateMotorcycleInput {
   year: Int!
 }
 
+input CreateShareLinkInput {
+  expiresInDays: Int = 30
+  motorcycleId: String!
+}
+
 type Diagnostic {
   confidence: Float
   createdAt: String!
@@ -179,15 +190,27 @@ type MaintenanceTask {
   description: String
   dueDate: String
   id: ID!
+  intervalDays: Int
+  intervalKm: Int
+  isRecurring: Boolean!
   motorcycleId: String!
   notes: String
+  oemScheduleId: String
   partsNeeded: [String!]
+  photos: [TaskPhoto!]!
   priority: MaintenancePriority!
+  source: MaintenanceTaskSource!
   status: MaintenanceTaskStatus!
   targetMileage: Int
   title: String!
   updatedAt: String!
   userId: String!
+}
+
+enum MaintenanceTaskSource {
+  imported
+  oem
+  user
 }
 
 enum MaintenanceTaskStatus {
@@ -220,22 +243,44 @@ type MotorcycleModelResult {
 }
 
 type Mutation {
+  addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   completeMaintenanceTask(completedMileage: Int, id: String!): MaintenanceTask!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  createShareLink(input: CreateShareLinkInput!): ShareLink!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
+  deleteTaskPhoto(photoId: ID!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   markArticleRead(articleId: String!): LearningProgress!
+  revokeShareLink(linkId: ID!): Boolean!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateUser(input: UpdateUserInput!): User!
+}
+
+type OemSchedule {
+  createdAt: String!
+  description: String
+  engineCcMax: Int
+  engineCcMin: Int
+  engineType: String
+  id: ID!
+  intervalDays: Int
+  intervalKm: Int
+  make: String!
+  model: String
+  priority: MaintenancePriority!
+  sortOrder: Int!
+  taskName: String!
+  yearFrom: Int
+  yearTo: Int
 }
 
 type OnboardingInsight {
@@ -257,6 +302,7 @@ type Query {
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic
+  maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
   me: User!
   motorcycleMakes: [MotorcycleMake!]!
@@ -264,8 +310,11 @@ type Query {
   myDiagnostics: [Diagnostic!]!
   myMotorcycles: [Motorcycle!]!
   myProgress: [LearningProgress!]!
+  myShareLinks(motorcycleId: ID!): [ShareLink!]!
+  oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   quizByArticle(articleId: String!): Quiz
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
+  sharedBikeHistory(token: String!): SharedBikeHistory!
   user: User!
 }
 
@@ -298,6 +347,39 @@ input SearchArticlesInput {
   query: String
 }
 
+type ShareLink {
+  createdAt: String!
+  expiresAt: String!
+  id: ID!
+  motorcycleId: String!
+  token: String!
+  url: String!
+}
+
+type SharedBikeHistory {
+  bike: SharedBikeInfo!
+  generatedAt: String!
+  tasks: [SharedTaskInfo!]!
+}
+
+type SharedBikeInfo {
+  make: String!
+  model: String!
+  nickname: String
+  year: Int!
+}
+
+type SharedTaskInfo {
+  completedAt: String
+  completedMileage: Int
+  dueDate: String
+  notes: String
+  photoUrls: [String!]!
+  priority: String!
+  status: String!
+  title: String!
+}
+
 input SubmitDiagnosticInput {
   dataSharingOptedIn: Boolean! = false
   description: String
@@ -309,6 +391,16 @@ input SubmitDiagnosticInput {
 input SubmitQuizInput {
   answers: [Int!]!
   quizId: String!
+}
+
+type TaskPhoto {
+  createdAt: String!
+  fileSizeBytes: Int
+  id: ID!
+  mimeType: String!
+  publicUrl: String!
+  storagePath: String!
+  taskId: String!
 }
 
 input UpdateMaintenanceTaskInput {

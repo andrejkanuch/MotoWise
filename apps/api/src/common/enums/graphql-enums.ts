@@ -7,6 +7,7 @@ import type {
   LearningFormat,
   MaintenancePriority,
   MaintenanceStyle,
+  MaintenanceTaskSource,
   MaintenanceTaskStatus,
   MotorcycleType,
   RidingFrequency,
@@ -266,4 +267,18 @@ const _insightTypeSync: Record<InsightType, GqlInsightType> = {
   maintenance: GqlInsightType.maintenance,
   learning: GqlInsightType.learning,
   community: GqlInsightType.community,
+};
+
+export enum GqlMaintenanceTaskSource {
+  user = 'user',
+  oem = 'oem',
+  imported = 'imported',
+}
+
+registerEnumType(GqlMaintenanceTaskSource, { name: 'MaintenanceTaskSource' });
+
+const _taskSourceSync: Record<MaintenanceTaskSource, GqlMaintenanceTaskSource> = {
+  user: GqlMaintenanceTaskSource.user,
+  oem: GqlMaintenanceTaskSource.oem,
+  imported: GqlMaintenanceTaskSource.imported,
 };

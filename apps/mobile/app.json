@@ -25,7 +25,13 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-apple-authentication",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "color": "#FF6B35"
+        }
+      ]
     ],
     "ios": {
       "bundleIdentifier": "com.motolearn.app",

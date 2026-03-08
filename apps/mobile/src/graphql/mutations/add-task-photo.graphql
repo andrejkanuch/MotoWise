@@ -1,0 +1,11 @@
+mutation AddTaskPhoto($input: AddTaskPhotoInput!) {
+  addTaskPhoto(input: $input) {
+    id
+    taskId
+    storagePath
+    publicUrl
+    fileSizeBytes
+    mimeType
+    createdAt
+  }
+}
