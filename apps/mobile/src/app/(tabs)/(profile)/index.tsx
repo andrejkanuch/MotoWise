@@ -2,6 +2,7 @@ import { palette } from '@motolearn/design-system';
 import { MeDocument } from '@motolearn/graphql';
 import type { SupportedLocale } from '@motolearn/types';
 import { SUPPORTED_LOCALES } from '@motolearn/types';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -22,7 +23,8 @@ import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { useQuery } from 'urql';
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/auth.store';
 
@@ -138,8 +140,11 @@ export default function ProfileScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const [meResult] = useQuery({ query: MeDocument });
-  const user = meResult.data?.me;
+  const meQuery = useQuery({
+    queryKey: queryKeys.user.me,
+    queryFn: () => gqlFetcher(MeDocument),
+  });
+  const user = meQuery.data?.me;
   const preferences = user?.preferences as
     | { experienceLevel?: string; ridingGoals?: string[] }
     | null

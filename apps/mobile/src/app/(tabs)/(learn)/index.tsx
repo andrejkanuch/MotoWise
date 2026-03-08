@@ -1,23 +1,15 @@
 import { palette } from '@motolearn/design-system';
+import { MyProgressDocument } from '@motolearn/graphql';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { BookOpen, Cog, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { gql, useQuery } from 'urql';
-
-const MyProgressQuery = gql`
-  query MyProgress {
-    myProgress {
-      id
-      articleId
-      articleRead
-      quizCompleted
-    }
-  }
-`;
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 const MODULES = [
   { key: 'engine', icon: Cog, color: palette.moduleEngine, lessons: 12, category: 'engine-basics' },
@@ -50,9 +42,15 @@ export default function LearnScreen() {
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [progressResult] = useQuery({ query: MyProgressQuery });
-  const progress = progressResult.data?.myProgress ?? [];
-  const totalRead = progress.filter((p: { articleRead: boolean }) => p.articleRead).length;
+  const { data: progressData } = useQuery({
+    queryKey: queryKeys.progress.all,
+    queryFn: () => gqlFetcher(MyProgressDocument),
+  });
+  const progress = progressData?.myProgress ?? [];
+  const totalRead = useMemo(
+    () => progress.filter((p: { articleRead: boolean }) => p.articleRead).length,
+    [progress],
+  );
 
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">

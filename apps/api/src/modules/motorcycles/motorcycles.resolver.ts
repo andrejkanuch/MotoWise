@@ -1,9 +1,10 @@
-import { CreateMotorcycleSchema } from '@motolearn/types';
+import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motolearn/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
+import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
@@ -52,15 +53,18 @@ export class MotorcyclesResolver {
   @UseGuards(GqlAuthGuard)
   async updateMotorcycle(
     @CurrentUser() user: AuthUser,
-    @Args('id') id: string,
-    @Args('input') input: UpdateMotorcycleInput,
+    @Args('id', ParseUUIDPipe) id: string,
+    @Args('input', new ZodValidationPipe(UpdateMotorcycleSchema)) input: UpdateMotorcycleInput,
   ): Promise<Motorcycle> {
     return this.motorcyclesService.update(user.id, id, input);
   }
 
   @Mutation(() => Boolean)
   @UseGuards(GqlAuthGuard)
-  async deleteMotorcycle(@CurrentUser() user: AuthUser, @Args('id') id: string): Promise<boolean> {
+  async deleteMotorcycle(
+    @CurrentUser() user: AuthUser,
+    @Args('id', ParseUUIDPipe) id: string,
+  ): Promise<boolean> {
     return this.motorcyclesService.softDelete(user.id, id);
   }
 }

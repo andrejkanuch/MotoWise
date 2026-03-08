@@ -1,40 +1,30 @@
 import { colors } from '@motolearn/design-system';
+import { DeleteMotorcycleDocument, MyMotorcyclesDocument } from '@motolearn/graphql';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { gql, useMutation, useQuery } from 'urql';
-
-const MyMotorcyclesQuery = gql`
-  query MyMotorcycles {
-    myMotorcycles {
-      id
-      make
-      model
-      year
-      nickname
-      isPrimary
-      createdAt
-    }
-  }
-`;
-
-const DeleteMotorcycleMutation = gql`
-  mutation DeleteMotorcycle($id: String!) {
-    deleteMotorcycle(id: $id)
-  }
-`;
+import { gqlFetcher } from '../../../../lib/graphql-client';
+import { queryKeys } from '../../../../lib/query-keys';
 
 export default function BikeDetailScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [{ data, fetching, error }] = useQuery({
-    query: MyMotorcyclesQuery,
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
-  const [{ fetching: deleting }, deleteMotorcycle] = useMutation(DeleteMotorcycleMutation);
+  const { mutateAsync: deleteBike, isPending: deleting } = useMutation({
+    mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+    },
+  });
 
   const bike = (data?.myMotorcycles ?? []).find((m: { id: string }) => m.id === id);
 
@@ -46,23 +36,17 @@ export default function BikeDetailScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            const result = await deleteMotorcycle({ id });
-
-            if (result.error) {
-              Alert.alert(t('common.error'), result.error.message);
-              return;
-            }
-
+            await deleteBike();
             router.back();
-          } catch (_e) {
-            Alert.alert(t('common.error'), String(_e));
+          } catch (e) {
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
     ]);
   };
 
-  if (fetching && !data) {
+  if (isLoading && !data) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-900">
         <ActivityIndicator size="large" color={colors.primary[500]} />

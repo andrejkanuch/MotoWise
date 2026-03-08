@@ -1,4 +1,6 @@
 import { colors } from '@motolearn/design-system';
+import { CreateMotorcycleDocument } from '@motolearn/graphql';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,53 +14,41 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { gql, useMutation } from 'urql';
-
-const CreateMotorcycleMutation = gql`
-  mutation CreateMotorcycle($input: CreateMotorcycleInput!) {
-    createMotorcycle(input: $input) {
-      id
-      make
-      model
-      year
-      nickname
-    }
-  }
-`;
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 export default function AddBikeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [year, setYear] = useState('');
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
   const [nickname, setNickname] = useState('');
 
-  const [{ fetching }, createMotorcycle] = useMutation(CreateMotorcycleMutation);
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (input: { year: number; make: string; model: string; nickname?: string }) =>
+      gqlFetcher(CreateMotorcycleDocument, { input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+    },
+  });
 
   const isValid = year.length === 4 && make.trim().length > 0 && model.trim().length > 0;
 
   const handleSubmit = async () => {
-    if (!isValid || fetching) return;
+    if (!isValid || isPending) return;
 
     try {
-      const result = await createMotorcycle({
-        input: {
-          year: Number.parseInt(year, 10),
-          make: make.trim(),
-          model: model.trim(),
-          nickname: nickname.trim() || undefined,
-        },
+      await mutateAsync({
+        year: Number.parseInt(year, 10),
+        make: make.trim(),
+        model: model.trim(),
+        nickname: nickname.trim() || undefined,
       });
-
-      if (result.error) {
-        Alert.alert(t('common.error'), result.error.message);
-        return;
-      }
-
       router.back();
-    } catch (_e) {
-      Alert.alert(t('common.error'), String(_e));
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
     }
   };
 
@@ -129,15 +119,15 @@ export default function AddBikeScreen() {
 
         <Pressable
           className={`rounded-xl p-4 items-center mt-2 ${
-            isValid && !fetching
+            isValid && !isPending
               ? 'bg-primary-950 dark:bg-primary-500'
               : 'bg-neutral-300 dark:bg-neutral-700'
           }`}
           style={{ borderCurve: 'continuous' }}
           onPress={handleSubmit}
-          disabled={!isValid || fetching}
+          disabled={!isValid || isPending}
         >
-          {fetching ? (
+          {isPending ? (
             <View className="flex-row items-center gap-2">
               <ActivityIndicator size="small" color="white" />
               <Text className="text-white text-base font-semibold">{t('garage.saving')}</Text>

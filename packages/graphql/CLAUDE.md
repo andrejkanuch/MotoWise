@@ -1,7 +1,7 @@
 # GraphQL Package — @motolearn/graphql
 
 ## Purpose
-Generated GraphQL client types (TypedDocumentNode) consumed by mobile and web apps via urql.
+Generated GraphQL client types (TypedDocumentNode) consumed by mobile (TanStack Query + graphql-request) and web apps.
 
 ## Pipeline
 1. NestJS API generates `schema.graphql` (code-first, `autoSchemaFile`)
