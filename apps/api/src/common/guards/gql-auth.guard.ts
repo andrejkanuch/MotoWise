@@ -4,10 +4,24 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
-  private readonly secret: Uint8Array;
+  private readonly supabaseUrl: string;
+  private readonly legacySecret: Uint8Array;
+  // biome-ignore lint/suspicious/noExplicitAny: jose's GetKeyFunction type is complex and dynamic-imported
+  private jwks: any = null;
 
   constructor(private configService: ConfigService) {
-    this.secret = new TextEncoder().encode(this.configService.getOrThrow('SUPABASE_JWT_SECRET'));
+    this.supabaseUrl = this.configService.getOrThrow('SUPABASE_URL');
+    this.legacySecret = new TextEncoder().encode(
+      this.configService.getOrThrow('SUPABASE_JWT_SECRET'),
+    );
+  }
+
+  private async getJwks() {
+    if (!this.jwks) {
+      const { createRemoteJWKSet } = await import('jose');
+      this.jwks = createRemoteJWKSet(new URL(`${this.supabaseUrl}/auth/v1/.well-known/jwks.json`));
+    }
+    return this.jwks;
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -22,8 +36,22 @@ export class GqlAuthGuard implements CanActivate {
     const token = authHeader.slice(7);
 
     try {
-      const { jwtVerify } = await import('jose');
-      const { payload } = await jwtVerify(token, this.secret);
+      const { jwtVerify, decodeProtectedHeader } = await import('jose');
+
+      let payload: Record<string, unknown>;
+
+      const header = decodeProtectedHeader(token);
+      if (header.kid) {
+        // ECC/asymmetric key — verify against Supabase JWKS
+        const jwks = await this.getJwks();
+        const result = await jwtVerify(token, jwks);
+        payload = result.payload as Record<string, unknown>;
+      } else {
+        // Legacy HS256 — verify with shared secret
+        const result = await jwtVerify(token, this.legacySecret);
+        payload = result.payload as Record<string, unknown>;
+      }
+
       request.user = {
         id: payload.sub,
         email: payload.email,
