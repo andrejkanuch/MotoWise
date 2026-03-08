@@ -1,7 +1,7 @@
 ---
 title: "feat: Home Dashboard Screen"
 type: feat
-status: active
+status: completed
 date: 2026-03-08
 linear_issue: MOT-22
 ---
