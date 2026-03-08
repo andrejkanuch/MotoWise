@@ -8,6 +8,7 @@ import { Check } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -69,6 +70,12 @@ export default function AddMaintenanceTaskScreen() {
       });
       setSaved(true);
       setTimeout(() => router.back(), 800);
+    },
+    onError: () => {
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        t('maintenance.createFailed', { defaultValue: 'Failed to create task. Please try again.' }),
+      );
     },
   });
 

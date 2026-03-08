@@ -88,13 +88,13 @@ export class MaintenanceTasksService {
     },
   ): Promise<MaintenanceTask> {
     const updates: Record<string, unknown> = {};
-    if (input.title != null) updates.title = input.title;
-    if (input.description != null) updates.description = input.description;
-    if (input.dueDate != null) updates.due_date = input.dueDate;
-    if (input.targetMileage != null) updates.target_mileage = input.targetMileage;
-    if (input.priority != null) updates.priority = input.priority;
-    if (input.notes != null) updates.notes = input.notes;
-    if (input.partsNeeded != null) updates.parts_needed = input.partsNeeded;
+    if (input.title !== undefined) updates.title = input.title;
+    if (input.description !== undefined) updates.description = input.description;
+    if (input.dueDate !== undefined) updates.due_date = input.dueDate;
+    if (input.targetMileage !== undefined) updates.target_mileage = input.targetMileage;
+    if (input.priority !== undefined) updates.priority = input.priority;
+    if (input.notes !== undefined) updates.notes = input.notes;
+    if (input.partsNeeded !== undefined) updates.parts_needed = input.partsNeeded;
 
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
@@ -128,13 +128,16 @@ export class MaintenanceTasksService {
   }
 
   async softDelete(userId: string, id: string): Promise<boolean> {
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .select('id')
+      .single();
 
-    if (error) throw new InternalServerErrorException('Failed to delete maintenance task');
+    if (error || !data) throw new NotFoundException('Maintenance task not found');
     return true;
   }
 

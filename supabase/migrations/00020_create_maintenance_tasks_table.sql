@@ -21,7 +21,7 @@ CREATE TABLE public.maintenance_tasks (
 ALTER TABLE public.maintenance_tasks ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users own maintenance tasks" ON public.maintenance_tasks
-  FOR ALL USING (auth.uid() = user_id);
+  FOR ALL USING (auth.uid() = user_id AND deleted_at IS NULL);
 
 CREATE POLICY "Admins read all tasks" ON public.maintenance_tasks
   FOR SELECT USING (public.is_admin());
