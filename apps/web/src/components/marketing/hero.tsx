@@ -1,7 +1,4 @@
-'use client';
-
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
-import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
 
 function MotorcycleSVG() {
   return (
@@ -100,27 +97,12 @@ const SPEED_LINES = [
 ] as const;
 
 export function Hero() {
-  const heroRef = useRef<HTMLElement>(null);
-  const prefersReducedMotion = useReducedMotion();
-
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
-  const motoY = useTransform(scrollYProgress, [0, 1], ['0%', '-15%']);
-  const textOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-  const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const t = useTranslations('Hero');
 
   return (
-    <section ref={heroRef} className="relative h-screen w-full overflow-hidden">
+    <section className="hero-scroll-root relative h-screen w-full overflow-hidden">
       {/* Background gradient layer */}
-      <motion.div
-        className="absolute inset-0"
-        style={prefersReducedMotion ? undefined : { y: bgY }}
-        aria-hidden="true"
-      >
+      <div className="hero-bg-parallax absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900" />
         <div
           className="absolute inset-0"
@@ -129,7 +111,7 @@ export function Hero() {
               'radial-gradient(ellipse 60% 50% at 70% 40%, oklch(0.25 0.02 260 / 0.5), transparent)',
           }}
         />
-      </motion.div>
+      </div>
 
       {/* Speed lines */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -150,24 +132,19 @@ export function Hero() {
       {/* Main content container */}
       <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-6">
         {/* Left: Text content (~55%) */}
-        <motion.div
-          className="relative z-20 w-full md:w-[55%]"
-          style={prefersReducedMotion ? undefined : { opacity: textOpacity }}
-        >
+        <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
           <h1 className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50">
-            LEARN YOUR BIKE.
+            {t('line1')}
             <br />
             <span>
               <span className="bg-gradient-to-r from-primary-400 to-accent-500 bg-clip-text text-transparent">
-                FIX
+                {t('line2')}
               </span>{' '}
-              YOUR BIKE.
+              {t('line3')}
             </span>
           </h1>
 
-          <p className="mt-6 max-w-lg text-lg text-neutral-400">
-            AI-powered motorcycle diagnostics &amp; learning — all in one app.
-          </p>
+          <p className="mt-6 max-w-lg text-lg text-neutral-400">{t('subtitle')}</p>
 
           <div className="mt-10 flex flex-wrap items-center gap-4">
             {/* Primary CTA */}
@@ -176,7 +153,7 @@ export function Hero() {
               className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-              <span className="relative">Download Free</span>
+              <span className="relative">{t('downloadCta')}</span>
             </a>
 
             {/* Secondary CTA */}
@@ -184,27 +161,25 @@ export function Hero() {
               href="#features"
               className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-8 py-3 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100"
             >
-              Explore Features
+              {t('exploreFeatures')}
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* Right: Motorcycle SVG (~45%) */}
-        <motion.div
-          className="pointer-events-none absolute inset-0 flex items-center justify-end opacity-20 md:relative md:w-[45%] md:opacity-40"
-          style={prefersReducedMotion ? undefined : { y: motoY }}
+        <div
+          className="hero-moto-parallax pointer-events-none absolute inset-0 flex items-center justify-end opacity-20 md:relative md:w-[45%] md:opacity-40"
           aria-hidden="true"
         >
           <div className="w-full max-w-2xl">
             <MotorcycleSVG />
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Scroll indicator */}
-      <motion.div
-        className="absolute inset-x-0 bottom-8 z-20 flex justify-center"
-        style={prefersReducedMotion ? undefined : { opacity: scrollIndicatorOpacity }}
+      <div
+        className="hero-scroll-indicator absolute inset-x-0 bottom-8 z-20 flex justify-center"
         aria-hidden="true"
       >
         <svg
@@ -219,10 +194,10 @@ export function Hero() {
           className="animate-bounce text-neutral-500"
           role="img"
         >
-          <title>Scroll down</title>
+          <title>{t('scrollDown')}</title>
           <polyline points="6 9 12 15 18 9" />
         </svg>
-      </motion.div>
+      </div>
     </section>
   );
 }

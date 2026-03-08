@@ -1,30 +1,43 @@
-import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
+import { BASE_URL } from '@/lib/constants';
 
-export const metadata: Metadata = {
-  title: {
-    default: 'MotoWise — AI-Powered Motorcycle Learning & Diagnostics',
-    template: '%s | MotoWise',
-  },
-  description:
-    "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
-  openGraph: {
-    siteName: 'MotoWise',
-    locale: 'en_US',
-    type: 'website',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    images: ['/og-image.png'],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, 'max-image-preview': 'large' as const },
-  },
-};
+export async function generateMetadata() {
+  const locale = await getLocale();
+  const t = await getTranslations('Metadata');
+
+  return {
+    title: {
+      default: t('title'),
+      template: t('titleTemplate'),
+    },
+    description: t('description'),
+    openGraph: {
+      siteName: 'MotoWise',
+      locale,
+      type: 'website',
+      images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: ['/og-image.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true, 'max-image-preview': 'large' as const },
+    },
+    alternates: {
+      languages: {
+        en: BASE_URL,
+        es: `${BASE_URL}/es`,
+        de: `${BASE_URL}/de`,
+        'x-default': BASE_URL,
+      },
+    },
+  };
+}
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (

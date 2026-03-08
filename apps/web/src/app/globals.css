@@ -49,6 +49,84 @@
   }
 }
 
+/* Hero scroll-driven parallax (CSS only, replaces Motion library) */
+@supports (animation-timeline: scroll()) {
+  .hero-scroll-root {
+    timeline-scope: --hero-scroll;
+    scroll-timeline: --hero-scroll block;
+  }
+
+  @keyframes hero-bg-shift {
+    from {
+      transform: translateY(0%);
+    }
+    to {
+      transform: translateY(8%);
+    }
+  }
+
+  @keyframes hero-moto-shift {
+    from {
+      transform: translateY(0%);
+    }
+    to {
+      transform: translateY(-15%);
+    }
+  }
+
+  @keyframes hero-text-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes hero-indicator-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .hero-bg-parallax {
+    animation: hero-bg-shift linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 100vh;
+  }
+
+  .hero-moto-parallax {
+    animation: hero-moto-shift linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 100vh;
+  }
+
+  .hero-text-fade {
+    animation: hero-text-fade-out linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 100vh;
+  }
+
+  .hero-scroll-indicator {
+    animation: hero-indicator-fade-out linear both;
+    animation-timeline: scroll();
+    animation-range: 0% 15vh;
+  }
+}
+
+/* Disable hero parallax for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-bg-parallax,
+  .hero-moto-parallax,
+  .hero-text-fade,
+  .hero-scroll-indicator {
+    animation: none !important;
+  }
+}
+
 /* Features bento grid layout */
 @media (min-width: 1024px) {
   .features-bento {
@@ -59,16 +137,17 @@
   }
 }
 
-/* Grain texture overlay */
+/* Grain texture overlay — static PNG tile for performance (no mix-blend-mode) */
 .grain-overlay::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: overlay;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
+  will-change: auto;
+  isolation: isolate;
 }

@@ -1,42 +1,42 @@
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { BASE_URL } from '@/lib/constants';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy',
-  description: 'MotoWise privacy policy — how we collect, use, and protect your data.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Privacy');
+  return {
+    title: t('title'),
+    description: t('infoCollect'),
+    alternates: {
+      languages: {
+        en: `${BASE_URL}/privacy`,
+        es: `${BASE_URL}/es/privacy`,
+        de: `${BASE_URL}/de/privacy`,
+        'x-default': `${BASE_URL}/privacy`,
+      },
+    },
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getTranslations('Privacy');
+
   return (
     <article className="prose prose-invert mx-auto max-w-3xl px-6 py-24">
-      <h1>Privacy Policy</h1>
-      <p className="text-neutral-400">Last updated: March 8, 2026</p>
+      <h1>{t('title')}</h1>
+      <p className="text-neutral-400">{t('lastUpdated')}</p>
 
-      <h2>Information We Collect</h2>
-      <p>
-        When you create a MotoWise account, we collect your email address and display name. When you
-        use AI diagnostics, uploaded images are processed for analysis and are not stored
-        permanently. Motorcycle data you add to your garage is stored securely in your account.
-      </p>
+      <h2>{t('infoCollectTitle')}</h2>
+      <p>{t('infoCollect')}</p>
 
-      <h2>How We Use Your Information</h2>
-      <p>
-        We use your information to provide and improve MotoWise&apos;s services, including
-        personalized learning recommendations, AI diagnostic analysis, and garage management. We do
-        not sell your personal information to third parties.
-      </p>
+      <h2>{t('howWeUseTitle')}</h2>
+      <p>{t('howWeUse')}</p>
 
-      <h2>Data Security</h2>
-      <p>
-        MotoWise uses Supabase with row-level security policies to protect your data. Authentication
-        tokens are stored securely using platform-native secure storage. All data is transmitted
-        over HTTPS.
-      </p>
+      <h2>{t('securityTitle')}</h2>
+      <p>{t('security')}</p>
 
-      <h2>Your Rights</h2>
-      <p>
-        You can export or delete your data at any time from your profile settings. For questions
-        about your data, contact us at privacy@motowise.app.
-      </p>
+      <h2>{t('rightsTitle')}</h2>
+      <p>{t('rights')}</p>
     </article>
   );
 }

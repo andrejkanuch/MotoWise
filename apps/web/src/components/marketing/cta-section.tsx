@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
 
 function AppleIcon() {
@@ -16,7 +17,9 @@ function PlayIcon() {
   );
 }
 
-export function CtaSection() {
+export async function CtaSection() {
+  const t = await getTranslations('Cta');
+
   return (
     <>
       {/* Top gradient transition: dark → warm */}
@@ -30,12 +33,10 @@ export function CtaSection() {
       <section id="cta" className="bg-warm-400 px-4 py-20 md:py-28">
         <div className="reveal-on-scroll mx-auto max-w-3xl">
           <h2 className="text-center text-4xl font-extrabold tracking-tight text-primary-950 md:text-5xl">
-            Ready to Master Your Motorcycle?
+            {t('headline')}
           </h2>
 
-          <p className="mt-4 text-center text-lg text-primary-800">
-            Join thousands of riders already learning with AI.
-          </p>
+          <p className="mt-4 text-center text-lg text-primary-800">{t('subtitle')}</p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <ExternalLink
@@ -44,8 +45,8 @@ export function CtaSection() {
             >
               <AppleIcon />
               <div className="flex flex-col leading-tight">
-                <span className="text-xs font-medium opacity-80">Download on the</span>
-                <span className="text-base font-semibold">App Store</span>
+                <span className="text-xs font-medium opacity-80">{t('appStorePrefix')}</span>
+                <span className="text-base font-semibold">{t('appStore')}</span>
               </div>
             </ExternalLink>
 
@@ -55,15 +56,13 @@ export function CtaSection() {
             >
               <PlayIcon />
               <div className="flex flex-col leading-tight">
-                <span className="text-xs font-medium opacity-80">Get it on</span>
-                <span className="text-base font-semibold">Google Play</span>
+                <span className="text-xs font-medium opacity-80">{t('playStorePrefix')}</span>
+                <span className="text-base font-semibold">{t('playStore')}</span>
               </div>
             </ExternalLink>
           </div>
 
-          <p className="mt-6 text-center text-sm text-primary-700">
-            Free to download. No credit card required.
-          </p>
+          <p className="mt-6 text-center text-sm text-primary-700">{t('disclaimer')}</p>
         </div>
       </section>
 

@@ -1,4 +1,8 @@
-const GRID_CLASSES: Record<string, string> = {
+import { getTranslations } from 'next-intl/server';
+
+type FeatureKey = 'diag' | 'learn' | 'garage' | 'progress' | 'community';
+
+const GRID_CLASSES: Record<FeatureKey, string> = {
   diag: 'md:col-span-2 lg:[grid-area:diag]',
   learn: 'lg:row-span-2 lg:[grid-area:learn]',
   garage: 'lg:row-span-2 lg:[grid-area:garage]',
@@ -9,10 +13,6 @@ const GRID_CLASSES: Record<string, string> = {
 const FEATURES = [
   {
     key: 'diag',
-    title: 'AI Diagnostics',
-    tagline: 'Snap a photo. Get answers.',
-    description:
-      'Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds.',
     accentClass: 'text-primary-400',
     glowColor: 'oklch(0.65 0.14 230 / 0.08)',
     icon: (
@@ -36,10 +36,6 @@ const FEATURES = [
   },
   {
     key: 'learn',
-    title: 'Learning Paths',
-    tagline: 'Structured courses for every skill level.',
-    description:
-      'Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges.',
     accentClass: 'text-accent-400',
     glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
@@ -61,10 +57,6 @@ const FEATURES = [
   },
   {
     key: 'garage',
-    title: 'Garage Management',
-    tagline: 'Track your bikes.',
-    description:
-      'Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed.',
     accentClass: 'text-warm-400',
     glowColor: 'oklch(0.76 0.13 70 / 0.08)',
     icon: (
@@ -84,10 +76,6 @@ const FEATURES = [
   },
   {
     key: 'progress',
-    title: 'Progress Tracking',
-    tagline: 'Master your knowledge.',
-    description:
-      'Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time.',
     accentClass: 'text-accent-400',
     glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
@@ -108,10 +96,6 @@ const FEATURES = [
   },
   {
     key: 'community',
-    title: 'Community',
-    tagline: 'Join fellow riders.',
-    description:
-      'Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together.',
     accentClass: 'text-primary-300',
     glowColor: 'oklch(0.76 0.1 230 / 0.08)',
     icon: (
@@ -134,18 +118,18 @@ const FEATURES = [
   },
 ] as const;
 
-export function FeaturesGrid() {
+export async function FeaturesGrid() {
+  const t = await getTranslations('Features');
+
   return (
     <section id="features" className="px-4 py-24">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
         <div className="reveal-on-scroll mb-16 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            Built for Riders
+            {t('sectionTitle')}
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">
-            Everything you need to learn, maintain, and master your motorcycle.
-          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
         </div>
 
         {/* Bento grid */}
@@ -172,12 +156,14 @@ export function FeaturesGrid() {
                   {feature.icon}
                 </div>
 
-                <h3 className="text-lg font-semibold text-neutral-50">{feature.title}</h3>
+                <h3 className="text-lg font-semibold text-neutral-50">
+                  {t(`${feature.key}.title`)}
+                </h3>
                 <p className={`mt-1 text-sm font-medium ${feature.accentClass}`}>
-                  {feature.tagline}
+                  {t(`${feature.key}.tagline`)}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-neutral-400">
-                  {feature.description}
+                  {t(`${feature.key}.description`)}
                 </p>
               </div>
             </article>

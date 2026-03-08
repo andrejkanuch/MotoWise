@@ -1,11 +1,13 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, usePathname } from '@/i18n/navigation';
+import { LanguageSwitcher } from './language-switcher';
 
 const NAV_LINKS = [
-  { label: 'Features', href: '#features' },
-  { label: 'FAQ', href: '#faq' },
+  { key: 'features', href: '#features' },
+  { key: 'faq', href: '#faq' },
 ] as const;
 
 const SCROLL_ACTIVATE = 80;
@@ -13,6 +15,7 @@ const SCROLL_DEACTIVATE = 20;
 
 export function Navbar() {
   const pathname = usePathname();
+  const t = useTranslations('Navbar');
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrolledRef = useRef(false);
@@ -92,9 +95,9 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         {/* Logo */}
-        <a href="/" className="text-lg font-bold text-neutral-50">
+        <Link href="/" className="text-lg font-bold text-neutral-50">
           MotoWise
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-8 md:flex">
@@ -104,14 +107,15 @@ export function Navbar() {
               href={link.href}
               className="text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
             >
-              {link.label}
+              {t(link.key)}
             </a>
           ))}
+          <LanguageSwitcher />
           <a
             href="#download"
             className="rounded-full bg-warm-500 px-4 py-1.5 text-sm font-semibold text-neutral-950 transition-opacity hover:opacity-90"
           >
-            Download App
+            {t('download')}
           </a>
         </div>
 
@@ -123,7 +127,7 @@ export function Navbar() {
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
-          aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
         >
           <svg
             width="24"
@@ -157,7 +161,7 @@ export function Navbar() {
           id="mobile-menu"
           role="dialog"
           aria-modal="true"
-          aria-label="Navigation menu"
+          aria-label={t('openMenu')}
           className="fixed inset-0 top-16 z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl md:hidden"
         >
           <div className="flex flex-1 flex-col items-center justify-center gap-8">
@@ -169,16 +173,17 @@ export function Navbar() {
                 onClick={closeMobile}
                 className="text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
               >
-                {link.label}
+                {t(link.key)}
               </a>
             ))}
+            <LanguageSwitcher />
             {/* biome-ignore lint/a11y/useValidAnchor: anchor with onClick closes mobile menu before navigating */}
             <a
               href="#cta"
               onClick={closeMobile}
               className="mt-4 rounded-full bg-warm-500 px-8 py-3 text-base font-semibold text-neutral-950 transition-opacity hover:opacity-90"
             >
-              Download App
+              {t('download')}
             </a>
           </div>
         </div>

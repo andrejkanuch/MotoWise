@@ -1,31 +1,13 @@
-import Link from 'next/link';
-import { ExternalLink } from './external-link';
-
-const productLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'Download', href: '#cta' },
-  { label: 'FAQ', href: '#faq' },
-];
-
-const companyLinks = [
-  { label: 'Privacy', href: '/privacy' },
-  { label: 'Terms', href: '/terms' },
-];
-
-const socialLinks = [
-  { label: 'Instagram', href: '#' },
-  { label: 'YouTube', href: '#' },
-  { label: 'X', href: '#' },
-];
+import NextLink from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
 function FooterColumn({
   title,
   links,
-  external = false,
 }: {
   title: string;
   links: { label: string; href: string }[];
-  external?: boolean;
 }) {
   return (
     <div>
@@ -33,21 +15,12 @@ function FooterColumn({
       <ul className="mt-4 space-y-3">
         {links.map((link) => (
           <li key={link.label}>
-            {external ? (
-              <ExternalLink
-                href={link.href}
-                className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-              >
-                {link.label}
-              </ExternalLink>
-            ) : (
-              <Link
-                href={link.href}
-                className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-              >
-                {link.label}
-              </Link>
-            )}
+            <Link
+              href={link.href}
+              className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+            >
+              {link.label}
+            </Link>
           </li>
         ))}
       </ul>
@@ -55,30 +28,42 @@ function FooterColumn({
   );
 }
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations('Footer');
+
+  const productLinks = [
+    { label: t('features'), href: '#features' },
+    { label: t('download'), href: '#cta' },
+    { label: t('faq'), href: '#faq' },
+  ];
+
+  const companyLinks = [
+    { label: t('privacy'), href: '/privacy' },
+    { label: t('terms'), href: '/terms' },
+  ];
+
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-black">
       <div className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <FooterColumn title="Product" links={productLinks} />
-          <FooterColumn title="Company" links={companyLinks} />
-          <FooterColumn title="Connect" links={socialLinks} external />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <FooterColumn title={t('product')} links={productLinks} />
+          <FooterColumn title={t('company')} links={companyLinks} />
         </div>
 
         <div className="border-t border-neutral-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-neutral-50">MotoWise</p>
-            <p className="text-xs text-neutral-500 mt-1">Learn your bike. Fix your bike.</p>
+            <p className="text-xs text-neutral-500 mt-1">{t('tagline')}</p>
           </div>
 
           <div className="flex items-center gap-4">
-            <p className="text-xs text-neutral-500">&copy; 2026 MotoWise. All rights reserved.</p>
-            <Link
+            <p className="text-xs text-neutral-500">{t('copyright')}</p>
+            <NextLink
               href="/admin"
               className="text-xs text-neutral-500 hover:text-neutral-400 transition-colors"
             >
-              Admin
-            </Link>
+              {t('admin')}
+            </NextLink>
           </div>
         </div>
       </div>

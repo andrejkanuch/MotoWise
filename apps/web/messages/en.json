@@ -1,1 +1,153 @@
-{}
+{
+  "Metadata": {
+    "title": "MotoWise — AI-Powered Motorcycle Learning & Diagnostics",
+    "titleTemplate": "%s | MotoWise",
+    "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
+    "ogDescription": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike."
+  },
+  "Navbar": {
+    "features": "Features",
+    "faq": "FAQ",
+    "download": "Download App",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "Hero": {
+    "line1": "LEARN YOUR BIKE.",
+    "line2": "FIX",
+    "line3": "YOUR BIKE.",
+    "subtitle": "AI-powered motorcycle diagnostics & learning — all in one app.",
+    "downloadCta": "Download Free",
+    "exploreFeatures": "Explore Features",
+    "scrollDown": "Scroll down"
+  },
+  "Features": {
+    "sectionTitle": "Built for Riders",
+    "sectionSubtitle": "Everything you need to learn, maintain, and master your motorcycle.",
+    "diag": {
+      "title": "AI Diagnostics",
+      "tagline": "Snap a photo. Get answers.",
+      "description": "Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds."
+    },
+    "learn": {
+      "title": "Learning Paths",
+      "tagline": "Structured courses for every skill level.",
+      "description": "Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges."
+    },
+    "garage": {
+      "title": "Garage Management",
+      "tagline": "Track your bikes.",
+      "description": "Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed."
+    },
+    "progress": {
+      "title": "Progress Tracking",
+      "tagline": "Master your knowledge.",
+      "description": "Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time."
+    },
+    "community": {
+      "title": "Community",
+      "tagline": "Join fellow riders.",
+      "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together."
+    }
+  },
+  "Cta": {
+    "headline": "Ready to Master Your Motorcycle?",
+    "subtitle": "Join thousands of riders already learning with AI.",
+    "appStorePrefix": "Download on the",
+    "appStore": "App Store",
+    "playStorePrefix": "Get it on",
+    "playStore": "Google Play",
+    "disclaimer": "Free to download. No credit card required."
+  },
+  "Faq": {
+    "sectionTitle": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "What is MotoWise?",
+        "answer": "MotoWise is an AI-powered platform designed for motorcycle enthusiasts. It helps you learn maintenance, diagnose issues using photo-based AI analysis, track your bikes in a digital garage, and build your knowledge through structured courses and quizzes."
+      },
+      {
+        "question": "Is MotoWise free?",
+        "answer": "Yes! MotoWise offers a free tier that includes basic learning content, one bike in your garage, and limited AI diagnostics. For unlimited diagnostics, all learning content, and unlimited bikes, you can upgrade to MotoWise Pro within the app."
+      },
+      {
+        "question": "What motorcycles are supported?",
+        "answer": "MotoWise supports all motorcycle makes and models. Our database uses the official NHTSA vehicle data, covering thousands of makes and models across all years. Simply search for your bike when adding it to your garage."
+      },
+      {
+        "question": "How does AI diagnostics work?",
+        "answer": "Take a photo of any part of your motorcycle and describe the issue. Our AI analyzes the image and provides a diagnostic assessment with severity ratings — from critical issues that need immediate attention to minor maintenance suggestions."
+      },
+      {
+        "question": "Is my data safe?",
+        "answer": "Absolutely. MotoWise uses Supabase with row-level security to protect your data. Authentication tokens are stored securely, and we never share your personal information or bike data with third parties."
+      },
+      {
+        "question": "What's included in MotoWise Pro?",
+        "answer": "MotoWise Pro unlocks unlimited AI diagnostics, access to all learning modules and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Product",
+    "company": "Company",
+    "connect": "Connect",
+    "tagline": "Learn your bike. Fix your bike.",
+    "copyright": "© 2026 MotoWise. All rights reserved.",
+    "features": "Features",
+    "download": "Download",
+    "faq": "FAQ",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "admin": "Admin",
+    "instagram": "Instagram",
+    "youtube": "YouTube",
+    "x": "X"
+  },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 8, 2026",
+    "infoCollectTitle": "Information We Collect",
+    "infoCollect": "When you create a MotoWise account, we collect your email address and display name. When you use AI diagnostics, uploaded images are processed for analysis and are not stored permanently. Motorcycle data you add to your garage is stored securely in your account.",
+    "howWeUseTitle": "How We Use Your Information",
+    "howWeUse": "We use your information to provide and improve MotoWise's services, including personalized learning recommendations, AI diagnostic analysis, and garage management. We do not sell your personal information to third parties.",
+    "securityTitle": "Data Security",
+    "security": "MotoWise uses Supabase with row-level security policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS.",
+    "rightsTitle": "Your Rights",
+    "rights": "You can export or delete your data at any time from your profile settings. For questions about your data, contact us at privacy@motowise.app."
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: March 8, 2026",
+    "acceptanceTitle": "Acceptance of Terms",
+    "acceptance": "By accessing or using MotoWise, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.",
+    "useTitle": "Use of Service",
+    "use": "MotoWise provides AI-powered motorcycle learning content and diagnostic tools for informational purposes. Our AI diagnostics are designed to assist — not replace — professional motorcycle mechanic advice. Always consult a qualified mechanic for critical safety issues.",
+    "accountsTitle": "User Accounts",
+    "accounts": "You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate information when creating your account and to update it as needed.",
+    "ipTitle": "Intellectual Property",
+    "ip": "All content, features, and functionality of MotoWise are owned by MotoWise and are protected by copyright and other intellectual property laws. Learning content may not be reproduced without permission.",
+    "liabilityTitle": "Limitation of Liability",
+    "liability": "MotoWise is provided \"as is\" without warranties of any kind. We are not liable for any damages arising from your use of the service or reliance on AI diagnostic results."
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "This page doesn't exist.",
+    "backHome": "Back to Home"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "message": "We encountered an unexpected error. Please try again.",
+    "retry": "Try again"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Select language",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch"
+  },
+  "JsonLd": {
+    "organizationName": "MotoWise",
+    "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
+  }
+}

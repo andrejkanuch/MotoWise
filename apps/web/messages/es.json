@@ -141,6 +141,7 @@
     "retry": "Intentar de nuevo"
   },
   "LanguageSwitcher": {
+    "selectLanguage": "Seleccionar idioma",
     "en": "English",
     "es": "Español",
     "de": "Deutsch"

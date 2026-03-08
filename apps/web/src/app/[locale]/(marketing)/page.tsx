@@ -1,39 +1,62 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { CtaSection } from '@/components/marketing/cta-section';
 import { Faq } from '@/components/marketing/faq';
-import { FAQ_DATA } from '@/components/marketing/faq-data';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
+import { BASE_URL } from '@/lib/constants';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('Metadata');
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
 
 function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
-    // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+    <script
+      type="application/ld+json"
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
+      }}
+    />
   );
 }
 
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'MotoWise',
-  url: 'https://motowise.app',
-  logo: 'https://motowise.app/icon.png',
-  description: 'AI-powered motorcycle learning & diagnostics platform',
-};
+export default async function HomePage() {
+  const tJsonLd = await getTranslations('JsonLd');
+  const tFaq = await getTranslations('Faq');
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: FAQ_DATA.map((item) => ({
-    '@type': 'Question',
-    name: item.question,
-    acceptedAnswer: {
-      '@type': 'Answer',
-      text: item.answer,
-    },
-  })),
-};
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: tJsonLd('organizationName'),
+    url: BASE_URL,
+    logo: `${BASE_URL}/icon.png`,
+    description: tJsonLd('organizationDescription'),
+  };
 
-export default function HomePage() {
+  const faqItems = Array.from({ length: 6 }, (_, i) => ({
+    question: tFaq(`items.${i}.question`),
+    answer: tFaq(`items.${i}.answer`),
+  }));
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <>
       <JsonLd data={organizationSchema} />
