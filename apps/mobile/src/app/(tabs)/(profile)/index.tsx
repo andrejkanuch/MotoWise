@@ -5,7 +5,9 @@ import { SUPPORTED_LOCALES } from '@motolearn/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import {
+  Bell,
   ChevronRight,
   Crown,
   HelpCircle,
@@ -339,9 +341,31 @@ export default function ProfileScreen() {
             boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
           }}
         >
-          <SettingsRow icon={Settings} label={t('profile.settings')} isDark={isDark} />
-          <SettingsRow icon={Lock} label={t('profile.privacy')} isDark={isDark} />
-          <SettingsRow icon={HelpCircle} label={t('profile.support')} isDark={isDark} isLast />
+          <SettingsRow
+            icon={Settings}
+            label={t('profile.settings')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/settings')}
+          />
+          <SettingsRow
+            icon={Bell}
+            label={t('profile.notifications', { defaultValue: 'Notifications' })}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/notifications')}
+          />
+          <SettingsRow
+            icon={Lock}
+            label={t('profile.privacy')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/privacy')}
+          />
+          <SettingsRow
+            icon={HelpCircle}
+            label={t('profile.support')}
+            isDark={isDark}
+            onPress={() => router.push('/(profile)/support')}
+            isLast
+          />
         </View>
       </Animated.View>
 
