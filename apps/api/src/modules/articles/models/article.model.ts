@@ -1,4 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 import { GqlArticleCategory, GqlArticleDifficulty } from '../../../common/enums/graphql-enums';
 
 @ObjectType()
@@ -29,4 +30,10 @@ export class Article {
 
   @Field()
   updatedAt: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  contentJson?: Record<string, unknown>;
+
+  @Field(() => Int, { nullable: true })
+  readTime?: number;
 }

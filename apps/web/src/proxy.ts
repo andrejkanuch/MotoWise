@@ -1,11 +1,15 @@
 import type { CookieMethodsServer } from '@supabase/ssr';
 import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
+import createIntlMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-export async function middleware(request: NextRequest) {
+const intlMiddleware = createIntlMiddleware(routing);
+
+async function adminAuth(request: NextRequest) {
   const response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -62,6 +66,23 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Admin routes: run auth guard (no locale processing)
+  if (pathname.startsWith('/admin')) {
+    return adminAuth(request);
+  }
+
+  // Login route: skip locale processing
+  if (pathname.startsWith('/login')) {
+    return NextResponse.next();
+  }
+
+  // All other routes: run next-intl locale detection + routing
+  return intlMiddleware(request);
+}
+
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };

@@ -1,0 +1,14 @@
+mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {
+  submitDiagnostic(input: $input) {
+    id
+    userId
+    motorcycleId
+    severity
+    confidence
+    relatedArticleId
+    resultJson
+    description
+    status
+    createdAt
+  }
+}

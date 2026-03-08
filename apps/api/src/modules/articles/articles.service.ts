@@ -84,6 +84,46 @@ export class ArticlesService {
     return this.mapRow(data);
   }
 
+  async findBySlugFull(slug: string): Promise<Article | null> {
+    const { data, error } = await this.anonClient
+      .from('articles')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_hidden', false)
+      .single();
+
+    if (error || !data) return null;
+
+    // Fire-and-forget view count increment
+    this.anonClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+
+    return this.mapRowFull(data);
+  }
+
+  async findSimilar(topic: string, threshold?: number): Promise<Article[]> {
+    const searchTerms = topic
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
+      .slice(0, 5);
+
+    if (searchTerms.length === 0) return [];
+
+    const pattern = `%${searchTerms.join('%')}%`;
+
+    const { data, error } = await this.anonClient
+      .from('articles')
+      .select(
+        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
+      )
+      .eq('is_hidden', false)
+      .ilike('title', pattern)
+      .limit(threshold ?? 5);
+
+    if (error) return [];
+    return (data ?? []).map((row) => this.mapRow(row));
+  }
+
   private mapRow(
     row: Pick<
       Tables<'articles'>,
@@ -108,6 +148,37 @@ export class ArticlesService {
       isSafetyCritical: row.is_safety_critical,
       generatedAt: row.generated_at,
       updatedAt: row.updated_at,
+    };
+  }
+
+  private mapRowFull(
+    row: Pick<
+      Tables<'articles'>,
+      | 'id'
+      | 'slug'
+      | 'title'
+      | 'difficulty'
+      | 'category'
+      | 'view_count'
+      | 'is_safety_critical'
+      | 'generated_at'
+      | 'updated_at'
+      | 'content_json'
+      | 'read_time_minutes'
+    >,
+  ): Article {
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      difficulty: row.difficulty,
+      category: row.category,
+      viewCount: row.view_count,
+      isSafetyCritical: row.is_safety_critical,
+      generatedAt: row.generated_at,
+      updatedAt: row.updated_at,
+      contentJson: row.content_json as Record<string, unknown> | undefined,
+      readTime: row.read_time_minutes ?? undefined,
     };
   }
 }

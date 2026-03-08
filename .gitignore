@@ -30,8 +30,8 @@ coverage/
 supabase/.temp/
 supabase/.branches/
 
-# Generated (except committed snapshots)
-packages/graphql/src/generated/
+# Generated — committed so CI can typecheck without codegen
+# Regenerate with: pnpm generate
 
 # Expo
 *.jks

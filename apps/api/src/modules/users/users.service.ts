@@ -1,12 +1,14 @@
 import { UserPreferencesSchema } from '@motolearn/types';
 import type { Tables } from '@motolearn/types/database';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { User } from './models/user.model';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -24,7 +26,10 @@ export class UsersService {
   async findById(id: string): Promise<User> {
     const { data, error } = await this.supabase.from('users').select('*').eq('id', id).single();
 
-    if (error || !data) throw new NotFoundException('User not found');
+    if (error || !data) {
+      this.logger.error(`findById failed — id: ${id}, error: ${JSON.stringify(error)}`);
+      throw new NotFoundException('User not found');
+    }
     return this.mapRow(data);
   }
 

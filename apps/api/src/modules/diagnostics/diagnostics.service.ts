@@ -22,12 +22,25 @@ export class DiagnosticsService {
     return (data ?? []).map((row) => this.mapRow(row));
   }
 
+  async findById(userId: string, diagnosticId: string): Promise<Diagnostic | null> {
+    const { data, error } = await this.supabase
+      .from('diagnostics')
+      .select('*')
+      .eq('id', diagnosticId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error || !data) return null;
+    return this.mapRowFull(data);
+  }
+
   async create(
     userId: string,
     input: {
       motorcycleId: string;
       wizardAnswers?: Record<string, string> | null;
       dataSharingOptedIn: boolean;
+      description?: string;
     },
   ): Promise<Diagnostic> {
     const { data, error } = await this.supabase
@@ -38,6 +51,7 @@ export class DiagnosticsService {
         result_json: {},
         wizard_answers: input.wizardAnswers ?? null,
         data_sharing_opted_in: input.dataSharingOptedIn,
+        status: 'processing',
       })
       .select()
       .single();
@@ -70,6 +84,35 @@ export class DiagnosticsService {
       status: row.status ?? 'pending',
       dataSharingOptedIn: row.data_sharing_opted_in,
       createdAt: row.created_at,
+    };
+  }
+
+  private mapRowFull(
+    row: Pick<
+      Tables<'diagnostics'>,
+      | 'id'
+      | 'user_id'
+      | 'motorcycle_id'
+      | 'severity'
+      | 'confidence'
+      | 'related_article_id'
+      | 'data_sharing_opted_in'
+      | 'status'
+      | 'created_at'
+      | 'result_json'
+    >,
+  ): Diagnostic {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      motorcycleId: row.motorcycle_id,
+      severity: row.severity ?? undefined,
+      confidence: row.confidence ?? undefined,
+      relatedArticleId: row.related_article_id ?? undefined,
+      status: row.status ?? 'pending',
+      dataSharingOptedIn: row.data_sharing_opted_in,
+      createdAt: row.created_at,
+      resultJson: row.result_json as Record<string, unknown> | undefined,
     };
   }
 }

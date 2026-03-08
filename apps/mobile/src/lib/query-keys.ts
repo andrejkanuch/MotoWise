@@ -8,6 +8,7 @@ export const queryKeys = {
   },
   diagnostics: {
     all: ['diagnostics'] as const,
+    detail: (id: string) => ['diagnostics', 'detail', id] as const,
   },
   progress: {
     all: ['progress'] as const,
@@ -20,5 +21,6 @@ export const queryKeys = {
     all: ['articles'] as const,
     list: (filters?: Record<string, unknown>) =>
       [...queryKeys.articles.all, 'list', filters] as const,
+    detail: (slug: string) => ['articles', 'detail', slug] as const,
   },
 };

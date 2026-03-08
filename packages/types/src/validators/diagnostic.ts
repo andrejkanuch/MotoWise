@@ -27,3 +27,12 @@ export const CreateDiagnosticSchema = z.object({
   dataSharingOptedIn: z.boolean().default(false),
 });
 export type CreateDiagnostic = z.infer<typeof CreateDiagnosticSchema>;
+
+export const SubmitDiagnosticSchema = z.object({
+  motorcycleId: z.string().uuid(),
+  photoBase64: z.string().min(100),
+  description: z.string().max(500).optional(),
+  wizardAnswers: z.record(z.string()).optional(),
+  dataSharingOptedIn: z.boolean().default(false),
+});
+export type SubmitDiagnostic = z.infer<typeof SubmitDiagnosticSchema>;

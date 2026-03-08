@@ -1,0 +1,12 @@
+mutation GenerateArticle($input: GenerateArticleInput!) {
+  generateArticle(input: $input) {
+    id
+    slug
+    title
+    difficulty
+    category
+    contentJson
+    readTime
+    generatedAt
+  }
+}

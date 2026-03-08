@@ -1,6 +1,7 @@
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import { getLocale } from 'next-intl/server';
 import './globals.css';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -10,9 +11,10 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://motowise.app'),
   title: {
-    default: 'MotoLearn',
-    template: '%s | MotoLearn',
+    default: 'MotoWise',
+    template: '%s | MotoWise',
   },
   description: 'AI-powered motorcycle learning & diagnostics platform',
 };
@@ -22,9 +24,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
+    <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">{children}</body>
     </html>
   );
