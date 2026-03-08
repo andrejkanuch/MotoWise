@@ -30,5 +30,3 @@ export const FAQ_DATA = [
       'MotoLearn Pro unlocks unlimited AI diagnostics, access to all learning modules and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app.',
   },
 ] as const;
-
-export type FaqItem = (typeof FAQ_DATA)[number];

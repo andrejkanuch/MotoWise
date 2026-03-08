@@ -12,12 +12,6 @@
     animation-range: entry 0% entry 35%;
   }
 
-  .reveal-on-scroll-delayed {
-    animation: reveal-up 0.6s ease both;
-    animation-timeline: view();
-    animation-range: entry 5% entry 40%;
-  }
-
   @keyframes reveal-up {
     from {
       opacity: 0;
@@ -32,8 +26,7 @@
 
 /* Fallback for browsers without animation-timeline support */
 @supports not (animation-timeline: view()) {
-  .reveal-on-scroll,
-  .reveal-on-scroll-delayed {
+  .reveal-on-scroll {
     opacity: 1;
   }
 }

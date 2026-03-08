@@ -1,3 +1,11 @@
+const GRID_CLASSES: Record<string, string> = {
+  diag: 'md:col-span-2 lg:[grid-area:diag]',
+  learn: 'lg:row-span-2 lg:[grid-area:learn]',
+  garage: 'lg:row-span-2 lg:[grid-area:garage]',
+  progress: 'lg:row-span-2 lg:[grid-area:progress]',
+  community: 'lg:[grid-area:community]',
+};
+
 const FEATURES = [
   {
     key: 'diag',
@@ -6,8 +14,7 @@ const FEATURES = [
     description:
       'Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds.',
     accentClass: 'text-primary-400',
-    glowColor: 'oklch(0.65 0.14 230 / 0.05)',
-    hoverGlow: 'oklch(0.65 0.14 230 / 0.1)',
+    glowColor: 'oklch(0.65 0.14 230 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -34,8 +41,7 @@ const FEATURES = [
     description:
       'Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges.',
     accentClass: 'text-accent-400',
-    glowColor: 'oklch(0.65 0.15 160 / 0.05)',
-    hoverGlow: 'oklch(0.65 0.15 160 / 0.1)',
+    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -60,8 +66,7 @@ const FEATURES = [
     description:
       'Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed.',
     accentClass: 'text-warm-400',
-    glowColor: 'oklch(0.76 0.13 70 / 0.05)',
-    hoverGlow: 'oklch(0.76 0.13 70 / 0.1)',
+    glowColor: 'oklch(0.76 0.13 70 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -84,8 +89,7 @@ const FEATURES = [
     description:
       'Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time.',
     accentClass: 'text-accent-400',
-    glowColor: 'oklch(0.65 0.15 160 / 0.05)',
-    hoverGlow: 'oklch(0.65 0.15 160 / 0.1)',
+    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -109,8 +113,7 @@ const FEATURES = [
     description:
       'Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together.',
     accentClass: 'text-primary-300',
-    glowColor: 'oklch(0.76 0.1 230 / 0.05)',
-    hoverGlow: 'oklch(0.76 0.1 230 / 0.1)',
+    glowColor: 'oklch(0.76 0.1 230 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -150,38 +153,19 @@ export function FeaturesGrid() {
           {FEATURES.map((feature, index) => (
             <article
               key={feature.key}
-              className={`reveal-on-scroll group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 md:p-8 ${
-                feature.key === 'diag'
-                  ? 'md:col-span-2 lg:[grid-area:diag]'
-                  : feature.key === 'learn'
-                    ? 'lg:row-span-2 lg:[grid-area:learn]'
-                    : feature.key === 'garage'
-                      ? 'lg:row-span-2 lg:[grid-area:garage]'
-                      : feature.key === 'progress'
-                        ? 'lg:row-span-2 lg:[grid-area:progress]'
-                        : 'lg:[grid-area:community]'
-              }`}
+              className={`reveal-on-scroll group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 md:p-8 ${GRID_CLASSES[feature.key]}`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              {/* Inner radial glow */}
+              {/* Radial glow — intensifies on hover */}
               <div
-                className="pointer-events-none absolute inset-0"
+                className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
                   background: `radial-gradient(ellipse at 50% 0%, ${feature.glowColor}, transparent 70%)`,
                 }}
               />
 
-              {/* Hover glow overlay */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  background: `radial-gradient(ellipse at 50% 0%, ${feature.hoverGlow}, transparent 70%)`,
-                }}
-              />
-
               {/* Content */}
               <div className="relative z-10 flex h-full flex-col">
-                {/* Icon */}
                 <div
                   className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 ${feature.accentClass}`}
                 >

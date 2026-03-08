@@ -113,14 +113,12 @@ export function Hero() {
   const textOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
-  const isStatic = prefersReducedMotion;
-
   return (
     <section ref={heroRef} className="relative h-screen w-full overflow-hidden">
       {/* Background gradient layer */}
       <motion.div
         className="absolute inset-0"
-        style={isStatic ? undefined : { y: bgY }}
+        style={prefersReducedMotion ? undefined : { y: bgY }}
         aria-hidden="true"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900" />
@@ -154,7 +152,7 @@ export function Hero() {
         {/* Left: Text content (~55%) */}
         <motion.div
           className="relative z-20 w-full md:w-[55%]"
-          style={isStatic ? undefined : { opacity: textOpacity }}
+          style={prefersReducedMotion ? undefined : { opacity: textOpacity }}
         >
           <h1 className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50">
             LEARN YOUR BIKE.
@@ -174,7 +172,7 @@ export function Hero() {
           <div className="mt-10 flex flex-wrap items-center gap-4">
             {/* Primary CTA */}
             <a
-              href="#download"
+              href="#cta"
               className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
@@ -194,7 +192,7 @@ export function Hero() {
         {/* Right: Motorcycle SVG (~45%) */}
         <motion.div
           className="pointer-events-none absolute inset-0 flex items-center justify-end opacity-20 md:relative md:w-[45%] md:opacity-40"
-          style={isStatic ? undefined : { y: motoY }}
+          style={prefersReducedMotion ? undefined : { y: motoY }}
           aria-hidden="true"
         >
           <div className="w-full max-w-2xl">
@@ -206,7 +204,7 @@ export function Hero() {
       {/* Scroll indicator */}
       <motion.div
         className="absolute inset-x-0 bottom-8 z-20 flex justify-center"
-        style={isStatic ? undefined : { opacity: scrollIndicatorOpacity }}
+        style={prefersReducedMotion ? undefined : { opacity: scrollIndicatorOpacity }}
         aria-hidden="true"
       >
         <svg

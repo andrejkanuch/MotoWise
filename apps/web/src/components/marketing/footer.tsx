@@ -3,18 +3,11 @@ import { ExternalLink } from './external-link';
 
 const productLinks = [
   { label: 'Features', href: '#features' },
-  { label: 'Download', href: '#download' },
-  { label: 'Pricing', href: '#cta' },
-];
-
-const learnLinks = [
-  { label: 'Blog', href: '#' },
-  { label: 'Diagnostics', href: '#diagnostics' },
-  { label: 'Maintenance Tips', href: '#maintenance' },
+  { label: 'Download', href: '#cta' },
+  { label: 'FAQ', href: '#faq' },
 ];
 
 const companyLinks = [
-  { label: 'About', href: '#about' },
   { label: 'Privacy', href: '/privacy' },
   { label: 'Terms', href: '/terms' },
 ];
@@ -66,9 +59,8 @@ export function Footer() {
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-black">
       <div className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <FooterColumn title="Product" links={productLinks} />
-          <FooterColumn title="Learn" links={learnLinks} />
           <FooterColumn title="Company" links={companyLinks} />
           <FooterColumn title="Connect" links={socialLinks} external />
         </div>

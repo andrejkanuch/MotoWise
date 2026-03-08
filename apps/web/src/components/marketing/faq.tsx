@@ -34,9 +34,6 @@ export function Faq() {
                       ? 'border-accent-500 text-neutral-50'
                       : 'border-transparent text-neutral-400 hover:text-neutral-200'
                   }`}
-                  style={{
-                    borderImageSource: isOpen ? undefined : 'none',
-                  }}
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-desktop-${index}`}
                 >

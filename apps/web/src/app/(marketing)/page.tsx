@@ -18,7 +18,6 @@ const organizationSchema = {
   url: 'https://motolearn.app',
   logo: 'https://motolearn.app/icon.png',
   description: 'AI-powered motorcycle learning & diagnostics platform',
-  sameAs: [],
 };
 
 const faqSchema = {
