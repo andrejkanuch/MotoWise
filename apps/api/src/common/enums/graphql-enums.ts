@@ -3,6 +3,8 @@ import type {
   ArticleDifficulty,
   DiagnosticSeverity,
   FlagStatus,
+  MaintenancePriority,
+  MaintenanceTaskStatus,
   MotorcycleType,
   SupportedLocale,
   UserRole,
@@ -136,4 +138,35 @@ const _motorcycleTypeSync: Record<MotorcycleType, GqlMotorcycleType> = {
   dirt_bike: GqlMotorcycleType.dirt_bike,
   scooter: GqlMotorcycleType.scooter,
   other: GqlMotorcycleType.other,
+};
+
+export enum GqlMaintenanceTaskStatus {
+  pending = 'pending',
+  in_progress = 'in_progress',
+  completed = 'completed',
+  skipped = 'skipped',
+}
+
+export enum GqlMaintenancePriority {
+  low = 'low',
+  medium = 'medium',
+  high = 'high',
+  critical = 'critical',
+}
+
+registerEnumType(GqlMaintenanceTaskStatus, { name: 'MaintenanceTaskStatus' });
+registerEnumType(GqlMaintenancePriority, { name: 'MaintenancePriority' });
+
+const _taskStatusSync: Record<MaintenanceTaskStatus, GqlMaintenanceTaskStatus> = {
+  pending: GqlMaintenanceTaskStatus.pending,
+  in_progress: GqlMaintenanceTaskStatus.in_progress,
+  completed: GqlMaintenanceTaskStatus.completed,
+  skipped: GqlMaintenanceTaskStatus.skipped,
+};
+
+const _prioritySync: Record<MaintenancePriority, GqlMaintenancePriority> = {
+  low: GqlMaintenancePriority.low,
+  medium: GqlMaintenancePriority.medium,
+  high: GqlMaintenancePriority.high,
+  critical: GqlMaintenancePriority.critical,
 };

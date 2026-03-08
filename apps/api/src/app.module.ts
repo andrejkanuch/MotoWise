@@ -14,6 +14,7 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
+import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
@@ -53,6 +54,7 @@ import { UsersModule } from './modules/users/users.module';
     DiagnosticsModule,
     ContentFlagsModule,
     LearningProgressModule,
+    MaintenanceTasksModule,
   ],
   providers: [
     {

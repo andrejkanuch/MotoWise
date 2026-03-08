@@ -1,0 +1,8 @@
+mutation CompleteMaintenanceTask($id: String!, $completedMileage: Int) {
+  completeMaintenanceTask(id: $id, completedMileage: $completedMileage) {
+    id
+    status
+    completedAt
+    completedMileage
+  }
+}

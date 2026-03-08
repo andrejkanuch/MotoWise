@@ -4,6 +4,7 @@ import {
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
   MaintenanceTasksByMotorcycleDocument,
+  type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motolearn/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -139,8 +140,7 @@ function MaintenanceTab({ motorcycleId, isDark }: { motorcycleId: string; isDark
     },
   });
 
-  // biome-ignore lint/suspicious/noExplicitAny: maintenance task types not yet generated
-  type Task = any;
+  type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   const tasks: Task[] = data?.maintenanceTasks ?? [];
   const activeTasks = tasks
     .filter((t: Task) => t.status === 'pending' || t.status === 'in_progress')
