@@ -6,13 +6,13 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { SUPABASE_ANON } from '../supabase/supabase-anon.provider';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
 
 @Injectable()
 export class ArticlesService {
-  constructor(@Inject(SUPABASE_USER) private readonly userClient: SupabaseClient) {}
+  constructor(@Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient) {}
 
   async search(input: {
     query?: string;
@@ -22,7 +22,7 @@ export class ArticlesService {
     after?: string;
   }): Promise<ArticleConnection> {
     const limit = input.first ?? 20;
-    let query = this.userClient
+    let query = this.anonClient
       .from('articles')
       .select(
         'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
@@ -69,7 +69,7 @@ export class ArticlesService {
   }
 
   async findBySlug(slug: string): Promise<Article | null> {
-    const { data, error } = await this.userClient
+    const { data, error } = await this.anonClient
       .from('articles')
       .select('*')
       .eq('slug', slug)
@@ -79,7 +79,7 @@ export class ArticlesService {
     if (error || !data) return null;
 
     // Fire-and-forget view count increment
-    this.userClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+    this.anonClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
 
     return this.mapRow(data);
   }

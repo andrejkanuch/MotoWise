@@ -3,6 +3,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
+import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { LearningProgressService } from './learning-progress.service';
 import { LearningProgress } from './models/learning-progress.model';
 
@@ -20,7 +21,7 @@ export class LearningProgressResolver {
   @UseGuards(GqlAuthGuard)
   async markArticleRead(
     @CurrentUser() user: AuthUser,
-    @Args('articleId') articleId: string,
+    @Args('articleId', ParseUUIDPipe) articleId: string,
   ): Promise<LearningProgress> {
     return this.progressService.markRead(user.id, articleId);
   }
