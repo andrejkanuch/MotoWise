@@ -1,0 +1,8 @@
+mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
+  completeOnboarding(input: $input) {
+    id
+    preferences
+    createdAt
+    updatedAt
+  }
+}

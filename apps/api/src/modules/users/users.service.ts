@@ -3,6 +3,7 @@ import type { Tables } from '@motolearn/types/database';
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import type { CompleteOnboardingInput } from './dto/complete-onboarding.input';
 import { User } from './models/user.model';
 
 @Injectable()
@@ -75,5 +76,34 @@ export class UsersService {
 
     if (error || !data) throw new BadRequestException(error?.message ?? 'Failed to update user');
     return this.mapRow(data);
+  }
+
+  async completeOnboarding(userId: string, input: CompleteOnboardingInput): Promise<User> {
+    const preferences = {
+      onboardingCompleted: true,
+      experienceLevel: input.experienceLevel,
+      ridingGoals: input.ridingGoals,
+      ...(input.ridingFrequency && { ridingFrequency: input.ridingFrequency }),
+      ...(input.maintenanceStyle && { maintenanceStyle: input.maintenanceStyle }),
+      learningFormats: input.learningFormats,
+    };
+
+    const { error } = await this.supabase.rpc('complete_onboarding', {
+      p_user_id: userId,
+      p_preferences: preferences,
+      p_bike_make: input.bikeMake ?? null,
+      p_bike_model: input.bikeModel ?? null,
+      p_bike_year: input.bikeYear ?? null,
+      p_bike_type: input.bikeType ?? null,
+      p_bike_mileage: input.bikeMileage ?? null,
+      p_bike_nickname: input.bikeNickname ?? null,
+    });
+
+    if (error) {
+      this.logger.error(`completeOnboarding failed: ${JSON.stringify(error)}`);
+      throw new BadRequestException(error.message ?? 'Failed to complete onboarding');
+    }
+
+    return this.findById(userId);
   }
 }

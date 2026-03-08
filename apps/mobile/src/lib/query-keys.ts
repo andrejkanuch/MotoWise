@@ -19,6 +19,7 @@ export const queryKeys = {
   },
   maintenanceTasks: {
     all: ['maintenance-tasks'] as const,
+    allUser: ['maintenance-tasks', 'all-user'] as const,
     byMotorcycle: (motorcycleId: string) =>
       ['maintenance-tasks', 'motorcycle', motorcycleId] as const,
   },
@@ -27,5 +28,11 @@ export const queryKeys = {
     list: (filters?: Record<string, unknown>) =>
       [...queryKeys.articles.all, 'list', filters] as const,
     detail: (slug: string) => ['articles', 'detail', slug] as const,
+  },
+  onboarding: {
+    insights: (input: Record<string, unknown>) => ['onboarding', 'insights', input] as const,
+  },
+  subscription: {
+    offerings: ['subscription', 'offerings'] as const,
   },
 };

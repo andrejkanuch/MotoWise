@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 type Article {
   category: ArticleCategory!
   contentJson: JSON
@@ -38,6 +42,20 @@ enum ArticleDifficulty {
 type ArticleEdge {
   cursor: String!
   node: Article!
+}
+
+input CompleteOnboardingInput {
+  bikeMake: String
+  bikeMileage: Int
+  bikeModel: String
+  bikeNickname: String
+  bikeType: String
+  bikeYear: Int
+  experienceLevel: String!
+  learningFormats: [String!]!
+  maintenanceStyle: String
+  ridingFrequency: String
+  ridingGoals: [String!]!
 }
 
 type ContentFlag {
@@ -114,6 +132,23 @@ input GenerateArticleInput {
   topic: String!
 }
 
+input GenerateInsightsInput {
+  bikeMake: String
+  bikeModel: String
+  bikeType: String
+  bikeYear: Int
+  currentMileage: Int
+  experienceLevel: String!
+  maintenanceStyle: String
+  ridingFrequency: String
+}
+
+enum InsightType {
+  community
+  learning
+  maintenance
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -186,6 +221,7 @@ type MotorcycleModelResult {
 
 type Mutation {
   completeMaintenanceTask(completedMileage: Int, id: String!): MaintenanceTask!
+  completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
@@ -193,12 +229,20 @@ type Mutation {
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
+  generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   markArticleRead(articleId: String!): LearningProgress!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateUser(input: UpdateUserInput!): User!
+}
+
+type OnboardingInsight {
+  body: String!
+  icon: String!
+  title: String!
+  type: InsightType!
 }
 
 type PageInfo {
@@ -209,6 +253,7 @@ type PageInfo {
 }
 
 type Query {
+  allMaintenanceTasks: [MaintenanceTask!]!
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic

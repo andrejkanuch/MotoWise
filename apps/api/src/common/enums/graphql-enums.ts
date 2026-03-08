@@ -3,9 +3,15 @@ import type {
   ArticleDifficulty,
   DiagnosticSeverity,
   FlagStatus,
+  InsightType,
+  LearningFormat,
   MaintenancePriority,
+  MaintenanceStyle,
   MaintenanceTaskStatus,
   MotorcycleType,
+  RidingFrequency,
+  RidingGoal,
+  SubscriptionTier,
   SupportedLocale,
   UserRole,
 } from '@motolearn/types';
@@ -169,4 +175,95 @@ const _prioritySync: Record<MaintenancePriority, GqlMaintenancePriority> = {
   medium: GqlMaintenancePriority.medium,
   high: GqlMaintenancePriority.high,
   critical: GqlMaintenancePriority.critical,
+};
+
+export enum GqlRidingFrequency {
+  daily = 'daily',
+  weekly = 'weekly',
+  monthly = 'monthly',
+  seasonally = 'seasonally',
+}
+
+export enum GqlMaintenanceStyle {
+  diy = 'diy',
+  sometimes = 'sometimes',
+  mechanic = 'mechanic',
+}
+
+export enum GqlLearningFormat {
+  quick_tips = 'quick_tips',
+  deep_dives = 'deep_dives',
+  video_walkthroughs = 'video_walkthroughs',
+  hands_on_quizzes = 'hands_on_quizzes',
+}
+
+export enum GqlSubscriptionTier {
+  free = 'free',
+  pro = 'pro',
+}
+
+export enum GqlRidingGoal {
+  learn_maintenance = 'learn_maintenance',
+  improve_riding = 'improve_riding',
+  track_maintenance = 'track_maintenance',
+  save_money = 'save_money',
+  find_community = 'find_community',
+  safety = 'safety',
+  save_on_maintenance = 'save_on_maintenance',
+  track_bike_health = 'track_bike_health',
+}
+
+export enum GqlInsightType {
+  maintenance = 'maintenance',
+  learning = 'learning',
+  community = 'community',
+}
+
+registerEnumType(GqlRidingFrequency, { name: 'RidingFrequency' });
+registerEnumType(GqlMaintenanceStyle, { name: 'MaintenanceStyle' });
+registerEnumType(GqlLearningFormat, { name: 'LearningFormat' });
+registerEnumType(GqlSubscriptionTier, { name: 'SubscriptionTier' });
+registerEnumType(GqlRidingGoal, { name: 'RidingGoal' });
+registerEnumType(GqlInsightType, { name: 'InsightType' });
+
+const _ridingFrequencySync: Record<RidingFrequency, GqlRidingFrequency> = {
+  daily: GqlRidingFrequency.daily,
+  weekly: GqlRidingFrequency.weekly,
+  monthly: GqlRidingFrequency.monthly,
+  seasonally: GqlRidingFrequency.seasonally,
+};
+
+const _maintenanceStyleSync: Record<MaintenanceStyle, GqlMaintenanceStyle> = {
+  diy: GqlMaintenanceStyle.diy,
+  sometimes: GqlMaintenanceStyle.sometimes,
+  mechanic: GqlMaintenanceStyle.mechanic,
+};
+
+const _learningFormatSync: Record<LearningFormat, GqlLearningFormat> = {
+  quick_tips: GqlLearningFormat.quick_tips,
+  deep_dives: GqlLearningFormat.deep_dives,
+  video_walkthroughs: GqlLearningFormat.video_walkthroughs,
+  hands_on_quizzes: GqlLearningFormat.hands_on_quizzes,
+};
+
+const _subscriptionTierSync: Record<SubscriptionTier, GqlSubscriptionTier> = {
+  free: GqlSubscriptionTier.free,
+  pro: GqlSubscriptionTier.pro,
+};
+
+const _ridingGoalSync: Record<RidingGoal, GqlRidingGoal> = {
+  learn_maintenance: GqlRidingGoal.learn_maintenance,
+  improve_riding: GqlRidingGoal.improve_riding,
+  track_maintenance: GqlRidingGoal.track_maintenance,
+  save_money: GqlRidingGoal.save_money,
+  find_community: GqlRidingGoal.find_community,
+  safety: GqlRidingGoal.safety,
+  save_on_maintenance: GqlRidingGoal.save_on_maintenance,
+  track_bike_health: GqlRidingGoal.track_bike_health,
+};
+
+const _insightTypeSync: Record<InsightType, GqlInsightType> = {
+  maintenance: GqlInsightType.maintenance,
+  learning: GqlInsightType.learning,
+  community: GqlInsightType.community,
 };
