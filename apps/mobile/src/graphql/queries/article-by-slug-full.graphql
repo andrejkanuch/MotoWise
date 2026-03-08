@@ -1,0 +1,15 @@
+query ArticleBySlugFull($slug: String!) {
+  articleBySlugFull(slug: $slug) {
+    id
+    slug
+    title
+    difficulty
+    category
+    viewCount
+    isSafetyCritical
+    contentJson
+    readTime
+    generatedAt
+    updatedAt
+  }
+}

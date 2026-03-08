@@ -1,11 +1,11 @@
 import { palette } from '@motolearn/design-system';
-import { MyProgressDocument } from '@motolearn/graphql';
+import { MyProgressDocument, SearchArticlesDocument } from '@motolearn/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { BookOpen, Cog, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { BookOpen, Cog, Eye, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -36,11 +36,33 @@ const MODULES = [
   },
 ] as const;
 
+const DIFFICULTY_COLORS = {
+  beginner: palette.success500,
+  intermediate: palette.warning500,
+  advanced: palette.danger500,
+} as const;
+
+const CATEGORY_COLORS = {
+  'engine-basics': palette.moduleEngine,
+  suspension: palette.moduleSuspension,
+  electrical: palette.moduleElectrical,
+  maintenance: palette.moduleMaintenance,
+} as const;
+
 export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const { data: progressData } = useQuery({
     queryKey: queryKeys.progress.all,
@@ -51,6 +73,26 @@ export default function LearnScreen() {
     () => progress.filter((p: { articleRead: boolean }) => p.articleRead).length,
     [progress],
   );
+
+  const { data: searchData, isLoading: isSearching } = useQuery({
+    queryKey: queryKeys.articles.list({ query: debouncedQuery }),
+    queryFn: () =>
+      gqlFetcher(SearchArticlesDocument, {
+        input: { query: debouncedQuery, first: 20 },
+      }),
+    enabled: debouncedQuery.length > 0,
+  });
+
+  const searchResults = searchData?.searchArticles?.edges ?? [];
+  const isSearchActive = debouncedQuery.length > 0;
+
+  // TODO: Wire GenerateArticleDocument mutation when API resolver is ready
+  const [isGenerating, setIsGenerating] = useState(false);
+  const handleGenerate = () => {
+    // Placeholder: will call GenerateArticleDocument mutation
+    setIsGenerating(true);
+    setTimeout(() => setIsGenerating(false), 2000);
+  };
 
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
@@ -84,83 +126,193 @@ export default function LearnScreen() {
           </View>
         </Animated.View>
 
-        {/* Progress Card */}
-        <Animated.View entering={FadeInUp.delay(200).duration(400)} className="px-5 mt-4">
-          <View
-            className="bg-primary-950 dark:bg-primary-800 rounded-2xl p-5 overflow-hidden"
-            style={{ borderCurve: 'continuous' }}
-          >
-            <View className="flex-row items-center gap-3 mb-3">
-              <View className="w-10 h-10 rounded-xl bg-white/15 items-center justify-center">
-                <BookOpen size={20} color={palette.white} strokeWidth={2} />
+        {isSearchActive ? (
+          /* Search Results */
+          <Animated.View entering={FadeInUp.duration(300)} className="px-5 mt-4">
+            <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
+              {t('learn.searchResults')}
+            </Text>
+
+            {isSearching ? (
+              <View className="py-8 items-center">
+                <ActivityIndicator size="small" color={palette.primary500} />
               </View>
-              <View className="flex-1">
-                <Text className="text-white text-lg font-bold">{t('learn.motorcycleBasics')}</Text>
-                <Text className="text-white/60 text-sm">
-                  {t('learn.articlesRead', { count: totalRead })}
+            ) : searchResults.length === 0 ? (
+              <View
+                className="bg-white dark:bg-neutral-800 rounded-2xl p-6 items-center"
+                style={{ borderCurve: 'continuous' }}
+              >
+                <Search size={36} color={palette.neutral300} strokeWidth={1.5} />
+                <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 text-center">
+                  {t('learn.noResults')}
+                </Text>
+                <Pressable
+                  className="mt-4 bg-primary-500 rounded-xl px-6 py-3 flex-row items-center gap-2"
+                  style={{ borderCurve: 'continuous' }}
+                  onPress={handleGenerate}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                  )}
+                  <Text className="text-white font-semibold text-sm">
+                    {isGenerating ? t('learn.generating') : t('learn.generateArticle')}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {searchResults.map(({ node }, index) => (
+                  <Animated.View key={node.id} entering={FadeInUp.delay(index * 50).duration(400)}>
+                    <Pressable
+                      className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
+                      style={{ borderCurve: 'continuous' }}
+                      onPress={() =>
+                        router.push(`/(tabs)/(learn)/article/${node.slug}` as `/${string}`)
+                      }
+                    >
+                      <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50">
+                        {node.title}
+                      </Text>
+                      <View className="flex-row items-center gap-2 mt-2 flex-wrap">
+                        {/* Category badge */}
+                        <View
+                          className="rounded-lg px-2.5 py-1"
+                          style={{
+                            backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[node.category] ?? palette.primary500}15`,
+                            borderCurve: 'continuous',
+                          }}
+                        >
+                          <Text
+                            className="text-xs font-medium capitalize"
+                            style={{
+                              color:
+                                (CATEGORY_COLORS as Record<string, string>)[node.category] ??
+                                palette.primary500,
+                            }}
+                          >
+                            {node.category.replace(/-/g, ' ')}
+                          </Text>
+                        </View>
+                        {/* Difficulty badge */}
+                        <View
+                          className="rounded-lg px-2.5 py-1"
+                          style={{
+                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ?? palette.neutral400}15`,
+                            borderCurve: 'continuous',
+                          }}
+                        >
+                          <Text
+                            className="text-xs font-medium capitalize"
+                            style={{
+                              color:
+                                (DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ??
+                                palette.neutral400,
+                            }}
+                          >
+                            {node.difficulty}
+                          </Text>
+                        </View>
+                        {/* View count */}
+                        <View className="flex-row items-center gap-1">
+                          <Eye size={12} color={palette.neutral400} strokeWidth={2} />
+                          <Text className="text-xs text-neutral-500">{node.viewCount}</Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  </Animated.View>
+                ))}
+              </View>
+            )}
+          </Animated.View>
+        ) : (
+          <>
+            {/* Progress Card */}
+            <Animated.View entering={FadeInUp.delay(200).duration(400)} className="px-5 mt-4">
+              <View
+                className="bg-primary-950 dark:bg-primary-800 rounded-2xl p-5 overflow-hidden"
+                style={{ borderCurve: 'continuous' }}
+              >
+                <View className="flex-row items-center gap-3 mb-3">
+                  <View className="w-10 h-10 rounded-xl bg-white/15 items-center justify-center">
+                    <BookOpen size={20} color={palette.white} strokeWidth={2} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white text-lg font-bold">
+                      {t('learn.motorcycleBasics')}
+                    </Text>
+                    <Text className="text-white/60 text-sm">
+                      {t('learn.articlesRead', { count: totalRead })}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Progress Bar */}
+                <View className="h-2 bg-white/15 rounded-full overflow-hidden">
+                  <View
+                    className="h-full bg-accent-400 rounded-full"
+                    style={{ width: `${Math.min((totalRead / 20) * 100, 100)}%` }}
+                  />
+                </View>
+                <Text
+                  className="text-white/50 text-xs mt-2"
+                  style={{ fontVariant: ['tabular-nums'] }}
+                >
+                  {t('learn.progressLabel', { current: totalRead, total: 20 })}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
 
-            {/* Progress Bar */}
-            <View className="h-2 bg-white/15 rounded-full overflow-hidden">
-              <View
-                className="h-full bg-accent-400 rounded-full"
-                style={{ width: `${Math.min((totalRead / 20) * 100, 100)}%` }}
-              />
-            </View>
-            <Text className="text-white/50 text-xs mt-2" style={{ fontVariant: ['tabular-nums'] }}>
-              {t('learn.progressLabel', { current: totalRead, total: 20 })}
-            </Text>
-          </View>
-        </Animated.View>
-
-        {/* Module Grid */}
-        <Animated.View entering={FadeInUp.delay(300).duration(400)} className="px-5 mt-5">
-          <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
-            {t('learn.modules')}
-          </Text>
-          <View className="flex-row flex-wrap gap-3">
-            {MODULES.map((mod, index) => {
-              const Icon = mod.icon;
-              return (
-                <Animated.View
-                  key={mod.key}
-                  entering={FadeInUp.delay(350 + index * 60).duration(400)}
-                  style={{ width: '48%' }}
-                >
-                  <Pressable
-                    className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
-                    style={{ borderCurve: 'continuous' }}
-                    onPress={() =>
-                      router.push(`/(tabs)/(learn)/article/${mod.category}` as `/${string}`)
-                    }
-                  >
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        backgroundColor: `${mod.color}15`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderCurve: 'continuous',
-                      }}
+            {/* Module Grid */}
+            <Animated.View entering={FadeInUp.delay(300).duration(400)} className="px-5 mt-5">
+              <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
+                {t('learn.modules')}
+              </Text>
+              <View className="flex-row flex-wrap gap-3">
+                {MODULES.map((mod, index) => {
+                  const Icon = mod.icon;
+                  return (
+                    <Animated.View
+                      key={mod.key}
+                      entering={FadeInUp.delay(350 + index * 60).duration(400)}
+                      style={{ width: '48%' }}
                     >
-                      <Icon size={22} color={mod.color} strokeWidth={2} />
-                    </View>
-                    <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50 mt-3 capitalize">
-                      {t(`learn.module.${mod.key}`)}
-                    </Text>
-                    <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                      {t('learn.lessonsCount', { count: mod.lessons })}
-                    </Text>
-                  </Pressable>
-                </Animated.View>
-              );
-            })}
-          </View>
-        </Animated.View>
+                      <Pressable
+                        className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
+                        style={{ borderCurve: 'continuous' }}
+                        onPress={() => {
+                          setSearchQuery(mod.category);
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 12,
+                            backgroundColor: `${mod.color}15`,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderCurve: 'continuous',
+                          }}
+                        >
+                          <Icon size={22} color={mod.color} strokeWidth={2} />
+                        </View>
+                        <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50 mt-3 capitalize">
+                          {t(`learn.module.${mod.key}`)}
+                        </Text>
+                        <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                          {t('learn.lessonsCount', { count: mod.lessons })}
+                        </Text>
+                      </Pressable>
+                    </Animated.View>
+                  );
+                })}
+              </View>
+            </Animated.View>
+          </>
+        )}
       </ScrollView>
     </View>
   );

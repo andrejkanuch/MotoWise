@@ -18,3 +18,10 @@ export const ArticleContentSchema = z.object({
   quizSeed: z.string().optional(),
 });
 export type ArticleContent = z.infer<typeof ArticleContentSchema>;
+
+export const GenerateArticleSchema = z.object({
+  topic: z.string().min(3).max(200),
+  category: z.enum(categories).optional(),
+  difficulty: z.enum(difficulties).optional(),
+});
+export type GenerateArticle = z.infer<typeof GenerateArticleSchema>;

@@ -1,4 +1,5 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
+import GraphQLJSON from 'graphql-type-json';
 import { GqlDiagnosticSeverity } from '../../../common/enums/graphql-enums';
 
 @ObjectType()
@@ -29,4 +30,10 @@ export class Diagnostic {
 
   @Field()
   createdAt: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  resultJson?: Record<string, unknown>;
+
+  @Field({ nullable: true })
+  description?: string;
 }

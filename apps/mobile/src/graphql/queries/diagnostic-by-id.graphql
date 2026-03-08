@@ -1,0 +1,15 @@
+query DiagnosticById($id: String!) {
+  diagnosticById(id: $id) {
+    id
+    userId
+    motorcycleId
+    severity
+    confidence
+    relatedArticleId
+    resultJson
+    description
+    status
+    dataSharingOptedIn
+    createdAt
+  }
+}

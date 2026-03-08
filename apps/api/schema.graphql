@@ -1,13 +1,11 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 type Article {
   category: ArticleCategory!
+  contentJson: JSON
   difficulty: ArticleDifficulty!
   generatedAt: String!
   id: ID!
   isSafetyCritical: Boolean!
+  readTime: Int
   slug: String!
   title: String!
   updatedAt: String!
@@ -75,9 +73,11 @@ type Diagnostic {
   confidence: Float
   createdAt: String!
   dataSharingOptedIn: Boolean!
+  description: String
   id: ID!
   motorcycleId: String!
   relatedArticleId: String
+  resultJson: JSON
   severity: DiagnosticSeverity
   status: String!
   userId: String!
@@ -95,6 +95,12 @@ enum FlagStatus {
   pending
   resolved
   reviewed
+}
+
+input GenerateArticleInput {
+  category: ArticleCategory
+  difficulty: ArticleDifficulty
+  topic: String!
 }
 
 """
@@ -140,7 +146,9 @@ type Mutation {
   createFlag(input: CreateFlagInput!): ContentFlag!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   deleteMotorcycle(id: String!): Boolean!
+  generateArticle(input: GenerateArticleInput!): Article!
   markArticleRead(articleId: String!): LearningProgress!
+  submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateUser(input: UpdateUserInput!): User!
@@ -155,6 +163,8 @@ type PageInfo {
 
 type Query {
   articleBySlug(slug: String!): Article
+  articleBySlugFull(slug: String!): Article
+  diagnosticById(id: String!): Diagnostic
   me: User!
   motorcycleMakes: [MotorcycleMake!]!
   motorcycleModels(makeId: Int!, year: Int!): [MotorcycleModelResult!]!
@@ -193,6 +203,14 @@ input SearchArticlesInput {
   difficulty: ArticleDifficulty
   first: Int = 20
   query: String
+}
+
+input SubmitDiagnosticInput {
+  dataSharingOptedIn: Boolean! = false
+  description: String
+  motorcycleId: String!
+  photoBase64: String!
+  wizardAnswers: JSON
 }
 
 input SubmitQuizInput {
