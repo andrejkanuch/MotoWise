@@ -1,5 +1,6 @@
 import { palette } from '@motolearn/design-system';
-import { MeDocument } from '@motolearn/graphql';
+import { MeDocument, MyMotorcyclesDocument } from '@motolearn/graphql';
+import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -16,35 +17,29 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { gql, useQuery } from 'urql';
-
-const MyMotorcyclesQuery = gql`
-  query MyMotorcycles {
-    myMotorcycles {
-      id
-      make
-      model
-      year
-      nickname
-      isPrimary
-    }
-  }
-`;
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [meResult] = useQuery({ query: MeDocument });
-  const [bikesResult] = useQuery({ query: MyMotorcyclesQuery });
+  const meQuery = useQuery({
+    queryKey: queryKeys.user.me,
+    queryFn: () => gqlFetcher(MeDocument),
+  });
+  const bikesQuery = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
 
-  const user = meResult.data?.me;
+  const user = meQuery.data?.me;
   const preferences = user?.preferences as
     | { onboardingCompleted?: boolean; experienceLevel?: string }
     | null
     | undefined;
-  const motorcycles = bikesResult.data?.myMotorcycles ?? [];
+  const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
   const primaryBike = motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) as
     | { make: string; model: string; year: number }
     | undefined;

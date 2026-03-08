@@ -27,7 +27,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - **database.types.ts**: DB row shapes — use ONLY in NestJS services
 - **Zod schemas**: Validation/input types — use at API boundaries, forms, AI response validation
 - **NestJS @ObjectType()**: API contract — defines what GraphQL clients see
-- **TypedDocumentNode**: Generated client types — use in mobile + web with urql
+- **TypedDocumentNode**: Generated client types — use in mobile (TanStack Query + graphql-request) + web
 
 ## Update Sequence (when modifying data models)
 1. Update Supabase migration SQL

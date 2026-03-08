@@ -1,23 +1,14 @@
 import { palette } from '@motolearn/design-system';
+import { MyDiagnosticsDocument } from '@motolearn/graphql';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Camera, ChevronRight, Clock, ScanLine } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { gql, useQuery } from 'urql';
-
-const MyDiagnosticsQuery = gql`
-  query MyDiagnostics {
-    myDiagnostics {
-      id
-      severity
-      confidence
-      status
-      createdAt
-    }
-  }
-`;
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 const SEVERITY_COLORS = {
   critical: { bg: palette.dangerBgLight, icon: palette.danger500 },
@@ -36,7 +27,10 @@ export default function DiagnoseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [{ data }] = useQuery({ query: MyDiagnosticsQuery });
+  const { data } = useQuery({
+    queryKey: queryKeys.diagnostics.all,
+    queryFn: () => gqlFetcher(MyDiagnosticsDocument),
+  });
   const diagnostics = data?.myDiagnostics ?? [];
 
   return (
@@ -91,51 +85,40 @@ export default function DiagnoseScreen() {
             </View>
           ) : (
             <View className="gap-3">
-              {diagnostics.slice(0, 5).map(
-                (
-                  diag: {
-                    id: string;
-                    severity: string;
-                    confidence: number;
-                    status: string;
-                    createdAt: string;
-                  },
-                  index: number,
-                ) => {
-                  const sevColors = getSeverityColors(diag.severity);
-                  return (
-                    <Animated.View
-                      key={diag.id}
-                      entering={FadeInUp.delay(250 + index * 60).duration(400)}
+              {diagnostics.slice(0, 5).map((diag, index) => {
+                const sevColors = getSeverityColors(diag.severity ?? 'default');
+                return (
+                  <Animated.View
+                    key={diag.id}
+                    entering={FadeInUp.delay(250 + index * 60).duration(400)}
+                  >
+                    <Pressable
+                      className="bg-white dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center"
+                      style={{ borderCurve: 'continuous' }}
+                      onPress={() => router.push(`/(diagnose)/${diag.id}`)}
                     >
-                      <Pressable
-                        className="bg-white dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center"
-                        style={{ borderCurve: 'continuous' }}
-                        onPress={() => router.push(`/(diagnose)/${diag.id}`)}
+                      <View
+                        className="w-10 h-10 rounded-xl items-center justify-center mr-3"
+                        style={{ backgroundColor: sevColors.bg }}
                       >
-                        <View
-                          className="w-10 h-10 rounded-xl items-center justify-center mr-3"
-                          style={{ backgroundColor: sevColors.bg }}
-                        >
-                          <ScanLine size={18} color={sevColors.icon} strokeWidth={2} />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-sm font-semibold text-neutral-950 dark:text-neutral-50 capitalize">
-                            {diag.status}
+                        <ScanLine size={18} color={sevColors.icon} strokeWidth={2} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-sm font-semibold text-neutral-950 dark:text-neutral-50 capitalize">
+                          {diag.status}
+                        </Text>
+                        <View className="flex-row items-center gap-1 mt-0.5">
+                          <Clock size={12} color={palette.neutral400} strokeWidth={2} />
+                          <Text className="text-xs text-neutral-500">
+                            {new Date(diag.createdAt).toLocaleDateString()}
                           </Text>
-                          <View className="flex-row items-center gap-1 mt-0.5">
-                            <Clock size={12} color={palette.neutral400} strokeWidth={2} />
-                            <Text className="text-xs text-neutral-500">
-                              {new Date(diag.createdAt).toLocaleDateString()}
-                            </Text>
-                          </View>
                         </View>
-                        <ChevronRight size={18} color={palette.neutral400} strokeWidth={2} />
-                      </Pressable>
-                    </Animated.View>
-                  );
-                },
-              )}
+                      </View>
+                      <ChevronRight size={18} color={palette.neutral400} strokeWidth={2} />
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
             </View>
           )}
         </Animated.View>

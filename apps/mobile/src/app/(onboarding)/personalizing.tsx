@@ -1,4 +1,5 @@
 import { UpdateUserDocument } from '@motolearn/graphql';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Bike, Check, LayoutDashboard, Search, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -11,7 +12,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useMutation } from 'urql';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -24,7 +26,14 @@ export default function PersonalizingScreen() {
   const router = useRouter();
   const [visibleSteps, setVisibleSteps] = useState(0);
   const { experienceLevel, ridingGoals, reset } = useOnboardingStore();
-  const [, updateUser] = useMutation(UpdateUserDocument);
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateUser } = useMutation({
+    mutationFn: (input: { preferences: Record<string, unknown> }) =>
+      gqlFetcher(UpdateUserDocument, { input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+    },
+  });
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const persisted = useRef(false);
   const [mutationDone, setMutationDone] = useState(false);
@@ -49,26 +58,21 @@ export default function PersonalizingScreen() {
     persisted.current = true;
 
     updateUser({
-      input: {
-        preferences: {
-          onboardingCompleted: true,
-          ...(experienceLevel ? { experienceLevel } : {}),
-          ...(ridingGoals.length > 0 ? { ridingGoals } : {}),
-        },
+      preferences: {
+        onboardingCompleted: true,
+        ...(experienceLevel ? { experienceLevel } : {}),
+        ...(ridingGoals.length > 0 ? { ridingGoals } : {}),
       },
-    }).then((result) => {
-      if (!result.error) {
-        console.log('[Personalizing] mutation success, setting onboardingCompleted');
+    })
+      .then(() => {
         reset();
         setOnboardingCompleted(true);
         setMutationDone(true);
-      } else {
-        console.log('[Personalizing] mutation failed, retrying:', result.error.message);
+      })
+      .catch(() => {
         // Retry once on failure, proceed regardless so user isn't stuck
         updateUser({
-          input: {
-            preferences: { onboardingCompleted: true },
-          },
+          preferences: { onboardingCompleted: true },
         })
           .then(() => {
             reset();
@@ -76,13 +80,11 @@ export default function PersonalizingScreen() {
             setMutationDone(true);
           })
           .catch(() => {
-            console.log('[Personalizing] retry also failed, proceeding anyway');
             reset();
             setOnboardingCompleted(true);
             setMutationDone(true);
           });
-      }
-    });
+      });
   }, [experienceLevel, ridingGoals, updateUser, reset, setOnboardingCompleted]);
 
   // Animation steps + minimum display time

@@ -3,6 +3,7 @@ import {
   MotorcycleMakesDocument,
   MotorcycleModelsDocument,
 } from '@motolearn/graphql';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Bike, Calendar, ChevronRight, Search, SkipForward, Tag } from 'lucide-react-native';
@@ -18,8 +19,9 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useMutation, useQuery } from 'urql';
 import { ProgressBar } from '../../components/progress-bar';
+import { gqlFetcher } from '../../lib/graphql-client';
+import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 export default function SelectBikeScreen() {
@@ -45,20 +47,34 @@ export default function SelectBikeScreen() {
     setSelectedModel(null);
   };
 
-  const [makesResult] = useQuery({ query: MotorcycleMakesDocument });
+  const queryClient = useQueryClient();
+  const makesResult = useQuery({
+    queryKey: queryKeys.nhtsa.makes,
+    queryFn: () => gqlFetcher(MotorcycleMakesDocument),
+  });
   const yearNum = Number.parseInt(year, 10);
   const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
 
-  const [modelsResult] = useQuery({
-    query: MotorcycleModelsDocument,
-    variables: { makeId: selectedMake?.makeId ?? 0, year: yearNum },
-    pause: !selectedMake || !validYear,
+  const modelsResult = useQuery({
+    queryKey: queryKeys.nhtsa.models({ makeId: selectedMake?.makeId ?? 0, year: yearNum }),
+    queryFn: () =>
+      gqlFetcher(MotorcycleModelsDocument, {
+        makeId: selectedMake?.makeId ?? 0,
+        year: yearNum,
+      }),
+    enabled: !!selectedMake && validYear,
   });
 
-  const [, createMotorcycle] = useMutation(CreateMotorcycleDocument);
+  const createMotorcycleMutation = useMutation({
+    mutationFn: (input: { make: string; model: string; year: number; nickname?: string }) =>
+      gqlFetcher(CreateMotorcycleDocument, { input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+    },
+  });
 
   const makes = makesResult.data?.motorcycleMakes ?? [];
-  const filteredMakes = makes.filter((make) =>
+  const filteredMakes = makes.filter((make: { makeName: string }) =>
     make.makeName.toLowerCase().includes(makeSearch.toLowerCase()),
   );
   const models = modelsResult.data?.motorcycleModels ?? [];
@@ -88,20 +104,19 @@ export default function SelectBikeScreen() {
   const handleContinue = async () => {
     if (!selectedMake || !selectedModel || !validYear) return;
     setIsCreating(true);
-    const result = await createMotorcycle({
-      input: {
+    try {
+      await createMotorcycleMutation.mutateAsync({
         make: selectedMake.makeName,
         model: selectedModel.modelName,
         year: yearNum,
         nickname: nickname.trim() || undefined,
-      },
-    });
-    setIsCreating(false);
-
-    if (result.error) {
-      Alert.alert(t('common.error'), result.error.message);
+      });
+    } catch (e) {
+      setIsCreating(false);
+      Alert.alert(t('common.error'), String(e));
       return;
     }
+    setIsCreating(false);
     setBikeData({
       year: yearNum,
       make: selectedMake.makeName,
@@ -241,9 +256,9 @@ export default function SelectBikeScreen() {
 
         {/* Makes dropdown */}
         <Animated.View entering={FadeInUp.delay(360).duration(400)}>
-          {makesResult.fetching ? (
+          {makesResult.isLoading ? (
             <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
-          ) : makesResult.error ? (
+          ) : makesResult.isError ? (
             <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
               {t('onboarding.makesLoadError')}
             </Text>
@@ -341,7 +356,7 @@ export default function SelectBikeScreen() {
             </Text>
           </View>
           {selectedMake && validYear ? (
-            modelsResult.fetching ? (
+            modelsResult.isLoading ? (
               <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
             ) : selectedModel && !modelSearch ? (
               <Pressable

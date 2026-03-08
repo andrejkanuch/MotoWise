@@ -1,42 +1,32 @@
 import { palette } from '@motolearn/design-system';
+import { MyMotorcyclesDocument } from '@motolearn/graphql';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { gql, useQuery } from 'urql';
-
-const MyMotorcyclesQuery = gql`
-  query MyMotorcycles {
-    myMotorcycles {
-      id
-      make
-      model
-      year
-      nickname
-      isPrimary
-      createdAt
-    }
-  }
-`;
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 export default function GarageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [{ data, fetching, error }, reexecute] = useQuery({
-    query: MyMotorcyclesQuery,
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
   const onRefresh = useCallback(() => {
-    reexecute({ requestPolicy: 'network-only' });
-  }, [reexecute]);
+    refetch();
+  }, [refetch]);
 
   const motorcycles = data?.myMotorcycles ?? [];
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-900">
-      {fetching && !data ? (
+      {isLoading && !data ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={palette.primary500} />
           <Text className="mt-3 text-sm text-neutral-500">{t('common.loading')}</Text>
@@ -71,53 +61,41 @@ export default function GarageScreen() {
           contentContainerClassName="p-4 gap-3"
           refreshControl={
             <RefreshControl
-              refreshing={fetching}
+              refreshing={isRefetching}
               onRefresh={onRefresh}
               tintColor={palette.primary500}
             />
           }
         >
-          {motorcycles.map(
-            (
-              bike: {
-                id: string;
-                make: string;
-                model: string;
-                year: number;
-                nickname?: string;
-                isPrimary: boolean;
-              },
-              index: number,
-            ) => (
-              <Animated.View key={bike.id} entering={FadeInUp.delay(index * 80).duration(400)}>
-                <Pressable
-                  className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
-                  style={{ borderCurve: 'continuous' }}
-                  onPress={() => router.push(`/(garage)/bike/${bike.id}`)}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-1">
-                      <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
-                        {bike.make} {bike.model}
-                      </Text>
-                      <Text className="text-sm text-neutral-500">
-                        {bike.year}
-                        {bike.nickname ? ` \u2022 ${bike.nickname}` : ''}
-                      </Text>
-                    </View>
-                    {bike.isPrimary && (
-                      <View
-                        className="bg-primary-500 rounded-full px-3 py-1"
-                        style={{ borderCurve: 'continuous' }}
-                      >
-                        <Text className="text-white text-xs font-semibold">Primary</Text>
-                      </View>
-                    )}
+          {motorcycles.map((bike, index) => (
+            <Animated.View key={bike.id} entering={FadeInUp.delay(index * 80).duration(400)}>
+              <Pressable
+                className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
+                style={{ borderCurve: 'continuous' }}
+                onPress={() => router.push(`/(garage)/bike/${bike.id}`)}
+              >
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
+                      {bike.make} {bike.model}
+                    </Text>
+                    <Text className="text-sm text-neutral-500">
+                      {bike.year}
+                      {bike.nickname ? ` \u2022 ${bike.nickname}` : ''}
+                    </Text>
                   </View>
-                </Pressable>
-              </Animated.View>
-            ),
-          )}
+                  {bike.isPrimary && (
+                    <View
+                      className="bg-primary-500 rounded-full px-3 py-1"
+                      style={{ borderCurve: 'continuous' }}
+                    >
+                      <Text className="text-white text-xs font-semibold">Primary</Text>
+                    </View>
+                  )}
+                </View>
+              </Pressable>
+            </Animated.View>
+          ))}
         </ScrollView>
       )}
 

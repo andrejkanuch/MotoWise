@@ -1,12 +1,17 @@
 import '../global.css';
 import { MeDocument } from '@motolearn/graphql';
+import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useMemo } from 'react';
-import { Provider as UrqlProvider, useQuery } from 'urql';
+import { useEffect } from 'react';
 import i18n from '../i18n';
+import { gqlFetcher } from '../lib/graphql-client';
+import { queryClient } from '../lib/query-client';
+import { queryKeys } from '../lib/query-keys';
+import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { supabase } from '../lib/supabase';
-import { createUrqlClient } from '../lib/urql';
 import { useAuthStore } from '../stores/auth.store';
+
+setupOnlineManager();
 
 function NavigationGate({ children }: { children: React.ReactNode }) {
   const {
@@ -18,12 +23,13 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const router = useRouter();
 
-  const [meResult] = useQuery({
-    query: MeDocument,
-    pause: !session,
+  const meQuery = useQuery({
+    queryKey: queryKeys.user.me,
+    queryFn: () => gqlFetcher(MeDocument),
+    enabled: !!session,
   });
 
-  const preferences = meResult.data?.me?.preferences as
+  const preferences = meQuery.data?.me?.preferences as
     | { onboardingCompleted?: boolean }
     | null
     | undefined;
@@ -39,19 +45,10 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (meResult.fetching) return;
+    if (meQuery.isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
-
-    console.log('[NavGate]', {
-      segments: segments[0],
-      session: !!session,
-      onboardingCompleted,
-      serverOnboardingCompleted,
-      storeOnboardingCompleted,
-      fetching: meResult.fetching,
-    });
 
     let target: string | null = null;
 
@@ -66,32 +63,19 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     }
 
     if (target) {
-      console.log('[NavGate] →', target);
       // Defer navigation to avoid setState-during-render warning
       // biome-ignore lint/suspicious/noExplicitAny: expo-router replace expects typed route literal
       setTimeout(() => router.replace(target as any), 0);
     }
-  }, [
-    session,
-    segments,
-    isLoading,
-    router,
-    onboardingCompleted,
-    meResult.fetching,
-    serverOnboardingCompleted,
-    storeOnboardingCompleted,
-  ]);
+  }, [session, segments, isLoading, router, onboardingCompleted, meQuery.isLoading]);
 
-  if (isLoading || (session && meResult.fetching)) return null;
+  if (isLoading || (session && meQuery.isLoading)) return null;
 
   return <>{children}</>;
 }
 
 export default function RootLayout() {
-  const { session, setSession, setLoading } = useAuthStore();
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: recreate client when user changes
-  const urqlClient = useMemo(() => createUrqlClient(), [session?.user?.id]);
+  const { setSession, setLoading } = useAuthStore();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -103,6 +87,9 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        queryClient.clear();
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -113,11 +100,15 @@ export default function RootLayout() {
     if (locale !== 'en') i18n.changeLanguage(locale);
   }, []);
 
+  useEffect(() => {
+    return setupFocusManager();
+  }, []);
+
   return (
-    <UrqlProvider value={urqlClient}>
+    <QueryClientProvider client={queryClient}>
       <NavigationGate>
         <Stack screenOptions={{ headerShown: false }} />
       </NavigationGate>
-    </UrqlProvider>
+    </QueryClientProvider>
   );
 }

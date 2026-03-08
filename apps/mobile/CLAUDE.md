@@ -10,8 +10,8 @@
 - Expo Router v7 with file-based routing in src/app/
 - NativeTabs with 4 tabs: (learn), (diagnose), (garage), (profile)
 - Each tab wraps a Stack for in-tab navigation
-- urql for GraphQL (TypedDocumentNode from @motolearn/graphql)
-- @urql/exchange-auth for automatic JWT header injection
+- TanStack Query v5 for data fetching/caching (useQuery, useMutation)
+- graphql-request v7 for GraphQL transport (gqlFetcher reads fresh Supabase JWT per request)
 - Zustand for local state (app preferences)
 - Supabase client for auth + storage (photo uploads)
 - Tokens stored in expo-secure-store (never AsyncStorage)
@@ -29,7 +29,7 @@
 ## Common Mistakes
 - Forgetting to run `pnpm generate` after modifying .graphql files
 - Using localhost on Android emulator (use 10.0.2.2)
-- Not handling loading/error states in urql queries
+- Not handling loading/error states in TanStack Query hooks
 - Missing expo-camera permissions in app.json
 - Storing tokens in AsyncStorage instead of expo-secure-store
 - Using @expo/vector-icons or expo-symbols (use lucide-react-native)
