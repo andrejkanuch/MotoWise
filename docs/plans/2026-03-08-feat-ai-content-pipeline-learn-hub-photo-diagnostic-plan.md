@@ -1,7 +1,7 @@
 ---
 title: "feat: AI Content Pipeline + Learn Hub + Photo Diagnostic + Guided Wizard"
 type: feat
-status: active
+status: completed
 date: 2026-03-08
 linear: MOT-8, MOT-9, MOT-12, MOT-13
 ---
