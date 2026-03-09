@@ -117,6 +117,9 @@ export default function InsightsScreen() {
       ridingFrequency?: string;
       maintenanceStyle?: string;
     }) => gqlFetcher(GenerateOnboardingInsightsDocument, { input }),
+    onError: (error) => {
+      console.error('[Insights] AI insights generation failed:', error);
+    },
   });
 
   const fireInsights = () => {
@@ -369,7 +372,7 @@ export default function InsightsScreen() {
           </Pressable>
 
           {/* Skip option — appears after error or timeout */}
-          {(showError || timedOut) && isPending && (
+          {(showError || (timedOut && isPending)) && (
             <Pressable
               onPress={handleContinue}
               style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}

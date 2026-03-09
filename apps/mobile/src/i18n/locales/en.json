@@ -283,6 +283,7 @@
     "personalizingStep3": "Setting up your dashboard...",
     "personalizingStep4": "Preparing your dashboard...",
     "personalizingFailed": "Setup failed. Please try again.",
+    "personalizingSkip": "Skip and continue",
     "personalizingStep5": "Almost ready...",
     "bikeType": "Motorcycle Type",
     "mileage": "Current Mileage",

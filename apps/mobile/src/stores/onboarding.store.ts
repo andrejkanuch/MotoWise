@@ -95,22 +95,27 @@ export const useOnboardingStore = create<OnboardingState>()(
       name: 'onboarding-state',
       version: 2,
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
-        experienceLevel: state.experienceLevel,
-        bikeData: state.bikeData,
-        ridingGoals: state.ridingGoals,
-        ridingFrequency: state.ridingFrequency,
-        maintenanceStyle: state.maintenanceStyle,
-        learningFormats: state.learningFormats,
-        annualRepairSpend: state.annualRepairSpend,
-        maintenanceReminders: state.maintenanceReminders,
-        reminderChannel: state.reminderChannel,
-        seasonalTips: state.seasonalTips,
-        recallAlerts: state.recallAlerts,
-        weeklySummary: state.weeklySummary,
-        lastServiceDate: state.lastServiceDate,
-      }),
+      partialize: ({
+        setExperienceLevel,
+        setBikeData,
+        setRidingGoals,
+        setRidingFrequency,
+        setMaintenanceStyle,
+        setLearningFormats,
+        setAnnualRepairSpend,
+        setMaintenanceReminders,
+        setReminderChannel,
+        setSeasonalTips,
+        setRecallAlerts,
+        setWeeklySummary,
+        setLastServiceDate,
+        reset,
+        ...data
+      }) => data,
       migrate: (persistedState: unknown, version: number) => {
+        if (!persistedState || typeof persistedState !== 'object')
+          return initialState as unknown as OnboardingState;
+
         const state = persistedState as Record<string, unknown>;
         if (version < 2) {
           state.annualRepairSpend = state.annualRepairSpend ?? null;
@@ -122,6 +127,13 @@ export const useOnboardingStore = create<OnboardingState>()(
           state.lastServiceDate = state.lastServiceDate ?? null;
         }
         return state as unknown as OnboardingState;
+      },
+      onRehydrateStorage: () => {
+        return (_state, error) => {
+          if (error) {
+            console.error('[OnboardingStore] Migration/rehydration failed:', error);
+          }
+        };
       },
     },
   ),

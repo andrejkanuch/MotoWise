@@ -110,24 +110,12 @@ export default function PersonalizingScreen() {
 
     completeOnboarding(input)
       .then(() => {
-        reset();
         setOnboardingCompleted(true);
         setMutationDone(true);
       })
-      .catch((firstError) => {
-        console.error('[Personalizing] First attempt failed:', firstError);
-        // Retry once on failure
-        completeOnboarding(input)
-          .then(() => {
-            reset();
-            setOnboardingCompleted(true);
-            setMutationDone(true);
-          })
-          .catch((retryError) => {
-            console.error('[Personalizing] Retry also failed:', retryError);
-            // Show retry button instead of silently proceeding
-            setShowRetry(true);
-          });
+      .catch((error) => {
+        console.error('[Personalizing] Attempt failed:', error);
+        setShowRetry(true);
       });
   }, [retryCount]);
 
@@ -150,9 +138,10 @@ export default function PersonalizingScreen() {
   // Navigate only when BOTH mutation succeeded AND animation finished
   useEffect(() => {
     if (mutationDone && animationDone) {
+      reset();
       router.replace('/(tabs)/(home)');
     }
-  }, [mutationDone, animationDone, router]);
+  }, [mutationDone, animationDone, router, reset]);
 
   return (
     <View
@@ -251,25 +240,45 @@ export default function PersonalizingScreen() {
           <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
             {t('onboarding.personalizingFailed')}
           </Text>
-          <Pressable
-            onPress={() => {
-              setShowRetry(false);
-              setMutationDone(false);
-              // Increment retryCount to re-trigger the mutation effect
-              setRetryCount((c) => c + 1);
-            }}
-            style={{
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              backgroundColor: 'rgba(255,255,255,0.1)',
-            }}
-          >
-            <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
-              {t('common.retry')}
-            </Text>
-          </Pressable>
+          {retryCount < 3 ? (
+            <Pressable
+              onPress={() => {
+                setShowRetry(false);
+                setMutationDone(false);
+                setRetryCount((c) => c + 1);
+              }}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+                {t('common.retry')}
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setOnboardingCompleted(true);
+                reset();
+                router.replace('/(tabs)/(home)');
+              }}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+                {t('onboarding.personalizingSkip')}
+              </Text>
+            </Pressable>
+          )}
         </Animated.View>
       )}
     </View>

@@ -26,7 +26,6 @@ export async function initRevenueCat() {
     }
 
     await Purchases.configure({ apiKey });
-    isConfigured = true;
     useSubscriptionStore.getState().setAvailable(true);
 
     // Listen for subscription changes
@@ -48,6 +47,9 @@ export async function initRevenueCat() {
         store.setTrialing(false);
       }
     });
+
+    // Mark as configured only after listener is successfully registered
+    isConfigured = true;
   } catch (e) {
     console.error('[RevenueCat] Init failed — subscriptions will be unavailable:', e);
   }

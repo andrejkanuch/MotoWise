@@ -1,16 +1,17 @@
+import type { MileageUnit } from '@motolearn/types';
 import Slider from '@react-native-community/slider';
-import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { triggerImpact } from '../../utils/haptics';
 
 const MILEAGE_FORMAT = new Intl.NumberFormat('en-US');
 
 interface MileageSliderProps {
   value: number;
-  unit: 'mi' | 'km';
+  unit: MileageUnit;
   onValueChange: (value: number) => void;
-  onUnitChange: (unit: 'mi' | 'km') => void;
+  onUnitChange: (unit: MileageUnit) => void;
 }
 
 const UNIT_CONFIG = {
@@ -30,24 +31,18 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
     const bucket = Math.floor(rounded / 5000);
     if (bucket !== lastHapticBucket.current) {
       lastHapticBucket.current = bucket;
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
+      triggerImpact();
     }
   };
 
-  const handleUnitChange = (newUnit: 'mi' | 'km') => {
+  const handleUnitChange = (newUnit: MileageUnit) => {
     if (newUnit === unit) return;
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     onUnitChange(newUnit);
   };
 
   const handleNotSure = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     onValueChange(0);
   };
 

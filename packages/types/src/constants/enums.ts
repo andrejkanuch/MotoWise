@@ -148,6 +148,10 @@ export const MileageUnit = {
 } as const;
 export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit];
 
+/**
+ * CANCELLED: User opted out but period hasn't ended (may still have access).
+ * EXPIRED: Billing period ended without renewal (no access).
+ */
 export const SubscriptionStatus = {
   FREE: 'free',
   TRIALING: 'trialing',

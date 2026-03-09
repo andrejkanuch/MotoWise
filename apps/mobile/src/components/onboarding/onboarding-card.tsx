@@ -1,20 +1,19 @@
-import * as Haptics from 'expo-haptics';
 import { Check } from 'lucide-react-native';
 import type React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 
-interface OnboardingCardProps {
-  value: string;
+interface OnboardingCardProps<T extends string = string> {
+  value: T;
   icon: React.ComponentType<{ size: number; color: string }>;
   label: string;
   subtitle?: string;
   color: string;
   selected: boolean;
-  onPress: (value: string) => void;
+  onPress: (value: T) => void;
 }
 
-export function OnboardingCard({
+export function OnboardingCard<T extends string>({
   value,
   icon: Icon,
   label,
@@ -22,11 +21,8 @@ export function OnboardingCard({
   color,
   selected,
   onPress,
-}: OnboardingCardProps) {
+}: OnboardingCardProps<T>) {
   const handlePress = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
     onPress(value);
   };
 
@@ -45,7 +41,21 @@ export function OnboardingCard({
         gap: 12,
         width: '100%',
         transform: [{ scale: pressed ? 0.97 : 1 }],
-        boxShadow: selected ? `0 0 20px ${color}33` : '0 1px 3px rgba(0, 0, 0, 0.2)',
+        ...(selected
+          ? {
+              shadowColor: color,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.2,
+              shadowRadius: 10,
+              ...(Platform.OS === 'android' ? { elevation: 4 } : {}),
+            }
+          : {
+              shadowColor: '#000000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 3,
+              ...(Platform.OS === 'android' ? { elevation: 2 } : {}),
+            }),
       })}
     >
       <View
@@ -69,7 +79,11 @@ export function OnboardingCard({
         {subtitle ? (
           <Text
             numberOfLines={1}
-            style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 14, marginTop: 2 }}
+            style={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: 14,
+              marginTop: 2,
+            }}
           >
             {subtitle}
           </Text>
