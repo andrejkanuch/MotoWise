@@ -1,6 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
@@ -8,8 +10,13 @@ export class GqlAuthGuard implements CanActivate {
   private readonly legacySecret: Uint8Array;
   // biome-ignore lint/suspicious/noExplicitAny: jose's GetKeyFunction type is complex and dynamic-imported
   private jwks: any = null;
+  private readonly reflector: Reflector;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    reflector: Reflector,
+  ) {
+    this.reflector = reflector;
     this.supabaseUrl = this.configService.getOrThrow('SUPABASE_URL');
     this.legacySecret = new TextEncoder().encode(
       this.configService.getOrThrow('SUPABASE_JWT_SECRET'),
@@ -25,6 +32,12 @@ export class GqlAuthGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const ctx = GqlExecutionContext.create(context);
     const request = ctx.getContext().req;
     const authHeader = request.headers.authorization;

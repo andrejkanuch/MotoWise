@@ -1,11 +1,12 @@
 import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motolearn/types';
-import { UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
 import { Motorcycle } from './models/motorcycle.model';
@@ -16,9 +17,12 @@ import { NhtsaService } from './nhtsa.service';
 
 @Resolver(() => Motorcycle)
 export class MotorcyclesResolver {
+  private readonly logger = new Logger(MotorcyclesResolver.name);
+
   constructor(
     private readonly motorcyclesService: MotorcyclesService,
     private readonly nhtsaService: NhtsaService,
+    private readonly oemSchedulesService: OemSchedulesService,
   ) {}
 
   @Query(() => [Motorcycle])
@@ -28,11 +32,13 @@ export class MotorcyclesResolver {
   }
 
   @Query(() => [MotorcycleMake], { name: 'motorcycleMakes' })
+  @UseGuards(GqlAuthGuard)
   async motorcycleMakes(): Promise<MotorcycleMake[]> {
     return this.nhtsaService.getMakes();
   }
 
   @Query(() => [MotorcycleModelResult], { name: 'motorcycleModels' })
+  @UseGuards(GqlAuthGuard)
   async motorcycleModels(
     @Args('makeId', { type: () => Int }) makeId: number,
     @Args('year', { type: () => Int }) year: number,
@@ -46,7 +52,24 @@ export class MotorcyclesResolver {
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateMotorcycleSchema)) input: CreateMotorcycleInput,
   ): Promise<Motorcycle> {
-    return this.motorcyclesService.create(user.id, input);
+    const motorcycle = await this.motorcyclesService.create(user.id, input);
+
+    // Auto-populate OEM maintenance tasks in the background
+    try {
+      await this.oemSchedulesService.autoPopulateForBike(
+        user.id,
+        motorcycle.id,
+        motorcycle.make,
+        motorcycle.model ?? null,
+        motorcycle.year ?? null,
+        null,
+      );
+    } catch (err) {
+      // Don't fail motorcycle creation if auto-populate fails
+      this.logger.error('Failed to auto-populate OEM tasks', err);
+    }
+
+    return motorcycle;
   }
 
   @Mutation(() => Motorcycle)

@@ -1,7 +1,7 @@
-import { UpdateUserDocument } from '@motolearn/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Bike, Check, LayoutDashboard, Search, Sparkles } from 'lucide-react-native';
+import { gql } from 'graphql-request';
+import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -17,23 +17,52 @@ import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
-const STEP_ICONS = [Search, Bike, LayoutDashboard] as const;
-const STEPS = ['personalizingStep1', 'personalizingStep2', 'personalizingStep3'] as const;
-const MIN_ANIMATION_MS = 3200;
+const STEP_ICONS = [Search, Bike, Settings, LayoutDashboard, Sparkles] as const;
+const STEPS = [
+  'personalizingStep1',
+  'personalizingStep2',
+  'personalizingStep3',
+  'personalizingStep4',
+  'personalizingStep5',
+] as const;
+const MIN_ANIMATION_MS = 4000;
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [visibleSteps, setVisibleSteps] = useState(0);
-  const { experienceLevel, ridingGoals, reset } = useOnboardingStore();
+  const {
+    experienceLevel,
+    bikeData,
+    ridingGoals,
+    ridingFrequency,
+    maintenanceStyle,
+    learningFormats,
+    reset,
+  } = useOnboardingStore();
   const queryClient = useQueryClient();
-  const { mutateAsync: updateUser } = useMutation({
-    mutationFn: (input: { preferences: Record<string, unknown> }) =>
-      gqlFetcher(UpdateUserDocument, { input }),
+
+  const { mutateAsync: completeOnboarding } = useMutation({
+    mutationFn: (input: Record<string, unknown>) =>
+      gqlFetcher(
+        gql`
+          mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
+            completeOnboarding(input: $input) {
+              id
+              preferences
+              createdAt
+              updatedAt
+            }
+          }
+        ` as unknown as Parameters<typeof gqlFetcher>[0],
+        { input },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
     },
   });
+
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const persisted = useRef(false);
   const [mutationDone, setMutationDone] = useState(false);
@@ -53,46 +82,61 @@ export default function PersonalizingScreen() {
   }));
 
   // Persist preferences to server
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire once on mount only
   useEffect(() => {
     if (persisted.current) return;
     persisted.current = true;
 
-    updateUser({
-      preferences: {
-        onboardingCompleted: true,
-        ...(experienceLevel ? { experienceLevel } : {}),
-        ...(ridingGoals.length > 0 ? { ridingGoals } : {}),
-      },
-    })
+    const input: Record<string, unknown> = {
+      experienceLevel: experienceLevel ?? 'beginner',
+      ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
+      learningFormats: learningFormats.length > 0 ? learningFormats : [],
+    };
+
+    if (ridingFrequency) input.ridingFrequency = ridingFrequency;
+    if (maintenanceStyle) input.maintenanceStyle = maintenanceStyle;
+
+    if (bikeData) {
+      input.bikeMake = bikeData.make;
+      input.bikeModel = bikeData.model;
+      input.bikeYear = bikeData.year;
+      input.bikeType = bikeData.type;
+      input.bikeMileage = bikeData.currentMileage;
+      if (bikeData.nickname) input.bikeNickname = bikeData.nickname;
+    }
+
+    completeOnboarding(input)
       .then(() => {
         reset();
         setOnboardingCompleted(true);
         setMutationDone(true);
       })
-      .catch(() => {
+      .catch((firstError) => {
+        console.error('[Personalizing] First attempt failed:', firstError);
         // Retry once on failure, proceed regardless so user isn't stuck
-        updateUser({
-          preferences: { onboardingCompleted: true },
-        })
+        completeOnboarding(input)
           .then(() => {
             reset();
             setOnboardingCompleted(true);
             setMutationDone(true);
           })
-          .catch(() => {
-            reset();
+          .catch((retryError) => {
+            console.error('[Personalizing] Retry also failed:', retryError);
+            // Don't reset() — preserve onboarding data so it can be retried later
             setOnboardingCompleted(true);
             setMutationDone(true);
           });
       });
-  }, [experienceLevel, ridingGoals, updateUser, reset, setOnboardingCompleted]);
+  }, []);
 
   // Animation steps + minimum display time
   useEffect(() => {
     const timers = [
       setTimeout(() => setVisibleSteps(1), 400),
-      setTimeout(() => setVisibleSteps(2), 1200),
-      setTimeout(() => setVisibleSteps(3), 2000),
+      setTimeout(() => setVisibleSteps(2), 1000),
+      setTimeout(() => setVisibleSteps(3), 1600),
+      setTimeout(() => setVisibleSteps(4), 2400),
+      setTimeout(() => setVisibleSteps(5), 3200),
       setTimeout(() => setAnimationDone(true), MIN_ANIMATION_MS),
     ];
 
@@ -104,7 +148,7 @@ export default function PersonalizingScreen() {
   // Navigate only when BOTH mutation succeeded AND animation finished
   useEffect(() => {
     if (mutationDone && animationDone) {
-      router.replace('/(tabs)/(learn)');
+      router.replace('/(tabs)/(home)');
     }
   }, [mutationDone, animationDone, router]);
 
@@ -175,7 +219,7 @@ export default function PersonalizingScreen() {
           return visibleSteps > index ? (
             <Animated.View
               key={stepKey}
-              entering={FadeInUp.duration(400)}
+              entering={FadeInUp.duration(300)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',

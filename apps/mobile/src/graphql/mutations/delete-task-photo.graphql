@@ -1,0 +1,3 @@
+mutation DeleteTaskPhoto($photoId: ID!) {
+  deleteTaskPhoto(photoId: $photoId)
+}

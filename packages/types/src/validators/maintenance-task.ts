@@ -34,3 +34,10 @@ export const CompleteMaintenanceTaskSchema = z.object({
   completedMileage: z.number().int().positive().optional(),
 });
 export type CompleteMaintenanceTask = z.infer<typeof CompleteMaintenanceTaskSchema>;
+
+export const AddTaskPhotoSchema = z.object({
+  taskId: z.string().uuid(),
+  storagePath: z.string().min(1).max(500),
+  fileSizeBytes: z.number().int().positive().optional(),
+});
+export type AddTaskPhoto = z.infer<typeof AddTaskPhotoSchema>;

@@ -72,5 +72,58 @@ export const MaintenancePriority = {
 } as const;
 export type MaintenancePriority = (typeof MaintenancePriority)[keyof typeof MaintenancePriority];
 
+export const RidingFrequency = {
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  SEASONALLY: 'seasonally',
+} as const;
+export type RidingFrequency = (typeof RidingFrequency)[keyof typeof RidingFrequency];
+
+export const MaintenanceStyle = {
+  DIY: 'diy',
+  SOMETIMES: 'sometimes',
+  MECHANIC: 'mechanic',
+} as const;
+export type MaintenanceStyle = (typeof MaintenanceStyle)[keyof typeof MaintenanceStyle];
+
+export const LearningFormat = {
+  QUICK_TIPS: 'quick_tips',
+  DEEP_DIVES: 'deep_dives',
+  VIDEO_WALKTHROUGHS: 'video_walkthroughs',
+  HANDS_ON_QUIZZES: 'hands_on_quizzes',
+} as const;
+export type LearningFormat = (typeof LearningFormat)[keyof typeof LearningFormat];
+
+export const SubscriptionTier = { FREE: 'free', PRO: 'pro' } as const;
+export type SubscriptionTier = (typeof SubscriptionTier)[keyof typeof SubscriptionTier];
+
+export const RidingGoal = {
+  LEARN_MAINTENANCE: 'learn_maintenance',
+  IMPROVE_RIDING: 'improve_riding',
+  TRACK_MAINTENANCE: 'track_maintenance',
+  SAVE_MONEY: 'save_money',
+  FIND_COMMUNITY: 'find_community',
+  SAFETY: 'safety',
+  SAVE_ON_MAINTENANCE: 'save_on_maintenance',
+  TRACK_BIKE_HEALTH: 'track_bike_health',
+} as const;
+export type RidingGoal = (typeof RidingGoal)[keyof typeof RidingGoal];
+
+export const InsightType = {
+  MAINTENANCE: 'maintenance',
+  LEARNING: 'learning',
+  COMMUNITY: 'community',
+} as const;
+export type InsightType = (typeof InsightType)[keyof typeof InsightType];
+
+export const MaintenanceTaskSource = {
+  USER: 'user',
+  OEM: 'oem',
+  IMPORTED: 'imported',
+} as const;
+export type MaintenanceTaskSource =
+  (typeof MaintenanceTaskSource)[keyof typeof MaintenanceTaskSource];
+
 export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

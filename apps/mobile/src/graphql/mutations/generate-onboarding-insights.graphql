@@ -1,0 +1,8 @@
+mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {
+  generateOnboardingInsights(input: $input) {
+    icon
+    title
+    body
+    type
+  }
+}

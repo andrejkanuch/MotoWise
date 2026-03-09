@@ -13,6 +13,13 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
     partsNeeded
     completedAt
     completedMileage
+    source
+    isRecurring
+    photos {
+      id
+      storagePath
+      publicUrl
+    }
     createdAt
     updatedAt
   }

@@ -1,0 +1,24 @@
+query MaintenanceTaskHistory($motorcycleId: String!, $limit: Int) {
+  maintenanceTaskHistory(motorcycleId: $motorcycleId, limit: $limit) {
+    id
+    userId
+    motorcycleId
+    title
+    description
+    dueDate
+    targetMileage
+    priority
+    status
+    notes
+    partsNeeded
+    completedAt
+    completedMileage
+    source
+    oemScheduleId
+    intervalKm
+    intervalDays
+    isRecurring
+    createdAt
+    updatedAt
+  }
+}

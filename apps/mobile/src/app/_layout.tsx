@@ -1,15 +1,34 @@
 import '../global.css';
-import { MeDocument } from '@motolearn/graphql';
+import { CompleteMaintenanceTaskDocument, MeDocument } from '@motolearn/graphql';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
+import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import i18n from '../i18n';
 import { gqlFetcher } from '../lib/graphql-client';
+import {
+  cancelAllNotifications,
+  requestNotificationPermission,
+  setupNotificationCategories,
+  setupNotificationChannels,
+  snoozeTaskNotification,
+} from '../lib/notifications';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
+
+// Configure foreground notification display
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 setupOnlineManager();
 
@@ -76,6 +95,7 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   const { setSession, setLoading } = useAuthStore();
+  const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -89,6 +109,7 @@ export default function RootLayout() {
       setSession(session);
       if (!session) {
         queryClient.clear();
+        cancelAllNotifications();
       }
     });
 
@@ -102,6 +123,61 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Set up notification channels, categories, and request permission
+  useEffect(() => {
+    async function initNotifications() {
+      await setupNotificationChannels();
+      await setupNotificationCategories();
+      await requestNotificationPermission();
+    }
+    initNotifications();
+  }, []);
+
+  // Handle notification action responses (Mark Done / Snooze)
+  useEffect(() => {
+    notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(
+      async (response) => {
+        const actionId = response.actionIdentifier;
+        const data = response.notification.request.content.data as {
+          taskId?: string;
+          motorcycleId?: string;
+        };
+
+        if (!data?.taskId) return;
+
+        if (actionId === 'MARK_DONE') {
+          try {
+            await gqlFetcher(CompleteMaintenanceTaskDocument, { id: data.taskId });
+            queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+            if (data.motorcycleId) {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.maintenanceTasks.byMotorcycle(data.motorcycleId),
+              });
+            }
+          } catch {
+            // Silently fail — user can mark done manually in app
+          }
+        } else if (actionId === 'SNOOZE_1D') {
+          const title = response.notification.request.content.title ?? 'Maintenance task';
+          await snoozeTaskNotification(
+            {
+              id: data.taskId,
+              title: title.replace(/ due tomorrow$/, ''),
+              motorcycleId: data.motorcycleId ?? '',
+            },
+            '',
+          );
+        }
+      },
+    );
+
+    return () => {
+      if (notificationResponseListener.current) {
+        notificationResponseListener.current.remove();
+      }
+    };
   }, []);
 
   return (

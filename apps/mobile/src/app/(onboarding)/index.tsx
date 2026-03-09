@@ -1,35 +1,34 @@
 import type { ExperienceLevel } from '@motolearn/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Bike, Check, Flame, Gauge } from 'lucide-react-native';
+import { Bike, Flame, Gauge } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { OptionCard } from '../../components/option-card';
 import { ProgressBar } from '../../components/progress-bar';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { TOTAL_STEPS } from './config';
 
 const EXPERIENCE_LEVELS = [
   {
-    key: 'beginner',
+    key: 'beginner' as ExperienceLevel,
     descKey: 'beginnerDesc',
-    Icon: Bike,
+    icon: Bike,
     color: '#34D399',
-    bgColor: 'rgba(52, 211, 153, 0.15)',
   },
   {
-    key: 'intermediate',
+    key: 'intermediate' as ExperienceLevel,
     descKey: 'intermediateDesc',
-    Icon: Gauge,
+    icon: Gauge,
     color: '#60A5FA',
-    bgColor: 'rgba(96, 165, 250, 0.15)',
   },
   {
-    key: 'advanced',
+    key: 'advanced' as ExperienceLevel,
     descKey: 'advancedDesc',
-    Icon: Flame,
+    icon: Flame,
     color: '#F59E0B',
-    bgColor: 'rgba(245, 158, 11, 0.15)',
   },
 ] as const;
 
@@ -57,7 +56,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={1} total={4} />
+      <ProgressBar step={1} total={TOTAL_STEPS} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -65,7 +64,7 @@ export default function WelcomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Animated.Text
-          entering={FadeInDown.duration(600)}
+          entering={FadeInDown.duration(300)}
           style={{
             fontSize: 36,
             fontWeight: '800',
@@ -78,7 +77,7 @@ export default function WelcomeScreen() {
         </Animated.Text>
 
         <Animated.Text
-          entering={FadeInUp.delay(150).duration(500)}
+          entering={FadeInUp.delay(150).duration(300)}
           style={{
             fontSize: 17,
             color: 'rgba(255, 255, 255, 0.6)',
@@ -90,101 +89,30 @@ export default function WelcomeScreen() {
         </Animated.Text>
 
         <View style={{ gap: 16 }}>
-          {EXPERIENCE_LEVELS.map((level, index) => {
-            const isSelected = selected === level.key;
-            const IconComponent = level.Icon;
-            return (
-              <Animated.View
-                key={level.key}
-                entering={FadeInUp.delay(250 + index * 100)
-                  .duration(500)
-                  .springify()
-                  .damping(18)}
-              >
-                <Pressable
-                  onPress={() => handleSelect(level.key)}
-                  style={({ pressed }) => ({
-                    backgroundColor: isSelected
-                      ? 'rgba(255, 255, 255, 0.12)'
-                      : 'rgba(255, 255, 255, 0.05)',
-                    borderWidth: isSelected ? 2 : 1,
-                    borderColor: isSelected ? level.color : 'rgba(255, 255, 255, 0.08)',
-                    borderRadius: 20,
-                    borderCurve: 'continuous',
-                    padding: 20,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 16,
-                    transform: [{ scale: pressed ? 0.97 : 1 }],
-                    boxShadow: isSelected
-                      ? `0 0 20px ${level.color}33`
-                      : '0 1px 3px rgba(0, 0, 0, 0.2)',
-                  })}
-                >
-                  <View
-                    style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      backgroundColor: isSelected ? level.bgColor : 'rgba(255, 255, 255, 0.06)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <IconComponent
-                      size={26}
-                      strokeWidth={2}
-                      color={isSelected ? level.color : 'rgba(255, 255, 255, 0.5)'}
-                    />
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 18,
-                        fontWeight: '700',
-                        color: '#FFFFFF',
-                        marginBottom: 4,
-                      }}
-                    >
-                      {t(`onboarding.${level.key}`)}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        lineHeight: 20,
-                      }}
-                    >
-                      {t(`onboarding.${level.descKey}`)}
-                    </Text>
-                  </View>
-
-                  {isSelected && (
-                    <Animated.View
-                      entering={ZoomIn.duration(200).springify()}
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 14,
-                        backgroundColor: level.color,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Check size={14} strokeWidth={3} color="#FFFFFF" />
-                    </Animated.View>
-                  )}
-                </Pressable>
-              </Animated.View>
-            );
-          })}
+          {EXPERIENCE_LEVELS.map((level, index) => (
+            <Animated.View
+              key={level.key}
+              entering={FadeInUp.delay(250 + index * 100)
+                .duration(300)
+                .springify()
+                .damping(18)}
+            >
+              <OptionCard
+                value={level.key}
+                icon={level.icon}
+                title={t(`onboarding.${level.key}`)}
+                subtitle={t(`onboarding.${level.descKey}`)}
+                color={level.color}
+                selected={selected === level.key}
+                onPress={handleSelect}
+              />
+            </Animated.View>
+          ))}
         </View>
       </ScrollView>
 
       <Animated.View
-        entering={FadeIn.delay(600).duration(400)}
+        entering={FadeIn.delay(600).duration(300)}
         style={{ paddingHorizontal: 24, paddingBottom: 48 }}
       >
         <Pressable

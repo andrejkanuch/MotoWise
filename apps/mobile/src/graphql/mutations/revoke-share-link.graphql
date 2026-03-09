@@ -1,0 +1,3 @@
+mutation RevokeShareLink($linkId: ID!) {
+  revokeShareLink(linkId: $linkId)
+}

@@ -13,10 +13,13 @@ import { envSchema } from './config/env.validation';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { InsightsModule } from './modules/insights/insights.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
+import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { UsersModule } from './modules/users/users.module';
 
@@ -52,9 +55,12 @@ import { UsersModule } from './modules/users/users.module';
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
+    InsightsModule,
     ContentFlagsModule,
     LearningProgressModule,
     MaintenanceTasksModule,
+    OemSchedulesModule,
+    ShareLinksModule,
   ],
   providers: [
     {

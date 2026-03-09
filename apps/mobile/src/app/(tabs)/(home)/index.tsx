@@ -1,18 +1,26 @@
 import { palette } from '@motolearn/design-system';
-import { MeDocument, MyMotorcyclesDocument, SearchArticlesDocument } from '@motolearn/graphql';
+import {
+  AllMaintenanceTasksDocument,
+  MeDocument,
+  MyMotorcyclesDocument,
+  SearchArticlesDocument,
+} from '@motolearn/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
+  AlertTriangle,
   ArrowRight,
   BookOpen,
   Brain,
   Camera,
+  CheckCircle2,
   ChevronRight,
   CircuitBoard,
   Eye,
+  Wrench,
 } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +36,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { getRelativeDueDate } from '../../../lib/health-score';
 import { queryKeys } from '../../../lib/query-keys';
 
 function getGreetingKey():
@@ -97,6 +106,10 @@ export default function HomeScreen() {
       gqlFetcher(SearchArticlesDocument, {
         input: { first: 6 },
       }),
+  });
+  const maintenanceQuery = useQuery({
+    queryKey: queryKeys.maintenanceTasks.allUser,
+    queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
   });
 
   const user = meQuery.data?.me;
@@ -332,6 +345,179 @@ export default function HomeScreen() {
             })}
           </View>
         </Animated.View>
+
+        {/* Maintenance Alerts Widget */}
+        {(() => {
+          const allTasks = maintenanceQuery.data?.allMaintenanceTasks ?? [];
+          // Sort: overdue first, then by priority × days-until-due
+          const urgentTasks = [...allTasks]
+            .filter((t) => t.dueDate)
+            .map((t) => {
+              const rel = getRelativeDueDate(t.dueDate as string);
+              return { ...t, relative: rel };
+            })
+            .sort((a, b) => {
+              if (a.relative.isOverdue && !b.relative.isOverdue) return -1;
+              if (!a.relative.isOverdue && b.relative.isOverdue) return 1;
+              return a.relative.daysAway - b.relative.daysAway;
+            })
+            .slice(0, 3);
+
+          // Find motorcycle names for display
+          const bikeNames: Record<string, string> = {};
+          for (const m of motorcycles) {
+            bikeNames[m.id] = `${(m as { make: string }).make} ${(m as { model: string }).model}`;
+          }
+
+          if (allTasks.length === 0 && motorcycles.length === 0) return null;
+
+          return (
+            <Animated.View entering={FadeInUp.delay(250).duration(300)} className="px-5 mt-5">
+              <View
+                style={{
+                  backgroundColor: isDark ? palette.neutral800 : palette.white,
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                }}
+              >
+                <LinearGradient
+                  colors={isDark ? ['#1e293b', '#334155'] : ['#fef3c7', '#fffbeb']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                  }}
+                >
+                  <Wrench size={16} color={palette.warning500} strokeWidth={2} />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '700',
+                      color: isDark ? palette.neutral50 : palette.neutral950,
+                    }}
+                  >
+                    {t('maintenance.alertsTitle', { defaultValue: 'Maintenance Alerts' })}
+                  </Text>
+                </LinearGradient>
+
+                {urgentTasks.length === 0 ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
+                      paddingHorizontal: 16,
+                      paddingVertical: 20,
+                    }}
+                  >
+                    <CheckCircle2 size={20} color={palette.success500} strokeWidth={2} />
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: palette.neutral500,
+                        fontWeight: '500',
+                      }}
+                    >
+                      {t('maintenance.alertsEmpty', {
+                        defaultValue: 'All bikes are in great shape!',
+                      })}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{ paddingVertical: 4 }}>
+                    {urgentTasks.map((task) => (
+                      <Pressable
+                        key={task.id}
+                        onPress={() => {
+                          if (process.env.EXPO_OS === 'ios')
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          router.push(`/(tabs)/(garage)/bike/${task.motorcycleId}` as never);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 16,
+                          paddingVertical: 10,
+                          gap: 10,
+                        }}
+                      >
+                        {task.relative.isOverdue ? (
+                          <AlertTriangle size={16} color={palette.danger500} strokeWidth={2} />
+                        ) : (
+                          <Wrench size={16} color={palette.warning500} strokeWidth={1.5} />
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '500',
+                              color: palette.neutral400,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {bikeNames[task.motorcycleId] ?? ''}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: '600',
+                              color: isDark ? palette.neutral50 : palette.neutral950,
+                            }}
+                            numberOfLines={1}
+                          >
+                            {task.title}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: task.relative.isOverdue ? palette.danger500 : palette.warning500,
+                          }}
+                        >
+                          {task.relative.text}
+                        </Text>
+                      </Pressable>
+                    ))}
+                    <Pressable
+                      onPress={() => {
+                        if (process.env.EXPO_OS === 'ios')
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push('/(tabs)/(garage)' as never);
+                      }}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderTopWidth: 0.5,
+                        borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '600',
+                          color: palette.primary500,
+                        }}
+                      >
+                        {t('maintenance.viewAll', { defaultValue: 'View All' })}
+                      </Text>
+                      <ChevronRight size={14} color={palette.primary500} strokeWidth={2.5} />
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            </Animated.View>
+          );
+        })()}
 
         {/* Popular Topics */}
         <Animated.View entering={FadeInUp.delay(350).duration(300)} className="mt-6">

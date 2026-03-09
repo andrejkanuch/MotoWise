@@ -1,28 +1,61 @@
-import {
-  CreateMotorcycleDocument,
-  MotorcycleMakesDocument,
-  MotorcycleModelsDocument,
-} from '@motolearn/graphql';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { MotorcycleMakesDocument, MotorcycleModelsDocument } from '@motolearn/graphql';
+import { MotorcycleType } from '@motolearn/types';
+import Slider from '@react-native-community/slider';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Bike, Calendar, ChevronRight, Search, SkipForward, Tag } from 'lucide-react-native';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+  Bike,
+  Calendar,
+  ChevronRight,
+  Gauge,
+  HelpCircle,
+  MapPin,
+  Mountain,
+  Search,
+  SkipForward,
+  Tag,
+} from 'lucide-react-native';
+import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { OptionCard } from '../../components/option-card';
 import { ProgressBar } from '../../components/progress-bar';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { TOTAL_STEPS } from './config';
+
+const MOTORCYCLE_TYPE_OPTIONS = [
+  { value: MotorcycleType.CRUISER, icon: Bike, labelKey: 'cruiser', color: '#F59E0B' },
+  { value: MotorcycleType.SPORTBIKE, icon: Gauge, labelKey: 'sportbike', color: '#EF4444' },
+  { value: MotorcycleType.STANDARD, icon: Bike, labelKey: 'standard', color: '#60A5FA' },
+  { value: MotorcycleType.TOURING, icon: MapPin, labelKey: 'touring', color: '#34D399' },
+  { value: MotorcycleType.DUAL_SPORT, icon: Mountain, labelKey: 'dual_sport', color: '#A78BFA' },
+  { value: MotorcycleType.DIRT_BIKE, icon: Mountain, labelKey: 'dirt_bike', color: '#FB923C' },
+  { value: MotorcycleType.SCOOTER, icon: Bike, labelKey: 'scooter', color: '#38BDF8' },
+  { value: MotorcycleType.OTHER, icon: HelpCircle, labelKey: 'other', color: '#94A3B8' },
+] as const;
+
+const MILEAGE_FORMAT = new Intl.NumberFormat('en-US');
+
+function detectTypeFromModel(modelName: string): MotorcycleType | null {
+  const lower = modelName.toLowerCase();
+  if (/ninja|cbr|yzf-r|gsxr|gsx-r|zx|rc\d|panigale|rsv|daytona/i.test(lower))
+    return MotorcycleType.SPORTBIKE;
+  if (/vulcan|shadow|rebel|scout|sportster|fatboy|softail|dyna|iron\s?\d/i.test(lower))
+    return MotorcycleType.CRUISER;
+  if (/goldwing|gold wing|electra|road king|road glide|voyager|k\s?1600/i.test(lower))
+    return MotorcycleType.TOURING;
+  if (/dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure/i.test(lower))
+    return MotorcycleType.DUAL_SPORT;
+  if (/crf\d+f|yz\d+f|kx\d+|rm-z|rmz|tc\d|fc\d|sx|exc/i.test(lower))
+    return MotorcycleType.DIRT_BIKE;
+  if (/scooter|vespa|pcx|nmax|xmax|burgman|forza|metropolitan|scoopy/i.test(lower))
+    return MotorcycleType.SCOOTER;
+  return null;
+}
 
 export default function SelectBikeScreen() {
   const { t } = useTranslation();
@@ -41,16 +74,19 @@ export default function SelectBikeScreen() {
   const [makeSearch, setMakeSearch] = useState('');
   const [modelSearch, setModelSearch] = useState('');
   const [nickname, setNickname] = useState('');
+  const [selectedType, setSelectedType] = useState<MotorcycleType | null>(null);
+  const [mileage, setMileage] = useState(5000);
+  const lastHapticBucket = useRef(Math.floor(5000 / 5000));
 
   const handleYearChange = (text: string) => {
     setYear(text);
     setSelectedModel(null);
   };
 
-  const queryClient = useQueryClient();
   const makesResult = useQuery({
     queryKey: queryKeys.nhtsa.makes,
     queryFn: () => gqlFetcher(MotorcycleMakesDocument),
+    staleTime: Number.POSITIVE_INFINITY,
   });
   const yearNum = Number.parseInt(year, 10);
   const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
@@ -63,14 +99,6 @@ export default function SelectBikeScreen() {
         year: yearNum,
       }),
     enabled: !!selectedMake && validYear,
-  });
-
-  const createMotorcycleMutation = useMutation({
-    mutationFn: (input: { make: string; model: string; year: number; nickname?: string }) =>
-      gqlFetcher(CreateMotorcycleDocument, { input }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-    },
   });
 
   const makes = makesResult.data?.motorcycleMakes ?? [];
@@ -97,45 +125,56 @@ export default function SelectBikeScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setSelectedModel(model);
+
+    // Auto-detect motorcycle type from model name
+    const detectedType = detectTypeFromModel(model.modelName);
+    if (detectedType && !selectedType) {
+      setSelectedType(detectedType);
+    }
   };
 
-  const [isCreating, setIsCreating] = useState(false);
+  const handleTypeSelect = (type: string) => {
+    setSelectedType(type as MotorcycleType);
+  };
 
-  const handleContinue = async () => {
-    if (!selectedMake || !selectedModel || !validYear) return;
-    setIsCreating(true);
-    try {
-      await createMotorcycleMutation.mutateAsync({
-        make: selectedMake.makeName,
-        model: selectedModel.modelName,
-        year: yearNum,
-        nickname: nickname.trim() || undefined,
-      });
-    } catch (e) {
-      setIsCreating(false);
-      Alert.alert(t('common.error'), String(e));
-      return;
+  const handleMileageChange = (value: number) => {
+    const rounded = Math.round(value / 1000) * 1000;
+    setMileage(rounded);
+    const bucket = Math.floor(rounded / 5000);
+    if (bucket !== lastHapticBucket.current) {
+      lastHapticBucket.current = bucket;
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
     }
-    setIsCreating(false);
+  };
+
+  const handleContinue = () => {
+    if (!selectedMake || !selectedModel || !validYear || !selectedType) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
     setBikeData({
       year: yearNum,
       make: selectedMake.makeName,
       makeId: selectedMake.makeId,
       model: selectedModel.modelName,
       nickname: nickname.trim() || undefined,
+      type: selectedType,
+      currentMileage: mileage,
     });
-    router.push('/(onboarding)/riding-goals');
+    router.push('/(onboarding)/riding-habits');
   };
 
   const handleSkip = () => {
-    router.push('/(onboarding)/riding-goals');
+    router.push('/(onboarding)/riding-habits');
   };
 
-  const canContinue = selectedMake && selectedModel && validYear && !isCreating;
+  const canContinue = selectedMake && selectedModel && validYear && selectedType;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={2} total={4} />
+      <ProgressBar step={2} total={TOTAL_STEPS} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -144,7 +183,7 @@ export default function SelectBikeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Animated.Text
-          entering={FadeInDown.duration(500)}
+          entering={FadeInDown.duration(300)}
           style={{
             fontSize: 36,
             fontWeight: '800',
@@ -157,7 +196,7 @@ export default function SelectBikeScreen() {
         </Animated.Text>
 
         <Animated.Text
-          entering={FadeInUp.delay(100).duration(500)}
+          entering={FadeInUp.delay(100).duration(300)}
           style={{
             fontSize: 17,
             color: 'rgba(255,255,255,0.6)',
@@ -169,7 +208,7 @@ export default function SelectBikeScreen() {
         </Animated.Text>
 
         {/* Year input */}
-        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(200).duration(300)}>
           <View
             style={{
               flexDirection: 'row',
@@ -213,7 +252,7 @@ export default function SelectBikeScreen() {
         </Animated.View>
 
         {/* Make search */}
-        <Animated.View entering={FadeInUp.delay(280).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(280).duration(300)}>
           <View
             style={{
               flexDirection: 'row',
@@ -255,7 +294,7 @@ export default function SelectBikeScreen() {
         </Animated.View>
 
         {/* Makes dropdown */}
-        <Animated.View entering={FadeInUp.delay(360).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(360).duration(300)}>
           {makesResult.isLoading ? (
             <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
           ) : makesResult.isError ? (
@@ -333,7 +372,7 @@ export default function SelectBikeScreen() {
         </Animated.View>
 
         {/* Model selector */}
-        <Animated.View entering={FadeInUp.delay(440).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(440).duration(300)}>
           <View
             style={{
               flexDirection: 'row',
@@ -476,7 +515,7 @@ export default function SelectBikeScreen() {
         </Animated.View>
 
         {/* Nickname */}
-        <Animated.View entering={FadeInUp.delay(520).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(520).duration(300)}>
           <View
             style={{
               flexDirection: 'row',
@@ -512,8 +551,123 @@ export default function SelectBikeScreen() {
               padding: 16,
               fontSize: 17,
               color: '#FFFFFF',
+              marginBottom: 32,
             }}
           />
+        </Animated.View>
+
+        {/* Motorcycle Type Picker */}
+        <Animated.View entering={FadeInUp.delay(600).duration(300)}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 10,
+            }}
+          >
+            <Bike size={18} color="rgba(255,255,255,0.4)" />
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
+              {t('onboarding.bikeType')}
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 12,
+              marginBottom: 32,
+            }}
+          >
+            {MOTORCYCLE_TYPE_OPTIONS.map((option) => (
+              <View key={option.value} style={{ width: '47%' }}>
+                <OptionCard
+                  value={option.value}
+                  icon={option.icon}
+                  title={t(`onboarding.type_${option.labelKey}`)}
+                  color={option.color}
+                  selected={selectedType === option.value}
+                  onPress={handleTypeSelect}
+                />
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+
+        {/* Mileage Slider */}
+        <Animated.View entering={FadeInUp.delay(680).duration(300)}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 10,
+            }}
+          >
+            <Gauge size={18} color="rgba(255,255,255,0.4)" />
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: 'rgba(255,255,255,0.4)',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
+              {t('onboarding.currentMileage')}
+            </Text>
+          </View>
+          <View
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.06)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.10)',
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              padding: 20,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '700',
+                color: '#FFFFFF',
+                textAlign: 'center',
+                marginBottom: 16,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
+              {MILEAGE_FORMAT.format(mileage)} mi
+            </Text>
+            <Slider
+              minimumValue={0}
+              maximumValue={50000}
+              step={1000}
+              value={mileage}
+              onValueChange={handleMileageChange}
+              minimumTrackTintColor="#818CF8"
+              maximumTrackTintColor="rgba(255,255,255,0.15)"
+              thumbTintColor="#FFFFFF"
+            />
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: 8,
+              }}
+            >
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>0 mi</Text>
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>50,000 mi</Text>
+            </View>
+          </View>
         </Animated.View>
       </ScrollView>
 
@@ -533,7 +687,6 @@ export default function SelectBikeScreen() {
             gap: 8,
           })}
         >
-          {isCreating && <ActivityIndicator color="#0F172A" size="small" />}
           <Text
             style={{
               fontSize: 17,
@@ -543,9 +696,7 @@ export default function SelectBikeScreen() {
           >
             {t('onboarding.continue')}
           </Text>
-          {!isCreating && (
-            <ChevronRight size={20} color={canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)'} />
-          )}
+          <ChevronRight size={20} color={canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)'} />
         </Pressable>
 
         <Pressable

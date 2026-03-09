@@ -33,4 +33,4 @@ CREATE INDEX idx_maintenance_tasks_status ON public.maintenance_tasks (status);
 -- Auto-update updated_at trigger
 CREATE TRIGGER set_maintenance_tasks_updated_at
   BEFORE UPDATE ON public.maintenance_tasks
-  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
