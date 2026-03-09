@@ -10,14 +10,14 @@ import {
   Sparkles,
   Star,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProgressBar } from '../../components/progress-bar';
+import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_STEPS } from './config';
+import { TOTAL_SCREENS } from './config';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -41,6 +41,23 @@ export default function PaywallScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [isLoading, setIsLoading] = useState(false);
+  const [offerings, setOfferings] = useState<any>(null);
+
+  useEffect(() => {
+    if (isExpoGo) return;
+    (async () => {
+      try {
+        const { default: Purchases } = await import('react-native-purchases');
+        const off = await Purchases.getOfferings();
+        setOfferings(off.current);
+      } catch (e) {
+        console.error('[Paywall] Failed to fetch offerings:', e);
+      }
+    })();
+  }, []);
+
+  const annualPrice = offerings?.annual?.product?.priceString ?? '$39.99';
+  const monthlyPrice = offerings?.monthly?.product?.priceString ?? '$6.99';
 
   const bikeName = bikeData ? `${bikeData.year} ${bikeData.make} ${bikeData.model}` : null;
 
@@ -105,7 +122,7 @@ export default function PaywallScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={6} total={TOTAL_STEPS} />
+      <OnboardingProgress screenIndex={15} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         contentContainerStyle={{
@@ -263,7 +280,7 @@ export default function PaywallScreen() {
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
-                  $39.99
+                  {annualPrice}
                   <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
                     /{t('paywall.year')}
                   </Text>
@@ -330,7 +347,7 @@ export default function PaywallScreen() {
               </View>
               <View style={{ alignItems: 'flex-end' }}>
                 <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
-                  $6.99
+                  {monthlyPrice}
                   <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
                     /{t('paywall.month')}
                   </Text>
@@ -454,13 +471,40 @@ export default function PaywallScreen() {
         <Animated.View entering={FadeInUp.delay(700).duration(300)} style={{ marginTop: 12 }}>
           <Pressable
             onPress={handleContinueFree}
-            style={{ alignItems: 'center', paddingVertical: 8 }}
+            disabled={isLoading}
+            style={{ alignItems: 'center', paddingVertical: 8, opacity: isLoading ? 0.3 : 1 }}
           >
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
               {t('paywall.continueWithFree')}
             </Text>
           </Pressable>
         </Animated.View>
+
+        {/* Terms & Privacy */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 }}>
+          <Pressable onPress={() => Linking.openURL('https://motowise.app/terms')}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.3)',
+                textDecorationLine: 'underline',
+              }}
+            >
+              Terms of Service
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL('https://motowise.app/privacy')}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.3)',
+                textDecorationLine: 'underline',
+              }}
+            >
+              Privacy Policy
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );

@@ -117,6 +117,47 @@ export const InsightType = {
 } as const;
 export type InsightType = (typeof InsightType)[keyof typeof InsightType];
 
+export const AnnualRepairSpend = {
+  UNDER_200: 'under_200',
+  SPEND_200_500: '200_500',
+  SPEND_500_1000: '500_1000',
+  SPEND_1000_PLUS: '1000_plus',
+  UNSURE: 'unsure',
+} as const;
+export type AnnualRepairSpend = (typeof AnnualRepairSpend)[keyof typeof AnnualRepairSpend];
+
+export const LastServiceDate = {
+  UNDER_1MO: 'under_1mo',
+  BETWEEN_1_3MO: '1_3mo',
+  BETWEEN_3_6MO: '3_6mo',
+  OVER_6MO: '6mo_plus',
+  UNSURE: 'unsure',
+} as const;
+export type LastServiceDate = (typeof LastServiceDate)[keyof typeof LastServiceDate];
+
+export const ReminderChannel = {
+  PUSH: 'push',
+  EMAIL: 'email',
+  BOTH: 'both',
+} as const;
+export type ReminderChannel = (typeof ReminderChannel)[keyof typeof ReminderChannel];
+
+export const MileageUnit = {
+  MI: 'mi',
+  KM: 'km',
+} as const;
+export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit];
+
+export const SubscriptionStatus = {
+  FREE: 'free',
+  TRIALING: 'trialing',
+  ACTIVE: 'active',
+  PAST_DUE: 'past_due',
+  CANCELLED: 'cancelled',
+  EXPIRED: 'expired',
+} as const;
+export type SubscriptionStatus = (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
+
 export const MaintenanceTaskSource = {
   USER: 'user',
   OEM: 'oem',

@@ -41,7 +41,11 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-preferences',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ locale: state.locale, colorScheme: state.colorScheme }),
+      partialize: (state) => ({
+        locale: state.locale,
+        colorScheme: state.colorScheme,
+        onboardingCompleted: state.onboardingCompleted,
+      }),
     },
   ),
 );

@@ -1,11 +1,12 @@
+import { CompleteOnboardingDocument } from '@motolearn/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { gql } from 'graphql-request';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
+  FadeIn,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -38,25 +39,20 @@ export default function PersonalizingScreen() {
     ridingFrequency,
     maintenanceStyle,
     learningFormats,
+    annualRepairSpend,
+    maintenanceReminders,
+    reminderChannel,
+    seasonalTips,
+    recallAlerts,
+    weeklySummary,
+    lastServiceDate,
     reset,
   } = useOnboardingStore();
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
     mutationFn: (input: Record<string, unknown>) =>
-      gqlFetcher(
-        gql`
-          mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
-            completeOnboarding(input: $input) {
-              id
-              preferences
-              createdAt
-              updatedAt
-            }
-          }
-        ` as unknown as Parameters<typeof gqlFetcher>[0],
-        { input },
-      ),
+      gqlFetcher(CompleteOnboardingDocument as any, { input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
@@ -64,9 +60,10 @@ export default function PersonalizingScreen() {
   });
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
-  const persisted = useRef(false);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -82,19 +79,23 @@ export default function PersonalizingScreen() {
   }));
 
   // Persist preferences to server
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fire once on mount only
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
-    if (persisted.current) return;
-    persisted.current = true;
-
     const input: Record<string, unknown> = {
       experienceLevel: experienceLevel ?? 'beginner',
       ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
       learningFormats: learningFormats.length > 0 ? learningFormats : [],
+      maintenanceReminders,
+      seasonalTips,
+      recallAlerts,
+      weeklySummary,
     };
 
     if (ridingFrequency) input.ridingFrequency = ridingFrequency;
     if (maintenanceStyle) input.maintenanceStyle = maintenanceStyle;
+    if (annualRepairSpend) input.annualRepairSpend = annualRepairSpend;
+    if (reminderChannel) input.reminderChannel = reminderChannel;
+    if (lastServiceDate) input.lastServiceDate = lastServiceDate;
 
     if (bikeData) {
       input.bikeMake = bikeData.make;
@@ -113,7 +114,7 @@ export default function PersonalizingScreen() {
       })
       .catch((firstError) => {
         console.error('[Personalizing] First attempt failed:', firstError);
-        // Retry once on failure, proceed regardless so user isn't stuck
+        // Retry once on failure
         completeOnboarding(input)
           .then(() => {
             reset();
@@ -122,12 +123,11 @@ export default function PersonalizingScreen() {
           })
           .catch((retryError) => {
             console.error('[Personalizing] Retry also failed:', retryError);
-            // Don't reset() — preserve onboarding data so it can be retried later
-            setOnboardingCompleted(true);
-            setMutationDone(true);
+            // Show retry button instead of silently proceeding
+            setShowRetry(true);
           });
       });
-  }, []);
+  }, [retryCount]);
 
   // Animation steps + minimum display time
   useEffect(() => {
@@ -240,6 +240,36 @@ export default function PersonalizingScreen() {
           ) : null;
         })}
       </View>
+
+      {showRetry && (
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={{ marginTop: 32, alignItems: 'center', gap: 12 }}
+        >
+          <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+            {t('onboarding.personalizingFailed')}
+          </Text>
+          <Pressable
+            onPress={() => {
+              setShowRetry(false);
+              setMutationDone(false);
+              // Increment retryCount to re-trigger the mutation effect
+              setRetryCount((c) => c + 1);
+            }}
+            style={{
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(255,255,255,0.1)',
+            }}
+          >
+            <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+              {t('common.retry')}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      )}
     </View>
   );
 }

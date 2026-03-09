@@ -162,6 +162,7 @@ export default function SelectBikeScreen() {
       nickname: nickname.trim() || undefined,
       type: selectedType,
       currentMileage: mileage,
+      mileageUnit: 'mi' as const,
     });
     router.push('/(onboarding)/riding-habits');
   };
