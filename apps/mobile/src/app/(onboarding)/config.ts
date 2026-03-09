@@ -21,10 +21,6 @@ export const ONBOARDING_SCREENS = [
 export type OnboardingScreenKey = (typeof ONBOARDING_SCREENS)[number]['key'];
 export const TOTAL_SCREENS = ONBOARDING_SCREENS.length;
 
-// Keep backwards compatibility for existing imports
-export const ONBOARDING_STEPS = ONBOARDING_SCREENS;
-export const TOTAL_STEPS = TOTAL_SCREENS;
-
 /** Get the 0-based index of a screen by route name */
 export function getScreenIndex(route: string): number {
   const index = ONBOARDING_SCREENS.findIndex((s) => s.route === route);

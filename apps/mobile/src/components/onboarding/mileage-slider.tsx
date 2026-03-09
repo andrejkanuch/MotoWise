@@ -1,6 +1,7 @@
 import Slider from '@react-native-community/slider';
 import * as Haptics from 'expo-haptics';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 const MILEAGE_FORMAT = new Intl.NumberFormat('en-US');
@@ -18,6 +19,7 @@ const UNIT_CONFIG = {
 } as const;
 
 export function MileageSlider({ value, unit, onValueChange, onUnitChange }: MileageSliderProps) {
+  const { t } = useTranslation();
   const lastHapticBucket = useRef(Math.floor(value / 5000));
   const config = UNIT_CONFIG[unit];
 
@@ -154,7 +156,7 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
             textDecorationLine: 'underline',
           }}
         >
-          Not sure?
+          {t('onboarding.mileageNotSureShort')}
         </Text>
       </Pressable>
     </View>

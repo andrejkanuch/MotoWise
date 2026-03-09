@@ -314,6 +314,7 @@
     "bikeTypeAutoDetected": "Basierend auf deinem Modell",
     "bikeMileageTitle": "Wie viele Meilen (oder km) hat dein Motorrad?",
     "mileageNotSure": "Nicht sicher? Wir schaetzen basierend auf dem Alter deines Motorrads",
+    "mileageNotSureShort": "Nicht sicher?",
     "bikePhotoTitle": "Gib deinem Motorrad einen Namen",
     "bikePhotoSubtitle": "Fuege ein Foto deines Motorrads hinzu",
     "takePhoto": "Foto aufnehmen",

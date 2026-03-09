@@ -82,7 +82,7 @@ CREATE OR REPLACE FUNCTION public.complete_onboarding(
   p_seasonal_tips BOOLEAN DEFAULT NULL,
   p_recall_alerts BOOLEAN DEFAULT NULL,
   p_weekly_summary BOOLEAN DEFAULT NULL,
-  p_last_service_date DATE DEFAULT NULL,
+  p_last_service_date TEXT DEFAULT NULL,
   p_mileage_unit TEXT DEFAULT NULL
 )
 RETURNS JSONB

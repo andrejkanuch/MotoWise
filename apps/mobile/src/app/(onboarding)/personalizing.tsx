@@ -51,7 +51,9 @@ export default function PersonalizingScreen() {
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
+    // TODO: Run `pnpm generate` after updating the CompleteOnboarding mutation to include new fields
     mutationFn: (input: Record<string, unknown>) =>
+      // biome-ignore lint/suspicious/noExplicitAny: generated types need regeneration after API changes
       gqlFetcher(CompleteOnboardingDocument as any, { input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });

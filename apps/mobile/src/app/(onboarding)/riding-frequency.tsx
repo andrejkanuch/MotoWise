@@ -15,32 +15,11 @@ const FREQUENCY_OPTIONS: {
   value: RidingFrequency;
   icon: typeof Calendar;
   color: string;
-  subtitleKey: string;
 }[] = [
-  {
-    value: 'daily',
-    icon: Calendar,
-    color: '#34D399',
-    subtitleKey: 'onboarding.ridingFrequencyDesc_daily',
-  },
-  {
-    value: 'weekly',
-    icon: CalendarDays,
-    color: '#60A5FA',
-    subtitleKey: 'onboarding.ridingFrequencyDesc_weekly',
-  },
-  {
-    value: 'monthly',
-    icon: CalendarRange,
-    color: '#A78BFA',
-    subtitleKey: 'onboarding.ridingFrequencyDesc_monthly',
-  },
-  {
-    value: 'seasonally',
-    icon: Sun,
-    color: '#F59E0B',
-    subtitleKey: 'onboarding.ridingFrequencyDesc_seasonally',
-  },
+  { value: 'daily', icon: Calendar, color: '#34D399' },
+  { value: 'weekly', icon: CalendarDays, color: '#60A5FA' },
+  { value: 'monthly', icon: CalendarRange, color: '#A78BFA' },
+  { value: 'seasonally', icon: Sun, color: '#F59E0B' },
 ];
 
 export default function RidingFrequencyScreen() {
@@ -88,7 +67,7 @@ export default function RidingFrequencyScreen() {
                 value={option.value}
                 icon={option.icon}
                 label={t(`onboarding.ridingFrequency_${option.value}`)}
-                subtitle={t(option.subtitleKey as any)}
+                subtitle={t(`onboarding.ridingFrequencyDesc_${option.value}`)}
                 color={option.color}
                 selected={selected === option.value}
                 onPress={handlePress}

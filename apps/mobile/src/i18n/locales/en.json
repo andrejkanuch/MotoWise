@@ -314,6 +314,7 @@
     "bikeTypeAutoDetected": "Based on your model",
     "bikeMileageTitle": "How many miles (or km) is on your bike?",
     "mileageNotSure": "Not sure? We'll estimate based on your bike's age",
+    "mileageNotSureShort": "Not sure?",
     "bikePhotoTitle": "Give your bike a name",
     "bikePhotoSubtitle": "Add a photo of your ride",
     "takePhoto": "Take Photo",

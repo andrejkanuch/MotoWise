@@ -33,7 +33,6 @@ interface OnboardingState {
   ridingFrequency: RidingFrequency | null;
   maintenanceStyle: MaintenanceStyle | null;
   learningFormats: LearningFormat[];
-  currentStep: number;
   annualRepairSpend: AnnualRepairSpend | null;
   maintenanceReminders: boolean;
   reminderChannel: ReminderChannel | null;
@@ -41,14 +40,12 @@ interface OnboardingState {
   recallAlerts: boolean;
   weeklySummary: boolean;
   lastServiceDate: LastServiceDate | null;
-  currentScreen: string;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
   setRidingFrequency: (frequency: RidingFrequency) => void;
   setMaintenanceStyle: (style: MaintenanceStyle) => void;
   setLearningFormats: (formats: LearningFormat[]) => void;
-  setCurrentStep: (step: number) => void;
   setAnnualRepairSpend: (spend: AnnualRepairSpend) => void;
   setMaintenanceReminders: (enabled: boolean) => void;
   setReminderChannel: (channel: ReminderChannel) => void;
@@ -56,7 +53,6 @@ interface OnboardingState {
   setRecallAlerts: (enabled: boolean) => void;
   setWeeklySummary: (enabled: boolean) => void;
   setLastServiceDate: (date: LastServiceDate) => void;
-  setCurrentScreen: (screen: string) => void;
   reset: () => void;
 }
 
@@ -67,7 +63,6 @@ const initialState = {
   ridingFrequency: null as RidingFrequency | null,
   maintenanceStyle: null as MaintenanceStyle | null,
   learningFormats: [] as LearningFormat[],
-  currentStep: 0,
   annualRepairSpend: null as AnnualRepairSpend | null,
   maintenanceReminders: true,
   reminderChannel: null as ReminderChannel | null,
@@ -75,7 +70,6 @@ const initialState = {
   recallAlerts: true,
   weeklySummary: false,
   lastServiceDate: null as LastServiceDate | null,
-  currentScreen: '',
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -88,7 +82,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       setRidingFrequency: (frequency) => set({ ridingFrequency: frequency }),
       setMaintenanceStyle: (style) => set({ maintenanceStyle: style }),
       setLearningFormats: (formats) => set({ learningFormats: formats }),
-      setCurrentStep: (step) => set({ currentStep: step }),
       setAnnualRepairSpend: (spend) => set({ annualRepairSpend: spend }),
       setMaintenanceReminders: (enabled) => set({ maintenanceReminders: enabled }),
       setReminderChannel: (channel) => set({ reminderChannel: channel }),
@@ -96,7 +89,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       setRecallAlerts: (enabled) => set({ recallAlerts: enabled }),
       setWeeklySummary: (enabled) => set({ weeklySummary: enabled }),
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
-      setCurrentScreen: (screen) => set({ currentScreen: screen }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
@@ -110,7 +102,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         ridingFrequency: state.ridingFrequency,
         maintenanceStyle: state.maintenanceStyle,
         learningFormats: state.learningFormats,
-        currentStep: state.currentStep,
         annualRepairSpend: state.annualRepairSpend,
         maintenanceReminders: state.maintenanceReminders,
         reminderChannel: state.reminderChannel,
@@ -118,7 +109,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         recallAlerts: state.recallAlerts,
         weeklySummary: state.weeklySummary,
         lastServiceDate: state.lastServiceDate,
-        currentScreen: state.currentScreen,
       }),
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Record<string, unknown>;
@@ -130,7 +120,6 @@ export const useOnboardingStore = create<OnboardingState>()(
           state.recallAlerts = state.recallAlerts ?? true;
           state.weeklySummary = state.weeklySummary ?? false;
           state.lastServiceDate = state.lastServiceDate ?? null;
-          state.currentScreen = state.currentScreen ?? '';
         }
         return state as unknown as OnboardingState;
       },

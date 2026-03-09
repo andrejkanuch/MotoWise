@@ -41,7 +41,10 @@ export default function PaywallScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [isLoading, setIsLoading] = useState(false);
-  const [offerings, setOfferings] = useState<any>(null);
+  const [offerings, setOfferings] = useState<{
+    annual?: { product: { priceString: string; price: number; currencyCode: string } };
+    monthly?: { product: { priceString: string; price: number; currencyCode: string } };
+  } | null>(null);
 
   useEffect(() => {
     if (isExpoGo) return;
@@ -49,7 +52,12 @@ export default function PaywallScreen() {
       try {
         const { default: Purchases } = await import('react-native-purchases');
         const off = await Purchases.getOfferings();
-        setOfferings(off.current);
+        if (off.current) {
+          setOfferings({
+            annual: off.current.annual ? { product: off.current.annual.product } : undefined,
+            monthly: off.current.monthly ? { product: off.current.monthly.product } : undefined,
+          });
+        }
       } catch (e) {
         console.error('[Paywall] Failed to fetch offerings:', e);
       }
@@ -69,9 +77,11 @@ export default function PaywallScreen() {
 
     try {
       const { default: Purchases } = await import('react-native-purchases');
-      const offerings = await Purchases.getOfferings();
+      const fetchedOfferings = await Purchases.getOfferings();
       const packageToBuy =
-        selectedPlan === 'annual' ? offerings.current?.annual : offerings.current?.monthly;
+        selectedPlan === 'annual'
+          ? fetchedOfferings.current?.annual
+          : fetchedOfferings.current?.monthly;
 
       if (!packageToBuy) {
         console.error('[Paywall] No package found for plan:', selectedPlan);
@@ -286,7 +296,14 @@ export default function PaywallScreen() {
                   </Text>
                 </Text>
                 <Text style={{ fontSize: 13, color: '#34D399', marginTop: 2 }}>
-                  $3.33/{t('paywall.month')}
+                  {offerings?.annual?.product?.price
+                    ? new Intl.NumberFormat(undefined, {
+                        style: 'currency',
+                        currency: offerings.annual.product.currencyCode,
+                        maximumFractionDigits: 2,
+                      }).format(offerings.annual.product.price / 12)
+                    : '$3.33'}
+                  /{t('paywall.month')}
                 </Text>
               </View>
             </View>
@@ -490,7 +507,7 @@ export default function PaywallScreen() {
                 textDecorationLine: 'underline',
               }}
             >
-              Terms of Service
+              {t('onboarding.termsOfService')}
             </Text>
           </Pressable>
           <Pressable onPress={() => Linking.openURL('https://motowise.app/privacy')}>
@@ -501,7 +518,7 @@ export default function PaywallScreen() {
                 textDecorationLine: 'underline',
               }}
             >
-              Privacy Policy
+              {t('onboarding.privacyPolicy')}
             </Text>
           </Pressable>
         </View>

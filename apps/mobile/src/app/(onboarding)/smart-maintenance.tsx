@@ -64,13 +64,11 @@ export default function SmartMaintenanceScreen() {
   const store = useOnboardingStore();
 
   const bikeData = store.bikeData;
-  const bikeName = bikeData?.nickname
-    ? bikeData.nickname
-    : bikeData?.make && bikeData?.model
+  const bikeName =
+    bikeData?.nickname ??
+    (bikeData?.make && bikeData?.model
       ? `${bikeData.make} ${bikeData.model}`
-      : t('onboarding.type_other').toLowerCase() === 'other'
-        ? 'motorcycle'
-        : 'motorcycle';
+      : t('common.appName'));
 
   const [toggles, setToggles] = useState<Record<ToggleKey, boolean>>({
     maintenanceReminders: store.maintenanceReminders,

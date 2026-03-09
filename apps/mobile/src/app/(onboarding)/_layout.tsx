@@ -35,10 +35,6 @@ export default function OnboardingLayout() {
       <Stack.Screen name="insights" options={{ gestureEnabled: false }} />
       <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
-
-      {/* Legacy routes (keep for backwards compat, hidden) */}
-      <Stack.Screen name="select-bike" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="riding-habits" options={{ gestureEnabled: true }} />
     </Stack>
   );
 }
