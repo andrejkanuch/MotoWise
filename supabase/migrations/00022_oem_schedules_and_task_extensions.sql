@@ -1,6 +1,9 @@
 -- Smart Maintenance Hub: OEM schedules, task extensions, photo attachments, share links
 -- MOT-61 (sub-issues: MOT-71, MOT-73, MOT-74, MOT-75, MOT-76)
 
+-- Enable pgcrypto for gen_random_bytes (used in share link token generation)
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 -- ==========================================
 -- 1. OEM Maintenance Schedules (reference data)
 -- ==========================================
@@ -70,7 +73,7 @@ CREATE POLICY "Admins read all task photos" ON public.maintenance_task_photos
 -- ==========================================
 CREATE TABLE public.share_links (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  token TEXT UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
+  token TEXT UNIQUE NOT NULL DEFAULT encode(extensions.gen_random_bytes(32), 'hex'),
   motorcycle_id UUID NOT NULL REFERENCES public.motorcycles(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES auth.users(id),
   expires_at TIMESTAMPTZ NOT NULL,
