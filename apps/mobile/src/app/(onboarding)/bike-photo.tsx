@@ -3,9 +3,9 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Camera, ChevronRight, Image as ImageIcon, SkipForward, Tag, X } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -30,41 +30,54 @@ export default function BikePhotoScreen() {
 
   const bikeLabel = [bikeData?.year, bikeData?.make, bikeData?.model].filter(Boolean).join(' ');
 
-  const handleTakePhoto = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+  const pickImage = useCallback(
+    async (source: 'camera' | 'library') => {
+      try {
+        if (process.env.EXPO_OS === 'ios') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: 'images',
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [4, 3],
-    });
+        if (source === 'camera') {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert(
+              t('onboarding.cameraPermissionDeniedTitle'),
+              t('onboarding.cameraPermissionDeniedMessage'),
+            );
+            return;
+          }
+        }
 
-    if (!result.canceled && result.assets[0]) {
-      const compressed = await compressImage(result.assets[0].uri);
-      setPhotoUri(compressed);
-    }
-  };
+        const launcher =
+          source === 'camera' ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync;
 
-  const handleChooseFromLibrary = async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+        const result = await launcher({
+          mediaTypes: 'images',
+          quality: 0.8,
+          allowsEditing: true,
+          aspect: [4, 3],
+        });
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: [4, 3],
-    });
+        if (!result.canceled && result.assets[0]) {
+          let uri = result.assets[0].uri;
+          try {
+            uri = await compressImage(uri);
+          } catch (compressionError) {
+            console.warn('Image compression failed, using original image:', compressionError);
+          }
+          setPhotoUri(uri);
+        }
+      } catch (error) {
+        console.warn('Image picker failed:', error);
+        Alert.alert(t('common.error'), t('onboarding.imagePickerError'));
+      }
+    },
+    [t],
+  );
 
-    if (!result.canceled && result.assets[0]) {
-      const compressed = await compressImage(result.assets[0].uri);
-      setPhotoUri(compressed);
-    }
-  };
+  const handleTakePhoto = useCallback(() => pickImage('camera'), [pickImage]);
+
+  const handleChooseFromLibrary = useCallback(() => pickImage('library'), [pickImage]);
 
   const handleRetake = () => {
     if (process.env.EXPO_OS === 'ios') {
