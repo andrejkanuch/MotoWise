@@ -167,7 +167,12 @@
     "saving": "Speichern...",
     "deleteBike": "Motorrad loeschen",
     "confirmDelete": "Bist du sicher, dass du dieses Motorrad entfernen moechtest?",
-    "bikeDeleted": "Motorrad aus der Garage entfernt"
+    "bikeDeleted": "Motorrad aus der Garage entfernt",
+    "searchMake": "Marke suchen...",
+    "searchModel": "Modell suchen...",
+    "tapToChange": "Antippen zum Aendern",
+    "noMakesFound": "Keine Marken gefunden",
+    "noModelsFound": "Keine Modelle fuer diese Marke und dieses Jahr gefunden"
   },
   "profile": {
     "title": "Profil",

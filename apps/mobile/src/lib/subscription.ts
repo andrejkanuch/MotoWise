@@ -32,10 +32,10 @@ export async function initRevenueCat() {
     // Listen for subscription changes
     Purchases.addCustomerInfoUpdateListener((info) => {
       const store = useSubscriptionStore.getState();
-      const isPro = info.entitlements.active.pro !== undefined;
+      const isPro = info.entitlements.active['MotoWise Pro'] !== undefined;
       store.setPro(isPro);
 
-      const proEntitlement = info.entitlements.active.pro;
+      const proEntitlement = info.entitlements.active['MotoWise Pro'];
       if (proEntitlement?.periodType === 'TRIAL') {
         const expirationDate = proEntitlement.expirationDate;
         if (expirationDate) {

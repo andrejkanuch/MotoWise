@@ -83,7 +83,7 @@ export default function PaywallScreen() {
     try {
       const { default: Purchases } = await import('react-native-purchases');
       const info = await Purchases.restorePurchases();
-      const hasPro = info.entitlements.active.pro !== undefined;
+      const hasPro = info.entitlements.active['MotoWise Pro'] !== undefined;
       if (hasPro) {
         router.replace('/(onboarding)/personalizing');
       } else {

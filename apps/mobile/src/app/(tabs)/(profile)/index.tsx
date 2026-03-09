@@ -20,10 +20,7 @@ import {
   Pencil,
   Plus,
   Settings,
-  Shield,
-  Star,
   Sun,
-  Zap,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
@@ -158,11 +155,6 @@ export default function ProfileScreen() {
   });
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
 
-  const preferences = user?.preferences as
-    | { experienceLevel?: string; ridingGoals?: string[] }
-    | null
-    | undefined;
-
   const handleLogout = async () => {
     haptic();
     await supabase.auth.signOut();
@@ -174,7 +166,6 @@ export default function ProfileScreen() {
     setColorScheme(value === 'system' ? undefined : value);
   };
 
-  const experienceLevel = preferences?.experienceLevel ?? 'beginner';
   const initials =
     user?.fullName
       ?.split(' ')
@@ -239,17 +230,6 @@ export default function ProfileScreen() {
             {user?.fullName ?? t('profile.rider')}
           </Text>
 
-          <Text
-            style={{
-              fontSize: 14,
-              color: palette.neutral500,
-              marginTop: 4,
-              textTransform: 'capitalize',
-            }}
-          >
-            {experienceLevel} {t('profile.rider')}
-          </Text>
-
           {/* Edit Profile button */}
           <Pressable
             onPress={() => {
@@ -284,51 +264,6 @@ export default function ProfileScreen() {
               {t('profile.editProfile', { defaultValue: 'Edit Profile' })}
             </Text>
           </Pressable>
-
-          {/* Stats row */}
-          <View
-            style={{
-              flexDirection: 'row',
-              marginTop: 20,
-              gap: 12,
-              alignSelf: 'stretch',
-            }}
-          >
-            {[
-              { label: t('profile.level'), value: '3', icon: Zap, color: palette.primary500 },
-              { label: t('profile.rank'), value: 'Pro', icon: Shield, color: palette.accent500 },
-              { label: t('profile.badges'), value: '5', icon: Star, color: palette.warning500 },
-            ].map((stat) => (
-              <View
-                key={stat.label}
-                style={{
-                  flex: 1,
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : palette.neutral50,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  paddingVertical: 14,
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <stat.icon size={16} color={stat.color} strokeWidth={2} />
-                <Text
-                  selectable
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '700',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {stat.value}
-                </Text>
-                <Text style={{ fontSize: 11, color: palette.neutral500, fontWeight: '500' }}>
-                  {stat.label}
-                </Text>
-              </View>
-            ))}
-          </View>
         </View>
       </Animated.View>
 

@@ -167,7 +167,12 @@
     "saving": "Guardando...",
     "deleteBike": "Eliminar Moto",
     "confirmDelete": "Estas seguro de que quieres eliminar esta moto?",
-    "bikeDeleted": "Moto eliminada del garaje"
+    "bikeDeleted": "Moto eliminada del garaje",
+    "searchMake": "Buscar marca...",
+    "searchModel": "Buscar modelo...",
+    "tapToChange": "Toca para cambiar",
+    "noMakesFound": "No se encontraron marcas",
+    "noModelsFound": "No se encontraron modelos para esta marca y ano"
   },
   "profile": {
     "title": "Perfil",

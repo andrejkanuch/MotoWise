@@ -31,22 +31,37 @@ const EXPERIENCE_LABEL_KEYS: Record<ExperienceLevel, string> = {
 };
 
 const RIDING_GOALS = [
-  'Daily Commute',
-  'Weekend Rides',
-  'Track Days',
-  'Touring',
-  'Learning to Ride',
-  'DIY Maintenance',
+  'learn_maintenance',
+  'improve_riding',
+  'track_maintenance',
+  'save_money',
+  'find_community',
+  'safety',
+  'save_on_maintenance',
+  'track_bike_health',
 ] as const;
 type RidingGoal = (typeof RIDING_GOALS)[number];
 
 const GOAL_LABEL_KEYS: Record<RidingGoal, string> = {
-  'Daily Commute': 'settings.goalDailyCommute',
-  'Weekend Rides': 'settings.goalWeekendRides',
-  'Track Days': 'settings.goalTrackDays',
-  Touring: 'settings.goalTouring',
-  'Learning to Ride': 'settings.goalLearningToRide',
-  'DIY Maintenance': 'settings.goalDiyMaintenance',
+  learn_maintenance: 'settings.goalLearnMaintenance',
+  improve_riding: 'settings.goalImproveRiding',
+  track_maintenance: 'settings.goalTrackMaintenance',
+  save_money: 'settings.goalSaveMoney',
+  find_community: 'settings.goalFindCommunity',
+  safety: 'settings.goalSafety',
+  save_on_maintenance: 'settings.goalSaveOnMaintenance',
+  track_bike_health: 'settings.goalTrackBikeHealth',
+};
+
+const GOAL_DEFAULT_LABELS: Record<RidingGoal, string> = {
+  learn_maintenance: 'Learn Maintenance',
+  improve_riding: 'Improve Riding',
+  track_maintenance: 'Track Maintenance',
+  save_money: 'Save Money',
+  find_community: 'Find Community',
+  safety: 'Safety',
+  save_on_maintenance: 'Save on Maintenance',
+  track_bike_health: 'Track Bike Health',
 };
 
 type UserPreferences = {
@@ -90,7 +105,11 @@ export default function SettingsScreen() {
     if (user && !isInitialized) {
       setFullName(user.fullName ?? '');
       setExperienceLevel((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner');
-      setSelectedGoals((preferences?.ridingGoals as RidingGoal[]) ?? []);
+      const storedGoals = (preferences?.ridingGoals as string[]) ?? [];
+      const validGoals = storedGoals.filter((g): g is RidingGoal =>
+        (RIDING_GOALS as readonly string[]).includes(g),
+      );
+      setSelectedGoals(validGoals);
       setIsInitialized(true);
     }
   }, [user, preferences, isInitialized]);
@@ -113,14 +132,31 @@ export default function SettingsScreen() {
 
   const handleSave = useCallback(() => {
     haptic();
-    updateMutation.mutate({
-      fullName: fullName.trim() || undefined,
-      preferences: {
+    const input: { fullName?: string; preferences?: Record<string, unknown> } = {};
+
+    const trimmedName = fullName.trim();
+    if (trimmedName && trimmedName !== (user?.fullName ?? '')) {
+      input.fullName = trimmedName;
+    }
+
+    const prefsChanged =
+      experienceLevel !== ((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner') ||
+      JSON.stringify([...selectedGoals].sort()) !==
+        JSON.stringify(
+          [...((preferences?.ridingGoals as RidingGoal[]) ?? [])]
+            .filter((g): g is RidingGoal => (RIDING_GOALS as readonly string[]).includes(g))
+            .sort(),
+        );
+
+    if (prefsChanged) {
+      input.preferences = {
         experienceLevel,
         ridingGoals: selectedGoals,
-      },
-    });
-  }, [fullName, experienceLevel, selectedGoals, updateMutation]);
+      };
+    }
+
+    updateMutation.mutate(input);
+  }, [fullName, experienceLevel, selectedGoals, updateMutation, user, preferences]);
 
   const hasChanges =
     isInitialized &&
@@ -387,7 +423,7 @@ export default function SettingsScreen() {
                             : palette.neutral600,
                       }}
                     >
-                      {t(GOAL_LABEL_KEYS[goal], { defaultValue: goal })}
+                      {t(GOAL_LABEL_KEYS[goal], { defaultValue: GOAL_DEFAULT_LABELS[goal] })}
                     </Text>
                   </Pressable>
                 </Animated.View>

@@ -17,11 +17,10 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { BikeIcon } from '../../../components/BikeIcon';
+import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
-const BIKE_VARIANTS = ['sport', 'cruiser', 'adventure', 'standard'] as const;
 const BIKE_GRADIENT_PAIRS = [
   ['#1a1a2e', '#16213e'] as const,
   ['#1b2838', '#1e3a5f'] as const,
@@ -57,7 +56,6 @@ function BikeCard({
 }) {
   const { t } = useTranslation();
   const gradientPair = BIKE_GRADIENT_PAIRS[index % BIKE_GRADIENT_PAIRS.length];
-  const variant = BIKE_VARIANTS[index % BIKE_VARIANTS.length];
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 80).duration(400)}>
@@ -91,11 +89,7 @@ function BikeCard({
               position: 'relative',
             }}
           >
-            <BikeIcon
-              variant={variant}
-              size={80}
-              color={isDark ? 'rgba(255,255,255,0.55)' : palette.primary400}
-            />
+            <LottieMotorcycle animation="cardPlaceholder" size={120} loop speed={0.5} />
 
             {bike.isPrimary && (
               <View
@@ -198,23 +192,16 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
+        paddingBottom: 80,
       }}
     >
       <Animated.View entering={FadeInUp.duration(500)} style={{ alignItems: 'center' }}>
-        <View
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 60,
-            borderCurve: 'continuous',
-            backgroundColor: isDark ? 'rgba(51,102,230,0.1)' : palette.primary50,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 24,
-          }}
-        >
-          <BikeIcon variant="adventure" size={56} color={palette.primary400} />
-        </View>
+        <LottieMotorcycle
+          animation="emptyGarage"
+          size={160}
+          loop={false}
+          style={{ marginBottom: 8 }}
+        />
 
         <Text
           style={{

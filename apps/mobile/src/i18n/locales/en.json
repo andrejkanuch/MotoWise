@@ -167,7 +167,12 @@
     "saving": "Saving...",
     "deleteBike": "Delete Bike",
     "confirmDelete": "Are you sure you want to remove this bike?",
-    "bikeDeleted": "Bike removed from garage"
+    "bikeDeleted": "Bike removed from garage",
+    "searchMake": "Search make...",
+    "searchModel": "Search model...",
+    "tapToChange": "Tap to change",
+    "noMakesFound": "No makes found",
+    "noModelsFound": "No models found for this make and year"
   },
   "profile": {
     "title": "Profile",
