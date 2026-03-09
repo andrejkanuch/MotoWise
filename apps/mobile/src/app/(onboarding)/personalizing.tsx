@@ -1,11 +1,12 @@
+import { CompleteOnboardingDocument } from '@motolearn/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { gql } from 'graphql-request';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
+  FadeIn,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -38,25 +39,22 @@ export default function PersonalizingScreen() {
     ridingFrequency,
     maintenanceStyle,
     learningFormats,
+    annualRepairSpend,
+    maintenanceReminders,
+    reminderChannel,
+    seasonalTips,
+    recallAlerts,
+    weeklySummary,
+    lastServiceDate,
     reset,
   } = useOnboardingStore();
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
+    // TODO: Run `pnpm generate` after updating the CompleteOnboarding mutation to include new fields
     mutationFn: (input: Record<string, unknown>) =>
-      gqlFetcher(
-        gql`
-          mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
-            completeOnboarding(input: $input) {
-              id
-              preferences
-              createdAt
-              updatedAt
-            }
-          }
-        ` as unknown as Parameters<typeof gqlFetcher>[0],
-        { input },
-      ),
+      // biome-ignore lint/suspicious/noExplicitAny: generated types need regeneration after API changes
+      gqlFetcher(CompleteOnboardingDocument as any, { input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
@@ -64,9 +62,10 @@ export default function PersonalizingScreen() {
   });
 
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
-  const persisted = useRef(false);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -82,19 +81,23 @@ export default function PersonalizingScreen() {
   }));
 
   // Persist preferences to server
-  // biome-ignore lint/correctness/useExhaustiveDependencies: fire once on mount only
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
-    if (persisted.current) return;
-    persisted.current = true;
-
     const input: Record<string, unknown> = {
       experienceLevel: experienceLevel ?? 'beginner',
       ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
       learningFormats: learningFormats.length > 0 ? learningFormats : [],
+      maintenanceReminders,
+      seasonalTips,
+      recallAlerts,
+      weeklySummary,
     };
 
     if (ridingFrequency) input.ridingFrequency = ridingFrequency;
     if (maintenanceStyle) input.maintenanceStyle = maintenanceStyle;
+    if (annualRepairSpend) input.annualRepairSpend = annualRepairSpend;
+    if (reminderChannel) input.reminderChannel = reminderChannel;
+    if (lastServiceDate) input.lastServiceDate = lastServiceDate;
 
     if (bikeData) {
       input.bikeMake = bikeData.make;
@@ -107,27 +110,14 @@ export default function PersonalizingScreen() {
 
     completeOnboarding(input)
       .then(() => {
-        reset();
         setOnboardingCompleted(true);
         setMutationDone(true);
       })
-      .catch((firstError) => {
-        console.error('[Personalizing] First attempt failed:', firstError);
-        // Retry once on failure, proceed regardless so user isn't stuck
-        completeOnboarding(input)
-          .then(() => {
-            reset();
-            setOnboardingCompleted(true);
-            setMutationDone(true);
-          })
-          .catch((retryError) => {
-            console.error('[Personalizing] Retry also failed:', retryError);
-            // Don't reset() — preserve onboarding data so it can be retried later
-            setOnboardingCompleted(true);
-            setMutationDone(true);
-          });
+      .catch((error) => {
+        console.error('[Personalizing] Attempt failed:', error);
+        setShowRetry(true);
       });
-  }, []);
+  }, [retryCount]);
 
   // Animation steps + minimum display time
   useEffect(() => {
@@ -148,9 +138,10 @@ export default function PersonalizingScreen() {
   // Navigate only when BOTH mutation succeeded AND animation finished
   useEffect(() => {
     if (mutationDone && animationDone) {
+      reset();
       router.replace('/(tabs)/(home)');
     }
-  }, [mutationDone, animationDone, router]);
+  }, [mutationDone, animationDone, router, reset]);
 
   return (
     <View
@@ -240,6 +231,56 @@ export default function PersonalizingScreen() {
           ) : null;
         })}
       </View>
+
+      {showRetry && (
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={{ marginTop: 32, alignItems: 'center', gap: 12 }}
+        >
+          <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+            {t('onboarding.personalizingFailed')}
+          </Text>
+          {retryCount < 3 ? (
+            <Pressable
+              onPress={() => {
+                setShowRetry(false);
+                setMutationDone(false);
+                setRetryCount((c) => c + 1);
+              }}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+                {t('common.retry')}
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setOnboardingCompleted(true);
+                reset();
+                router.replace('/(tabs)/(home)');
+              }}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+              }}
+            >
+              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+                {t('onboarding.personalizingSkip')}
+              </Text>
+            </Pressable>
+          )}
+        </Animated.View>
+      )}
     </View>
   );
 }

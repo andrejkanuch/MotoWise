@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {
+  AlertCircle,
   Check,
   ChevronRight,
   Crown,
@@ -10,14 +11,14 @@ import {
   Sparkles,
   Star,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProgressBar } from '../../components/progress-bar';
+import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_STEPS } from './config';
+import { TOTAL_SCREENS } from './config';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -34,6 +35,128 @@ const VALUE_PROPS = [
   { icon: Shield, key: 'maintenanceAlerts' },
 ] as const;
 
+type PurchasesOfferings = Awaited<
+  ReturnType<typeof import('react-native-purchases').default.getOfferings>
+>;
+
+function PricingCard({
+  plan,
+  selected,
+  price,
+  trialDays,
+  monthlyEquiv,
+  badge,
+  onSelect,
+}: {
+  plan: 'annual' | 'monthly';
+  selected: boolean;
+  price: string;
+  trialDays: number;
+  monthlyEquiv?: string;
+  badge?: string;
+  onSelect: () => void;
+}) {
+  const { t } = useTranslation();
+  const periodKey = plan === 'annual' ? 'year' : 'month';
+  const trialKey = plan === 'annual' ? 'annualTrialDays' : 'monthlyTrialDays';
+
+  return (
+    <Pressable
+      onPress={() => {
+        if (process.env.EXPO_OS === 'ios') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        onSelect();
+      }}
+      style={{
+        borderWidth: selected ? 2 : 1.5,
+        borderColor: selected ? '#818CF8' : 'rgba(255,255,255,0.15)',
+        borderRadius: 20,
+        borderCurve: 'continuous',
+        padding: 20,
+        backgroundColor: selected ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
+        position: 'relative',
+        overflow: 'visible',
+        ...(process.env.EXPO_OS === 'ios'
+          ? {
+              shadowColor: selected ? '#818CF8' : '#000',
+              shadowOffset: { width: 0, height: selected ? 0 : 1 },
+              shadowOpacity: selected ? 0.2 : 0.15,
+              shadowRadius: selected ? 10 : 3,
+            }
+          : { elevation: selected ? 4 : 2 }),
+      }}
+    >
+      {badge && (
+        <Animated.View
+          entering={ZoomIn.duration(200).springify()}
+          style={{
+            position: 'absolute',
+            top: -12,
+            right: 16,
+            backgroundColor: '#FACC15',
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 12,
+            borderCurve: 'continuous',
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: '800', color: '#0F172A' }}>{badge}</Text>
+        </Animated.View>
+      )}
+
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <View>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+            {t(`paywall.${plan}`)}
+          </Text>
+          <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+            {t(`paywall.${trialKey}`, { days: trialDays })}
+          </Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
+            {price}
+            <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
+              /{t(`paywall.${periodKey}`)}
+            </Text>
+          </Text>
+          {monthlyEquiv && (
+            <Text style={{ fontSize: 13, color: '#34D399', marginTop: 2 }}>
+              {monthlyEquiv}/{t('paywall.month')}
+            </Text>
+          )}
+        </View>
+      </View>
+
+      <View
+        style={{
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          borderCurve: 'continuous',
+          borderWidth: 2,
+          borderColor: selected ? '#818CF8' : 'rgba(255,255,255,0.3)',
+          backgroundColor: selected ? '#818CF8' : 'transparent',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {selected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+      </View>
+    </Pressable>
+  );
+}
+
 export default function PaywallScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -41,8 +164,51 @@ export default function PaywallScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [isLoading, setIsLoading] = useState(false);
+  const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
+  const [offeringsLoading, setOfferingsLoading] = useState(!isExpoGo);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const bikeName = bikeData ? `${bikeData.year} ${bikeData.make} ${bikeData.model}` : null;
+
+  const fetchOfferings = useCallback(async () => {
+    if (isExpoGo) return;
+
+    setOfferingsLoading(true);
+    setFetchError(null);
+
+    try {
+      const { default: Purchases } = await import('react-native-purchases');
+      const result = await Purchases.getOfferings();
+      setOfferings(result);
+    } catch (error) {
+      console.error('[Paywall] Failed to load offerings:', error);
+      setFetchError(
+        error instanceof Error ? error.message : 'Failed to load subscription options.',
+      );
+    } finally {
+      setOfferingsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOfferings();
+  }, [fetchOfferings]);
+
+  const annualPackage = offerings?.current?.annual;
+  const monthlyPackage = offerings?.current?.monthly;
+
+  const annualPrice = annualPackage?.product.priceString;
+  const monthlyPrice = monthlyPackage?.product.priceString;
+
+  const annualMonthlyEquiv =
+    annualPackage?.product.price != null
+      ? new Intl.NumberFormat(undefined, {
+          style: 'currency',
+          currency: annualPackage.product.currencyCode,
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(annualPackage.product.price / 12)
+      : undefined;
 
   const handlePurchase = async () => {
     if (process.env.EXPO_OS === 'ios') {
@@ -52,9 +218,17 @@ export default function PaywallScreen() {
 
     try {
       const { default: Purchases } = await import('react-native-purchases');
-      const offerings = await Purchases.getOfferings();
+
+      let currentOfferings = offerings;
+      if (!currentOfferings) {
+        currentOfferings = await Purchases.getOfferings();
+        setOfferings(currentOfferings);
+      }
+
       const packageToBuy =
-        selectedPlan === 'annual' ? offerings.current?.annual : offerings.current?.monthly;
+        selectedPlan === 'annual'
+          ? currentOfferings.current?.annual
+          : currentOfferings.current?.monthly;
 
       if (!packageToBuy) {
         console.error('[Paywall] No package found for plan:', selectedPlan);
@@ -68,7 +242,6 @@ export default function PaywallScreen() {
       router.replace('/(onboarding)/personalizing');
     } catch (error) {
       if (isPurchaseCancellation(error)) {
-        // User cancelled — stay on paywall
         return;
       }
       console.error('[Paywall] Purchase failed:', error);
@@ -83,7 +256,7 @@ export default function PaywallScreen() {
     try {
       const { default: Purchases } = await import('react-native-purchases');
       const info = await Purchases.restorePurchases();
-      const hasPro = info.entitlements.active.pro !== undefined;
+      const hasPro = info.entitlements.active['MotoWise Pro'] !== undefined;
       if (hasPro) {
         router.replace('/(onboarding)/personalizing');
       } else {
@@ -105,7 +278,7 @@ export default function PaywallScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={6} total={TOTAL_STEPS} />
+      <OnboardingProgress screenIndex={15} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         contentContainerStyle={{
@@ -207,157 +380,69 @@ export default function PaywallScreen() {
           entering={FadeInUp.delay(400).duration(300)}
           style={{ gap: 12, marginBottom: 24 }}
         >
-          {/* Annual Card */}
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              setSelectedPlan('annual');
-            }}
-            style={{
-              borderWidth: selectedPlan === 'annual' ? 2 : 1.5,
-              borderColor: selectedPlan === 'annual' ? '#818CF8' : 'rgba(255,255,255,0.15)',
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              padding: 20,
-              backgroundColor:
-                selectedPlan === 'annual' ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
-              position: 'relative',
-              overflow: 'visible',
-            }}
-          >
-            {/* Best Value Badge */}
-            <Animated.View
-              entering={ZoomIn.duration(200).springify()}
+          {offeringsLoading ? (
+            <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+              <ActivityIndicator size="large" color="#818CF8" />
+            </View>
+          ) : fetchError ? (
+            <View
               style={{
-                position: 'absolute',
-                top: -12,
-                right: 16,
-                backgroundColor: '#FACC15',
-                paddingHorizontal: 12,
-                paddingVertical: 4,
-                borderRadius: 12,
-                borderCurve: 'continuous',
+                alignItems: 'center',
+                paddingVertical: 32,
+                paddingHorizontal: 16,
+                gap: 12,
               }}
             >
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#0F172A' }}>
-                {t('paywall.bestValue')}
+              <AlertCircle size={32} color="rgba(255,255,255,0.5)" />
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: 'rgba(255,255,255,0.6)',
+                  textAlign: 'center',
+                }}
+              >
+                {fetchError}
               </Text>
-            </Animated.View>
-
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <View>
-                <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
-                  {t('paywall.annual')}
+              <Pressable
+                onPress={fetchOfferings}
+                style={({ pressed }) => ({
+                  backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#818CF8' }}>
+                  {t('common.retry')}
                 </Text>
-                <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
-                  {t('paywall.annualTrialDays', { days: 7 })}
-                </Text>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
-                  $39.99
-                  <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
-                    /{t('paywall.year')}
-                  </Text>
-                </Text>
-                <Text style={{ fontSize: 13, color: '#34D399', marginTop: 2 }}>
-                  $3.33/{t('paywall.month')}
-                </Text>
-              </View>
+              </Pressable>
             </View>
-
-            {/* Selected indicator */}
-            <View
-              style={{
-                position: 'absolute',
-                top: 20,
-                left: 20,
-                width: 22,
-                height: 22,
-                borderRadius: 11,
-                borderCurve: 'continuous',
-                borderWidth: 2,
-                borderColor: selectedPlan === 'annual' ? '#818CF8' : 'rgba(255,255,255,0.3)',
-                backgroundColor: selectedPlan === 'annual' ? '#818CF8' : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {selectedPlan === 'annual' && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
-            </View>
-          </Pressable>
-
-          {/* Monthly Card */}
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios') {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              }
-              setSelectedPlan('monthly');
-            }}
-            style={{
-              borderWidth: selectedPlan === 'monthly' ? 2 : 1.5,
-              borderColor: selectedPlan === 'monthly' ? '#818CF8' : 'rgba(255,255,255,0.15)',
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              padding: 20,
-              backgroundColor:
-                selectedPlan === 'monthly' ? 'rgba(99, 102, 241, 0.08)' : 'transparent',
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <View>
-                <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
-                  {t('paywall.monthly')}
-                </Text>
-                <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
-                  {t('paywall.monthlyTrialDays', { days: 3 })}
-                </Text>
-              </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
-                  $6.99
-                  <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
-                    /{t('paywall.month')}
-                  </Text>
-                </Text>
-              </View>
-            </View>
-
-            {/* Selected indicator */}
-            <View
-              style={{
-                position: 'absolute',
-                top: 20,
-                left: 20,
-                width: 22,
-                height: 22,
-                borderRadius: 11,
-                borderCurve: 'continuous',
-                borderWidth: 2,
-                borderColor: selectedPlan === 'monthly' ? '#818CF8' : 'rgba(255,255,255,0.3)',
-                backgroundColor: selectedPlan === 'monthly' ? '#818CF8' : 'transparent',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {selectedPlan === 'monthly' && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
-            </View>
-          </Pressable>
+          ) : (
+            <>
+              {annualPrice && (
+                <PricingCard
+                  plan="annual"
+                  selected={selectedPlan === 'annual'}
+                  price={annualPrice}
+                  trialDays={7}
+                  monthlyEquiv={annualMonthlyEquiv}
+                  badge={t('paywall.bestValue')}
+                  onSelect={() => setSelectedPlan('annual')}
+                />
+              )}
+              {monthlyPrice && (
+                <PricingCard
+                  plan="monthly"
+                  selected={selectedPlan === 'monthly'}
+                  price={monthlyPrice}
+                  trialDays={3}
+                  onSelect={() => setSelectedPlan('monthly')}
+                />
+              )}
+            </>
+          )}
         </Animated.View>
 
         {/* Trust Signals */}
@@ -408,7 +493,7 @@ export default function PaywallScreen() {
           ) : (
             <Pressable
               onPress={handlePurchase}
-              disabled={isLoading}
+              disabled={isLoading || offeringsLoading || !!fetchError}
               style={({ pressed }) => ({
                 backgroundColor: '#FFFFFF',
                 borderRadius: 20,
@@ -418,7 +503,7 @@ export default function PaywallScreen() {
                 justifyContent: 'center',
                 flexDirection: 'row',
                 gap: 8,
-                opacity: pressed ? 0.85 : 1,
+                opacity: isLoading || offeringsLoading || fetchError ? 0.5 : pressed ? 0.85 : 1,
               })}
             >
               {isLoading ? (
@@ -454,13 +539,40 @@ export default function PaywallScreen() {
         <Animated.View entering={FadeInUp.delay(700).duration(300)} style={{ marginTop: 12 }}>
           <Pressable
             onPress={handleContinueFree}
-            style={{ alignItems: 'center', paddingVertical: 8 }}
+            disabled={isLoading}
+            style={{ alignItems: 'center', paddingVertical: 8, opacity: isLoading ? 0.3 : 1 }}
           >
             <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
               {t('paywall.continueWithFree')}
             </Text>
           </Pressable>
         </Animated.View>
+
+        {/* Terms & Privacy */}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 }}>
+          <Pressable onPress={() => Linking.openURL('https://motowise.app/terms')}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.3)',
+                textDecorationLine: 'underline',
+              }}
+            >
+              {t('onboarding.termsOfService')}
+            </Text>
+          </Pressable>
+          <Pressable onPress={() => Linking.openURL('https://motowise.app/privacy')}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: 'rgba(255,255,255,0.3)',
+                textDecorationLine: 'underline',
+              }}
+            >
+              {t('onboarding.privacyPolicy')}
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );

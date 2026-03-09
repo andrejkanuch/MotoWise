@@ -1,0 +1,20 @@
+# Monorepo apps not needed for mobile builds
+../../apps/api/
+../../apps/web/
+
+# Documentation and plans
+../../docs/
+../../*.docx
+../../*.md
+!../../README.md
+
+# IDE and editor config
+.vscode/
+.idea/
+
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx

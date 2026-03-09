@@ -22,7 +22,7 @@ export function BikeIcon({
   color?: string;
 }) {
   return (
-    <Svg width={size} height={size * 0.6} viewBox="0 0 100 60">
+    <Svg width={size} height={size * 0.45} viewBox="5 12 90 42">
       <Path d={PATHS[variant]} fill={color} />
     </Svg>
   );

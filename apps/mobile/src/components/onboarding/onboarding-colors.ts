@@ -1,0 +1,16 @@
+export const ONBOARDING_COLORS = {
+  background: '#0F172A',
+  textPrimary: '#FFFFFF',
+  textSecondary: 'rgba(255,255,255,0.6)',
+  textMuted: 'rgba(255,255,255,0.45)',
+  textDimmed: 'rgba(255,255,255,0.3)',
+  cardBg: 'rgba(255,255,255,0.06)',
+  cardBgSelected: 'rgba(255,255,255,0.12)',
+  cardBorder: 'rgba(255,255,255,0.10)',
+  cardBorderDefault: 'rgba(255,255,255,0.08)',
+  accent: '#818CF8',
+  accentBg: 'rgba(99, 102, 241, 0.15)',
+  success: '#34D399',
+  warning: '#F59E0B',
+  error: '#EF4444',
+} as const;

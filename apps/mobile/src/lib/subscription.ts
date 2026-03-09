@@ -26,16 +26,15 @@ export async function initRevenueCat() {
     }
 
     await Purchases.configure({ apiKey });
-    isConfigured = true;
     useSubscriptionStore.getState().setAvailable(true);
 
     // Listen for subscription changes
     Purchases.addCustomerInfoUpdateListener((info) => {
       const store = useSubscriptionStore.getState();
-      const isPro = info.entitlements.active.pro !== undefined;
+      const isPro = info.entitlements.active['MotoWise Pro'] !== undefined;
       store.setPro(isPro);
 
-      const proEntitlement = info.entitlements.active.pro;
+      const proEntitlement = info.entitlements.active['MotoWise Pro'];
       if (proEntitlement?.periodType === 'TRIAL') {
         const expirationDate = proEntitlement.expirationDate;
         if (expirationDate) {
@@ -48,6 +47,9 @@ export async function initRevenueCat() {
         store.setTrialing(false);
       }
     });
+
+    // Mark as configured only after listener is successfully registered
+    isConfigured = true;
   } catch (e) {
     console.error('[RevenueCat] Init failed — subscriptions will be unavailable:', e);
   }

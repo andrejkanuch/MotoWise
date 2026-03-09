@@ -1,142 +1,105 @@
-import type { ExperienceLevel } from '@motolearn/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Bike, Flame, Gauge } from 'lucide-react-native';
-import { useState } from 'react';
+import { Bike } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { OptionCard } from '../../components/option-card';
-import { ProgressBar } from '../../components/progress-bar';
-import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_STEPS } from './config';
-
-const EXPERIENCE_LEVELS = [
-  {
-    key: 'beginner' as ExperienceLevel,
-    descKey: 'beginnerDesc',
-    icon: Bike,
-    color: '#34D399',
-  },
-  {
-    key: 'intermediate' as ExperienceLevel,
-    descKey: 'intermediateDesc',
-    icon: Gauge,
-    color: '#60A5FA',
-  },
-  {
-    key: 'advanced' as ExperienceLevel,
-    descKey: 'advancedDesc',
-    icon: Flame,
-    color: '#F59E0B',
-  },
-] as const;
+import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { TOTAL_SCREENS } from './config';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const setExperienceLevel = useOnboardingStore((s) => s.setExperienceLevel);
-  const [selected, setSelected] = useState<string | null>(null);
 
-  const handleSelect = (key: string) => {
+  const handleGetStarted = () => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setSelected(key);
-  };
-
-  const handleContinue = () => {
-    if (!selected) return;
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    setExperienceLevel(selected as ExperienceLevel);
-    router.push('/(onboarding)/select-bike');
+    router.push('/(onboarding)/experience');
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={1} total={TOTAL_STEPS} />
+      <OnboardingProgress screenIndex={0} totalScreens={TOTAL_SCREENS} />
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 120 }}
-        showsVerticalScrollIndicator={false}
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 32,
+        }}
       >
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              alignSelf: 'center',
+              marginBottom: 32,
+            }}
+          >
+            <Bike size={64} color="#FFFFFF" />
+          </View>
+        </Animated.View>
+
         <Animated.Text
-          entering={FadeInDown.duration(300)}
+          entering={FadeInUp.delay(150).duration(300)}
           style={{
             fontSize: 36,
             fontWeight: '800',
             color: '#FFFFFF',
             letterSpacing: -0.5,
-            marginBottom: 8,
+            textAlign: 'center',
+            marginBottom: 12,
           }}
         >
-          {t('onboarding.welcomeTitle')}
+          {t('onboarding.welcomeHeroTitle')}
         </Animated.Text>
 
         <Animated.Text
-          entering={FadeInUp.delay(150).duration(300)}
+          entering={FadeInUp.delay(300).duration(300)}
           style={{
             fontSize: 17,
             color: 'rgba(255, 255, 255, 0.6)',
             lineHeight: 24,
-            marginBottom: 40,
+            textAlign: 'center',
           }}
         >
-          {t('onboarding.welcomeSubtitle')}
+          {t('onboarding.welcomeHeroSubtitle')}
         </Animated.Text>
-
-        <View style={{ gap: 16 }}>
-          {EXPERIENCE_LEVELS.map((level, index) => (
-            <Animated.View
-              key={level.key}
-              entering={FadeInUp.delay(250 + index * 100)
-                .duration(300)
-                .springify()
-                .damping(18)}
-            >
-              <OptionCard
-                value={level.key}
-                icon={level.icon}
-                title={t(`onboarding.${level.key}`)}
-                subtitle={t(`onboarding.${level.descKey}`)}
-                color={level.color}
-                selected={selected === level.key}
-                onPress={handleSelect}
-              />
-            </Animated.View>
-          ))}
-        </View>
-      </ScrollView>
+      </View>
 
       <Animated.View
-        entering={FadeIn.delay(600).duration(300)}
+        entering={FadeIn.delay(500).duration(300)}
         style={{ paddingHorizontal: 24, paddingBottom: 48 }}
       >
         <Pressable
-          onPress={handleContinue}
-          disabled={!selected}
+          onPress={handleGetStarted}
           style={({ pressed }) => ({
-            backgroundColor: selected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
+            backgroundColor: '#FFFFFF',
             borderRadius: 16,
             borderCurve: 'continuous',
             paddingVertical: 18,
             alignItems: 'center',
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
-            boxShadow: selected ? '0 4px 12px rgba(255, 255, 255, 0.15)' : 'none',
+            boxShadow: '0 4px 12px rgba(255, 255, 255, 0.15)',
           })}
         >
           <Text
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: selected ? '#0F172A' : 'rgba(255, 255, 255, 0.3)',
+              color: '#0F172A',
             }}
           >
-            {t('onboarding.continue')}
+            {t('onboarding.getStarted')}
           </Text>
         </Pressable>
       </Animated.View>

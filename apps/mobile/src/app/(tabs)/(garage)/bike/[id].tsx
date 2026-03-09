@@ -37,15 +37,13 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BikeIcon } from '../../../../components/BikeIcon';
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+import { LottieMotorcycle } from '../../../../components/LottieMotorcycle';
 import { TaskPhotoGallery } from '../../../../components/TaskPhotoGallery';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore, getRelativeDueDate } from '../../../../lib/health-score';
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
-
-const BIKE_VARIANTS = ['sport', 'cruiser', 'adventure', 'standard'] as const;
 
 const PRIORITY_COLORS: Record<string, string> = {
   critical: palette.danger500,
@@ -729,7 +727,6 @@ export default function BikeDetailScreen() {
   const motorcycles = data?.myMotorcycles ?? [];
   const bikeIndex = motorcycles.findIndex((m: { id: string }) => m.id === id);
   const bike = motorcycles[bikeIndex];
-  const variant = BIKE_VARIANTS[Math.max(bikeIndex, 0) % BIKE_VARIANTS.length];
 
   const handleDelete = () => {
     haptic();
@@ -803,11 +800,7 @@ export default function BikeDetailScreen() {
             position: 'relative',
           }}
         >
-          <BikeIcon
-            variant={variant}
-            size={80}
-            color={isDark ? 'rgba(255,255,255,0.2)' : palette.primary300}
-          />
+          <LottieMotorcycle animation="cardPlaceholder" size={140} loop speed={0.5} />
 
           {bike.isPrimary && (
             <View

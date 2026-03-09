@@ -2,10 +2,10 @@ import { GenerateOnboardingInsightsDocument } from '@motolearn/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import * as LucideIcons from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
+import { AlertCircle, BookOpen, Info, Users2, Wrench } from 'lucide-react-native';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -15,10 +15,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProgressBar } from '../../components/progress-bar';
+import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_STEPS } from './config';
+import { TOTAL_SCREENS } from './config';
 
 const TYPE_COLORS: Record<string, string> = {
   maintenance: '#F59E0B',
@@ -26,11 +26,16 @@ const TYPE_COLORS: Record<string, string> = {
   community: '#34D399',
 };
 
+const ICON_MAP: Record<string, React.ComponentType<{ size: number; color: string }>> = {
+  Wrench,
+  BookOpen,
+  Users: Users2,
+  AlertCircle,
+  Info,
+};
+
 function resolveLucideIcon(name: string) {
-  const Icon = (LucideIcons as Record<string, unknown>)[name] as
-    | typeof LucideIcons.Info
-    | undefined;
-  return Icon ?? LucideIcons.Info;
+  return ICON_MAP[name] ?? Info;
 }
 
 function SkeletonCard({ index }: { index: number }) {
@@ -99,6 +104,7 @@ export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
   const { experienceLevel, bikeData, ridingFrequency, maintenanceStyle } = useOnboardingStore();
   const hasFired = useRef(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   const { mutate, data, isPending, isError } = useMutation({
     mutationFn: (input: {
@@ -111,6 +117,9 @@ export default function InsightsScreen() {
       ridingFrequency?: string;
       maintenanceStyle?: string;
     }) => gqlFetcher(GenerateOnboardingInsightsDocument, { input }),
+    onError: (error) => {
+      console.error('[Insights] AI insights generation failed:', error);
+    },
   });
 
   const fireInsights = () => {
@@ -133,6 +142,12 @@ export default function InsightsScreen() {
     fireInsights();
   }, []);
 
+  // 15-second timeout — show skip option if AI takes too long
+  useEffect(() => {
+    const timeout = setTimeout(() => setTimedOut(true), 15000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const insights = data?.generateOnboardingInsights;
   const showCards = insights && insights.length > 0;
   const showLoading = isPending && !showCards;
@@ -142,7 +157,7 @@ export default function InsightsScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    router.push('/(onboarding)/paywall');
+    router.replace('/(onboarding)/paywall');
   };
 
   const handleRetry = () => {
@@ -152,7 +167,7 @@ export default function InsightsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <ProgressBar step={5} total={TOTAL_STEPS} />
+      <OnboardingProgress screenIndex={14} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         contentContainerStyle={{
@@ -162,6 +177,22 @@ export default function InsightsScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {bikeData?.photoUri && (
+          <Animated.View
+            entering={FadeIn.duration(300)}
+            style={{ alignItems: 'center', marginBottom: 20 }}
+          >
+            <Image
+              source={{ uri: bikeData.photoUri }}
+              style={{
+                width: 120,
+                height: 90,
+                borderRadius: 16,
+              }}
+            />
+          </Animated.View>
+        )}
+
         <Animated.Text
           entering={FadeIn.duration(300)}
           style={{
@@ -204,7 +235,7 @@ export default function InsightsScreen() {
               paddingVertical: 48,
             }}
           >
-            <LucideIcons.AlertCircle size={40} color="rgba(255,255,255,0.4)" />
+            <AlertCircle size={40} color="rgba(255,255,255,0.4)" />
             <Text
               style={{
                 fontSize: 16,
@@ -302,7 +333,7 @@ export default function InsightsScreen() {
             gap: 8,
           }}
         >
-          <LucideIcons.Users size={16} color="rgba(255,255,255,0.4)" />
+          <Users2 size={16} color="rgba(255,255,255,0.4)" />
           <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
             {t('onboarding.insightsSocialProof')}
           </Text>
@@ -325,20 +356,32 @@ export default function InsightsScreen() {
         <Animated.View entering={FadeInUp.delay(500).duration(300)}>
           <Pressable
             onPress={handleContinue}
-            disabled={showLoading}
+            disabled={isPending}
             style={({ pressed }) => ({
               backgroundColor: pressed ? '#6366F1' : '#818CF8',
               borderRadius: 16,
               borderCurve: 'continuous',
               paddingVertical: 16,
               alignItems: 'center',
-              opacity: showLoading ? 0.5 : 1,
+              opacity: isPending ? 0.5 : 1,
             })}
           >
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
               {t('onboarding.insightsCta')}
             </Text>
           </Pressable>
+
+          {/* Skip option — appears after error or timeout */}
+          {(showError || (timedOut && isPending)) && (
+            <Pressable
+              onPress={handleContinue}
+              style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
+            >
+              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+                {t('common.skip')}
+              </Text>
+            </Pressable>
+          )}
         </Animated.View>
       </View>
     </View>
