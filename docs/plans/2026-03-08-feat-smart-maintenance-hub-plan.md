@@ -1,7 +1,7 @@
 ---
 title: Smart Maintenance Hub
 type: feat
-status: active
+status: completed
 date: 2026-03-08
 linear: MOT-61
 deepened: 2026-03-08
