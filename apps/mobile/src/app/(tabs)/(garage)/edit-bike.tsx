@@ -8,7 +8,6 @@ import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  KeyboardAvoidingView,
   Pressable,
   ScrollView,
   Switch,
@@ -104,11 +103,11 @@ export default function EditBikeScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <View
       style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
-      behavior="padding"
     >
       <ScrollView
+        keyboardDismissMode="interactive"
         style={{ flex: 1 }}
         contentContainerStyle={{
           padding: 20,
@@ -240,6 +239,6 @@ export default function EditBikeScreen() {
           </Pressable>
         </Animated.View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
