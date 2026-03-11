@@ -534,8 +534,8 @@ export default function BikeDetailScreen() {
     .filter(
       (t) => t.completedAt && new Date(t.completedAt).getFullYear() === new Date().getFullYear(),
     )
-    .reduce((sum, t) => sum + (t.estimatedCost ?? 0), 0);
-  const spendAllTime = completedTasks.reduce((sum, t) => sum + (t.estimatedCost ?? 0), 0);
+    .reduce((sum, t) => sum + (t.cost ?? 0), 0);
+  const spendAllTime = completedTasks.reduce((sum, t) => sum + (t.cost ?? 0), 0);
 
   // --- Handlers ---
 

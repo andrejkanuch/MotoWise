@@ -42,7 +42,7 @@ export function MileageDisplay({
         { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },
         {
           text: t('common.save', { defaultValue: 'Save' }),
-          onPress: (value) => {
+          onPress: (value: string | undefined) => {
             const num = Number.parseInt(value ?? '', 10);
             if (Number.isNaN(num) || num < 0) return;
             if (currentMileage != null && num < currentMileage) {
