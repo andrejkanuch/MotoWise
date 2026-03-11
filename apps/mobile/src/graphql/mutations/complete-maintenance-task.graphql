@@ -1,12 +1,29 @@
-mutation CompleteMaintenanceTask($id: String!, $input: CompleteMaintenanceTaskInput) {
-  completeMaintenanceTask(id: $id, input: $input) {
-    id
-    status
-    completedAt
-    completedMileage
-    cost
-    partsCost
-    laborCost
-    currency
+mutation CompleteMaintenanceTask($id: String!, $input: CompleteMaintenanceTaskInput, $createNextOccurrence: Boolean) {
+  completeMaintenanceTask(id: $id, input: $input, createNextOccurrence: $createNextOccurrence) {
+    completed {
+      id
+      status
+      completedAt
+      completedMileage
+      cost
+      partsCost
+      laborCost
+      currency
+    }
+    nextOccurrence {
+      id
+      title
+      description
+      dueDate
+      targetMileage
+      priority
+      status
+      isRecurring
+      intervalKm
+      intervalDays
+      source
+      motorcycleId
+      createdAt
+    }
   }
 }

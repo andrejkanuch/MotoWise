@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -70,6 +66,14 @@ input CompleteOnboardingInput {
   maintenanceStyle: String
   ridingFrequency: String
   ridingGoals: [String!]!
+}
+
+type CompleteTaskResult {
+  """The task that was marked as completed"""
+  completed: MaintenanceTask!
+
+  """The next occurrence if recurring and user opted in, null otherwise"""
+  nextOccurrence: MaintenanceTask
 }
 
 type ContentFlag {
@@ -260,7 +264,7 @@ type MotorcycleModelResult {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
-  completeMaintenanceTask(id: String!, input: CompleteMaintenanceTaskInput): MaintenanceTask!
+  completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!

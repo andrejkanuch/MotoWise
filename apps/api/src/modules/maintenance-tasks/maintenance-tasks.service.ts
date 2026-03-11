@@ -191,6 +191,7 @@ export class MaintenanceTasksService {
       .update(updates)
       .eq('id', id)
       .eq('user_id', userId)
+      .in('status', ['pending', 'in_progress'])
       .is('deleted_at', null)
       .select()
       .single();
@@ -218,11 +219,12 @@ export class MaintenanceTasksService {
     return true;
   }
 
-  async findAllHistory(motorcycleId: string, limit = 100): Promise<MaintenanceTask[]> {
-    this.logger.debug(`findAllHistory: motorcycleId=${motorcycleId}, limit=${limit}`);
-    const { data, error } = await this.adminClient
+  async findAllHistory(userId: string, motorcycleId: string, limit = 100): Promise<MaintenanceTask[]> {
+    this.logger.debug(`findAllHistory: userId=${userId}, motorcycleId=${motorcycleId}, limit=${limit}`);
+    const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')
+      .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })

@@ -1,5 +1,6 @@
 import {
   AddTaskPhotoSchema,
+  CompleteMaintenanceTaskSchema,
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motolearn/types';
@@ -15,6 +16,7 @@ import { CompleteMaintenanceTaskInput } from './dto/complete-task.input';
 import { CreateMaintenanceTaskInput } from './dto/create-maintenance-task.input';
 import { UpdateMaintenanceTaskInput } from './dto/update-maintenance-task.input';
 import { MaintenanceTasksService } from './maintenance-tasks.service';
+import { CompleteTaskResult } from './models/complete-task-result.model';
 import { MaintenanceTask } from './models/maintenance-task.model';
 import { SpendingSummary } from './models/spending-summary.model';
 import { TaskPhoto } from './models/task-photo.model';
@@ -41,11 +43,11 @@ export class MaintenanceTasksResolver {
   @Query(() => [MaintenanceTask])
   @UseGuards(GqlAuthGuard)
   async maintenanceTaskHistory(
-    @CurrentUser() _user: AuthUser,
+    @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
     @Args('limit', { type: () => Int, nullable: true, defaultValue: 100 }) limit: number,
   ): Promise<MaintenanceTask[]> {
-    return this.maintenanceTasksService.findAllHistory(motorcycleId, limit);
+    return this.maintenanceTasksService.findAllHistory(user.id, motorcycleId, limit);
   }
 
   @Mutation(() => MaintenanceTask)
@@ -69,21 +71,23 @@ export class MaintenanceTasksResolver {
     return this.maintenanceTasksService.update(user.id, id, input);
   }
 
-  @Mutation(() => MaintenanceTask)
+  @Mutation(() => CompleteTaskResult)
   @UseGuards(GqlAuthGuard)
   async completeMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('input', { nullable: true }) input?: CompleteMaintenanceTaskInput,
-  ): Promise<MaintenanceTask> {
+    @Args('input', { type: () => CompleteMaintenanceTaskInput, nullable: true }, new ZodValidationPipe(CompleteMaintenanceTaskSchema))
+    input: CompleteMaintenanceTaskInput | null,
+    @Args('createNextOccurrence', { type: () => Boolean, nullable: true })
+    createNextOccurrence: boolean | null,
+  ): Promise<CompleteTaskResult> {
     const completed = await this.maintenanceTasksService.complete(user.id, id, input);
-
-    // If the task is recurring, create the next occurrence
-    if (completed.isRecurring) {
-      await this.maintenanceTasksService.createNextRecurrence(completed);
+    const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
+    let nextOccurrence: MaintenanceTask | undefined;
+    if (shouldCreateNext) {
+      nextOccurrence = await this.maintenanceTasksService.createNextRecurrence(completed) ?? undefined;
     }
-
-    return completed;
+    return { completed, nextOccurrence };
   }
 
   @Mutation(() => Boolean)
