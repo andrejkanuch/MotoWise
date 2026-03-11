@@ -1,7 +1,7 @@
 import { palette } from '@motolearn/design-system';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { PlatformColor, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 
 export default function GarageLayout() {
   const { t } = useTranslation();
