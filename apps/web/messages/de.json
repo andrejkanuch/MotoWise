@@ -8,7 +8,7 @@
   "Navbar": {
     "features": "Funktionen",
     "faq": "Häufige Fragen",
-    "download": "App Herunterladen",
+    "download": "Early Access",
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen"
@@ -17,8 +17,8 @@
     "line1": "LERNE DEIN BIKE.",
     "line2": "REPARIERE",
     "line3": "DEIN BIKE.",
-    "subtitle": "KI-gestützte Motorraddiagnose & Lernen — alles in einer App.",
-    "downloadCta": "Kostenlos Herunterladen",
+    "subtitle": "KI-gestützte Motorraddiagnose & Lernen — bald verfügbar.",
+    "downloadCta": "Early Access",
     "exploreFeatures": "Funktionen Entdecken",
     "scrollDown": "Nach unten scrollen"
   },
@@ -28,94 +28,100 @@
     "diag": {
       "title": "KI-Diagnose",
       "tagline": "Mach ein Foto. Erhalte Antworten.",
-      "description": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor — alles in Sekunden."
+      "description": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor — alles in Sekunden.",
+      "badge": "< 5 Sek."
     },
     "learn": {
       "title": "Lernpfade",
       "tagline": "Strukturierte Kurse für jedes Niveau.",
-      "description": "Tauche ein in Motorinterna, Fahrwerkseinstellung, Elektrik und Routinewartung — jeweils mit Lektionen, Quizzen und praktischen Herausforderungen."
+      "description": "Tauche ein in Motorinterna, Fahrwerkseinstellung, Elektrik und Routinewartung — jeweils mit Lektionen, Quizzen und praktischen Herausforderungen.",
+      "badge": "50+ Lektionen"
     },
     "garage": {
       "title": "Garagenverwaltung",
       "tagline": "Verwalte deine Bikes.",
-      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Protokolliere Wartungen, stelle Serviceerinnerungen ein und führe eine vollständige Historie, damit nichts vergessen wird."
+      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Protokolliere Wartungen, stelle Serviceerinnerungen ein und führe eine vollständige Historie, damit nichts vergessen wird.",
+      "badge": "Unbegrenzte Bikes"
     },
     "progress": {
       "title": "Fortschrittsverfolgung",
       "tagline": "Meistere dein Wissen.",
-      "description": "Steige auf, wenn du Lektionen abschließt und Quizze bestehst. Verdiene Abzeichen, verfolge Punkte über alle Module hinweg und beobachte, wie dein Fachwissen mit der Zeit wächst."
+      "description": "Steige auf, wenn du Lektionen abschließt und Quizze bestehst. Verdiene Abzeichen, verfolge Punkte über alle Module hinweg und beobachte, wie dein Fachwissen mit der Zeit wächst.",
+      "badge": "Fortschritt verfolgen"
     },
     "community": {
       "title": "Community",
       "tagline": "Schließe dich anderen Fahrern an.",
-      "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser."
+      "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser.",
+      "badge": "Demnächst"
     }
   },
   "SocialProof": {
-    "riders": "Aktive Fahrer",
-    "ridersValue": "12.000",
+    "riders": "Early-Access-Fahrer",
+    "ridersCount": "12.000+",
     "diagnostics": "KI-Diagnosen",
-    "diagnosticsValue": "85.000",
-    "bikes": "Bikes Verwaltet",
-    "bikesValue": "18.000"
+    "diagnosticsCount": "85.000+",
+    "bikes": "Unterstützte Bikes",
+    "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionTitle": "So Funktioniert's",
     "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
     "step1Title": "Füge Dein Bike Hinzu",
-    "step1Description": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
+    "step1Desc": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
     "step2Title": "Erhalte KI-Einblicke",
-    "step2Description": "Mach ein Foto von jedem Teil oder Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor.",
+    "step2Desc": "Mach ein Foto von jedem Teil oder Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor.",
     "step3Title": "Verfolge & Lerne",
-    "step3Description": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
+    "step3Desc": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
   },
   "Testimonials": {
     "sectionTitle": "Was Fahrer Sagen",
+    "badge": "Early Access",
     "items": [
       {
         "name": "Alex R.",
         "bike": "2022 Yamaha MT-07",
-        "text": "MotoWise hat ein Kettenspannungsproblem diagnostiziert, das ich ignoriert hatte. Hat mich vor einer Panne auf einer langen Fahrt bewahrt.",
+        "quote": "MotoWise hat ein Kettenspannungsproblem diagnostiziert, das ich ignoriert hatte. Hat mich vor einer Panne auf einer langen Fahrt bewahrt.",
         "stars": 5
       },
       {
         "name": "Maria G.",
         "bike": "2021 Honda CB650R",
-        "text": "Die Lernpfade sind perfekt für jemanden, der neu im Schrauben ist. Ich habe dank MotoWise meine eigenen Bremsbeläge gewechselt.",
+        "quote": "Die Lernpfade sind perfekt für jemanden, der neu im Schrauben ist. Ich habe dank MotoWise meine eigenen Bremsbeläge gewechselt.",
         "stars": 5
       },
       {
         "name": "Jake T.",
         "bike": "2023 Kawasaki Z900",
-        "text": "Meine gesamte Wartungshistorie an einem Ort zu haben ist ein Gamechanger. Kein Rätselraten mehr, wann der letzte Ölwechsel war.",
+        "quote": "Meine gesamte Wartungshistorie an einem Ort zu haben ist ein Gamechanger. Kein Rätselraten mehr, wann der letzte Ölwechsel war.",
         "stars": 4
       },
       {
         "name": "Sarah K.",
         "bike": "2020 BMW F 750 GS",
-        "text": "Die KI-Diagnose hat mich umgehauen. Kamera auf eine Warnleuchte gerichtet und in Sekunden die genaue Erklärung bekommen.",
+        "quote": "Die KI-Diagnose hat mich umgehauen. Kamera auf eine Warnleuchte gerichtet und in Sekunden die genaue Erklärung bekommen.",
         "stars": 5
       },
       {
         "name": "Tom W.",
         "bike": "2019 Ducati Monster 821",
-        "text": "Endlich eine App, die Motorradwartung ernst nimmt. Allein die Garage-Funktion ist es wert.",
+        "quote": "Endlich eine App, die Motorradwartung ernst nimmt. Allein die Garage-Funktion ist es wert.",
         "stars": 4
       }
     ]
   },
   "Cta": {
-    "socialProof": "Über 12.000 Fahrer vertrauen uns weltweit",
-    "headline": "Bereit, Dein Motorrad zu Meistern?",
-    "subtitle": "Schließe dich Tausenden von Fahrern an, die bereits mit KI lernen.",
-    "appStorePrefix": "Laden im",
+    "socialProof": "Vertraut von Fahrern im Early Access",
+    "headline": "Sei der Erste, der sein Motorrad meistert",
+    "subtitle": "Erhalte Early Access, wenn wir auf iOS und Android starten.",
+    "appStorePrefix": "Bald im",
     "appStore": "App Store",
-    "playStorePrefix": "Jetzt bei",
+    "playStorePrefix": "Bald bei",
     "playStore": "Google Play",
-    "trustFree": "Kostenlos starten",
+    "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
     "trustCancel": "Jederzeit kündbar",
-    "disclaimer": "Kostenloser Download. Keine Kreditkarte erforderlich."
+    "disclaimer": "Bald verfügbar auf iOS und Android."
   },
   "Faq": {
     "sectionTitle": "Häufig Gestellte Fragen",
@@ -138,7 +144,7 @@
       },
       {
         "question": "Sind meine Daten sicher?",
-        "answer": "Absolut. MotoWise verwendet Supabase mit Sicherheit auf Zeilenebene, um deine Daten zu schützen. Authentifizierungstoken werden sicher gespeichert, und wir geben deine persönlichen Informationen oder Bike-Daten niemals an Dritte weiter."
+        "answer": "Deine Daten sind durch Verschlüsselung auf Unternehmensniveau und strenge Zugriffskontrollen geschützt. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert, und alle Daten werden über HTTPS übertragen. Wir geben deine persönlichen Informationen oder Bike-Daten niemals an Dritte weiter."
       },
       {
         "question": "Was ist in MotoWise Pro enthalten?",
@@ -153,12 +159,11 @@
     "tagline": "Lerne dein Bike. Repariere dein Bike.",
     "copyright": "© 2026 MotoWise. Alle Rechte vorbehalten.",
     "features": "Funktionen",
-    "download": "Herunterladen",
+    "download": "Early Access",
     "faq": "Häufige Fragen",
     "privacy": "Datenschutz",
     "terms": "Nutzungsbedingungen",
-    "admin": "Admin",
-    "builtWithAi": "Mit KI gebaut",
+    "builtWithAi": "Angetrieben von KI",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"
@@ -171,7 +176,7 @@
     "howWeUseTitle": "Wie wir Deine Informationen Verwenden",
     "howWeUse": "Wir verwenden deine Informationen, um die Dienste von MotoWise bereitzustellen und zu verbessern, einschließlich personalisierter Lernempfehlungen, KI-Diagnoseanalyse und Garagenverwaltung. Wir verkaufen deine persönlichen Daten nicht an Dritte.",
     "securityTitle": "Datensicherheit",
-    "security": "MotoWise verwendet Supabase mit Sicherheitsrichtlinien auf Zeilenebene, um deine Daten zu schützen. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert. Alle Daten werden über HTTPS übertragen.",
+    "security": "MotoWise verwendet Verschlüsselung auf Unternehmensniveau mit strengen Zugriffskontrollrichtlinien, um deine Daten zu schützen. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert. Alle Daten werden über HTTPS übertragen.",
     "rightsTitle": "Deine Rechte",
     "rights": "Du kannst deine Daten jederzeit über deine Profileinstellungen exportieren oder löschen. Bei Fragen zu deinen Daten kontaktiere uns unter privacy@motowise.app."
   },

@@ -10,14 +10,6 @@ const GRID_CLASSES: Record<FeatureKey, string> = {
   community: 'lg:[grid-area:community]',
 };
 
-const BADGES: Record<FeatureKey, string> = {
-  diag: '< 5 sec',
-  learn: '50+ lessons',
-  garage: 'Unlimited bikes',
-  progress: 'Track progress',
-  community: 'Coming soon',
-};
-
 const FEATURES = [
   {
     key: 'diag' as const,
@@ -170,7 +162,7 @@ export async function FeaturesGrid() {
 
                   {/* Metric badge */}
                   <span className="rounded-full border border-neutral-700 bg-neutral-800 px-3 py-1 text-xs font-medium text-accent-400">
-                    {BADGES[feature.key]}
+                    {t(`${feature.key}.badge`)}
                   </span>
                 </div>
 

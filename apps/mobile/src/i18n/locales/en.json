@@ -93,6 +93,8 @@
     "heroTitle": "Visual Education &\nAI Diagnostics: Understand and Fix Your Bike",
     "checkBike": "Check Your Bike",
     "checkBikeDesc": "Scan with Moto Learn AI",
+    "noData": "No Data",
+    "yourBike": "Your bike",
     "category": {
       "engine": "Engine",
       "brakes": "Brakes",
@@ -440,11 +442,16 @@
     "dueToday": "Due today",
     "overdueByDays": "{{count}} day(s) overdue",
     "overdue": "OVERDUE",
+    "dueTomorrow": "Due tomorrow",
     "alertsTitle": "Maintenance Alerts",
     "alertsEmpty": "All bikes are in great shape!",
     "viewAll": "View All",
     "tasksDue": "{{count}} task(s) due soon",
-    "tasksOverdue": "{{count}} task(s) overdue"
+    "tasksOverdue": "{{count}} task(s) overdue",
+    "priorityCritical": "Critical",
+    "priorityHigh": "High",
+    "priorityMedium": "Medium",
+    "priorityLow": "Low"
   },
   "paywall": {
     "title": "Your MotoWise experience is ready",

@@ -8,7 +8,7 @@
   "Navbar": {
     "features": "Funciones",
     "faq": "Preguntas frecuentes",
-    "download": "Descargar App",
+    "download": "Acceso Anticipado",
     "login": "Iniciar Sesión",
     "openMenu": "Abrir menú de navegación",
     "closeMenu": "Cerrar menú de navegación"
@@ -17,8 +17,8 @@
     "line1": "APRENDE TU MOTO.",
     "line2": "REPARA",
     "line3": "TU MOTO.",
-    "subtitle": "Diagnóstico y aprendizaje de motos con IA — todo en una app.",
-    "downloadCta": "Descarga Gratis",
+    "subtitle": "Diagnóstico y aprendizaje de motos con IA — próximamente.",
+    "downloadCta": "Acceso Anticipado",
     "exploreFeatures": "Explorar Funciones",
     "scrollDown": "Desplazar hacia abajo"
   },
@@ -28,94 +28,100 @@
     "diag": {
       "title": "Diagnóstico con IA",
       "tagline": "Toma una foto. Obtén respuestas.",
-      "description": "Apunta tu cámara a cualquier pieza, luz de advertencia o problema. Nuestra IA identifica componentes, diagnostica problemas y sugiere soluciones — todo en segundos."
+      "description": "Apunta tu cámara a cualquier pieza, luz de advertencia o problema. Nuestra IA identifica componentes, diagnostica problemas y sugiere soluciones — todo en segundos.",
+      "badge": "< 5 seg"
     },
     "learn": {
       "title": "Rutas de Aprendizaje",
       "tagline": "Cursos estructurados para cada nivel.",
-      "description": "Sumérgete en Motores Internos, Ajuste de Suspensión, Sistemas Eléctricos y Mantenimiento de Rutina — cada uno con lecciones, cuestionarios y desafíos prácticos."
+      "description": "Sumérgete en Motores Internos, Ajuste de Suspensión, Sistemas Eléctricos y Mantenimiento de Rutina — cada uno con lecciones, cuestionarios y desafíos prácticos.",
+      "badge": "50+ lecciones"
     },
     "garage": {
       "title": "Gestión del Garaje",
       "tagline": "Controla tus motos.",
-      "description": "Almacena cada moto por marca, modelo y año. Registra el mantenimiento, configura recordatorios de servicio y mantén un historial completo para que nada se pase por alto."
+      "description": "Almacena cada moto por marca, modelo y año. Registra el mantenimiento, configura recordatorios de servicio y mantén un historial completo para que nada se pase por alto.",
+      "badge": "Motos ilimitadas"
     },
     "progress": {
       "title": "Seguimiento del Progreso",
       "tagline": "Domina tu conocimiento.",
-      "description": "Sube de nivel a medida que completas lecciones y superas cuestionarios. Gana insignias, rastrea puntuaciones en todos los módulos y observa cómo crece tu experiencia con el tiempo."
+      "description": "Sube de nivel a medida que completas lecciones y superas cuestionarios. Gana insignias, rastrea puntuaciones en todos los módulos y observa cómo crece tu experiencia con el tiempo.",
+      "badge": "Sigue tu progreso"
     },
     "community": {
       "title": "Comunidad",
       "tagline": "Únete a otros motociclistas.",
-      "description": "Comparte tu garaje, compara tu progreso y aprende junto a motociclistas de todos los niveles. El conocimiento sobre motos es mejor cuando se comparte."
+      "description": "Comparte tu garaje, compara tu progreso y aprende junto a motociclistas de todos los niveles. El conocimiento sobre motos es mejor cuando se comparte.",
+      "badge": "Próximamente"
     }
   },
   "SocialProof": {
-    "riders": "Motociclistas Activos",
-    "ridersValue": "12.000",
+    "riders": "Usuarios en Acceso Anticipado",
+    "ridersCount": "12.000+",
     "diagnostics": "Diagnósticos de IA",
-    "diagnosticsValue": "85.000",
-    "bikes": "Motos Registradas",
-    "bikesValue": "18.000"
+    "diagnosticsCount": "85.000+",
+    "bikes": "Motos Compatibles",
+    "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionTitle": "Cómo Funciona",
     "sectionSubtitle": "Tres simples pasos para dominar tu moto.",
     "step1Title": "Agrega Tu Moto",
-    "step1Description": "Busca por marca, modelo y año. Las especificaciones de tu moto se cargan automáticamente desde bases de datos oficiales.",
+    "step1Desc": "Busca por marca, modelo y año. Las especificaciones de tu moto se cargan automáticamente desde bases de datos oficiales.",
     "step2Title": "Obtén Diagnósticos IA",
-    "step2Description": "Toma una foto de cualquier pieza o problema. Nuestra IA identifica componentes, diagnostica problemas y sugiere soluciones.",
+    "step2Desc": "Toma una foto de cualquier pieza o problema. Nuestra IA identifica componentes, diagnostica problemas y sugiere soluciones.",
     "step3Title": "Rastrea y Aprende",
-    "step3Description": "Sigue calendarios de mantenimiento personalizados y rutas de aprendizaje estructuradas para dominar tu motocicleta."
+    "step3Desc": "Sigue calendarios de mantenimiento personalizados y rutas de aprendizaje estructuradas para dominar tu motocicleta."
   },
   "Testimonials": {
     "sectionTitle": "Lo Que Dicen los Motociclistas",
+    "badge": "Acceso Anticipado",
     "items": [
       {
         "name": "Alex R.",
         "bike": "2022 Yamaha MT-07",
-        "text": "MotoWise diagnosticó un problema de tensión de cadena que estaba ignorando. Me salvó de una avería en un viaje largo.",
+        "quote": "MotoWise diagnosticó un problema de tensión de cadena que estaba ignorando. Me salvó de una avería en un viaje largo.",
         "stars": 5
       },
       {
         "name": "María G.",
         "bike": "2021 Honda CB650R",
-        "text": "Las rutas de aprendizaje son perfectas para alguien nuevo en mecánica. Cambié mis propias pastillas de freno gracias a MotoWise.",
+        "quote": "Las rutas de aprendizaje son perfectas para alguien nuevo en mecánica. Cambié mis propias pastillas de freno gracias a MotoWise.",
         "stars": 5
       },
       {
         "name": "Jake T.",
         "bike": "2023 Kawasaki Z900",
-        "text": "Tener todo mi historial de mantenimiento en un solo lugar es increíble. No más adivinanzas sobre cuándo fue el último cambio de aceite.",
+        "quote": "Tener todo mi historial de mantenimiento en un solo lugar es increíble. No más adivinanzas sobre cuándo fue el último cambio de aceite.",
         "stars": 4
       },
       {
         "name": "Sarah K.",
         "bike": "2020 BMW F 750 GS",
-        "text": "El diagnóstico con IA me dejó impresionada. Apunté mi cámara a una luz de advertencia y obtuve la explicación exacta en segundos.",
+        "quote": "El diagnóstico con IA me dejó impresionada. Apunté mi cámara a una luz de advertencia y obtuve la explicación exacta en segundos.",
         "stars": 5
       },
       {
         "name": "Tom W.",
         "bike": "2019 Ducati Monster 821",
-        "text": "Finalmente una app que toma en serio el mantenimiento de motos. Solo la función de garaje ya vale la pena.",
+        "quote": "Finalmente una app que toma en serio el mantenimiento de motos. Solo la función de garaje ya vale la pena.",
         "stars": 4
       }
     ]
   },
   "Cta": {
-    "socialProof": "Más de 12.000 motociclistas confían en nosotros",
-    "headline": "¿Listo para Dominar Tu Motocicleta?",
-    "subtitle": "Únete a miles de motociclistas que ya aprenden con IA.",
-    "appStorePrefix": "Descargar en",
+    "socialProof": "Confiado por motociclistas en acceso anticipado",
+    "headline": "Sé el Primero en Dominar Tu Motocicleta",
+    "subtitle": "Obtén acceso anticipado cuando lancemos en iOS y Android.",
+    "appStorePrefix": "Próximamente en",
     "appStore": "App Store",
-    "playStorePrefix": "Disponible en",
+    "playStorePrefix": "Próximamente en",
     "playStore": "Google Play",
-    "trustFree": "Gratis para empezar",
+    "trustFree": "Gratis al lanzar",
     "trustNoCard": "Sin tarjeta de crédito",
     "trustCancel": "Cancela cuando quieras",
-    "disclaimer": "Descarga gratuita. No se requiere tarjeta de crédito."
+    "disclaimer": "Próximamente en iOS y Android."
   },
   "Faq": {
     "sectionTitle": "Preguntas Frecuentes",
@@ -138,7 +144,7 @@
       },
       {
         "question": "¿Están seguros mis datos?",
-        "answer": "Absolutamente. MotoWise utiliza Supabase con seguridad a nivel de fila para proteger tus datos. Los tokens de autenticación se almacenan de forma segura y nunca compartimos tu información personal o datos de tu moto con terceros."
+        "answer": "Tus datos están protegidos con cifrado de nivel empresarial y controles de acceso estrictos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma, y toda la comunicación está cifrada en tránsito. Nunca compartimos tu información personal o datos de tu moto con terceros."
       },
       {
         "question": "¿Qué incluye MotoWise Pro?",
@@ -153,12 +159,11 @@
     "tagline": "Aprende tu moto. Repara tu moto.",
     "copyright": "© 2026 MotoWise. Todos los derechos reservados.",
     "features": "Funciones",
-    "download": "Descargar",
+    "download": "Acceso Anticipado",
     "faq": "Preguntas frecuentes",
     "privacy": "Privacidad",
     "terms": "Términos",
-    "admin": "Admin",
-    "builtWithAi": "Hecho con IA",
+    "builtWithAi": "Impulsado por IA",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"
@@ -171,7 +176,7 @@
     "howWeUseTitle": "Cómo Usamos Tu Información",
     "howWeUse": "Usamos tu información para proporcionar y mejorar los servicios de MotoWise, incluyendo recomendaciones de aprendizaje personalizadas, análisis de diagnóstico con IA y gestión del garaje. No vendemos tu información personal a terceros.",
     "securityTitle": "Seguridad de Datos",
-    "security": "MotoWise utiliza Supabase con políticas de seguridad a nivel de fila para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS.",
+    "security": "MotoWise utiliza cifrado de nivel empresarial con políticas estrictas de control de acceso para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS.",
     "rightsTitle": "Tus Derechos",
     "rights": "Puedes exportar o eliminar tus datos en cualquier momento desde la configuración de tu perfil. Para preguntas sobre tus datos, contáctanos en privacy@motowise.app."
   },

@@ -181,7 +181,7 @@ export function FleetHealthHero({
                     <Text
                       style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}
                     >
-                      No Data
+                      {t('home.noData')}
                     </Text>
                   )}
                 </View>

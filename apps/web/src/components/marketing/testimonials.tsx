@@ -63,9 +63,14 @@ export async function Testimonials() {
 
                 {/* Author */}
                 <div className="mt-4 border-t border-neutral-800 pt-4">
-                  <p className="text-sm font-semibold text-neutral-50">
-                    {t(`items.${index}.name`)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-neutral-50">
+                      {t(`items.${index}.name`)}
+                    </p>
+                    <span className="rounded-full bg-warm-500/10 px-2 py-0.5 text-xs font-medium text-warm-400">
+                      {t('badge')}
+                    </span>
+                  </div>
                   <p className="text-xs text-neutral-500">{t(`items.${index}.bike`)}</p>
                 </div>
               </div>

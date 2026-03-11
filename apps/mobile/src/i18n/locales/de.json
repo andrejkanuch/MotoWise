@@ -93,6 +93,8 @@
     "heroTitle": "Visuelle Bildung &\nKI-Diagnose: Verstehe und Repariere dein Motorrad",
     "checkBike": "Motorrad pruefen",
     "checkBikeDesc": "Mit Moto Learn KI scannen",
+    "noData": "Keine Daten",
+    "yourBike": "Dein Motorrad",
     "category": {
       "engine": "Motor",
       "brakes": "Bremsen",
@@ -440,11 +442,16 @@
     "dueToday": "Heute fällig",
     "overdueByDays": "{{count}} Tag(e) überfällig",
     "overdue": "ÜBERFÄLLIG",
+    "dueTomorrow": "Morgen fällig",
     "alertsTitle": "Wartungshinweise",
     "alertsEmpty": "Alle Motorräder sind in bestem Zustand!",
     "viewAll": "Alle anzeigen",
     "tasksDue": "{{count}} Aufgabe(n) bald fällig",
-    "tasksOverdue": "{{count}} Aufgabe(n) überfällig"
+    "tasksOverdue": "{{count}} Aufgabe(n) überfällig",
+    "priorityCritical": "Kritisch",
+    "priorityHigh": "Hoch",
+    "priorityMedium": "Mittel",
+    "priorityLow": "Niedrig"
   },
   "paywall": {
     "title": "Dein MotoWise-Erlebnis ist bereit",

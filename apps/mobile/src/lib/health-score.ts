@@ -112,7 +112,8 @@ export function computeHealthScore(tasks: TaskInput[]): HealthScoreResult {
 }
 
 export function getRelativeDueDate(dueDate: string): {
-  text: string;
+  key: string;
+  params?: Record<string, number>;
   isOverdue: boolean;
   daysAway: number;
 } {
@@ -122,13 +123,23 @@ export function getRelativeDueDate(dueDate: string): {
   const diffDays = Math.floor((due.getTime() - today.getTime()) / 86400000);
 
   if (diffDays < 0) {
-    return { text: `${Math.abs(diffDays)}d overdue`, isOverdue: true, daysAway: diffDays };
+    return {
+      key: 'maintenance.overdueByDays',
+      params: { count: Math.abs(diffDays) },
+      isOverdue: true,
+      daysAway: diffDays,
+    };
   }
   if (diffDays === 0) {
-    return { text: 'Due today', isOverdue: false, daysAway: 0 };
+    return { key: 'maintenance.dueToday', isOverdue: false, daysAway: 0 };
   }
   if (diffDays === 1) {
-    return { text: 'Due tomorrow', isOverdue: false, daysAway: 1 };
+    return { key: 'maintenance.dueTomorrow', isOverdue: false, daysAway: 1 };
   }
-  return { text: `Due in ${diffDays}d`, isOverdue: false, daysAway: diffDays };
+  return {
+    key: 'maintenance.dueInDays',
+    params: { count: diffDays },
+    isOverdue: false,
+    daysAway: diffDays,
+  };
 }

@@ -6,7 +6,7 @@ import { useState } from 'react';
 export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const t = useTranslations('Faq');
-  const items = t.raw('items') as Array<{ question: string; answer: string }>;
+  const FAQ_KEYS = [0, 1, 2, 3, 4, 5] as const;
 
   function toggle(index: number) {
     setOpenIndex(openIndex === index ? null : index);
@@ -38,10 +38,10 @@ export function Faq() {
 
         {/* Accordion */}
         <div className="flex flex-col gap-2">
-          {items.map((item, index) => {
+          {FAQ_KEYS.map((index) => {
             const isOpen = openIndex === index;
             return (
-              <div key={item.question} className="border-b border-neutral-800/50">
+              <div key={index} className="border-b border-neutral-800/50">
                 <button
                   type="button"
                   onClick={() => toggle(index)}
@@ -54,7 +54,7 @@ export function Faq() {
                   <span className="text-sm font-medium text-accent-500">
                     {String(index + 1).padStart(2, '0')}.
                   </span>
-                  <span className="font-medium">{item.question}</span>
+                  <span className="font-medium">{t(`items.${index}.question`)}</span>
                   <svg
                     width="20"
                     height="20"
@@ -91,7 +91,7 @@ export function Faq() {
                         transitionDelay: isOpen ? '100ms' : '0ms',
                       }}
                     >
-                      {item.answer}
+                      {t(`items.${index}.answer`)}
                     </div>
                   </div>
                 </section>

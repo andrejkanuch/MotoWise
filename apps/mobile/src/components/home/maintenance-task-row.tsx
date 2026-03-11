@@ -1,10 +1,18 @@
 import { palette } from '@motolearn/design-system';
 import * as Haptics from 'expo-haptics';
 import { AlertTriangle, ChevronRight, Wrench } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CardWrapper } from './card-wrapper';
 import type { TaskWithRelative } from './home-types';
+
+const PRIORITY_LABEL_KEYS: Record<string, string> = {
+  critical: 'maintenance.priorityCritical',
+  high: 'maintenance.priorityHigh',
+  medium: 'maintenance.priorityMedium',
+  low: 'maintenance.priorityLow',
+};
 
 interface MaintenanceTaskRowProps {
   task: TaskWithRelative;
@@ -21,6 +29,7 @@ export function MaintenanceTaskRow({
   index,
   onPress,
 }: MaintenanceTaskRowProps) {
+  const { t } = useTranslation();
   const isOverdue = task.relative.isOverdue;
   const isHighPriority = task.priority === 'critical' || task.priority === 'high';
 
@@ -100,7 +109,7 @@ export function MaintenanceTaskRow({
                   }}
                 >
                   <Text style={{ fontSize: 10, fontWeight: '700', color: palette.danger500 }}>
-                    {task.priority}
+                    {String(t(PRIORITY_LABEL_KEYS[task.priority] as never))}
                   </Text>
                 </View>
               )}
@@ -114,7 +123,7 @@ export function MaintenanceTaskRow({
                 color: isOverdue ? palette.danger500 : palette.warning500,
               }}
             >
-              {task.relative.text}
+              {String(t(task.relative.key as never, task.relative.params as never))}
             </Text>
           </View>
           <ChevronRight size={16} color={palette.neutral400} strokeWidth={2} />

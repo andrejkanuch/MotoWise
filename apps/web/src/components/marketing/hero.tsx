@@ -83,12 +83,12 @@ export function Hero() {
 
         {/* Right: App Preview Phone Mockup (~45%) */}
         <div
-          className="hero-moto-parallax pointer-events-none absolute inset-0 flex items-center justify-end opacity-30 md:relative md:w-[45%] md:opacity-100"
+          className="hero-moto-parallax pointer-events-none hidden items-center justify-end md:relative md:flex md:w-[45%]"
           aria-hidden="true"
         >
           <AppPreview
             imageSrc="/images/app-preview-home.png"
-            alt="MotoWise app home screen showing fleet health"
+            alt="MotoWise app showing your bike's diagnostics and maintenance"
           />
         </div>
       </div>

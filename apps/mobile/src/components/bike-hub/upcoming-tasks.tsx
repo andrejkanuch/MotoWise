@@ -145,7 +145,7 @@ export function UpcomingTasks({ tasks, isDark, onTaskPress, onSeeAllPress }: Upc
                           color: relative.isOverdue ? palette.danger500 : palette.neutral400,
                         }}
                       >
-                        {relative.text}
+                        {String(t(relative.key as never, relative.params as never))}
                       </Text>
                     </View>
                   )}
@@ -179,7 +179,7 @@ export function UpcomingTasks({ tasks, isDark, onTaskPress, onSeeAllPress }: Upc
                     letterSpacing: 0.3,
                   }}
                 >
-                  {task.priority}
+                  {String(t(`maintenance.priority${task.priority.charAt(0).toUpperCase()}${task.priority.slice(1)}` as never))}
                 </Text>
               </View>
 

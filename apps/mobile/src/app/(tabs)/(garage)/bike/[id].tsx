@@ -105,6 +105,7 @@ function InfoRow({ label, value, isDark }: { label: string; value: string; isDar
 }
 
 function PriorityBadge({ priority }: { priority: string }) {
+  const { t } = useTranslation();
   const color = PRIORITY_COLORS[priority] ?? palette.neutral500;
   return (
     <View
@@ -125,7 +126,7 @@ function PriorityBadge({ priority }: { priority: string }) {
           letterSpacing: 0.3,
         }}
       >
-        {priority}
+        {String(t(`maintenance.priority${priority.charAt(0).toUpperCase()}${priority.slice(1)}` as never))}
       </Text>
     </View>
   );
@@ -212,7 +213,7 @@ function SwipeableTaskCard({
                       color: relative.isOverdue ? palette.danger500 : palette.neutral400,
                     }}
                   >
-                    {relative.text}
+                    {String(t(relative.key as never, relative.params as never))}
                   </Text>
                 </View>
               )}
@@ -246,7 +247,7 @@ function SwipeableTaskCard({
                       letterSpacing: 0.3,
                     }}
                   >
-                    OVERDUE
+                    {t('maintenance.overdue')}
                   </Text>
                 </View>
               ) : (

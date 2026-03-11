@@ -1,4 +1,3 @@
-import NextLink from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
 import { Link } from '@/i18n/navigation';
@@ -49,19 +48,12 @@ export async function Footer() {
     { label: t('terms'), href: '/terms' },
   ];
 
-  const connectLinks = [
-    { label: t('instagram'), href: 'https://instagram.com/motowiseapp', external: true },
-    { label: t('youtube'), href: 'https://youtube.com/@motowiseapp', external: true },
-    { label: t('x'), href: 'https://x.com/motowiseapp', external: true },
-  ];
-
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-black">
       <div className="mx-auto max-w-7xl px-6 pb-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <FooterColumn title={t('product')} links={productLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
-          <FooterColumn title={t('connect')} links={connectLinks} />
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 md:flex-row">
@@ -72,15 +64,7 @@ export async function Footer() {
 
           <p className="text-xs text-neutral-600">{t('builtWithAi')}</p>
 
-          <div className="flex items-center gap-4">
-            <p className="text-xs text-neutral-500">{t('copyright')}</p>
-            <NextLink
-              href="/admin"
-              className="text-xs text-neutral-500 transition-colors hover:text-neutral-400"
-            >
-              {t('admin')}
-            </NextLink>
-          </div>
+          <p className="text-xs text-neutral-500">{t('copyright')}</p>
         </div>
       </div>
     </footer>

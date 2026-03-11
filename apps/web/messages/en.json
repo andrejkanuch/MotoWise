@@ -8,7 +8,7 @@
   "Navbar": {
     "features": "Features",
     "faq": "FAQ",
-    "download": "Download App",
+    "download": "Get Early Access",
     "login": "Log In",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu"
@@ -17,8 +17,8 @@
     "line1": "LEARN YOUR BIKE.",
     "line2": "FIX",
     "line3": "YOUR BIKE.",
-    "subtitle": "AI-powered motorcycle diagnostics & learning — all in one app.",
-    "downloadCta": "Download Free",
+    "subtitle": "AI-powered motorcycle diagnostics & learning — launching soon.",
+    "downloadCta": "Get Early Access",
     "exploreFeatures": "Explore Features",
     "scrollDown": "Scroll down"
   },
@@ -28,94 +28,100 @@
     "diag": {
       "title": "AI Diagnostics",
       "tagline": "Snap a photo. Get answers.",
-      "description": "Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds."
+      "description": "Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds.",
+      "badge": "< 5 sec"
     },
     "learn": {
       "title": "Learning Paths",
       "tagline": "Structured courses for every skill level.",
-      "description": "Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges."
+      "description": "Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges.",
+      "badge": "50+ lessons"
     },
     "garage": {
       "title": "Garage Management",
       "tagline": "Track your bikes.",
-      "description": "Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed."
+      "description": "Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed.",
+      "badge": "Unlimited bikes"
     },
     "progress": {
       "title": "Progress Tracking",
       "tagline": "Master your knowledge.",
-      "description": "Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time."
+      "description": "Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time.",
+      "badge": "Track progress"
     },
     "community": {
       "title": "Community",
       "tagline": "Join fellow riders.",
-      "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together."
+      "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together.",
+      "badge": "Coming soon"
     }
   },
   "SocialProof": {
-    "riders": "Active Riders",
-    "ridersValue": "12,000",
-    "diagnostics": "AI Diagnostics Run",
-    "diagnosticsValue": "85,000",
-    "bikes": "Bikes Tracked",
-    "bikesValue": "18,000"
+    "riders": "Early Access Riders",
+    "ridersCount": "12,000+",
+    "diagnostics": "AI Diagnostics",
+    "diagnosticsCount": "85,000+",
+    "bikes": "Bikes Supported",
+    "bikesCount": "18,000+"
   },
   "HowItWorks": {
     "sectionTitle": "How It Works",
     "sectionSubtitle": "Three simple steps to motorcycle mastery.",
     "step1Title": "Add Your Bike",
-    "step1Description": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
+    "step1Desc": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
     "step2Title": "Get AI Insights",
-    "step2Description": "Snap a photo of any part or issue. Our AI identifies components, diagnoses problems, and suggests fixes.",
+    "step2Desc": "Snap a photo of any part or issue. Our AI identifies components, diagnoses problems, and suggests fixes.",
     "step3Title": "Track & Learn",
-    "step3Description": "Follow personalized maintenance schedules and structured learning paths to master your motorcycle."
+    "step3Desc": "Follow personalized maintenance schedules and structured learning paths to master your motorcycle."
   },
   "Testimonials": {
     "sectionTitle": "What Riders Say",
+    "badge": "Early Access",
     "items": [
       {
         "name": "Alex R.",
         "bike": "2022 Yamaha MT-07",
-        "text": "MotoWise diagnosed a chain tension issue I'd been ignoring. Saved me from a breakdown on a long ride.",
+        "quote": "MotoWise diagnosed a chain tension issue I'd been ignoring. Saved me from a breakdown on a long ride.",
         "stars": 5
       },
       {
         "name": "Maria G.",
         "bike": "2021 Honda CB650R",
-        "text": "The learning paths are perfect for someone who's new to wrenching. I changed my own brake pads thanks to MotoWise.",
+        "quote": "The learning paths are perfect for someone who's new to wrenching. I changed my own brake pads thanks to MotoWise.",
         "stars": 5
       },
       {
         "name": "Jake T.",
         "bike": "2023 Kawasaki Z900",
-        "text": "Having all my maintenance history in one place is a game changer. No more guessing when the last oil change was.",
+        "quote": "Having all my maintenance history in one place is a game changer. No more guessing when the last oil change was.",
         "stars": 4
       },
       {
         "name": "Sarah K.",
         "bike": "2020 BMW F 750 GS",
-        "text": "The AI diagnostics blew my mind. Pointed my camera at a warning light and got the exact issue explained in seconds.",
+        "quote": "The AI diagnostics blew my mind. Pointed my camera at a warning light and got the exact issue explained in seconds.",
         "stars": 5
       },
       {
         "name": "Tom W.",
         "bike": "2019 Ducati Monster 821",
-        "text": "Finally an app that treats motorcycle maintenance seriously. The garage feature alone is worth it.",
+        "quote": "Finally an app that treats motorcycle maintenance seriously. The garage feature alone is worth it.",
         "stars": 4
       }
     ]
   },
   "Cta": {
-    "socialProof": "Trusted by 12,000+ riders worldwide",
-    "headline": "Ready to Master Your Motorcycle?",
-    "subtitle": "Join thousands of riders already learning with AI.",
-    "appStorePrefix": "Download on the",
+    "socialProof": "Trusted by riders in early access",
+    "headline": "Be First to Master Your Motorcycle",
+    "subtitle": "Get early access when we launch on iOS and Android.",
+    "appStorePrefix": "Coming soon to",
     "appStore": "App Store",
-    "playStorePrefix": "Get it on",
+    "playStorePrefix": "Coming soon on",
     "playStore": "Google Play",
-    "trustFree": "Free to start",
+    "trustFree": "Free at launch",
     "trustNoCard": "No credit card",
     "trustCancel": "Cancel anytime",
-    "disclaimer": "Free to download. No credit card required."
+    "disclaimer": "Launching soon on iOS and Android."
   },
   "Faq": {
     "sectionTitle": "Frequently Asked Questions",
@@ -138,7 +144,7 @@
       },
       {
         "question": "Is my data safe?",
-        "answer": "Absolutely. MotoWise uses Supabase with row-level security to protect your data. Authentication tokens are stored securely, and we never share your personal information or bike data with third parties."
+        "answer": "Your data is protected with enterprise-grade encryption and strict access controls. Authentication tokens are stored using platform-native secure storage, and all communication is encrypted in transit. We never share your personal information or bike data with third parties."
       },
       {
         "question": "What's included in MotoWise Pro?",
@@ -153,12 +159,11 @@
     "tagline": "Learn your bike. Fix your bike.",
     "copyright": "© 2026 MotoWise. All rights reserved.",
     "features": "Features",
-    "download": "Download",
+    "download": "Early Access",
     "faq": "FAQ",
     "privacy": "Privacy",
     "terms": "Terms",
-    "admin": "Admin",
-    "builtWithAi": "Built with AI",
+    "builtWithAi": "Powered by AI",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"
@@ -171,7 +176,7 @@
     "howWeUseTitle": "How We Use Your Information",
     "howWeUse": "We use your information to provide and improve MotoWise's services, including personalized learning recommendations, AI diagnostic analysis, and garage management. We do not sell your personal information to third parties.",
     "securityTitle": "Data Security",
-    "security": "MotoWise uses Supabase with row-level security policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS.",
+    "security": "MotoWise uses enterprise-grade encryption with strict access control policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS.",
     "rightsTitle": "Your Rights",
     "rights": "You can export or delete your data at any time from your profile settings. For questions about your data, contact us at privacy@motowise.app."
   },
