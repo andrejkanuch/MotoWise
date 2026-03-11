@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Check, Wrench } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -30,6 +30,7 @@ export default function CompleteTaskScreen() {
 
   const [scheduleNext, setScheduleNext] = useState(true);
   const [completed, setCompleted] = useState(false);
+  const mutatingRef = useRef(false);
 
   const tasksQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -65,6 +66,7 @@ export default function CompleteTaskScreen() {
       });
     },
     onError: (_err: Error) => {
+      mutatingRef.current = false;
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
         t('maintenance.completeError', {
@@ -204,7 +206,11 @@ export default function CompleteTaskScreen() {
 
       <Animated.View entering={FadeIn.delay(200).duration(300)}>
         <Pressable
-          onPress={() => completeMutation.mutate()}
+          onPress={() => {
+            if (mutatingRef.current) return;
+            mutatingRef.current = true;
+            completeMutation.mutate();
+          }}
           disabled={completeMutation.isPending || completed}
           style={{
             backgroundColor: completed ? palette.success500 : palette.primary500,

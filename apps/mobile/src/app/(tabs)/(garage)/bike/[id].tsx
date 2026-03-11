@@ -27,7 +27,7 @@ import {
   Trash2,
   Wrench,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
@@ -513,12 +513,20 @@ export default function BikeDetailScreen() {
 
   type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   const tasks: Task[] = tasksData?.maintenanceTasks ?? [];
-  const activeTasks = tasks
-    .filter((t: Task) => t.status === 'pending' || t.status === 'in_progress')
-    .sort(
-      (a: Task, b: Task) => (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99),
-    );
-  const completedTasks = tasks.filter((t: Task) => t.status === 'completed');
+  const activeTasks = useMemo(
+    () =>
+      tasks
+        .filter((t: Task) => t.status === 'pending' || t.status === 'in_progress')
+        .sort(
+          (a: Task, b: Task) =>
+            (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99),
+        ),
+    [tasks],
+  );
+  const completedTasks = useMemo(
+    () => tasks.filter((t: Task) => t.status === 'completed'),
+    [tasks],
+  );
 
   useEffect(() => {
     if (expandedId && !activeTasks.find((t) => t.id === expandedId)) {
