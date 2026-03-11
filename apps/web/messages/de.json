@@ -9,6 +9,7 @@
     "features": "Funktionen",
     "faq": "Häufige Fragen",
     "download": "App Herunterladen",
+    "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen"
   },
@@ -50,13 +51,70 @@
       "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser."
     }
   },
+  "SocialProof": {
+    "riders": "Aktive Fahrer",
+    "ridersValue": "12.000",
+    "diagnostics": "KI-Diagnosen",
+    "diagnosticsValue": "85.000",
+    "bikes": "Bikes Verwaltet",
+    "bikesValue": "18.000"
+  },
+  "HowItWorks": {
+    "sectionTitle": "So Funktioniert's",
+    "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
+    "step1Title": "Füge Dein Bike Hinzu",
+    "step1Description": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
+    "step2Title": "Erhalte KI-Einblicke",
+    "step2Description": "Mach ein Foto von jedem Teil oder Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor.",
+    "step3Title": "Verfolge & Lerne",
+    "step3Description": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
+  },
+  "Testimonials": {
+    "sectionTitle": "Was Fahrer Sagen",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "text": "MotoWise hat ein Kettenspannungsproblem diagnostiziert, das ich ignoriert hatte. Hat mich vor einer Panne auf einer langen Fahrt bewahrt.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "text": "Die Lernpfade sind perfekt für jemanden, der neu im Schrauben ist. Ich habe dank MotoWise meine eigenen Bremsbeläge gewechselt.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "text": "Meine gesamte Wartungshistorie an einem Ort zu haben ist ein Gamechanger. Kein Rätselraten mehr, wann der letzte Ölwechsel war.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "text": "Die KI-Diagnose hat mich umgehauen. Kamera auf eine Warnleuchte gerichtet und in Sekunden die genaue Erklärung bekommen.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "text": "Endlich eine App, die Motorradwartung ernst nimmt. Allein die Garage-Funktion ist es wert.",
+        "stars": 4
+      }
+    ]
+  },
   "Cta": {
+    "socialProof": "Über 12.000 Fahrer vertrauen uns weltweit",
     "headline": "Bereit, Dein Motorrad zu Meistern?",
     "subtitle": "Schließe dich Tausenden von Fahrern an, die bereits mit KI lernen.",
     "appStorePrefix": "Laden im",
     "appStore": "App Store",
     "playStorePrefix": "Jetzt bei",
     "playStore": "Google Play",
+    "trustFree": "Kostenlos starten",
+    "trustNoCard": "Keine Kreditkarte",
+    "trustCancel": "Jederzeit kündbar",
     "disclaimer": "Kostenloser Download. Keine Kreditkarte erforderlich."
   },
   "Faq": {
@@ -100,6 +158,7 @@
     "privacy": "Datenschutz",
     "terms": "Nutzungsbedingungen",
     "admin": "Admin",
+    "builtWithAi": "Mit KI gebaut",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"

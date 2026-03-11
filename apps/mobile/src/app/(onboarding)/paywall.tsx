@@ -18,7 +18,7 @@ import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 

@@ -12,7 +12,7 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 function detectTypeFromModel(modelName: string): MotorcycleType | null {
   const lower = modelName.toLowerCase();

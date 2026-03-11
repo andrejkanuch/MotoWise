@@ -7,6 +7,10 @@ query MyMotorcycles {
     year
     nickname
     isPrimary
+    primaryPhotoUrl
+    currentMileage
+    mileageUnit
+    mileageUpdatedAt
     createdAt
   }
 }

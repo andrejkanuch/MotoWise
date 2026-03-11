@@ -10,7 +10,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { MileageSlider } from '../../components/onboarding/mileage-slider';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 const defaultUnit: MileageUnit = getLocales()[0]?.measurementSystem === 'metric' ? 'km' : 'mi';
 

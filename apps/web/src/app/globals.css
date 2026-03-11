@@ -137,6 +137,52 @@
   }
 }
 
+/* Phone mockup float animation */
+@keyframes phone-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.phone-float {
+  animation: phone-float 4s ease-in-out infinite;
+}
+
+/* Social proof stat counter (CSS counter via @property) */
+@property --stat-value {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+@keyframes count-up {
+  from {
+    --stat-value: 0;
+  }
+}
+
+/* How-it-works connector line draw */
+@supports (animation-timeline: view()) {
+  .draw-line {
+    animation: draw-connector 0.8s ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 50%;
+  }
+
+  @keyframes draw-connector {
+    from {
+      stroke-dashoffset: 100%;
+    }
+    to {
+      stroke-dashoffset: 0%;
+    }
+  }
+}
+
 /* Grain texture overlay — static PNG tile for performance (no mix-blend-mode) */
 .grain-overlay::after {
   content: "";

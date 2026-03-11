@@ -20,6 +20,8 @@ export default function GarageLayout() {
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: isDark ? palette.neutral50 : palette.neutral950,
+        headerTitleStyle: { color: isDark ? palette.neutral50 : palette.neutral950 },
       }}
     >
       <Stack.Screen name="index" options={{ title: t('tabs.garage') }} />
@@ -28,6 +30,7 @@ export default function GarageLayout() {
         options={{
           title: t('garage.bikeDetails', { defaultValue: 'Bike Details' }),
           headerLargeTitle: false,
+          headerBackButtonDisplayMode: 'default',
         }}
       />
       <Stack.Screen

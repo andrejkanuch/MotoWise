@@ -18,7 +18,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 const GOAL_OPTIONS: {
   value: RidingGoal;

@@ -112,7 +112,13 @@ export function Navbar() {
           ))}
           <LanguageSwitcher />
           <a
-            href="#download"
+            href="/login"
+            className="text-sm text-neutral-400 transition-colors hover:text-neutral-50"
+          >
+            {t('login')}
+          </a>
+          <a
+            href="#cta"
             className="rounded-full bg-warm-500 px-4 py-1.5 text-sm font-semibold text-neutral-950 transition-opacity hover:opacity-90"
           >
             {t('download')}

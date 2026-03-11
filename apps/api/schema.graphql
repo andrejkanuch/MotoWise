@@ -50,6 +50,14 @@ type ArticleEdge {
   node: Article!
 }
 
+input CompleteMaintenanceTaskInput {
+  completedMileage: Int
+  cost: Float
+  currency: String
+  laborCost: Float
+  partsCost: Float
+}
+
 input CompleteOnboardingInput {
   bikeMake: String
   bikeMileage: Int
@@ -186,16 +194,20 @@ enum MaintenancePriority {
 type MaintenanceTask {
   completedAt: String
   completedMileage: Int
+  cost: Float
   createdAt: String!
+  currency: String
   description: String
   dueDate: String
   id: ID!
   intervalDays: Int
   intervalKm: Int
   isRecurring: Boolean!
+  laborCost: Float
   motorcycleId: String!
   notes: String
   oemScheduleId: String
+  partsCost: Float
   partsNeeded: [String!]
   photos: [TaskPhoto!]!
   priority: MaintenancePriority!
@@ -222,11 +234,15 @@ enum MaintenanceTaskStatus {
 
 type Motorcycle {
   createdAt: String!
+  currentMileage: Int
   id: ID!
   isPrimary: Boolean!
   make: String!
+  mileageUnit: String
+  mileageUpdatedAt: String
   model: String!
   nickname: String
+  primaryPhotoUrl: String
   userId: String!
   year: Int!
 }
@@ -244,7 +260,7 @@ type MotorcycleModelResult {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
-  completeMaintenanceTask(completedMileage: Int, id: String!): MaintenanceTask!
+  completeMaintenanceTask(id: String!, input: CompleteMaintenanceTaskInput): MaintenanceTask!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
@@ -315,6 +331,7 @@ type Query {
   quizByArticle(articleId: String!): Quiz
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
+  spendingSummary(motorcycleId: String!): SpendingSummary!
   user: User!
 }
 
@@ -380,6 +397,11 @@ type SharedTaskInfo {
   title: String!
 }
 
+type SpendingSummary {
+  allTime: Float!
+  thisYear: Float!
+}
+
 input SubmitDiagnosticInput {
   dataSharingOptedIn: Boolean! = false
   description: String
@@ -414,9 +436,13 @@ input UpdateMaintenanceTaskInput {
 }
 
 input UpdateMotorcycleInput {
+  currentMileage: Int
+  isPrimary: Boolean
   make: String
+  mileageUnit: String
   model: String
   nickname: String
+  primaryPhotoUrl: String
   year: Int
 }
 

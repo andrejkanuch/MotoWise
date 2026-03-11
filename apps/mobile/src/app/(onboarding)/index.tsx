@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();

@@ -1,8 +1,12 @@
-mutation CompleteMaintenanceTask($id: String!, $completedMileage: Int) {
-  completeMaintenanceTask(id: $id, completedMileage: $completedMileage) {
+mutation CompleteMaintenanceTask($id: String!, $input: CompleteMaintenanceTaskInput) {
+  completeMaintenanceTask(id: $id, input: $input) {
     id
     status
     completedAt
     completedMileage
+    cost
+    partsCost
+    laborCost
+    currency
   }
 }

@@ -64,6 +64,11 @@ export const palette = {
   gradientCTAStart: '#1b3a6b',
   gradientCTAEnd: '#2563eb',
 
+  // Hero gradient (3-stop for depth)
+  gradientHeroStart: '#0f1f3d',
+  gradientHeroMid: '#1b3a6b',
+  gradientHeroEnd: '#2563eb',
+
   // Tab bar
   tabActive: '#3366e6',
   tabInactive: '#a3a3a3',

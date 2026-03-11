@@ -9,6 +9,7 @@
     "features": "Funciones",
     "faq": "Preguntas frecuentes",
     "download": "Descargar App",
+    "login": "Iniciar Sesión",
     "openMenu": "Abrir menú de navegación",
     "closeMenu": "Cerrar menú de navegación"
   },
@@ -50,13 +51,70 @@
       "description": "Comparte tu garaje, compara tu progreso y aprende junto a motociclistas de todos los niveles. El conocimiento sobre motos es mejor cuando se comparte."
     }
   },
+  "SocialProof": {
+    "riders": "Motociclistas Activos",
+    "ridersValue": "12.000",
+    "diagnostics": "Diagnósticos de IA",
+    "diagnosticsValue": "85.000",
+    "bikes": "Motos Registradas",
+    "bikesValue": "18.000"
+  },
+  "HowItWorks": {
+    "sectionTitle": "Cómo Funciona",
+    "sectionSubtitle": "Tres simples pasos para dominar tu moto.",
+    "step1Title": "Agrega Tu Moto",
+    "step1Description": "Busca por marca, modelo y año. Las especificaciones de tu moto se cargan automáticamente desde bases de datos oficiales.",
+    "step2Title": "Obtén Diagnósticos IA",
+    "step2Description": "Toma una foto de cualquier pieza o problema. Nuestra IA identifica componentes, diagnostica problemas y sugiere soluciones.",
+    "step3Title": "Rastrea y Aprende",
+    "step3Description": "Sigue calendarios de mantenimiento personalizados y rutas de aprendizaje estructuradas para dominar tu motocicleta."
+  },
+  "Testimonials": {
+    "sectionTitle": "Lo Que Dicen los Motociclistas",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "text": "MotoWise diagnosticó un problema de tensión de cadena que estaba ignorando. Me salvó de una avería en un viaje largo.",
+        "stars": 5
+      },
+      {
+        "name": "María G.",
+        "bike": "2021 Honda CB650R",
+        "text": "Las rutas de aprendizaje son perfectas para alguien nuevo en mecánica. Cambié mis propias pastillas de freno gracias a MotoWise.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "text": "Tener todo mi historial de mantenimiento en un solo lugar es increíble. No más adivinanzas sobre cuándo fue el último cambio de aceite.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "text": "El diagnóstico con IA me dejó impresionada. Apunté mi cámara a una luz de advertencia y obtuve la explicación exacta en segundos.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "text": "Finalmente una app que toma en serio el mantenimiento de motos. Solo la función de garaje ya vale la pena.",
+        "stars": 4
+      }
+    ]
+  },
   "Cta": {
+    "socialProof": "Más de 12.000 motociclistas confían en nosotros",
     "headline": "¿Listo para Dominar Tu Motocicleta?",
     "subtitle": "Únete a miles de motociclistas que ya aprenden con IA.",
     "appStorePrefix": "Descargar en",
     "appStore": "App Store",
     "playStorePrefix": "Disponible en",
     "playStore": "Google Play",
+    "trustFree": "Gratis para empezar",
+    "trustNoCard": "Sin tarjeta de crédito",
+    "trustCancel": "Cancela cuando quieras",
     "disclaimer": "Descarga gratuita. No se requiere tarjeta de crédito."
   },
   "Faq": {
@@ -100,6 +158,7 @@
     "privacy": "Privacidad",
     "terms": "Términos",
     "admin": "Admin",
+    "builtWithAi": "Hecho con IA",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"

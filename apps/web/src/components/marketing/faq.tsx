@@ -15,17 +15,33 @@ export function Faq() {
   return (
     <section id="faq" className="px-4 py-24">
       <div className="mx-auto max-w-4xl">
-        {/* Section header */}
-        <h2 className="reveal-on-scroll mb-16 text-center text-3xl font-bold tracking-tight text-neutral-50 md:text-4xl">
-          {t('sectionTitle')}
-        </h2>
+        {/* Section header with icon */}
+        <div className="reveal-on-scroll mb-16 flex items-center justify-center gap-3 text-center">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-8 text-primary-400"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+          <h2 className="text-3xl font-bold tracking-tight text-neutral-50 md:text-4xl">
+            {t('sectionTitle')}
+          </h2>
+        </div>
 
-        {/* Responsive accordion */}
+        {/* Accordion */}
         <div className="flex flex-col gap-2">
           {items.map((item, index) => {
             const isOpen = openIndex === index;
             return (
-              <div key={item.question} className="border-b border-neutral-800">
+              <div key={item.question} className="border-b border-neutral-800/50">
                 <button
                   type="button"
                   onClick={() => toggle(index)}
@@ -67,7 +83,9 @@ export function Faq() {
                 >
                   <div className="overflow-hidden">
                     <div
-                      className="pb-4 text-base leading-relaxed text-neutral-300 transition-opacity duration-300 lg:max-w-2xl"
+                      className={`pb-4 text-base leading-7 text-neutral-300 transition-opacity duration-300 lg:max-w-2xl ${
+                        isOpen ? 'border-l-2 border-primary-400 pl-4' : ''
+                      }`}
                       style={{
                         opacity: isOpen ? 1 : 0,
                         transitionDelay: isOpen ? '100ms' : '0ms',

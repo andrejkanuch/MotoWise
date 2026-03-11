@@ -23,6 +23,7 @@ export const queryKeys = {
     byMotorcycle: (motorcycleId: string) =>
       ['maintenance-tasks', 'motorcycle', motorcycleId] as const,
     history: (motorcycleId: string) => ['maintenance-tasks', 'history', motorcycleId] as const,
+    spending: (motorcycleId: string) => ['maintenance-tasks', 'spending', motorcycleId] as const,
   },
   articles: {
     all: ['articles'] as const,

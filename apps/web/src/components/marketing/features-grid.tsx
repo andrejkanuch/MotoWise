@@ -10,9 +10,17 @@ const GRID_CLASSES: Record<FeatureKey, string> = {
   community: 'lg:[grid-area:community]',
 };
 
+const BADGES: Record<FeatureKey, string> = {
+  diag: '< 5 sec',
+  learn: '50+ lessons',
+  garage: 'Unlimited bikes',
+  progress: 'Track progress',
+  community: 'Coming soon',
+};
+
 const FEATURES = [
   {
-    key: 'diag',
+    key: 'diag' as const,
     accentClass: 'text-primary-400',
     glowColor: 'oklch(0.65 0.14 230 / 0.08)',
     icon: (
@@ -35,7 +43,7 @@ const FEATURES = [
     ),
   },
   {
-    key: 'learn',
+    key: 'learn' as const,
     accentClass: 'text-accent-400',
     glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
@@ -56,7 +64,7 @@ const FEATURES = [
     ),
   },
   {
-    key: 'garage',
+    key: 'garage' as const,
     accentClass: 'text-warm-400',
     glowColor: 'oklch(0.76 0.13 70 / 0.08)',
     icon: (
@@ -75,7 +83,7 @@ const FEATURES = [
     ),
   },
   {
-    key: 'progress',
+    key: 'progress' as const,
     accentClass: 'text-accent-400',
     glowColor: 'oklch(0.65 0.15 160 / 0.08)',
     icon: (
@@ -95,7 +103,7 @@ const FEATURES = [
     ),
   },
   {
-    key: 'community',
+    key: 'community' as const,
     accentClass: 'text-primary-300',
     glowColor: 'oklch(0.76 0.1 230 / 0.08)',
     icon: (
@@ -116,7 +124,7 @@ const FEATURES = [
       </svg>
     ),
   },
-] as const;
+];
 
 export async function FeaturesGrid() {
   const t = await getTranslations('Features');
@@ -137,23 +145,33 @@ export async function FeaturesGrid() {
           {FEATURES.map((feature, index) => (
             <article
               key={feature.key}
-              className={`reveal-on-scroll group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 md:p-8 ${GRID_CLASSES[feature.key]}`}
+              className={`reveal-on-scroll group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 md:p-8 ${GRID_CLASSES[feature.key]}`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Radial glow — intensifies on hover */}
               <div
-                className="pointer-events-none absolute inset-0 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
                 style={{
                   background: `radial-gradient(ellipse at 50% 0%, ${feature.glowColor}, transparent 70%)`,
                 }}
               />
 
+              {/* Bottom accent on hover */}
+              <div className="absolute inset-x-0 bottom-0 h-[2px] bg-transparent transition-colors duration-300 group-hover:bg-primary-500/50" />
+
               {/* Content */}
               <div className="relative z-10 flex h-full flex-col">
-                <div
-                  className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 ${feature.accentClass}`}
-                >
-                  {feature.icon}
+                <div className="flex items-start justify-between">
+                  <div
+                    className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 transition-transform duration-300 group-hover:rotate-[5deg] group-hover:scale-105 ${feature.accentClass}`}
+                  >
+                    {feature.icon}
+                  </div>
+
+                  {/* Metric badge */}
+                  <span className="rounded-full border border-neutral-700 bg-neutral-800 px-3 py-1 text-xs font-medium text-accent-400">
+                    {BADGES[feature.key]}
+                  </span>
                 </div>
 
                 <h3 className="text-lg font-semibold text-neutral-50">

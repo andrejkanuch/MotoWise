@@ -4,6 +4,9 @@ import { CtaSection } from '@/components/marketing/cta-section';
 import { Faq } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
+import { HowItWorks } from '@/components/marketing/how-it-works';
+import { SocialProofBar } from '@/components/marketing/social-proof-bar';
+import { Testimonials } from '@/components/marketing/testimonials';
 import { BASE_URL } from '@/lib/constants';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -62,7 +65,10 @@ export default async function HomePage() {
       <JsonLd data={organizationSchema} />
       <JsonLd data={faqSchema} />
       <Hero />
+      <SocialProofBar />
+      <HowItWorks />
       <FeaturesGrid />
+      <Testimonials />
       <CtaSection />
       <Faq />
     </>

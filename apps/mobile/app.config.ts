@@ -15,7 +15,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   slug: 'motowise',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './src/assets/icon.png',
+  icon: './src/assets/images/MotoWise.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   scheme: 'motowise',

@@ -1,93 +1,5 @@
 import { useTranslations } from 'next-intl';
-
-function MotorcycleSVG() {
-  return (
-    <svg
-      viewBox="0 0 800 500"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-full w-full"
-      aria-hidden="true"
-    >
-      {/* Rear wheel */}
-      <circle cx="200" cy="380" r="95" stroke="var(--color-neutral-700)" strokeWidth="8" />
-      <circle cx="200" cy="380" r="70" stroke="var(--color-neutral-800)" strokeWidth="3" />
-      <circle cx="200" cy="380" r="12" fill="var(--color-neutral-700)" />
-      {/* Front wheel */}
-      <circle cx="620" cy="380" r="95" stroke="var(--color-neutral-700)" strokeWidth="8" />
-      <circle cx="620" cy="380" r="70" stroke="var(--color-neutral-800)" strokeWidth="3" />
-      <circle cx="620" cy="380" r="12" fill="var(--color-neutral-700)" />
-      {/* Swingarm */}
-      <path
-        d="M200 380 L380 300"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="6"
-        strokeLinecap="round"
-      />
-      {/* Frame / body */}
-      <path
-        d="M380 300 L340 230 L420 180 L520 190 L560 230 L620 290"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Tank */}
-      <path
-        d="M380 220 Q420 170 500 185 L520 200 L400 230 Z"
-        fill="var(--color-neutral-800)"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="4"
-      />
-      {/* Seat */}
-      <path
-        d="M340 232 Q360 200 400 215 L380 235 Z"
-        fill="var(--color-neutral-800)"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="3"
-      />
-      {/* Fork */}
-      <path
-        d="M560 230 L620 380"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      {/* Handlebar */}
-      <path
-        d="M545 210 L575 195"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="6"
-        strokeLinecap="round"
-      />
-      {/* Exhaust */}
-      <path
-        d="M320 290 L260 340 Q240 355 250 365"
-        stroke="var(--color-neutral-800)"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      {/* Engine block */}
-      <rect
-        x="360"
-        y="260"
-        width="80"
-        height="55"
-        rx="8"
-        fill="var(--color-neutral-800)"
-        stroke="var(--color-neutral-700)"
-        strokeWidth="3"
-      />
-      {/* Chain */}
-      <path
-        d="M200 380 L400 300"
-        stroke="var(--color-neutral-800)"
-        strokeWidth="2"
-        strokeDasharray="6 4"
-      />
-    </svg>
-  );
-}
+import { AppPreview } from './app-preview';
 
 const SPEED_LINES = [
   { top: '22%', duration: '2s', delay: '0s', width: '180px' },
@@ -100,7 +12,7 @@ export function Hero() {
   const t = useTranslations('Hero');
 
   return (
-    <section className="hero-scroll-root relative h-screen w-full overflow-hidden">
+    <section className="hero-scroll-root relative min-h-screen w-full overflow-hidden">
       {/* Background gradient layer */}
       <div className="hero-bg-parallax absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900" />
@@ -130,7 +42,7 @@ export function Hero() {
       </div>
 
       {/* Main content container */}
-      <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-6">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-24">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
           <h1 className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50">
@@ -144,36 +56,40 @@ export function Hero() {
             </span>
           </h1>
 
+          {/* Gradient accent line */}
+          <div className="mt-4 h-[3px] w-[120px] rounded-full bg-gradient-to-r from-primary-400 to-accent-500" />
+
           <p className="mt-6 max-w-lg text-lg text-neutral-400">{t('subtitle')}</p>
 
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            {/* Primary CTA */}
+            {/* Primary CTA with glow */}
             <a
               href="#cta"
-              className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+              className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
               <span className="relative">{t('downloadCta')}</span>
             </a>
 
-            {/* Secondary CTA */}
+            {/* Secondary CTA with glass effect */}
             <a
               href="#features"
-              className="inline-flex items-center justify-center rounded-full border border-neutral-700 px-8 py-3 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100"
+              className="inline-flex items-center justify-center rounded-full border border-neutral-700 bg-neutral-900/30 px-8 py-3 text-neutral-300 backdrop-blur-sm transition-colors hover:border-neutral-500 hover:text-neutral-100"
             >
               {t('exploreFeatures')}
             </a>
           </div>
         </div>
 
-        {/* Right: Motorcycle SVG (~45%) */}
+        {/* Right: App Preview Phone Mockup (~45%) */}
         <div
-          className="hero-moto-parallax pointer-events-none absolute inset-0 flex items-center justify-end opacity-20 md:relative md:w-[45%] md:opacity-40"
+          className="hero-moto-parallax pointer-events-none absolute inset-0 flex items-center justify-end opacity-30 md:relative md:w-[45%] md:opacity-100"
           aria-hidden="true"
         >
-          <div className="w-full max-w-2xl">
-            <MotorcycleSVG />
-          </div>
+          <AppPreview
+            imageSrc="/images/app-preview-home.png"
+            alt="MotoWise app home screen showing fleet health"
+          />
         </div>
       </div>
 

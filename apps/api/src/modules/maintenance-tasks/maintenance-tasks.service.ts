@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,6 +17,7 @@ const MAX_PHOTOS_PER_TASK = 5;
 
 @Injectable()
 export class MaintenanceTasksService {
+  private readonly logger = new Logger(MaintenanceTasksService.name);
   private readonly supabaseUrl: string;
 
   constructor(
@@ -27,6 +29,7 @@ export class MaintenanceTasksService {
   }
 
   async findAllForUser(userId: string): Promise<MaintenanceTask[]> {
+    this.logger.debug(`findAllForUser: userId=${userId}`);
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')
@@ -36,11 +39,16 @@ export class MaintenanceTasksService {
       .order('due_date', { ascending: true, nullsFirst: false })
       .order('priority', { ascending: true });
 
-    if (error) throw new InternalServerErrorException('Failed to fetch maintenance tasks');
+    if (error) {
+      this.logger.error(`findAllForUser failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
+    }
+    this.logger.debug(`findAllForUser: found ${data?.length ?? 0} tasks`);
     return (data ?? []).map((row) => this.mapRow(row));
   }
 
   async findByMotorcycle(userId: string, motorcycleId: string): Promise<MaintenanceTask[]> {
+    this.logger.debug(`findByMotorcycle: userId=${userId}, motorcycleId=${motorcycleId}`);
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')
@@ -51,11 +59,16 @@ export class MaintenanceTasksService {
       .order('priority', { ascending: true })
       .order('due_date', { ascending: true, nullsFirst: false });
 
-    if (error) throw new InternalServerErrorException('Failed to fetch maintenance tasks');
+    if (error) {
+      this.logger.error(`findByMotorcycle failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
+    }
+    this.logger.debug(`findByMotorcycle: found ${data?.length ?? 0} tasks`);
     return (data ?? []).map((row) => this.mapRow(row));
   }
 
   async findById(userId: string, id: string): Promise<MaintenanceTask> {
+    this.logger.debug(`findById: userId=${userId}, taskId=${id}`);
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')
@@ -64,7 +77,10 @@ export class MaintenanceTasksService {
       .is('deleted_at', null)
       .single();
 
-    if (error || !data) throw new NotFoundException('Maintenance task not found');
+    if (error || !data) {
+      this.logger.warn(`findById: task not found, id=${id}, error=${error?.message}`);
+      throw new NotFoundException('Maintenance task not found');
+    }
     return this.mapRow(data);
   }
 
@@ -81,6 +97,9 @@ export class MaintenanceTasksService {
       partsNeeded?: string[];
     },
   ): Promise<MaintenanceTask> {
+    this.logger.log(
+      `create: userId=${userId}, title=${input.title}, motorcycleId=${input.motorcycleId}`,
+    );
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .insert({
@@ -97,7 +116,10 @@ export class MaintenanceTasksService {
       .select()
       .single();
 
-    if (error || !data) throw new BadRequestException('Failed to create maintenance task');
+    if (error || !data) {
+      this.logger.error(`create failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to create maintenance task');
+    }
     return this.mapRow(data);
   }
 
@@ -114,6 +136,9 @@ export class MaintenanceTasksService {
       partsNeeded?: string[];
     },
   ): Promise<MaintenanceTask> {
+    this.logger.log(
+      `update: userId=${userId}, taskId=${id}, fields=${Object.keys(input).join(',')}`,
+    );
     const updates: Record<string, unknown> = {};
     if (input.title !== undefined) updates.title = input.title;
     if (input.description !== undefined) updates.description = input.description;
@@ -132,44 +157,70 @@ export class MaintenanceTasksService {
       .select()
       .single();
 
-    if (error || !data) throw new BadRequestException('Failed to update maintenance task');
+    if (error || !data) {
+      this.logger.error(`update failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to update maintenance task');
+    }
     return this.mapRow(data);
   }
 
-  async complete(userId: string, id: string, completedMileage?: number): Promise<MaintenanceTask> {
+  async complete(
+    userId: string,
+    id: string,
+    input?: {
+      completedMileage?: number;
+      cost?: number;
+      partsCost?: number;
+      laborCost?: number;
+      currency?: string;
+    },
+  ): Promise<MaintenanceTask> {
+    this.logger.log(`complete: userId=${userId}, taskId=${id}`);
+    const updates: Record<string, unknown> = {
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+    };
+    if (input?.completedMileage !== undefined) updates.completed_mileage = input.completedMileage;
+    if (input?.cost !== undefined) updates.cost = input.cost;
+    if (input?.partsCost !== undefined) updates.parts_cost = input.partsCost;
+    if (input?.laborCost !== undefined) updates.labor_cost = input.laborCost;
+    if (input?.currency !== undefined) updates.currency = input.currency;
+
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-        completed_mileage: completedMileage,
-      })
+      .update(updates)
       .eq('id', id)
       .eq('user_id', userId)
       .is('deleted_at', null)
       .select()
       .single();
 
-    if (error || !data) throw new BadRequestException('Failed to complete maintenance task');
+    if (error || !data) {
+      this.logger.error(`complete failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to complete maintenance task');
+    }
     return this.mapRow(data);
   }
 
   async softDelete(userId: string, id: string): Promise<boolean> {
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .select('id')
-      .single();
+    this.logger.log(`softDelete: userId=${userId}, taskId=${id}`);
+    const { data, error } = await this.supabase.rpc('soft_delete_maintenance_task', {
+      task_id: id,
+    });
 
-    if (error || !data) throw new NotFoundException('Maintenance task not found');
+    if (error) {
+      this.logger.error(`softDelete failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to delete maintenance task');
+    }
+    if (data === false) {
+      throw new NotFoundException('Maintenance task not found');
+    }
     return true;
   }
 
   async findAllHistory(motorcycleId: string, limit = 100): Promise<MaintenanceTask[]> {
-    const { data, error } = await this.supabase
+    this.logger.debug(`findAllHistory: motorcycleId=${motorcycleId}, limit=${limit}`);
+    const { data, error } = await this.adminClient
       .from('maintenance_tasks')
       .select('*')
       .eq('motorcycle_id', motorcycleId)
@@ -182,6 +233,9 @@ export class MaintenanceTasksService {
   }
 
   async createNextRecurrence(completedTask: MaintenanceTask): Promise<MaintenanceTask | null> {
+    this.logger.log(
+      `createNextRecurrence: taskId=${completedTask.id}, isRecurring=${completedTask.isRecurring}`,
+    );
     if (!completedTask.isRecurring) return null;
 
     const now = completedTask.completedAt ? new Date(completedTask.completedAt) : new Date();
@@ -195,7 +249,7 @@ export class MaintenanceTasksService {
         ? completedTask.completedMileage + completedTask.intervalKm
         : null;
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.adminClient
       .from('maintenance_tasks')
       .insert({
         user_id: completedTask.userId,
@@ -219,6 +273,51 @@ export class MaintenanceTasksService {
     return this.mapRow(data);
   }
 
+  async getSpendingSummary(
+    userId: string,
+    motorcycleId: string,
+  ): Promise<{ thisYear: number; allTime: number }> {
+    const currentYear = new Date().getFullYear();
+    const yearStart = `${currentYear}-01-01`;
+
+    // All-time spending
+    const { data: allTimeData, error: allTimeError } = await this.supabase
+      .from('maintenance_tasks')
+      .select('cost')
+      .eq('user_id', userId)
+      .eq('motorcycle_id', motorcycleId)
+      .eq('status', 'completed')
+      .is('deleted_at', null)
+      .not('cost', 'is', null);
+
+    if (allTimeError) {
+      this.logger.error(`getSpendingSummary failed: ${allTimeError.message}`);
+      throw new InternalServerErrorException('Failed to fetch spending summary');
+    }
+
+    const allTime = (allTimeData ?? []).reduce((sum, row) => sum + (Number(row.cost) || 0), 0);
+
+    // This year spending
+    const { data: yearData, error: yearError } = await this.supabase
+      .from('maintenance_tasks')
+      .select('cost')
+      .eq('user_id', userId)
+      .eq('motorcycle_id', motorcycleId)
+      .eq('status', 'completed')
+      .is('deleted_at', null)
+      .not('cost', 'is', null)
+      .gte('completed_at', yearStart);
+
+    if (yearError) {
+      this.logger.error(`getSpendingSummary year failed: ${yearError.message}`);
+      throw new InternalServerErrorException('Failed to fetch spending summary');
+    }
+
+    const thisYear = (yearData ?? []).reduce((sum, row) => sum + (Number(row.cost) || 0), 0);
+
+    return { thisYear, allTime };
+  }
+
   // ── Photo methods ──────────────────────────────────────────────────
 
   async addPhoto(
@@ -227,8 +326,11 @@ export class MaintenanceTasksService {
     storagePath: string,
     fileSizeBytes?: number,
   ): Promise<TaskPhoto> {
+    this.logger.log(
+      `addPhoto: userId=${userId}, taskId=${taskId}, storagePath=${storagePath}, fileSizeBytes=${fileSizeBytes}`,
+    );
     // Validate task ownership
-    const { data: task, error: taskError } = await this.supabase
+    const { data: task, error: taskError } = await this.adminClient
       .from('maintenance_tasks')
       .select('id')
       .eq('id', taskId)
@@ -236,10 +338,15 @@ export class MaintenanceTasksService {
       .is('deleted_at', null)
       .single();
 
-    if (taskError || !task) throw new NotFoundException('Maintenance task not found');
+    if (taskError || !task) {
+      this.logger.warn(
+        `addPhoto: task not found or not owned, taskId=${taskId}, error=${taskError?.message}`,
+      );
+      throw new NotFoundException('Maintenance task not found');
+    }
 
     // Check photo count limit
-    const { count, error: countError } = await this.supabase
+    const { count, error: countError } = await this.adminClient
       .from('maintenance_task_photos')
       .select('id', { count: 'exact', head: true })
       .eq('task_id', taskId);
@@ -260,7 +367,7 @@ export class MaintenanceTasksService {
     };
     const mimeType = mimeMap[ext] ?? 'image/webp';
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.adminClient
       .from('maintenance_task_photos')
       .insert({
         task_id: taskId,
@@ -271,13 +378,18 @@ export class MaintenanceTasksService {
       .select()
       .single();
 
-    if (error || !data) throw new BadRequestException('Failed to add photo');
+    if (error || !data) {
+      this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to add photo');
+    }
+    this.logger.log(`addPhoto success: photoId=${data.id}`);
     return this.mapPhotoRow(data);
   }
 
   async deletePhoto(userId: string, photoId: string): Promise<boolean> {
+    this.logger.log(`deletePhoto: userId=${userId}, photoId=${photoId}`);
     // Fetch photo and validate ownership via task
-    const { data: photo, error: photoError } = await this.supabase
+    const { data: photo, error: photoError } = await this.adminClient
       .from('maintenance_task_photos')
       .select('id, task_id, storage_path')
       .eq('id', photoId)
@@ -286,7 +398,7 @@ export class MaintenanceTasksService {
     if (photoError || !photo) throw new NotFoundException('Photo not found');
 
     // Validate task ownership
-    const { data: task, error: taskError } = await this.supabase
+    const { data: task, error: taskError } = await this.adminClient
       .from('maintenance_tasks')
       .select('id')
       .eq('id', photo.task_id)
@@ -302,11 +414,13 @@ export class MaintenanceTasksService {
 
     if (storageError) {
       // Log but don't fail — DB record deletion is more important
-      console.warn('Failed to delete photo from storage:', storageError.message);
+      this.logger.warn(
+        `deletePhoto: storage deletion failed for ${photo.storage_path}: ${storageError.message}`,
+      );
     }
 
     // Delete from DB
-    const { error: deleteError } = await this.supabase
+    const { error: deleteError } = await this.adminClient
       .from('maintenance_task_photos')
       .delete()
       .eq('id', photoId);
@@ -316,9 +430,10 @@ export class MaintenanceTasksService {
   }
 
   async findPhotosByTaskIds(taskIds: string[]): Promise<Map<string, TaskPhoto[]>> {
+    this.logger.debug(`findPhotosByTaskIds: ${taskIds.length} task(s)`);
     if (taskIds.length === 0) return new Map();
 
-    const { data, error } = await this.supabase
+    const { data, error } = await this.adminClient
       .from('maintenance_task_photos')
       .select('*')
       .in('task_id', taskIds)
@@ -367,6 +482,10 @@ export class MaintenanceTasksService {
       partsNeeded: (row.parts_needed as string[]) ?? undefined,
       completedAt: (row.completed_at as string) ?? undefined,
       completedMileage: (row.completed_mileage as number) ?? undefined,
+      cost: (row.cost as number) ?? undefined,
+      partsCost: (row.parts_cost as number) ?? undefined,
+      laborCost: (row.labor_cost as number) ?? undefined,
+      currency: (row.currency as string) ?? undefined,
       source: (row.source as string) ?? 'user',
       oemScheduleId: (row.oem_schedule_id as string) ?? undefined,
       intervalKm: (row.interval_km as number) ?? undefined,

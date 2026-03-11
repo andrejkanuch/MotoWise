@@ -1,4 +1,4 @@
-import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
 import {
   GqlMaintenancePriority,
   GqlMaintenanceTaskSource,
@@ -64,6 +64,18 @@ export class MaintenanceTask {
 
   @Field(() => [TaskPhoto])
   photos: TaskPhoto[];
+
+  @Field(() => Float, { nullable: true })
+  cost?: number;
+
+  @Field(() => Float, { nullable: true })
+  partsCost?: number;
+
+  @Field(() => Float, { nullable: true })
+  laborCost?: number;
+
+  @Field({ nullable: true })
+  currency?: string;
 
   @Field()
   createdAt: string;

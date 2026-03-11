@@ -13,6 +13,10 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
     partsNeeded
     completedAt
     completedMileage
+    cost
+    partsCost
+    laborCost
+    currency
     source
     isRecurring
     photos {
