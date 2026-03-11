@@ -88,7 +88,15 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router replace expects typed route literal
       setTimeout(() => router.replace(target as any), 0);
     }
-  }, [session, segments, isLoading, router, onboardingCompleted, meQuery.isLoading, meQuery.isError]);
+  }, [
+    session,
+    segments,
+    isLoading,
+    router,
+    onboardingCompleted,
+    meQuery.isLoading,
+    meQuery.isError,
+  ]);
 
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;

@@ -126,7 +126,9 @@ function PriorityBadge({ priority }: { priority: string }) {
           letterSpacing: 0.3,
         }}
       >
-        {String(t(`maintenance.priority${priority.charAt(0).toUpperCase()}${priority.slice(1)}` as never))}
+        {String(
+          t(`maintenance.priority${priority.charAt(0).toUpperCase()}${priority.slice(1)}` as never),
+        )}
       </Text>
     </View>
   );

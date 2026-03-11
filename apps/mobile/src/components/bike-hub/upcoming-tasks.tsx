@@ -179,7 +179,11 @@ export function UpcomingTasks({ tasks, isDark, onTaskPress, onSeeAllPress }: Upc
                     letterSpacing: 0.3,
                   }}
                 >
-                  {String(t(`maintenance.priority${task.priority.charAt(0).toUpperCase()}${task.priority.slice(1)}` as never))}
+                  {String(
+                    t(
+                      `maintenance.priority${task.priority.charAt(0).toUpperCase()}${task.priority.slice(1)}` as never,
+                    ),
+                  )}
                 </Text>
               </View>
 

@@ -58,12 +58,10 @@ export async function uploadMaintenancePhoto(
   const response = await fetch(compressedUri);
   const blob = await response.blob();
   const filePath = `${userId}/${taskId}/${Date.now()}.webp`;
-  const { error } = await supabase.storage
-    .from('maintenance-photos')
-    .upload(filePath, blob, {
-      contentType: 'image/webp',
-      upsert: false,
-    });
+  const { error } = await supabase.storage.from('maintenance-photos').upload(filePath, blob, {
+    contentType: 'image/webp',
+    upsert: false,
+  });
   if (error) throw error;
   return {
     storagePath: filePath,
