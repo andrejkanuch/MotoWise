@@ -114,10 +114,6 @@
     "socialProof": "Trusted by riders in early access",
     "headline": "Be First to Master Your Motorcycle",
     "subtitle": "Get early access when we launch on iOS and Android.",
-    "appStorePrefix": "Coming soon to",
-    "appStore": "App Store",
-    "playStorePrefix": "Coming soon on",
-    "playStore": "Google Play",
     "trustFree": "Free at launch",
     "trustNoCard": "No credit card",
     "trustCancel": "Cancel anytime",
@@ -155,7 +151,6 @@
   "Footer": {
     "product": "Product",
     "company": "Company",
-    "connect": "Connect",
     "tagline": "Learn your bike. Fix your bike.",
     "copyright": "© 2026 MotoWise. All rights reserved.",
     "features": "Features",
@@ -163,10 +158,7 @@
     "faq": "FAQ",
     "privacy": "Privacy",
     "terms": "Terms",
-    "builtWithAi": "Powered by AI",
-    "instagram": "Instagram",
-    "youtube": "YouTube",
-    "x": "X"
+    "builtWithAi": "Powered by AI"
   },
   "Privacy": {
     "title": "Privacy Policy",

@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+// Root-level not-found.tsx has no access to the [locale] segment,
+// so next-intl translations are unavailable here. Strings are hardcoded in English.
+// See: https://next-intl.dev/docs/environments/error-files
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center bg-neutral-950 text-neutral-50">

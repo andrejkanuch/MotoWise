@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+const FAQ_KEYS = [0, 1, 2, 3, 4, 5] as const;
+
 export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const t = useTranslations('Faq');
-  const FAQ_KEYS = [0, 1, 2, 3, 4, 5] as const;
 
   function toggle(index: number) {
     setOpenIndex(openIndex === index ? null : index);

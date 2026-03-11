@@ -114,10 +114,6 @@
     "socialProof": "Confiado por motociclistas en acceso anticipado",
     "headline": "Sé el Primero en Dominar Tu Motocicleta",
     "subtitle": "Obtén acceso anticipado cuando lancemos en iOS y Android.",
-    "appStorePrefix": "Próximamente en",
-    "appStore": "App Store",
-    "playStorePrefix": "Próximamente en",
-    "playStore": "Google Play",
     "trustFree": "Gratis al lanzar",
     "trustNoCard": "Sin tarjeta de crédito",
     "trustCancel": "Cancela cuando quieras",
@@ -155,7 +151,6 @@
   "Footer": {
     "product": "Producto",
     "company": "Empresa",
-    "connect": "Conectar",
     "tagline": "Aprende tu moto. Repara tu moto.",
     "copyright": "© 2026 MotoWise. Todos los derechos reservados.",
     "features": "Funciones",
@@ -163,10 +158,7 @@
     "faq": "Preguntas frecuentes",
     "privacy": "Privacidad",
     "terms": "Términos",
-    "builtWithAi": "Impulsado por IA",
-    "instagram": "Instagram",
-    "youtube": "YouTube",
-    "x": "X"
+    "builtWithAi": "Impulsado por IA"
   },
   "Privacy": {
     "title": "Política de Privacidad",

@@ -114,10 +114,6 @@
     "socialProof": "Vertraut von Fahrern im Early Access",
     "headline": "Sei der Erste, der sein Motorrad meistert",
     "subtitle": "Erhalte Early Access, wenn wir auf iOS und Android starten.",
-    "appStorePrefix": "Bald im",
-    "appStore": "App Store",
-    "playStorePrefix": "Bald bei",
-    "playStore": "Google Play",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
     "trustCancel": "Jederzeit kündbar",
@@ -155,7 +151,6 @@
   "Footer": {
     "product": "Produkt",
     "company": "Unternehmen",
-    "connect": "Verbinden",
     "tagline": "Lerne dein Bike. Repariere dein Bike.",
     "copyright": "© 2026 MotoWise. Alle Rechte vorbehalten.",
     "features": "Funktionen",
@@ -163,10 +158,7 @@
     "faq": "Häufige Fragen",
     "privacy": "Datenschutz",
     "terms": "Nutzungsbedingungen",
-    "builtWithAi": "Angetrieben von KI",
-    "instagram": "Instagram",
-    "youtube": "YouTube",
-    "x": "X"
+    "builtWithAi": "Angetrieben von KI"
   },
   "Privacy": {
     "title": "Datenschutzrichtlinie",
