@@ -26,19 +26,27 @@ interface Props {
 }
 
 export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: Props) {
+  const clampedScore = Math.min(100, Math.max(0, score));
+  const scale = size / SIZE;
+  const strokeWidth = Math.max(4, Math.round(STROKE_WIDTH * scale));
+  const scoreFontSize = Math.max(14, Math.round(32 * scale));
+  const gradeFontSize = Math.max(9, Math.round(13 * scale));
+  const gradeMarginTop = Math.round(-2 * scale);
+  const noDataFontSize = Math.max(10, Math.round(14 * scale));
+
   const progress = useSharedValue(0);
-  const radius = (size - STROKE_WIDTH) / 2;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
   useEffect(() => {
-    progress.value = withTiming(hasData ? score / 100 : 0, { duration: 800 });
-  }, [score, hasData, progress]);
+    progress.value = withTiming(hasData ? clampedScore / 100 : 0, { duration: 800 });
+  }, [clampedScore, hasData, progress]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - progress.value),
   }));
 
-  const color = getScoreColor(score);
+  const color = getScoreColor(clampedScore);
 
   if (!hasData) {
     return (
@@ -52,14 +60,14 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
             cy={size / 2}
             r={radius}
             stroke={isDark ? palette.neutral700 : palette.neutral200}
-            strokeWidth={STROKE_WIDTH}
+            strokeWidth={strokeWidth}
             fill="none"
           />
         </Svg>
         <View style={{ position: 'absolute', alignItems: 'center' }}>
           <Text
             style={{
-              fontSize: 14,
+              fontSize: noDataFontSize,
               fontWeight: '600',
               color: palette.neutral400,
             }}
@@ -83,7 +91,7 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
           cy={size / 2}
           r={radius}
           stroke={isDark ? palette.neutral700 : palette.neutral200}
-          strokeWidth={STROKE_WIDTH}
+          strokeWidth={strokeWidth}
           fill="none"
         />
         {/* Progress circle */}
@@ -92,7 +100,7 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
           cy={size / 2}
           r={radius}
           stroke={color}
-          strokeWidth={STROKE_WIDTH}
+          strokeWidth={strokeWidth}
           fill="none"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -103,19 +111,19 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
       <View style={{ position: 'absolute', alignItems: 'center' }}>
         <Text
           style={{
-            fontSize: 32,
+            fontSize: scoreFontSize,
             fontWeight: '800',
             color: isDark ? palette.neutral50 : palette.neutral950,
           }}
         >
-          {score}
+          {clampedScore}
         </Text>
         <Text
           style={{
-            fontSize: 13,
+            fontSize: gradeFontSize,
             fontWeight: '700',
             color,
-            marginTop: -2,
+            marginTop: gradeMarginTop,
           }}
         >
           {grade}
