@@ -14,10 +14,6 @@ export const supabaseUserProvider: Provider = {
     // biome-ignore lint/suspicious/noExplicitAny: REQUEST shape varies between HTTP and GraphQL contexts
     context: any,
   ): SupabaseClient => {
-    // In NestJS GraphQL, the REQUEST injection gives { req } where req is the
-    // raw Express request. Custom properties set by guards (like accessToken)
-    // are NOT visible here due to object identity differences. Read the token
-    // from the Authorization header directly.
     const req = context?.req ?? context;
     const authHeader: string | undefined = req?.headers?.authorization;
     const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
@@ -26,15 +22,13 @@ export const supabaseUserProvider: Provider = {
       configService.getOrThrow('SUPABASE_URL'),
       configService.getOrThrow('SUPABASE_ANON_KEY'),
       {
+        global: {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        },
         auth: {
           persistSession: false,
           autoRefreshToken: false,
           detectSessionInUrl: false,
-        },
-        global: {
-          headers: {
-            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-          },
         },
       },
     );

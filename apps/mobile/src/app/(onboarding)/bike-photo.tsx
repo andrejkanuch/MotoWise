@@ -9,7 +9,7 @@ import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'reac
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 async function compressImage(uri: string): Promise<string> {
   const compressed = await manipulateAsync(uri, [{ resize: { width: 600 } }], {

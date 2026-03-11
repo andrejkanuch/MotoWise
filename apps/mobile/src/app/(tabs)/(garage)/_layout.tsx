@@ -1,7 +1,7 @@
 import { palette } from '@motolearn/design-system';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { PlatformColor, useColorScheme } from 'react-native';
 
 export default function GarageLayout() {
   const { t } = useTranslation();
@@ -20,6 +20,8 @@ export default function GarageLayout() {
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
         headerBackButtonDisplayMode: 'minimal',
+        headerTintColor: isDark ? palette.neutral50 : palette.neutral950,
+        headerTitleStyle: { color: isDark ? palette.neutral50 : palette.neutral950 },
       }}
     >
       <Stack.Screen name="index" options={{ title: t('tabs.garage') }} />
@@ -28,6 +30,7 @@ export default function GarageLayout() {
         options={{
           title: t('garage.bikeDetails', { defaultValue: 'Bike Details' }),
           headerLargeTitle: false,
+          headerBackButtonDisplayMode: 'default',
         }}
       />
       <Stack.Screen

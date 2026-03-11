@@ -31,6 +31,27 @@ export async function compressImage(uri: string, maxWidth = 1200): Promise<strin
   return result.uri;
 }
 
+export async function uploadBikePhoto(
+  uri: string,
+  userId: string,
+  motorcycleId: string,
+): Promise<{ publicUrl: string }> {
+  const compressedUri = await compressImage(uri);
+  const base64 = await FileSystem.readAsStringAsync(compressedUri, {
+    encoding: 'base64',
+  });
+  const filePath = `${userId}/${motorcycleId}/hero.webp`;
+  const { error } = await supabase.storage.from('bike-photos').upload(filePath, decode(base64), {
+    contentType: 'image/webp',
+    upsert: true,
+  });
+  if (error) throw error;
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from('bike-photos').getPublicUrl(filePath);
+  return { publicUrl };
+}
+
 export async function uploadMaintenancePhoto(
   uri: string,
   userId: string,

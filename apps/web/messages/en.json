@@ -9,6 +9,7 @@
     "features": "Features",
     "faq": "FAQ",
     "download": "Download App",
+    "login": "Log In",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu"
   },
@@ -50,13 +51,70 @@
       "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together."
     }
   },
+  "SocialProof": {
+    "riders": "Active Riders",
+    "ridersValue": "12,000",
+    "diagnostics": "AI Diagnostics Run",
+    "diagnosticsValue": "85,000",
+    "bikes": "Bikes Tracked",
+    "bikesValue": "18,000"
+  },
+  "HowItWorks": {
+    "sectionTitle": "How It Works",
+    "sectionSubtitle": "Three simple steps to motorcycle mastery.",
+    "step1Title": "Add Your Bike",
+    "step1Description": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
+    "step2Title": "Get AI Insights",
+    "step2Description": "Snap a photo of any part or issue. Our AI identifies components, diagnoses problems, and suggests fixes.",
+    "step3Title": "Track & Learn",
+    "step3Description": "Follow personalized maintenance schedules and structured learning paths to master your motorcycle."
+  },
+  "Testimonials": {
+    "sectionTitle": "What Riders Say",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "text": "MotoWise diagnosed a chain tension issue I'd been ignoring. Saved me from a breakdown on a long ride.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "text": "The learning paths are perfect for someone who's new to wrenching. I changed my own brake pads thanks to MotoWise.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "text": "Having all my maintenance history in one place is a game changer. No more guessing when the last oil change was.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "text": "The AI diagnostics blew my mind. Pointed my camera at a warning light and got the exact issue explained in seconds.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "text": "Finally an app that treats motorcycle maintenance seriously. The garage feature alone is worth it.",
+        "stars": 4
+      }
+    ]
+  },
   "Cta": {
+    "socialProof": "Trusted by 12,000+ riders worldwide",
     "headline": "Ready to Master Your Motorcycle?",
     "subtitle": "Join thousands of riders already learning with AI.",
     "appStorePrefix": "Download on the",
     "appStore": "App Store",
     "playStorePrefix": "Get it on",
     "playStore": "Google Play",
+    "trustFree": "Free to start",
+    "trustNoCard": "No credit card",
+    "trustCancel": "Cancel anytime",
     "disclaimer": "Free to download. No credit card required."
   },
   "Faq": {
@@ -100,6 +158,7 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "admin": "Admin",
+    "builtWithAi": "Built with AI",
     "instagram": "Instagram",
     "youtube": "YouTube",
     "x": "X"

@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './config';
+import { TOTAL_SCREENS } from './_config';
 
 const TYPE_COLORS: Record<string, string> = {
   maintenance: '#F59E0B',

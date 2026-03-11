@@ -4,6 +4,8 @@ import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 
+WebBrowser.maybeCompleteAuthSession();
+
 export async function signInWithApple() {
   const nonce = Crypto.randomUUID();
   const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, nonce);
@@ -30,10 +32,12 @@ export async function signInWithGoogle() {
     options: { redirectTo, skipBrowserRedirect: true },
   });
   if (error) throw error;
-  if (!data.url) return;
+  if (!data.url) throw new Error('No OAuth URL returned');
+
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type === 'success') {
     const url = new URL(result.url);
+    // Supabase returns tokens in the URL hash fragment
     const params = new URLSearchParams(url.hash.substring(1));
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');

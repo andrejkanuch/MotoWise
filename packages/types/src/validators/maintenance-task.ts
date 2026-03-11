@@ -30,8 +30,20 @@ export const UpdateMaintenanceTaskSchema = z.object({
 });
 export type UpdateMaintenanceTask = z.infer<typeof UpdateMaintenanceTaskSchema>;
 
+export const MaintenanceTaskCostSchema = z.object({
+  cost: z.number().min(0).optional(),
+  partsCost: z.number().min(0).optional(),
+  laborCost: z.number().min(0).optional(),
+  currency: z.string().length(3).optional(),
+});
+export type MaintenanceTaskCost = z.infer<typeof MaintenanceTaskCostSchema>;
+
 export const CompleteMaintenanceTaskSchema = z.object({
   completedMileage: z.number().int().positive().optional(),
+  cost: z.number().min(0).optional(),
+  partsCost: z.number().min(0).optional(),
+  laborCost: z.number().min(0).optional(),
+  currency: z.string().length(3).optional(),
 });
 export type CompleteMaintenanceTask = z.infer<typeof CompleteMaintenanceTaskSchema>;
 

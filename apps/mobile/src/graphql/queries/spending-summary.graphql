@@ -1,0 +1,6 @@
+query SpendingSummary($motorcycleId: String!) {
+  spendingSummary(motorcycleId: $motorcycleId) {
+    thisYear
+    allTime
+  }
+}

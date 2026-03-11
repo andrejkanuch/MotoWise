@@ -11,10 +11,12 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AddTaskPhotoInput } from './dto/add-task-photo.input';
+import { CompleteMaintenanceTaskInput } from './dto/complete-task.input';
 import { CreateMaintenanceTaskInput } from './dto/create-maintenance-task.input';
 import { UpdateMaintenanceTaskInput } from './dto/update-maintenance-task.input';
 import { MaintenanceTasksService } from './maintenance-tasks.service';
 import { MaintenanceTask } from './models/maintenance-task.model';
+import { SpendingSummary } from './models/spending-summary.model';
 import { TaskPhoto } from './models/task-photo.model';
 
 @Resolver(() => MaintenanceTask)
@@ -72,9 +74,9 @@ export class MaintenanceTasksResolver {
   async completeMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('completedMileage', { type: () => Int, nullable: true }) completedMileage?: number,
+    @Args('input', { nullable: true }) input?: CompleteMaintenanceTaskInput,
   ): Promise<MaintenanceTask> {
-    const completed = await this.maintenanceTasksService.complete(user.id, id, completedMileage);
+    const completed = await this.maintenanceTasksService.complete(user.id, id, input);
 
     // If the task is recurring, create the next occurrence
     if (completed.isRecurring) {
@@ -91,6 +93,15 @@ export class MaintenanceTasksResolver {
     @Args('id', ParseUUIDPipe) id: string,
   ): Promise<boolean> {
     return this.maintenanceTasksService.softDelete(user.id, id);
+  }
+
+  @Query(() => SpendingSummary)
+  @UseGuards(GqlAuthGuard)
+  async spendingSummary(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId') motorcycleId: string,
+  ): Promise<SpendingSummary> {
+    return this.maintenanceTasksService.getSpendingSummary(user.id, motorcycleId);
   }
 
   // ── Photo mutations ─────────────────────────────────────────────

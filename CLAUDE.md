@@ -19,8 +19,6 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - `pnpm lint` / `pnpm lint:fix` — Biome lint/format
 - `pnpm test` — run all tests
 - `pnpm generate` — regenerate DB types + GraphQL schema + client types
-- `pnpm db:start` / `pnpm db:stop` — local Supabase
-- `pnpm db:reset` — reset local DB (applies all migrations + seed)
 - `pnpm db:migration <name>` — create new migration
 
 ## Type System (Three Sources)
@@ -31,7 +29,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 
 ## Update Sequence (when modifying data models)
 1. Update Supabase migration SQL
-2. Run `pnpm db:reset` to apply migration
+2. Push migration to production: `npx supabase db push`
 3. Run `pnpm generate:types` to update database.types.ts
 4. Update Zod schemas in packages/types to match
 5. Update NestJS models/resolvers to match
@@ -52,7 +50,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 - Run `pnpm generate` after changing any resolver or .graphql file
 - All DB changes require a migration in supabase/migrations/
 - Biome handles all linting + formatting (no ESLint/Prettier)
-- Port assignments: Expo 8081, NestJS 4000, Next.js 3000, Supabase Studio 54323
+- Port assignments: Expo 8081, NestJS 4000, Next.js 3000
 - Always export both Zod schema AND inferred type from validators
 - Use `as const` objects for enums, not TypeScript `enum` keyword
 

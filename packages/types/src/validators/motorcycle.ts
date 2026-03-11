@@ -14,5 +14,9 @@ export const UpdateMotorcycleSchema = z.object({
   model: z.string().min(1).max(100).optional(),
   year: z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR).optional(),
   nickname: z.string().max(50).optional(),
+  isPrimary: z.boolean().optional(),
+  primaryPhotoUrl: z.string().url().max(500).optional(),
+  currentMileage: z.number().int().min(0).optional(),
+  mileageUnit: z.enum(['mi', 'km']).optional(),
 });
 export type UpdateMotorcycle = z.infer<typeof UpdateMotorcycleSchema>;

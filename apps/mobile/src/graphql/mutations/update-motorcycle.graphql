@@ -5,5 +5,10 @@ mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {
     model
     year
     nickname
+    isPrimary
+    primaryPhotoUrl
+    currentMileage
+    mileageUnit
+    mileageUpdatedAt
   }
 }

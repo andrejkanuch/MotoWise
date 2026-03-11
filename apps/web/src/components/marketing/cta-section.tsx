@@ -17,6 +17,24 @@ function PlayIcon() {
   );
 }
 
+function CheckIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
 export async function CtaSection() {
   const t = await getTranslations('Cta');
 
@@ -32,6 +50,11 @@ export async function CtaSection() {
 
       <section id="cta" className="bg-warm-400 px-4 py-20 md:py-28">
         <div className="reveal-on-scroll mx-auto max-w-3xl">
+          {/* Social proof line */}
+          <p className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-primary-600">
+            {t('socialProof')}
+          </p>
+
           <h2 className="text-center text-4xl font-extrabold tracking-tight text-primary-950 md:text-5xl">
             {t('headline')}
           </h2>
@@ -60,6 +83,19 @@ export async function CtaSection() {
                 <span className="text-base font-semibold">{t('playStore')}</span>
               </div>
             </ExternalLink>
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
+            {(['trustFree', 'trustNoCard', 'trustCancel'] as const).map((key) => (
+              <div
+                key={key}
+                className="flex items-center gap-2 text-sm font-medium text-primary-700"
+              >
+                <CheckIcon />
+                <span>{t(key)}</span>
+              </div>
+            ))}
           </div>
 
           <p className="mt-6 text-center text-sm text-primary-700">{t('disclaimer')}</p>

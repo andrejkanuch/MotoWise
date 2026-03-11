@@ -1,5 +1,6 @@
 import NextLink from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { ExternalLink } from '@/components/marketing/external-link';
 import { Link } from '@/i18n/navigation';
 
 function FooterColumn({
@@ -7,22 +8,28 @@ function FooterColumn({
   links,
 }: {
   title: string;
-  links: { label: string; href: string }[];
+  links: { label: string; href: string; external?: boolean }[];
 }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-neutral-50 uppercase tracking-wider">{title}</h3>
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-50">{title}</h3>
       <ul className="mt-4 space-y-3">
-        {links.map((link) => (
-          <li key={link.label}>
-            <Link
-              href={link.href}
-              className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
+        {links.map((link) => {
+          const cls = 'text-sm text-neutral-400 transition-colors hover:text-neutral-200';
+          return (
+            <li key={link.label}>
+              {link.external ? (
+                <ExternalLink href={link.href} className={cls}>
+                  {link.label}
+                </ExternalLink>
+              ) : (
+                <Link href={link.href} className={cls}>
+                  {link.label}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
@@ -42,25 +49,34 @@ export async function Footer() {
     { label: t('terms'), href: '/terms' },
   ];
 
+  const connectLinks = [
+    { label: t('instagram'), href: 'https://instagram.com/motowiseapp', external: true },
+    { label: t('youtube'), href: 'https://youtube.com/@motowiseapp', external: true },
+    { label: t('x'), href: 'https://x.com/motowiseapp', external: true },
+  ];
+
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-black">
-      <div className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="mx-auto max-w-7xl px-6 pb-12">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           <FooterColumn title={t('product')} links={productLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
+          <FooterColumn title={t('connect')} links={connectLinks} />
         </div>
 
-        <div className="border-t border-neutral-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 md:flex-row">
           <div>
             <p className="text-sm font-semibold text-neutral-50">MotoWise</p>
-            <p className="text-xs text-neutral-500 mt-1">{t('tagline')}</p>
+            <p className="mt-1 text-xs text-neutral-500">{t('tagline')}</p>
           </div>
+
+          <p className="text-xs text-neutral-600">{t('builtWithAi')}</p>
 
           <div className="flex items-center gap-4">
             <p className="text-xs text-neutral-500">{t('copyright')}</p>
             <NextLink
               href="/admin"
-              className="text-xs text-neutral-500 hover:text-neutral-400 transition-colors"
+              className="text-xs text-neutral-500 transition-colors hover:text-neutral-400"
             >
               {t('admin')}
             </NextLink>
