@@ -173,7 +173,11 @@ export function useHomeData() {
         onPress: () =>
           router.navigate({
             pathname: '/(tabs)/(garage)/bike/[id]',
-            params: { id: task.motorcycleId },
+            params: {
+              id: task.motorcycleId,
+              highlightTask: task.id,
+              _ts: Date.now().toString(),
+            },
           }),
       };
     }
@@ -194,7 +198,11 @@ export function useHomeData() {
         onPress: () =>
           router.navigate({
             pathname: '/(tabs)/(garage)/bike/[id]',
-            params: { id: task.motorcycleId },
+            params: {
+              id: task.motorcycleId,
+              highlightTask: task.id,
+              _ts: Date.now().toString(),
+            },
           }),
       };
     }

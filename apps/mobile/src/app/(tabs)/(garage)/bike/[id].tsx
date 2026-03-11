@@ -28,7 +28,7 @@ import {
   Trash2,
   Wrench,
 } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
@@ -427,7 +427,7 @@ function SwipeableTaskCard({
 
 export default function BikeDetailScreen() {
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, highlightTask } = useLocalSearchParams<{ id: string; highlightTask?: string; _ts?: string }>();
   const router = useRouter();
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
@@ -451,6 +451,14 @@ export default function BikeDetailScreen() {
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: id }),
   });
+
+  const hasHighlighted = useRef(false);
+  useEffect(() => {
+    if (highlightTask && tasksData && !hasHighlighted.current) {
+      hasHighlighted.current = true;
+      setExpandedId(highlightTask);
+    }
+  }, [highlightTask, tasksData]);
 
   // --- Mutations ---
 

@@ -13,7 +13,7 @@ interface MaintenanceSummaryProps {
   bikeNames: Record<string, string>;
   isDark: boolean;
   onViewAll: () => void;
-  onTaskPress: (motorcycleId: string) => void;
+  onTaskPress: (motorcycleId: string, taskId: string) => void;
 }
 
 export function MaintenanceSummary({
@@ -76,7 +76,7 @@ export function MaintenanceSummary({
               bikeName={bikeNames[task.motorcycleId] ?? ''}
               isDark={isDark}
               index={index}
-              onPress={() => onTaskPress(task.motorcycleId)}
+              onPress={() => onTaskPress(task.motorcycleId, task.id)}
             />
           ))}
         </View>

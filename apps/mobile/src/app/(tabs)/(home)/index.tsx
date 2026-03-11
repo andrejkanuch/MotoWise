@@ -148,10 +148,14 @@ export default function HomeScreen() {
               bikeNames={bikeNames}
               isDark={isDark}
               onViewAll={() => router.navigate('/(tabs)/(garage)')}
-              onTaskPress={(motorcycleId) =>
+              onTaskPress={(motorcycleId, taskId) =>
                 router.navigate({
                   pathname: '/(tabs)/(garage)/bike/[id]',
-                  params: { id: motorcycleId },
+                  params: {
+                    id: motorcycleId,
+                    highlightTask: taskId,
+                    _ts: Date.now().toString(),
+                  },
                 })
               }
             />
