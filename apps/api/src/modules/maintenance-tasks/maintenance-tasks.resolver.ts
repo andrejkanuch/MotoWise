@@ -76,16 +76,21 @@ export class MaintenanceTasksResolver {
   async completeMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
-    @Args('input', { type: () => CompleteMaintenanceTaskInput, nullable: true }, new ZodValidationPipe(CompleteMaintenanceTaskSchema))
+    @Args(
+      'input',
+      { type: () => CompleteMaintenanceTaskInput, nullable: true },
+      new ZodValidationPipe(CompleteMaintenanceTaskSchema),
+    )
     input: CompleteMaintenanceTaskInput | null,
     @Args('createNextOccurrence', { type: () => Boolean, nullable: true })
     createNextOccurrence: boolean | null,
   ): Promise<CompleteTaskResult> {
-    const completed = await this.maintenanceTasksService.complete(user.id, id, input);
+    const completed = await this.maintenanceTasksService.complete(user.id, id, input ?? undefined);
     const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
     let nextOccurrence: MaintenanceTask | undefined;
     if (shouldCreateNext) {
-      nextOccurrence = await this.maintenanceTasksService.createNextRecurrence(completed) ?? undefined;
+      nextOccurrence =
+        (await this.maintenanceTasksService.createNextRecurrence(completed)) ?? undefined;
     }
     return { completed, nextOccurrence };
   }

@@ -19,6 +19,8 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
     currency
     source
     isRecurring
+    intervalKm
+    intervalDays
     photos {
       id
       storagePath

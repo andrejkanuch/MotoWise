@@ -219,8 +219,14 @@ export class MaintenanceTasksService {
     return true;
   }
 
-  async findAllHistory(userId: string, motorcycleId: string, limit = 100): Promise<MaintenanceTask[]> {
-    this.logger.debug(`findAllHistory: userId=${userId}, motorcycleId=${motorcycleId}, limit=${limit}`);
+  async findAllHistory(
+    userId: string,
+    motorcycleId: string,
+    limit = 100,
+  ): Promise<MaintenanceTask[]> {
+    this.logger.debug(
+      `findAllHistory: userId=${userId}, motorcycleId=${motorcycleId}, limit=${limit}`,
+    );
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')

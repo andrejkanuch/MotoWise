@@ -1,6 +1,5 @@
 import { palette } from '@motolearn/design-system';
 import {
-  CompleteMaintenanceTaskDocument,
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
   MaintenanceTasksByMotorcycleDocument,
@@ -42,7 +41,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { SpendingSummary } from '../../../../components/bike-hub/spending-summary';
@@ -157,7 +156,12 @@ function SwipeableTaskCard({
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
 
   return (
-    <Animated.View key={task.id} entering={FadeInUp.delay(index * 50).duration(300)}>
+    <Animated.View
+      key={task.id}
+      entering={FadeInUp.delay(index * 50).duration(300)}
+      exiting={FadeOutLeft.duration(250)}
+      layout={LinearTransition.duration(200)}
+    >
       <View
         style={{
           backgroundColor: relative?.isOverdue
@@ -271,8 +275,7 @@ function SwipeableTaskCard({
           >
             <Pressable
               onPress={() => {
-                if (process.env.EXPO_OS === 'ios')
-                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                haptic();
                 onComplete(task.id);
               }}
               style={{
@@ -427,7 +430,11 @@ function SwipeableTaskCard({
 
 export default function BikeDetailScreen() {
   const { t } = useTranslation();
-  const { id, highlightTask } = useLocalSearchParams<{ id: string; highlightTask?: string; _ts?: string }>();
+  const { id, highlightTask } = useLocalSearchParams<{
+    id: string;
+    highlightTask?: string;
+    _ts?: string;
+  }>();
   const router = useRouter();
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
@@ -484,22 +491,7 @@ export default function BikeDetailScreen() {
     queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
   };
 
-  const completeMutation = useMutation({
-    mutationFn: (taskId: string) => gqlFetcher(CompleteMaintenanceTaskDocument, { id: taskId }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      invalidateTasks();
-    },
-    onError: (_err: Error) => {
-      Alert.alert(
-        t('common.error', { defaultValue: 'Error' }),
-        t('maintenance.completeError', {
-          defaultValue: 'Failed to complete task. Please try again.',
-        }),
-      );
-    },
-  });
+  // completeMutation moved to complete-task formSheet route
 
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
@@ -527,6 +519,12 @@ export default function BikeDetailScreen() {
       (a: Task, b: Task) => (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99),
     );
   const completedTasks = tasks.filter((t: Task) => t.status === 'completed');
+
+  useEffect(() => {
+    if (expandedId && !activeTasks.find((t) => t.id === expandedId)) {
+      setExpandedId(null);
+    }
+  }, [activeTasks, expandedId]);
 
   const healthScore = computeHealthScore(
     tasks.map((t) => ({
@@ -637,7 +635,11 @@ export default function BikeDetailScreen() {
   };
 
   const handleCompleteTask = (taskId: string) => {
-    completeMutation.mutate(taskId);
+    const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
+    router.push({
+      pathname: '/(tabs)/(garage)/complete-task',
+      params: { taskId, motorcycleId: id, bikeName },
+    });
   };
 
   const handleDeleteTask = (taskId: string, taskTitle: string) => {
