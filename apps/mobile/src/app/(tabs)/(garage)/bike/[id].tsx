@@ -1293,7 +1293,7 @@ export default function BikeDetailScreen() {
         onPress={() => {
           haptic();
           router.push({
-            pathname: '/(tabs)/(garage)/add-task',
+            pathname: '/(tabs)/(garage)/add-maintenance-task',
             params: { motorcycleId: id },
           });
         }}

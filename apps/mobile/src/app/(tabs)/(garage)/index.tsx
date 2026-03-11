@@ -336,7 +336,7 @@ export default function GarageScreen() {
           backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
         }}
       >
-        <EmptyGarage onAdd={() => router.push('/(garage)/add-bike')} isDark={isDark} />
+        <EmptyGarage onAdd={() => router.push('/(tabs)/(garage)/add-bike')} isDark={isDark} />
       </View>
     );
   }
@@ -374,7 +374,7 @@ export default function GarageScreen() {
             bike={bike}
             index={index}
             isDark={isDark}
-            onPress={() => router.push(`/(garage)/bike/${bike.id}`)}
+            onPress={() => router.push(`/(tabs)/(garage)/bike/${bike.id}`)}
           />
         ))}
       </ScrollView>
@@ -384,7 +384,7 @@ export default function GarageScreen() {
         <Pressable
           onPress={() => {
             haptic();
-            router.push('/(garage)/add-bike');
+            router.push('/(tabs)/(garage)/add-bike');
           }}
           style={({ pressed }) => ({
             width: 56,
