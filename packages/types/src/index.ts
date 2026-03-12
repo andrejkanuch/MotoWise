@@ -1,5 +1,6 @@
 export * from './constants/enums';
 export * from './constants/limits';
+export * from './constants/subscription';
 export * from './validators/article';
 export * from './validators/content-flag';
 export * from './validators/diagnostic';

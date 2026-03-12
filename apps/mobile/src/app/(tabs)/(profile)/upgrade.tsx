@@ -17,9 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
+import { useSubscriptionStore } from '../../../stores/subscription.store';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -106,13 +104,7 @@ function PricingCard({
         </Animated.View>
       )}
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View>
           <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
             {t(`paywall.${plan}`)}
@@ -158,31 +150,34 @@ function PricingCard({
   );
 }
 
-export default function PaywallScreen() {
+export default function UpgradeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const bikeData = useOnboardingStore((s) => s.bikeData);
+  const isPro = useSubscriptionStore((s) => s.isPro);
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [isLoading, setIsLoading] = useState(false);
   const [offerings, setOfferings] = useState<PurchasesOfferings | null>(null);
   const [offeringsLoading, setOfferingsLoading] = useState(!isExpoGo);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const bikeName = bikeData ? `${bikeData.year} ${bikeData.make} ${bikeData.model}` : null;
+  // If already pro, go back
+  useEffect(() => {
+    if (isPro) {
+      router.back();
+    }
+  }, [isPro, router]);
 
   const fetchOfferings = useCallback(async () => {
     if (isExpoGo) return;
-
     setOfferingsLoading(true);
     setFetchError(null);
-
     try {
       const { default: Purchases } = await import('react-native-purchases');
       const result = await Purchases.getOfferings();
       setOfferings(result);
     } catch (error) {
-      console.error('[Paywall] Failed to load offerings:', error);
+      console.error('[Upgrade] Failed to load offerings:', error);
       setFetchError(
         error instanceof Error ? error.message : 'Failed to load subscription options.',
       );
@@ -197,10 +192,8 @@ export default function PaywallScreen() {
 
   const annualPackage = offerings?.current?.annual;
   const monthlyPackage = offerings?.current?.monthly;
-
   const annualPrice = annualPackage?.product.priceString;
   const monthlyPrice = monthlyPackage?.product.priceString;
-
   const annualMonthlyEquiv =
     annualPackage?.product.price != null
       ? new Intl.NumberFormat(undefined, {
@@ -216,36 +209,28 @@ export default function PaywallScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setIsLoading(true);
-
     try {
       const { default: Purchases } = await import('react-native-purchases');
-
       let currentOfferings = offerings;
       if (!currentOfferings) {
         currentOfferings = await Purchases.getOfferings();
         setOfferings(currentOfferings);
       }
-
       const packageToBuy =
         selectedPlan === 'annual'
           ? currentOfferings.current?.annual
           : currentOfferings.current?.monthly;
-
       if (!packageToBuy) {
-        console.error('[Paywall] No package found for plan:', selectedPlan);
         Alert.alert(t('common.error'), t('paywall.packageUnavailable'), [
           { text: t('common.cancel') },
         ]);
         return;
       }
-
       await Purchases.purchasePackage(packageToBuy);
-      router.replace('/(onboarding)/personalizing');
+      router.back();
     } catch (error) {
-      if (isPurchaseCancellation(error)) {
-        return;
-      }
-      console.error('[Paywall] Purchase failed:', error);
+      if (isPurchaseCancellation(error)) return;
+      console.error('[Upgrade] Purchase failed:', error);
       Alert.alert(t('common.error'), t('paywall.purchaseFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);
@@ -259,28 +244,22 @@ export default function PaywallScreen() {
       const info = await Purchases.restorePurchases();
       const hasPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
       if (hasPro) {
-        router.replace('/(onboarding)/personalizing');
+        router.back();
       } else {
         Alert.alert(t('paywall.noSubscriptionFound'), t('paywall.noSubscriptionFoundDesc'), [
           { text: t('common.cancel') },
         ]);
       }
     } catch (error) {
-      console.error('[Paywall] Restore failed:', error);
+      console.error('[Upgrade] Restore failed:', error);
       Alert.alert(t('common.error'), t('paywall.restoreFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleContinueFree = () => {
-    router.replace('/(onboarding)/personalizing');
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
-      <OnboardingProgress screenIndex={15} totalScreens={TOTAL_SCREENS} />
-
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 24,
@@ -308,7 +287,6 @@ export default function PaywallScreen() {
           >
             <Star size={32} color="#FACC15" fill="#FACC15" />
           </View>
-
           <Text
             style={{
               fontSize: 28,
@@ -321,18 +299,6 @@ export default function PaywallScreen() {
           >
             {t('paywall.title')}
           </Text>
-
-          {bikeName && (
-            <Text
-              style={{
-                fontSize: 15,
-                color: 'rgba(255,255,255,0.5)',
-                textAlign: 'center',
-              }}
-            >
-              {t('paywall.personalizedFor', { bike: bikeName })}
-            </Text>
-          )}
         </Animated.View>
 
         {/* Value Props */}
@@ -344,11 +310,7 @@ export default function PaywallScreen() {
             <Animated.View
               key={key}
               entering={FadeInUp.delay(200 + index * 80).duration(300)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-              }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
             >
               <View
                 style={{
@@ -387,21 +349,10 @@ export default function PaywallScreen() {
             </View>
           ) : fetchError ? (
             <View
-              style={{
-                alignItems: 'center',
-                paddingVertical: 32,
-                paddingHorizontal: 16,
-                gap: 12,
-              }}
+              style={{ alignItems: 'center', paddingVertical: 32, paddingHorizontal: 16, gap: 12 }}
             >
               <AlertCircle size={32} color="rgba(255,255,255,0.5)" />
-              <Text
-                style={{
-                  fontSize: 15,
-                  color: 'rgba(255,255,255,0.6)',
-                  textAlign: 'center',
-                }}
-              >
+              <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
                 {fetchError}
               </Text>
               <Pressable
@@ -449,12 +400,7 @@ export default function PaywallScreen() {
         {/* Trust Signals */}
         <Animated.View
           entering={FadeInUp.delay(500).duration(300)}
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 24,
-            marginBottom: 28,
-          }}
+          style={{ flexDirection: 'row', justifyContent: 'center', gap: 24, marginBottom: 28 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <ShieldCheck size={16} color="rgba(255,255,255,0.5)" />
@@ -474,7 +420,7 @@ export default function PaywallScreen() {
         <Animated.View entering={FadeInUp.delay(600).duration(300)}>
           {isExpoGo ? (
             <Pressable
-              onPress={() => router.replace('/(onboarding)/personalizing')}
+              onPress={() => router.back()}
               style={({ pressed }) => ({
                 backgroundColor: '#FACC15',
                 borderRadius: 20,
@@ -535,19 +481,6 @@ export default function PaywallScreen() {
             </Pressable>
           </Animated.View>
         )}
-
-        {/* Continue with Free */}
-        <Animated.View entering={FadeInUp.delay(700).duration(300)} style={{ marginTop: 12 }}>
-          <Pressable
-            onPress={handleContinueFree}
-            disabled={isLoading}
-            style={{ alignItems: 'center', paddingVertical: 8, opacity: isLoading ? 0.3 : 1 }}
-          >
-            <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
-              {t('paywall.continueWithFree')}
-            </Text>
-          </Pressable>
-        </Animated.View>
 
         {/* Terms & Privacy */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 }}>

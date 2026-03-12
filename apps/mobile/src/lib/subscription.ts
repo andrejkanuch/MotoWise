@@ -1,19 +1,59 @@
+import { FREE_TIER_LIMITS, REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
 import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscription.store';
 
-let isConfigured = false;
+// Module-level cached import — resolve once, reuse everywhere
+let PurchasesModule: typeof import('react-native-purchases') | null = null;
 
-export async function initRevenueCat() {
-  if (isConfigured) return;
-
-  // Skip in Expo Go — RevenueCat requires native modules
-  if (Constants.appOwnership === 'expo') {
-    console.warn('[RevenueCat] Skipping init — running in Expo Go');
-    return;
+async function getPurchases() {
+  if (!PurchasesModule) {
+    PurchasesModule = await import('react-native-purchases');
   }
+  return PurchasesModule.default;
+}
 
+function isExpoGo(): boolean {
+  return Constants.appOwnership === 'expo';
+}
+
+// Shared init promise — loginRevenueCat awaits this before calling logIn
+let initPromise: Promise<(() => void) | null> | null = null;
+
+export function initRevenueCat(): Promise<(() => void) | null> {
+  if (isExpoGo()) {
+    return Promise.resolve(null);
+  }
+  if (!initPromise) {
+    initPromise = doInit();
+  }
+  return initPromise;
+}
+
+function updateStoreFromCustomerInfo(info: {
+  entitlements: { active: Record<string, { periodType?: string; expirationDate?: string | null }> };
+}) {
+  const store = useSubscriptionStore.getState();
+  const isPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
+  store.setPro(isPro);
+
+  const proEntitlement = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+  if (proEntitlement?.periodType === 'TRIAL') {
+    const expirationDate = proEntitlement.expirationDate;
+    if (expirationDate) {
+      const daysLeft = Math.ceil(
+        (new Date(expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      );
+      store.setTrialing(true, daysLeft);
+    }
+  } else {
+    store.setTrialing(false);
+  }
+  store.setVerified(true);
+}
+
+async function doInit(): Promise<(() => void) | null> {
   try {
-    const { default: Purchases } = await import('react-native-purchases');
+    const Purchases = await getPurchases();
 
     const apiKey =
       process.env.EXPO_OS === 'ios'
@@ -22,35 +62,80 @@ export async function initRevenueCat() {
 
     if (!apiKey) {
       console.warn('[RevenueCat] No API key configured');
-      return;
+      return null;
     }
 
     await Purchases.configure({ apiKey });
     useSubscriptionStore.getState().setAvailable(true);
 
-    // Listen for subscription changes
-    Purchases.addCustomerInfoUpdateListener((info) => {
-      const store = useSubscriptionStore.getState();
-      const isPro = info.entitlements.active['MotoWise Pro'] !== undefined;
-      store.setPro(isPro);
+    // Set up listener — store the reference for cleanup
+    const listener = (info: {
+      entitlements: {
+        active: Record<string, { periodType?: string; expirationDate?: string | null }>;
+      };
+    }) => {
+      updateStoreFromCustomerInfo(info);
+    };
 
-      const proEntitlement = info.entitlements.active['MotoWise Pro'];
-      if (proEntitlement?.periodType === 'TRIAL') {
-        const expirationDate = proEntitlement.expirationDate;
-        if (expirationDate) {
-          const daysLeft = Math.ceil(
-            (new Date(expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-          );
-          store.setTrialing(true, daysLeft);
-        }
-      } else {
-        store.setTrialing(false);
-      }
-    });
+    Purchases.addCustomerInfoUpdateListener(listener);
 
-    // Mark as configured only after listener is successfully registered
-    isConfigured = true;
+    // Hydrate store with initial state
+    const customerInfo = await Purchases.getCustomerInfo();
+    updateStoreFromCustomerInfo(customerInfo);
+
+    // Return cleanup function for useEffect
+    return () => {
+      Purchases.removeCustomerInfoUpdateListener(listener);
+    };
   } catch (e) {
-    console.error('[RevenueCat] Init failed — subscriptions will be unavailable:', e);
+    console.error('[RevenueCat] Init failed:', e instanceof Error ? e.message : e);
+    return null;
   }
+}
+
+export async function loginRevenueCat(userId: string) {
+  if (isExpoGo()) return;
+  // Wait for configure() to complete before calling logIn()
+  const cleanup = await initRevenueCat();
+  if (!cleanup) return;
+  try {
+    const Purchases = await getPurchases();
+    await Purchases.logIn(userId);
+  } catch (e) {
+    console.error('[RevenueCat] logIn failed:', e instanceof Error ? e.message : e);
+  }
+}
+
+export async function logoutRevenueCat() {
+  if (isExpoGo()) return;
+  const cleanup = await initRevenueCat();
+  if (!cleanup) return;
+  try {
+    const Purchases = await getPurchases();
+    await Purchases.logOut();
+  } catch (e) {
+    console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
+  }
+}
+
+// Client-side feature gating (UI only — server enforces via PremiumGuard)
+type FeatureAccess =
+  | { allowed: true; unlimited: true }
+  | { allowed: true; unlimited: false; limit: number; remaining: number }
+  | { allowed: false; unlimited: false; limit: number; remaining: number };
+
+export function checkFeatureAccess(
+  feature: keyof typeof FREE_TIER_LIMITS,
+  currentCount: number,
+  isPro: boolean,
+): FeatureAccess {
+  if (isPro) return { allowed: true, unlimited: true };
+  const limit = FREE_TIER_LIMITS[feature];
+  const remaining = Math.max(0, limit - currentCount);
+  return {
+    allowed: currentCount < limit,
+    unlimited: false,
+    limit,
+    remaining,
+  };
 }
