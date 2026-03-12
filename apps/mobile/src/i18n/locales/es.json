@@ -157,7 +157,8 @@
     "disclaimer": "Este es un diagnostico de IA solo con fines educativos. Siempre consulta a un mecanico calificado para problemas criticos de seguridad.",
     "processing": "Procesando tu diagnostico...",
     "failed": "El analisis del diagnostico fallo",
-    "retry": "Intentar de Nuevo"
+    "retry": "Intentar de Nuevo",
+    "imageTooLarge": "La imagen es demasiado grande (max 5 MB). Elige una foto mas pequena o toma otra con menor calidad."
   },
   "wizard": {
     "step": "Paso {{current}} de {{total}}",

@@ -1,3 +1,10 @@
+type AiBudgetStatus {
+  circuitBreakerOpen: Boolean!
+  dailySpendCapCents: Int!
+  todayGenerationCount: Int!
+  todaySpendCents: Int!
+}
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -273,6 +280,7 @@ type MotorcycleModelResult {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
+  resetAiCircuitBreaker: Boolean!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
@@ -329,6 +337,7 @@ type PageInfo {
 }
 
 type Query {
+  aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article

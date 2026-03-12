@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DiagnosticSeverity } from '../constants/enums';
+import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '../constants/limits';
 
 const severities = Object.values(DiagnosticSeverity) as [string, ...string[]];
 
@@ -30,7 +31,10 @@ export type CreateDiagnostic = z.infer<typeof CreateDiagnosticSchema>;
 
 export const SubmitDiagnosticSchema = z.object({
   motorcycleId: z.string().uuid(),
-  photoBase64: z.string().min(100),
+  photoBase64: z
+    .string()
+    .min(100)
+    .max(MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH, 'Image exceeds maximum size of 5 MB'),
   description: z.string().max(500).optional(),
   wizardAnswers: z.record(z.string()).optional(),
   dataSharingOptedIn: z.boolean().default(false),

@@ -157,7 +157,8 @@
     "disclaimer": "This is an AI diagnosis for educational purposes only. Always consult a qualified mechanic for safety-critical issues.",
     "processing": "Processing your diagnostic...",
     "failed": "Diagnostic analysis failed",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "imageTooLarge": "Image is too large (max 5 MB). Please choose a smaller photo or retake with lower quality."
   },
   "wizard": {
     "step": "Step {{current}} of {{total}}",

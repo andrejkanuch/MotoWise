@@ -69,7 +69,7 @@ export class DiagnosticsResolver {
     }
 
     // 3. Run AI analysis
-    await this.diagnosticAiService.analyze(diagnostic.id, input.photoBase64, {
+    await this.diagnosticAiService.analyze(diagnostic.id, user.id, input.photoBase64, {
       make: motorcycle.make,
       model: motorcycle.model,
       year: motorcycle.year,
