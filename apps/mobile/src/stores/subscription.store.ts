@@ -8,10 +8,12 @@ interface SubscriptionState {
   isTrialing: boolean;
   trialDaysLeft: number | null;
   isLoading: boolean;
+  isVerified: boolean;
   setAvailable: (available: boolean) => void;
   setPro: (isPro: boolean) => void;
   setTrialing: (isTrialing: boolean, daysLeft?: number | null) => void;
   setLoading: (loading: boolean) => void;
+  setVerified: (verified: boolean) => void;
 }
 
 export const useSubscriptionStore = create<SubscriptionState>()(
@@ -22,10 +24,12 @@ export const useSubscriptionStore = create<SubscriptionState>()(
       isTrialing: false,
       trialDaysLeft: null,
       isLoading: false,
+      isVerified: false,
       setAvailable: (isAvailable) => set({ isAvailable }),
       setPro: (isPro) => set({ isPro }),
       setTrialing: (isTrialing, trialDaysLeft = null) => set({ isTrialing, trialDaysLeft }),
       setLoading: (isLoading) => set({ isLoading }),
+      setVerified: (isVerified) => set({ isVerified }),
     }),
     {
       name: 'subscription-state',

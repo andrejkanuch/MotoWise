@@ -16,6 +16,7 @@ import {
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
+import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
 
@@ -124,7 +125,10 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (!session) {
+      if (session?.user) {
+        loginRevenueCat(session.user.id);
+      } else {
+        logoutRevenueCat();
         queryClient.clear();
         cancelAllNotifications();
       }
@@ -140,6 +144,17 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Initialize RevenueCat SDK with cleanup
+  useEffect(() => {
+    let cleanup: (() => void) | null = null;
+    initRevenueCat().then((c) => {
+      cleanup = c;
+    });
+    return () => {
+      cleanup?.();
+    };
   }, []);
 
   // Set up notification channels, categories, and request permission
