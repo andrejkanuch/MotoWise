@@ -1,4 +1,4 @@
-import type { SupportedLocale } from '@motolearn/types';
+import type { SupportedLocale } from '@motovault/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';

@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { MyProgressDocument, SearchArticlesDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MyProgressDocument, SearchArticlesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { BookOpen, Cog, Eye, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';

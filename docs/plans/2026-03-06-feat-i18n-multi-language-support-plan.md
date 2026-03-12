@@ -30,11 +30,11 @@ date: 2026-03-06
 
 ## Overview
 
-Add internationalization (i18n) to MotoLearn supporting English, Spanish, and German. This covers three layers: mobile UI strings, API locale-aware content serving, and database schema for multilingual AI-generated content (articles, quizzes). Corresponds to Linear ticket MOT-32.
+Add internationalization (i18n) to MotoVault supporting English, Spanish, and German. This covers three layers: mobile UI strings, API locale-aware content serving, and database schema for multilingual AI-generated content (articles, quizzes). Corresponds to Linear ticket MOT-32.
 
 ## Problem Statement / Motivation
 
-MotoLearn targets a global motorcycle community but currently has zero i18n support:
+MotoVault targets a global motorcycle community but currently has zero i18n support:
 - ~50 hardcoded English strings in the mobile app
 - ~15 hardcoded strings in the admin dashboard
 - No language columns in the database
@@ -80,7 +80,7 @@ export type SupportedLocale = z.infer<typeof SupportedLocaleSchema>;
 
 **`apps/api/src/common/constants/locale.ts`** — server-side mapping:
 ```typescript
-import type { SupportedLocale } from '@motolearn/types';
+import type { SupportedLocale } from '@motovault/types';
 
 export const LOCALE_TO_REGCONFIG = {
   en: 'english',
@@ -94,7 +94,7 @@ export const LOCALE_TO_REGCONFIG = {
 **`apps/api/src/common/enums/graphql-enums.ts`** — register:
 ```typescript
 import { registerEnumType } from '@nestjs/graphql';
-import { SUPPORTED_LOCALES } from '@motolearn/types';
+import { SUPPORTED_LOCALES } from '@motovault/types';
 // Derive a plain object for registerEnumType
 const SupportedLocaleEnum = Object.fromEntries(
   SUPPORTED_LOCALES.map((l) => [l, l])
@@ -181,7 +181,7 @@ declare module 'i18next' {
 - `apps/mobile/src/app/(tabs)/(profile)/index.tsx` — add language picker
 
 **User preference:**
-- Store in Zustand auth store: `locale: SupportedLocale` (imported from `@motolearn/types`)
+- Store in Zustand auth store: `locale: SupportedLocale` (imported from `@motovault/types`)
 - On app launch: check user pref > device locale > fallback 'en'
 - When user changes language: `i18n.changeLanguage(locale)` + update Zustand store
 
@@ -288,7 +288,7 @@ CREATE POLICY "Quiz translations are publicly readable"
 // apps/api/src/common/interceptors/locale.interceptor.ts
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { SupportedLocaleSchema } from '@motolearn/types';
+import { SupportedLocaleSchema } from '@motovault/types';
 
 @Injectable()
 export class LocaleInterceptor implements NestInterceptor {

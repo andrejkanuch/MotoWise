@@ -10,7 +10,7 @@ linear: MOT-8, MOT-9, MOT-12, MOT-13
 
 ## Overview
 
-Build the four core AI-powered features that transform MotoWise from a CRUD shell into a real product: (1) AI article generation via Claude, (2) Learn Hub UI to browse/read articles, (3) photo diagnostic via Claude Vision, (4) guided diagnostic wizard. These ship together because the Learn↔Diagnose loop is the app's key value proposition.
+Build the four core AI-powered features that transform MotoVault from a CRUD shell into a real product: (1) AI article generation via Claude, (2) Learn Hub UI to browse/read articles, (3) photo diagnostic via Claude Vision, (4) guided diagnostic wizard. These ship together because the Learn↔Diagnose loop is the app's key value proposition.
 
 ## Problem Statement
 
@@ -29,7 +29,7 @@ Create `article-generator.service.ts` — Claude API integration that generates 
 - Inject `SUPABASE_ADMIN` for writing generated content (system operation)
 - `generateArticle(topic: string, category: ArticleCategory, difficulty: ArticleDifficulty): Promise<Article>`
   - Build Claude prompt: system instructions + topic + category + difficulty
-  - Use `ArticleContentSchema` from `@motolearn/types` for structured output validation
+  - Use `ArticleContentSchema` from `@motovault/types` for structured output validation
   - Generate slug from title (kebab-case, dedup with timestamp suffix if collision)
   - Insert into `articles` table: content_json, raw_text (for search vector), category, difficulty
   - Log to `content_generation_log` table (model, tokens, cost, status)
@@ -96,7 +96,7 @@ Create `diagnostic-ai.service.ts` — Claude Vision integration for photo analys
 - `analyzeDiagnostic(diagnosticId: string, photoUrl: string, context: DiagnosticContext): Promise<DiagnosticResult>`
   - `DiagnosticContext`: motorcycle make/model/year + wizard answers + user description
   - Build Claude Vision prompt: system instructions + context + image
-  - Use `DiagnosticResultSchema` from `@motolearn/types` for structured output validation
+  - Use `DiagnosticResultSchema` from `@motovault/types` for structured output validation
   - Update diagnostic record: result_json, severity, confidence, status → 'completed'
   - Log to `content_generation_log`
   - Return `DiagnosticResult`

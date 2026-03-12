@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { MeDocument, UpdateUserDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -167,7 +167,7 @@ export default function PrivacyScreen() {
             Alert.alert(
               t('privacy.deleteConfirm', { defaultValue: 'Contact Support' }),
               t('privacy.deleteConfirmMessage', {
-                defaultValue: 'To delete your account, please contact support@motowise.app',
+                defaultValue: 'To delete your account, please contact support@motovault.app',
               }),
             );
           },
@@ -262,7 +262,7 @@ export default function PrivacyScreen() {
               icon={Shield}
               title={t('privacy.analytics', { defaultValue: 'Analytics' })}
               subtitle={t('privacy.analyticsDesc', {
-                defaultValue: 'Help us improve MotoWise with usage data',
+                defaultValue: 'Help us improve MotoVault with usage data',
               })}
               value={state.analyticsEnabled}
               onToggle={(v) => toggle('analyticsEnabled', v)}

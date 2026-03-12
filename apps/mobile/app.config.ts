@@ -4,21 +4,21 @@ const IS_PRODUCTION = process.env.APP_VARIANT === 'production';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 const getAppName = () => {
-  if (IS_PRODUCTION) return 'MotoWise';
-  if (IS_PREVIEW) return 'MotoWise (Preview)';
-  return 'MotoWise (Dev)';
+  if (IS_PRODUCTION) return 'MotoVault';
+  if (IS_PREVIEW) return 'MotoVault (Preview)';
+  return 'MotoVault (Dev)';
 };
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
-  slug: 'motowise',
+  slug: 'motovault',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './src/assets/images/MotoWise.png',
+  icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  scheme: 'motowise',
+  scheme: 'motovault',
   owner: 'andykeny',
   runtimeVersion: {
     policy: 'appVersion',
@@ -36,13 +36,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-camera',
       {
-        cameraPermission: 'MotoWise needs camera access for diagnostic photo capture.',
+        cameraPermission: 'MotoVault needs camera access for diagnostic photo capture.',
       },
     ],
     [
       'expo-image-picker',
       {
-        photosPermission: 'MotoWise needs photo library access to upload diagnostic images.',
+        photosPermission: 'MotoVault needs photo library access to upload diagnostic images.',
       },
     ],
     'expo-secure-store',
@@ -70,21 +70,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   ios: {
-    bundleIdentifier: 'com.motolearn.app',
+    bundleIdentifier: 'com.motovault.app',
     supportsTablet: true,
     usesAppleSignIn: true,
     infoPlist: {
-      CFBundleDisplayName: 'MotoWise',
-      NSCameraUsageDescription: 'MotoWise needs camera access for diagnostic photo capture.',
+      CFBundleDisplayName: 'MotoVault',
+      NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
-        'MotoWise needs photo library access to upload diagnostic images.',
+        'MotoVault needs photo library access to upload diagnostic images.',
     },
     config: {
       usesNonExemptEncryption: false,
     },
   },
   android: {
-    package: 'com.motolearn.app',
+    package: 'com.motovault.app',
     adaptiveIcon: {
       foregroundImage: './src/assets/adaptive-icon.png',
       backgroundColor: '#1b2e4b',

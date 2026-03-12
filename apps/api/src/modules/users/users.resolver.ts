@@ -1,4 +1,4 @@
-import { CompleteOnboardingInputSchema, UpdateUserSchema } from '@motolearn/types';
+import { CompleteOnboardingInputSchema, UpdateUserSchema } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';

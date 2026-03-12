@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 
-const logo = require('../../assets/images/MotoWise.png');
+const logo = require('../../assets/images/MotoVault.png');
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';

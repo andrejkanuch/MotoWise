@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/tsconfig",
+  "name": "@motovault/tsconfig",
   "private": true,
   "files": [
     "base.json",

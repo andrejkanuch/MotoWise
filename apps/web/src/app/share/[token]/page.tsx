@@ -139,10 +139,10 @@ function ExpiredView() {
         <h1 className="mb-3 text-2xl font-bold text-gray-900">Link Unavailable</h1>
         <p className="mb-8 text-gray-600">This link has expired or is no longer available.</p>
         <a
-          href="https://motowise.app"
+          href="https://motovault.app"
           className="inline-flex items-center rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800"
         >
-          Visit MotoWise
+          Visit MotoVault
         </a>
       </div>
     </div>
@@ -276,8 +276,8 @@ export default async function SharePage({ params }: { params: Promise<{ token: s
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <p className="text-sm text-gray-500">
             Powered by{' '}
-            <a href="https://motowise.app" className="font-medium text-gray-900 hover:underline">
-              MotoWise
+            <a href="https://motovault.app" className="font-medium text-gray-900 hover:underline">
+              MotoVault
             </a>
           </p>
           <p className="mt-1 text-xs text-gray-400">AI-powered motorcycle maintenance tracking</p>

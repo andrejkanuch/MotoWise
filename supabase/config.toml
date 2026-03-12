@@ -15,12 +15,12 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "https://motowise.app"
+site_url = "https://motovault.app"
 additional_redirect_urls = [
   "http://localhost:3000",
   "http://localhost:8081",
-  "motowise://auth/callback",
-  "motowise://",
+  "motovault://auth/callback",
+  "motovault://",
   "exp://192.168.0.109:8081/--/auth/callback",
   "exp://192.168.0.109:8081",
 ]
@@ -51,7 +51,7 @@ verify_enabled = false
 
 [auth.external.apple]
 enabled = true
-client_id = "com.motolearn.app"
+client_id = "com.motovault.app"
 secret = "env(SUPABASE_AUTH_APPLE_SECRET)"
 url = ""
 

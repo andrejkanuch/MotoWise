@@ -1,4 +1,4 @@
-import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motolearn/types';
+import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motovault/types';
 import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';

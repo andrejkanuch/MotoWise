@@ -14,7 +14,7 @@ export async function generateMetadata() {
     },
     description: t('description'),
     openGraph: {
-      siteName: 'MotoWise',
+      siteName: 'MotoVault',
       locale,
       type: 'website',
       images: [{ url: '/og-image.png', width: 1200, height: 630 }],

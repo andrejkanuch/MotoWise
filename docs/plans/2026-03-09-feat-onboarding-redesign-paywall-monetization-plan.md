@@ -39,7 +39,7 @@ date: 2026-03-09
 ### TypeScript & Pattern Fixes
 
 - Use UPPER_CASE keys in new `as const` enum objects (match existing `EXPERIENCE_LEVEL` pattern)
-- Fix inline `gql` template in `personalizing.tsx:48` — use TypedDocumentNode from `@motolearn/graphql`
+- Fix inline `gql` template in `personalizing.tsx:48` — use TypedDocumentNode from `@motovault/graphql`
 - Use enum constants (e.g., `MOTORCYCLE_TYPE.CRUISER`) instead of string literals in screen files
 - Type catch blocks as `error: unknown` (not `any`) per project TypeScript strictness
 
@@ -52,7 +52,7 @@ date: 2026-03-09
 
 ## Overview
 
-Redesign the MotoWise onboarding from a 7-step overloaded flow into a 17-screen one-question-per-screen experience across 5 sections. Fix broken card layouts, add mi/km mileage toggle, motorcycle photo upload, smart maintenance opt-in, repair spending self-reflection, and a RevenueCat-powered soft paywall with dynamic pricing. Target: >90% completion, 6-10% free-to-paid conversion.
+Redesign the MotoVault onboarding from a 7-step overloaded flow into a 17-screen one-question-per-screen experience across 5 sections. Fix broken card layouts, add mi/km mileage toggle, motorcycle photo upload, smart maintenance opt-in, repair spending self-reflection, and a RevenueCat-powered soft paywall with dynamic pricing. Target: >90% completion, 6-10% free-to-paid conversion.
 
 ## Problem Statement
 
@@ -351,7 +351,7 @@ apps/api/src/webhooks/
 - [ ] **2.3 Revise Screen 15: AI Insights** — `insights.tsx`
   - Show bike photo at top if uploaded (read from store's `bikePhotoUri`)
   - Add 15-second timeout via `AbortController` — show skip option on timeout
-  - Social proof: "Join [N]+ riders who use MotoWise for their [bike type]"
+  - Social proof: "Join [N]+ riders who use MotoVault for their [bike type]"
   - If maintenance reminders ON: "Your first maintenance reminder is set"
   - Disable Continue button during loading (currently enabled during error — fix this)
   - Fallback content if AI fails: static insights based on bike type + experience level
@@ -376,7 +376,7 @@ apps/api/src/webhooks/
 
 - [ ] **2.5 Revise Screen 17: Personalizing** — `personalizing.tsx`
   - Upload bike photo to Supabase Storage `bike-photos` bucket during this step
-  - Use `CompleteOnboardingDocument` from `@motolearn/graphql` (fix inline gql on line 48)
+  - Use `CompleteOnboardingDocument` from `@motovault/graphql` (fix inline gql on line 48)
   - Pass all new fields to `CompleteOnboarding` mutation
   - On mutation failure: show retry button (don't silently proceed to dashboard)
   - Store `onboardingCompleted` in auth store `partialize` to prevent flash-of-onboarding on cold start

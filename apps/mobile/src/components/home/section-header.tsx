@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';

@@ -45,7 +45,7 @@
       "outputs": ["schema.graphql"]
     },
     "generate:graphql": {
-      "dependsOn": ["@motolearn/api#generate:schema"],
+      "dependsOn": ["@motovault/api#generate:schema"],
       "outputs": ["src/generated/**"]
     },
     "generate:types": {

@@ -1,4 +1,4 @@
-import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motolearn/types';
+import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
 import { Logger, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';

@@ -9,9 +9,9 @@
 
 ## 1. Problem Statement
 
-When a MotoLearn user taps on their bike today, they land on a screen that's essentially a long scrollable list: bike info at the top, then a flat list of maintenance tasks grouped by status. There's no hierarchy, no financial context, and no sense of *urgency*. A rider who just wants to know "is my bike healthy, what's due next, and how much am I spending?" has to mentally assemble that picture from scattered data points.
+When a MotoVault user taps on their bike today, they land on a screen that's essentially a long scrollable list: bike info at the top, then a flat list of maintenance tasks grouped by status. There's no hierarchy, no financial context, and no sense of *urgency*. A rider who just wants to know "is my bike healthy, what's due next, and how much am I spending?" has to mentally assemble that picture from scattered data points.
 
-This matters because motorcycle owners are emotionally attached to their machines — they want to *feel* in control, not overwhelmed. The current experience treats the bike detail page as a data dump rather than a dashboard. As a result, users are likely to disengage from tracking maintenance, miss upcoming tasks, and never build the habit that makes MotoLearn indispensable.
+This matters because motorcycle owners are emotionally attached to their machines — they want to *feel* in control, not overwhelmed. The current experience treats the bike detail page as a data dump rather than a dashboard. As a result, users are likely to disengage from tracking maintenance, miss upcoming tasks, and never build the habit that makes MotoVault indispensable.
 
 The cost of not solving this: low retention past the first maintenance cycle, no differentiation from a simple spreadsheet, and zero path toward the expense-tracking features that would unlock monetization.
 
@@ -319,7 +319,7 @@ These are the moments designed to make a rider think *"this app gets me"*:
 
 ## 11. Competitive Context
 
-| Feature | MotoLearn (Current) | MotoLearn (Proposed) | Competitors (Motolog, Fuerly, BikeLogger) |
+| Feature | MotoVault (Current) | MotoVault (Proposed) | Competitors (Motolog, Fuerly, BikeLogger) |
 |---------|--------------------|--------------------|------------------------------------------|
 | Health score at-a-glance | Yes (buried) | Yes (hero position) | Rare |
 | Cost tracking per task | No | Yes | Basic (most lack breakdown) |
@@ -330,7 +330,7 @@ These are the moments designed to make a rider think *"this app gets me"*:
 | Spending analytics | No | P1 | Basic in premium tiers |
 | PDF export with costs | Partial | Full | Rare |
 
-The proposed Bike Hub would put MotoLearn ahead on the "instant awareness" dimension that no competitor nails well. Most competitors are either too simple (basic task lists) or too complex (desktop-first with cluttered UIs). The hub design targets the sweet spot: glanceable yet deep.
+The proposed Bike Hub would put MotoVault ahead on the "instant awareness" dimension that no competitor nails well. Most competitors are either too simple (basic task lists) or too complex (desktop-first with cluttered UIs). The hub design targets the sweet spot: glanceable yet deep.
 
 ---
 

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { DiagnosticResult } from '@motolearn/types';
-import { DiagnosticResultSchema } from '@motolearn/types';
+import type { DiagnosticResult } from '@motovault/types';
+import { DiagnosticResultSchema } from '@motovault/types';
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';

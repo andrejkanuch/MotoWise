@@ -1,5 +1,5 @@
-import { QuizQuestionSchema } from '@motolearn/types';
-import type { Tables } from '@motolearn/types/database';
+import { QuizQuestionSchema } from '@motovault/types';
+import type { Tables } from '@motovault/types/database';
 import {
   Inject,
   Injectable,

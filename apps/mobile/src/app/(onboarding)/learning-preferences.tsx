@@ -1,4 +1,4 @@
-import type { LearningFormat } from '@motolearn/types';
+import type { LearningFormat } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { BookOpen, Brain, Play, Zap } from 'lucide-react-native';

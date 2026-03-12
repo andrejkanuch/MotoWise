@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { MyMotorcyclesDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';

@@ -1,4 +1,4 @@
-import type { AnnualRepairSpend } from '@motolearn/types';
+import type { AnnualRepairSpend } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { DollarSign, HelpCircle } from 'lucide-react-native';

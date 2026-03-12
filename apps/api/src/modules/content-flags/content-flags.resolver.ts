@@ -1,4 +1,4 @@
-import { CreateContentFlagSchema } from '@motolearn/types';
+import { CreateContentFlagSchema } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';

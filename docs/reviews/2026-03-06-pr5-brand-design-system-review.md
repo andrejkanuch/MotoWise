@@ -10,9 +10,9 @@
 
 ## 1. Architecture Overview
 
-The PR introduces a new shared package (`@motolearn/design-system`) containing OKLCH color tokens, typography constants, and spacing values. It integrates Tailwind CSS v4 on the Next.js web app and NativeWind v5 on the Expo mobile app, then migrates all existing inline styles (web) and `StyleSheet.create` blocks (mobile) to utility classes. A dark mode toggle with Zustand persistence is added to the mobile profile screen.
+The PR introduces a new shared package (`@motovault/design-system`) containing OKLCH color tokens, typography constants, and spacing values. It integrates Tailwind CSS v4 on the Next.js web app and NativeWind v5 on the Expo mobile app, then migrates all existing inline styles (web) and `StyleSheet.create` blocks (mobile) to utility classes. A dark mode toggle with Zustand persistence is added to the mobile profile screen.
 
-The three-layer token architecture (CSS tokens -> semantic aliases -> JS constants) is sound and follows modern design system conventions. The package boundary is correctly separated from `@motolearn/types`.
+The three-layer token architecture (CSS tokens -> semantic aliases -> JS constants) is sound and follows modern design system conventions. The package boundary is correctly separated from `@motovault/types`.
 
 ---
 
@@ -22,13 +22,13 @@ The three-layer token architecture (CSS tokens -> semantic aliases -> JS constan
 
 **Files:** `/apps/web/package.json`, `/apps/mobile/package.json`
 
-Neither `apps/web` nor `apps/mobile` declares `@motolearn/design-system` as a workspace dependency. Both `package.json` files have no `"@motolearn/design-system": "workspace:*"` entry. This works locally by accident because the CSS imports use relative filesystem paths (`../../../../packages/design-system/src/tokens.css`), but it means:
+Neither `apps/web` nor `apps/mobile` declares `@motovault/design-system` as a workspace dependency. Both `package.json` files have no `"@motovault/design-system": "workspace:*"` entry. This works locally by accident because the CSS imports use relative filesystem paths (`../../../../packages/design-system/src/tokens.css`), but it means:
 
 - Turborepo cannot infer the dependency graph correctly. A change to `packages/design-system` will not automatically trigger rebuilds of `apps/web` or `apps/mobile`.
-- The JS exports (`colors`, `spacing`, `typography`) from `@motolearn/design-system` would fail to resolve if any code tried to import them via the package name.
-- This violates the monorepo convention in CLAUDE.md: "use @motolearn/* imports" rather than relative paths across package boundaries.
+- The JS exports (`colors`, `spacing`, `typography`) from `@motovault/design-system` would fail to resolve if any code tried to import them via the package name.
+- This violates the monorepo convention in CLAUDE.md: "use @motovault/* imports" rather than relative paths across package boundaries.
 
-**Recommendation:** Add `"@motolearn/design-system": "workspace:*"` to the `dependencies` of both `/apps/web/package.json` and `/apps/mobile/package.json`. Then change the CSS imports in `globals.css` / `global.css` to use the package exports path (`@motolearn/design-system/tokens.css`) instead of relative filesystem paths. If Tailwind v4 CSS `@import` cannot resolve package exports, keep the relative paths for CSS but still add the workspace dependency for Turbo graph correctness.
+**Recommendation:** Add `"@motovault/design-system": "workspace:*"` to the `dependencies` of both `/apps/web/package.json` and `/apps/mobile/package.json`. Then change the CSS imports in `globals.css` / `global.css` to use the package exports path (`@motovault/design-system/tokens.css`) instead of relative filesystem paths. If Tailwind v4 CSS `@import` cannot resolve package exports, keep the relative paths for CSS but still add the workspace dependency for Turbo graph correctness.
 
 ---
 
@@ -38,11 +38,11 @@ Neither `apps/web` nor `apps/mobile` declares `@motolearn/design-system` as a wo
 - `/apps/web/src/app/globals.css` (lines 2-3)
 - `/apps/mobile/src/global.css` (lines 2-3)
 
-Both files import tokens via `@import "../../../../packages/design-system/src/tokens.css"` instead of `@import "@motolearn/design-system/tokens.css"`. The `package.json` exports map in `@motolearn/design-system` correctly defines `"./tokens.css": "./src/tokens.css"` and `"./semantic.css": "./src/semantic.css"`, but these exports are never used.
+Both files import tokens via `@import "../../../../packages/design-system/src/tokens.css"` instead of `@import "@motovault/design-system/tokens.css"`. The `package.json` exports map in `@motovault/design-system` correctly defines `"./tokens.css": "./src/tokens.css"` and `"./semantic.css": "./src/semantic.css"`, but these exports are never used.
 
 This creates a fragile coupling to the physical filesystem layout. If the monorepo structure changes (e.g., nesting depth), all imports break. The package exports exist specifically to abstract this away.
 
-**Recommendation:** Change to `@import "@motolearn/design-system/tokens.css"` and `@import "@motolearn/design-system/semantic.css"` in both CSS files. Verify that `@tailwindcss/postcss` resolves package exports (it should, via Node module resolution). If not, document the limitation.
+**Recommendation:** Change to `@import "@motovault/design-system/tokens.css"` and `@import "@motovault/design-system/semantic.css"` in both CSS files. Verify that `@tailwindcss/postcss` resolves package exports (it should, via Node module resolution). If not, document the limitation.
 
 ---
 
@@ -61,7 +61,7 @@ Additionally, the tab bar background is hardcoded to the light theme surface col
 
 **Recommendation:** Import from the JS token constants:
 ```ts
-import { colors } from '@motolearn/design-system';
+import { colors } from '@motovault/design-system';
 const TAB_BAR_ACTIVE_COLOR = colors.primary[500];
 const TAB_BAR_BG_COLOR = colors.neutral[50];
 ```
@@ -80,7 +80,7 @@ All `TextInput` components use `placeholderTextColor="#999"` — a raw hex value
 
 **Recommendation:** Use `colors.neutral[400]` from the design system package, or derive the value from the current color scheme:
 ```ts
-import { colors } from '@motolearn/design-system';
+import { colors } from '@motovault/design-system';
 // ...
 placeholderTextColor={colors.neutral[400]}
 ```
@@ -199,8 +199,8 @@ A comprehensive database schema design document was added in this PR. While valu
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| Types flow one direction (packages -> apps) | PASS | `@motolearn/design-system` is a package consumed by apps |
-| Use `@motolearn/*` imports, not relative cross-package | FAIL | CSS imports use relative `../../../../` paths |
+| Types flow one direction (packages -> apps) | PASS | `@motovault/design-system` is a package consumed by apps |
+| Use `@motovault/*` imports, not relative cross-package | FAIL | CSS imports use relative `../../../../` paths |
 | Use `as const` objects, not TypeScript `enum` | PASS | All JS token exports use `as const` |
 | Export both schema AND inferred type | PASS | All TS files export value + type |
 | Biome for linting (no ESLint/Prettier) | PASS | Final commit applies Biome fixes |
@@ -225,9 +225,9 @@ A comprehensive database schema design document was added in this PR. While valu
 ## 5. Summary of Recommendations
 
 **Must fix before merge (3):**
-1. Add `"@motolearn/design-system": "workspace:*"` to both app `package.json` files
+1. Add `"@motovault/design-system": "workspace:*"` to both app `package.json` files
 2. Replace `placeholderTextColor="#999"` with design system token values (8 occurrences)
-3. Replace hardcoded OKLCH strings in `_layout.tsx` tab bar with imports from `@motolearn/design-system`
+3. Replace hardcoded OKLCH strings in `_layout.tsx` tab bar with imports from `@motovault/design-system`
 
 **Should fix before merge (3):**
 4. Add i18n keys for theme toggle strings in profile screen

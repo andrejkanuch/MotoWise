@@ -18,7 +18,7 @@
 
 ## Patterns
 - GraphQL operations in src/graphql/{queries,mutations}/*.graphql
-- Import generated types from @motolearn/graphql
+- Import generated types from @motovault/graphql
 - Auth gating in root _layout.tsx (Redirect to (auth) if no session)
 - Use process.env.EXPO_OS not Platform.OS
 - Use borderCurve: 'continuous' for rounded corners

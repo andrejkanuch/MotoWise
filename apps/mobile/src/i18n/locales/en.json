@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "MotoLearn",
+    "appName": "MotoVault",
     "loading": "Loading...",
     "error": "Error",
     "cancel": "Cancel",
@@ -92,7 +92,7 @@
     "viewAll": "View All",
     "heroTitle": "Visual Education &\nAI Diagnostics: Understand and Fix Your Bike",
     "checkBike": "Check Your Bike",
-    "checkBikeDesc": "Scan with Moto Learn AI",
+    "checkBikeDesc": "Scan with MotoVault AI",
     "noData": "No Data",
     "yourBike": "Your bike",
     "category": {
@@ -224,7 +224,7 @@
     "rank": "Rank",
     "badges": "Badges",
     "joined": "Joined",
-    "proBanner": "MotoLearn PRO",
+    "proBanner": "MotoVault PRO",
     "proDescription": "Unlock AI diagnostics & premium lessons",
     "settings": "Profile Settings",
     "privacy": "Privacy",
@@ -244,7 +244,7 @@
     "themeDark": "Dark"
   },
   "onboarding": {
-    "welcomeTitle": "Welcome to MotoWise",
+    "welcomeTitle": "Welcome to MotoVault",
     "welcomeSubtitle": "Tell us about your riding experience",
     "welcomeHeroTitle": "Your motorcycle just got smarter",
     "welcomeHeroSubtitle": "AI-powered learning, diagnostics & maintenance — personalized to your ride.",
@@ -316,7 +316,7 @@
     "insightsTitle": "Your Personalized Insights",
     "insightsSubtitle": "Based on your profile, here's what we found",
     "insightsError": "Could not generate insights. Tap retry or continue ahead.",
-    "insightsSocialProof": "Join 12,400+ riders who use MotoWise",
+    "insightsSocialProof": "Join 12,400+ riders who use MotoVault",
     "insightsCta": "See your full dashboard →",
     "preparingExperience": "We're preparing your personalized experience...",
     "personalizingTitle": "Personalizing your experience...",
@@ -454,7 +454,7 @@
     "priorityLow": "Low"
   },
   "paywall": {
-    "title": "Your MotoWise experience is ready",
+    "title": "Your MotoVault experience is ready",
     "personalizedFor": "Personalized for your {{bike}}",
     "featureaiDiagnosticsTitle": "AI-Powered Diagnostics",
     "featureaiDiagnosticsDesc": "Photo analysis and troubleshooting for your bike",

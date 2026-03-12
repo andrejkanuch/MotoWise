@@ -1,5 +1,5 @@
 ---
-title: "MotoLearn Monorepo: Comprehensive Code Review Fixes"
+title: "MotoVault Monorepo: Comprehensive Code Review Fixes"
 problem_type: integration_issue
 components:
   - apps/api (NestJS GraphQL)
@@ -21,11 +21,11 @@ tags:
   - supabase
 ---
 
-# MotoLearn Monorepo: Comprehensive Code Review Fixes
+# MotoVault Monorepo: Comprehensive Code Review Fixes
 
 ## Problem
 
-After initial scaffolding of the MotoLearn monorepo (Turborepo + pnpm, NestJS 11, Expo 55, Next.js 16, Supabase), a multi-agent code review identified 34 findings across security, performance, architecture, and code quality categories. Issues ranged from a critical RLS privilege escalation vulnerability to missing input validation, unbounded queries, and incorrect error handling.
+After initial scaffolding of the MotoVault monorepo (Turborepo + pnpm, NestJS 11, Expo 55, Next.js 16, Supabase), a multi-agent code review identified 34 findings across security, performance, architecture, and code quality categories. Issues ranged from a critical RLS privilege escalation vulnerability to missing input validation, unbounded queries, and incorrect error handling.
 
 ## Symptoms
 
@@ -143,4 +143,4 @@ These required Wave 1 completions:
 ## Cross-References
 
 - All 34 todo files in `todos/` (001-034, all status: complete)
-- Plan: `docs/plans/2026-03-06-feat-motolearn-monorepo-setup-plan.md`
+- Plan: `docs/plans/2026-03-06-feat-motovault-monorepo-setup-plan.md`

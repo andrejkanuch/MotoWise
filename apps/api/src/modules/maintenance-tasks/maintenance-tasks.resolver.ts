@@ -3,7 +3,7 @@ import {
   CompleteMaintenanceTaskSchema,
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
-} from '@motolearn/types';
+} from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';

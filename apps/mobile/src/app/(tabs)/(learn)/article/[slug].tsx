@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { ArticleBySlugFullDocument, MarkArticleReadDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { ArticleBySlugFullDocument, MarkArticleReadDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BookOpen, CheckCircle, Clock, Eye } from 'lucide-react-native';

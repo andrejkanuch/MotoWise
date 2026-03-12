@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { AllMaintenanceTasksDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { AllMaintenanceTasksDocument } from '@motovault/graphql';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';

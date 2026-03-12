@@ -11,7 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex min-h-screen bg-[--color-surface] dark:bg-neutral-900">
       <nav className="w-60 p-4 border-r border-[--color-border] dark:border-neutral-700 flex flex-col bg-[--color-surface-elevated] dark:bg-neutral-800">
         <h2 className="text-lg font-bold text-[--color-on-surface] dark:text-neutral-50 mb-4">
-          MotoWise Admin
+          MotoVault Admin
         </h2>
         <ul className="list-none p-0 flex-1 space-y-1">
           <li>

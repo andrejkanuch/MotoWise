@@ -1,4 +1,4 @@
-import { MotorcycleType } from '@motolearn/types';
+import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Bike, Gauge, HelpCircle, MapPin, Mountain } from 'lucide-react-native';

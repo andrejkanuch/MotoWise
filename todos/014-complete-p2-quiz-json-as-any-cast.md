@@ -21,7 +21,7 @@ dependencies: []
 
 ### Option A: Parse Through Zod Schema
 ```typescript
-import { QuizSchema } from '@motolearn/types';
+import { QuizSchema } from '@motovault/types';
 const parsed = QuizSchema.parse(data.questions_json);
 ```
 - **Effort:** Small

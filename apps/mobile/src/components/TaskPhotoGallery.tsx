@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { AddTaskPhotoDocument, DeleteTaskPhotoDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { AddTaskPhotoDocument, DeleteTaskPhotoDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';

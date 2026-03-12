@@ -1,16 +1,16 @@
-# MotoLearn
+# MotoVault
 
-Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform.
+Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform.
 
 ## Architecture
 - **Monorepo**: Turborepo + pnpm workspaces
 - **apps/mobile**: Expo 55 (RN 0.83, React 19.2) — user-facing mobile app
 - **apps/api**: NestJS 11 — GraphQL API (code-first, Apollo Server driver) + Claude AI
 - **apps/web**: Next.js 16 — web app (public pages + admin dashboard)
-- **packages/types**: @motolearn/types — Zod schemas, shared TS types, DB types
-- **packages/graphql**: @motolearn/graphql — generated GraphQL client types (TypedDocumentNode)
-- **packages/design-system**: @motolearn/design-system — CSS tokens, semantic colors, JS color/typography/spacing constants
-- **packages/tsconfig**: @motolearn/tsconfig — shared TypeScript configurations
+- **packages/types**: @motovault/types — Zod schemas, shared TS types, DB types
+- **packages/graphql**: @motovault/graphql — generated GraphQL client types (TypedDocumentNode)
+- **packages/design-system**: @motovault/design-system — CSS tokens, semantic colors, JS color/typography/spacing constants
+- **packages/tsconfig**: @motovault/tsconfig — shared TypeScript configurations
 - **supabase/**: Database migrations, seeds, RLS policies
 
 ## Commands
@@ -45,7 +45,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 
 ## Conventions
 - Types flow ONE direction: packages/ -> apps/ (never import from apps/ into packages/)
-- Shared validation uses Zod schemas in @motolearn/types
+- Shared validation uses Zod schemas in @motovault/types
 - GraphQL operations (.graphql files) live in each app's src/graphql/
 - Run `pnpm generate` after changing any resolver or .graphql file
 - All DB changes require a migration in supabase/migrations/
@@ -85,7 +85,7 @@ Monorepo for MotoLearn — AI-powered motorcycle learning & diagnostics platform
 
 ## Do NOT
 - Import from apps/ into packages/
-- Use relative paths across package boundaries (use @motolearn/* imports)
+- Use relative paths across package boundaries (use @motovault/* imports)
 - Modify generated files in packages/graphql/src/generated/
 - Modify packages/types/src/database.types.ts (auto-generated)
 - Commit .env files (use .env.example as template)

@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { MyDiagnosticsDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MyDiagnosticsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Camera, ChevronRight, Clock, ScanLine } from 'lucide-react-native';

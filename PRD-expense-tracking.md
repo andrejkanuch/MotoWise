@@ -9,9 +9,9 @@
 
 ## 1. Problem Statement
 
-Motorcycle owners spend hundreds to thousands of dollars per year on fuel, maintenance, parts, and gear but have no centralized way to track those costs within MotoLearn. Users currently rely on spreadsheets, notes apps, or simply don't track spending at all, which makes it difficult to budget, compare cost-of-ownership across bikes, or understand where money is going. Without visibility into spending patterns, riders are surprised by annual costs and struggle to make informed decisions about maintenance timing and bike ownership economics.
+Motorcycle owners spend hundreds to thousands of dollars per year on fuel, maintenance, parts, and gear but have no centralized way to track those costs within MotoVault. Users currently rely on spreadsheets, notes apps, or simply don't track spending at all, which makes it difficult to budget, compare cost-of-ownership across bikes, or understand where money is going. Without visibility into spending patterns, riders are surprised by annual costs and struggle to make informed decisions about maintenance timing and bike ownership economics.
 
-This is a natural extension of the Garage Dashboard: users already manage bikes and maintenance tasks inside MotoLearn, but the financial dimension is missing.
+This is a natural extension of the Garage Dashboard: users already manage bikes and maintenance tasks inside MotoVault, but the financial dimension is missing.
 
 ---
 
@@ -34,7 +34,7 @@ This is a natural extension of the Garage Dashboard: users already manage bikes 
 - **Multi-year trend charts or cost-per-mile analytics** — Valuable but premature; ship tracking first, analytics in v2 once we have data.
 - **Receipt photo scanning / OCR** — Adds complexity and AI cost; keep the input manual for v1.
 - **Recurring/scheduled expenses (e.g., insurance)** — Different UX pattern; better handled as a separate feature.
-- **Currency conversion or multi-currency support** — MotoLearn currently operates single-currency; revisit when internationalizing.
+- **Currency conversion or multi-currency support** — MotoVault currently operates single-currency; revisit when internationalizing.
 - **Shared/multi-rider expense splitting** — Out of scope; bikes are single-owner entities.
 
 ---
