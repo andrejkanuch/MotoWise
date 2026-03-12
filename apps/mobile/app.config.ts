@@ -32,6 +32,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#1b2e4b',
   },
   plugins: [
+    [
+      '@sentry/react-native/expo',
+      {
+        organization: process.env.SENTRY_ORG ?? '',
+        project: process.env.SENTRY_PROJECT ?? '',
+      },
+    ],
     'expo-router',
     [
       'expo-camera',
@@ -95,5 +102,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: '359ae282-329d-455d-b9f3-64919afad0b4',
     },
+    sentryDsn: process.env.SENTRY_DSN ?? '',
+    posthogApiKey: process.env.POSTHOG_API_KEY ?? '',
+    posthogHost: process.env.POSTHOG_HOST ?? 'https://us.i.posthog.com',
   },
 });

@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Switch, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { setAnalyticsEnabled, setCrashReportingEnabled } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -116,8 +117,13 @@ export default function PrivacyScreen() {
 
   useEffect(() => {
     if (meQuery.data && !initialized) {
-      setState({ ...DEFAULTS, ...prefs });
+      const merged = { ...DEFAULTS, ...prefs };
+      setState(merged);
       setInitialized(true);
+
+      // Sync initial privacy state to SDKs
+      setAnalyticsEnabled(merged.analyticsEnabled);
+      setCrashReportingEnabled(merged.crashReportingEnabled);
     }
   }, [meQuery.data, prefs, initialized]);
 
@@ -132,6 +138,13 @@ export default function PrivacyScreen() {
       const next = { ...state, [key]: value };
       setState(next);
       updateMutation.mutate(next);
+
+      // Sync with Sentry / PostHog
+      if (key === 'analyticsEnabled') {
+        setAnalyticsEnabled(value);
+      } else if (key === 'crashReportingEnabled') {
+        setCrashReportingEnabled(value);
+      }
     },
     [state, updateMutation],
   );
