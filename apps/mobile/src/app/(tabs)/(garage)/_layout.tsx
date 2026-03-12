@@ -65,7 +65,7 @@ export default function GarageLayout() {
           headerLargeTitle: false,
           headerTransparent: false,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.85, 1.0],
+          sheetAllowedDetents: [0.55, 0.85],
           contentStyle: sheetContentStyle,
         }}
       />

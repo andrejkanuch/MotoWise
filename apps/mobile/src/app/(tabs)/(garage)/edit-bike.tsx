@@ -7,16 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -104,11 +95,9 @@ export default function EditBikeScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
-      behavior="padding"
-    >
+    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
       <ScrollView
+        keyboardDismissMode="interactive"
         style={{ flex: 1 }}
         contentContainerStyle={{
           padding: 20,
@@ -240,6 +229,6 @@ export default function EditBikeScreen() {
           </Pressable>
         </Animated.View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
