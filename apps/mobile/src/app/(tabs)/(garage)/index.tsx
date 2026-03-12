@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Calendar, ChevronRight, Plus, Star, Wrench } from 'lucide-react-native';
+import { Calendar, ChevronRight, Crown, Plus, Star, Wrench } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -263,6 +265,7 @@ export default function GarageScreen() {
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const router = useRouter();
+  const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
@@ -273,6 +276,12 @@ export default function GarageScreen() {
   }, [refetch]);
 
   const motorcycles = data?.myMotorcycles ?? [];
+
+  const handleAddBike = () => {
+    if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
+    haptic();
+    router.push('/(tabs)/(garage)/add-bike');
+  };
 
   if (isLoading && !data) {
     return (
@@ -337,6 +346,7 @@ export default function GarageScreen() {
         }}
       >
         <EmptyGarage onAdd={() => router.push('/(tabs)/(garage)/add-bike')} isDark={isDark} />
+        <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
       </View>
     );
   }
@@ -370,10 +380,7 @@ export default function GarageScreen() {
 
         <Animated.View entering={FadeInUp.delay(50).duration(300)}>
           <Pressable
-            onPress={() => {
-              haptic();
-              router.push('/(tabs)/(garage)/add-bike');
-            }}
+            onPress={handleAddBike}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -387,11 +394,15 @@ export default function GarageScreen() {
               borderStyle: 'dashed',
             }}
           >
-            <Plus
-              size={18}
-              color={isDark ? palette.primary400 : palette.primary500}
-              strokeWidth={2.5}
-            />
+            {!isPro && motorcycles.length >= 1 ? (
+              <Crown size={18} color="#FACC15" strokeWidth={2.5} />
+            ) : (
+              <Plus
+                size={18}
+                color={isDark ? palette.primary400 : palette.primary500}
+                strokeWidth={2.5}
+              />
+            )}
             <Text
               style={{
                 fontSize: 15,
@@ -414,6 +425,7 @@ export default function GarageScreen() {
           />
         ))}
       </ScrollView>
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }
