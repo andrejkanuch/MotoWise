@@ -280,6 +280,7 @@ type Mutation {
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
+  deleteAccount: Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!

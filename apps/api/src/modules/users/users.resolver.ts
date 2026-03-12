@@ -51,4 +51,10 @@ export class UsersResolver {
   async requestDataExport(@CurrentUser() authUser: AuthUser): Promise<DataExportRequest> {
     return this.usersService.requestDataExport(authUser.id, authUser.email);
   }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async deleteAccount(@CurrentUser() authUser: AuthUser): Promise<boolean> {
+    return this.usersService.deleteAccount(authUser.id, authUser.email);
+  }
 }

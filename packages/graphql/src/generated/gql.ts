@@ -23,6 +23,7 @@ type Documents = {
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": typeof types.CreateMotorcycleDocument,
     "mutation CreateQuizAttempt($input: SubmitQuizInput!) {\n  submitQuiz(input: $input) {\n    id\n    quizId\n    score\n    totalQuestions\n    completedAt\n  }\n}": typeof types.CreateQuizAttemptDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": typeof types.CreateShareLinkDocument,
+    "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": typeof types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": typeof types.DeleteMotorcycleDocument,
     "mutation DeleteTaskPhoto($photoId: ID!) {\n  deleteTaskPhoto(photoId: $photoId)\n}": typeof types.DeleteTaskPhotoDocument,
@@ -61,6 +62,7 @@ const documents: Documents = {
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": types.CreateMotorcycleDocument,
     "mutation CreateQuizAttempt($input: SubmitQuizInput!) {\n  submitQuiz(input: $input) {\n    id\n    quizId\n    score\n    totalQuestions\n    completedAt\n  }\n}": types.CreateQuizAttemptDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": types.CreateShareLinkDocument,
+    "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": types.DeleteMotorcycleDocument,
     "mutation DeleteTaskPhoto($photoId: ID!) {\n  deleteTaskPhoto(photoId: $photoId)\n}": types.DeleteTaskPhotoDocument,
@@ -140,6 +142,10 @@ export function graphql(source: "mutation CreateQuizAttempt($input: SubmitQuizIn
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}"): (typeof documents)["mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteAccount {\n  deleteAccount\n}"): (typeof documents)["mutation DeleteAccount {\n  deleteAccount\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

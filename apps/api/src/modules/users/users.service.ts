@@ -254,4 +254,55 @@ export class UsersService {
         .eq('id', exportId);
     }
   }
+
+  async deleteAccount(userId: string, email: string): Promise<boolean> {
+    // Call the soft_delete_user RPC (uses auth.uid() check via user's JWT)
+    const { error } = await this.supabase.rpc('soft_delete_user', {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      this.logger.error(`deleteAccount soft delete failed for ${userId}: ${JSON.stringify(error)}`);
+      throw new BadRequestException(error.message ?? 'Failed to delete account');
+    }
+
+    // Try to cancel RevenueCat subscription if configured
+    this.cancelRevenueCatSubscription(userId).catch((err) => {
+      this.logger.warn(`RevenueCat cancellation failed for ${userId}: ${err.message}`);
+    });
+
+    // TODO: Send deletion confirmation email
+    this.logger.log(
+      `Account ${userId} (${email}) soft-deleted. Scheduled for hard deletion in 30 days.`,
+    );
+
+    return true;
+  }
+
+  private async cancelRevenueCatSubscription(userId: string): Promise<void> {
+    const rcApiKey = process.env.REVENUECAT_API_KEY;
+    if (!rcApiKey) {
+      this.logger.warn('REVENUECAT_API_KEY not configured — skipping subscription cancellation');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.revenuecat.com/v1/subscribers/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${rcApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`RevenueCat API returned ${response.status}`);
+      }
+
+      this.logger.log(`RevenueCat subscriber ${userId} deleted`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      throw new Error(`RevenueCat cancellation failed: ${message}`);
+    }
+  }
 }
