@@ -11,12 +11,19 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://motowise.app'),
+  metadataBase: new URL('https://motovault.app'),
   title: {
-    default: 'MotoWise',
-    template: '%s | MotoWise',
+    default: 'MotoVault',
+    template: '%s | MotoVault',
   },
   description: 'AI-powered motorcycle learning & diagnostics platform',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export const viewport: Viewport = {
