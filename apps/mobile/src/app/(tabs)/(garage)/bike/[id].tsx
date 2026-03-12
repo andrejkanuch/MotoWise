@@ -436,7 +436,7 @@ export default function BikeDetailScreen() {
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
+  const [_exporting, setExporting] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   // --- Queries ---
