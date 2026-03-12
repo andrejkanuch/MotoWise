@@ -32,7 +32,7 @@ deepened: 2026-03-06
 
 ## Overview
 
-Establish MotoLearn's visual identity with a "Trusted Guide" brand direction — conveying reliability, expertise, and warmth for motorcycle learners. This feature creates a shared design token package (`@motolearn/design-system`), integrates Tailwind CSS v4 on web, NativeWind v5 on mobile, and migrates all existing hardcoded styles to token-based styling with dark mode support.
+Establish MotoVault's visual identity with a "Trusted Guide" brand direction — conveying reliability, expertise, and warmth for motorcycle learners. This feature creates a shared design token package (`@motovault/design-system`), integrates Tailwind CSS v4 on web, NativeWind v5 on mobile, and migrates all existing hardcoded styles to token-based styling with dark mode support.
 
 Currently the codebase has **zero design system infrastructure**: web uses inline `style={{}}` objects, mobile uses `StyleSheet.create` with hardcoded hex values, and there are two competing "primary" colors (`#007AFF` on web, `#1a1a2e` on mobile). This feature resolves all inconsistencies.
 
@@ -50,7 +50,7 @@ Currently the codebase has **zero design system infrastructure**: web uses inlin
 A three-layer design system shared across web and mobile:
 
 ```
-@motolearn/design-system (packages/design-system/)
+@motovault/design-system (packages/design-system/)
         |
    tokens.css (@theme directive — single source of truth)
         |
@@ -126,7 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ```
 packages/design-system/
-  package.json              # @motolearn/design-system
+  package.json              # @motovault/design-system
   tsconfig.json
   src/
     tokens.css              # @theme tokens (consumed by both apps via CSS import)
@@ -137,14 +137,14 @@ packages/design-system/
     index.ts                # Re-exports all JS modules
 ```
 
-**Why separate from `@motolearn/types`**: Types owns Zod schemas and validation (runtime dependency on Zod). Design tokens are pure CSS + constants with zero runtime dependencies. Separate packages mean independent Turbo caching — a color change doesn't trigger type-checking rebuilds.
+**Why separate from `@motovault/types`**: Types owns Zod schemas and validation (runtime dependency on Zod). Design tokens are pure CSS + constants with zero runtime dependencies. Separate packages mean independent Turbo caching — a color change doesn't trigger type-checking rebuilds.
 
 ### Research Insights: Package Structure
 
 **Package.json exports configuration (dual CSS + TS):**
 ```json
 {
-  "name": "@motolearn/design-system",
+  "name": "@motovault/design-system",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -156,7 +156,7 @@ packages/design-system/
     }
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*",
+    "@motovault/tsconfig": "workspace:*",
     "typescript": "~5.7.0"
   }
 }
@@ -310,7 +310,7 @@ export type ColorToken = typeof colors
 - Tailwind CSS v4 installed and configured in `apps/web`
 - `globals.css` importing tokens + Tailwind
 - Root layout updated with font loading via `next/font`
-- `next.config.ts` updated to transpile `@motolearn/design-system`
+- `next.config.ts` updated to transpile `@motovault/design-system`
 
 **Files created:**
 - `packages/design-system/package.json`
@@ -327,7 +327,7 @@ export type ColorToken = typeof colors
 **Files modified:**
 - `apps/web/package.json` (add `tailwindcss`, `@tailwindcss/postcss`, `postcss`, `geist`)
 - `apps/web/src/app/layout.tsx` (import globals.css, add `next/font` loading with `variable` CSS props)
-- `apps/web/next.config.ts` (add `@motolearn/design-system` to `transpilePackages`)
+- `apps/web/next.config.ts` (add `@motovault/design-system` to `transpilePackages`)
 - `turbo.json` (add design-system to pipeline if needed)
 - Root `pnpm-workspace.yaml` (already covers `packages/*` — verify)
 
@@ -342,8 +342,8 @@ export type ColorToken = typeof colors
 ```css
 /* apps/web/src/app/globals.css */
 @import "tailwindcss";
-@import "@motolearn/design-system/tokens.css";
-@import "@motolearn/design-system/semantic.css";
+@import "@motovault/design-system/tokens.css";
+@import "@motovault/design-system/semantic.css";
 
 /* CRITICAL: Tell Tailwind to scan shared packages for class usage */
 @source "../../packages/";
@@ -401,13 +401,13 @@ export default {
 ```tsx
 // BEFORE
 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 24 }}>
-  <h1>MotoLearn</h1>
+  <h1>MotoVault</h1>
   <Link href="/login" style={{ padding: '12px 24px', background: '#007AFF', color: '#fff', borderRadius: 8 }}>Sign In</Link>
 </div>
 
 // AFTER
 <div className="flex flex-col items-center justify-center min-h-screen gap-6">
-  <h1 className="text-3xl font-bold text-on-surface">MotoLearn</h1>
+  <h1 className="text-3xl font-bold text-on-surface">MotoVault</h1>
   <Link href="/login" className="px-6 py-3 bg-primary-500 text-white rounded-button hover:bg-primary-600 transition-colors">Sign In</Link>
 </div>
 ```
@@ -464,7 +464,7 @@ export function ThemeToggle() {
 **Success criteria:**
 - NativeWind processes Tailwind classes in mobile app
 - Tab bar shows icons for all 4 tabs (Learn=book, Diagnose=wrench, Garage=car, Profile=person)
-- Shared tokens from `@motolearn/design-system` are consumable
+- Shared tokens from `@motovault/design-system` are consumable
 
 ### Research Insights: NativeWind v5 Setup (from Context7)
 
@@ -493,8 +493,8 @@ pnpm --filter mobile add expo-symbols
 ```css
 /* apps/mobile/src/global.css */
 @import "tailwindcss";
-@import "@motolearn/design-system/tokens.css";
-@import "@motolearn/design-system/semantic.css";
+@import "@motovault/design-system/tokens.css";
+@import "@motovault/design-system/semantic.css";
 @source "../../packages/";
 ```
 
@@ -644,7 +644,7 @@ const { setColorScheme } = useColorScheme()
 
 ### Error Propagation
 
-- Missing `@motolearn/design-system` in `transpilePackages` -> Next.js build fails with import error
+- Missing `@motovault/design-system` in `transpilePackages` -> Next.js build fails with import error
 - NativeWind Metro config missing -> `className` prop has no effect (silent failure — components render unstyled)
 - OKLCH color in non-supporting browser -> graceful degradation to nearest sRGB (handled by Tailwind v4)
 - Missing `@source "../../packages/"` in globals.css -> Tailwind won't generate utilities for shared package classes (silent failure — classes have no effect)
@@ -714,7 +714,7 @@ const { setColorScheme } = useColorScheme()
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| NativeWind v5 incompatible with Expo 55 + New Architecture | Medium | High | Test in spike branch first; fallback to plain StyleSheet with token constants from `@motolearn/design-system` |
+| NativeWind v5 incompatible with Expo 55 + New Architecture | Medium | High | Test in spike branch first; fallback to plain StyleSheet with token constants from `@motovault/design-system` |
 | OKLCH colors not rendering on older Android WebView | Low | Medium | Tailwind v4 handles sRGB fallback automatically |
 | Plus Jakarta Sans not available via expo-font | Low | Low | Fallback to Inter or system font — defined in font stack |
 | Biome doesn't sort Tailwind classes | High | Low | Accept unsorted classes for now; revisit if Biome adds plugin support |

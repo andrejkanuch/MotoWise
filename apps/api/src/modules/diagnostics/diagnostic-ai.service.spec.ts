@@ -1,4 +1,4 @@
-import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motolearn/types';
+import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motovault/types';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

@@ -26,7 +26,7 @@ const FALLBACK_INSIGHTS: Record<string, OnboardingInsight[]> = {
     {
       icon: 'Users',
       title: 'You Are Not Alone',
-      body: 'Thousands of new riders use MotoWise to learn maintenance. Join a community that helps each other grow.',
+      body: 'Thousands of new riders use MotoVault to learn maintenance. Join a community that helps each other grow.',
       type: GqlInsightType.community,
     },
   ],

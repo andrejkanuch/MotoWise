@@ -10,7 +10,7 @@ dependencies: []
 
 ## Problem Statement
 
-Zod schemas in `@motolearn/types` hardcode enum values as string literals (e.g., `z.enum(['beginner', 'intermediate', 'advanced'])`) instead of deriving from the `as const` objects in `enums.ts`. If values change in one place but not the other, validation silently breaks.
+Zod schemas in `@motovault/types` hardcode enum values as string literals (e.g., `z.enum(['beginner', 'intermediate', 'advanced'])`) instead of deriving from the `as const` objects in `enums.ts`. If values change in one place but not the other, validation silently breaks.
 
 ## Findings
 

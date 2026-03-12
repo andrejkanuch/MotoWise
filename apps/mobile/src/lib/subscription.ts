@@ -1,4 +1,4 @@
-import { FREE_TIER_LIMITS, REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
+import { FREE_TIER_LIMITS, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscription.store';
 

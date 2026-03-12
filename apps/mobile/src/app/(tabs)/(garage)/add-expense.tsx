@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { LogExpenseDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { LogExpenseDocument } from '@motovault/graphql';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';

@@ -1,10 +1,10 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import {
   GenerateArticleDocument,
   MyMotorcyclesDocument,
   MyProgressDocument,
   SearchArticlesDocument,
-} from '@motolearn/graphql';
+} from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {

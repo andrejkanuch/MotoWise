@@ -37,7 +37,7 @@ date: 2026-03-08
 
 ## Overview
 
-Revamp MotoWise's 4-step onboarding into a 7-step psychology-driven flow with RevenueCat-powered soft paywall. The new flow collects richer rider profile data, demonstrates personalized value via AI insights before the paywall, and establishes a freemium monetization model.
+Revamp MotoVault's 4-step onboarding into a 7-step psychology-driven flow with RevenueCat-powered soft paywall. The new flow collects richer rider profile data, demonstrates personalized value via AI insights before the paywall, and establishes a freemium monetization model.
 
 **Target**: 2–3 minute completion time, <15% drop-off, 6% free-to-paid conversion within 60 days.
 
@@ -655,7 +655,7 @@ FROM public.users;
 ## Dependencies & Prerequisites
 
 - **RevenueCat account** — public API keys for iOS + Android
-- **App Store Connect** — subscription products (`motowise_pro_monthly`, `motowise_pro_yearly`)
+- **App Store Connect** — subscription products (`motovault_pro_monthly`, `motovault_pro_yearly`)
 - **Google Play Console** — products mirrored
 - **EAS Build** — dev builds required (Expo Go cannot run purchases)
 - **Claude API** — already integrated for diagnostics

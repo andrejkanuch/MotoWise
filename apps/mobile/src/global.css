@@ -1,4 +1,4 @@
 @import "tailwindcss";
-@import "@motolearn/design-system/tokens.css";
-@import "@motolearn/design-system/semantic.css";
+@import "@motovault/design-system/tokens.css";
+@import "@motovault/design-system/semantic.css";
 @source "../../../packages/design-system/";

@@ -1,4 +1,4 @@
-import { MileageUnit, MotorcycleType } from '@motolearn/types';
+import { MileageUnit, MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Calendar, ChevronRight, SkipForward } from 'lucide-react-native';

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { DiagnosticResult } from '@motolearn/types';
-import { DiagnosticResultSchema, MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motolearn/types';
+import type { DiagnosticResult } from '@motovault/types';
+import { DiagnosticResultSchema, MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motovault/types';
 import {
   HttpException,
   HttpStatus,

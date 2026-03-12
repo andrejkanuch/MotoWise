@@ -1,4 +1,4 @@
-import { FREE_TIER_LIMITS, type ProFeature } from '@motolearn/types';
+import { FREE_TIER_LIMITS, type ProFeature } from '@motovault/types';
 import { useCallback, useState } from 'react';
 import { useSubscriptionStore } from '../stores/subscription.store';
 

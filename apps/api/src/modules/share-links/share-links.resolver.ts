@@ -1,4 +1,4 @@
-import { CreateShareLinkSchema } from '@motolearn/types';
+import { CreateShareLinkSchema } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';

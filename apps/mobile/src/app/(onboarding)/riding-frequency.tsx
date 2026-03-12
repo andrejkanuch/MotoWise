@@ -1,4 +1,4 @@
-import type { RidingFrequency } from '@motolearn/types';
+import type { RidingFrequency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Calendar, CalendarDays, CalendarRange, Sun } from 'lucide-react-native';

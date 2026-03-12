@@ -1,5 +1,5 @@
-import { UserPreferencesSchema } from '@motolearn/types';
-import type { Tables } from '@motolearn/types/database';
+import { UserPreferencesSchema } from '@motovault/types';
+import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
   Inject,

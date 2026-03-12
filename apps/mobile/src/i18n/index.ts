@@ -1,5 +1,5 @@
-import type { SupportedLocale } from '@motolearn/types';
-import { SUPPORTED_LOCALES } from '@motolearn/types';
+import type { SupportedLocale } from '@motovault/types';
+import { SUPPORTED_LOCALES } from '@motovault/types';
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';

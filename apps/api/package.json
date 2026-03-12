@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/api",
+  "name": "@motovault/api",
   "private": true,
   "version": "0.0.1",
   "scripts": {
@@ -16,7 +16,7 @@
     "@anthropic-ai/sdk": "^0.78.0",
     "@apollo/server": "^4.11.0",
     "@as-integrations/express5": "^1.1.2",
-    "@motolearn/types": "workspace:*",
+    "@motovault/types": "workspace:*",
     "@nestjs/apollo": "^13.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
@@ -35,7 +35,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*",
+    "@motovault/tsconfig": "workspace:*",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",

@@ -27,7 +27,7 @@ Wire up the foundational user flows: social auth (Google + Apple + email), motor
 ### 1a. Supabase Dashboard Config
 - [ ] Enable Google provider in Supabase Auth settings (need Google Cloud Console OAuth credentials)
 - [ ] Enable Apple provider in Supabase Auth settings (need Apple Developer credentials)
-- [ ] Add redirect URL: `motolearn://` to Supabase Auth URL Configuration
+- [ ] Add redirect URL: `motovault://` to Supabase Auth URL Configuration
 
 ### 1b. Mobile Dependencies
 - [ ] `npx expo install expo-apple-authentication expo-crypto`
@@ -130,7 +130,7 @@ Create `apps/mobile/src/graphql/`:
 Stunning first contact. Step-by-step continuous flow with:
 - Staggered `FadeInUp` animations via `react-native-reanimated`
 - `borderCurve: 'continuous'` on all rounded elements
-- Brand colors from `@motolearn/design-system`
+- Brand colors from `@motovault/design-system`
 - Haptic feedback on selections (expo-haptics, iOS only)
 - Linear progress indicator at top
 
@@ -150,7 +150,7 @@ apps/mobile/src/app/(onboarding)/
 - [ ] If authenticated AND onboarded → redirect to `/(tabs)`
 
 ### 4b. Step 1: Welcome + Experience Level (`index.tsx`)
-- [ ] MotoWise branding with tagline
+- [ ] MotoVault branding with tagline
 - [ ] Three experience cards: Beginner / Intermediate / Advanced
 - [ ] Animated card selection with scale + haptics
 - [ ] "Continue" button at bottom
@@ -169,7 +169,7 @@ apps/mobile/src/app/(onboarding)/
 - [ ] Saves to user preferences via `updateUser` mutation
 
 ### 4e. Step 4: Personalizing (`personalizing.tsx`)
-- [ ] Full-screen animated "Personalizing your MotoWise experience..."
+- [ ] Full-screen animated "Personalizing your MotoVault experience..."
 - [ ] 2-3 second animation with progress indicators
 - [ ] Sets `onboarding_completed: true` in user preferences
 - [ ] Auto-navigates to `/(tabs)/(learn)`
@@ -206,7 +206,7 @@ apps/mobile/src/app/(onboarding)/
 - [ ] Onboarding state persists (completed flag in user preferences)
 
 ### Quality
-- [ ] All screens use design tokens from `@motolearn/design-system`
+- [ ] All screens use design tokens from `@motovault/design-system`
 - [ ] Onboarding has smooth animations (reanimated)
 - [ ] `borderCurve: 'continuous'` on all rounded elements
 - [ ] All user-facing strings use i18n `t()` calls

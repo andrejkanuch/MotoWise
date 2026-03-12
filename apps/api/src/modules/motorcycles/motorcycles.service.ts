@@ -1,4 +1,4 @@
-import type { Tables } from '@motolearn/types/database';
+import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
   Inject,

@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/web",
+  "name": "@motovault/web",
   "private": true,
   "version": "0.0.1",
   "scripts": {
@@ -10,9 +10,9 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@motolearn/design-system": "workspace:*",
-    "@motolearn/graphql": "workspace:*",
-    "@motolearn/types": "workspace:*",
+    "@motovault/design-system": "workspace:*",
+    "@motovault/graphql": "workspace:*",
+    "@motovault/types": "workspace:*",
     "@supabase/ssr": "^0.6.0",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/postcss": "^4.2.1",
@@ -26,7 +26,7 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*",
+    "@motovault/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "@types/react": "~19.2.0",
     "@types/react-dom": "~19.2.0",

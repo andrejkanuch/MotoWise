@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "MotoLearn",
+    "appName": "MotoVault",
     "loading": "Cargando...",
     "error": "Error",
     "cancel": "Cancelar",
@@ -92,7 +92,7 @@
     "viewAll": "Ver Todo",
     "heroTitle": "Educacion Visual &\nDiagnosticos IA: Entiende y Repara tu Moto",
     "checkBike": "Revisa tu Moto",
-    "checkBikeDesc": "Escanea con Moto Learn IA",
+    "checkBikeDesc": "Escanea con MotoVault IA",
     "noData": "Sin datos",
     "yourBike": "Tu moto",
     "category": {
@@ -229,7 +229,7 @@
     "rank": "Rango",
     "badges": "Insignias",
     "joined": "Unido",
-    "proBanner": "MotoLearn PRO",
+    "proBanner": "MotoVault PRO",
     "proDescription": "Desbloquea diagnosticos IA y lecciones premium",
     "settings": "Configuracion del Perfil",
     "privacy": "Privacidad",
@@ -249,7 +249,7 @@
     "themeDark": "Oscuro"
   },
   "onboarding": {
-    "welcomeTitle": "Bienvenido a MotoWise",
+    "welcomeTitle": "Bienvenido a MotoVault",
     "welcomeSubtitle": "Cuentanos sobre tu experiencia como motociclista",
     "welcomeHeroTitle": "Tu moto acaba de ser mas inteligente",
     "welcomeHeroSubtitle": "Aprendizaje, diagnostico y mantenimiento con IA — personalizado para tu moto.",
@@ -321,7 +321,7 @@
     "insightsTitle": "Tus consejos personalizados",
     "insightsSubtitle": "Basado en tu perfil, esto es lo que encontramos",
     "insightsError": "No se pudieron generar los consejos. Toca reintentar o continua.",
-    "insightsSocialProof": "Unete a mas de 12,400 motociclistas que usan MotoWise",
+    "insightsSocialProof": "Unete a mas de 12,400 motociclistas que usan MotoVault",
     "insightsCta": "Ver tu panel completo →",
     "preparingExperience": "Estamos preparando tu experiencia personalizada...",
     "personalizingTitle": "Personalizando tu experiencia...",
@@ -459,7 +459,7 @@
     "priorityLow": "Bajo"
   },
   "paywall": {
-    "title": "Tu experiencia MotoWise esta lista",
+    "title": "Tu experiencia MotoVault esta lista",
     "personalizedFor": "Personalizado para tu {{bike}}",
     "featureaiDiagnosticsTitle": "Diagnosticos con IA",
     "featureaiDiagnosticsDesc": "Analisis de fotos y solucion de problemas para tu moto",

@@ -1,4 +1,4 @@
-import { LogExpenseSchema, UpdateExpenseSchema } from '@motolearn/types';
+import { LogExpenseSchema, UpdateExpenseSchema } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';

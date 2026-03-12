@@ -1,7 +1,7 @@
-import { palette } from '@motolearn/design-system';
-import { MeDocument, MyMotorcyclesDocument } from '@motolearn/graphql';
-import type { SupportedLocale } from '@motolearn/types';
-import { FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motolearn/types';
+import { palette } from '@motovault/design-system';
+import { MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
+import type { SupportedLocale } from '@motovault/types';
+import { FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';

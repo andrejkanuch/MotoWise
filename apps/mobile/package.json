@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/mobile",
+  "name": "@motovault/mobile",
   "private": true,
   "version": "0.0.1",
   "main": "expo-router/entry",
@@ -12,9 +12,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@motolearn/design-system": "workspace:*",
-    "@motolearn/graphql": "workspace:*",
-    "@motolearn/types": "workspace:*",
+    "@motovault/design-system": "workspace:*",
+    "@motovault/graphql": "workspace:*",
+    "@motovault/types": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.6.0",
     "@react-native-community/slider": "^5.1.2",
@@ -72,7 +72,7 @@
     "preset": "jest-expo"
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*",
+    "@motovault/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.17",

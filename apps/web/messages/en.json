@@ -1,7 +1,7 @@
 {
   "Metadata": {
-    "title": "MotoWise — AI-Powered Motorcycle Learning & Diagnostics",
-    "titleTemplate": "%s | MotoWise",
+    "title": "MotoVault — AI-Powered Motorcycle Learning & Diagnostics",
+    "titleTemplate": "%s | MotoVault",
     "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
     "ogDescription": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike."
   },
@@ -81,13 +81,13 @@
       {
         "name": "Alex R.",
         "bike": "2022 Yamaha MT-07",
-        "quote": "MotoWise diagnosed a chain tension issue I'd been ignoring. Saved me from a breakdown on a long ride.",
+        "quote": "MotoVault diagnosed a chain tension issue I'd been ignoring. Saved me from a breakdown on a long ride.",
         "stars": 5
       },
       {
         "name": "Maria G.",
         "bike": "2021 Honda CB650R",
-        "quote": "The learning paths are perfect for someone who's new to wrenching. I changed my own brake pads thanks to MotoWise.",
+        "quote": "The learning paths are perfect for someone who's new to wrenching. I changed my own brake pads thanks to MotoVault.",
         "stars": 5
       },
       {
@@ -123,16 +123,16 @@
     "sectionTitle": "Frequently Asked Questions",
     "items": [
       {
-        "question": "What is MotoWise?",
-        "answer": "MotoWise is an AI-powered platform designed for motorcycle enthusiasts. It helps you learn maintenance, diagnose issues using photo-based AI analysis, track your bikes in a digital garage, and build your knowledge through structured courses and quizzes."
+        "question": "What is MotoVault?",
+        "answer": "MotoVault is an AI-powered platform designed for motorcycle enthusiasts. It helps you learn maintenance, diagnose issues using photo-based AI analysis, track your bikes in a digital garage, and build your knowledge through structured courses and quizzes."
       },
       {
-        "question": "Is MotoWise free?",
-        "answer": "Yes! MotoWise offers a free tier that includes basic learning content, one bike in your garage, and limited AI diagnostics. For unlimited diagnostics, all learning content, and unlimited bikes, you can upgrade to MotoWise Pro within the app."
+        "question": "Is MotoVault free?",
+        "answer": "Yes! MotoVault offers a free tier that includes basic learning content, one bike in your garage, and limited AI diagnostics. For unlimited diagnostics, all learning content, and unlimited bikes, you can upgrade to MotoVault Pro within the app."
       },
       {
         "question": "What motorcycles are supported?",
-        "answer": "MotoWise supports all motorcycle makes and models. Our database uses the official NHTSA vehicle data, covering thousands of makes and models across all years. Simply search for your bike when adding it to your garage."
+        "answer": "MotoVault supports all motorcycle makes and models. Our database uses the official NHTSA vehicle data, covering thousands of makes and models across all years. Simply search for your bike when adding it to your garage."
       },
       {
         "question": "How does AI diagnostics work?",
@@ -143,8 +143,8 @@
         "answer": "Your data is protected with enterprise-grade encryption and strict access controls. Authentication tokens are stored using platform-native secure storage, and all communication is encrypted in transit. We never share your personal information or bike data with third parties."
       },
       {
-        "question": "What's included in MotoWise Pro?",
-        "answer": "MotoWise Pro unlocks unlimited AI diagnostics, access to all learning modules and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
+        "question": "What's included in MotoVault Pro?",
+        "answer": "MotoVault Pro unlocks unlimited AI diagnostics, access to all learning modules and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
       }
     ]
   },
@@ -152,7 +152,7 @@
     "product": "Product",
     "company": "Company",
     "tagline": "Learn your bike. Fix your bike.",
-    "copyright": "© 2026 MotoWise. All rights reserved.",
+    "copyright": "© 2026 MotoVault. All rights reserved.",
     "features": "Features",
     "download": "Early Access",
     "faq": "FAQ",
@@ -164,29 +164,29 @@
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: March 8, 2026",
     "infoCollectTitle": "Information We Collect",
-    "infoCollect": "When you create a MotoWise account, we collect your email address and display name. When you use AI diagnostics, uploaded images are processed for analysis and are not stored permanently. Motorcycle data you add to your garage is stored securely in your account.",
+    "infoCollect": "When you create a MotoVault account, we collect your email address and display name. When you use AI diagnostics, uploaded images are processed for analysis and are not stored permanently. Motorcycle data you add to your garage is stored securely in your account.",
     "howWeUseTitle": "How We Use Your Information",
-    "howWeUse": "We use your information to provide and improve MotoWise's services, including personalized learning recommendations, AI diagnostic analysis, and garage management. We do not sell your personal information to third parties.",
+    "howWeUse": "We use your information to provide and improve MotoVault's services, including personalized learning recommendations, AI diagnostic analysis, and garage management. We do not sell your personal information to third parties.",
     "securityTitle": "Data Security",
-    "security": "MotoWise uses enterprise-grade encryption with strict access control policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS.",
+    "security": "MotoVault uses enterprise-grade encryption with strict access control policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS.",
     "rightsTitle": "Your Rights",
-    "rights": "You can export or delete your data at any time from your profile settings. For questions about your data, contact us at privacy@motowise.app."
+    "rights": "You can export or delete your data at any time from your profile settings. For questions about your data, contact us at privacy@motovault.app."
   },
   "Terms": {
     "title": "Terms of Service",
     "lastUpdated": "Last updated: March 8, 2026",
     "acceptanceTitle": "Acceptance of Terms",
-    "acceptance": "By accessing or using MotoWise, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.",
+    "acceptance": "By accessing or using MotoVault, you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.",
     "useTitle": "Use of Service",
-    "use": "MotoWise provides AI-powered motorcycle learning content and diagnostic tools for informational purposes. Our AI diagnostics are designed to assist — not replace — professional motorcycle mechanic advice. Always consult a qualified mechanic for critical safety issues.",
+    "use": "MotoVault provides AI-powered motorcycle learning content and diagnostic tools for informational purposes. Our AI diagnostics are designed to assist — not replace — professional motorcycle mechanic advice. Always consult a qualified mechanic for critical safety issues.",
     "accountsTitle": "User Accounts",
     "accounts": "You are responsible for maintaining the confidentiality of your account credentials. You agree to provide accurate information when creating your account and to update it as needed.",
     "ipTitle": "Intellectual Property",
-    "ip": "All content, features, and functionality of MotoWise are owned by MotoWise and are protected by copyright and other intellectual property laws. Learning content may not be reproduced without permission.",
+    "ip": "All content, features, and functionality of MotoVault are owned by MotoVault and are protected by copyright and other intellectual property laws. Learning content may not be reproduced without permission.",
     "aiDisclaimerTitle": "AI-Generated Content & Diagnostics Disclaimer",
-    "aiDisclaimer": "MotoWise uses artificial intelligence to generate educational content, diagnostic assessments, and learning materials. All AI-generated content is provided for educational and informational purposes only and does not constitute professional mechanical advice. AI diagnostic results include a confidence score indicating the model's certainty — results should be interpreted accordingly. You should always consult a qualified motorcycle mechanic for safety-critical issues, before performing any repairs, and to verify any AI-generated guidance. MotoWise does not guarantee the accuracy, completeness, or reliability of AI-generated content or diagnostic assessments. By using MotoWise's AI features, you acknowledge and accept these limitations.",
+    "aiDisclaimer": "MotoVault uses artificial intelligence to generate educational content, diagnostic assessments, and learning materials. All AI-generated content is provided for educational and informational purposes only and does not constitute professional mechanical advice. AI diagnostic results include a confidence score indicating the model's certainty — results should be interpreted accordingly. You should always consult a qualified motorcycle mechanic for safety-critical issues, before performing any repairs, and to verify any AI-generated guidance. MotoVault does not guarantee the accuracy, completeness, or reliability of AI-generated content or diagnostic assessments. By using MotoVault's AI features, you acknowledge and accept these limitations.",
     "liabilityTitle": "Limitation of Liability",
-    "liability": "MotoWise is provided \"as is\" without warranties of any kind. We are not liable for any damages arising from your use of the service or reliance on AI diagnostic results."
+    "liability": "MotoVault is provided \"as is\" without warranties of any kind. We are not liable for any damages arising from your use of the service or reliance on AI diagnostic results."
   },
   "NotFound": {
     "code": "404",
@@ -205,7 +205,7 @@
     "de": "Deutsch"
   },
   "JsonLd": {
-    "organizationName": "MotoWise",
+    "organizationName": "MotoVault",
     "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
   }
 }

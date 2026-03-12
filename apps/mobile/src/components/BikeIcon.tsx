@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import Svg, { Path } from 'react-native-svg';
 
 const PATHS: Record<string, string> = {

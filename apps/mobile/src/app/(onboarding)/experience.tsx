@@ -1,4 +1,4 @@
-import type { ExperienceLevel } from '@motolearn/types';
+import type { ExperienceLevel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Bike, Flame, Gauge } from 'lucide-react-native';

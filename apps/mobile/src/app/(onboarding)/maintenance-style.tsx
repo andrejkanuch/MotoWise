@@ -1,4 +1,4 @@
-import type { MaintenanceStyle } from '@motolearn/types';
+import type { MaintenanceStyle } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Building2, HelpCircle, Wrench } from 'lucide-react-native';

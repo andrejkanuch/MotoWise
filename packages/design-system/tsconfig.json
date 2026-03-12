@@ -1,5 +1,5 @@
 {
-  "extends": "@motolearn/tsconfig/base.json",
+  "extends": "@motovault/tsconfig/base.json",
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",

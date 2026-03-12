@@ -16,7 +16,7 @@
 
 ## Patterns
 - Resolvers are thin — business logic in services
-- Input validation with Zod schemas from @motolearn/types via ZodValidationPipe
+- Input validation with Zod schemas from @motovault/types via ZodValidationPipe
 - Use @UseGuards(GqlAuthGuard) on all protected resolvers
 - Use @CurrentUser() decorator to get authenticated user
 - AI services (article-generator, diagnostic-ai) call Anthropic Claude API

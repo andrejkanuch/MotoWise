@@ -1,7 +1,7 @@
-# Types Package — @motolearn/types
+# Types Package — @motovault/types
 
 ## Purpose
-Shared TypeScript types, Zod validation schemas, and constants for the MotoLearn monorepo.
+Shared TypeScript types, Zod validation schemas, and constants for the MotoVault monorepo.
 
 ## Structure
 - `src/constants/enums.ts` — shared enum-like `as const` objects (UserRole, ArticleDifficulty, etc.)

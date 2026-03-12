@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import type { ProFeature } from '@motolearn/types';
+import { palette } from '@motovault/design-system';
+import type { ProFeature } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';

@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { DiagnosticByIdDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { DiagnosticByIdDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {

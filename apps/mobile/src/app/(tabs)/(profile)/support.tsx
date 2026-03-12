@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
@@ -120,7 +120,7 @@ export default function SupportScreen() {
 
   const handleContactSupport = useCallback(() => {
     haptic();
-    Linking.openURL('mailto:support@motowise.app?subject=MotoWise Support');
+    Linking.openURL('mailto:support@motovault.app?subject=MotoVault Support');
   }, []);
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -287,7 +287,7 @@ export default function SupportScreen() {
                   {t('support.emailSupport', { defaultValue: 'Email Support' })}
                 </Text>
                 <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
-                  support@motowise.app
+                  support@motovault.app
                 </Text>
               </View>
             </Pressable>
@@ -320,7 +320,7 @@ export default function SupportScreen() {
               color: isDark ? palette.neutral50 : palette.neutral950,
             }}
           >
-            MotoWise
+            MotoVault
           </Text>
           <Text style={{ fontSize: 13, color: palette.neutral500, marginTop: 2 }}>
             {t('support.version', { defaultValue: 'Version' })} {appVersion}

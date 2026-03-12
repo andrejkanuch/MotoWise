@@ -1,6 +1,6 @@
-import { palette } from '@motolearn/design-system';
-import { MyMotorcyclesDocument, SubmitDiagnosticDocument } from '@motolearn/graphql';
-import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motolearn/types';
+import { palette } from '@motovault/design-system';
+import { MyMotorcyclesDocument, SubmitDiagnosticDocument } from '@motovault/graphql';
+import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';

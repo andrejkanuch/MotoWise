@@ -1,4 +1,4 @@
-import { LastServiceDate, ReminderChannel } from '@motolearn/types';
+import { LastServiceDate, ReminderChannel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { BarChart3, Bell, ShieldAlert, Sun } from 'lucide-react-native';

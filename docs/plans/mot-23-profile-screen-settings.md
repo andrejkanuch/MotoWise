@@ -38,7 +38,7 @@ The profile screen and settings are ~80% complete. Three gaps remain against the
 ### Task 2: Add motorcycle list section to profile screen
 **File:** `apps/mobile/src/app/(tabs)/(profile)/index.tsx`
 **Changes:**
-- Import `MyMotorcyclesDocument` from `@motolearn/graphql`
+- Import `MyMotorcyclesDocument` from `@motovault/graphql`
 - Add a `useQuery` call for the user's motorcycles
 - Render a "My Bikes" section between the User Card and Pro Banner
 - Each bike shows: make, model, year (no photo thumbnails exist yet — use a bike icon placeholder)

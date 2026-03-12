@@ -10,11 +10,11 @@ linear: MOT-116
 
 ## Overview
 
-Prepare the MotoWise mobile app for deployment to Apple App Store and Google Play Store using EAS Build and EAS Submit. The app currently runs in development but is missing critical deployment configuration.
+Prepare the MotoVault mobile app for deployment to Apple App Store and Google Play Store using EAS Build and EAS Submit. The app currently runs in development but is missing critical deployment configuration.
 
 ## Problem Statement
 
-The app has no `eas.json`, no Expo project ID, uses old "MotoLearn" branding in native projects, has no splash screen configuration, and release builds on Android use the debug keystore. These must be fixed before any successful store submission.
+The app has no `eas.json`, no Expo project ID, uses old "MotoVault" branding in native projects, has no splash screen configuration, and release builds on Android use the debug keystore. These must be fixed before any successful store submission.
 
 ## Phase 1: EAS Foundation (Critical)
 
@@ -47,9 +47,9 @@ The app has no `eas.json`, no Expo project ID, uses old "MotoLearn" branding in 
 ## Phase 2: Branding & Assets
 
 ### 2.1 Fix Native Branding
-- [ ] Update iOS `CFBundleDisplayName` to "MotoWise" in `Info.plist`
-- [ ] Update Android `app_name` to "MotoWise" in `strings.xml`
-- [ ] Update iOS permission strings from "MotoLearn" to "MotoWise" in `Info.plist`
+- [ ] Update iOS `CFBundleDisplayName` to "MotoVault" in `Info.plist`
+- [ ] Update Android `app_name` to "MotoVault" in `strings.xml`
+- [ ] Update iOS permission strings from "MotoVault" to "MotoVault" in `Info.plist`
 
 ### 2.2 Splash Screen
 - [ ] Add `splash` configuration to app config (background color, image, resize mode)
@@ -91,19 +91,19 @@ The app has no `eas.json`, no Expo project ID, uses old "MotoLearn" branding in 
 - [ ] Run `eas build --platform android --profile development --local` successfully
 
 ### 5.2 Pre-submission Checklist
-- [ ] All branding shows "MotoWise"
+- [ ] All branding shows "MotoVault"
 - [ ] Splash screen works on both platforms
 - [ ] App icons render correctly
 - [ ] Push notification permissions work
 - [ ] RevenueCat initializes with test keys
-- [ ] Deep linking works (`motowise://` scheme)
+- [ ] Deep linking works (`motovault://` scheme)
 
 ## Acceptance Criteria
 
 - [ ] `eas.json` exists with development/preview/production profiles
 - [ ] `app.config.ts` dynamically configures app per build profile
 - [ ] `.easignore` excludes non-mobile monorepo content
-- [ ] All native branding says "MotoWise"
+- [ ] All native branding says "MotoVault"
 - [ ] Splash screen configured
 - [ ] Version set to 1.0.0
 - [ ] Local EAS build succeeds for at least one platform
@@ -112,7 +112,7 @@ The app has no `eas.json`, no Expo project ID, uses old "MotoLearn" branding in 
 
 - Existing app config: `apps/mobile/app.json`
 - Metro config: `apps/mobile/metro.config.js`
-- Native iOS: `apps/mobile/ios/MotoLearn/`
+- Native iOS: `apps/mobile/ios/MotoVault/`
 - Native Android: `apps/mobile/android/app/`
 - Env files: `apps/mobile/.env`, `apps/mobile/.env.example`
 - Subscription: `apps/mobile/src/lib/subscription.ts`

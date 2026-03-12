@@ -10,7 +10,7 @@ dependencies: []
 
 ## Problem Statement
 
-A `ZodValidationPipe` exists and CLAUDE.md documents it as a pattern, but it is never imported or used in any resolver. No GraphQL mutation has runtime input validation. The Zod schemas in `@motolearn/types` are completely disconnected from the API. A client could submit `year: 99999` for a motorcycle and it would pass.
+A `ZodValidationPipe` exists and CLAUDE.md documents it as a pattern, but it is never imported or used in any resolver. No GraphQL mutation has runtime input validation. The Zod schemas in `@motovault/types` are completely disconnected from the API. A client could submit `year: 99999` for a motorcycle and it would pass.
 
 ## Findings
 
@@ -18,7 +18,7 @@ A `ZodValidationPipe` exists and CLAUDE.md documents it as a pattern, but it is 
 - **Files:**
   - `apps/api/src/common/pipes/zod-validation.pipe.ts` (defined but unused)
   - All resolver files (no `@UsePipes` annotations)
-  - `@motolearn/types` validators (never imported by any app)
+  - `@motovault/types` validators (never imported by any app)
 
 ## Proposed Solutions
 
@@ -39,7 +39,7 @@ Option A — the schemas already exist and are correct; just wire them up.
 ## Acceptance Criteria
 
 - [ ] Every mutation resolver validates input via ZodValidationPipe
-- [ ] `@motolearn/types` is actually imported in the API app
+- [ ] `@motovault/types` is actually imported in the API app
 - [ ] Invalid inputs (e.g., year: 99999) are rejected with clear errors
 
 ## Work Log

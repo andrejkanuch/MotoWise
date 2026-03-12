@@ -1,4 +1,4 @@
-import { AI_BUDGET_LIMITS } from '@motolearn/types';
+import { AI_BUDGET_LIMITS } from '@motovault/types';
 import {
   ForbiddenException,
   Inject,

@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';

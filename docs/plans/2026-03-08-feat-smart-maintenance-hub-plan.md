@@ -33,7 +33,7 @@ The foundation already exists: maintenance CRUD, health score, home widget, and 
 
 ## Problem Statement
 
-Riders track maintenance in spreadsheets and phone notes because no app nails the right balance of simplicity and completeness. The current MotoWise maintenance system requires manual task creation for every service item, has no reminders, no receipt storage, and no way to share history when selling a bike.
+Riders track maintenance in spreadsheets and phone notes because no app nails the right balance of simplicity and completeness. The current MotoVault maintenance system requires manual task creation for every service item, has no reminders, no receipt storage, and no way to share history when selling a bike.
 
 ## Architecture Decisions
 
@@ -541,7 +541,7 @@ pnpm --filter mobile add expo-print expo-sharing
 
 - `apps/mobile/src/lib/pdf-template.ts` (new) — HTML template function:
   - `generateMaintenanceHistoryHTML(bike, tasks, photos?)` — Returns styled HTML
-  - MotoWise branded header with orange accent (#FF6B35)
+  - MotoVault branded header with orange accent (#FF6B35)
   - Bike details section (make/model/year, VIN, current mileage)
   - Task table: date, task name, mileage, priority, status, notes
   - Professional formatting
@@ -643,7 +643,7 @@ if (!/^[a-f0-9]{64}$/.test(token)) return null; // 32 bytes = 64 hex chars
 - `apps/web/src/app/share/[token]/page.tsx` — Server component
 - Calls the NestJS API `sharedBikeHistory(token)` query
 - Renders read-only maintenance history with task list, status badges, photo thumbnails
-- "Powered by MotoWise" footer with App Store / Play Store links
+- "Powered by MotoVault" footer with App Store / Play Store links
 - Expired/revoked: Shows friendly "This link has expired" message
 - SEO: `noindex, nofollow` meta tags (private data)
 
@@ -805,7 +805,7 @@ erDiagram
 
 ### MOT-76: Shareable Maintenance History
 - [ ] Generate unique shareable link with 30-day expiry
-- [ ] Read-only web view accessible without MotoWise account
+- [ ] Read-only web view accessible without MotoVault account
 - [ ] Seller can revoke link at any time
 - [ ] Link management UI showing active links
 - [ ] Expired/revoked links show appropriate message

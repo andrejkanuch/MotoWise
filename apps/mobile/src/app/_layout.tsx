@@ -1,5 +1,5 @@
 import '../global.css';
-import { CompleteMaintenanceTaskDocument, MeDocument } from '@motolearn/graphql';
+import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';

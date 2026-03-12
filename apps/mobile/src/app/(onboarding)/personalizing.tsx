@@ -1,4 +1,4 @@
-import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motolearn/graphql';
+import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';

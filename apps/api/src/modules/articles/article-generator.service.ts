@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ArticleContentSchema } from '@motolearn/types';
-import type { Tables } from '@motolearn/types/database';
+import { ArticleContentSchema } from '@motovault/types';
+import type { Tables } from '@motovault/types/database';
 import {
   ForbiddenException,
   Inject,

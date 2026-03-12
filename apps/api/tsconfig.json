@@ -1,5 +1,5 @@
 {
-  "extends": "@motolearn/tsconfig/nestjs.json",
+  "extends": "@motovault/tsconfig/nestjs.json",
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "./dist",

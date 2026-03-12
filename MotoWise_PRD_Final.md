@@ -1,4 +1,4 @@
-# MotoWise — Onboarding Redesign, Paywall & Monetization
+# MotoVault — Onboarding Redesign, Paywall & Monetization
 
 **Product Requirements Document — Final Unified**
 
@@ -18,7 +18,7 @@
 
 ### 1.1 Current State Audit
 
-The existing MotoWise onboarding is a 7-step flow: Welcome → Add Bike → Riding Habits → Learning Prefs → AI Insights → Paywall → Personalizing. After a thorough code and UX audit, the following critical issues have been identified:
+The existing MotoVault onboarding is a 7-step flow: Welcome → Add Bike → Riding Habits → Learning Prefs → AI Insights → Paywall → Personalizing. After a thorough code and UX audit, the following critical issues have been identified:
 
 > **Issue #1: Overloaded Screens — Too Much Per Step**
 >
@@ -47,7 +47,7 @@ The existing MotoWise onboarding is a 7-step flow: Welcome → Add Bike → Ridi
 - No value demonstration before the paywall: The AI insights screen exists but users haven't invested enough emotionally by that point.
 - No motorcycle photo upload: Users can't see their actual bike in the app, reducing emotional connection.
 - No maintenance opt-in: Smart maintenance reminders (a key premium feature) aren't introduced during onboarding.
-- No self-reflection questions: The survey collects data but doesn't make users think about WHY they need MotoWise (per Puff Count's behavioral science approach).
+- No self-reflection questions: The survey collects data but doesn't make users think about WHY they need MotoVault (per Puff Count's behavioral science approach).
 - Skip is too easy: The bike entry skip button is prominent, leading to poor personalization.
 
 ### 1.3 Industry Context
@@ -87,7 +87,7 @@ The existing MotoWise onboarding is a 7-step flow: Welcome → Add Bike → Ridi
 | Web/desktop paywall | Mobile-first; web monetization is Q3+. |
 | Family/team plans | Validate individual pricing first. |
 | Ad-supported free tier | Ads degrade premium feel. |
-| Hard paywall (no free tier) | MotoWise needs free tier for word-of-mouth. |
+| Hard paywall (no free tier) | MotoVault needs free tier for word-of-mouth. |
 | Social/community in onboarding | Focus on personal value. |
 | OBD-II hardware integration | Separate hardware partnerships needed. |
 
@@ -121,11 +121,11 @@ Start with the easiest question (rider type). Each micro-commitment makes the ne
 
 ### 4.5 IKEA Effect + Photo Ownership
 
-Users who upload their motorcycle photo value the app 3–5x more. The photo appears on dashboard, garage, and diagnostics, making MotoWise feel like THEIR app.
+Users who upload their motorcycle photo value the app 3–5x more. The photo appears on dashboard, garage, and diagnostics, making MotoVault feel like THEIR app.
 
 ### 4.6 Survey as Self-Reflection
 
-Questions like "How much did you spend on repairs?" and "Have you been unsure if your bike was safe?" aren't just data collection — they force the user to confront why they need MotoWise (per Puff Count's behavioral scientist approach).
+Questions like "How much did you spend on repairs?" and "Have you been unsure if your bike was safe?" aren't just data collection — they force the user to confront why they need MotoVault (per Puff Count's behavioral scientist approach).
 
 ### 4.7 Loss Aversion + Sunk Cost
 
@@ -279,7 +279,7 @@ The flow is organized into **5 logical sections** with **17 total screens**. Eac
 
 - "How much did you spend on motorcycle maintenance or repairs last year?"
 - 5 options: Under $200 / $200–500 / $500–1,000 / $1,000+ / I'm not sure
-- *Psychology: Forces the user to confront the COST of maintenance. "Not sure" itself is a pain point — MotoWise tracks this for you. Placed later in the flow per Puff Count's ordering strategy.*
+- *Psychology: Forces the user to confront the COST of maintenance. "Not sure" itself is a pain point — MotoVault tracks this for you. Placed later in the flow per Puff Count's ordering strategy.*
 - **Data:** `annualRepairSpend`
 
 ---
@@ -324,14 +324,14 @@ The flow is organized into **5 logical sections** with **17 total screens**. Eac
   - "Your next recommended maintenance: [task] (est. [X] mi/km away)"
   - If lastService >3mo: "Your bike may be overdue for a service"
   - "[N] articles matched to your experience level and learning style"
-- Social proof: "Join [N]+ riders who use MotoWise for their [bike type]"
+- Social proof: "Join [N]+ riders who use MotoVault for their [bike type]"
 - If maintenance reminders ON: "Your first maintenance reminder is set"
 - CTA: "See your full dashboard →"
 
 #### Screen 16: Soft Paywall
 
 - Background: blurred preview of their dashboard (with bike photo visible through blur)
-- Headline: "Your MotoWise experience is ready"
+- Headline: "Your MotoVault experience is ready"
 - 3 dynamic value props adapted to survey answers:
   - If maintenance reminders: "Smart alerts for your [Make Model]"
   - If safety concern: "AI diagnostics to keep rides safe"
@@ -425,7 +425,7 @@ The flow is organized into **5 logical sections** with **17 total screens**. Eac
 - As a Dual Sport rider, I want to read the motorcycle type label clearly on my phone screen.
 - As a motorcycle owner, I want to upload a photo of my bike so the app feels personal.
 - As a user, I want to opt into maintenance reminders during onboarding so they're ready when I start using the app.
-- As a cost-conscious rider, I want to be prompted to think about my repair spending so I understand MotoWise's value.
+- As a cost-conscious rider, I want to be prompted to think about my repair spending so I understand MotoVault's value.
 - As a user who skipped bike setup, I want a reminder on my dashboard to add my bike later.
 - As a metric-system user, I want the mileage slider to show km with appropriate ranges.
 - As a user on the paywall, I want to see my personalized dashboard blurred behind the pricing so I know what I'm unlocking.

@@ -16,7 +16,7 @@
 - Server components by default; 'use client' only when needed
 - Admin role check in middleware for /admin/* routes
 - Security headers configured in next.config.ts
-- Import types from @motolearn/types and @motolearn/graphql
+- Import types from @motovault/types and @motovault/graphql
 
 ## Common Mistakes
 - Forgetting 'use client' on components using hooks

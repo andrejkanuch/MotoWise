@@ -9,7 +9,7 @@ import type {
   ReminderChannel,
   RidingFrequency,
   RidingGoal,
-} from '@motolearn/types';
+} from '@motovault/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';

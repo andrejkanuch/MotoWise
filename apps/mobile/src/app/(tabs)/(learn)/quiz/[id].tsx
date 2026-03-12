@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { CreateQuizAttemptDocument, GetQuizByArticleDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { CreateQuizAttemptDocument, GetQuizByArticleDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';

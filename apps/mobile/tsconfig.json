@@ -1,5 +1,5 @@
 {
-  "extends": "@motolearn/tsconfig/expo.json",
+  "extends": "@motovault/tsconfig/expo.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

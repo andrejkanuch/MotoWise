@@ -1,4 +1,4 @@
-import { REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';

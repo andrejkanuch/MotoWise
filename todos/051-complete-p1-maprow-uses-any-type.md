@@ -26,7 +26,7 @@ All service `mapRow` methods (except users) accept `any`, completely bypassing T
 Use generated row types from `database.types.ts`:
 
 ```typescript
-import type { Tables } from '@motolearn/types/database';
+import type { Tables } from '@motovault/types/database';
 
 private mapRow(row: Tables<'motorcycles'>): Motorcycle {
   return { id: row.id, userId: row.user_id, ... };

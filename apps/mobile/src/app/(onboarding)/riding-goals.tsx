@@ -1,4 +1,4 @@
-import type { RidingGoal } from '@motolearn/types';
+import type { RidingGoal } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {

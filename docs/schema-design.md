@@ -1,4 +1,4 @@
-# MotoLearn Schema Design
+# MotoVault Schema Design
 
 ## 1. Executive Summary
 
@@ -17,7 +17,7 @@
 ```
 SQL migration
   -> supabase gen types (database.types.ts)
-    -> Zod schemas (@motolearn/types)
+    -> Zod schemas (@motovault/types)
       -> NestJS @ObjectType() (GraphQL code-first)
         -> GraphQL codegen (TypedDocumentNode for clients)
 ```

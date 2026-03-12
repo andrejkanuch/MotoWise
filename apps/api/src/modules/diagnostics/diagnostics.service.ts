@@ -1,4 +1,4 @@
-import type { Tables } from '@motolearn/types/database';
+import type { Tables } from '@motovault/types/database';
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
