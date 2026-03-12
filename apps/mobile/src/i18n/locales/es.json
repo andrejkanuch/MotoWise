@@ -128,7 +128,8 @@
     "keyTakeaways": "Puntos Clave",
     "relatedTopics": "Temas Relacionados",
     "markAsRead": "Marcar como Leido",
-    "alreadyRead": "Ya Leido"
+    "alreadyRead": "Ya Leido",
+    "aiDisclaimer": "Contenido generado por IA. Verifica con el manual de tu motocicleta."
   },
   "diagnose": {
     "startNew": "Iniciar Nuevo Diagnostico",
@@ -154,7 +155,10 @@
     "difficulty": "Dificultad",
     "nextSteps": "Siguientes Pasos",
     "findArticle": "Buscar Articulo Relacionado",
-    "disclaimer": "Este es un diagnostico de IA solo con fines educativos. Siempre consulta a un mecanico calificado para problemas criticos de seguridad.",
+    "disclaimer": "Solo con fines educativos. Siempre consulta a un mecanico calificado.",
+    "consultMechanic": "Consultar un Mecanico",
+    "consultMechanicSubtitle": "Este problema puede afectar la seguridad. Recomendamos una inspeccion profesional.",
+    "photoDisclaimer": "El analisis de IA es solo con fines educativos y no reemplaza la inspeccion mecanica profesional. Al enviar, reconoces esta limitacion.",
     "processing": "Procesando tu diagnostico...",
     "failed": "El analisis del diagnostico fallo",
     "retry": "Intentar de Nuevo"

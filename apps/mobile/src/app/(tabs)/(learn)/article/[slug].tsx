@@ -2,7 +2,7 @@ import { palette } from '@motolearn/design-system';
 import { ArticleBySlugFullDocument, MarkArticleReadDocument } from '@motolearn/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { BookOpen, CheckCircle, Clock, Eye } from 'lucide-react-native';
+import { AlertTriangle, BookOpen, CheckCircle, Clock, Eye } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -217,8 +217,21 @@ export default function ArticleScreen() {
           </Animated.View>
         )}
 
+        {/* AI Content Disclaimer */}
+        <Animated.View entering={FadeInUp.delay(350).duration(400)} className="px-5 mt-6">
+          <View
+            className="bg-amber-50 dark:bg-amber-950 rounded-2xl p-4 flex-row gap-3"
+            style={{ borderCurve: 'continuous' }}
+          >
+            <AlertTriangle size={16} color={palette.warning500} strokeWidth={2} />
+            <Text className="text-xs text-amber-800 dark:text-amber-200 flex-1 leading-4">
+              {t('article.aiDisclaimer')}
+            </Text>
+          </View>
+        </Animated.View>
+
         {/* Mark as Read Button */}
-        <Animated.View entering={FadeInUp.delay(400).duration(400)} className="px-5 mt-8">
+        <Animated.View entering={FadeInUp.delay(400).duration(400)} className="px-5 mt-4">
           <Pressable
             className={`rounded-2xl py-4 items-center flex-row justify-center gap-2 ${
               markReadMutation.isSuccess ? 'bg-green-100 dark:bg-green-900' : 'bg-primary-500'

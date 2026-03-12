@@ -439,11 +439,14 @@ export default function NewDiagnosticScreen() {
           </Animated.View>
         </ScrollView>
 
-        {/* Analyze button */}
+        {/* Analyze button with disclaimer */}
         <View
           className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
           style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
         >
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-2 leading-4">
+            {t('diagnose.photoDisclaimer')}
+          </Text>
           <Pressable
             className={`rounded-2xl py-4 items-center flex-row justify-center gap-2 ${
               photoUri ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'
