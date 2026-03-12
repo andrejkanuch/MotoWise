@@ -2,6 +2,7 @@ import { UserPreferencesSchema } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { EmailService } from '../email/email.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
 import { DataExportService } from './data-export.service';
@@ -17,6 +18,7 @@ export class UsersService {
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     private readonly dataExportService: DataExportService,
     private readonly revenueCatService: RevenueCatService,
+    private readonly emailService: EmailService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -142,7 +144,11 @@ export class UsersService {
       this.logger.warn(`RevenueCat cancellation failed for ${userId}: ${err.message}`);
     });
 
-    // TODO: Send deletion confirmation email
+    // Send deletion confirmation email (fire and forget)
+    this.emailService.sendAccountDeletionConfirmation(email).catch((err) => {
+      this.logger.warn(`Deletion confirmation email failed for ${userId}: ${err.message}`);
+    });
+
     this.logger.log(
       `Account ${userId} (${email}) soft-deleted. Scheduled for hard deletion in 30 days.`,
     );

@@ -56,6 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-web-browser',
     'expo-apple-authentication',
     'expo-localization',
+    '@react-native-community/datetimepicker',
     [
       'expo-notifications',
       {

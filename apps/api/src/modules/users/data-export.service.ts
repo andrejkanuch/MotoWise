@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { EmailService } from '../email/email.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { DataExportRequest } from './models/data-export-request.model';
@@ -18,6 +19,7 @@ export class DataExportService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly emailService: EmailService,
   ) {}
 
   async requestDataExport(userId: string, email: string): Promise<DataExportRequest> {
@@ -142,10 +144,10 @@ export class DataExportService {
         })
         .eq('id', exportId);
 
-      // TODO: Send email with download link to user's email address
-      // This requires an email service (e.g. Resend, SendGrid) to be configured
+      // Send email with download link
+      await this.emailService.sendDataExportReady(email, downloadUrl);
       this.logger.log(
-        `Data export ${exportId} completed for user ${userId}. Email to ${email} pending email service setup.`,
+        `Data export ${exportId} completed for user ${userId}. Email sent to ${email}.`,
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
