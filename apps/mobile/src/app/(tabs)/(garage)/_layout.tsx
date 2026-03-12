@@ -69,6 +69,16 @@ export default function GarageLayout() {
           contentStyle: sheetContentStyle,
         }}
       />
+      <Stack.Screen
+        name="complete-task"
+        options={{
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetGrabberVisible: true,
+          sheetAllowedDetents: [0.65, 0.85, 1.0],
+          contentStyle: sheetContentStyle,
+        }}
+      />
     </Stack>
   );
 }
