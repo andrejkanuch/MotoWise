@@ -2,6 +2,7 @@ import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motolearn/types';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { DiagnosticAiService } from './diagnostic-ai.service';
 
 // Mock Anthropic SDK
@@ -20,6 +21,9 @@ describe('DiagnosticAiService', () => {
       }),
     }),
   };
+  const mockAiBudgetService = {
+    checkBudgetForUser: vi.fn().mockResolvedValue(undefined),
+  } as unknown as AiBudgetService;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +31,11 @@ describe('DiagnosticAiService', () => {
       getOrThrow: vi.fn().mockReturnValue('test-api-key'),
     } as unknown as ConfigService;
 
-    service = new DiagnosticAiService(mockConfigService, mockAdminClient as never);
+    service = new DiagnosticAiService(
+      mockConfigService,
+      mockAdminClient as never,
+      mockAiBudgetService,
+    );
   });
 
   describe('image size validation', () => {
@@ -36,16 +44,17 @@ describe('DiagnosticAiService', () => {
       model: 'CB500F',
       year: 2023,
     };
+    const userId = 'user-123';
 
     it('should reject images exceeding the maximum base64 size with HTTP 413', async () => {
       const oversizedBase64 = 'A'.repeat(MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH + 1);
 
-      await expect(service.analyze('test-diagnostic-id', oversizedBase64, context)).rejects.toThrow(
-        HttpException,
-      );
+      await expect(
+        service.analyze('test-diagnostic-id', userId, oversizedBase64, context),
+      ).rejects.toThrow(HttpException);
 
       try {
-        await service.analyze('test-diagnostic-id', oversizedBase64, context);
+        await service.analyze('test-diagnostic-id', userId, oversizedBase64, context);
       } catch (err) {
         expect(err).toBeInstanceOf(HttpException);
         expect((err as HttpException).getStatus()).toBe(HttpStatus.PAYLOAD_TOO_LARGE);
@@ -57,7 +66,7 @@ describe('DiagnosticAiService', () => {
       const oversizedBase64 = 'A'.repeat(MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH + 1);
 
       try {
-        await service.analyze('diag-123', oversizedBase64, context);
+        await service.analyze('diag-123', userId, oversizedBase64, context);
       } catch {
         // expected
       }
@@ -66,16 +75,27 @@ describe('DiagnosticAiService', () => {
     });
 
     it('should accept images within the size limit (does not throw 413)', async () => {
-      // A valid-sized base64 string (small). Will fail later at AI call, but not at size check.
       const validBase64 = 'A'.repeat(1000);
 
       // This will throw because the mock Anthropic client returns undefined,
       // but it should NOT throw a 413 PayloadTooLarge error.
       try {
-        await service.analyze('test-id', validBase64, context);
+        await service.analyze('test-id', userId, validBase64, context);
       } catch (err) {
         expect(err).not.toBeInstanceOf(HttpException);
       }
+    });
+
+    it('should check AI budget before processing', async () => {
+      const validBase64 = 'A'.repeat(1000);
+
+      try {
+        await service.analyze('test-id', userId, validBase64, context);
+      } catch {
+        // expected - will fail at AI call
+      }
+
+      expect(mockAiBudgetService.checkBudgetForUser).toHaveBeenCalledWith(userId);
     });
   });
 });

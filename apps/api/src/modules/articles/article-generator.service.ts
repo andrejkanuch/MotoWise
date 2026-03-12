@@ -1,9 +1,16 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ArticleContentSchema } from '@motolearn/types';
 import type { Tables } from '@motolearn/types/database';
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { Article } from './models/article.model';
 
@@ -19,13 +26,21 @@ export class ArticleGeneratorService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly aiBudgetService: AiBudgetService,
   ) {
     this.anthropic = new Anthropic({
       apiKey: this.configService.getOrThrow('ANTHROPIC_API_KEY'),
     });
   }
 
-  async generate(topic: string, category?: string, difficulty?: string): Promise<Article> {
+  async generate(
+    userId: string,
+    topic: string,
+    category?: string,
+    difficulty?: string,
+  ): Promise<Article> {
+    // Check AI budget before generating
+    await this.aiBudgetService.checkBudgetForUser(userId);
     const systemPrompt = `You are a motorcycle expert writing educational articles for riders.
 You write clear, accurate, and practical content that helps riders understand their motorcycles better.
 Always prioritize safety information when relevant.`;
@@ -172,6 +187,7 @@ Requirements:
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'article',
           content_id: data.id,
           model: MODEL,
@@ -185,12 +201,14 @@ Requirements:
       return this.mapRow(data);
     } catch (err) {
       if (err instanceof InternalServerErrorException) throw err;
+      if (err instanceof ForbiddenException) throw err;
       this.logger.error('Article generation failed', err);
 
       // Log failure (fire-and-forget)
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'article',
           model: MODEL,
           status: 'failed',

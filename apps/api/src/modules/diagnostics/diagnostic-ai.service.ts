@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 
 const MODEL = 'claude-sonnet-4-20250514';
@@ -25,6 +26,7 @@ export class DiagnosticAiService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly aiBudgetService: AiBudgetService,
   ) {
     this.anthropic = new Anthropic({
       apiKey: this.configService.getOrThrow('ANTHROPIC_API_KEY'),
@@ -33,6 +35,7 @@ export class DiagnosticAiService {
 
   async analyze(
     diagnosticId: string,
+    userId: string,
     photoBase64: string,
     context: {
       make: string;
@@ -42,6 +45,9 @@ export class DiagnosticAiService {
       wizardAnswers?: Record<string, string>;
     },
   ): Promise<DiagnosticResult> {
+    // Check AI budget before processing
+    await this.aiBudgetService.checkBudgetForUser(userId);
+
     // Validate image size before processing
     if (photoBase64.length > MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH) {
       this.logger.warn(
@@ -202,6 +208,7 @@ Analyze the image carefully and provide your diagnosis.`;
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'diagnostic',
           content_id: diagnosticId,
           model: MODEL,
@@ -215,6 +222,7 @@ Analyze the image carefully and provide your diagnosis.`;
       return result;
     } catch (err) {
       if (err instanceof InternalServerErrorException) throw err;
+      if (err instanceof HttpException) throw err;
       this.logger.error('Diagnostic AI analysis failed', err);
 
       await this.updateDiagnosticStatus(diagnosticId, 'failed');
@@ -223,6 +231,7 @@ Analyze the image carefully and provide your diagnosis.`;
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'diagnostic',
           content_id: diagnosticId,
           model: MODEL,

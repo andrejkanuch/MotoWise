@@ -10,6 +10,7 @@ import depthLimit from 'graphql-depth-limit';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
+import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
@@ -50,6 +51,7 @@ import { UsersModule } from './modules/users/users.module';
       },
     ]),
     SupabaseModule,
+    AiBudgetModule,
     UsersModule,
     MotorcyclesModule,
     ArticlesModule,

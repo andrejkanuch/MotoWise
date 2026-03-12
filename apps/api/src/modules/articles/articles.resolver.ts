@@ -39,7 +39,7 @@ export class ArticlesResolver {
   @UseGuards(GqlAuthGuard)
   @Throttle({ ai: { ttl: 60000, limit: 5 } })
   async generateArticle(
-    @CurrentUser() _user: AuthUser,
+    @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(GenerateArticleSchema)) input: GenerateArticleInput,
   ): Promise<Article> {
     // Check for existing similar articles before generating
@@ -50,6 +50,11 @@ export class ArticlesResolver {
       );
     }
 
-    return this.articleGeneratorService.generate(input.topic, input.category, input.difficulty);
+    return this.articleGeneratorService.generate(
+      user.id,
+      input.topic,
+      input.category,
+      input.difficulty,
+    );
   }
 }
