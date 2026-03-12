@@ -14,6 +14,8 @@ import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { EmailModule } from './modules/email/email.module';
+import { HealthModule } from './modules/health/health.module';
 import { InsightsModule } from './modules/insights/insights.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
@@ -33,7 +35,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'schema.graphql'),
+      autoSchemaFile:
+        process.env.NODE_ENV === 'production' ? true : join(process.cwd(), 'schema.graphql'),
       sortSchema: true,
       playground: process.env.GRAPHQL_PLAYGROUND === 'true',
       introspection: process.env.NODE_ENV !== 'production',
@@ -52,6 +55,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       },
     ]),
     SupabaseModule,
+    EmailModule,
     AiBudgetModule,
     UsersModule,
     MotorcyclesModule,
@@ -65,6 +69,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     OemSchedulesModule,
     ShareLinksModule,
     WebhooksModule,
+    HealthModule,
   ],
   providers: [
     {
