@@ -3,6 +3,7 @@ export * from './constants/limits';
 export * from './validators/article';
 export * from './validators/content-flag';
 export * from './validators/diagnostic';
+export * from './validators/expense';
 export * from './validators/locale';
 export * from './validators/maintenance-task';
 export * from './validators/motorcycle';
