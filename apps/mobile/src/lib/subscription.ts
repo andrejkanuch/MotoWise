@@ -70,7 +70,9 @@ async function doInit(): Promise<(() => void) | null> {
 
     // Set up listener — store the reference for cleanup
     const listener = (info: {
-      entitlements: { active: Record<string, { periodType?: string; expirationDate?: string | null }> };
+      entitlements: {
+        active: Record<string, { periodType?: string; expirationDate?: string | null }>;
+      };
     }) => {
       updateStoreFromCustomerInfo(info);
     };
