@@ -1,7 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { DiagnosticResult } from '@motolearn/types';
-import { DiagnosticResultSchema } from '@motolearn/types';
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { DiagnosticResultSchema, MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motolearn/types';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -35,6 +42,15 @@ export class DiagnosticAiService {
       wizardAnswers?: Record<string, string>;
     },
   ): Promise<DiagnosticResult> {
+    // Validate image size before processing
+    if (photoBase64.length > MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH) {
+      this.logger.warn(
+        `Rejected oversized diagnostic image upload: ${photoBase64.length} chars (max ${MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH}), diagnosticId=${diagnosticId}`,
+      );
+      await this.updateDiagnosticStatus(diagnosticId, 'failed');
+      throw new HttpException('Image exceeds maximum size of 5 MB', HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     const systemPrompt = `You are an expert motorcycle mechanic and diagnostician.
 Analyze the provided photo and context to diagnose potential issues.
 Be specific about the part affected, potential issues with probabilities, severity, tools needed, difficulty level, and recommended next steps.
