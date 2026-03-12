@@ -30,7 +30,7 @@ export function initRevenueCat(): Promise<(() => void) | null> {
 }
 
 function updateStoreFromCustomerInfo(info: {
-  entitlements: { active: Record<string, { periodType?: string; expirationDate?: string }> };
+  entitlements: { active: Record<string, { periodType?: string; expirationDate?: string | null }> };
 }) {
   const store = useSubscriptionStore.getState();
   const isPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
@@ -70,7 +70,7 @@ async function doInit(): Promise<(() => void) | null> {
 
     // Set up listener — store the reference for cleanup
     const listener = (info: {
-      entitlements: { active: Record<string, { periodType?: string; expirationDate?: string }> };
+      entitlements: { active: Record<string, { periodType?: string; expirationDate?: string | null }> };
     }) => {
       updateStoreFromCustomerInfo(info);
     };
