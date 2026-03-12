@@ -21,7 +21,6 @@ import {
   ChevronDown,
   ChevronRight,
   Edit3,
-  FileText,
   Gauge,
   Plus,
   Star,
@@ -454,7 +453,7 @@ export default function BikeDetailScreen() {
 
   // --- Mutations ---
 
-  const { mutateAsync: deleteBike, isPending: deleting } = useMutation({
+  const { mutateAsync: deleteBike } = useMutation({
     mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
@@ -1008,6 +1007,115 @@ export default function BikeDetailScreen() {
           </View>
         )}
 
+        {/* Quick Action Bar */}
+        <Animated.View
+          entering={FadeInUp.delay(100).duration(400)}
+          style={{
+            flexDirection: 'row',
+            gap: 10,
+            paddingHorizontal: 20,
+            marginTop: 16,
+            marginBottom: 8,
+          }}
+        >
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push({
+                pathname: '/(tabs)/(garage)/add-maintenance-task',
+                params: { motorcycleId: id, bikeName: `${bike.year} ${bike.make} ${bike.model}` },
+              });
+            }}
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              paddingVertical: 12,
+              backgroundColor: palette.primary500,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+            }}
+          >
+            <Plus size={16} color={palette.white} strokeWidth={2.5} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+              {t('maintenance.addTask', { defaultValue: 'Add Task' })}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              haptic();
+              if (Platform.OS === 'ios') {
+                ActionSheetIOS.showActionSheetWithOptions(
+                  {
+                    options: [
+                      t('common.cancel', { defaultValue: 'Cancel' }),
+                      t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
+                      t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
+                      t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
+                    ],
+                    cancelButtonIndex: 0,
+                    destructiveButtonIndex: 3,
+                  },
+                  (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                      router.push({
+                        pathname: '/(tabs)/(garage)/edit-bike',
+                        params: { id },
+                      });
+                    } else if (buttonIndex === 2) {
+                      handleExportPdf();
+                    } else if (buttonIndex === 3) {
+                      handleDeleteBike();
+                    }
+                  },
+                );
+              } else {
+                // Android fallback — simple Alert
+                Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  {
+                    text: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
+                    onPress: () =>
+                      router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } }),
+                  },
+                  {
+                    text: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
+                    onPress: handleExportPdf,
+                  },
+                  {
+                    text: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
+                    style: 'destructive',
+                    onPress: handleDeleteBike,
+                  },
+                ]);
+              }
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? palette.neutral300 : palette.neutral600,
+              }}
+            >
+              {t('common.more', { defaultValue: 'More' })}
+            </Text>
+          </Pressable>
+        </Animated.View>
+
         {/* 6. Upcoming Tasks (quick glance) */}
         {tasks.length > 0 && (
           <View style={{ marginTop: 20 }}>
@@ -1226,92 +1334,7 @@ export default function BikeDetailScreen() {
             </Animated.View>
           )}
         </Animated.View>
-
-        {/* 10. Export PDF button */}
-        {tasks.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(200).duration(300)}
-            style={{ paddingHorizontal: 20, marginTop: 16 }}
-          >
-            <Pressable
-              onPress={handleExportPdf}
-              disabled={exporting}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                paddingVertical: 12,
-              }}
-            >
-              {exporting ? (
-                <ActivityIndicator size="small" color={palette.primary500} />
-              ) : (
-                <>
-                  <FileText size={16} color={palette.primary500} strokeWidth={2} />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
-                    {t('maintenance.exportPdf', { defaultValue: 'Export PDF' })}
-                  </Text>
-                </>
-              )}
-            </Pressable>
-          </Animated.View>
-        )}
-
-        {/* 11. Delete bike button */}
-        <Animated.View
-          entering={FadeInUp.delay(240).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 24 }}
-        >
-          <Pressable
-            onPress={handleDeleteBike}
-            disabled={deleting}
-            style={{
-              backgroundColor: isDark ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.08)',
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              paddingVertical: 16,
-              alignItems: 'center',
-            }}
-          >
-            {deleting ? (
-              <ActivityIndicator size="small" color={palette.danger500} />
-            ) : (
-              <Text style={{ fontSize: 16, fontWeight: '600', color: palette.danger500 }}>
-                {t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' })}
-              </Text>
-            )}
-          </Pressable>
-        </Animated.View>
       </ScrollView>
-
-      {/* Floating Add Task button — always visible */}
-      <Pressable
-        onPress={() => {
-          haptic();
-          router.push({
-            pathname: '/(tabs)/(garage)/add-maintenance-task',
-            params: { motorcycleId: id },
-          });
-        }}
-        style={{
-          position: 'absolute',
-          bottom: insets.bottom + 20,
-          right: 20,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: palette.primary500,
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-        }}
-      >
-        <Plus size={24} color={palette.white} strokeWidth={2.5} />
-      </Pressable>
     </View>
   );
 }

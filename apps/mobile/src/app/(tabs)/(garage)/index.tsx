@@ -346,7 +346,7 @@ export default function GarageScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -368,6 +368,42 @@ export default function GarageScreen() {
           </Text>
         </Animated.View>
 
+        <Animated.View entering={FadeInUp.delay(50).duration(300)}>
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push('/(tabs)/(garage)/add-bike');
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              paddingVertical: 14,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1.5,
+              borderColor: isDark ? palette.primary400 : palette.primary500,
+              borderStyle: 'dashed',
+            }}
+          >
+            <Plus
+              size={18}
+              color={isDark ? palette.primary400 : palette.primary500}
+              strokeWidth={2.5}
+            />
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: isDark ? palette.primary400 : palette.primary500,
+              }}
+            >
+              {t('garage.addBike', { defaultValue: 'Add Motorcycle' })}
+            </Text>
+          </Pressable>
+        </Animated.View>
+
         {motorcycles.map((bike, index) => (
           <BikeCard
             key={bike.id}
@@ -378,38 +414,6 @@ export default function GarageScreen() {
           />
         ))}
       </ScrollView>
-
-      {/* FAB */}
-      <View style={{ position: 'absolute', bottom: 100, right: 20 }}>
-        <Pressable
-          onPress={() => {
-            haptic();
-            router.push('/(tabs)/(garage)/add-bike');
-          }}
-          style={({ pressed }) => ({
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            transform: [{ scale: pressed ? 0.92 : 1 }],
-          })}
-        >
-          <LinearGradient
-            colors={[palette.primary600, palette.primary500]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(51,102,230,0.35)',
-            }}
-          >
-            <Plus size={24} color={palette.white} strokeWidth={2.5} />
-          </LinearGradient>
-        </Pressable>
-      </View>
     </View>
   );
 }
