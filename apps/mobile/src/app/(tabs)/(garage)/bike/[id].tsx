@@ -19,7 +19,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  DollarSign,
   Edit3,
   Gauge,
   Plus,
@@ -1142,45 +1141,9 @@ export default function BikeDetailScreen() {
           </View>
         )}
 
-        {/* 7. Spending Summary + Add Expense */}
+        {/* 7. Spending Summary */}
         <View style={{ marginTop: 20 }}>
           <SpendingSummary thisYear={spendThisYear} allTime={spendAllTime} isDark={isDark} />
-          <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-            <Pressable
-              onPress={() => {
-                haptic();
-                router.push({
-                  pathname: '/(tabs)/(garage)/add-expense',
-                  params: {
-                    motorcycleId: id,
-                    bikeName: bike.nickname || `${bike.year} ${bike.make} ${bike.model}`,
-                  },
-                });
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-              }}
-            >
-              <DollarSign size={16} color={palette.primary500} strokeWidth={2} />
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: palette.primary500,
-                }}
-              >
-                {t('expenses.addExpense', { defaultValue: 'Add Expense' })}
-              </Text>
-            </Pressable>
-          </View>
         </View>
 
         {/* 8. Full task list — Active + History */}
