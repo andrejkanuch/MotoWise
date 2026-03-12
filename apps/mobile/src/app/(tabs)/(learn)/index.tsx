@@ -2,12 +2,14 @@ import { palette } from '@motolearn/design-system';
 import { MyProgressDocument, SearchArticlesDocument } from '@motolearn/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { BookOpen, Cog, Eye, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
+import { BookOpen, Cog, Crown, Eye, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -53,6 +55,7 @@ export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -89,6 +92,7 @@ export default function LearnScreen() {
   // TODO: Wire GenerateArticleDocument mutation when API resolver is ready
   const [isGenerating, setIsGenerating] = useState(false);
   const handleGenerate = () => {
+    if (!requirePro('unlimited_articles')) return;
     // Placeholder: will call GenerateArticleDocument mutation
     setIsGenerating(true);
     setTimeout(() => setIsGenerating(false), 2000);
@@ -155,7 +159,10 @@ export default function LearnScreen() {
                   {isGenerating ? (
                     <ActivityIndicator size="small" color={palette.white} />
                   ) : (
-                    <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                    <>
+                      <Crown size={14} color="#FACC15" strokeWidth={2} />
+                      <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                    </>
                   )}
                   <Text className="text-white font-semibold text-sm">
                     {isGenerating ? t('learn.generating') : t('learn.generateArticle')}
@@ -314,6 +321,7 @@ export default function LearnScreen() {
           </>
         )}
       </ScrollView>
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }
