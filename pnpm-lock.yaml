@@ -38,7 +38,7 @@ importers:
       '@as-integrations/express5':
         specifier: ^1.1.2
         version: 1.1.2(@apollo/server@4.13.0(graphql@16.13.1))(express@5.2.1)
-      '@motolearn/types':
+      '@motovault/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@nestjs/apollo':
@@ -90,7 +90,7 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
     devDependencies:
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@nestjs/cli':
@@ -123,13 +123,13 @@ importers:
 
   apps/mobile:
     dependencies:
-      '@motolearn/design-system':
+      '@motovault/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
-      '@motolearn/graphql':
+      '@motovault/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
-      '@motolearn/types':
+      '@motovault/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@react-native-async-storage/async-storage':
@@ -289,7 +289,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.11(@types/react@19.1.17)(react@19.1.0)(use-sync-external-store@1.6.0(react@19.1.0))
     devDependencies:
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -319,13 +319,13 @@ importers:
 
   apps/web:
     dependencies:
-      '@motolearn/design-system':
+      '@motovault/design-system':
         specifier: workspace:*
         version: link:../../packages/design-system
-      '@motolearn/graphql':
+      '@motovault/graphql':
         specifier: workspace:*
         version: link:../../packages/graphql
-      '@motolearn/types':
+      '@motovault/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@supabase/ssr':
@@ -362,7 +362,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
     devDependencies:
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@types/node':
@@ -383,7 +383,7 @@ importers:
 
   packages/design-system:
     devDependencies:
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
 
@@ -395,7 +395,7 @@ importers:
       '@graphql-codegen/client-preset':
         specifier: ^4.0.0
         version: 4.8.3(graphql@16.13.1)
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       graphql:
@@ -413,7 +413,7 @@ importers:
         specifier: ^3.23.0
         version: 3.25.76
     devDependencies:
-      '@motolearn/tsconfig':
+      '@motovault/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
 
