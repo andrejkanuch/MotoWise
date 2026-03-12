@@ -1,16 +1,31 @@
 import { palette } from '@motolearn/design-system';
-import { MeDocument, UpdateUserDocument } from '@motolearn/graphql';
+import {
+  DeleteAccountDocument,
+  MeDocument,
+  RequestDataExportDocument,
+  UpdateUserDocument,
+} from '@motolearn/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { AlertTriangle, ArrowLeft, Database, Shield } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Switch, Text, useColorScheme, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { supabase } from '../../../lib/supabase';
 
 type PrivacyPrefs = {
   analyticsEnabled: boolean;
@@ -136,6 +151,32 @@ export default function PrivacyScreen() {
     [state, updateMutation],
   );
 
+  const exportMutation = useMutation({
+    mutationFn: () => gqlFetcher(RequestDataExportDocument),
+    onSuccess: () => {
+      Alert.alert(
+        t('privacy.exportSuccessTitle', { defaultValue: 'Export Requested' }),
+        t('privacy.exportSuccessMessage', {
+          defaultValue:
+            "We're preparing your data. You'll receive an email with a download link shortly.",
+        }),
+      );
+    },
+    onError: (error: Error) => {
+      const isTooManyRequests = error.message?.includes('24 hours');
+      Alert.alert(
+        t('privacy.exportErrorTitle', { defaultValue: 'Export Failed' }),
+        isTooManyRequests
+          ? t('privacy.exportRateLimit', {
+              defaultValue: 'You can only request a data export once every 24 hours.',
+            })
+          : t('privacy.exportError', {
+              defaultValue: 'Something went wrong. Please try again later.',
+            }),
+      );
+    },
+  });
+
   const handleExportData = () => {
     haptic();
     Alert.alert(
@@ -145,30 +186,59 @@ export default function PrivacyScreen() {
       }),
       [
         { text: t('common.cancel'), style: 'cancel' },
-        { text: t('privacy.export', { defaultValue: 'Export' }), onPress: () => {} },
+        {
+          text: t('privacy.export', { defaultValue: 'Export' }),
+          onPress: () => exportMutation.mutate(),
+        },
       ],
     );
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: () => gqlFetcher(DeleteAccountDocument),
+    onSuccess: async () => {
+      // Sign out and navigate to login
+      await supabase.auth.signOut();
+      queryClient.clear();
+      router.replace('/(auth)/login');
+    },
+    onError: (error: Error) => {
+      Alert.alert(
+        t('privacy.deleteErrorTitle', { defaultValue: 'Deletion Failed' }),
+        error.message ?? t('privacy.deleteError', { defaultValue: 'Something went wrong.' }),
+      );
+    },
+  });
 
   const handleDeleteAccount = () => {
     haptic();
     Alert.alert(
       t('privacy.deleteTitle', { defaultValue: 'Delete Account' }),
-      t('privacy.deleteMessage', {
+      t('privacy.deleteWarning', {
         defaultValue:
-          'This action is permanent and cannot be undone. All your data will be deleted.',
+          'This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.',
       }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('common.delete', { defaultValue: 'Delete' }),
+          text: t('privacy.deleteConfirmButton', { defaultValue: 'Delete My Account' }),
           style: 'destructive',
           onPress: () => {
+            // Second confirmation
             Alert.alert(
-              t('privacy.deleteConfirm', { defaultValue: 'Contact Support' }),
+              t('privacy.deleteConfirmTitle', { defaultValue: 'Are you absolutely sure?' }),
               t('privacy.deleteConfirmMessage', {
-                defaultValue: 'To delete your account, please contact support@motowise.app',
+                defaultValue:
+                  'This cannot be undone. Type DELETE to confirm is not required, but please be certain.',
               }),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('privacy.deleteFinal', { defaultValue: 'Yes, Delete Everything' }),
+                  style: 'destructive',
+                  onPress: () => deleteMutation.mutate(),
+                },
+              ],
             );
           },
         },
@@ -388,11 +458,13 @@ export default function PrivacyScreen() {
           >
             <Pressable
               onPress={handleDeleteAccount}
+              disabled={deleteMutation.isPending}
               style={({ pressed }) => ({
                 flexDirection: 'row',
                 alignItems: 'center',
                 paddingHorizontal: 16,
                 paddingVertical: 14,
+                opacity: deleteMutation.isPending ? 0.6 : 1,
                 backgroundColor: pressed
                   ? isDark
                     ? 'rgba(255,255,255,0.05)'
@@ -411,11 +483,17 @@ export default function PrivacyScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <AlertTriangle size={17} color={palette.danger500} strokeWidth={1.8} />
+                {deleteMutation.isPending ? (
+                  <ActivityIndicator size="small" color={palette.danger500} />
+                ) : (
+                  <AlertTriangle size={17} color={palette.danger500} strokeWidth={1.8} />
+                )}
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text style={{ fontSize: 16, color: palette.danger500, fontWeight: '600' }}>
-                  {t('privacy.deleteAccount', { defaultValue: 'Delete Account' })}
+                  {deleteMutation.isPending
+                    ? t('privacy.deletingAccount', { defaultValue: 'Deleting...' })
+                    : t('privacy.deleteAccount', { defaultValue: 'Delete Account' })}
                 </Text>
                 <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
                   {t('privacy.deleteAccountDesc', {

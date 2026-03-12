@@ -121,6 +121,15 @@ input CreateShareLinkInput {
   motorcycleId: String!
 }
 
+type DataExportRequest {
+  completedAt: String
+  createdAt: String!
+  id: ID!
+  requestedAt: String!
+  status: String!
+  userId: String!
+}
+
 type Diagnostic {
   confidence: Float
   createdAt: String!
@@ -271,12 +280,14 @@ type Mutation {
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
+  deleteAccount: Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   markArticleRead(articleId: String!): LearningProgress!
+  requestDataExport: DataExportRequest!
   revokeShareLink(linkId: ID!): Boolean!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
