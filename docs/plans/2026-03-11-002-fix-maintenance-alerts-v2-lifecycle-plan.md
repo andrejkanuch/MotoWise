@@ -162,7 +162,7 @@ Remove `?` from the parameter. If `user` is optional, the resolver silently proc
 - [x] Sheet uses `borderCurve: 'continuous'` on all rounded elements
 - [x] Use `palette.*` (hex) for native component props, not oklch
 - [x] `pnpm generate` runs cleanly after all GraphQL changes
-- [ ] Zod schema added for `CompleteTaskResult` in `@motolearn/types`
+- [ ] Zod schema added for `CompleteTaskResult` in `@motovault/types`
 - [x] `@CurrentUser() user: AuthUser` is non-optional (no `?`)
 
 ### Security Requirements

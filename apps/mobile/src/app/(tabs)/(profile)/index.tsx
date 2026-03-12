@@ -1,7 +1,7 @@
-import { palette } from '@motolearn/design-system';
-import { MeDocument, MyMotorcyclesDocument } from '@motolearn/graphql';
-import type { SupportedLocale } from '@motolearn/types';
-import { SUPPORTED_LOCALES } from '@motolearn/types';
+import { palette } from '@motovault/design-system';
+import { MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
+import type { SupportedLocale } from '@motovault/types';
+import { FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +26,9 @@ import { useColorScheme } from 'nativewind';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { ProBadge } from '../../../components/ProBadge';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { supabase } from '../../../lib/supabase';
@@ -142,6 +145,7 @@ export default function ProfileScreen() {
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { isPro, requireAccess, showPaywall, blockedFeature, dismissPaywall } = useProGate();
 
   const meQuery = useQuery({
     queryKey: queryKeys.user.me,
@@ -154,6 +158,12 @@ export default function ProfileScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
+
+  const handleAddBike = () => {
+    if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
+    haptic();
+    router.push('/(garage)/add-bike');
+  };
 
   const handleLogout = async () => {
     haptic();
@@ -219,16 +229,19 @@ export default function ProfileScreen() {
             </LinearGradient>
           </View>
 
-          <Text
-            selectable
-            style={{
-              fontSize: 22,
-              fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
-            }}
-          >
-            {user?.fullName ?? t('profile.rider')}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text
+              selectable
+              style={{
+                fontSize: 22,
+                fontWeight: '700',
+                color: isDark ? palette.neutral50 : palette.neutral950,
+              }}
+            >
+              {user?.fullName ?? t('profile.rider')}
+            </Text>
+            {isPro && <ProBadge />}
+          </View>
 
           {/* Edit Profile button */}
           <Pressable
@@ -400,10 +413,7 @@ export default function ProfileScreen() {
                 </Pressable>
               ))}
               <Pressable
-                onPress={() => {
-                  haptic();
-                  router.push('/(garage)/add-bike');
-                }}
+                onPress={handleAddBike}
                 style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -419,7 +429,11 @@ export default function ProfileScreen() {
                     : 'transparent',
                 })}
               >
-                <Plus size={15} color={palette.primary500} strokeWidth={2.5} />
+                {!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES ? (
+                  <Crown size={15} color="#FACC15" strokeWidth={2.5} />
+                ) : (
+                  <Plus size={15} color={palette.primary500} strokeWidth={2.5} />
+                )}
                 <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
                   {t('profile.addAnotherBike', { defaultValue: 'Add Another Bike' })}
                 </Text>
@@ -429,20 +443,18 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
-      {/* Pro Banner */}
-      <Animated.View entering={FadeInUp.delay(160).duration(400)}>
-        <Pressable
-          onPress={haptic}
-          style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
-        >
-          <LinearGradient
-            colors={[palette.gradientCTAStart, palette.gradientCTAEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+      {/* Pro Banner — show upgrade CTA for free users, active status for pro users */}
+      {isPro ? (
+        <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+          <View
             style={{
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              padding: 20,
               flexDirection: 'row',
               alignItems: 'center',
-              padding: 20,
+              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
             }}
           >
             <View
@@ -451,26 +463,78 @@ export default function ProfileScreen() {
                 height: 44,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: 'rgba(255,255,255,0.15)',
+                backgroundColor: 'rgba(250,204,21,0.15)',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 14,
               }}
             >
-              <Crown size={22} color={palette.warning500} strokeWidth={2} />
+              <Crown size={22} color="#FACC15" strokeWidth={2} fill="#FACC15" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: palette.white, fontSize: 17, fontWeight: '700' }}>
-                {t('profile.proBanner')}
+              <Text
+                style={{
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  fontSize: 17,
+                  fontWeight: '700',
+                }}
+              >
+                {t('profile.proActive', { defaultValue: 'Pro Active' })}
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
-                {t('profile.proDescription')}
+              <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+                {t('profile.proActiveDesc', {
+                  defaultValue: 'All premium features unlocked',
+                })}
               </Text>
             </View>
-            <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
+          </View>
+        </Animated.View>
+      ) : (
+        <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push('/(tabs)/(profile)/upgrade');
+            }}
+            style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
+          >
+            <LinearGradient
+              colors={[palette.gradientCTAStart, palette.gradientCTAEnd]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: 20,
+              }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  backgroundColor: 'rgba(255,255,255,0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 14,
+                }}
+              >
+                <Crown size={22} color={palette.warning500} strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: palette.white, fontSize: 17, fontWeight: '700' }}>
+                  {t('profile.proBanner')}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+                  {t('profile.proDescription')}
+                </Text>
+              </View>
+              <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
+            </LinearGradient>
+          </Pressable>
+        </Animated.View>
+      )}
 
       {/* Settings */}
       <Animated.View entering={FadeInUp.delay(240).duration(400)}>
@@ -502,7 +566,12 @@ export default function ProfileScreen() {
             isDark={isDark}
             onPress={() => router.push('/(profile)/privacy')}
           />
-          <SettingsRow icon={CreditCard} label={t('profile.subscriptions')} isDark={isDark} />
+          <SettingsRow
+            icon={CreditCard}
+            label={t('profile.subscriptions')}
+            isDark={isDark}
+            onPress={() => router.push('/(tabs)/(profile)/upgrade')}
+          />
           <SettingsRow
             icon={HelpCircle}
             label={t('profile.support')}
@@ -650,6 +719,8 @@ export default function ProfileScreen() {
           />
         </View>
       </Animated.View>
+
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </ScrollView>
   );
 }

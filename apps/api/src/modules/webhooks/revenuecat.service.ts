@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
@@ -7,7 +8,10 @@ import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 export class RevenueCatService {
   private readonly logger = new Logger(RevenueCatService.name);
 
-  constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+  ) {}
 
   async processEvent(event: RevenueCatEvent): Promise<void> {
     const { error } = await this.adminClient.rpc('process_revenuecat_event', {
@@ -30,5 +34,34 @@ export class RevenueCatService {
     }
 
     this.logger.log(`Processed ${event.type} for user ${event.app_user_id}`);
+  }
+
+  async cancelSubscription(userId: string): Promise<void> {
+    const rcApiKey = this.configService.get<string>('REVENUECAT_SECRET_API_KEY');
+    if (!rcApiKey) {
+      this.logger.warn(
+        'REVENUECAT_SECRET_API_KEY not configured — skipping subscription cancellation',
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.revenuecat.com/v1/subscribers/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${rcApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok && response.status !== 404) {
+        throw new Error(`RevenueCat API returned ${response.status}`);
+      }
+
+      this.logger.log(`RevenueCat subscriber ${userId} deleted`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      throw new Error(`RevenueCat cancellation failed: ${message}`);
+    }
   }
 }

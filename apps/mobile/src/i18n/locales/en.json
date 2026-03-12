@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "MotoLearn",
+    "appName": "MotoVault",
     "loading": "Loading...",
     "error": "Error",
     "cancel": "Cancel",
@@ -8,7 +8,8 @@
     "delete": "Delete",
     "back": "Back",
     "retry": "Retry",
-    "skip": "Skip"
+    "skip": "Skip",
+    "goBack": "Go Back"
   },
   "auth": {
     "signIn": "Sign In",
@@ -92,7 +93,7 @@
     "viewAll": "View All",
     "heroTitle": "Visual Education &\nAI Diagnostics: Understand and Fix Your Bike",
     "checkBike": "Check Your Bike",
-    "checkBikeDesc": "Scan with Moto Learn AI",
+    "checkBikeDesc": "Scan with MotoVault AI",
     "noData": "No Data",
     "yourBike": "Your bike",
     "category": {
@@ -128,7 +129,9 @@
     "keyTakeaways": "Key Takeaways",
     "relatedTopics": "Related Topics",
     "markAsRead": "Mark as Read",
-    "alreadyRead": "Already Read"
+    "alreadyRead": "Already Read",
+    "aiDisclaimer": "AI-generated content. Verify with your owner's manual.",
+    "takeQuiz": "Take Quiz"
   },
   "diagnose": {
     "startNew": "Start New Diagnosis",
@@ -154,10 +157,14 @@
     "difficulty": "Difficulty",
     "nextSteps": "Next Steps",
     "findArticle": "Find Related Article",
-    "disclaimer": "This is an AI diagnosis for educational purposes only. Always consult a qualified mechanic for safety-critical issues.",
+    "disclaimer": "For educational purposes only. Always consult a qualified mechanic.",
+    "consultMechanic": "Consult a Mechanic",
+    "consultMechanicSubtitle": "This issue may affect safety. We recommend professional inspection.",
+    "photoDisclaimer": "AI analysis is for educational purposes only and does not replace professional mechanical inspection. By submitting, you acknowledge this limitation.",
     "processing": "Processing your diagnostic...",
     "failed": "Diagnostic analysis failed",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "imageTooLarge": "Image is too large (max 5 MB). Please choose a smaller photo or retake with lower quality."
   },
   "wizard": {
     "step": "Step {{current}} of {{total}}",
@@ -224,7 +231,7 @@
     "rank": "Rank",
     "badges": "Badges",
     "joined": "Joined",
-    "proBanner": "MotoLearn PRO",
+    "proBanner": "MotoVault PRO",
     "proDescription": "Unlock AI diagnostics & premium lessons",
     "settings": "Profile Settings",
     "privacy": "Privacy",
@@ -244,7 +251,7 @@
     "themeDark": "Dark"
   },
   "onboarding": {
-    "welcomeTitle": "Welcome to MotoWise",
+    "welcomeTitle": "Welcome to MotoVault",
     "welcomeSubtitle": "Tell us about your riding experience",
     "welcomeHeroTitle": "Your motorcycle just got smarter",
     "welcomeHeroSubtitle": "AI-powered learning, diagnostics & maintenance — personalized to your ride.",
@@ -316,7 +323,7 @@
     "insightsTitle": "Your Personalized Insights",
     "insightsSubtitle": "Based on your profile, here's what we found",
     "insightsError": "Could not generate insights. Tap retry or continue ahead.",
-    "insightsSocialProof": "Join 12,400+ riders who use MotoWise",
+    "insightsSocialProof": "Join 12,400+ riders who use MotoVault",
     "insightsCta": "See your full dashboard →",
     "preparingExperience": "We're preparing your personalized experience...",
     "personalizingTitle": "Personalizing your experience...",
@@ -454,7 +461,7 @@
     "priorityLow": "Low"
   },
   "paywall": {
-    "title": "Your MotoWise experience is ready",
+    "title": "Your MotoVault experience is ready",
     "personalizedFor": "Personalized for your {{bike}}",
     "featureaiDiagnosticsTitle": "AI-Powered Diagnostics",
     "featureaiDiagnosticsDesc": "Photo analysis and troubleshooting for your bike",
@@ -480,6 +487,42 @@
     "noSubscriptionFound": "No Subscription Found",
     "noSubscriptionFoundDesc": "We couldn't find an active subscription to restore.",
     "restoreFailed": "Could not restore purchases. Please try again."
+  },
+  "quiz": {
+    "loading": "Loading quiz...",
+    "loadError": "Could not load the quiz. Please try again.",
+    "noQuestions": "No questions available for this quiz.",
+    "questionProgress": "Question {{current}} of {{total}}",
+    "answeredCount": "{{count}} of {{total}} answered",
+    "scoreLabel": "{{score}} of {{total}} correct",
+    "passed": "Passed!",
+    "keepLearning": "Keep Learning",
+    "review": "Review Answers",
+    "questionNumber": "Q{{number}}.",
+    "yourAnswer": "Your answer:",
+    "noAnswer": "No answer",
+    "backToArticle": "Back to Article",
+    "previous": "Previous",
+    "next": "Next",
+    "submit": "Submit"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Unlimited Bikes",
+    "unlimitedBikesDesc": "Add as many motorcycles as you want to your garage.",
+    "unlimitedArticlesTitle": "Unlimited Articles",
+    "unlimitedArticlesDesc": "Access the full library of learning content.",
+    "fullDiagnosticsTitle": "Full AI Diagnostics",
+    "fullDiagnosticsDesc": "Unlock unlimited AI-powered photo diagnostics.",
+    "maintenanceRemindersTitle": "Maintenance Reminders",
+    "maintenanceRemindersDesc": "Get smart reminders for all your bikes.",
+    "pdfExportTitle": "PDF Export",
+    "pdfExportDesc": "Export maintenance records as PDF reports.",
+    "featureUnlimitedBikes": "Unlimited bikes in your garage",
+    "featureFullDiagnostics": "Full AI diagnostics",
+    "featureMaintenanceReminders": "Smart maintenance reminders",
+    "featurePdfExport": "PDF export of records",
+    "upgradeToPro": "Upgrade to Pro",
+    "maybeLater": "Maybe Later"
   },
   "notFound": {
     "message": "Page not found",

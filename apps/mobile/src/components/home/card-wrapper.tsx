@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import type { ReactNode } from 'react';
 import { useColorScheme, View } from 'react-native';
 

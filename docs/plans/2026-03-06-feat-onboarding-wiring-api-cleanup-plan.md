@@ -202,8 +202,8 @@ async motorcycleMakes(): Promise<MotorcycleMake[]> {
 **QuizzesService:**
 
 ```typescript
-import type { Tables } from '@motolearn/types/database';
-import { QuizQuestionSchema } from '@motolearn/types';
+import type { Tables } from '@motovault/types/database';
+import { QuizQuestionSchema } from '@motovault/types';
 
 private mapQuizRow(
   row: Pick<Tables<'quizzes'>, 'id' | 'article_id' | 'questions_json' | 'generated_at'>,
@@ -400,7 +400,7 @@ mutation MarkArticleRead($articleId: String!) {
 
 **After creating all files:** Run `pnpm generate` to regenerate TypedDocumentNode types.
 
-> **Pattern recognition insight:** The generated package (`packages/graphql/src/generated/index.ts`) currently exports nothing (`export {};`). Running `pnpm generate` after creating these files + Phase 2a changes will populate it. Only use TypedDocumentNode imports (`{Operation}Document` from `@motolearn/graphql`), never inline `gql` tags.
+> **Pattern recognition insight:** The generated package (`packages/graphql/src/generated/index.ts`) currently exports nothing (`export {};`). Running `pnpm generate` after creating these files + Phase 2a changes will populate it. Only use TypedDocumentNode imports (`{Operation}Document` from `@motovault/graphql`), never inline `gql` tags.
 
 **Acceptance Criteria:**
 - [ ] All 9 .graphql files created with correct operation names
@@ -434,7 +434,7 @@ mutation MarkArticleRead($articleId: String!) {
    > **Architecture fix:** Direct column overwrite (`{ preferences: input.preferences }`) will wipe existing preference keys. Use read-modify-write merge pattern.
 
    ```typescript
-   import { UserPreferencesSchema } from '@motolearn/types';
+   import { UserPreferencesSchema } from '@motovault/types';
 
    async update(userId: string, input: UpdateUser): Promise<User> {
      const data: Record<string, unknown> = {};
@@ -501,7 +501,7 @@ mutation MarkArticleRead($articleId: String!) {
 
 ```typescript
 import { create } from 'zustand';
-import type { ExperienceLevel } from '@motolearn/types';
+import type { ExperienceLevel } from '@motovault/types';
 
 interface BikeData {
   year: number;
@@ -583,7 +583,7 @@ WHERE preferences IS NULL
 2. **Use TypedDocumentNode imports only** (never inline `gql` tags):
    ```typescript
    import { useQuery, useMutation } from 'urql';
-   import { MotorcycleMakesDocument, MotorcycleModelsDocument } from '@motolearn/graphql';
+   import { MotorcycleMakesDocument, MotorcycleModelsDocument } from '@motovault/graphql';
    import { useOnboardingStore } from '../../stores/onboarding.store';
    ```
 
@@ -703,8 +703,8 @@ interface AuthState {
 ```typescript
 import * as SplashScreen from 'expo-splash-screen';
 import { Stack } from 'expo-router';
-import { MeDocument } from '@motolearn/graphql';
-import { UserPreferencesSchema } from '@motolearn/types';
+import { MeDocument } from '@motovault/graphql';
+import { UserPreferencesSchema } from '@motovault/types';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -809,7 +809,7 @@ export default function RootLayout() {
 ## Dependencies
 
 - NHTSA API availability (external, no API key needed)
-- `@motolearn/design-system` tokens for onboarding UI
+- `@motovault/design-system` tokens for onboarding UI
 - Supabase local instance for migration testing (`pnpm db:reset`)
 - `pnpm generate` must run after both MOT-48 and Phase 2a (single run)
 

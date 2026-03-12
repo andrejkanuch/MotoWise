@@ -1,13 +1,30 @@
-import { palette } from '@motolearn/design-system';
-import { MyProgressDocument, SearchArticlesDocument } from '@motolearn/graphql';
-import { useQuery } from '@tanstack/react-query';
+import { palette } from '@motovault/design-system';
+import {
+  GenerateArticleDocument,
+  MyMotorcyclesDocument,
+  MyProgressDocument,
+  SearchArticlesDocument,
+} from '@motovault/graphql';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { BookOpen, Cog, Eye, Search, Sparkles, Wrench, Zap } from 'lucide-react-native';
+import {
+  AlertCircle,
+  BookOpen,
+  Cog,
+  Crown,
+  Eye,
+  Search,
+  Sparkles,
+  Wrench,
+  Zap,
+} from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -53,6 +70,7 @@ export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -86,12 +104,47 @@ export default function LearnScreen() {
   const searchResults = searchData?.searchArticles?.edges ?? [];
   const isSearchActive = debouncedQuery.length > 0;
 
-  // TODO: Wire GenerateArticleDocument mutation when API resolver is ready
-  const [isGenerating, setIsGenerating] = useState(false);
+  const queryClient = useQueryClient();
+  const [generateError, setGenerateError] = useState<string | null>(null);
+
+  // Fetch user's motorcycles to pass bike context to article generation
+  const { data: motorcyclesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const primaryBike = useMemo(() => {
+    const bikes = motorcyclesData?.myMotorcycles ?? [];
+    return bikes.find((b: { isPrimary: boolean }) => b.isPrimary) ?? bikes[0] ?? null;
+  }, [motorcyclesData]);
+
+  const generateMutation = useMutation({
+    mutationFn: (topic: string) => {
+      // Enrich topic with bike context if available
+      const bikeContext = primaryBike
+        ? ` for ${primaryBike.year} ${primaryBike.make} ${primaryBike.model}`
+        : '';
+      return gqlFetcher(GenerateArticleDocument, {
+        input: { topic: `${topic}${bikeContext}` },
+      });
+    },
+    onSuccess: (data) => {
+      setGenerateError(null);
+      // Invalidate article list cache so the new article appears
+      queryClient.invalidateQueries({ queryKey: queryKeys.articles.all });
+      // Navigate to the newly generated article
+      const slug = data.generateArticle.slug;
+      router.push(`/(tabs)/(learn)/article/${slug}` as `/${string}`);
+    },
+    onError: (err: Error) => {
+      setGenerateError(err.message ?? t('common.error'));
+    },
+  });
+
+  const isGenerating = generateMutation.isPending;
   const handleGenerate = () => {
-    // Placeholder: will call GenerateArticleDocument mutation
-    setIsGenerating(true);
-    setTimeout(() => setIsGenerating(false), 2000);
+    if (!requirePro('unlimited_articles')) return;
+    setGenerateError(null);
+    generateMutation.mutate(debouncedQuery);
   };
 
   return (
@@ -155,12 +208,23 @@ export default function LearnScreen() {
                   {isGenerating ? (
                     <ActivityIndicator size="small" color={palette.white} />
                   ) : (
-                    <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                    <>
+                      <Crown size={14} color="#FACC15" strokeWidth={2} />
+                      <Sparkles size={16} color={palette.white} strokeWidth={2} />
+                    </>
                   )}
                   <Text className="text-white font-semibold text-sm">
                     {isGenerating ? t('learn.generating') : t('learn.generateArticle')}
                   </Text>
                 </Pressable>
+                {generateError && (
+                  <View className="mt-3 flex-row items-center gap-2">
+                    <AlertCircle size={14} color={palette.danger500} strokeWidth={2} />
+                    <Text className="text-xs text-red-600 dark:text-red-400 flex-1">
+                      {generateError}
+                    </Text>
+                  </View>
+                )}
               </View>
             ) : (
               <View className="gap-3">
@@ -314,6 +378,7 @@ export default function LearnScreen() {
           </>
         )}
       </ScrollView>
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

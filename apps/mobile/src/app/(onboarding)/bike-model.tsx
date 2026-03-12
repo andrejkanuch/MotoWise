@@ -1,5 +1,5 @@
-import { MotorcycleModelsDocument } from '@motolearn/graphql';
-import { MotorcycleType } from '@motolearn/types';
+import { MotorcycleModelsDocument } from '@motovault/graphql';
+import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';

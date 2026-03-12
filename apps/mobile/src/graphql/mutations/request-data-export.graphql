@@ -1,0 +1,7 @@
+mutation RequestDataExport {
+  requestDataExport {
+    id
+    status
+    requestedAt
+  }
+}

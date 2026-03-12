@@ -77,8 +77,8 @@ apps/web/src/
 ```json
 {
   "Metadata": {
-    "title": "MotoWise — AI-Powered Motorcycle Learning & Diagnostics",
-    "titleTemplate": "{title} | MotoWise",
+    "title": "MotoVault — AI-Powered Motorcycle Learning & Diagnostics",
+    "titleTemplate": "{title} | MotoVault",
     "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health."
   },
   "Navbar": {
@@ -118,12 +118,12 @@ apps/web/src/
   "Faq": {
     "sectionTitle": "Frequently Asked Questions",
     "items": [
-      { "question": "What is MotoWise?", "answer": "..." },
-      { "question": "Is MotoWise free?", "answer": "..." },
+      { "question": "What is MotoVault?", "answer": "..." },
+      { "question": "Is MotoVault free?", "answer": "..." },
       { "question": "What motorcycles are supported?", "answer": "..." },
       { "question": "How does AI diagnostics work?", "answer": "..." },
       { "question": "Is my data safe?", "answer": "..." },
-      { "question": "What's included in MotoWise Pro?", "answer": "..." }
+      { "question": "What's included in MotoVault Pro?", "answer": "..." }
     ]
   },
   "Footer": {
@@ -131,7 +131,7 @@ apps/web/src/
     "company": "Company",
     "connect": "Connect",
     "tagline": "Learn your bike. Fix your bike.",
-    "copyright": "© 2026 MotoWise. All rights reserved.",
+    "copyright": "© 2026 MotoVault. All rights reserved.",
     "features": "Features",
     "download": "Download",
     "faq": "FAQ",
@@ -143,11 +143,11 @@ apps/web/src/
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: March 8, 2026",
     "infoCollectTitle": "Information We Collect",
-    "infoCollect": "When you create a MotoWise account...",
+    "infoCollect": "When you create a MotoVault account...",
     "howWeUseTitle": "How We Use Your Information",
     "howWeUse": "We use your information to provide and improve...",
     "securityTitle": "Data Security",
-    "security": "MotoWise uses Supabase with row-level security...",
+    "security": "MotoVault uses Supabase with row-level security...",
     "rightsTitle": "Your Rights",
     "rights": "You can export or delete your data..."
   },
@@ -155,15 +155,15 @@ apps/web/src/
     "title": "Terms of Service",
     "lastUpdated": "Last updated: March 8, 2026",
     "acceptanceTitle": "Acceptance of Terms",
-    "acceptance": "By accessing or using MotoWise...",
+    "acceptance": "By accessing or using MotoVault...",
     "useTitle": "Use of Service",
-    "use": "MotoWise provides AI-powered motorcycle learning...",
+    "use": "MotoVault provides AI-powered motorcycle learning...",
     "accountsTitle": "User Accounts",
     "accounts": "You are responsible for maintaining...",
     "ipTitle": "Intellectual Property",
     "ip": "All content, features, and functionality...",
     "liabilityTitle": "Limitation of Liability",
-    "liability": "MotoWise is provided \"as is\"..."
+    "liability": "MotoVault is provided \"as is\"..."
   },
   "NotFound": {
     "code": "404",
@@ -259,10 +259,10 @@ apps/web/src/
 ## Acceptance Criteria
 
 ### Functional
-- [ ] Visiting `motowise.app` with `Accept-Language: de` shows German content
-- [ ] Visiting `motowise.app/es/privacy` shows Spanish privacy policy
+- [ ] Visiting `motovault.app` with `Accept-Language: de` shows German content
+- [ ] Visiting `motovault.app/es/privacy` shows Spanish privacy policy
 - [ ] Language switcher changes locale and preserves current page
-- [ ] Visiting `motowise.app/fr` redirects to English
+- [ ] Visiting `motovault.app/fr` redirects to English
 - [ ] Admin pages (`/admin/*`) work unchanged, not affected by locale routing
 - [ ] Login page works unchanged
 - [ ] All ~80-100 strings translated in ES and DE
@@ -283,7 +283,7 @@ apps/web/src/
 ### Quality
 - [ ] `pnpm lint` passes
 - [ ] `pnpm --filter web build` succeeds
-- [ ] No hardcoded English strings remain in marketing components (except brand name "MotoWise")
+- [ ] No hardcoded English strings remain in marketing components (except brand name "MotoVault")
 
 ## Dependencies & Risks
 

@@ -1,12 +1,12 @@
 ---
-title: "feat: Stunning MotoLearn Landing Page with Animations & SEO"
+title: "feat: Stunning MotoVault Landing Page with Animations & SEO"
 type: feat
 status: active
 date: 2026-03-08
 deepened: 2026-03-08
 ---
 
-# Stunning MotoLearn Landing Page with Animations & SEO
+# Stunning MotoVault Landing Page with Animations & SEO
 
 ## Enhancement Summary
 
@@ -33,7 +33,7 @@ The original plan was over-scoped for an MVP. Key cuts:
 
 ## Overview
 
-Build a visually stunning, high-converting marketing landing page for MotoLearn — the AI-powered motorcycle learning & diagnostics platform. Replace the current placeholder homepage with a dark-themed, motion-rich experience that conveys speed, trust, and motorcycle culture. Built with Next.js 16 App Router, Tailwind CSS v4, and Motion (for hero parallax only — CSS animations handle everything else).
+Build a visually stunning, high-converting marketing landing page for MotoVault — the AI-powered motorcycle learning & diagnostics platform. Replace the current placeholder homepage with a dark-themed, motion-rich experience that conveys speed, trust, and motorcycle culture. Built with Next.js 16 App Router, Tailwind CSS v4, and Motion (for hero parallax only — CSS animations handle everything else).
 
 **Brand identity:** "Trusted Guide" — Deep Blue (trust), Teal Green (growth), Amber (encouragement). Dark theme default for the motorcycle/automotive aesthetic.
 
@@ -41,11 +41,11 @@ Build a visually stunning, high-converting marketing landing page for MotoLearn 
 
 ## Problem Statement / Motivation
 
-The current web app (`apps/web`) has only a placeholder homepage with a centered title and "Sign In" link. There is no public marketing presence, no SEO, no app store conversion funnel, and no way for potential users to discover MotoLearn through search. The mobile app is feature-rich but invisible on the web.
+The current web app (`apps/web`) has only a placeholder homepage with a centered title and "Sign In" link. There is no public marketing presence, no SEO, no app store conversion funnel, and no way for potential users to discover MotoVault through search. The mobile app is feature-rich but invisible on the web.
 
 A stunning landing page is critical for:
 - **User acquisition:** Drive app downloads via organic search and direct visits
-- **Brand credibility:** Establish MotoLearn as a premium, trustworthy platform
+- **Brand credibility:** Establish MotoVault as a premium, trustworthy platform
 - **SEO foundation:** Rank for motorcycle maintenance, diagnostics, and learning queries
 - **Conversion:** Convert visitors into app downloads with clear CTAs
 
@@ -132,8 +132,8 @@ apps/web/src/app/
 #### Tasks
 
 - [ ] **Delete `apps/web/src/app/page.tsx`** — prevents route conflict with `(marketing)/page.tsx`
-- [ ] **Install Motion:** `pnpm add motion --filter @motolearn/web`
-- [ ] **Update root `layout.tsx`** — add `metadataBase: new URL("https://motolearn.app")` (set ONCE here, not in marketing layout)
+- [ ] **Install Motion:** `pnpm add motion --filter @motovault/web`
+- [ ] **Update root `layout.tsx`** — add `metadataBase: new URL("https://motovault.app")` (set ONCE here, not in marketing layout)
 - [ ] **Add CSP header** to `next.config.ts`:
   ```typescript
   {
@@ -170,13 +170,13 @@ import { Footer } from "@/components/marketing/footer";
 
 export const metadata: Metadata = {
   title: {
-    default: "MotoLearn — AI-Powered Motorcycle Learning & Diagnostics",
-    template: "%s | MotoLearn",
+    default: "MotoVault — AI-Powered Motorcycle Learning & Diagnostics",
+    template: "%s | MotoVault",
   },
   description:
     "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
   openGraph: {
-    siteName: "MotoLearn",
+    siteName: "MotoVault",
     locale: "en_US",
     type: "website",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
@@ -373,12 +373,12 @@ useEffect(() => { setMenuOpen(false); }, [pathname]);
 **Race condition mitigation:** CSS `grid-template-rows` transitions are interruptible by design — rapid clicking gracefully reverses from current position. No AnimatePresence timing issues.
 
 **FAQ Questions:**
-1. What is MotoLearn?
-2. Is MotoLearn free?
+1. What is MotoVault?
+2. Is MotoVault free?
 3. What motorcycles are supported?
 4. How does AI diagnostics work?
 5. Is my data safe?
-6. What's included in MotoLearn Pro?
+6. What's included in MotoVault Pro?
 
 #### Homepage Composition (`(marketing)/page.tsx`) — Server Component
 
@@ -394,8 +394,8 @@ import { FAQ_DATA } from "@/components/marketing/faq-data";
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "MotoLearn",
-  url: "https://motolearn.app",
+  name: "MotoVault",
+  url: "https://motovault.app",
   description: "AI-powered motorcycle learning & diagnostics platform",
 };
 
@@ -481,7 +481,7 @@ import type { MetadataRoute } from "next";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/", disallow: ["/admin/", "/api/", "/login"] },
-    sitemap: "https://motolearn.app/sitemap.xml",
+    sitemap: "https://motovault.app/sitemap.xml",
   };
 }
 ```
@@ -520,7 +520,7 @@ export default function robots(): MetadataRoute.Robots {
   - CLS: all images/SVGs have explicit dimensions; animations use only `opacity`/`transform`
   - Import from `motion/react` exclusively
 - [ ] **Preserve admin access** — "Admin" link in footer, `/login` route functional
-- [ ] **Verify build:** `pnpm build --filter @motolearn/web` succeeds with no TS errors
+- [ ] **Verify build:** `pnpm build --filter @motovault/web` succeeds with no TS errors
 
 ---
 
@@ -573,7 +573,7 @@ export default function robots(): MetadataRoute.Robots {
 ### Quality Gates
 
 - [ ] Biome lint passes (`pnpm lint`)
-- [ ] Next.js build succeeds (`pnpm build --filter @motolearn/web`)
+- [ ] Next.js build succeeds (`pnpm build --filter @motovault/web`)
 - [ ] No TypeScript errors
 - [ ] Lighthouse performance > 90
 - [ ] Bundle analysis confirms Motion tree-shaking
@@ -620,7 +620,7 @@ export default function robots(): MetadataRoute.Robots {
 | How It Works section | Cut | Overlaps with features grid |
 | Scroll reveals | CSS `animation-timeline: view()` | Zero JS, compositor-driven, progressive enhancement |
 | Box-shadow hovers | `::after` pseudo-element opacity | Compositor-only, avoids paint operations |
-| Product name | "MotoLearn" | Matches codebase, CLAUDE.md, existing metadata |
+| Product name | "MotoVault" | Matches codebase, CLAUDE.md, existing metadata |
 | OG images | Static PNG for MVP | Dynamic `opengraph-image.tsx` is future optimization |
 
 ## Future Work (post-launch, data-driven)
@@ -643,15 +643,15 @@ Add these when analytics/user feedback justifies:
 
 ### Internal References
 
-- Root CLAUDE.md: `/Users/andrej/MotoWise/CLAUDE.md`
-- Web layout: `/Users/andrej/MotoWise/apps/web/src/app/layout.tsx`
-- Current homepage (to delete): `/Users/andrej/MotoWise/apps/web/src/app/page.tsx`
-- Design tokens CSS: `/Users/andrej/MotoWise/packages/design-system/src/tokens.css`
-- Semantic CSS (theme): `/Users/andrej/MotoWise/packages/design-system/src/semantic.css`
-- Color palette (hex): `/Users/andrej/MotoWise/packages/design-system/src/palette.ts`
-- Typography: `/Users/andrej/MotoWise/packages/design-system/src/typography.ts`
-- Web middleware: `/Users/andrej/MotoWise/apps/web/src/middleware.ts`
-- Globals CSS dark variant: `/Users/andrej/MotoWise/apps/web/src/app/globals.css` line 5: `@custom-variant dark (&:where(.dark, .dark *))`
+- Root CLAUDE.md: `/Users/andrej/MotoVault/CLAUDE.md`
+- Web layout: `/Users/andrej/MotoVault/apps/web/src/app/layout.tsx`
+- Current homepage (to delete): `/Users/andrej/MotoVault/apps/web/src/app/page.tsx`
+- Design tokens CSS: `/Users/andrej/MotoVault/packages/design-system/src/tokens.css`
+- Semantic CSS (theme): `/Users/andrej/MotoVault/packages/design-system/src/semantic.css`
+- Color palette (hex): `/Users/andrej/MotoVault/packages/design-system/src/palette.ts`
+- Typography: `/Users/andrej/MotoVault/packages/design-system/src/typography.ts`
+- Web middleware: `/Users/andrej/MotoVault/apps/web/src/middleware.ts`
+- Globals CSS dark variant: `/Users/andrej/MotoVault/apps/web/src/app/globals.css` line 5: `@custom-variant dark (&:where(.dark, .dark *))`
 
 ### External References
 

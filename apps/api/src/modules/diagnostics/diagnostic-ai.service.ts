@@ -1,9 +1,17 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { DiagnosticResult } from '@motolearn/types';
-import { DiagnosticResultSchema } from '@motolearn/types';
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import type { DiagnosticResult } from '@motovault/types';
+import { DiagnosticResultSchema, MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motovault/types';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 
 const MODEL = 'claude-sonnet-4-20250514';
@@ -18,6 +26,7 @@ export class DiagnosticAiService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly aiBudgetService: AiBudgetService,
   ) {
     this.anthropic = new Anthropic({
       apiKey: this.configService.getOrThrow('ANTHROPIC_API_KEY'),
@@ -26,6 +35,7 @@ export class DiagnosticAiService {
 
   async analyze(
     diagnosticId: string,
+    userId: string,
     photoBase64: string,
     context: {
       make: string;
@@ -35,6 +45,18 @@ export class DiagnosticAiService {
       wizardAnswers?: Record<string, string>;
     },
   ): Promise<DiagnosticResult> {
+    // Check AI budget before processing
+    await this.aiBudgetService.checkBudgetForUser(userId);
+
+    // Validate image size before processing
+    if (photoBase64.length > MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH) {
+      this.logger.warn(
+        `Rejected oversized diagnostic image upload: ${photoBase64.length} chars (max ${MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH}), diagnosticId=${diagnosticId}`,
+      );
+      await this.updateDiagnosticStatus(diagnosticId, 'failed');
+      throw new HttpException('Image exceeds maximum size of 5 MB', HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     const systemPrompt = `You are an expert motorcycle mechanic and diagnostician.
 Analyze the provided photo and context to diagnose potential issues.
 Be specific about the part affected, potential issues with probabilities, severity, tools needed, difficulty level, and recommended next steps.
@@ -186,6 +208,7 @@ Analyze the image carefully and provide your diagnosis.`;
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'diagnostic',
           content_id: diagnosticId,
           model: MODEL,
@@ -199,6 +222,7 @@ Analyze the image carefully and provide your diagnosis.`;
       return result;
     } catch (err) {
       if (err instanceof InternalServerErrorException) throw err;
+      if (err instanceof HttpException) throw err;
       this.logger.error('Diagnostic AI analysis failed', err);
 
       await this.updateDiagnosticStatus(diagnosticId, 'failed');
@@ -207,6 +231,7 @@ Analyze the image carefully and provide your diagnosis.`;
       this.adminClient
         .from('content_generation_log')
         .insert({
+          user_id: userId,
           content_type: 'diagnostic',
           content_id: diagnosticId,
           model: MODEL,

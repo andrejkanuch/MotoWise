@@ -1,5 +1,5 @@
 {
-  "extends": "@motolearn/tsconfig/nextjs.json",
+  "extends": "@motovault/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

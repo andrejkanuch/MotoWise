@@ -5,7 +5,7 @@ export default function AdminPage() {
         Dashboard
       </h1>
       <p className="mt-2 text-[--color-on-surface-muted] dark:text-neutral-300">
-        Welcome to the MotoWise Admin Dashboard
+        Welcome to the MotoVault Admin Dashboard
       </p>
       <div className="grid grid-cols-3 gap-4 mt-6">
         <div className="p-6 border border-[--color-border] dark:border-neutral-700 rounded-[--radius-card] bg-[--color-surface-elevated] dark:bg-neutral-800 hover:shadow-md transition-shadow">

@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/graphql",
+  "name": "@motovault/graphql",
   "private": true,
   "exports": {
     ".": "./src/index.ts"
@@ -8,7 +8,7 @@
     "generate:graphql": "graphql-codegen --config codegen.ts"
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*",
+    "@motovault/tsconfig": "workspace:*",
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/client-preset": "^4.0.0",
     "graphql": "^16.10.0",

@@ -88,7 +88,7 @@ export function Hero() {
         >
           <AppPreview
             imageSrc="/images/app-preview-home.png"
-            alt="MotoWise app showing your bike's diagnostics and maintenance"
+            alt="MotoVault app showing your bike's diagnostics and maintenance"
           />
         </div>
       </div>

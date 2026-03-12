@@ -1,7 +1,7 @@
 {
   "Metadata": {
-    "title": "MotoWise — Aprendizaje y Diagnóstico de Motos con IA",
-    "titleTemplate": "%s | MotoWise",
+    "title": "MotoVault — Aprendizaje y Diagnóstico de Motos con IA",
+    "titleTemplate": "%s | MotoVault",
     "description": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Aprende tu moto. Repárala.",
     "ogDescription": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Aprende tu moto. Repárala."
   },
@@ -81,13 +81,13 @@
       {
         "name": "Alex R.",
         "bike": "2022 Yamaha MT-07",
-        "quote": "MotoWise diagnosticó un problema de tensión de cadena que estaba ignorando. Me salvó de una avería en un viaje largo.",
+        "quote": "MotoVault diagnosticó un problema de tensión de cadena que estaba ignorando. Me salvó de una avería en un viaje largo.",
         "stars": 5
       },
       {
         "name": "María G.",
         "bike": "2021 Honda CB650R",
-        "quote": "Las rutas de aprendizaje son perfectas para alguien nuevo en mecánica. Cambié mis propias pastillas de freno gracias a MotoWise.",
+        "quote": "Las rutas de aprendizaje son perfectas para alguien nuevo en mecánica. Cambié mis propias pastillas de freno gracias a MotoVault.",
         "stars": 5
       },
       {
@@ -123,16 +123,16 @@
     "sectionTitle": "Preguntas Frecuentes",
     "items": [
       {
-        "question": "¿Qué es MotoWise?",
-        "answer": "MotoWise es una plataforma impulsada por IA diseñada para entusiastas de las motocicletas. Te ayuda a aprender mantenimiento, diagnosticar problemas mediante análisis de fotos con IA, rastrear tus motos en un garaje digital y desarrollar tu conocimiento a través de cursos estructurados y cuestionarios."
+        "question": "¿Qué es MotoVault?",
+        "answer": "MotoVault es una plataforma impulsada por IA diseñada para entusiastas de las motocicletas. Te ayuda a aprender mantenimiento, diagnosticar problemas mediante análisis de fotos con IA, rastrear tus motos en un garaje digital y desarrollar tu conocimiento a través de cursos estructurados y cuestionarios."
       },
       {
-        "question": "¿Es MotoWise gratis?",
-        "answer": "¡Sí! MotoWise ofrece un plan gratuito que incluye contenido de aprendizaje básico, una moto en tu garaje y diagnósticos de IA limitados. Para diagnósticos ilimitados, todo el contenido de aprendizaje y motos ilimitadas, puedes actualizar a MotoWise Pro dentro de la app."
+        "question": "¿Es MotoVault gratis?",
+        "answer": "¡Sí! MotoVault ofrece un plan gratuito que incluye contenido de aprendizaje básico, una moto en tu garaje y diagnósticos de IA limitados. Para diagnósticos ilimitados, todo el contenido de aprendizaje y motos ilimitadas, puedes actualizar a MotoVault Pro dentro de la app."
       },
       {
         "question": "¿Qué motocicletas son compatibles?",
-        "answer": "MotoWise es compatible con todas las marcas y modelos de motocicletas. Nuestra base de datos utiliza los datos oficiales de vehículos de la NHTSA, cubriendo miles de marcas y modelos de todos los años. Simplemente busca tu moto al agregarla a tu garaje."
+        "answer": "MotoVault es compatible con todas las marcas y modelos de motocicletas. Nuestra base de datos utiliza los datos oficiales de vehículos de la NHTSA, cubriendo miles de marcas y modelos de todos los años. Simplemente busca tu moto al agregarla a tu garaje."
       },
       {
         "question": "¿Cómo funciona el diagnóstico con IA?",
@@ -143,8 +143,8 @@
         "answer": "Tus datos están protegidos con cifrado de nivel empresarial y controles de acceso estrictos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma, y toda la comunicación está cifrada en tránsito. Nunca compartimos tu información personal o datos de tu moto con terceros."
       },
       {
-        "question": "¿Qué incluye MotoWise Pro?",
-        "answer": "MotoWise Pro desbloquea diagnósticos de IA ilimitados, acceso a todos los módulos y cursos de aprendizaje, motos ilimitadas en tu garaje, soporte prioritario y contenido exclusivo. Puedes suscribirte mensual o anualmente desde la app."
+        "question": "¿Qué incluye MotoVault Pro?",
+        "answer": "MotoVault Pro desbloquea diagnósticos de IA ilimitados, acceso a todos los módulos y cursos de aprendizaje, motos ilimitadas en tu garaje, soporte prioritario y contenido exclusivo. Puedes suscribirte mensual o anualmente desde la app."
       }
     ]
   },
@@ -152,7 +152,7 @@
     "product": "Producto",
     "company": "Empresa",
     "tagline": "Aprende tu moto. Repara tu moto.",
-    "copyright": "© 2026 MotoWise. Todos los derechos reservados.",
+    "copyright": "© 2026 MotoVault. Todos los derechos reservados.",
     "features": "Funciones",
     "download": "Acceso Anticipado",
     "faq": "Preguntas frecuentes",
@@ -164,27 +164,29 @@
     "title": "Política de Privacidad",
     "lastUpdated": "Última actualización: 8 de marzo de 2026",
     "infoCollectTitle": "Información que Recopilamos",
-    "infoCollect": "Cuando creas una cuenta en MotoWise, recopilamos tu dirección de correo electrónico y nombre para mostrar. Cuando usas el diagnóstico con IA, las imágenes subidas se procesan para análisis y no se almacenan permanentemente. Los datos de motocicletas que agregas a tu garaje se almacenan de forma segura en tu cuenta.",
+    "infoCollect": "Cuando creas una cuenta en MotoVault, recopilamos tu dirección de correo electrónico y nombre para mostrar. Cuando usas el diagnóstico con IA, las imágenes subidas se procesan para análisis y no se almacenan permanentemente. Los datos de motocicletas que agregas a tu garaje se almacenan de forma segura en tu cuenta.",
     "howWeUseTitle": "Cómo Usamos Tu Información",
-    "howWeUse": "Usamos tu información para proporcionar y mejorar los servicios de MotoWise, incluyendo recomendaciones de aprendizaje personalizadas, análisis de diagnóstico con IA y gestión del garaje. No vendemos tu información personal a terceros.",
+    "howWeUse": "Usamos tu información para proporcionar y mejorar los servicios de MotoVault, incluyendo recomendaciones de aprendizaje personalizadas, análisis de diagnóstico con IA y gestión del garaje. No vendemos tu información personal a terceros.",
     "securityTitle": "Seguridad de Datos",
-    "security": "MotoWise utiliza cifrado de nivel empresarial con políticas estrictas de control de acceso para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS.",
+    "security": "MotoVault utiliza cifrado de nivel empresarial con políticas estrictas de control de acceso para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS.",
     "rightsTitle": "Tus Derechos",
-    "rights": "Puedes exportar o eliminar tus datos en cualquier momento desde la configuración de tu perfil. Para preguntas sobre tus datos, contáctanos en privacy@motowise.app."
+    "rights": "Puedes exportar o eliminar tus datos en cualquier momento desde la configuración de tu perfil. Para preguntas sobre tus datos, contáctanos en privacy@motovault.app."
   },
   "Terms": {
     "title": "Términos de Servicio",
     "lastUpdated": "Última actualización: 8 de marzo de 2026",
     "acceptanceTitle": "Aceptación de los Términos",
-    "acceptance": "Al acceder o utilizar MotoWise, aceptas estar sujeto a estos Términos de Servicio. Si no estás de acuerdo, por favor no utilices nuestros servicios.",
+    "acceptance": "Al acceder o utilizar MotoVault, aceptas estar sujeto a estos Términos de Servicio. Si no estás de acuerdo, por favor no utilices nuestros servicios.",
     "useTitle": "Uso del Servicio",
-    "use": "MotoWise proporciona contenido de aprendizaje sobre motocicletas y herramientas de diagnóstico impulsadas por IA con fines informativos. Nuestros diagnósticos de IA están diseñados para asistir — no reemplazar — el consejo profesional de un mecánico de motocicletas. Siempre consulta a un mecánico calificado para problemas críticos de seguridad.",
+    "use": "MotoVault proporciona contenido de aprendizaje sobre motocicletas y herramientas de diagnóstico impulsadas por IA con fines informativos. Nuestros diagnósticos de IA están diseñados para asistir — no reemplazar — el consejo profesional de un mecánico de motocicletas. Siempre consulta a un mecánico calificado para problemas críticos de seguridad.",
     "accountsTitle": "Cuentas de Usuario",
     "accounts": "Eres responsable de mantener la confidencialidad de las credenciales de tu cuenta. Aceptas proporcionar información precisa al crear tu cuenta y actualizarla según sea necesario.",
     "ipTitle": "Propiedad Intelectual",
-    "ip": "Todo el contenido, funciones y funcionalidad de MotoWise son propiedad de MotoWise y están protegidos por derechos de autor y otras leyes de propiedad intelectual. El contenido de aprendizaje no puede ser reproducido sin permiso.",
+    "ip": "Todo el contenido, funciones y funcionalidad de MotoVault son propiedad de MotoVault y están protegidos por derechos de autor y otras leyes de propiedad intelectual. El contenido de aprendizaje no puede ser reproducido sin permiso.",
+    "aiDisclaimerTitle": "Aviso sobre Contenido y Diagnósticos Generados por IA",
+    "aiDisclaimer": "MotoVault utiliza inteligencia artificial para generar contenido educativo, evaluaciones de diagnóstico y materiales de aprendizaje. Todo el contenido generado por IA se proporciona solo con fines educativos e informativos y no constituye asesoramiento mecánico profesional. Los resultados de diagnóstico de IA incluyen una puntuación de confianza que indica la certeza del modelo — los resultados deben interpretarse en consecuencia. Siempre debes consultar a un mecánico de motocicletas calificado para problemas críticos de seguridad, antes de realizar cualquier reparación y para verificar cualquier orientación generada por IA. MotoVault no garantiza la precisión, integridad o confiabilidad del contenido generado por IA o las evaluaciones de diagnóstico. Al utilizar las funciones de IA de MotoVault, reconoces y aceptas estas limitaciones.",
     "liabilityTitle": "Limitación de Responsabilidad",
-    "liability": "MotoWise se proporciona \"tal cual\" sin garantías de ningún tipo. No somos responsables de ningún daño que surja del uso del servicio o de la dependencia de los resultados del diagnóstico con IA."
+    "liability": "MotoVault se proporciona \"tal cual\" sin garantías de ningún tipo. No somos responsables de ningún daño que surja del uso del servicio o de la dependencia de los resultados del diagnóstico con IA."
   },
   "NotFound": {
     "code": "404",
@@ -203,7 +205,7 @@
     "de": "Deutsch"
   },
   "JsonLd": {
-    "organizationName": "MotoWise",
+    "organizationName": "MotoVault",
     "organizationDescription": "Plataforma de aprendizaje y diagnóstico de motocicletas con IA"
   }
 }

@@ -50,9 +50,9 @@ Mobile used `CreateDiagnosticDocument` but the API mutation was named `submitDia
 
 ```typescript
 // BEFORE
-import { CreateDiagnosticDocument } from '@motolearn/graphql';
+import { CreateDiagnosticDocument } from '@motovault/graphql';
 // AFTER
-import { SubmitDiagnosticDocument } from '@motolearn/graphql';
+import { SubmitDiagnosticDocument } from '@motovault/graphql';
 ```
 
 ### 3. Wrong GraphQL Variable Type (`ID!` vs `String!`)
@@ -134,7 +134,7 @@ After parallel agent work, run sequentially:
 
 - [ ] `pnpm generate` — no codegen errors
 - [ ] `pnpm typecheck` — no type errors (especially `never` errors)
-- [ ] Verify all GraphQL imports come from `@motolearn/graphql`
+- [ ] Verify all GraphQL imports come from `@motovault/graphql`
 - [ ] Verify `.graphql` variable types match resolver args (`String!` not `ID!` for UUIDs)
 - [ ] For JSON fields, verify Zod parse step exists before component usage
 - [ ] Trace data access: `data?.fieldName` matches generated type exactly
@@ -143,7 +143,7 @@ After parallel agent work, run sequentially:
 
 1. **Stale codegen CI check**: `pnpm generate && git diff --exit-code packages/graphql/src/generated/`
 2. **Turborepo dependency**: Make `typecheck` depend on `generate:graphql` so types are always fresh
-3. **Import discipline**: Never manually type a `*Document` name — always import from `@motolearn/graphql`
+3. **Import discipline**: Never manually type a `*Document` name — always import from `@motovault/graphql`
 
 ## Related
 

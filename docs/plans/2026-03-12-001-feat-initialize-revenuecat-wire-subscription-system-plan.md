@@ -1,7 +1,7 @@
 ---
 title: "feat: Initialize RevenueCat SDK and wire subscription system"
 type: feat
-status: active
+status: completed
 date: 2026-03-12
 deepened: 2026-03-12
 linear: MOT-117

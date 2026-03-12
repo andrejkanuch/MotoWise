@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GqlInsightType } from '../../common/enums/graphql-enums';
+import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import type { GenerateInsightsInput } from './dto/generate-insights.input';
 import type { OnboardingInsight } from './models/onboarding-insight.model';
 
@@ -25,7 +26,7 @@ const FALLBACK_INSIGHTS: Record<string, OnboardingInsight[]> = {
     {
       icon: 'Users',
       title: 'You Are Not Alone',
-      body: 'Thousands of new riders use MotoWise to learn maintenance. Join a community that helps each other grow.',
+      body: 'Thousands of new riders use MotoVault to learn maintenance. Join a community that helps each other grow.',
       type: GqlInsightType.community,
     },
   ],
@@ -76,13 +77,25 @@ export class InsightsService {
   private readonly logger = new Logger(InsightsService.name);
   private readonly anthropic: Anthropic;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly aiBudgetService: AiBudgetService,
+  ) {
     this.anthropic = new Anthropic({
       apiKey: this.configService.getOrThrow('ANTHROPIC_API_KEY'),
     });
   }
 
-  async generate(input: GenerateInsightsInput): Promise<OnboardingInsight[]> {
+  async generate(userId: string, input: GenerateInsightsInput): Promise<OnboardingInsight[]> {
+    // Check AI budget before generating
+    try {
+      await this.aiBudgetService.checkBudgetForUser(userId);
+    } catch {
+      // Fall back to static insights if budget check fails or limit reached
+      this.logger.warn(`AI budget check failed for user ${userId}, returning fallback insights`);
+      return this.getFallback(input.experienceLevel);
+    }
+
     // Validate/sanitize input
     const sanitized = this.sanitizeInput(input);
 

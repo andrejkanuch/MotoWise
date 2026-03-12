@@ -13,7 +13,7 @@ import { ShareLink } from './models/share-link.model';
 import { SharedBikeHistory } from './models/shared-bike-history.model';
 
 const TOKEN_PATTERN = /^[a-f0-9]{64}$/;
-const SHARE_BASE_URL = 'https://motowise.app/share';
+const SHARE_BASE_URL = 'https://motovault.app/share';
 
 @Injectable()
 export class ShareLinksService {

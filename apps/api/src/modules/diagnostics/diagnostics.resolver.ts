@@ -1,4 +1,4 @@
-import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motolearn/types';
+import { CreateDiagnosticSchema, SubmitDiagnosticSchema } from '@motovault/types';
 import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
@@ -69,7 +69,7 @@ export class DiagnosticsResolver {
     }
 
     // 3. Run AI analysis
-    await this.diagnosticAiService.analyze(diagnostic.id, input.photoBase64, {
+    await this.diagnosticAiService.analyze(diagnostic.id, user.id, input.photoBase64, {
       make: motorcycle.make,
       model: motorcycle.model,
       year: motorcycle.year,

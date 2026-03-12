@@ -9,23 +9,23 @@ date: 2026-03-06
 
 ## Overview
 
-Rename the `apps/admin` Next.js app to `apps/web`, making it the primary web application with admin functionality living under a `/admin` sub-path. The package name changes from `@motolearn/admin` to `@motolearn/web`.
+Rename the `apps/admin` Next.js app to `apps/web`, making it the primary web application with admin functionality living under a `/admin` sub-path. The package name changes from `@motovault/admin` to `@motovault/web`.
 
 ## Problem Statement / Motivation
 
-The current `apps/admin` is a dedicated admin-only app. The user wants it to be a regular web app that can serve public-facing pages in the future, with admin dashboard pages nested under an `/admin` route. This better reflects the app's role as the web presence of MotoLearn.
+The current `apps/admin` is a dedicated admin-only app. The user wants it to be a regular web app that can serve public-facing pages in the future, with admin dashboard pages nested under an `/admin` route. This better reflects the app's role as the web presence of MotoVault.
 
 ## Proposed Solution
 
 1. Rename the directory `apps/admin/` → `apps/web/`
-2. Update the package name to `@motolearn/web`
+2. Update the package name to `@motovault/web`
 3. Restructure routes: move `/dashboard/*` to `/admin/*`
 4. Update all references across the monorepo
 
 ## Acceptance Criteria
 
 - [x] Directory renamed from `apps/admin` to `apps/web`
-- [x] Package name updated to `@motolearn/web` in `apps/web/package.json`
+- [x] Package name updated to `@motovault/web` in `apps/web/package.json`
 - [x] Routes restructured: `/dashboard/*` → `/admin/*`
 - [x] Root page (`/`) serves a public landing page (placeholder)
 - [x] `/login` remains as login page
@@ -33,7 +33,7 @@ The current `apps/admin` is a dedicated admin-only app. The user wants it to be 
 - [x] `/admin/articles`, `/admin/diagnostics`, `/admin/users`, `/admin/flags` all work
 - [x] Codegen path updated in `packages/graphql/codegen.ts`
 - [x] All CLAUDE.md files updated (root, web app, graphql package)
-- [x] UI text updated: "MotoLearn Admin" → "MotoLearn" (public) / "MotoLearn Admin" kept in admin section only
+- [x] UI text updated: "MotoVault Admin" → "MotoVault" (public) / "MotoVault Admin" kept in admin section only
 - [x] All 4 CI jobs pass: lint, typecheck, test, audit
 - [x] `pnpm dev`, `pnpm build`, `pnpm typecheck`, `pnpm test`, `pnpm lint` all pass
 
@@ -42,7 +42,7 @@ The current `apps/admin` is a dedicated admin-only app. The user wants it to be 
 ### Phase 1: Directory & Package Rename
 
 - [x] `git mv apps/admin apps/web`
-- [x] Update `apps/web/package.json`: name `@motolearn/admin` → `@motolearn/web`
+- [x] Update `apps/web/package.json`: name `@motovault/admin` → `@motovault/web`
 - [x] Update `packages/graphql/codegen.ts`: path `apps/admin` → `apps/web`
 - [x] Run `pnpm install` to regenerate lockfile
 

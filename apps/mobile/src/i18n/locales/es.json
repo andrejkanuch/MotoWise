@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "MotoLearn",
+    "appName": "MotoVault",
     "loading": "Cargando...",
     "error": "Error",
     "cancel": "Cancelar",
@@ -8,7 +8,8 @@
     "delete": "Eliminar",
     "back": "Volver",
     "retry": "Reintentar",
-    "skip": "Omitir"
+    "skip": "Omitir",
+    "goBack": "Volver"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -92,7 +93,7 @@
     "viewAll": "Ver Todo",
     "heroTitle": "Educacion Visual &\nDiagnosticos IA: Entiende y Repara tu Moto",
     "checkBike": "Revisa tu Moto",
-    "checkBikeDesc": "Escanea con Moto Learn IA",
+    "checkBikeDesc": "Escanea con MotoVault IA",
     "noData": "Sin datos",
     "yourBike": "Tu moto",
     "category": {
@@ -128,7 +129,9 @@
     "keyTakeaways": "Puntos Clave",
     "relatedTopics": "Temas Relacionados",
     "markAsRead": "Marcar como Leido",
-    "alreadyRead": "Ya Leido"
+    "alreadyRead": "Ya Leido",
+    "aiDisclaimer": "Contenido generado por IA. Verifica con el manual de tu motocicleta.",
+    "takeQuiz": "Hacer Cuestionario"
   },
   "diagnose": {
     "startNew": "Iniciar Nuevo Diagnostico",
@@ -154,10 +157,14 @@
     "difficulty": "Dificultad",
     "nextSteps": "Siguientes Pasos",
     "findArticle": "Buscar Articulo Relacionado",
-    "disclaimer": "Este es un diagnostico de IA solo con fines educativos. Siempre consulta a un mecanico calificado para problemas criticos de seguridad.",
+    "disclaimer": "Solo con fines educativos. Siempre consulta a un mecanico calificado.",
+    "consultMechanic": "Consultar un Mecanico",
+    "consultMechanicSubtitle": "Este problema puede afectar la seguridad. Recomendamos una inspeccion profesional.",
+    "photoDisclaimer": "El analisis de IA es solo con fines educativos y no reemplaza la inspeccion mecanica profesional. Al enviar, reconoces esta limitacion.",
     "processing": "Procesando tu diagnostico...",
     "failed": "El analisis del diagnostico fallo",
-    "retry": "Intentar de Nuevo"
+    "retry": "Intentar de Nuevo",
+    "imageTooLarge": "La imagen es demasiado grande (max 5 MB). Elige una foto mas pequena o toma otra con menor calidad."
   },
   "wizard": {
     "step": "Paso {{current}} de {{total}}",
@@ -224,7 +231,7 @@
     "rank": "Rango",
     "badges": "Insignias",
     "joined": "Unido",
-    "proBanner": "MotoLearn PRO",
+    "proBanner": "MotoVault PRO",
     "proDescription": "Desbloquea diagnosticos IA y lecciones premium",
     "settings": "Configuracion del Perfil",
     "privacy": "Privacidad",
@@ -244,7 +251,7 @@
     "themeDark": "Oscuro"
   },
   "onboarding": {
-    "welcomeTitle": "Bienvenido a MotoWise",
+    "welcomeTitle": "Bienvenido a MotoVault",
     "welcomeSubtitle": "Cuentanos sobre tu experiencia como motociclista",
     "welcomeHeroTitle": "Tu moto acaba de ser mas inteligente",
     "welcomeHeroSubtitle": "Aprendizaje, diagnostico y mantenimiento con IA — personalizado para tu moto.",
@@ -316,7 +323,7 @@
     "insightsTitle": "Tus consejos personalizados",
     "insightsSubtitle": "Basado en tu perfil, esto es lo que encontramos",
     "insightsError": "No se pudieron generar los consejos. Toca reintentar o continua.",
-    "insightsSocialProof": "Unete a mas de 12,400 motociclistas que usan MotoWise",
+    "insightsSocialProof": "Unete a mas de 12,400 motociclistas que usan MotoVault",
     "insightsCta": "Ver tu panel completo →",
     "preparingExperience": "Estamos preparando tu experiencia personalizada...",
     "personalizingTitle": "Personalizando tu experiencia...",
@@ -454,7 +461,7 @@
     "priorityLow": "Bajo"
   },
   "paywall": {
-    "title": "Tu experiencia MotoWise esta lista",
+    "title": "Tu experiencia MotoVault esta lista",
     "personalizedFor": "Personalizado para tu {{bike}}",
     "featureaiDiagnosticsTitle": "Diagnosticos con IA",
     "featureaiDiagnosticsDesc": "Analisis de fotos y solucion de problemas para tu moto",
@@ -480,6 +487,42 @@
     "noSubscriptionFound": "Suscripcion no encontrada",
     "noSubscriptionFoundDesc": "No encontramos una suscripcion activa para restaurar.",
     "restoreFailed": "No se pudieron restaurar las compras. Intenta de nuevo."
+  },
+  "quiz": {
+    "loading": "Cargando cuestionario...",
+    "loadError": "No se pudo cargar el cuestionario. Intenta de nuevo.",
+    "noQuestions": "No hay preguntas disponibles para este cuestionario.",
+    "questionProgress": "Pregunta {{current}} de {{total}}",
+    "answeredCount": "{{count}} de {{total}} respondidas",
+    "scoreLabel": "{{score}} de {{total}} correctas",
+    "passed": "Aprobado!",
+    "keepLearning": "Sigue aprendiendo",
+    "review": "Revisar respuestas",
+    "questionNumber": "P{{number}}.",
+    "yourAnswer": "Tu respuesta:",
+    "noAnswer": "Sin respuesta",
+    "backToArticle": "Volver al articulo",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "submit": "Enviar"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Motos ilimitadas",
+    "unlimitedBikesDesc": "Agrega todas las motos que quieras a tu garaje.",
+    "unlimitedArticlesTitle": "Articulos ilimitados",
+    "unlimitedArticlesDesc": "Accede a toda la biblioteca de contenido.",
+    "fullDiagnosticsTitle": "Diagnosticos IA completos",
+    "fullDiagnosticsDesc": "Desbloquea diagnosticos fotograficos ilimitados con IA.",
+    "maintenanceRemindersTitle": "Recordatorios de mantenimiento",
+    "maintenanceRemindersDesc": "Recibe recordatorios inteligentes para todas tus motos.",
+    "pdfExportTitle": "Exportar PDF",
+    "pdfExportDesc": "Exporta registros de mantenimiento como informes PDF.",
+    "featureUnlimitedBikes": "Motos ilimitadas en tu garaje",
+    "featureFullDiagnostics": "Diagnosticos IA completos",
+    "featureMaintenanceReminders": "Recordatorios de mantenimiento inteligentes",
+    "featurePdfExport": "Exportacion PDF de registros",
+    "upgradeToPro": "Actualizar a Pro",
+    "maybeLater": "Quizas despues"
   },
   "notFound": {
     "message": "Pagina no encontrada",

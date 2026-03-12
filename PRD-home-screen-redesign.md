@@ -10,7 +10,7 @@
 
 ## 1. Problem Statement
 
-The MotoLearn home screen today is a loosely assembled collection of widgets: a greeting, a rider card, three quick-action buttons, up to 3 maintenance alerts, a horizontal scroll of popular articles, and a "Check your bike" CTA. It's pleasant but *generic* — it looks the same on day 1 as it does on day 100. Nothing reflects the rider's actual journey, riding context, or what they should do *right now*.
+The MotoVault home screen today is a loosely assembled collection of widgets: a greeting, a rider card, three quick-action buttons, up to 3 maintenance alerts, a horizontal scroll of popular articles, and a "Check your bike" CTA. It's pleasant but *generic* — it looks the same on day 1 as it does on day 100. Nothing reflects the rider's actual journey, riding context, or what they should do *right now*.
 
 The core problem: **the home screen doesn't earn the daily open.** A rider unlocks their phone, sees the same greeting and the same three quick actions, and has no reason to engage unless they're already thinking about maintenance. There's no pull, no "I wonder what's new," no moment where the app surprises them with something useful they didn't expect.
 
@@ -90,7 +90,7 @@ Rides 3-5 times per week, checks phone in the morning or before a ride.
 ### The New User (first 7 days)
 Just signed up, may or may not have added a bike yet.
 
-**US-6:** As a new user who just added their first bike, I want the home screen to immediately show me what MotoLearn will do for me (health score, scheduled tasks, relevant articles), so I feel the value before I do any work.
+**US-6:** As a new user who just added their first bike, I want the home screen to immediately show me what MotoVault will do for me (health score, scheduled tasks, relevant articles), so I feel the value before I do any work.
 
 **US-7:** As a new user without a bike, I want a clear, compelling guided path to add my first motorcycle, so I understand why it matters and don't bounce.
 
@@ -202,7 +202,7 @@ Replace the current 3 static quick-action buttons with **contextual actions that
 When a user has no bikes (or hasn't completed onboarding), the home screen transforms into an onboarding-focused experience:
 
 **Layout:**
-1. **Welcome header:** "Welcome to MotoLearn, [Name]!" with waving hand
+1. **Welcome header:** "Welcome to MotoVault, [Name]!" with waving hand
 2. **Value proposition cards** (vertical stack, 3 cards):
    - "Track your bike's health" — with health ring preview illustration
    - "Never miss maintenance" — with calendar/checklist illustration
@@ -408,7 +408,7 @@ This reduces home screen load from 4 parallel queries to 1 (or keeps parallel bu
 
 1. **First open after adding a bike:** The fleet health banner shows "Your 2019 Honda CB500F — Health: 92%" and the priority card says "Oil change due in 800 km — we'll remind you." The rider didn't configure anything — the app already knows their bike's needs from OEM data.
 
-2. **Morning ritual:** The rider opens MotoLearn with coffee. The greeting says "Good morning, Andrej — 1 task due this week." The priority card shows "Chain adjustment due in 3 days — estimated $35." They tap "Complete" after their Saturday session. The maintenance count ticks down. Satisfying.
+2. **Morning ritual:** The rider opens MotoVault with coffee. The greeting says "Good morning, Andrej — 1 task due this week." The priority card shows "Chain adjustment due in 3 days — estimated $35." They tap "Complete" after their Saturday session. The maintenance count ticks down. Satisfying.
 
 3. **"It knows my bike" moment:** The learning section shows "Recommended for You" with an article called "V-twin Engine Winter Storage Tips" because the app knows they ride a cruiser. Not generic motorcycle content — *their* motorcycle content.
 
@@ -503,7 +503,7 @@ This reduces home screen load from 4 parallel queries to 1 (or keeps parallel bu
 
 ## 13. Competitive Context
 
-| Feature | MotoLearn (Current) | MotoLearn (Proposed) | Competitors |
+| Feature | MotoVault (Current) | MotoVault (Proposed) | Competitors |
 |---------|--------------------|--------------------|-------------|
 | Personalized home | No — static layout | Yes — state + time + bike aware | Rare in moto apps |
 | Cross-bike overview | No — primary bike only | Yes — fleet health banner | Some (RevZilla, Fuerly) |

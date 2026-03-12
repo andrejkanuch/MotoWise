@@ -27,7 +27,7 @@ The current urql setup has 8 pain points (see brainstorm: docs/brainstorms/2026-
 
 ## Proposed Solution
 
-**TanStack Query v5** for data fetching/caching + **graphql-request v7** for transport. Keep existing `@motolearn/graphql` codegen pipeline (TypedDocumentNode works with graphql-request natively).
+**TanStack Query v5** for data fetching/caching + **graphql-request v7** for transport. Keep existing `@motovault/graphql` codegen pipeline (TypedDocumentNode works with graphql-request natively).
 
 Key decisions (see brainstorm):
 - **Explicit cache invalidation** via query keys (no normalized cache)
@@ -96,7 +96,7 @@ Each screen follows the same pattern:
 | `const [{ fetching }, execute] = useMutation(Doc)` | `const { mutateAsync, isPending } = useMutation({ mutationFn, onSuccess })` |
 | `pause: !condition` | `enabled: !!condition` |
 | `reexecute({ requestPolicy: 'network-only' })` | `refetch()` |
-| Inline `gql\`...\`` | Import `*Document` from `@motolearn/graphql` |
+| Inline `gql\`...\`` | Import `*Document` from `@motovault/graphql` |
 | `if (result.error) Alert.alert(...)` | `try { await mutateAsync(...) } catch (e) { Alert.alert(...) }` |
 
 #### Screens with inline `gql` → TypedDocumentNode (6 files):
@@ -195,7 +195,7 @@ Each screen follows the same pattern:
 - [x] Logout clears all cached query data
 
 ### Type Safety
-- [x] Zero inline `gql` template literals — all operations use TypedDocumentNode from `@motolearn/graphql`
+- [x] Zero inline `gql` template literals — all operations use TypedDocumentNode from `@motovault/graphql`
 - [x] Zero `as any` casts on query/mutation results
 - [x] `pnpm typecheck` passes with no new errors
 
@@ -217,7 +217,7 @@ Each screen follows the same pattern:
 
 ### Keep
 - `graphql` ^16.10.0 (peer dep)
-- `@motolearn/graphql` (codegen, unchanged)
+- `@motovault/graphql` (codegen, unchanged)
 
 ## Risks & Mitigations
 
@@ -236,7 +236,7 @@ From `docs/solutions/integration-issues/monorepo-code-review-multi-category-fixe
 - Cache reset on logout is critical. Current urql approach recreates the client via `useMemo([session?.user?.id])`. TanStack equivalent: `queryClient.clear()`.
 
 From `docs/solutions/ui-bugs/sf-symbols-to-lucide-migration-oklch-runtime-bug.md`:
-- When modifying screens, do NOT introduce `colors` imports from `@motolearn/design-system`. Use hex constants in RN inline styles.
+- When modifying screens, do NOT introduce `colors` imports from `@motovault/design-system`. Use hex constants in RN inline styles.
 
 ## Sources & References
 

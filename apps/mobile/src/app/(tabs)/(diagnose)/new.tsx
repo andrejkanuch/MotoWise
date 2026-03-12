@@ -1,9 +1,11 @@
-import { palette } from '@motolearn/design-system';
-import { MyMotorcyclesDocument, SubmitDiagnosticDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MyMotorcyclesDocument, SubmitDiagnosticDocument } from '@motovault/graphql';
+import { MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   Camera,
@@ -96,6 +98,7 @@ export default function NewDiagnosticScreen() {
   });
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photoTooLarge, setPhotoTooLarge] = useState(false);
   const [description, setDescription] = useState('');
 
   const { data: motorcyclesData } = useQuery({
@@ -129,6 +132,19 @@ export default function NewDiagnosticScreen() {
     },
   });
 
+  const setPhotoFromAsset = (asset: ImagePicker.ImagePickerAsset) => {
+    const base64Data = asset.base64 ?? null;
+    if (base64Data && base64Data.length > MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH) {
+      setPhotoTooLarge(true);
+      setPhotoUri(asset.uri);
+      setPhotoBase64(null);
+      return;
+    }
+    setPhotoTooLarge(false);
+    setPhotoUri(asset.uri);
+    setPhotoBase64(base64Data);
+  };
+
   const handleTakePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) return;
@@ -140,9 +156,7 @@ export default function NewDiagnosticScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setPhotoUri(asset.uri);
-      setPhotoBase64(asset.base64 ?? null);
+      setPhotoFromAsset(result.assets[0]);
     }
   };
 
@@ -157,9 +171,7 @@ export default function NewDiagnosticScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setPhotoUri(asset.uri);
-      setPhotoBase64(asset.base64 ?? null);
+      setPhotoFromAsset(result.assets[0]);
     }
   };
 
@@ -389,11 +401,20 @@ export default function NewDiagnosticScreen() {
                   onPress={() => {
                     setPhotoUri(null);
                     setPhotoBase64(null);
+                    setPhotoTooLarge(false);
                   }}
                 >
                   <X size={16} color={palette.white} strokeWidth={2} />
                 </Pressable>
               </View>
+              {photoTooLarge && (
+                <View className="flex-row items-center gap-2 mt-2 px-1">
+                  <AlertCircle size={16} color={palette.danger500} strokeWidth={2} />
+                  <Text className="text-sm text-danger-500 flex-1">
+                    {t('diagnose.imageTooLarge')}
+                  </Text>
+                </View>
+              )}
             </Animated.View>
           ) : (
             <Animated.View entering={FadeInUp.duration(300)} className="px-5 gap-3">
@@ -439,27 +460,30 @@ export default function NewDiagnosticScreen() {
           </Animated.View>
         </ScrollView>
 
-        {/* Analyze button */}
+        {/* Analyze button with disclaimer */}
         <View
           className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
           style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
         >
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-2 leading-4">
+            {t('diagnose.photoDisclaimer')}
+          </Text>
           <Pressable
             className={`rounded-2xl py-4 items-center flex-row justify-center gap-2 ${
-              photoUri ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'
+              photoUri && !photoTooLarge ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'
             }`}
             style={{ borderCurve: 'continuous' }}
             onPress={handleAnalyze}
-            disabled={!photoUri}
+            disabled={!photoUri || photoTooLarge}
           >
             <Sparkles
               size={18}
-              color={photoUri ? palette.white : palette.neutral400}
+              color={photoUri && !photoTooLarge ? palette.white : palette.neutral400}
               strokeWidth={2}
             />
             <Text
               className={`font-semibold text-base ${
-                photoUri ? 'text-white' : 'text-neutral-500 dark:text-neutral-400'
+                photoUri && !photoTooLarge ? 'text-white' : 'text-neutral-500 dark:text-neutral-400'
               }`}
             >
               {t('diagnose.analyze')}

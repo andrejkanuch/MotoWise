@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
@@ -6,7 +6,7 @@ import {
   type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
-} from '@motolearn/graphql';
+} from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';

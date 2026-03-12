@@ -1,5 +1,5 @@
-import { palette } from '@motolearn/design-system';
-import { MeDocument, UpdateUserDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';

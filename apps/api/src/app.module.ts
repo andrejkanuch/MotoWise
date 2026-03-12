@@ -10,10 +10,12 @@ import depthLimit from 'graphql-depth-limit';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
+import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
-import { ExpensesModule } from './modules/expenses/expenses.module';
+import { EmailModule } from './modules/email/email.module';
+import { HealthModule } from './modules/health/health.module';
 import { InsightsModule } from './modules/insights/insights.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
@@ -33,7 +35,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'schema.graphql'),
+      autoSchemaFile:
+        process.env.NODE_ENV === 'production' ? true : join(process.cwd(), 'schema.graphql'),
       sortSchema: true,
       playground: process.env.GRAPHQL_PLAYGROUND === 'true',
       introspection: process.env.NODE_ENV !== 'production',
@@ -52,12 +55,13 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
       },
     ]),
     SupabaseModule,
+    EmailModule,
+    AiBudgetModule,
     UsersModule,
     MotorcyclesModule,
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
-    ExpensesModule,
     InsightsModule,
     ContentFlagsModule,
     LearningProgressModule,
@@ -65,6 +69,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     OemSchedulesModule,
     ShareLinksModule,
     WebhooksModule,
+    HealthModule,
   ],
   providers: [
     {

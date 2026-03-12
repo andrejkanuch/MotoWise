@@ -1,4 +1,4 @@
-import type { MileageUnit } from '@motolearn/types';
+import type { MileageUnit } from '@motovault/types';
 import Slider from '@react-native-community/slider';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';

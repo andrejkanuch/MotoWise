@@ -5,11 +5,11 @@ issue_id: "071"
 tags: [code-review, web, maintainability]
 ---
 
-# Hardcoded base URL "motolearn.app" in 3 files
+# Hardcoded base URL "motovault.app" in 3 files
 
 ## Problem Statement
 
-The base URL `https://motolearn.app` is hardcoded in multiple files instead of using a single constant or environment variable.
+The base URL `https://motovault.app` is hardcoded in multiple files instead of using a single constant or environment variable.
 
 **Files:**
 - `apps/web/src/app/(marketing)/page.tsx` (organization schema)

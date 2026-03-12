@@ -1,5 +1,5 @@
 {
-  "name": "@motolearn/design-system",
+  "name": "@motovault/design-system",
   "private": true,
   "exports": {
     "./tokens.css": "./src/tokens.css",
@@ -10,6 +10,6 @@
     }
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*"
+    "@motovault/tsconfig": "workspace:*"
   }
 }

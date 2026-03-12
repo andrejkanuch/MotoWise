@@ -1,4 +1,4 @@
-import { SupportedLocaleSchema } from '@motolearn/types';
+import { SupportedLocaleSchema } from '@motovault/types';
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import type { Observable } from 'rxjs';

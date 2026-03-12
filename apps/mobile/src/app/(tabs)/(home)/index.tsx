@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-const NOTIFICATION_MAP_KEY = '@motowise/notification-map';
+const NOTIFICATION_MAP_KEY = '@motovault/notification-map';
 
 // --- Internal helpers for taskId -> notificationId mapping ---
 

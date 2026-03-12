@@ -1,8 +1,15 @@
-import { palette } from '@motolearn/design-system';
-import { DiagnosticByIdDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { DiagnosticByIdDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, ArrowRight, BookOpen, RefreshCw, Wrench } from 'lucide-react-native';
+import {
+  AlertTriangle,
+  ArrowRight,
+  BookOpen,
+  HardHat,
+  RefreshCw,
+  Wrench,
+} from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -146,6 +153,26 @@ export default function DiagnosticResultScreen() {
             </View>
           </View>
         </Animated.View>
+
+        {/* Consult a Mechanic CTA — shown for critical/high severity */}
+        {(sevKey === 'critical' || sevKey === 'high') && (
+          <Animated.View entering={FadeInUp.delay(75).duration(400)} className="px-5 mt-3">
+            <View
+              className="bg-red-50 dark:bg-red-950 rounded-2xl p-4 flex-row items-center gap-3"
+              style={{ borderCurve: 'continuous' }}
+            >
+              <HardHat size={22} color={palette.danger500} strokeWidth={2} />
+              <View className="flex-1">
+                <Text className="text-base font-bold text-red-700 dark:text-red-300">
+                  {t('diagnose.consultMechanic')}
+                </Text>
+                <Text className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                  {t('diagnose.consultMechanicSubtitle')}
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Confidence */}
         <Animated.View entering={FadeInUp.delay(100).duration(400)} className="px-5 mt-3">

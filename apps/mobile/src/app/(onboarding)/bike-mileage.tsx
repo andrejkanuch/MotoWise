@@ -1,4 +1,4 @@
-import type { MileageUnit } from '@motolearn/types';
+import type { MileageUnit } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';

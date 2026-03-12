@@ -1,16 +1,33 @@
 {
-  "name": "@motolearn/types",
+  "name": "@motovault/types",
   "private": true,
   "exports": {
-    ".": "./src/index.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
     "./database": "./src/database.types.ts",
-    "./validators": "./src/validators/index.ts",
-    "./constants": "./src/constants/index.ts"
+    "./validators": {
+      "types": "./dist/validators/index.d.ts",
+      "import": "./dist/validators/index.mjs",
+      "require": "./dist/validators/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "import": "./dist/constants/index.mjs",
+      "require": "./dist/constants/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
   },
   "dependencies": {
     "zod": "^3.23.0"
   },
   "devDependencies": {
-    "@motolearn/tsconfig": "workspace:*"
+    "@motovault/tsconfig": "workspace:*",
+    "tsup": "^8.0.0"
   }
 }

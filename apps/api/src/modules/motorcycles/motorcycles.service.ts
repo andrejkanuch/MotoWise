@@ -1,12 +1,15 @@
-import type { Tables } from '@motolearn/types/database';
+import { FREE_TIER_LIMITS } from '@motovault/types';
+import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
 
@@ -14,7 +17,10 @@ import { Motorcycle } from './models/motorcycle.model';
 export class MotorcyclesService {
   private readonly logger = new Logger(MotorcyclesService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+  ) {}
 
   async findByUser(userId: string): Promise<Motorcycle[]> {
     this.logger.debug(`findByUser: userId=${userId}`);
@@ -40,6 +46,10 @@ export class MotorcyclesService {
     input: { make: string; model: string; year: number; nickname?: string },
   ): Promise<Motorcycle> {
     this.logger.log(`create: userId=${userId}, make=${input.make}, model=${input.model}`);
+
+    // Enforce free tier bike limit
+    await this.enforceFreeTierBikeLimit(userId);
+
     const { data, error } = await this.supabase
       .from('motorcycles')
       .insert({
@@ -117,6 +127,37 @@ export class MotorcyclesService {
     }
     this.logger.log(`softDelete success: motorcycleId=${motorcycleId}`);
     return true;
+  }
+
+  private async enforceFreeTierBikeLimit(userId: string): Promise<void> {
+    const { data: userData } = await this.adminClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+    if (tier === 'pro') return;
+
+    const { count, error } = await this.supabase
+      .from('motorcycles')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (error) {
+      this.logger.error('Failed to count user motorcycles for tier check', error);
+      // Fail open — don't block creation if count check fails
+      return;
+    }
+
+    if ((count ?? 0) >= FREE_TIER_LIMITS.MAX_BIKES) {
+      this.logger.warn(
+        `User ${userId} hit free tier bike limit: ${count}/${FREE_TIER_LIMITS.MAX_BIKES}`,
+      );
+      throw new ForbiddenException(
+        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_BIKES} motorcycle${FREE_TIER_LIMITS.MAX_BIKES === 1 ? '' : 's'}. Upgrade to Pro for unlimited bikes.`,
+      );
+    }
   }
 
   private mapRow(

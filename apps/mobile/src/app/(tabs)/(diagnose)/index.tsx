@@ -1,12 +1,15 @@
-import { palette } from '@motolearn/design-system';
-import { MyDiagnosticsDocument } from '@motolearn/graphql';
+import { palette } from '@motovault/design-system';
+import { MyDiagnosticsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Camera, ChevronRight, Clock, ScanLine } from 'lucide-react-native';
+import { Camera, ChevronRight, Clock, Crown, ScanLine } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -26,12 +29,25 @@ export default function DiagnoseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
 
   const { data } = useQuery({
     queryKey: queryKeys.diagnostics.all,
     queryFn: () => gqlFetcher(MyDiagnosticsDocument),
   });
   const diagnostics = data?.myDiagnostics ?? [];
+
+  // Count diagnostics created this month for the free tier limit
+  const monthlyDiagCount = useMemo(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return diagnostics.filter((d) => new Date(d.createdAt) >= startOfMonth).length;
+  }, [diagnostics]);
+
+  const handleNewDiagnostic = () => {
+    if (!requireAccess('MAX_AI_DIAGNOSTICS_PER_MONTH', monthlyDiagCount)) return;
+    router.push('/(diagnose)/new');
+  };
 
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
@@ -55,7 +71,7 @@ export default function DiagnoseScreen() {
           <Pressable
             className="bg-primary-950 dark:bg-primary-700 rounded-2xl p-6 items-center"
             style={{ borderCurve: 'continuous' }}
-            onPress={() => router.push('/(diagnose)/new')}
+            onPress={handleNewDiagnostic}
           >
             <View className="w-16 h-16 rounded-2xl bg-white/15 items-center justify-center mb-4">
               <Camera size={32} color={palette.white} strokeWidth={1.5} />
@@ -64,6 +80,17 @@ export default function DiagnoseScreen() {
             <Text className="text-white/60 text-sm mt-1 text-center">
               {t('diagnose.scanDescription')}
             </Text>
+            {!isPro && (
+              <View className="flex-row items-center gap-1 mt-2">
+                <Crown size={12} color="#FACC15" strokeWidth={2} />
+                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+                  {t('proGate.diagnosticsRemaining', {
+                    remaining: Math.max(0, 3 - monthlyDiagCount),
+                    defaultValue: `${Math.max(0, 3 - monthlyDiagCount)} remaining this month`,
+                  })}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </Animated.View>
 
@@ -123,6 +150,7 @@ export default function DiagnoseScreen() {
           )}
         </Animated.View>
       </ScrollView>
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

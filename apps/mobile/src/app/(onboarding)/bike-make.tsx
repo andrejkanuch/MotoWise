@@ -1,4 +1,4 @@
-import { MotorcycleMakesDocument } from '@motolearn/graphql';
+import { MotorcycleMakesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';

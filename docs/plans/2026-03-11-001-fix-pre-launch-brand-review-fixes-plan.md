@@ -32,7 +32,7 @@ deepened: 2026-03-11
 
 ## Overview
 
-Address findings from the MotoWise pre-launch brand audit. The web landing page at `apps/web/` has broken assets, dead CTAs, unsubstantiated claims, technical jargon, and i18n gaps. Fixes are structured as two passes: content strings first, then component changes.
+Address findings from the MotoVault pre-launch brand audit. The web landing page at `apps/web/` has broken assets, dead CTAs, unsubstantiated claims, technical jargon, and i18n gaps. Fixes are structured as two passes: content strings first, then component changes.
 
 ## Problem Statement
 
@@ -108,9 +108,9 @@ All changes below apply to `apps/web/messages/{en,es,de}.json`.
 
 | Locale | After |
 |--------|-------|
-| en | "MotoWise uses enterprise-grade encryption with strict access control policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS." |
-| es | "MotoWise utiliza cifrado de nivel empresarial con políticas estrictas de control de acceso para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS." |
-| de | "MotoWise verwendet Verschlüsselung auf Unternehmensniveau mit strengen Zugriffskontrollrichtlinien, um deine Daten zu schützen. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert. Alle Daten werden über HTTPS übertragen." |
+| en | "MotoVault uses enterprise-grade encryption with strict access control policies to protect your data. Authentication tokens are stored securely using platform-native secure storage. All data is transmitted over HTTPS." |
+| es | "MotoVault utiliza cifrado de nivel empresarial con políticas estrictas de control de acceso para proteger tus datos. Los tokens de autenticación se almacenan de forma segura utilizando almacenamiento seguro nativo de la plataforma. Todos los datos se transmiten a través de HTTPS." |
+| de | "MotoVault verwendet Verschlüsselung auf Unternehmensniveau mit strengen Zugriffskontrollrichtlinien, um deine Daten zu schützen. Authentifizierungstoken werden sicher über plattformeigenen sicheren Speicher gespeichert. Alle Daten werden über HTTPS übertragen." |
 
 #### 4. Change "Built with AI" → "Powered by AI"
 
@@ -155,7 +155,7 @@ Delete from all 3 locale files:
 
 #### 8. Fix hero alt text (in AppPreview component, not i18n)
 
-Change alt from `"MotoWise app home screen showing fleet health"` to `"MotoWise app showing your bike's diagnostics and maintenance"`
+Change alt from `"MotoVault app home screen showing fleet health"` to `"MotoVault app showing your bike's diagnostics and maintenance"`
 
 **File:** `apps/web/src/components/marketing/app-preview.tsx`
 
@@ -247,7 +247,7 @@ const FAQ_KEYS = [0, 1, 2, 3, 4, 5] as const;
 #### H. Create placeholder hero image
 
 - Create `apps/web/public/images/` directory
-- Add a placeholder `app-preview-home.png` — a branded gradient card (dark bg, MotoWise logo, "Coming Soon" text)
+- Add a placeholder `app-preview-home.png` — a branded gradient card (dark bg, MotoVault logo, "Coming Soon" text)
 - Verify `og-image.png` and `icon.png` also exist or are needed
 
 > **Deferred:** Real app screenshot to be provided by user later.

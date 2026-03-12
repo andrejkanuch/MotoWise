@@ -1,4 +1,4 @@
-import type { SupportedLocale } from '@motolearn/types';
+import type { SupportedLocale } from '@motovault/types';
 
 export const LOCALE_TO_REGCONFIG = {
   en: 'english',

@@ -58,7 +58,7 @@ export async function Footer() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 md:flex-row">
           <div>
-            <p className="text-sm font-semibold text-neutral-50">MotoWise</p>
+            <p className="text-sm font-semibold text-neutral-50">MotoVault</p>
             <p className="mt-1 text-xs text-neutral-500">{t('tagline')}</p>
           </div>
 

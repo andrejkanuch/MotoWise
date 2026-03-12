@@ -1,4 +1,4 @@
-import { REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -551,7 +551,7 @@ export default function PaywallScreen() {
 
         {/* Terms & Privacy */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 }}>
-          <Pressable onPress={() => Linking.openURL('https://motowise.app/terms')}>
+          <Pressable onPress={() => Linking.openURL('https://motovault.app/terms')}>
             <Text
               style={{
                 fontSize: 12,
@@ -562,7 +562,7 @@ export default function PaywallScreen() {
               {t('onboarding.termsOfService')}
             </Text>
           </Pressable>
-          <Pressable onPress={() => Linking.openURL('https://motowise.app/privacy')}>
+          <Pressable onPress={() => Linking.openURL('https://motovault.app/privacy')}>
             <Text
               style={{
                 fontSize: 12,

@@ -18,6 +18,27 @@ export class CompleteOnboardingInput {
   learningFormats: string[];
 
   @Field({ nullable: true })
+  annualRepairSpend?: string;
+
+  @Field({ nullable: true })
+  reminderChannel?: string;
+
+  @Field({ nullable: true })
+  lastServiceDate?: string;
+
+  @Field({ nullable: true, defaultValue: true })
+  maintenanceReminders?: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  seasonalTips?: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  recallAlerts?: boolean;
+
+  @Field({ nullable: true, defaultValue: false })
+  weeklySummary?: boolean;
+
+  @Field({ nullable: true })
   bikeMake?: string;
 
   @Field({ nullable: true })

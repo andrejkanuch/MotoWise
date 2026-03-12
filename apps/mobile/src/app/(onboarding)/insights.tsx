@@ -1,4 +1,4 @@
-import { GenerateOnboardingInsightsDocument } from '@motolearn/graphql';
+import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';

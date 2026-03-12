@@ -13,11 +13,11 @@ severity: high
 
 ## Problem
 
-Two related issues in the MotoWise mobile app:
+Two related issues in the MotoVault mobile app:
 
 1. **SF Symbols are iOS-only** — The app used `expo-symbols` (SymbolView) and `expo-image` with `source="sf:..."` for all icons. These only render on iOS, leaving Android with no icons.
 
-2. **oklch colors cause invisible UI on native** — The design system (`@motolearn/design-system`) exports all colors as `oklch()` strings (e.g., `oklch(0.55 0.17 230)`). While CSS/web can parse oklch, React Native's inline style engine cannot. Any component using `colors.primary[500]` as a `color` or `backgroundColor` prop silently fails — the color renders as transparent/invisible.
+2. **oklch colors cause invisible UI on native** — The design system (`@motovault/design-system`) exports all colors as `oklch()` strings (e.g., `oklch(0.55 0.17 230)`). While CSS/web can parse oklch, React Native's inline style engine cannot. Any component using `colors.primary[500]` as a `color` or `backgroundColor` prop silently fails — the color renders as transparent/invisible.
 
 ### Symptoms
 
@@ -41,8 +41,8 @@ The design system was built for web (Tailwind CSS) and exports oklch tokens. Whe
 ### Icon Migration: expo-symbols/SF Symbols -> lucide-react-native
 
 ```bash
-pnpm --filter @motolearn/mobile add lucide-react-native react-native-svg
-pnpm --filter @motolearn/mobile remove expo-symbols
+pnpm --filter @motovault/mobile add lucide-react-native react-native-svg
+pnpm --filter @motovault/mobile remove expo-symbols
 ```
 
 Replace SF Symbol usage:
@@ -68,7 +68,7 @@ Lucide icons accept `size`, `color`, and `strokeWidth` props. They render as SVG
 
 ```tsx
 // BEFORE (broken on native - oklch not supported)
-import { colors } from '@motolearn/design-system';
+import { colors } from '@motovault/design-system';
 <Text style={{ color: colors.primary[500] }}>Hello</Text>
 // colors.primary[500] = 'oklch(0.55 0.17 230)' -> RN ignores this
 
@@ -78,7 +78,7 @@ const INACTIVE_COLOR = '#9CA3AF';
 <Text style={{ color: ACTIVE_COLOR }}>Hello</Text>
 ```
 
-**Rule**: Never use `colors.*` from `@motolearn/design-system` in React Native inline styles. The design system tokens are for CSS/Tailwind only. In RN, use hex constants.
+**Rule**: Never use `colors.*` from `@motovault/design-system` in React Native inline styles. The design system tokens are for CSS/Tailwind only. In RN, use hex constants.
 
 ## Files Changed
 
@@ -94,7 +94,7 @@ const INACTIVE_COLOR = '#9CA3AF';
 
 ## Prevention Strategies
 
-1. **Lint rule**: Add a custom Biome/ESLint rule or code review checklist item: "Never import `colors` from `@motolearn/design-system` in `.tsx` files under `apps/mobile/`"
+1. **Lint rule**: Add a custom Biome/ESLint rule or code review checklist item: "Never import `colors` from `@motovault/design-system` in `.tsx` files under `apps/mobile/`"
 2. **Design system hex export**: Consider adding a parallel `colors-hex.ts` export in the design system package that provides RN-compatible hex values
 3. **Icon convention**: Document in CLAUDE.md: "Use `lucide-react-native` for all icons, never `expo-symbols` or `@expo/vector-icons`" (already done)
 4. **Cross-platform testing**: Always test on both iOS and Android before merging icon/color changes

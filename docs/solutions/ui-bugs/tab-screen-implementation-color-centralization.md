@@ -88,7 +88,7 @@ export const palette = {
 } as const;
 ```
 
-Exported from `packages/design-system/src/index.ts` so all apps import via `@motolearn/design-system`.
+Exported from `packages/design-system/src/index.ts` so all apps import via `@motovault/design-system`.
 
 ### 2. Island-Style Floating Tab Bar
 
@@ -133,7 +133,7 @@ Each screen follows consistent patterns:
 
 **Diagnose**: Camera scan CTA card, recent diagnostics list with severity-based color coding (critical/warning/default).
 
-**Profile**: Avatar + name, stats grid with `tabular-nums`, MotoLearn PRO banner, settings menu, language picker, theme picker, sign out button.
+**Profile**: Avatar + name, stats grid with `tabular-nums`, MotoVault PRO banner, settings menu, language picker, theme picker, sign out button.
 
 ### 4. Added Home Tab
 

@@ -4,21 +4,21 @@ const IS_PRODUCTION = process.env.APP_VARIANT === 'production';
 const IS_PREVIEW = process.env.APP_VARIANT === 'preview';
 
 const getAppName = () => {
-  if (IS_PRODUCTION) return 'MotoWise';
-  if (IS_PREVIEW) return 'MotoWise (Preview)';
-  return 'MotoWise (Dev)';
+  if (IS_PRODUCTION) return 'MotoVault';
+  if (IS_PREVIEW) return 'MotoVault (Preview)';
+  return 'MotoVault (Dev)';
 };
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
-  slug: 'motowise',
+  slug: 'motovault',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './src/assets/images/MotoWise.png',
+  icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  scheme: 'motowise',
+  scheme: 'motovault',
   owner: 'andykeny',
   runtimeVersion: {
     policy: 'appVersion',
@@ -32,30 +32,37 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#1b2e4b',
   },
   plugins: [
+    [
+      '@sentry/react-native/expo',
+      {
+        organization: process.env.SENTRY_ORG ?? '',
+        project: process.env.SENTRY_PROJECT ?? '',
+      },
+    ],
     'expo-router',
     [
       'expo-camera',
       {
-        cameraPermission: 'MotoWise needs camera access for diagnostic photo capture.',
+        cameraPermission: 'MotoVault needs camera access for diagnostic photo capture.',
       },
     ],
     [
       'expo-image-picker',
       {
-        photosPermission: 'MotoWise needs photo library access to upload diagnostic images.',
+        photosPermission: 'MotoVault needs photo library access to upload diagnostic images.',
       },
     ],
     'expo-secure-store',
     'expo-web-browser',
     'expo-apple-authentication',
     'expo-localization',
+    '@react-native-community/datetimepicker',
     [
       'expo-notifications',
       {
         color: '#FF6B35',
       },
     ],
-    'react-native-purchases',
     [
       'expo-build-properties',
       {
@@ -72,21 +79,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   ],
   ios: {
-    bundleIdentifier: 'com.motolearn.app',
+    bundleIdentifier: 'com.motovault.app',
     supportsTablet: true,
     usesAppleSignIn: true,
     infoPlist: {
-      CFBundleDisplayName: 'MotoWise',
-      NSCameraUsageDescription: 'MotoWise needs camera access for diagnostic photo capture.',
+      CFBundleDisplayName: 'MotoVault',
+      NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
-        'MotoWise needs photo library access to upload diagnostic images.',
+        'MotoVault needs photo library access to upload diagnostic images.',
     },
     config: {
       usesNonExemptEncryption: false,
     },
   },
   android: {
-    package: 'com.motolearn.app',
+    package: 'com.motovault.app',
     adaptiveIcon: {
       foregroundImage: './src/assets/adaptive-icon.png',
       backgroundColor: '#1b2e4b',
@@ -97,5 +104,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: '359ae282-329d-455d-b9f3-64919afad0b4',
     },
+    sentryDsn: process.env.SENTRY_DSN ?? '',
+    posthogApiKey: process.env.POSTHOG_API_KEY ?? '',
+    posthogHost: process.env.POSTHOG_HOST ?? 'https://us.i.posthog.com',
   },
 });

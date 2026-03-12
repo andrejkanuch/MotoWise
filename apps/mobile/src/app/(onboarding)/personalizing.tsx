@@ -1,4 +1,4 @@
-import { CompleteOnboardingDocument } from '@motolearn/graphql';
+import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
@@ -51,10 +51,8 @@ export default function PersonalizingScreen() {
   const queryClient = useQueryClient();
 
   const { mutateAsync: completeOnboarding } = useMutation({
-    // TODO: Run `pnpm generate` after updating the CompleteOnboarding mutation to include new fields
-    mutationFn: (input: Record<string, unknown>) =>
-      // biome-ignore lint/suspicious/noExplicitAny: generated types need regeneration after API changes
-      gqlFetcher(CompleteOnboardingDocument as any, { input }),
+    mutationFn: (input: CompleteOnboardingInput) =>
+      gqlFetcher(CompleteOnboardingDocument, { input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
@@ -83,7 +81,7 @@ export default function PersonalizingScreen() {
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
-    const input: Record<string, unknown> = {
+    const input: CompleteOnboardingInput = {
       experienceLevel: experienceLevel ?? 'beginner',
       ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
       learningFormats: learningFormats.length > 0 ? learningFormats : [],
@@ -91,22 +89,20 @@ export default function PersonalizingScreen() {
       seasonalTips,
       recallAlerts,
       weeklySummary,
+      ...(ridingFrequency && { ridingFrequency }),
+      ...(maintenanceStyle && { maintenanceStyle }),
+      ...(annualRepairSpend && { annualRepairSpend }),
+      ...(reminderChannel && { reminderChannel }),
+      ...(lastServiceDate && { lastServiceDate }),
+      ...(bikeData && {
+        bikeMake: bikeData.make,
+        bikeModel: bikeData.model,
+        bikeYear: bikeData.year,
+        bikeType: bikeData.type,
+        bikeMileage: bikeData.currentMileage,
+        ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
+      }),
     };
-
-    if (ridingFrequency) input.ridingFrequency = ridingFrequency;
-    if (maintenanceStyle) input.maintenanceStyle = maintenanceStyle;
-    if (annualRepairSpend) input.annualRepairSpend = annualRepairSpend;
-    if (reminderChannel) input.reminderChannel = reminderChannel;
-    if (lastServiceDate) input.lastServiceDate = lastServiceDate;
-
-    if (bikeData) {
-      input.bikeMake = bikeData.make;
-      input.bikeModel = bikeData.model;
-      input.bikeYear = bikeData.year;
-      input.bikeType = bikeData.type;
-      input.bikeMileage = bikeData.currentMileage;
-      if (bikeData.nickname) input.bikeNickname = bikeData.nickname;
-    }
 
     completeOnboarding(input)
       .then(() => {

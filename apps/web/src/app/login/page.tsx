@@ -32,7 +32,7 @@ export default function LoginPage() {
     <div className="flex justify-center items-center min-h-screen bg-[--color-surface] dark:bg-neutral-900">
       <form onSubmit={handleLogin} className="w-[360px] flex flex-col gap-4">
         <h1 className="text-2xl font-bold text-[--color-on-surface] dark:text-neutral-50">
-          MotoWise Sign In
+          MotoVault Sign In
         </h1>
         {error && <p className="text-danger-500">{error}</p>}
         <input

@@ -15,11 +15,11 @@ import type {
   SubscriptionTier,
   SupportedLocale,
   UserRole,
-} from '@motolearn/types';
+} from '@motovault/types';
 import { registerEnumType } from '@nestjs/graphql';
 
 // NestJS code-first requires actual TS enums for registerEnumType.
-// We create them from our as-const objects in @motolearn/types.
+// We create them from our as-const objects in @motovault/types.
 // The string values here MUST stay in sync with packages/types/src/constants/enums.ts.
 
 export enum GqlArticleDifficulty {

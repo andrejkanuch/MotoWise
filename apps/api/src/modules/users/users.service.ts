@@ -1,16 +1,25 @@
-import { UserPreferencesSchema } from '@motolearn/types';
-import type { Tables } from '@motolearn/types/database';
+import { UserPreferencesSchema } from '@motovault/types';
+import type { Tables } from '@motovault/types/database';
 import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { EmailService } from '../email/email.service';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { RevenueCatService } from '../webhooks/revenuecat.service';
+import { DataExportService } from './data-export.service';
 import type { CompleteOnboardingInput } from './dto/complete-onboarding.input';
+import { DataExportRequest } from './models/data-export-request.model';
 import { User } from './models/user.model';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    private readonly dataExportService: DataExportService,
+    private readonly revenueCatService: RevenueCatService,
+    private readonly emailService: EmailService,
+  ) {}
 
   private mapRow(row: Tables<'users'>): User {
     return {
@@ -19,6 +28,7 @@ export class UsersService {
       fullName: row.full_name ?? undefined,
       role: row.role,
       preferences: (row.preferences as Record<string, unknown>) ?? undefined,
+      subscriptionTier: row.subscription_tier ?? undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -86,6 +96,13 @@ export class UsersService {
       ...(input.ridingFrequency && { ridingFrequency: input.ridingFrequency }),
       ...(input.maintenanceStyle && { maintenanceStyle: input.maintenanceStyle }),
       learningFormats: input.learningFormats,
+      ...(input.annualRepairSpend && { annualRepairSpend: input.annualRepairSpend }),
+      ...(input.reminderChannel && { reminderChannel: input.reminderChannel }),
+      ...(input.lastServiceDate && { lastServiceDate: input.lastServiceDate }),
+      maintenanceReminders: input.maintenanceReminders ?? true,
+      seasonalTips: input.seasonalTips ?? false,
+      recallAlerts: input.recallAlerts ?? false,
+      weeklySummary: input.weeklySummary ?? false,
     };
 
     const { error } = await this.supabase.rpc('complete_onboarding', {
@@ -105,5 +122,37 @@ export class UsersService {
     }
 
     return this.findById(userId);
+  }
+
+  async requestDataExport(userId: string, email: string): Promise<DataExportRequest> {
+    return this.dataExportService.requestDataExport(userId, email);
+  }
+
+  async deleteAccount(userId: string, email: string): Promise<boolean> {
+    // Call the soft_delete_user RPC (uses auth.uid() check via user's JWT)
+    const { error } = await this.supabase.rpc('soft_delete_user', {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      this.logger.error(`deleteAccount soft delete failed for ${userId}: ${JSON.stringify(error)}`);
+      throw new BadRequestException(error.message ?? 'Failed to delete account');
+    }
+
+    // Try to cancel RevenueCat subscription if configured
+    this.revenueCatService.cancelSubscription(userId).catch((err) => {
+      this.logger.warn(`RevenueCat cancellation failed for ${userId}: ${err.message}`);
+    });
+
+    // Send deletion confirmation email (fire and forget)
+    this.emailService.sendAccountDeletionConfirmation(email).catch((err) => {
+      this.logger.warn(`Deletion confirmation email failed for ${userId}: ${err.message}`);
+    });
+
+    this.logger.log(
+      `Account ${userId} (${email}) soft-deleted. Scheduled for hard deletion in 30 days.`,
+    );
+
+    return true;
   }
 }

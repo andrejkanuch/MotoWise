@@ -1,6 +1,6 @@
 # PRD: Garage Section Enhancement — "Your Bike, Your Way"
 
-**Author:** MotoLearn Product
+**Author:** MotoVault Product
 **Date:** March 8, 2026
 **Status:** Draft
 **Version:** 1.0
@@ -9,11 +9,11 @@
 
 ## 1. Problem Statement
 
-The MotoLearn Garage currently lets riders add their motorcycles and create manual maintenance tasks — but that's where the relationship between the rider and their bike ends in the app. For any motorcycle owner, the garage is the emotional center of ownership. It's where you tinker, plan, worry, remember, and dream. Right now our Garage feels like a to-do list bolted onto a vehicle record.
+The MotoVault Garage currently lets riders add their motorcycles and create manual maintenance tasks — but that's where the relationship between the rider and their bike ends in the app. For any motorcycle owner, the garage is the emotional center of ownership. It's where you tinker, plan, worry, remember, and dream. Right now our Garage feels like a to-do list bolted onto a vehicle record.
 
-Riders — from weekend cruisers to daily commuters to track-day junkies — constantly need to answer questions like: "When did I last change my oil?", "How much have I spent on this bike this year?", "What's my tire pressure supposed to be?", "Is my chain due for adjustment?", "What was that weird noise last week?" They currently answer these questions across scattered notebooks, spreadsheets, forum bookmarks, and memory. MotoLearn should be the single place a rider goes to *know their bike*.
+Riders — from weekend cruisers to daily commuters to track-day junkies — constantly need to answer questions like: "When did I last change my oil?", "How much have I spent on this bike this year?", "What's my tire pressure supposed to be?", "Is my chain due for adjustment?", "What was that weird noise last week?" They currently answer these questions across scattered notebooks, spreadsheets, forum bookmarks, and memory. MotoVault should be the single place a rider goes to *know their bike*.
 
-If we don't solve this, the Garage tab becomes a static record that riders open once (when they add their bike) and rarely revisit — killing retention and making MotoLearn feel like a learning app only, not a riding companion.
+If we don't solve this, the Garage tab becomes a static record that riders open once (when they add their bike) and rarely revisit — killing retention and making MotoVault feel like a learning app only, not a riding companion.
 
 ---
 
@@ -30,7 +30,7 @@ If we don't solve this, the Garage tab becomes a static record that riders open 
 
 - **B1:** Increase Garage tab weekly active usage from ~1 visit/user/week to 3+ visits/user/week within 60 days of launch.
 - **B2:** Improve D30 retention by 15% — the Garage should be the "sticky" feature that keeps riders coming back.
-- **B3:** Lay the data foundation for AI-powered diagnostics (Phase 2 of MotoLearn's AI roadmap) by collecting rich per-bike history.
+- **B3:** Lay the data foundation for AI-powered diagnostics (Phase 2 of MotoVault's AI roadmap) by collecting rich per-bike history.
 
 ---
 
@@ -100,7 +100,7 @@ If we don't solve this, the Garage tab becomes a static record that riders open 
 
 ### 4C. Smart Maintenance Schedules (Interval-Based)
 
-*Today, maintenance tasks are fully manual. The rider has to know their intervals, create tasks, and track them. Most riders don't know their intervals — or forget. This is where MotoLearn should shine.*
+*Today, maintenance tasks are fully manual. The rider has to know their intervals, create tasks, and track them. Most riders don't know their intervals — or forget. This is where MotoVault should shine.*
 
 > **As a rider who just added my bike**, I want the app to suggest a default maintenance schedule based on my motorcycle type (e.g., sportbike vs. cruiser) so I have a starting point without reading my entire owner's manual.
 

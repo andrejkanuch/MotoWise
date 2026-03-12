@@ -44,7 +44,7 @@ TanStack Query wins on DX, ecosystem, and simplicity. Normalized cache sounds ap
 
 - `@tanstack/react-query` for data fetching hooks
 - `graphql-request` as the lightweight GraphQL transport (~5KB)
-- Keep `@motolearn/graphql` for generated `TypedDocumentNode` types (codegen unchanged)
+- Keep `@motovault/graphql` for generated `TypedDocumentNode` types (codegen unchanged)
 
 ### 2. Cache Strategy: Explicit Invalidation
 
@@ -69,7 +69,7 @@ Instead of caching the token in a closure, the fetcher reads the current session
 
 ### 5. All Screens Use TypedDocumentNode
 
-Eliminate all inline `gql` usage. Every screen imports generated Document constants from `@motolearn/graphql`.
+Eliminate all inline `gql` usage. Every screen imports generated Document constants from `@motovault/graphql`.
 
 ### 6. Global Error Handling
 
@@ -152,7 +152,7 @@ Replace `UrqlProvider` with `QueryClientProvider` in `_layout.tsx`. The `QueryCl
 - `@urql/exchange-auth`
 
 ### Keep
-- `@motolearn/graphql` (codegen pipeline unchanged)
+- `@motovault/graphql` (codegen pipeline unchanged)
 - `graphql` (peer dependency)
 
 ## Open Questions

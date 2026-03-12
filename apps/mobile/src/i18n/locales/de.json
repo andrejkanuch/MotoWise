@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "MotoLearn",
+    "appName": "MotoVault",
     "loading": "Laden...",
     "error": "Fehler",
     "cancel": "Abbrechen",
@@ -8,7 +8,8 @@
     "delete": "Loeschen",
     "back": "Zurueck",
     "retry": "Erneut versuchen",
-    "skip": "Ueberspringen"
+    "skip": "Ueberspringen",
+    "goBack": "Zurueck"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -92,7 +93,7 @@
     "viewAll": "Alle anzeigen",
     "heroTitle": "Visuelle Bildung &\nKI-Diagnose: Verstehe und Repariere dein Motorrad",
     "checkBike": "Motorrad pruefen",
-    "checkBikeDesc": "Mit Moto Learn KI scannen",
+    "checkBikeDesc": "Mit MotoVault KI scannen",
     "noData": "Keine Daten",
     "yourBike": "Dein Motorrad",
     "category": {
@@ -128,7 +129,9 @@
     "keyTakeaways": "Wichtige Erkenntnisse",
     "relatedTopics": "Verwandte Themen",
     "markAsRead": "Als gelesen markieren",
-    "alreadyRead": "Bereits gelesen"
+    "alreadyRead": "Bereits gelesen",
+    "aiDisclaimer": "KI-generierter Inhalt. Ueberpruefe mit deinem Handbuch.",
+    "takeQuiz": "Quiz starten"
   },
   "diagnose": {
     "startNew": "Neue Diagnose starten",
@@ -154,10 +157,14 @@
     "difficulty": "Schwierigkeit",
     "nextSteps": "Naechste Schritte",
     "findArticle": "Verwandten Artikel finden",
-    "disclaimer": "Dies ist eine KI-Diagnose nur zu Bildungszwecken. Konsultiere immer einen qualifizierten Mechaniker bei sicherheitskritischen Problemen.",
+    "disclaimer": "Nur zu Bildungszwecken. Konsultiere immer einen qualifizierten Mechaniker.",
+    "consultMechanic": "Mechaniker konsultieren",
+    "consultMechanicSubtitle": "Dieses Problem kann die Sicherheit beeintraechtigen. Wir empfehlen eine professionelle Inspektion.",
+    "photoDisclaimer": "Die KI-Analyse dient nur zu Bildungszwecken und ersetzt keine professionelle mechanische Inspektion. Mit dem Absenden erkennst du diese Einschraenkung an.",
     "processing": "Diagnose wird verarbeitet...",
     "failed": "Diagnoseanalyse fehlgeschlagen",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "imageTooLarge": "Das Bild ist zu gross (max. 5 MB). Bitte waehle ein kleineres Foto oder nimm eines mit geringerer Qualitaet auf."
   },
   "wizard": {
     "step": "Schritt {{current}} von {{total}}",
@@ -224,7 +231,7 @@
     "rank": "Rang",
     "badges": "Abzeichen",
     "joined": "Beigetreten",
-    "proBanner": "MotoLearn PRO",
+    "proBanner": "MotoVault PRO",
     "proDescription": "KI-Diagnosen und Premium-Lektionen freischalten",
     "settings": "Profileinstellungen",
     "privacy": "Datenschutz",
@@ -244,7 +251,7 @@
     "themeDark": "Dunkel"
   },
   "onboarding": {
-    "welcomeTitle": "Willkommen bei MotoWise",
+    "welcomeTitle": "Willkommen bei MotoVault",
     "welcomeSubtitle": "Erzaehl uns von deiner Fahrerfahrung",
     "welcomeHeroTitle": "Dein Motorrad ist jetzt smarter",
     "welcomeHeroSubtitle": "KI-gestuetztes Lernen, Diagnose & Wartung — personalisiert fuer dein Motorrad.",
@@ -316,7 +323,7 @@
     "insightsTitle": "Deine personalisierten Einblicke",
     "insightsSubtitle": "Basierend auf deinem Profil haben wir Folgendes gefunden",
     "insightsError": "Einblicke konnten nicht erstellt werden. Tippe auf Wiederholen oder fahre fort.",
-    "insightsSocialProof": "Schliesse dich ueber 12.400 Fahrern an, die MotoWise nutzen",
+    "insightsSocialProof": "Schliesse dich ueber 12.400 Fahrern an, die MotoVault nutzen",
     "insightsCta": "Dein Dashboard ansehen →",
     "preparingExperience": "Wir bereiten dein personalisiertes Erlebnis vor...",
     "personalizingTitle": "Dein Erlebnis wird personalisiert...",
@@ -454,7 +461,7 @@
     "priorityLow": "Niedrig"
   },
   "paywall": {
-    "title": "Dein MotoWise-Erlebnis ist bereit",
+    "title": "Dein MotoVault-Erlebnis ist bereit",
     "personalizedFor": "Personalisiert fuer dein {{bike}}",
     "featureaiDiagnosticsTitle": "KI-gestuetzte Diagnose",
     "featureaiDiagnosticsDesc": "Fotoanalyse und Fehlerbehebung fuer dein Motorrad",
@@ -480,6 +487,42 @@
     "noSubscriptionFound": "Kein Abonnement gefunden",
     "noSubscriptionFoundDesc": "Wir konnten kein aktives Abonnement zum Wiederherstellen finden.",
     "restoreFailed": "Kaeufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut."
+  },
+  "quiz": {
+    "loading": "Quiz wird geladen...",
+    "loadError": "Quiz konnte nicht geladen werden. Bitte versuche es erneut.",
+    "noQuestions": "Keine Fragen fuer dieses Quiz verfuegbar.",
+    "questionProgress": "Frage {{current}} von {{total}}",
+    "answeredCount": "{{count}} von {{total}} beantwortet",
+    "scoreLabel": "{{score}} von {{total}} richtig",
+    "passed": "Bestanden!",
+    "keepLearning": "Weiter lernen",
+    "review": "Antworten ueberpruefen",
+    "questionNumber": "F{{number}}.",
+    "yourAnswer": "Deine Antwort:",
+    "noAnswer": "Keine Antwort",
+    "backToArticle": "Zurueck zum Artikel",
+    "previous": "Zurueck",
+    "next": "Weiter",
+    "submit": "Absenden"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Unbegrenzte Motorraeder",
+    "unlimitedBikesDesc": "Fuege so viele Motorraeder hinzu wie du moechtest.",
+    "unlimitedArticlesTitle": "Unbegrenzte Artikel",
+    "unlimitedArticlesDesc": "Zugriff auf die gesamte Lernbibliothek.",
+    "fullDiagnosticsTitle": "Volle KI-Diagnose",
+    "fullDiagnosticsDesc": "Schalte unbegrenzte KI-Fotodiagnosen frei.",
+    "maintenanceRemindersTitle": "Wartungserinnerungen",
+    "maintenanceRemindersDesc": "Erhalte intelligente Erinnerungen fuer alle deine Motorraeder.",
+    "pdfExportTitle": "PDF-Export",
+    "pdfExportDesc": "Exportiere Wartungsaufzeichnungen als PDF-Berichte.",
+    "featureUnlimitedBikes": "Unbegrenzte Motorraeder in deiner Garage",
+    "featureFullDiagnostics": "Volle KI-Diagnose",
+    "featureMaintenanceReminders": "Intelligente Wartungserinnerungen",
+    "featurePdfExport": "PDF-Export von Aufzeichnungen",
+    "upgradeToPro": "Auf Pro upgraden",
+    "maybeLater": "Vielleicht spaeter"
   },
   "notFound": {
     "message": "Seite nicht gefunden",

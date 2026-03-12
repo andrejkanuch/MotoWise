@@ -1,4 +1,4 @@
-import { palette } from '@motolearn/design-system';
+import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { AlertTriangle, ChevronRight, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';

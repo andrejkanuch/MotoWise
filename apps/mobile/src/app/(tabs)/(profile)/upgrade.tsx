@@ -1,4 +1,4 @@
-import { REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent, trackScreen } from '../../../lib/analytics';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -168,6 +169,12 @@ export default function UpgradeScreen() {
     }
   }, [isPro, router]);
 
+  // Track screen view and paywall impression
+  useEffect(() => {
+    trackScreen('Upgrade');
+    trackEvent(AnalyticsEvent.PAYWALL_VIEWED);
+  }, []);
+
   const fetchOfferings = useCallback(async () => {
     if (isExpoGo) return;
     setOfferingsLoading(true);
@@ -226,10 +233,15 @@ export default function UpgradeScreen() {
         ]);
         return;
       }
+      trackEvent(AnalyticsEvent.PURCHASE_STARTED, { packageId: selectedPlan });
       await Purchases.purchasePackage(packageToBuy);
+      trackEvent(AnalyticsEvent.PURCHASE_COMPLETED);
       router.back();
     } catch (error) {
-      if (isPurchaseCancellation(error)) return;
+      if (isPurchaseCancellation(error)) {
+        trackEvent(AnalyticsEvent.PURCHASE_CANCELLED);
+        return;
+      }
       console.error('[Upgrade] Purchase failed:', error);
       Alert.alert(t('common.error'), t('paywall.purchaseFailed'), [{ text: t('common.cancel') }]);
     } finally {
@@ -484,7 +496,7 @@ export default function UpgradeScreen() {
 
         {/* Terms & Privacy */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 16 }}>
-          <Pressable onPress={() => Linking.openURL('https://motowise.app/terms')}>
+          <Pressable onPress={() => Linking.openURL('https://motovault.app/terms')}>
             <Text
               style={{
                 fontSize: 12,
@@ -495,7 +507,7 @@ export default function UpgradeScreen() {
               {t('onboarding.termsOfService')}
             </Text>
           </Pressable>
-          <Pressable onPress={() => Linking.openURL('https://motowise.app/privacy')}>
+          <Pressable onPress={() => Linking.openURL('https://motovault.app/privacy')}>
             <Text
               style={{
                 fontSize: 12,

@@ -1,7 +1,18 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
   taskId: String!
+}
+
+type AiBudgetStatus {
+  circuitBreakerOpen: Boolean!
+  dailySpendCapCents: Int!
+  todayGenerationCount: Int!
+  todaySpendCents: Int!
 }
 
 type Article {
@@ -55,6 +66,7 @@ input CompleteMaintenanceTaskInput {
 }
 
 input CompleteOnboardingInput {
+  annualRepairSpend: String
   bikeMake: String
   bikeMileage: Int
   bikeModel: String
@@ -62,10 +74,16 @@ input CompleteOnboardingInput {
   bikeType: String
   bikeYear: Int
   experienceLevel: String!
+  lastServiceDate: String
   learningFormats: [String!]!
+  maintenanceReminders: Boolean = true
   maintenanceStyle: String
+  recallAlerts: Boolean = false
+  reminderChannel: String
   ridingFrequency: String
   ridingGoals: [String!]!
+  seasonalTips: Boolean = false
+  weeklySummary: Boolean = false
 }
 
 type CompleteTaskResult {
@@ -119,6 +137,15 @@ input CreateMotorcycleInput {
 input CreateShareLinkInput {
   expiresInDays: Int = 30
   motorcycleId: String!
+}
+
+type DataExportRequest {
+  completedAt: String
+  createdAt: String!
+  id: ID!
+  requestedAt: String!
+  status: String!
+  userId: String!
 }
 
 type Diagnostic {
@@ -271,12 +298,15 @@ type Mutation {
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
+  deleteAccount: Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   markArticleRead(articleId: String!): LearningProgress!
+  requestDataExport: DataExportRequest!
+  resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
@@ -318,6 +348,7 @@ type PageInfo {
 }
 
 type Query {
+  aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
@@ -462,6 +493,7 @@ type User {
   id: ID!
   preferences: JSON
   role: UserRole!
+  subscriptionTier: String
   updatedAt: String!
 }
 
