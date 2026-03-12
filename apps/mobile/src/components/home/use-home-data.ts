@@ -162,11 +162,12 @@ export function useHomeData() {
     const overdueTasks = sortedTasks.filter((t) => t.relative.isOverdue);
     if (overdueTasks.length > 0) {
       const task = overdueTasks[0];
-      const bikeName = bikeNames[task.motorcycleId] ?? 'Your bike';
+      const bikeName = bikeNames[task.motorcycleId] ?? t('home.yourBike');
+      const relativeText = t(task.relative.key as never, task.relative.params as never);
       return {
         type: 'overdue',
         title: task.title,
-        subtitle: `${bikeName} — ${task.relative.text}`,
+        subtitle: `${bikeName} — ${relativeText}`,
         ctaLabel: t('home.priorityCompleteTask'),
         accentColor: palette.danger500,
         icon: AlertTriangle,
@@ -183,11 +184,12 @@ export function useHomeData() {
     );
     if (urgentTasks.length > 0) {
       const task = urgentTasks[0];
-      const bikeName = bikeNames[task.motorcycleId] ?? 'Your bike';
+      const bikeName = bikeNames[task.motorcycleId] ?? t('home.yourBike');
+      const relativeText = t(task.relative.key as never, task.relative.params as never);
       return {
         type: 'upcoming',
         title: task.title,
-        subtitle: `${bikeName} — ${task.relative.text}`,
+        subtitle: `${bikeName} — ${relativeText}`,
         ctaLabel: t('home.priorityViewTask'),
         accentColor: palette.warning500,
         icon: Wrench,

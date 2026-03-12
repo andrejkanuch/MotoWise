@@ -46,6 +46,8 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     queryKey: queryKeys.user.me,
     queryFn: () => gqlFetcher(MeDocument),
     enabled: !!session,
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const preferences = meQuery.data?.me?.preferences as
@@ -64,7 +66,7 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isLoading) return;
-    if (meQuery.isLoading) return;
+    if (meQuery.isLoading && !meQuery.isError) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
@@ -86,9 +88,19 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router replace expects typed route literal
       setTimeout(() => router.replace(target as any), 0);
     }
-  }, [session, segments, isLoading, router, onboardingCompleted, meQuery.isLoading]);
+  }, [
+    session,
+    segments,
+    isLoading,
+    router,
+    onboardingCompleted,
+    meQuery.isLoading,
+    meQuery.isError,
+  ]);
 
-  if (isLoading || (session && meQuery.isLoading)) return null;
+  if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
+    return null;
+  }
 
   return <>{children}</>;
 }
@@ -98,10 +110,15 @@ export default function RootLayout() {
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
 
     const {
       data: { subscription },

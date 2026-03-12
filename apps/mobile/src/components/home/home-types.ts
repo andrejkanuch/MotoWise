@@ -20,7 +20,7 @@ export type TaskItem = {
 };
 
 export type TaskWithRelative = TaskItem & {
-  relative: { text: string; isOverdue: boolean; daysAway: number };
+  relative: { key: string; params?: Record<string, number>; isOverdue: boolean; daysAway: number };
 };
 
 export type FleetHealth = {

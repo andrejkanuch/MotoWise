@@ -93,6 +93,8 @@
     "heroTitle": "Educacion Visual &\nDiagnosticos IA: Entiende y Repara tu Moto",
     "checkBike": "Revisa tu Moto",
     "checkBikeDesc": "Escanea con Moto Learn IA",
+    "noData": "Sin datos",
+    "yourBike": "Tu moto",
     "category": {
       "engine": "Motor",
       "brakes": "Frenos",
@@ -440,11 +442,16 @@
     "dueToday": "Vence hoy",
     "overdueByDays": "{{count}} día(s) de retraso",
     "overdue": "VENCIDO",
+    "dueTomorrow": "Vence mañana",
     "alertsTitle": "Alertas de mantenimiento",
     "alertsEmpty": "¡Todas las motos están en perfecto estado!",
     "viewAll": "Ver todo",
     "tasksDue": "{{count}} tarea(s) próxima(s)",
-    "tasksOverdue": "{{count}} tarea(s) vencida(s)"
+    "tasksOverdue": "{{count}} tarea(s) vencida(s)",
+    "priorityCritical": "Crítico",
+    "priorityHigh": "Alto",
+    "priorityMedium": "Medio",
+    "priorityLow": "Bajo"
   },
   "paywall": {
     "title": "Tu experiencia MotoWise esta lista",

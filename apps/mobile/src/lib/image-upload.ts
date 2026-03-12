@@ -1,5 +1,3 @@
-import { decode } from 'base64-arraybuffer';
-import * as FileSystem from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from './supabase';
@@ -37,11 +35,10 @@ export async function uploadBikePhoto(
   motorcycleId: string,
 ): Promise<{ publicUrl: string }> {
   const compressedUri = await compressImage(uri);
-  const base64 = await FileSystem.readAsStringAsync(compressedUri, {
-    encoding: 'base64',
-  });
+  const response = await fetch(compressedUri);
+  const blob = await response.blob();
   const filePath = `${userId}/${motorcycleId}/hero.webp`;
-  const { error } = await supabase.storage.from('bike-photos').upload(filePath, decode(base64), {
+  const { error } = await supabase.storage.from('bike-photos').upload(filePath, blob, {
     contentType: 'image/webp',
     upsert: true,
   });
@@ -58,20 +55,16 @@ export async function uploadMaintenancePhoto(
   taskId: string,
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const compressedUri = await compressImage(uri);
-  const base64 = await FileSystem.readAsStringAsync(compressedUri, {
-    encoding: 'base64',
-  });
+  const response = await fetch(compressedUri);
+  const blob = await response.blob();
   const filePath = `${userId}/${taskId}/${Date.now()}.webp`;
-  const { error } = await supabase.storage
-    .from('maintenance-photos')
-    .upload(filePath, decode(base64), {
-      contentType: 'image/webp',
-      upsert: false,
-    });
+  const { error } = await supabase.storage.from('maintenance-photos').upload(filePath, blob, {
+    contentType: 'image/webp',
+    upsert: false,
+  });
   if (error) throw error;
-  const fileInfo = await FileSystem.getInfoAsync(compressedUri);
   return {
     storagePath: filePath,
-    fileSizeBytes: fileInfo.exists ? (fileInfo.size ?? 0) : 0,
+    fileSizeBytes: blob.size,
   };
 }
