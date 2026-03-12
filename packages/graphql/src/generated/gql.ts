@@ -29,6 +29,7 @@ type Documents = {
     "mutation GenerateArticle($input: GenerateArticleInput!) {\n  generateArticle(input: $input) {\n    id\n    slug\n    title\n    difficulty\n    category\n    contentJson\n    readTime\n    generatedAt\n  }\n}": typeof types.GenerateArticleDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": typeof types.GenerateOnboardingInsightsDocument,
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": typeof types.MarkArticleReadDocument,
+    "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n  }\n}": typeof types.UpdateMotorcycleDocument,
@@ -66,6 +67,7 @@ const documents: Documents = {
     "mutation GenerateArticle($input: GenerateArticleInput!) {\n  generateArticle(input: $input) {\n    id\n    slug\n    title\n    difficulty\n    category\n    contentJson\n    readTime\n    generatedAt\n  }\n}": types.GenerateArticleDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": types.GenerateOnboardingInsightsDocument,
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": types.MarkArticleReadDocument,
+    "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n  }\n}": types.UpdateMotorcycleDocument,
@@ -162,6 +164,10 @@ export function graphql(source: "mutation GenerateOnboardingInsights($input: Gen
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}"): (typeof documents)["mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}"): (typeof documents)["mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

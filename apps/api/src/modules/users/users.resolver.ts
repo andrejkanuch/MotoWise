@@ -7,6 +7,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CompleteOnboardingInput } from './dto/complete-onboarding.input';
 import { UpdateUserInput } from './dto/update-user.input';
+import { DataExportRequest } from './models/data-export-request.model';
 import { User } from './models/user.model';
 import { UsersService } from './users.service';
 
@@ -43,5 +44,11 @@ export class UsersResolver {
     input: CompleteOnboardingInput,
   ): Promise<User> {
     return this.usersService.completeOnboarding(authUser.id, input);
+  }
+
+  @Mutation(() => DataExportRequest)
+  @UseGuards(GqlAuthGuard)
+  async requestDataExport(@CurrentUser() authUser: AuthUser): Promise<DataExportRequest> {
+    return this.usersService.requestDataExport(authUser.id, authUser.email);
   }
 }

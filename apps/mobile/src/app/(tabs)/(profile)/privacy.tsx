@@ -1,5 +1,5 @@
 import { palette } from '@motolearn/design-system';
-import { MeDocument, UpdateUserDocument } from '@motolearn/graphql';
+import { MeDocument, RequestDataExportDocument, UpdateUserDocument } from '@motolearn/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -136,6 +136,32 @@ export default function PrivacyScreen() {
     [state, updateMutation],
   );
 
+  const exportMutation = useMutation({
+    mutationFn: () => gqlFetcher(RequestDataExportDocument),
+    onSuccess: () => {
+      Alert.alert(
+        t('privacy.exportSuccessTitle', { defaultValue: 'Export Requested' }),
+        t('privacy.exportSuccessMessage', {
+          defaultValue:
+            "We're preparing your data. You'll receive an email with a download link shortly.",
+        }),
+      );
+    },
+    onError: (error: Error) => {
+      const isTooManyRequests = error.message?.includes('24 hours');
+      Alert.alert(
+        t('privacy.exportErrorTitle', { defaultValue: 'Export Failed' }),
+        isTooManyRequests
+          ? t('privacy.exportRateLimit', {
+              defaultValue: 'You can only request a data export once every 24 hours.',
+            })
+          : t('privacy.exportError', {
+              defaultValue: 'Something went wrong. Please try again later.',
+            }),
+      );
+    },
+  });
+
   const handleExportData = () => {
     haptic();
     Alert.alert(
@@ -145,7 +171,10 @@ export default function PrivacyScreen() {
       }),
       [
         { text: t('common.cancel'), style: 'cancel' },
-        { text: t('privacy.export', { defaultValue: 'Export' }), onPress: () => {} },
+        {
+          text: t('privacy.export', { defaultValue: 'Export' }),
+          onPress: () => exportMutation.mutate(),
+        },
       ],
     );
   };
