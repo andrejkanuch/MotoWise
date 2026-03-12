@@ -2,11 +2,12 @@ import { UserPreferencesSchema } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   Logger,
   NotFoundException,
-  TooManyRequestsException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -138,7 +139,10 @@ export class UsersService {
       .limit(1);
 
     if (recentExports && recentExports.length > 0) {
-      throw new TooManyRequestsException('You can only request a data export once every 24 hours');
+      throw new HttpException(
+        'You can only request a data export once every 24 hours',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     // Create export request record
@@ -198,12 +202,15 @@ export class UsersService {
       ]);
 
       // Also fetch expenses if table exists
-      const expensesResult = await this.supabaseAdmin
-        .from('expenses')
-        .select('*')
-        .eq('user_id', userId)
-        .then((r) => r)
-        .catch(() => ({ data: null, error: null }));
+      let expensesResult: { data: unknown[] | null; error: unknown } = { data: null, error: null };
+      try {
+        expensesResult = await this.supabaseAdmin
+          .from('expenses')
+          .select('*')
+          .eq('user_id', userId);
+      } catch {
+        // Table may not exist yet — ignore
+      }
 
       const exportData = {
         exportedAt: new Date().toISOString(),
