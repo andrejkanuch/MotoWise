@@ -33,7 +33,6 @@ import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -436,7 +435,6 @@ export default function BikeDetailScreen() {
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [_exporting, setExporting] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   // --- Queries ---
@@ -586,7 +584,7 @@ export default function BikeDetailScreen() {
       }
     };
 
-    if (Platform.OS === 'ios') {
+    if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
           options: [
@@ -652,7 +650,6 @@ export default function BikeDetailScreen() {
   const handleExportPdf = async () => {
     if (!bike) return;
     haptic();
-    setExporting(true);
     try {
       const pdfBike: PdfBike = {
         make: bike.make,
@@ -678,8 +675,38 @@ export default function BikeDetailScreen() {
         t('common.error', { defaultValue: 'Error' }),
         t('maintenance.exportError', { defaultValue: 'Failed to export PDF. Please try again.' }),
       );
-    } finally {
-      setExporting(false);
+    }
+  };
+
+  const handleMoreActions = () => {
+    haptic();
+    const editBike = () => router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
+    const labels = {
+      cancel: t('common.cancel', { defaultValue: 'Cancel' }),
+      edit: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
+      export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
+      delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
+    };
+    if (process.env.EXPO_OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: [labels.cancel, labels.edit, labels.export, labels.delete],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 3,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) editBike();
+          else if (buttonIndex === 2) handleExportPdf();
+          else if (buttonIndex === 3) handleDeleteBike();
+        },
+      );
+    } else {
+      Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
+        { text: labels.cancel, style: 'cancel' },
+        { text: labels.edit, onPress: editBike },
+        { text: labels.export, onPress: handleExportPdf },
+        { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
+      ]);
     }
   };
 
@@ -1044,54 +1071,7 @@ export default function BikeDetailScreen() {
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => {
-              haptic();
-              if (Platform.OS === 'ios') {
-                ActionSheetIOS.showActionSheetWithOptions(
-                  {
-                    options: [
-                      t('common.cancel', { defaultValue: 'Cancel' }),
-                      t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
-                      t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
-                      t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
-                    ],
-                    cancelButtonIndex: 0,
-                    destructiveButtonIndex: 3,
-                  },
-                  (buttonIndex) => {
-                    if (buttonIndex === 1) {
-                      router.push({
-                        pathname: '/(tabs)/(garage)/edit-bike',
-                        params: { id },
-                      });
-                    } else if (buttonIndex === 2) {
-                      handleExportPdf();
-                    } else if (buttonIndex === 3) {
-                      handleDeleteBike();
-                    }
-                  },
-                );
-              } else {
-                // Android fallback — simple Alert
-                Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
-                  { text: t('common.cancel'), style: 'cancel' },
-                  {
-                    text: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
-                    onPress: () =>
-                      router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } }),
-                  },
-                  {
-                    text: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
-                    onPress: handleExportPdf,
-                  },
-                  {
-                    text: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
-                    style: 'destructive',
-                    onPress: handleDeleteBike,
-                  },
-                ]);
-              }
-            }}
+            onPress={handleMoreActions}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
