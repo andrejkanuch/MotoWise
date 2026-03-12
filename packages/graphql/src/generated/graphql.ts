@@ -78,6 +78,7 @@ export type CompleteMaintenanceTaskInput = {
 };
 
 export type CompleteOnboardingInput = {
+  annualRepairSpend?: InputMaybe<Scalars['String']['input']>;
   bikeMake?: InputMaybe<Scalars['String']['input']>;
   bikeMileage?: InputMaybe<Scalars['Int']['input']>;
   bikeModel?: InputMaybe<Scalars['String']['input']>;
@@ -85,10 +86,16 @@ export type CompleteOnboardingInput = {
   bikeType?: InputMaybe<Scalars['String']['input']>;
   bikeYear?: InputMaybe<Scalars['Int']['input']>;
   experienceLevel: Scalars['String']['input'];
+  lastServiceDate?: InputMaybe<Scalars['String']['input']>;
   learningFormats: Array<Scalars['String']['input']>;
+  maintenanceReminders?: InputMaybe<Scalars['Boolean']['input']>;
   maintenanceStyle?: InputMaybe<Scalars['String']['input']>;
+  recallAlerts?: InputMaybe<Scalars['Boolean']['input']>;
+  reminderChannel?: InputMaybe<Scalars['String']['input']>;
   ridingFrequency?: InputMaybe<Scalars['String']['input']>;
   ridingGoals: Array<Scalars['String']['input']>;
+  seasonalTips?: InputMaybe<Scalars['Boolean']['input']>;
+  weeklySummary?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type CompleteTaskResult = {

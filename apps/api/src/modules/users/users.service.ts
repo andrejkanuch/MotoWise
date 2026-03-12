@@ -86,6 +86,13 @@ export class UsersService {
       ...(input.ridingFrequency && { ridingFrequency: input.ridingFrequency }),
       ...(input.maintenanceStyle && { maintenanceStyle: input.maintenanceStyle }),
       learningFormats: input.learningFormats,
+      ...(input.annualRepairSpend && { annualRepairSpend: input.annualRepairSpend }),
+      ...(input.reminderChannel && { reminderChannel: input.reminderChannel }),
+      ...(input.lastServiceDate && { lastServiceDate: input.lastServiceDate }),
+      maintenanceReminders: input.maintenanceReminders ?? true,
+      seasonalTips: input.seasonalTips ?? false,
+      recallAlerts: input.recallAlerts ?? false,
+      weeklySummary: input.weeklySummary ?? false,
     };
 
     const { error } = await this.supabase.rpc('complete_onboarding', {
