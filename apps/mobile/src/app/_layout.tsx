@@ -148,11 +148,17 @@ export default function RootLayout() {
 
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {
+    let cancelled = false;
     let cleanup: (() => void) | null = null;
     initRevenueCat().then((c) => {
-      cleanup = c;
+      if (cancelled) {
+        c?.();
+      } else {
+        cleanup = c;
+      }
     });
     return () => {
+      cancelled = true;
       cleanup?.();
     };
   }, []);

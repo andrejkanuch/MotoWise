@@ -1,3 +1,4 @@
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motolearn/types';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -256,7 +257,7 @@ export default function PaywallScreen() {
     try {
       const { default: Purchases } = await import('react-native-purchases');
       const info = await Purchases.restorePurchases();
-      const hasPro = info.entitlements.active['MotoWise Pro'] !== undefined;
+      const hasPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
       if (hasPro) {
         router.replace('/(onboarding)/personalizing');
       } else {

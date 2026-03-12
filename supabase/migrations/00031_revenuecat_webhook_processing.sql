@@ -97,3 +97,7 @@ BEGIN
   WHERE id = p_app_user_id;
 END;
 $$;
+
+-- Restrict execution to service_role only (SECURITY DEFINER runs as owner)
+REVOKE EXECUTE ON FUNCTION public.process_revenuecat_event FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.process_revenuecat_event TO service_role;
