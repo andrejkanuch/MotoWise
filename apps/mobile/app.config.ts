@@ -62,7 +62,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         color: '#FF6B35',
       },
     ],
-    'react-native-purchases',
     [
       'expo-build-properties',
       {

@@ -1,4 +1,4 @@
-import { FREE_TIER_LIMITS, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscription.store';
 
@@ -116,26 +116,4 @@ export async function logoutRevenueCat() {
   } catch (e) {
     console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
   }
-}
-
-// Client-side feature gating (UI only — server enforces via PremiumGuard)
-type FeatureAccess =
-  | { allowed: true; unlimited: true }
-  | { allowed: true; unlimited: false; limit: number; remaining: number }
-  | { allowed: false; unlimited: false; limit: number; remaining: number };
-
-export function checkFeatureAccess(
-  feature: keyof typeof FREE_TIER_LIMITS,
-  currentCount: number,
-  isPro: boolean,
-): FeatureAccess {
-  if (isPro) return { allowed: true, unlimited: true };
-  const limit = FREE_TIER_LIMITS[feature];
-  const remaining = Math.max(0, limit - currentCount);
-  return {
-    allowed: currentCount < limit,
-    unlimited: false,
-    limit,
-    remaining,
-  };
 }

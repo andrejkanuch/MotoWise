@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ArticleContentSchema } from '@motovault/types';
+import { ArticleContentSchema, FREE_TIER_LIMITS } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   ForbiddenException,
@@ -39,6 +39,9 @@ export class ArticleGeneratorService {
     category?: string,
     difficulty?: string,
   ): Promise<Article> {
+    // Enforce free tier weekly article limit
+    await this.enforceFreeTierArticleLimit(userId);
+
     // Check AI budget before generating
     await this.aiBudgetService.checkBudgetForUser(userId);
     const systemPrompt = `You are a motorcycle expert writing educational articles for riders.
@@ -217,6 +220,48 @@ Requirements:
         .then();
 
       throw new InternalServerErrorException('Article generation failed');
+    }
+  }
+
+  private async enforceFreeTierArticleLimit(userId: string): Promise<void> {
+    const { data: userData } = await this.adminClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+    if (tier === 'pro') return;
+
+    // Calculate start of current week (Monday 00:00 UTC)
+    const now = new Date();
+    const dayOfWeek = now.getUTCDay();
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const weekStart = new Date(now);
+    weekStart.setUTCDate(now.getUTCDate() - daysSinceMonday);
+    weekStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.adminClient
+      .from('content_generation_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('content_type', 'article')
+      .eq('status', 'success')
+      .gte('created_at', weekStart.toISOString());
+
+    if (error) {
+      this.logger.error('Failed to count weekly articles for tier check', error);
+      // Fail open — don't block generation if count check fails
+      return;
+    }
+
+    if ((count ?? 0) >= FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK) {
+      this.logger.warn(
+        `User ${userId} hit free tier weekly article limit: ${count}/${FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK}`,
+      );
+      throw new ForbiddenException(
+        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK} articles per week. Upgrade to Pro for unlimited articles.`,
+      );
     }
   }
 

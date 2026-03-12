@@ -16,8 +16,10 @@ import type { Response } from 'express';
 import { revenueCatWebhookPayloadSchema } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 
+const TIMING_SAFE_KEY = 'rc-webhook-timing-safe-compare' as const;
+
 function safeCompare(a: string, b: string): boolean {
-  const hmac = (v: string) => createHmac('sha256', 'webhook-compare-key').update(v).digest();
+  const hmac = (v: string) => createHmac('sha256', TIMING_SAFE_KEY).update(v).digest();
   return timingSafeEqual(hmac(a), hmac(b));
 }
 
@@ -39,7 +41,8 @@ export class RevenueCatWebhookController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const secret = this.config.get<string>('REVENUECAT_WEBHOOK_SECRET');
-    if (!secret || !authHeader || !safeCompare(authHeader, secret)) {
+    const normalizedAuth = (authHeader ?? '').replace(/^Bearer\s+/i, '');
+    if (!secret || !normalizedAuth || !safeCompare(normalizedAuth, secret)) {
       throw new UnauthorizedException('Invalid webhook authorization');
     }
 

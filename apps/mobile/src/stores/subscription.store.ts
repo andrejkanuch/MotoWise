@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface SubscriptionState {
   isAvailable: boolean;
@@ -16,28 +14,16 @@ interface SubscriptionState {
   setVerified: (verified: boolean) => void;
 }
 
-export const useSubscriptionStore = create<SubscriptionState>()(
-  persist(
-    (set) => ({
-      isAvailable: false,
-      isPro: false,
-      isTrialing: false,
-      trialDaysLeft: null,
-      isLoading: false,
-      isVerified: false,
-      setAvailable: (isAvailable) => set({ isAvailable }),
-      setPro: (isPro) => set({ isPro }),
-      setTrialing: (isTrialing, trialDaysLeft = null) => set({ isTrialing, trialDaysLeft }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setVerified: (isVerified) => set({ isVerified }),
-    }),
-    {
-      name: 'subscription-state',
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({
-        isPro: state.isPro,
-        isTrialing: state.isTrialing,
-      }),
-    },
-  ),
-);
+export const useSubscriptionStore = create<SubscriptionState>()((set) => ({
+  isAvailable: false,
+  isPro: false,
+  isTrialing: false,
+  trialDaysLeft: null,
+  isLoading: false,
+  isVerified: false,
+  setAvailable: (isAvailable) => set({ isAvailable }),
+  setPro: (isPro) => set({ isPro }),
+  setTrialing: (isTrialing, trialDaysLeft = null) => set({ isTrialing, trialDaysLeft }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setVerified: (isVerified) => set({ isVerified }),
+}));

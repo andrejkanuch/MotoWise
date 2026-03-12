@@ -19,6 +19,9 @@ export class User {
   @Field(() => GraphQLJSON, { nullable: true })
   preferences?: Record<string, unknown>;
 
+  @Field(() => String, { nullable: true })
+  subscriptionTier?: string;
+
   @Field()
   createdAt: string;
 

@@ -30,9 +30,7 @@ create policy "Users can request own data export"
   on public.data_export_requests for insert
   with check (auth.uid() = user_id);
 
--- Only service role can update (for processing status)
-create policy "Service role can update export requests"
-  on public.data_export_requests for update
-  using (true);
+-- No UPDATE policy needed: service_role bypasses RLS,
+-- and regular users should not update export requests.
 
 comment on table public.data_export_requests is 'GDPR data export request audit trail';

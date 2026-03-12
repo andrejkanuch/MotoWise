@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertCircle, ArrowRight, CheckCircle, Trophy, XCircle } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent, trackScreen } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { queryKeys } from '../../../../lib/query-keys';
 
@@ -49,14 +50,26 @@ export default function QuizScreen() {
   const answeredCount = Object.keys(selectedAnswers).length;
   const allAnswered = answeredCount === totalQuestions;
 
+  // Track screen view and quiz start on mount
+  useEffect(() => {
+    if (articleId) {
+      trackScreen('Quiz', { quizId: articleId });
+      trackEvent(AnalyticsEvent.QUIZ_STARTED, { articleSlug: articleId });
+    }
+  }, [articleId]);
+
   const submitMutation = useMutation({
     mutationFn: (answers: number[]) =>
       gqlFetcher(CreateQuizAttemptDocument, {
         input: { quizId: quiz?.id ?? '', answers },
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setQuizState(QUIZ_STATES.results);
       queryClient.invalidateQueries({ queryKey: queryKeys.progress.all });
+      trackEvent(AnalyticsEvent.QUIZ_COMPLETED, {
+        score: data.submitQuiz.score,
+        totalQuestions: data.submitQuiz.totalQuestions,
+      });
       if (Platform.OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

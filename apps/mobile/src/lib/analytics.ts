@@ -113,6 +113,9 @@ export const AnalyticsEvent = {
   PURCHASE_CANCELLED: 'purchase_cancelled',
   SUBSCRIPTION_RESTORED: 'subscription_restored',
 
+  // Privacy
+  DATA_EXPORT_REQUESTED: 'data_export_requested',
+
   // Navigation
   SCREEN_VIEWED: 'screen_viewed',
   TAB_CHANGED: 'tab_changed',

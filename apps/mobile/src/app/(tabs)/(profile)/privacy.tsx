@@ -23,7 +23,13 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { setAnalyticsEnabled, setCrashReportingEnabled } from '../../../lib/analytics';
+import {
+  AnalyticsEvent,
+  setAnalyticsEnabled,
+  setCrashReportingEnabled,
+  trackEvent,
+  trackScreen,
+} from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { supabase } from '../../../lib/supabase';
@@ -130,6 +136,11 @@ export default function PrivacyScreen() {
   const [state, setState] = useState<PrivacyPrefs>(DEFAULTS);
   const [initialized, setInitialized] = useState(false);
 
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreen('Privacy');
+  }, []);
+
   useEffect(() => {
     if (meQuery.data && !initialized) {
       const merged = { ...DEFAULTS, ...prefs };
@@ -201,7 +212,10 @@ export default function PrivacyScreen() {
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('privacy.export', { defaultValue: 'Export' }),
-          onPress: () => exportMutation.mutate(),
+          onPress: () => {
+            trackEvent(AnalyticsEvent.DATA_EXPORT_REQUESTED);
+            exportMutation.mutate();
+          },
         },
       ],
     );

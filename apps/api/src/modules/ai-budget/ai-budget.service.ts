@@ -1,6 +1,8 @@
 import { AI_BUDGET_LIMITS } from '@motovault/types';
 import {
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -13,7 +15,8 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 export class AiBudgetService {
   private readonly logger = new Logger(AiBudgetService.name);
 
-  /** In-memory circuit breaker flag; resets with server restart or manual reset */
+  /** In-memory circuit breaker — does NOT work across multiple server instances.
+   *  TODO: Move to Redis or DB flag before horizontal scaling. */
   private circuitBreakerOpen = false;
 
   constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
@@ -64,7 +67,7 @@ export class AiBudgetService {
         : AI_BUDGET_LIMITS.FREE_DAILY_GENERATIONS;
 
     const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    todayStart.setUTCHours(0, 0, 0, 0);
 
     const { count, error } = await this.adminClient
       .from('content_generation_log')
@@ -75,7 +78,7 @@ export class AiBudgetService {
 
     if (error) {
       this.logger.error('Failed to check user daily AI limit', error);
-      // Fail open — allow the generation if we can't check
+      // Fail open for user-level check — global spend check provides financial protection
       return;
     }
 
@@ -94,24 +97,21 @@ export class AiBudgetService {
 
   private async checkGlobalSpend(): Promise<void> {
     const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    todayStart.setUTCHours(0, 0, 0, 0);
 
     const { data, error } = await this.adminClient
       .from('content_generation_log')
-      .select('cost_cents')
+      .select('cost_cents.sum()')
       .gte('created_at', todayStart.toISOString())
-      .eq('status', 'success');
+      .eq('status', 'success')
+      .single();
 
     if (error) {
       this.logger.error('Failed to check global AI spend', error);
-      // Fail open
-      return;
+      throw new HttpException('AI service temporarily unavailable', HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    const totalCents = (data ?? []).reduce(
-      (sum, row) => sum + ((row.cost_cents as number) ?? 0),
-      0,
-    );
+    const totalCents = (data as any)?.sum ?? 0;
 
     if (totalCents >= AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS) {
       this.circuitBreakerOpen = true;
@@ -132,26 +132,33 @@ export class AiBudgetService {
     dailySpendCapCents: number;
   }> {
     const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    todayStart.setUTCHours(0, 0, 0, 0);
 
-    const { data, error } = await this.adminClient
-      .from('content_generation_log')
-      .select('cost_cents')
-      .gte('created_at', todayStart.toISOString())
-      .eq('status', 'success');
+    const [spendResult, countResult] = await Promise.all([
+      this.adminClient
+        .from('content_generation_log')
+        .select('cost_cents.sum()')
+        .gte('created_at', todayStart.toISOString())
+        .eq('status', 'success')
+        .single(),
+      this.adminClient
+        .from('content_generation_log')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', todayStart.toISOString())
+        .eq('status', 'success'),
+    ]);
 
-    if (error) {
-      this.logger.error('Failed to fetch budget status', error);
+    if (spendResult.error || countResult.error) {
+      this.logger.error('Failed to fetch budget status', spendResult.error ?? countResult.error);
       throw new InternalServerErrorException('Failed to fetch AI budget status');
     }
 
-    const rows = data ?? [];
-    const totalCents = rows.reduce((sum, row) => sum + ((row.cost_cents as number) ?? 0), 0);
+    const totalCents = (spendResult.data as any)?.sum ?? 0;
 
     return {
       circuitBreakerOpen: this.circuitBreakerOpen,
       todaySpendCents: totalCents,
-      todayGenerationCount: rows.length,
+      todayGenerationCount: countResult.count ?? 0,
       dailySpendCapCents: AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS,
     };
   }
@@ -160,10 +167,5 @@ export class AiBudgetService {
   resetCircuitBreaker(): void {
     this.logger.warn('Admin reset AI circuit breaker');
     this.circuitBreakerOpen = false;
-  }
-
-  /** Admin: check if circuit breaker is open */
-  isCircuitBreakerOpen(): boolean {
-    return this.circuitBreakerOpen;
   }
 }

@@ -83,7 +83,7 @@ export function useProGate(): ProGateResult {
       const access = checkFeatureAccess(feature, currentCount, isPro);
       if (access.allowed) return true;
       // Map the limit key to a ProFeature for the paywall context
-      const featureMap: Record<string, ProFeature> = {
+      const featureMap: Partial<Record<keyof typeof FREE_TIER_LIMITS, ProFeature>> = {
         MAX_BIKES: 'unlimited_bikes',
         MAX_AI_DIAGNOSTICS_PER_MONTH: 'full_ai_diagnostics',
         MAX_ARTICLES_PER_WEEK: 'unlimited_articles',

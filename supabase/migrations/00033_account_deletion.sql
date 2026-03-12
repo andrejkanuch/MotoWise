@@ -103,3 +103,13 @@ $$;
 comment on function public.soft_delete_user is 'MOT-121: Soft-deletes user account with 30-day grace period';
 comment on function public.cancel_account_deletion is 'MOT-121: Cancels pending account deletion during grace period';
 comment on function public.hard_delete_expired_accounts is 'MOT-121: Permanently deletes accounts past grace period (cron)';
+
+-- Restrict execution to service_role only (defense-in-depth)
+REVOKE EXECUTE ON FUNCTION public.hard_delete_expired_accounts FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.hard_delete_expired_accounts TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.soft_delete_user FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.soft_delete_user TO service_role;
+
+REVOKE EXECUTE ON FUNCTION public.cancel_account_deletion FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.cancel_account_deletion TO service_role;

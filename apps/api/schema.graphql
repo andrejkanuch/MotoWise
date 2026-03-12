@@ -1,14 +1,18 @@
-type AiBudgetStatus {
-  circuitBreakerOpen: Boolean!
-  dailySpendCapCents: Int!
-  todayGenerationCount: Int!
-  todaySpendCents: Int!
-}
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
 
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
   taskId: String!
+}
+
+type AiBudgetStatus {
+  circuitBreakerOpen: Boolean!
+  dailySpendCapCents: Int!
+  todayGenerationCount: Int!
+  todaySpendCents: Int!
 }
 
 type Article {
@@ -287,7 +291,6 @@ type MotorcycleModelResult {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
-  resetAiCircuitBreaker: Boolean!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
@@ -303,6 +306,7 @@ type Mutation {
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   markArticleRead(articleId: String!): LearningProgress!
   requestDataExport: DataExportRequest!
+  resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
@@ -489,6 +493,7 @@ type User {
   id: ID!
   preferences: JSON
   role: UserRole!
+  subscriptionTier: String
   updatedAt: String!
 }
 
