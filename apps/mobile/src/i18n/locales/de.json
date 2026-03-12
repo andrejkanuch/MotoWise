@@ -8,7 +8,8 @@
     "delete": "Loeschen",
     "back": "Zurueck",
     "retry": "Erneut versuchen",
-    "skip": "Ueberspringen"
+    "skip": "Ueberspringen",
+    "goBack": "Zurueck"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -129,7 +130,8 @@
     "relatedTopics": "Verwandte Themen",
     "markAsRead": "Als gelesen markieren",
     "alreadyRead": "Bereits gelesen",
-    "aiDisclaimer": "KI-generierter Inhalt. Ueberpruefe mit deinem Handbuch."
+    "aiDisclaimer": "KI-generierter Inhalt. Ueberpruefe mit deinem Handbuch.",
+    "takeQuiz": "Quiz starten"
   },
   "diagnose": {
     "startNew": "Neue Diagnose starten",
@@ -161,7 +163,8 @@
     "photoDisclaimer": "Die KI-Analyse dient nur zu Bildungszwecken und ersetzt keine professionelle mechanische Inspektion. Mit dem Absenden erkennst du diese Einschraenkung an.",
     "processing": "Diagnose wird verarbeitet...",
     "failed": "Diagnoseanalyse fehlgeschlagen",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "imageTooLarge": "Das Bild ist zu gross (max. 5 MB). Bitte waehle ein kleineres Foto oder nimm eines mit geringerer Qualitaet auf."
   },
   "wizard": {
     "step": "Schritt {{current}} von {{total}}",
@@ -484,6 +487,42 @@
     "noSubscriptionFound": "Kein Abonnement gefunden",
     "noSubscriptionFoundDesc": "Wir konnten kein aktives Abonnement zum Wiederherstellen finden.",
     "restoreFailed": "Kaeufe konnten nicht wiederhergestellt werden. Bitte versuche es erneut."
+  },
+  "quiz": {
+    "loading": "Quiz wird geladen...",
+    "loadError": "Quiz konnte nicht geladen werden. Bitte versuche es erneut.",
+    "noQuestions": "Keine Fragen fuer dieses Quiz verfuegbar.",
+    "questionProgress": "Frage {{current}} von {{total}}",
+    "answeredCount": "{{count}} von {{total}} beantwortet",
+    "scoreLabel": "{{score}} von {{total}} richtig",
+    "passed": "Bestanden!",
+    "keepLearning": "Weiter lernen",
+    "review": "Antworten ueberpruefen",
+    "questionNumber": "F{{number}}.",
+    "yourAnswer": "Deine Antwort:",
+    "noAnswer": "Keine Antwort",
+    "backToArticle": "Zurueck zum Artikel",
+    "previous": "Zurueck",
+    "next": "Weiter",
+    "submit": "Absenden"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Unbegrenzte Motorraeder",
+    "unlimitedBikesDesc": "Fuege so viele Motorraeder hinzu wie du moechtest.",
+    "unlimitedArticlesTitle": "Unbegrenzte Artikel",
+    "unlimitedArticlesDesc": "Zugriff auf die gesamte Lernbibliothek.",
+    "fullDiagnosticsTitle": "Volle KI-Diagnose",
+    "fullDiagnosticsDesc": "Schalte unbegrenzte KI-Fotodiagnosen frei.",
+    "maintenanceRemindersTitle": "Wartungserinnerungen",
+    "maintenanceRemindersDesc": "Erhalte intelligente Erinnerungen fuer alle deine Motorraeder.",
+    "pdfExportTitle": "PDF-Export",
+    "pdfExportDesc": "Exportiere Wartungsaufzeichnungen als PDF-Berichte.",
+    "featureUnlimitedBikes": "Unbegrenzte Motorraeder in deiner Garage",
+    "featureFullDiagnostics": "Volle KI-Diagnose",
+    "featureMaintenanceReminders": "Intelligente Wartungserinnerungen",
+    "featurePdfExport": "PDF-Export von Aufzeichnungen",
+    "upgradeToPro": "Auf Pro upgraden",
+    "maybeLater": "Vielleicht spaeter"
   },
   "notFound": {
     "message": "Seite nicht gefunden",

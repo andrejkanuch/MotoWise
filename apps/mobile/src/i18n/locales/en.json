@@ -8,7 +8,8 @@
     "delete": "Delete",
     "back": "Back",
     "retry": "Retry",
-    "skip": "Skip"
+    "skip": "Skip",
+    "goBack": "Go Back"
   },
   "auth": {
     "signIn": "Sign In",
@@ -129,7 +130,8 @@
     "relatedTopics": "Related Topics",
     "markAsRead": "Mark as Read",
     "alreadyRead": "Already Read",
-    "aiDisclaimer": "AI-generated content. Verify with your owner's manual."
+    "aiDisclaimer": "AI-generated content. Verify with your owner's manual.",
+    "takeQuiz": "Take Quiz"
   },
   "diagnose": {
     "startNew": "Start New Diagnosis",
@@ -485,6 +487,42 @@
     "noSubscriptionFound": "No Subscription Found",
     "noSubscriptionFoundDesc": "We couldn't find an active subscription to restore.",
     "restoreFailed": "Could not restore purchases. Please try again."
+  },
+  "quiz": {
+    "loading": "Loading quiz...",
+    "loadError": "Could not load the quiz. Please try again.",
+    "noQuestions": "No questions available for this quiz.",
+    "questionProgress": "Question {{current}} of {{total}}",
+    "answeredCount": "{{count}} of {{total}} answered",
+    "scoreLabel": "{{score}} of {{total}} correct",
+    "passed": "Passed!",
+    "keepLearning": "Keep Learning",
+    "review": "Review Answers",
+    "questionNumber": "Q{{number}}.",
+    "yourAnswer": "Your answer:",
+    "noAnswer": "No answer",
+    "backToArticle": "Back to Article",
+    "previous": "Previous",
+    "next": "Next",
+    "submit": "Submit"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Unlimited Bikes",
+    "unlimitedBikesDesc": "Add as many motorcycles as you want to your garage.",
+    "unlimitedArticlesTitle": "Unlimited Articles",
+    "unlimitedArticlesDesc": "Access the full library of learning content.",
+    "fullDiagnosticsTitle": "Full AI Diagnostics",
+    "fullDiagnosticsDesc": "Unlock unlimited AI-powered photo diagnostics.",
+    "maintenanceRemindersTitle": "Maintenance Reminders",
+    "maintenanceRemindersDesc": "Get smart reminders for all your bikes.",
+    "pdfExportTitle": "PDF Export",
+    "pdfExportDesc": "Export maintenance records as PDF reports.",
+    "featureUnlimitedBikes": "Unlimited bikes in your garage",
+    "featureFullDiagnostics": "Full AI diagnostics",
+    "featureMaintenanceReminders": "Smart maintenance reminders",
+    "featurePdfExport": "PDF export of records",
+    "upgradeToPro": "Upgrade to Pro",
+    "maybeLater": "Maybe Later"
   },
   "notFound": {
     "message": "Page not found",

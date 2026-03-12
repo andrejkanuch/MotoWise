@@ -8,7 +8,8 @@
     "delete": "Eliminar",
     "back": "Volver",
     "retry": "Reintentar",
-    "skip": "Omitir"
+    "skip": "Omitir",
+    "goBack": "Volver"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -129,7 +130,8 @@
     "relatedTopics": "Temas Relacionados",
     "markAsRead": "Marcar como Leido",
     "alreadyRead": "Ya Leido",
-    "aiDisclaimer": "Contenido generado por IA. Verifica con el manual de tu motocicleta."
+    "aiDisclaimer": "Contenido generado por IA. Verifica con el manual de tu motocicleta.",
+    "takeQuiz": "Hacer Cuestionario"
   },
   "diagnose": {
     "startNew": "Iniciar Nuevo Diagnostico",
@@ -485,6 +487,42 @@
     "noSubscriptionFound": "Suscripcion no encontrada",
     "noSubscriptionFoundDesc": "No encontramos una suscripcion activa para restaurar.",
     "restoreFailed": "No se pudieron restaurar las compras. Intenta de nuevo."
+  },
+  "quiz": {
+    "loading": "Cargando cuestionario...",
+    "loadError": "No se pudo cargar el cuestionario. Intenta de nuevo.",
+    "noQuestions": "No hay preguntas disponibles para este cuestionario.",
+    "questionProgress": "Pregunta {{current}} de {{total}}",
+    "answeredCount": "{{count}} de {{total}} respondidas",
+    "scoreLabel": "{{score}} de {{total}} correctas",
+    "passed": "Aprobado!",
+    "keepLearning": "Sigue aprendiendo",
+    "review": "Revisar respuestas",
+    "questionNumber": "P{{number}}.",
+    "yourAnswer": "Tu respuesta:",
+    "noAnswer": "Sin respuesta",
+    "backToArticle": "Volver al articulo",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "submit": "Enviar"
+  },
+  "proGate": {
+    "unlimitedBikesTitle": "Motos ilimitadas",
+    "unlimitedBikesDesc": "Agrega todas las motos que quieras a tu garaje.",
+    "unlimitedArticlesTitle": "Articulos ilimitados",
+    "unlimitedArticlesDesc": "Accede a toda la biblioteca de contenido.",
+    "fullDiagnosticsTitle": "Diagnosticos IA completos",
+    "fullDiagnosticsDesc": "Desbloquea diagnosticos fotograficos ilimitados con IA.",
+    "maintenanceRemindersTitle": "Recordatorios de mantenimiento",
+    "maintenanceRemindersDesc": "Recibe recordatorios inteligentes para todas tus motos.",
+    "pdfExportTitle": "Exportar PDF",
+    "pdfExportDesc": "Exporta registros de mantenimiento como informes PDF.",
+    "featureUnlimitedBikes": "Motos ilimitadas en tu garaje",
+    "featureFullDiagnostics": "Diagnosticos IA completos",
+    "featureMaintenanceReminders": "Recordatorios de mantenimiento inteligentes",
+    "featurePdfExport": "Exportacion PDF de registros",
+    "upgradeToPro": "Actualizar a Pro",
+    "maybeLater": "Quizas despues"
   },
   "notFound": {
     "message": "Pagina no encontrada",

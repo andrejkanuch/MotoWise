@@ -161,7 +161,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
               { icon: Sparkles, label: t('proGate.featurePdfExport') },
             ].map((item, index) => (
               <Animated.View
-                key={item.label}
+                key={String(item.label)}
                 entering={FadeInUp.delay(350 + index * 60).duration(300)}
                 style={{
                   flexDirection: 'row',
@@ -183,7 +183,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
                   <item.icon size={16} color="#818CF8" strokeWidth={2} />
                 </View>
                 <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>
-                  {item.label}
+                  {String(item.label)}
                 </Text>
               </Animated.View>
             ))}

@@ -1,3 +1,4 @@
+import type { JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
@@ -119,7 +120,7 @@ export const AnalyticsEvent = {
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
 
-export function trackEvent(event: AnalyticsEventName, properties?: Record<string, unknown>) {
+export function trackEvent(event: AnalyticsEventName, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 
   if (posthogClient) {
@@ -127,7 +128,7 @@ export function trackEvent(event: AnalyticsEventName, properties?: Record<string
   }
 }
 
-export function trackScreen(screenName: string, properties?: Record<string, unknown>) {
+export function trackScreen(screenName: string, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 
   if (posthogClient) {
@@ -160,6 +161,6 @@ export async function flushAnalytics() {
     await posthogClient.flush();
   }
   if (SENTRY_DSN) {
-    await Sentry.flush(2000);
+    await Sentry.flush();
   }
 }
