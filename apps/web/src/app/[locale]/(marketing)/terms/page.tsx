@@ -38,6 +38,9 @@ export default async function TermsPage() {
       <h2>{t('ipTitle')}</h2>
       <p>{t('ip')}</p>
 
+      <h2>{t('aiDisclaimerTitle')}</h2>
+      <p>{t('aiDisclaimer')}</p>
+
       <h2>{t('liabilityTitle')}</h2>
       <p>{t('liability')}</p>
     </article>

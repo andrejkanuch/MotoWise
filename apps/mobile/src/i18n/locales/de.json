@@ -128,7 +128,8 @@
     "keyTakeaways": "Wichtige Erkenntnisse",
     "relatedTopics": "Verwandte Themen",
     "markAsRead": "Als gelesen markieren",
-    "alreadyRead": "Bereits gelesen"
+    "alreadyRead": "Bereits gelesen",
+    "aiDisclaimer": "KI-generierter Inhalt. Ueberpruefe mit deinem Handbuch."
   },
   "diagnose": {
     "startNew": "Neue Diagnose starten",
@@ -154,7 +155,10 @@
     "difficulty": "Schwierigkeit",
     "nextSteps": "Naechste Schritte",
     "findArticle": "Verwandten Artikel finden",
-    "disclaimer": "Dies ist eine KI-Diagnose nur zu Bildungszwecken. Konsultiere immer einen qualifizierten Mechaniker bei sicherheitskritischen Problemen.",
+    "disclaimer": "Nur zu Bildungszwecken. Konsultiere immer einen qualifizierten Mechaniker.",
+    "consultMechanic": "Mechaniker konsultieren",
+    "consultMechanicSubtitle": "Dieses Problem kann die Sicherheit beeintraechtigen. Wir empfehlen eine professionelle Inspektion.",
+    "photoDisclaimer": "Die KI-Analyse dient nur zu Bildungszwecken und ersetzt keine professionelle mechanische Inspektion. Mit dem Absenden erkennst du diese Einschraenkung an.",
     "processing": "Diagnose wird verarbeitet...",
     "failed": "Diagnoseanalyse fehlgeschlagen",
     "retry": "Erneut versuchen"

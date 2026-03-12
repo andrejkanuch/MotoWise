@@ -128,7 +128,8 @@
     "keyTakeaways": "Key Takeaways",
     "relatedTopics": "Related Topics",
     "markAsRead": "Mark as Read",
-    "alreadyRead": "Already Read"
+    "alreadyRead": "Already Read",
+    "aiDisclaimer": "AI-generated content. Verify with your owner's manual."
   },
   "diagnose": {
     "startNew": "Start New Diagnosis",
@@ -154,7 +155,10 @@
     "difficulty": "Difficulty",
     "nextSteps": "Next Steps",
     "findArticle": "Find Related Article",
-    "disclaimer": "This is an AI diagnosis for educational purposes only. Always consult a qualified mechanic for safety-critical issues.",
+    "disclaimer": "For educational purposes only. Always consult a qualified mechanic.",
+    "consultMechanic": "Consult a Mechanic",
+    "consultMechanicSubtitle": "This issue may affect safety. We recommend professional inspection.",
+    "photoDisclaimer": "AI analysis is for educational purposes only and does not replace professional mechanical inspection. By submitting, you acknowledge this limitation.",
     "processing": "Processing your diagnostic...",
     "failed": "Diagnostic analysis failed",
     "retry": "Try Again",

@@ -62,6 +62,7 @@ input CompleteMaintenanceTaskInput {
 }
 
 input CompleteOnboardingInput {
+  annualRepairSpend: String
   bikeMake: String
   bikeMileage: Int
   bikeModel: String
@@ -69,10 +70,16 @@ input CompleteOnboardingInput {
   bikeType: String
   bikeYear: Int
   experienceLevel: String!
+  lastServiceDate: String
   learningFormats: [String!]!
+  maintenanceReminders: Boolean = true
   maintenanceStyle: String
+  recallAlerts: Boolean = false
+  reminderChannel: String
   ridingFrequency: String
   ridingGoals: [String!]!
+  seasonalTips: Boolean = false
+  weeklySummary: Boolean = false
 }
 
 type CompleteTaskResult {

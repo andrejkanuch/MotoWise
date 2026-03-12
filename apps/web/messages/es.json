@@ -183,6 +183,8 @@
     "accounts": "Eres responsable de mantener la confidencialidad de las credenciales de tu cuenta. Aceptas proporcionar información precisa al crear tu cuenta y actualizarla según sea necesario.",
     "ipTitle": "Propiedad Intelectual",
     "ip": "Todo el contenido, funciones y funcionalidad de MotoWise son propiedad de MotoWise y están protegidos por derechos de autor y otras leyes de propiedad intelectual. El contenido de aprendizaje no puede ser reproducido sin permiso.",
+    "aiDisclaimerTitle": "Aviso sobre Contenido y Diagnósticos Generados por IA",
+    "aiDisclaimer": "MotoWise utiliza inteligencia artificial para generar contenido educativo, evaluaciones de diagnóstico y materiales de aprendizaje. Todo el contenido generado por IA se proporciona solo con fines educativos e informativos y no constituye asesoramiento mecánico profesional. Los resultados de diagnóstico de IA incluyen una puntuación de confianza que indica la certeza del modelo — los resultados deben interpretarse en consecuencia. Siempre debes consultar a un mecánico de motocicletas calificado para problemas críticos de seguridad, antes de realizar cualquier reparación y para verificar cualquier orientación generada por IA. MotoWise no garantiza la precisión, integridad o confiabilidad del contenido generado por IA o las evaluaciones de diagnóstico. Al utilizar las funciones de IA de MotoWise, reconoces y aceptas estas limitaciones.",
     "liabilityTitle": "Limitación de Responsabilidad",
     "liability": "MotoWise se proporciona \"tal cual\" sin garantías de ningún tipo. No somos responsables de ningún daño que surja del uso del servicio o de la dependencia de los resultados del diagnóstico con IA."
   },

@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import i18n from '../i18n';
+import { identifyUser, initPostHog, initSentry, resetUser } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
   cancelAllNotifications,
@@ -19,6 +20,10 @@ import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
+
+// Initialize Sentry and PostHog as early as possible
+initSentry();
+initPostHog();
 
 // Configure foreground notification display
 Notifications.setNotificationHandler({
@@ -127,8 +132,12 @@ export default function RootLayout() {
       setSession(session);
       if (session?.user) {
         loginRevenueCat(session.user.id);
+        identifyUser(session.user.id);
       } else {
         logoutRevenueCat();
+        resetUser();
+      }
+      if (!session) {
         queryClient.clear();
         cancelAllNotifications();
       }
