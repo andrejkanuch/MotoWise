@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { RidingGoal } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -16,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -25,12 +27,12 @@ const GOAL_OPTIONS: {
   icon: typeof Wrench;
   color: string;
 }[] = [
-  { value: 'learn_maintenance', icon: Wrench, color: '#34D399' },
-  { value: 'improve_riding', icon: TrendingUp, color: '#60A5FA' },
+  { value: 'learn_maintenance', icon: Wrench, color: ONBOARDING_COLORS.success },
+  { value: 'improve_riding', icon: TrendingUp, color: palette.moduleSuspension },
   { value: 'track_maintenance', icon: ClipboardCheck, color: '#A78BFA' },
-  { value: 'save_money', icon: DollarSign, color: '#F59E0B' },
+  { value: 'save_money', icon: DollarSign, color: ONBOARDING_COLORS.warning },
   { value: 'find_community', icon: Users, color: '#EC4899' },
-  { value: 'safety', icon: Shield, color: '#EF4444' },
+  { value: 'safety', icon: Shield, color: palette.danger500 },
   { value: 'save_on_maintenance', icon: PiggyBank, color: '#14B8A6' },
   { value: 'track_bike_health', icon: Activity, color: '#8B5CF6' },
 ];
@@ -68,7 +70,7 @@ export default function RidingGoalsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={9} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -81,7 +83,7 @@ export default function RidingGoalsScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 8,
           }}
@@ -93,7 +95,7 @@ export default function RidingGoalsScreen() {
           entering={FadeInUp.delay(100).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255,255,255,0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             lineHeight: 24,
             marginBottom: 32,
           }}
@@ -122,7 +124,9 @@ export default function RidingGoalsScreen() {
           onPress={handleContinue}
           disabled={!canContinue}
           style={({ pressed }) => ({
-            backgroundColor: canContinue ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
+            backgroundColor: canContinue
+              ? ONBOARDING_COLORS.textPrimary
+              : ONBOARDING_COLORS.textDimmed,
             borderRadius: 16,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -134,7 +138,7 @@ export default function RidingGoalsScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)',
+              color: canContinue ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted,
             }}
           >
             {t('onboarding.continue')}

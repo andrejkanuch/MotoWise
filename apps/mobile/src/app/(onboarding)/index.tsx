@@ -4,6 +4,7 @@ import { Bike } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from './_config';
 
@@ -19,7 +20,7 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={0} totalScreens={TOTAL_SCREENS} />
 
       <View
@@ -37,14 +38,14 @@ export default function WelcomeScreen() {
               height: 96,
               borderRadius: 48,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
               alignItems: 'center',
               justifyContent: 'center',
               alignSelf: 'center',
               marginBottom: 32,
             }}
           >
-            <Bike size={64} color="#FFFFFF" />
+            <Bike size={64} color={ONBOARDING_COLORS.textPrimary} />
           </View>
         </Animated.View>
 
@@ -53,7 +54,7 @@ export default function WelcomeScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             textAlign: 'center',
             marginBottom: 12,
@@ -66,7 +67,7 @@ export default function WelcomeScreen() {
           entering={FadeInUp.delay(300).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255, 255, 255, 0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             lineHeight: 24,
             textAlign: 'center',
           }}
@@ -82,7 +83,7 @@ export default function WelcomeScreen() {
         <Pressable
           onPress={handleGetStarted}
           style={({ pressed }) => ({
-            backgroundColor: '#FFFFFF',
+            backgroundColor: ONBOARDING_COLORS.textPrimary,
             borderRadius: 16,
             borderCurve: 'continuous',
             paddingVertical: 18,
@@ -96,7 +97,7 @@ export default function WelcomeScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: '#0F172A',
+              color: ONBOARDING_COLORS.background,
             }}
           >
             {t('onboarding.getStarted')}

@@ -238,11 +238,9 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
           }}
           style={{ borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' }}
         >
-          <LinearGradient
-            colors={[palette.primary600, palette.primary500]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             style={{
+              backgroundColor: palette.primary700,
               flexDirection: 'row',
               alignItems: 'center',
               paddingHorizontal: 28,
@@ -254,7 +252,7 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
             <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
               {t('garage.addFirstBike')}
             </Text>
-          </LinearGradient>
+          </View>
         </Pressable>
       </Animated.View>
     </View>
@@ -395,7 +393,7 @@ export default function GarageScreen() {
             }}
           >
             {!isPro && motorcycles.length >= 1 ? (
-              <Crown size={18} color="#FACC15" strokeWidth={2.5} />
+              <Crown size={18} color={palette.signature500} strokeWidth={2.5} />
             ) : (
               <Plus
                 size={18}

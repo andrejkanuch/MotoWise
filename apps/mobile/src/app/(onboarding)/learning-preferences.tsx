@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { LearningFormat } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,15 +8,16 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
 const FORMAT_OPTIONS = [
-  { value: 'quick_tips' as LearningFormat, icon: Zap, color: '#34D399' },
-  { value: 'deep_dives' as LearningFormat, icon: BookOpen, color: '#60A5FA' },
+  { value: 'quick_tips' as LearningFormat, icon: Zap, color: ONBOARDING_COLORS.success },
+  { value: 'deep_dives' as LearningFormat, icon: BookOpen, color: palette.moduleSuspension },
   { value: 'video_walkthroughs' as LearningFormat, icon: Play, color: '#A78BFA' },
-  { value: 'hands_on_quizzes' as LearningFormat, icon: Brain, color: '#F59E0B' },
+  { value: 'hands_on_quizzes' as LearningFormat, icon: Brain, color: ONBOARDING_COLORS.warning },
 ] as const;
 
 export default function LearningPreferencesScreen() {
@@ -53,7 +55,7 @@ export default function LearningPreferencesScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={12} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -66,7 +68,7 @@ export default function LearningPreferencesScreen() {
           style={{
             fontSize: 28,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 8,
           }}
@@ -78,7 +80,7 @@ export default function LearningPreferencesScreen() {
           entering={FadeInUp.delay(100).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255,255,255,0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             marginBottom: 32,
           }}
         >
@@ -110,7 +112,9 @@ export default function LearningPreferencesScreen() {
           onPress={handleContinue}
           disabled={!canContinue}
           style={({ pressed }) => ({
-            backgroundColor: canContinue ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
+            backgroundColor: canContinue
+              ? ONBOARDING_COLORS.textPrimary
+              : ONBOARDING_COLORS.textDimmed,
             borderRadius: 20,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -122,7 +126,7 @@ export default function LearningPreferencesScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)',
+              color: canContinue ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted,
             }}
           >
             {t('onboarding.continue')}

@@ -76,6 +76,11 @@ export const palette = {
   signatureBgLight: '#FFF1EB',
   signatureBgDark: '#3B1A0A',
 
+  // Indigo (onboarding accent)
+  indigo400: '#818CF8',
+  indigo500: '#6366F1',
+  indigoBg: 'rgba(99,102,241,0.15)',
+
   // Surfaces
   surfaceDark: '#0F172A',
   cardDark: '#1E293B',

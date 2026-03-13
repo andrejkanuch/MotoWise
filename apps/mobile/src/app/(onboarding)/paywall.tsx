@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { presentPaywall } from '../../lib/subscription';
 import { TOTAL_SCREENS } from './_config';
@@ -35,10 +36,10 @@ export default function PaywallScreen() {
   }, [router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={15} totalScreens={TOTAL_SCREENS} />
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#818CF8" />
+        <ActivityIndicator size="large" color={ONBOARDING_COLORS.accent} />
       </View>
     </View>
   );

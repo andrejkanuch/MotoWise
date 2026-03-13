@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { MaintenanceStyle } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -16,8 +18,8 @@ const MAINTENANCE_OPTIONS: {
   icon: typeof Wrench;
   color: string;
 }[] = [
-  { value: 'diy', icon: Wrench, color: '#34D399' },
-  { value: 'sometimes', icon: HelpCircle, color: '#60A5FA' },
+  { value: 'diy', icon: Wrench, color: ONBOARDING_COLORS.success },
+  { value: 'sometimes', icon: HelpCircle, color: palette.moduleSuspension },
   { value: 'mechanic', icon: Building2, color: '#A78BFA' },
 ];
 
@@ -42,7 +44,7 @@ export default function MaintenanceStyleScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={10} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
@@ -51,7 +53,7 @@ export default function MaintenanceStyleScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 32,
           }}

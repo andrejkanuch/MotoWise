@@ -430,7 +430,7 @@ export default function ProfileScreen() {
                 })}
               >
                 {!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES ? (
-                  <Crown size={15} color="#FACC15" strokeWidth={2.5} />
+                  <Crown size={15} color={palette.signature500} strokeWidth={2.5} />
                 ) : (
                   <Plus size={15} color={palette.primary500} strokeWidth={2.5} />
                 )}
@@ -463,13 +463,18 @@ export default function ProfileScreen() {
                 height: 44,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: 'rgba(250,204,21,0.15)',
+                backgroundColor: `${palette.signature500}25`,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 14,
               }}
             >
-              <Crown size={22} color="#FACC15" strokeWidth={2} fill="#FACC15" />
+              <Crown
+                size={22}
+                color={palette.signature500}
+                strokeWidth={2}
+                fill={palette.signature500}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -498,11 +503,9 @@ export default function ProfileScreen() {
             }}
             style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
           >
-            <LinearGradient
-              colors={[palette.gradientCTAStart, palette.gradientCTAEnd]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
+                backgroundColor: palette.primary700,
                 flexDirection: 'row',
                 alignItems: 'center',
                 padding: 20,
@@ -531,7 +534,7 @@ export default function ProfileScreen() {
                 </Text>
               </View>
               <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-            </LinearGradient>
+            </View>
           </Pressable>
         </Animated.View>
       )}

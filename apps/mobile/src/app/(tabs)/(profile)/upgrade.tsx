@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
@@ -70,7 +71,7 @@ function PricingCard({
       }}
       style={{
         borderWidth: selected ? 2 : 1.5,
-        borderColor: selected ? '#818CF8' : 'rgba(255,255,255,0.15)',
+        borderColor: selected ? palette.indigo400 : 'rgba(255,255,255,0.15)',
         borderRadius: 20,
         borderCurve: 'continuous',
         padding: 20,
@@ -79,7 +80,7 @@ function PricingCard({
         overflow: 'visible',
         ...(process.env.EXPO_OS === 'ios'
           ? {
-              shadowColor: selected ? '#818CF8' : '#000',
+              shadowColor: selected ? palette.indigo400 : '#000',
               shadowOffset: { width: 0, height: selected ? 0 : 1 },
               shadowOpacity: selected ? 0.2 : 0.15,
               shadowRadius: selected ? 10 : 3,
@@ -94,20 +95,22 @@ function PricingCard({
             position: 'absolute',
             top: -12,
             right: 16,
-            backgroundColor: '#FACC15',
+            backgroundColor: palette.signature500,
             paddingHorizontal: 12,
             paddingVertical: 4,
             borderRadius: 12,
             borderCurve: 'continuous',
           }}
         >
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#0F172A' }}>{badge}</Text>
+          <Text style={{ fontSize: 12, fontWeight: '800', color: palette.surfaceDark }}>
+            {badge}
+          </Text>
         </Animated.View>
       )}
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View>
-          <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
             {t(`paywall.${plan}`)}
           </Text>
           <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
@@ -115,14 +118,14 @@ function PricingCard({
           </Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFFFFF' }}>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: palette.white }}>
             {price}
             <Text style={{ fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.5)' }}>
               /{t(`paywall.${periodKey}`)}
             </Text>
           </Text>
           {monthlyEquiv && (
-            <Text style={{ fontSize: 13, color: '#34D399', marginTop: 2 }}>
+            <Text style={{ fontSize: 13, color: palette.success500, marginTop: 2 }}>
               {monthlyEquiv}/{t('paywall.month')}
             </Text>
           )}
@@ -139,13 +142,13 @@ function PricingCard({
           borderRadius: 11,
           borderCurve: 'continuous',
           borderWidth: 2,
-          borderColor: selected ? '#818CF8' : 'rgba(255,255,255,0.3)',
-          backgroundColor: selected ? '#818CF8' : 'transparent',
+          borderColor: selected ? palette.indigo400 : 'rgba(255,255,255,0.3)',
+          backgroundColor: selected ? palette.indigo400 : 'transparent',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        {selected && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
+        {selected && <Check size={14} color={palette.white} strokeWidth={3} />}
       </View>
     </Pressable>
   );
@@ -271,7 +274,7 @@ export default function UpgradeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 24,
@@ -291,19 +294,19 @@ export default function UpgradeScreen() {
               height: 64,
               borderRadius: 32,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(250, 204, 21, 0.15)',
+              backgroundColor: 'rgba(212,98,46,0.15)',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 20,
             }}
           >
-            <Star size={32} color="#FACC15" fill="#FACC15" />
+            <Star size={32} color={palette.signature500} fill={palette.signature500} />
           </View>
           <Text
             style={{
               fontSize: 28,
               fontWeight: '800',
-              color: '#FFFFFF',
+              color: palette.white,
               textAlign: 'center',
               letterSpacing: -0.5,
               marginBottom: 8,
@@ -335,10 +338,10 @@ export default function UpgradeScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Icon size={18} color="#818CF8" />
+                <Icon size={18} color={palette.indigo400} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#FFFFFF' }}>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
                   {t(`paywall.feature${key}Title`)}
                 </Text>
                 <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
@@ -357,7 +360,7 @@ export default function UpgradeScreen() {
         >
           {offeringsLoading ? (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <ActivityIndicator size="large" color="#818CF8" />
+              <ActivityIndicator size="large" color={palette.indigo400} />
             </View>
           ) : fetchError ? (
             <View
@@ -378,7 +381,7 @@ export default function UpgradeScreen() {
                   opacity: pressed ? 0.7 : 1,
                 })}
               >
-                <Text style={{ fontSize: 15, fontWeight: '600', color: '#818CF8' }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: palette.indigo400 }}>
                   {t('common.retry')}
                 </Text>
               </Pressable>
@@ -434,7 +437,7 @@ export default function UpgradeScreen() {
             <Pressable
               onPress={() => router.back()}
               style={({ pressed }) => ({
-                backgroundColor: '#FACC15',
+                backgroundColor: palette.signature500,
                 borderRadius: 20,
                 borderCurve: 'continuous',
                 paddingVertical: 16,
@@ -445,7 +448,7 @@ export default function UpgradeScreen() {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>
+              <Text style={{ fontSize: 17, fontWeight: '700', color: palette.surfaceDark }}>
                 {t('paywall.skipDevMode')}
               </Text>
             </Pressable>
@@ -454,7 +457,7 @@ export default function UpgradeScreen() {
               onPress={handlePurchase}
               disabled={isLoading || offeringsLoading || !!fetchError}
               style={({ pressed }) => ({
-                backgroundColor: '#FFFFFF',
+                backgroundColor: palette.white,
                 borderRadius: 20,
                 borderCurve: 'continuous',
                 paddingVertical: 16,
@@ -466,13 +469,13 @@ export default function UpgradeScreen() {
               })}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color="#0F172A" />
+                <ActivityIndicator size="small" color={palette.surfaceDark} />
               ) : (
                 <>
-                  <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>
+                  <Text style={{ fontSize: 17, fontWeight: '700', color: palette.surfaceDark }}>
                     {t('paywall.startFreeTrial')}
                   </Text>
-                  <ChevronRight size={18} color="#0F172A" />
+                  <ChevronRight size={18} color={palette.surfaceDark} />
                 </>
               )}
             </Pressable>

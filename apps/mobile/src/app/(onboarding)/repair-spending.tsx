@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { AnnualRepairSpend } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -16,10 +18,10 @@ const SPEND_OPTIONS: {
   icon: typeof DollarSign;
   color: string;
 }[] = [
-  { value: 'under_200', icon: DollarSign, color: '#34D399' },
-  { value: '200_500', icon: DollarSign, color: '#60A5FA' },
+  { value: 'under_200', icon: DollarSign, color: ONBOARDING_COLORS.success },
+  { value: '200_500', icon: DollarSign, color: palette.moduleSuspension },
   { value: '500_1000', icon: DollarSign, color: '#A78BFA' },
-  { value: '1000_plus', icon: DollarSign, color: '#F59E0B' },
+  { value: '1000_plus', icon: DollarSign, color: ONBOARDING_COLORS.warning },
   { value: 'unsure', icon: HelpCircle, color: '#94A3B8' },
 ];
 
@@ -44,7 +46,7 @@ export default function RepairSpendingScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={11} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
@@ -53,7 +55,7 @@ export default function RepairSpendingScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 8,
           }}
@@ -65,7 +67,7 @@ export default function RepairSpendingScreen() {
           entering={FadeInUp.delay(100).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255,255,255,0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             lineHeight: 24,
             marginBottom: 32,
           }}

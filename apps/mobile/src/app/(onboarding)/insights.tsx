@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { GenerateOnboardingInsightsDocument } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -15,15 +16,16 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
 const TYPE_COLORS: Record<string, string> = {
-  maintenance: '#F59E0B',
-  learning: '#818CF8',
-  community: '#34D399',
+  maintenance: ONBOARDING_COLORS.warning,
+  learning: ONBOARDING_COLORS.accent,
+  community: ONBOARDING_COLORS.success,
 };
 
 const ICON_MAP: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -53,7 +55,7 @@ function SkeletonCard({ index }: { index: number }) {
     <Animated.View
       entering={FadeInUp.delay(index * 80).duration(300)}
       style={{
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        backgroundColor: ONBOARDING_COLORS.cardBg,
         borderRadius: 16,
         borderCurve: 'continuous',
         padding: 20,
@@ -67,7 +69,7 @@ function SkeletonCard({ index }: { index: number }) {
             height: 40,
             borderRadius: 12,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: ONBOARDING_COLORS.cardBorder,
           },
           animatedStyle,
         ]}
@@ -78,7 +80,7 @@ function SkeletonCard({ index }: { index: number }) {
             width: '60%',
             height: 16,
             borderRadius: 8,
-            backgroundColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: ONBOARDING_COLORS.cardBorder,
           },
           animatedStyle,
         ]}
@@ -89,7 +91,7 @@ function SkeletonCard({ index }: { index: number }) {
             width: '90%',
             height: 12,
             borderRadius: 6,
-            backgroundColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
           },
           animatedStyle,
         ]}
@@ -166,7 +168,7 @@ export default function InsightsScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={14} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -198,7 +200,7 @@ export default function InsightsScreen() {
           style={{
             fontSize: 28,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             textAlign: 'center',
             marginBottom: 8,
           }}
@@ -210,7 +212,7 @@ export default function InsightsScreen() {
           entering={FadeIn.delay(100).duration(300)}
           style={{
             fontSize: 16,
-            color: 'rgba(255,255,255,0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             textAlign: 'center',
             marginBottom: 32,
           }}
@@ -235,11 +237,11 @@ export default function InsightsScreen() {
               paddingVertical: 48,
             }}
           >
-            <AlertCircle size={40} color="rgba(255,255,255,0.4)" />
+            <AlertCircle size={40} color={ONBOARDING_COLORS.textMuted} />
             <Text
               style={{
                 fontSize: 16,
-                color: 'rgba(255,255,255,0.6)',
+                color: ONBOARDING_COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
@@ -252,10 +254,10 @@ export default function InsightsScreen() {
                 paddingVertical: 10,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: ONBOARDING_COLORS.cardBorder,
               }}
             >
-              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -266,14 +268,14 @@ export default function InsightsScreen() {
           <View style={{ gap: 16 }}>
             {insights.map((insight, index) => {
               const Icon = resolveLucideIcon(insight.icon);
-              const accent = TYPE_COLORS[insight.type] ?? '#818CF8';
+              const accent = TYPE_COLORS[insight.type] ?? ONBOARDING_COLORS.accent;
               return (
                 <Animated.View
                   // biome-ignore lint/suspicious/noArrayIndexKey: insight list from API, index needed for unique key
                   key={`${insight.type}-${index}`}
                   entering={FadeInUp.delay(index * 100).duration(300)}
                   style={{
-                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 20,
@@ -300,7 +302,7 @@ export default function InsightsScreen() {
                       style={{
                         fontSize: 17,
                         fontWeight: '700',
-                        color: '#FFFFFF',
+                        color: ONBOARDING_COLORS.textPrimary,
                         flex: 1,
                       }}
                     >
@@ -310,7 +312,7 @@ export default function InsightsScreen() {
                   <Text
                     style={{
                       fontSize: 15,
-                      color: 'rgba(255,255,255,0.7)',
+                      color: ONBOARDING_COLORS.textSecondary,
                       lineHeight: 22,
                     }}
                   >
@@ -333,8 +335,8 @@ export default function InsightsScreen() {
             gap: 8,
           }}
         >
-          <Users2 size={16} color="rgba(255,255,255,0.4)" />
-          <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+          <Users2 size={16} color={ONBOARDING_COLORS.textMuted} />
+          <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.textMuted }}>
             {t('onboarding.insightsSocialProof')}
           </Text>
         </Animated.View>
@@ -350,7 +352,7 @@ export default function InsightsScreen() {
           paddingHorizontal: 24,
           paddingBottom: insets.bottom + 16,
           paddingTop: 16,
-          backgroundColor: '#0F172A',
+          backgroundColor: ONBOARDING_COLORS.background,
         }}
       >
         <Animated.View entering={FadeInUp.delay(500).duration(300)}>
@@ -358,7 +360,7 @@ export default function InsightsScreen() {
             onPress={handleContinue}
             disabled={isPending}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? '#6366F1' : '#818CF8',
+              backgroundColor: pressed ? palette.indigo500 : ONBOARDING_COLORS.accent,
               borderRadius: 16,
               borderCurve: 'continuous',
               paddingVertical: 16,
@@ -366,7 +368,7 @@ export default function InsightsScreen() {
               opacity: isPending ? 0.5 : 1,
             })}
           >
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.textPrimary }}>
               {t('onboarding.insightsCta')}
             </Text>
           </Pressable>
@@ -377,7 +379,7 @@ export default function InsightsScreen() {
               onPress={handleContinue}
               style={{ alignItems: 'center', paddingVertical: 12, marginTop: 4 }}
             >
-              <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>
+              <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.textMuted }}>
                 {t('common.skip')}
               </Text>
             </Pressable>
