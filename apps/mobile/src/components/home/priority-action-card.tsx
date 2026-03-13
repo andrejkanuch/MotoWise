@@ -90,8 +90,7 @@ export function PriorityActionCard({ action, isDark }: PriorityActionCardProps) 
                 style={{
                   fontSize: 13,
                   fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  opacity: 0.6,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
                   marginTop: 2,
                 }}
                 numberOfLines={1}

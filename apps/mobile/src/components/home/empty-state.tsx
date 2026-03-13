@@ -1,6 +1,5 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Sparkles, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -56,21 +55,19 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
                   padding: 16,
                 }}
               >
-                <LinearGradient
-                  colors={[`${card.color}20`, `${card.color}10`]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <View
                   style={{
                     width: 48,
                     height: 48,
                     borderRadius: 14,
                     borderCurve: 'continuous',
+                    backgroundColor: `${card.color}18`,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
                   <CardIcon size={22} color={card.color} strokeWidth={1.8} />
-                </LinearGradient>
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
@@ -84,8 +81,7 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
                   <Text
                     style={{
                       fontSize: 13,
-                      color: isDark ? palette.neutral50 : palette.neutral950,
-                      opacity: 0.6,
+                      color: isDark ? palette.neutral400 : palette.neutral500,
                       marginTop: 2,
                     }}
                   >
@@ -106,23 +102,18 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onAddBike();
           }}
+          style={{
+            backgroundColor: palette.primary700,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            height: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          <LinearGradient
-            colors={[palette.gradientCTAStart, palette.gradientCTAEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              borderRadius: 20,
-              height: 56,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-              {t('home.emptyAddBike')}
-            </Text>
-          </LinearGradient>
+          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
+            {t('home.emptyAddBike')}
+          </Text>
         </Pressable>
       </Animated.View>
 
@@ -141,8 +132,6 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
               fontSize: 14,
               fontWeight: '600',
               color: palette.primary500,
-              textDecorationLine: 'underline',
-              textDecorationColor: palette.primary500,
             }}
           >
             {t('home.emptyExploreWithout')}

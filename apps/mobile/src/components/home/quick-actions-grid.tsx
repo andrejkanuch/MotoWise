@@ -62,8 +62,8 @@ export function QuickActionsGrid({ actions, isDark, onActionPress }: QuickAction
                   </View>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontWeight: '600',
+                      fontSize: 13,
+                      fontWeight: '500',
                       color: isDark ? palette.neutral50 : palette.neutral950,
                       textAlign: 'center',
                     }}

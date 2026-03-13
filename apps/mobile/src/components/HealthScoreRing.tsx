@@ -12,7 +12,7 @@ const STROKE_WIDTH = 10;
 
 function getScoreColor(score: number): string {
   if (score >= 75) return palette.success500;
-  if (score >= 60) return '#EAB308'; // yellow
+  if (score >= 60) return palette.warning500;
   if (score >= 40) return palette.warning500;
   return palette.danger500;
 }

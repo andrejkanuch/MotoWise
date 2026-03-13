@@ -18,19 +18,19 @@ export function ProBadge({ size = 'default' }: ProBadgeProps) {
           flexDirection: 'row',
           alignItems: 'center',
           gap: isSmall ? 3 : 5,
-          backgroundColor: 'rgba(250,204,21,0.15)',
+          backgroundColor: 'rgba(212,98,46,0.15)',
           paddingHorizontal: isSmall ? 8 : 12,
           paddingVertical: isSmall ? 3 : 5,
           borderRadius: isSmall ? 8 : 12,
           borderCurve: 'continuous',
         }}
       >
-        <Crown size={isSmall ? 11 : 14} color="#FACC15" strokeWidth={2.5} fill="#FACC15" />
+        <Crown size={isSmall ? 11 : 14} color="#D4622E" strokeWidth={2.5} fill="#D4622E" />
         <Text
           style={{
             fontSize: isSmall ? 10 : 12,
             fontWeight: '700',
-            color: '#FACC15',
+            color: '#D4622E',
             letterSpacing: 0.5,
           }}
         >

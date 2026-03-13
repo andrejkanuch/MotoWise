@@ -22,6 +22,11 @@
   --color-accent-600: oklch(0.5 0.13 160);
   --color-accent-700: oklch(0.42 0.12 160);
 
+  /* Signature — Exhaust Copper (Identity) */
+  --color-signature-400: oklch(0.68 0.15 45);
+  --color-signature-500: oklch(0.60 0.16 45);
+  --color-signature-600: oklch(0.52 0.15 45);
+
   /* Warm — Amber/Gold (Encouragement) */
   --color-warm-50: oklch(0.97 0.01 70);
   --color-warm-100: oklch(0.94 0.03 70);

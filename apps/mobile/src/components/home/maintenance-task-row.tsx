@@ -43,7 +43,7 @@ export function MaintenanceTaskRow({
               ? 'rgba(239,68,68,0.1)'
               : 'rgba(239,68,68,0.06)'
             : isDark
-              ? '#2a2a2a'
+              ? palette.cardDark
               : palette.white,
         }}
       >
@@ -93,8 +93,7 @@ export function MaintenanceTaskRow({
                 style={{
                   fontSize: 12,
                   fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  opacity: 0.6,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
                 }}
               >
                 {bikeName}

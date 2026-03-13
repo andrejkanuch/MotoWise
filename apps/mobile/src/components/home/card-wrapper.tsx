@@ -38,7 +38,7 @@ export function CardWrapper({
   return (
     <View
       style={{
-        backgroundColor: isDark ? '#2a2a2a' : palette.white,
+        backgroundColor: isDark ? palette.cardDark : palette.white,
         borderRadius,
         borderCurve: 'continuous',
         shadowColor: palette.black,

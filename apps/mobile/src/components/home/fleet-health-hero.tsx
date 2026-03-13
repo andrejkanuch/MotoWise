@@ -20,7 +20,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function getScoreColor(score: number): string {
   if (score >= 75) return palette.success500;
-  if (score >= 60) return '#EAB308';
+  if (score >= 60) return palette.warning500;
   if (score >= 40) return palette.warning500;
   return palette.danger500;
 }
