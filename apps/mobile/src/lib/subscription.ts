@@ -125,14 +125,11 @@ export async function presentPaywall(
     const RevenueCatUI = await import('react-native-purchases-ui');
     const { PAYWALL_RESULT } = RevenueCatUI;
 
-    let result: number;
-    if (options.requiredEntitlementIdentifier) {
-      result = await RevenueCatUI.default.presentPaywallIfNeeded({
-        requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
-      });
-    } else {
-      result = await RevenueCatUI.default.presentPaywall();
-    }
+    const result = options.requiredEntitlementIdentifier
+      ? await RevenueCatUI.default.presentPaywallIfNeeded({
+          requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
+        })
+      : await RevenueCatUI.default.presentPaywall();
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:

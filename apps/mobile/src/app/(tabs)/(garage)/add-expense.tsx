@@ -119,7 +119,7 @@ export default function AddExpenseScreen() {
               height: 36,
               borderRadius: 10,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.success900 : palette.success50,
+              backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
               alignItems: 'center',
               justifyContent: 'center',
             }}
