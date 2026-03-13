@@ -8,25 +8,21 @@ import {
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Calendar,
   Camera,
-  Check,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
+  DollarSign,
   Edit3,
-  Gauge,
-  Plus,
+  MoreHorizontal,
   Star,
-  Trash2,
   Wrench,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
@@ -39,40 +35,19 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
+import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
-import { SpendingSummary } from '../../../../components/bike-hub/spending-summary';
-import { StatCards } from '../../../../components/bike-hub/stat-cards';
-import { UpcomingTasks } from '../../../../components/bike-hub/upcoming-tasks';
+import { haptic } from '../../../../components/bike-hub/swipeable-task-card';
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
-import { TaskPhotoGallery } from '../../../../components/TaskPhotoGallery';
 import { gqlFetcher } from '../../../../lib/graphql-client';
-import { computeHealthScore, getRelativeDueDate } from '../../../../lib/health-score';
+import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
-
-const PRIORITY_COLORS: Record<string, string> = {
-  critical: palette.danger500,
-  high: palette.warning500,
-  medium: palette.primary500,
-  low: palette.success500,
-};
-
-const PRIORITY_ORDER: Record<string, number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function InfoRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
   return (
@@ -101,334 +76,6 @@ function InfoRow({ label, value, isDark }: { label: string; value: string; isDar
   );
 }
 
-function PriorityBadge({ priority }: { priority: string }) {
-  const { t } = useTranslation();
-  const color = PRIORITY_COLORS[priority] ?? palette.neutral500;
-  return (
-    <View
-      style={{
-        backgroundColor: `${color}20`,
-        borderRadius: 6,
-        borderCurve: 'continuous',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: '700',
-          color,
-          textTransform: 'uppercase',
-          letterSpacing: 0.3,
-        }}
-      >
-        {String(
-          t(`maintenance.priority${priority.charAt(0).toUpperCase()}${priority.slice(1)}` as never),
-        )}
-      </Text>
-    </View>
-  );
-}
-
-/** Swipeable task card with left/right actions */
-function SwipeableTaskCard({
-  task,
-  index,
-  isDark,
-  expandedId,
-  motorcycleId,
-  onToggleExpand,
-  onComplete,
-  onDelete,
-}: {
-  task: MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
-  index: number;
-  isDark: boolean;
-  expandedId: string | null;
-  motorcycleId: string;
-  onToggleExpand: (id: string) => void;
-  onComplete: (id: string) => void;
-  onDelete: (id: string, title: string) => void;
-}) {
-  const { t } = useTranslation();
-  const isExpanded = expandedId === task.id;
-  const isCompleted = task.status === 'completed';
-  const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
-
-  return (
-    <Animated.View
-      key={task.id}
-      entering={FadeInUp.delay(index * 50).duration(300)}
-      exiting={FadeOutLeft.duration(250)}
-      layout={LinearTransition.duration(200)}
-    >
-      <View
-        style={{
-          backgroundColor: relative?.isOverdue
-            ? isDark
-              ? 'rgba(239,68,68,0.08)'
-              : 'rgba(239,68,68,0.05)'
-            : isDark
-              ? palette.neutral800
-              : palette.white,
-          borderRadius: 14,
-          borderCurve: 'continuous',
-          marginBottom: 10,
-          overflow: 'hidden',
-          borderLeftWidth: relative?.isOverdue ? 3 : 0,
-          borderLeftColor: palette.danger500,
-        }}
-      >
-        {/* Main card content */}
-        <Pressable
-          onPress={() => {
-            haptic();
-            onToggleExpand(task.id);
-          }}
-          style={{ padding: 14 }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            {/* Title + meta */}
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isCompleted
-                    ? palette.neutral400
-                    : isDark
-                      ? palette.neutral50
-                      : palette.neutral950,
-                  textDecorationLine: isCompleted ? 'line-through' : 'none',
-                }}
-              >
-                {task.title}
-              </Text>
-              {relative && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                  <Calendar
-                    size={12}
-                    color={relative.isOverdue ? palette.danger500 : palette.neutral400}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: relative.isOverdue ? palette.danger500 : palette.neutral400,
-                    }}
-                  >
-                    {String(t(relative.key as never, relative.params as never))}
-                  </Text>
-                </View>
-              )}
-              {task.targetMileage && !isCompleted && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                  <Gauge size={12} color={palette.neutral400} />
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-                    {task.targetMileage.toLocaleString()} mi
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Priority/overdue badge */}
-            {!isCompleted &&
-              (relative?.isOverdue ? (
-                <View
-                  style={{
-                    backgroundColor: `${palette.danger500}20`,
-                    borderRadius: 6,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '700',
-                      color: palette.danger500,
-                      letterSpacing: 0.3,
-                    }}
-                  >
-                    {t('maintenance.overdue')}
-                  </Text>
-                </View>
-              ) : (
-                <PriorityBadge priority={task.priority} />
-              ))}
-            {isExpanded ? (
-              <ChevronDown size={16} color={palette.neutral400} />
-            ) : (
-              <ChevronRight size={16} color={palette.neutral400} />
-            )}
-          </View>
-        </Pressable>
-
-        {/* Action buttons row — visible always for active tasks */}
-        {!isCompleted && (
-          <View
-            style={{
-              flexDirection: 'row',
-              borderTopWidth: 0.5,
-              borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-            }}
-          >
-            <Pressable
-              onPress={() => {
-                haptic();
-                onComplete(task.id);
-              }}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 10,
-                borderRightWidth: 0.5,
-                borderRightColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-              }}
-            >
-              <Check size={14} color={palette.success500} strokeWidth={2.5} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.success500 }}>
-                {t('maintenance.markDone', { defaultValue: 'Done' })}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                haptic();
-                onDelete(task.id, task.title);
-              }}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 10,
-              }}
-            >
-              <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
-                {t('common.delete', { defaultValue: 'Delete' })}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {/* Completed info row */}
-        {isCompleted && task.completedAt && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              paddingHorizontal: 14,
-              paddingBottom: 10,
-            }}
-          >
-            <CheckCircle2 size={14} color={palette.success500} strokeWidth={2} />
-            <Text style={{ fontSize: 12, color: palette.success500 }}>
-              {new Date(task.completedAt).toLocaleDateString()}
-              {task.completedMileage ? ` @ ${task.completedMileage.toLocaleString()} mi` : ''}
-            </Text>
-          </View>
-        )}
-
-        {/* Expanded content */}
-        {isExpanded && (
-          <Animated.View entering={FadeIn.duration(200)}>
-            <View
-              style={{
-                paddingHorizontal: 14,
-                paddingBottom: 14,
-                paddingTop: 4,
-                borderTopWidth: isCompleted ? 0.5 : 0,
-                borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-              }}
-            >
-              {task.description && (
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: isDark ? palette.neutral300 : palette.neutral600,
-                    marginBottom: 8,
-                    lineHeight: 20,
-                  }}
-                >
-                  {task.description}
-                </Text>
-              )}
-              {task.notes && (
-                <View style={{ marginBottom: 8 }}>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '600',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {t('maintenance.notes', { defaultValue: 'Notes' })}
-                  </Text>
-                  <Text
-                    selectable
-                    style={{
-                      fontSize: 13,
-                      color: isDark ? palette.neutral300 : palette.neutral600,
-                      lineHeight: 18,
-                    }}
-                  >
-                    {task.notes}
-                  </Text>
-                </View>
-              )}
-              {task.partsNeeded && task.partsNeeded.length > 0 && (
-                <View style={{ marginBottom: 8 }}>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '600',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {t('maintenance.partsNeeded', { defaultValue: 'Parts Needed' })}
-                  </Text>
-                  {task.partsNeeded.map((part: string) => (
-                    <Text
-                      key={`${task.id}-part-${part}`}
-                      style={{
-                        fontSize: 13,
-                        color: isDark ? palette.neutral300 : palette.neutral600,
-                        lineHeight: 20,
-                      }}
-                    >
-                      {'\u2022'} {part}
-                    </Text>
-                  ))}
-                </View>
-              )}
-              <TaskPhotoGallery
-                taskId={task.id}
-                userId={task.userId}
-                motorcycleId={motorcycleId}
-                photos={task.photos ?? []}
-                isDark={isDark}
-              />
-            </View>
-          </Animated.View>
-        )}
-      </View>
-    </Animated.View>
-  );
-}
-
 export default function BikeDetailScreen() {
   const { t } = useTranslation();
   const { id, highlightTask } = useLocalSearchParams<{
@@ -454,7 +101,7 @@ export default function BikeDetailScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
-  const { data: tasksData, isLoading: tasksLoading } = useQuery({
+  const { data: tasksData } = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: id }),
   });
@@ -491,8 +138,6 @@ export default function BikeDetailScreen() {
     queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
   };
 
-  // completeMutation moved to complete-task formSheet route
-
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
     onSuccess: invalidateTasks,
@@ -513,26 +158,6 @@ export default function BikeDetailScreen() {
 
   type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   const tasks: Task[] = tasksData?.maintenanceTasks ?? [];
-  const activeTasks = useMemo(
-    () =>
-      tasks
-        .filter((t: Task) => t.status === 'pending' || t.status === 'in_progress')
-        .sort(
-          (a: Task, b: Task) =>
-            (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99),
-        ),
-    [tasks],
-  );
-  const completedTasks = useMemo(
-    () => tasks.filter((t: Task) => t.status === 'completed'),
-    [tasks],
-  );
-
-  useEffect(() => {
-    if (expandedId && !activeTasks.find((t) => t.id === expandedId)) {
-      setExpandedId(null);
-    }
-  }, [activeTasks, expandedId]);
 
   const healthScore = computeHealthScore(
     tasks.map((t) => ({
@@ -542,14 +167,6 @@ export default function BikeDetailScreen() {
       completedAt: t.completedAt,
     })),
   );
-
-  // Compute spending from completed tasks (estimate from task data)
-  const spendThisYear = completedTasks
-    .filter(
-      (t) => t.completedAt && new Date(t.completedAt).getFullYear() === new Date().getFullYear(),
-    )
-    .reduce((sum, t) => sum + (t.cost ?? 0), 0);
-  const spendAllTime = completedTasks.reduce((sum, t) => sum + (t.cost ?? 0), 0);
 
   // --- Handlers ---
 
@@ -585,13 +202,9 @@ export default function BikeDetailScreen() {
     const upload = async (uri: string) => {
       try {
         setUploadingPhoto(true);
-        console.log('[BikeDetail] Uploading photo, uri:', uri, 'userId:', userId, 'bikeId:', id);
         const { publicUrl } = await uploadBikePhoto(uri, userId, id);
-        console.log('[BikeDetail] Photo uploaded, publicUrl:', publicUrl);
         await updateBikeMutation.mutateAsync({ primaryPhotoUrl: publicUrl });
-        console.log('[BikeDetail] Motorcycle updated with photo URL');
-      } catch (e) {
-        console.error('[BikeDetail] Photo upload error:', e);
+      } catch (_e) {
         Alert.alert(
           t('common.error', { defaultValue: 'Error' }),
           t('garage.photoUploadFailed', { defaultValue: 'Failed to upload photo' }),
@@ -701,30 +314,26 @@ export default function BikeDetailScreen() {
 
   const handleMoreActions = () => {
     haptic();
-    const editBike = () => router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
-      edit: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
       export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [labels.cancel, labels.edit, labels.export, labels.delete],
+          options: [labels.cancel, labels.export, labels.delete],
           cancelButtonIndex: 0,
-          destructiveButtonIndex: 3,
+          destructiveButtonIndex: 2,
         },
         (buttonIndex) => {
-          if (buttonIndex === 1) editBike();
-          else if (buttonIndex === 2) handleExportPdf();
-          else if (buttonIndex === 3) handleDeleteBike();
+          if (buttonIndex === 1) handleExportPdf();
+          else if (buttonIndex === 2) handleDeleteBike();
         },
       );
     } else {
       Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
         { text: labels.cancel, style: 'cancel' },
-        { text: labels.edit, onPress: editBike },
         { text: labels.export, onPress: handleExportPdf },
         { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
       ]);
@@ -776,6 +385,7 @@ export default function BikeDetailScreen() {
   }
 
   const hasPhoto = !!bike.primaryPhotoUrl;
+  const bikeName = `${bike.year} ${bike.make} ${bike.model}`;
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
@@ -796,7 +406,6 @@ export default function BikeDetailScreen() {
                   contentFit="cover"
                   transition={300}
                 />
-                {/* Gradient overlay for readability */}
                 <LinearGradient
                   colors={['transparent', 'rgba(0,0,0,0.5)']}
                   style={{
@@ -807,22 +416,21 @@ export default function BikeDetailScreen() {
                     height: 80,
                   }}
                 />
-                {/* Camera icon to change photo */}
                 <Pressable
                   onPress={handleAddPhoto}
                   style={{
                     position: 'absolute',
                     bottom: 12,
                     right: 16,
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Camera size={18} color={palette.white} strokeWidth={2} />
+                  <Camera size={20} color={palette.white} strokeWidth={2} />
                 </Pressable>
               </View>
             ) : (
@@ -893,39 +501,10 @@ export default function BikeDetailScreen() {
                 </Text>
               </View>
             )}
-
-            <Pressable
-              onPress={() => {
-                haptic();
-                router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id: bike.id } });
-              }}
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-                backgroundColor: hasPhoto
-                  ? 'rgba(0,0,0,0.4)'
-                  : isDark
-                    ? 'rgba(255,255,255,0.15)'
-                    : 'rgba(0,0,0,0.08)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Edit3
-                size={16}
-                color={hasPhoto ? palette.white : isDark ? palette.white : palette.neutral700}
-                strokeWidth={2}
-              />
-            </Pressable>
           </Pressable>
         </Animated.View>
 
-        {/* 2. Bike name/year info */}
+        {/* 2. Bike name/year info + Quick Stats */}
         <Animated.View
           entering={FadeInUp.delay(80).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 20 }}
@@ -960,15 +539,22 @@ export default function BikeDetailScreen() {
                 {bike.year}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Wrench size={14} color={palette.neutral400} strokeWidth={2} />
-              <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
-                {t('garage.serviceRecords', { defaultValue: 'Service' })}
-              </Text>
-            </View>
+            {tasks.length > 0 && healthScore.hasData && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <HealthScoreRing
+                  score={healthScore.score}
+                  grade={healthScore.grade}
+                  hasData={healthScore.hasData}
+                  isDark={isDark}
+                  size={20}
+                />
+                <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
+                  {healthScore.score}%
+                </Text>
+              </View>
+            )}
           </View>
 
-          {/* 3. MileageDisplay */}
           <MileageDisplay
             currentMileage={bike.currentMileage ?? undefined}
             mileageUnit={bike.mileageUnit ?? 'mi'}
@@ -978,89 +564,12 @@ export default function BikeDetailScreen() {
           />
         </Animated.View>
 
-        {/* 4. Health Score (compact, inline) */}
-        {tasks.length > 0 && (
-          <Animated.View
-            entering={FadeInUp.delay(120).duration(400)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 16,
-              marginTop: 20,
-              marginHorizontal: 20,
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              padding: 16,
-            }}
-          >
-            <HealthScoreRing
-              score={healthScore.score}
-              grade={healthScore.grade}
-              hasData={healthScore.hasData}
-              isDark={isDark}
-              size={64}
-            />
-            <View style={{ flex: 1 }}>
-              {healthScore.hasData && (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: palette.neutral500,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  {t('maintenance.healthScore', { defaultValue: 'Health Score' })}
-                </Text>
-              )}
-              {healthScore.overdueTasks > 0 && (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: palette.danger500,
-                    marginTop: 4,
-                  }}
-                >
-                  {healthScore.overdueTasks} overdue
-                </Text>
-              )}
-              {healthScore.urgentTasks > 0 && healthScore.overdueTasks === 0 && (
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: palette.warning500,
-                    marginTop: 4,
-                  }}
-                >
-                  {healthScore.urgentTasks} urgent
-                </Text>
-              )}
-            </View>
-          </Animated.View>
-        )}
-
-        {/* 5. Stat Cards */}
-        {tasks.length > 0 && (
-          <View style={{ marginTop: 16 }}>
-            <StatCards
-              upcomingCount={activeTasks.length}
-              overdueCount={healthScore.overdueTasks}
-              totalSpend={spendAllTime > 0 ? spendAllTime : null}
-              isDark={isDark}
-            />
-          </View>
-        )}
-
-        {/* Quick Action Bar */}
+        {/* 3. Quick Actions — 4 buttons */}
         <Animated.View
           entering={FadeInUp.delay(100).duration(400)}
           style={{
             flexDirection: 'row',
-            gap: 10,
+            gap: 8,
             paddingHorizontal: 20,
             marginTop: 16,
             marginBottom: 8,
@@ -1071,43 +580,110 @@ export default function BikeDetailScreen() {
               haptic();
               router.push({
                 pathname: '/(tabs)/(garage)/add-maintenance-task',
-                params: { motorcycleId: id, bikeName: `${bike.year} ${bike.make} ${bike.model}` },
+                params: { motorcycleId: id, bikeName },
               });
             }}
             style={{
               flex: 1,
-              flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
+              gap: 4,
               paddingVertical: 12,
               backgroundColor: palette.primary500,
               borderRadius: 12,
               borderCurve: 'continuous',
             }}
           >
-            <Plus size={16} color={palette.white} strokeWidth={2.5} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+            <Wrench size={16} color={palette.white} strokeWidth={2.5} />
+            <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>
               {t('maintenance.addTask', { defaultValue: 'Add Task' })}
             </Text>
           </Pressable>
+
           <Pressable
-            onPress={handleMoreActions}
+            onPress={() => {
+              haptic();
+              router.push({
+                pathname: '/(tabs)/(garage)/add-expense',
+                params: { motorcycleId: id },
+              });
+            }}
             style={{
-              flexDirection: 'row',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
+              gap: 4,
               paddingVertical: 12,
-              paddingHorizontal: 16,
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
             }}
           >
+            <DollarSign
+              size={16}
+              color={isDark ? palette.neutral300 : palette.neutral600}
+              strokeWidth={2.5}
+            />
             <Text
               style={{
-                fontSize: 14,
+                fontSize: 11,
+                fontWeight: '600',
+                color: isDark ? palette.neutral300 : palette.neutral600,
+              }}
+            >
+              {t('garage.addExpense', { defaultValue: 'Expense' })}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              haptic();
+              router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
+            }}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              gap: 4,
+              paddingVertical: 12,
+              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+            }}
+          >
+            <Edit3
+              size={16}
+              color={isDark ? palette.neutral300 : palette.neutral600}
+              strokeWidth={2}
+            />
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '600',
+                color: isDark ? palette.neutral300 : palette.neutral600,
+              }}
+            >
+              {t('common.edit', { defaultValue: 'Edit' })}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={handleMoreActions}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              gap: 4,
+              paddingVertical: 12,
+              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+            }}
+          >
+            <MoreHorizontal
+              size={16}
+              color={isDark ? palette.neutral300 : palette.neutral600}
+              strokeWidth={2}
+            />
+            <Text
+              style={{
+                fontSize: 11,
                 fontWeight: '600',
                 color: isDark ? palette.neutral300 : palette.neutral600,
               }}
@@ -1117,143 +693,28 @@ export default function BikeDetailScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* 6. Upcoming Tasks (quick glance) */}
-        {tasks.length > 0 && (
-          <View style={{ marginTop: 20 }}>
-            <UpcomingTasks
-              tasks={tasks.map((t) => ({
-                id: t.id,
-                title: t.title,
-                dueDate: t.dueDate,
-                targetMileage: t.targetMileage,
-                priority: t.priority,
-                status: t.status,
-              }))}
-              isDark={isDark}
-              onTaskPress={(taskId) => {
-                haptic();
-                setExpandedId((prev) => (prev === taskId ? null : taskId));
-              }}
-              onSeeAllPress={() => {
-                // Scroll down to full task list — for now just a no-op
-              }}
-            />
-          </View>
-        )}
-
-        {/* 7. Spending Summary */}
+        {/* 4. Maintenance Section — tabbed (Active | History) */}
         <View style={{ marginTop: 20 }}>
-          <SpendingSummary thisYear={spendThisYear} allTime={spendAllTime} isDark={isDark} />
+          <MaintenanceSection
+            tasks={tasks}
+            isDark={isDark}
+            motorcycleId={id}
+            expandedId={expandedId}
+            onToggleExpand={handleToggleExpand}
+            onComplete={handleCompleteTask}
+            onDelete={handleDeleteTask}
+          />
         </View>
 
-        {/* 8. Full task list — Active + History */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 24 }}>
-          {tasksLoading ? (
-            <View style={{ padding: 40, alignItems: 'center' }}>
-              <ActivityIndicator size="large" color={palette.primary500} />
-            </View>
-          ) : tasks.length === 0 ? (
-            <Animated.View
-              entering={FadeInUp.duration(400)}
-              style={{ alignItems: 'center', paddingVertical: 40 }}
-            >
-              <Wrench size={40} color={palette.neutral400} strokeWidth={1.2} />
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral300 : palette.neutral700,
-                  marginTop: 16,
-                }}
-              >
-                {t('maintenance.noTasks', { defaultValue: 'No maintenance tasks yet' })}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: palette.neutral500,
-                  marginTop: 4,
-                  textAlign: 'center',
-                }}
-              >
-                {t('maintenance.addFirstTask', {
-                  defaultValue: 'Add your first maintenance task',
-                })}
-              </Text>
-            </Animated.View>
-          ) : (
-            <>
-              {activeTasks.length > 0 && (
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '700',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginBottom: 10,
-                      marginLeft: 4,
-                    }}
-                  >
-                    {t('maintenance.activeTasks', { defaultValue: 'Active' })} ({activeTasks.length}
-                    )
-                  </Text>
-                  {activeTasks.map((task: Task, i: number) => (
-                    <SwipeableTaskCard
-                      key={task.id}
-                      task={task}
-                      index={i}
-                      isDark={isDark}
-                      expandedId={expandedId}
-                      motorcycleId={id}
-                      onToggleExpand={handleToggleExpand}
-                      onComplete={handleCompleteTask}
-                      onDelete={handleDeleteTask}
-                    />
-                  ))}
-                </View>
-              )}
-
-              {completedTasks.length > 0 && (
-                <View style={{ marginBottom: 20 }}>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '700',
-                      color: palette.neutral500,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                      marginBottom: 10,
-                      marginLeft: 4,
-                    }}
-                  >
-                    {t('maintenance.history', { defaultValue: 'History' })} ({completedTasks.length}
-                    )
-                  </Text>
-                  {completedTasks.map((task: Task, i: number) => (
-                    <SwipeableTaskCard
-                      key={task.id}
-                      task={task}
-                      index={activeTasks.length + i}
-                      isDark={isDark}
-                      expandedId={expandedId}
-                      motorcycleId={id}
-                      onToggleExpand={handleToggleExpand}
-                      onComplete={handleCompleteTask}
-                      onDelete={handleDeleteTask}
-                    />
-                  ))}
-                </View>
-              )}
-            </>
-          )}
+        {/* 5. Expenses Section */}
+        <View style={{ marginTop: 24 }}>
+          <ExpensesSection motorcycleId={id} isDark={isDark} />
         </View>
 
-        {/* 9. Details section (collapsible) */}
+        {/* 6. Details section (collapsible) */}
         <Animated.View
           entering={FadeInUp.delay(160).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 8 }}
+          style={{ paddingHorizontal: 20, marginTop: 20 }}
         >
           <Pressable
             onPress={() => {

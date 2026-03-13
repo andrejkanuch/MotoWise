@@ -61,12 +61,29 @@ export default function GarageLayout() {
         name="edit-bike"
         options={{
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
+          presentation: 'card',
+          headerLargeTitle: false,
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
+      <Stack.Screen
+        name="add-expense"
+        options={{
+          title: t('garage.addExpense', { defaultValue: 'Add Expense' }),
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.55, 0.85],
+          sheetAllowedDetents: [0.7, 0.9],
           contentStyle: sheetContentStyle,
+        }}
+      />
+      <Stack.Screen
+        name="bike-tasks"
+        options={{
+          title: t('bikeHub.allTasks', { defaultValue: 'All Tasks' }),
+          headerLargeTitle: false,
+          headerBackButtonDisplayMode: 'default',
         }}
       />
       <Stack.Screen
