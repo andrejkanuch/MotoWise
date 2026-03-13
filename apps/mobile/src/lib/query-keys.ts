@@ -40,6 +40,9 @@ export const queryKeys = {
   quizzes: {
     byArticle: (articleId: string) => ['quizzes', 'byArticle', articleId] as const,
   },
+  expenses: {
+    byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },

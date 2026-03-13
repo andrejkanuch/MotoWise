@@ -106,6 +106,49 @@ export async function loginRevenueCat(userId: string) {
   }
 }
 
+/**
+ * Present the RevenueCat remote paywall.
+ * Uses the paywall configured in the RevenueCat dashboard.
+ *
+ * @param options.requiredEntitlementIdentifier - Only show if user lacks this entitlement
+ * @returns 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'
+ */
+export async function presentPaywall(
+  options: { requiredEntitlementIdentifier?: string } = {},
+): Promise<'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'> {
+  if (isExpoGo()) {
+    console.warn('[RevenueCat] Paywall not available in Expo Go');
+    return 'not_presented';
+  }
+
+  try {
+    const RevenueCatUI = await import('react-native-purchases-ui');
+    const { PAYWALL_RESULT } = RevenueCatUI;
+
+    const result = options.requiredEntitlementIdentifier
+      ? await RevenueCatUI.default.presentPaywallIfNeeded({
+          requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
+        })
+      : await RevenueCatUI.default.presentPaywall();
+
+    switch (result) {
+      case PAYWALL_RESULT.PURCHASED:
+        return 'purchased';
+      case PAYWALL_RESULT.RESTORED:
+        return 'restored';
+      case PAYWALL_RESULT.NOT_PRESENTED:
+        return 'not_presented';
+      case PAYWALL_RESULT.ERROR:
+        return 'error';
+      default:
+        return 'cancelled';
+    }
+  } catch (e) {
+    console.error('[RevenueCat] presentPaywall failed:', e instanceof Error ? e.message : e);
+    return 'error';
+  }
+}
+
 export async function logoutRevenueCat() {
   if (isExpoGo()) return;
   const cleanup = await initRevenueCat();

@@ -15,6 +15,7 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { EmailModule } from './modules/email/email.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
 import { HealthModule } from './modules/health/health.module';
 import { InsightsModule } from './modules/insights/insights.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
@@ -62,6 +63,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
+    ExpensesModule,
     InsightsModule,
     ContentFlagsModule,
     LearningProgressModule,

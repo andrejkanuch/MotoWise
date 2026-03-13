@@ -86,6 +86,7 @@ export class MaintenanceTasksResolver {
     createNextOccurrence: boolean | null,
   ): Promise<CompleteTaskResult> {
     const completed = await this.maintenanceTasksService.complete(user.id, id, input ?? undefined);
+
     const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
     let nextOccurrence: MaintenanceTask | undefined;
     if (shouldCreateNext) {

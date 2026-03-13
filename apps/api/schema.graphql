@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -169,6 +165,28 @@ enum DiagnosticSeverity {
   medium
 }
 
+type Expense {
+  amount: Float!
+  category: String!
+  createdAt: String!
+  date: String!
+  description: String
+  id: ID!
+  maintenanceTaskId: String
+  motorcycleId: String!
+}
+
+type ExpenseCategory {
+  category: String!
+  expenses: [Expense!]!
+  total: Float!
+}
+
+type ExpenseSummary {
+  categories: [ExpenseCategory!]!
+  ytdTotal: Float!
+}
+
 enum FlagStatus {
   dismissed
   pending
@@ -213,6 +231,14 @@ type LearningProgress {
   quizBestScore: Int
   quizCompleted: Boolean!
   userId: String!
+}
+
+input LogExpenseInput {
+  amount: Float!
+  category: String!
+  date: String!
+  description: String
+  motorcycleId: String!
 }
 
 enum MaintenancePriority {
@@ -299,11 +325,13 @@ type Mutation {
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   deleteAccount: Boolean!
+  deleteExpense(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
+  logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
@@ -353,6 +381,7 @@ type Query {
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic
+  expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
   me: User!
