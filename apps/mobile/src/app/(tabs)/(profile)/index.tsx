@@ -31,6 +31,7 @@ import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { presentPaywall } from '../../../lib/subscription';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/auth.store';
 
@@ -499,7 +500,7 @@ export default function ProfileScreen() {
           <Pressable
             onPress={() => {
               haptic();
-              router.push('/(tabs)/(profile)/upgrade');
+              presentPaywall();
             }}
             style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
           >
@@ -573,7 +574,7 @@ export default function ProfileScreen() {
             icon={CreditCard}
             label={t('profile.subscriptions')}
             isDark={isDark}
-            onPress={() => router.push('/(tabs)/(profile)/upgrade')}
+            onPress={() => presentPaywall()}
           />
           <SettingsRow
             icon={HelpCircle}

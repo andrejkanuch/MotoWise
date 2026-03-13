@@ -290,7 +290,7 @@ export default function BikeDetailScreen() {
         model: bike.model,
         year: bike.year,
         nickname: bike.nickname ?? undefined,
-        mileageUnit: 'mi',
+        mileageUnit: bike.mileageUnit ?? 'mi',
       };
       const pdfTasks: PdfTask[] = tasks.map((task) => ({
         title: task.title,

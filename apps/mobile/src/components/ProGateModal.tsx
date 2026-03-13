@@ -1,13 +1,13 @@
 import { palette } from '@motovault/design-system';
 import type { ProFeature } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
 import type { LucideIcon } from 'lucide-react-native';
 import { Bell, Bike, BookOpen, Brain, FileText, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { presentPaywall } from '../lib/subscription';
 
 const FEATURE_DETAILS: Record<
   ProFeature,
@@ -61,7 +61,6 @@ interface ProGateModalProps {
 
 export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps) {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   if (!feature) return null;
@@ -72,7 +71,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
   const handleUpgrade = () => {
     haptic();
     onDismiss();
-    router.push('/(tabs)/(profile)/upgrade');
+    presentPaywall();
   };
 
   return (
