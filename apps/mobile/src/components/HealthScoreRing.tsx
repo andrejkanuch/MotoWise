@@ -108,27 +108,29 @@ export function HealthScoreRing({ score, grade, hasData, isDark, size = SIZE }: 
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <View style={{ position: 'absolute', alignItems: 'center' }}>
-        <Text
-          style={{
-            fontSize: scoreFontSize,
-            fontWeight: '800',
-            color: isDark ? palette.neutral50 : palette.neutral950,
-          }}
-        >
-          {clampedScore}
-        </Text>
-        <Text
-          style={{
-            fontSize: gradeFontSize,
-            fontWeight: '700',
-            color,
-            marginTop: gradeMarginTop,
-          }}
-        >
-          {grade}
-        </Text>
-      </View>
+      {size >= 60 && (
+        <View style={{ position: 'absolute', alignItems: 'center' }}>
+          <Text
+            style={{
+              fontSize: scoreFontSize,
+              fontWeight: '800',
+              color: isDark ? palette.neutral50 : palette.neutral950,
+            }}
+          >
+            {clampedScore}
+          </Text>
+          <Text
+            style={{
+              fontSize: gradeFontSize,
+              fontWeight: '700',
+              color,
+              marginTop: gradeMarginTop,
+            }}
+          >
+            {grade}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

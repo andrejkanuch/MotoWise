@@ -583,7 +583,7 @@ export default function BikeDetailScreen() {
                 params: { motorcycleId: id, bikeName },
               });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -591,7 +591,8 @@ export default function BikeDetailScreen() {
               backgroundColor: palette.primary500,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <Wrench size={16} color={palette.white} strokeWidth={2.5} />
             <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>
@@ -607,7 +608,7 @@ export default function BikeDetailScreen() {
                 params: { motorcycleId: id },
               });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -615,7 +616,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <DollarSign
               size={16}
@@ -638,7 +640,7 @@ export default function BikeDetailScreen() {
               haptic();
               router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -646,7 +648,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <Edit3
               size={16}
@@ -666,7 +669,7 @@ export default function BikeDetailScreen() {
 
           <Pressable
             onPress={handleMoreActions}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -674,7 +677,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <MoreHorizontal
               size={16}

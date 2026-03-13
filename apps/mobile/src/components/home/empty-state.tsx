@@ -103,14 +103,15 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
             onAddBike();
           }}
           accessibilityRole="button"
-          style={{
+          style={({ pressed }) => ({
             backgroundColor: palette.primary700,
             borderRadius: 20,
             borderCurve: 'continuous',
             height: 56,
             alignItems: 'center',
             justifyContent: 'center',
-          }}
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
         >
           <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
             {t('home.emptyAddBike')}

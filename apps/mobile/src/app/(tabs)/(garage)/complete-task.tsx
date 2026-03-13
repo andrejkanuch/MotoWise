@@ -10,7 +10,15 @@ import { Check, Wrench } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Switch, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  ZoomIn,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -31,6 +39,11 @@ export default function CompleteTaskScreen() {
   const [scheduleNext, setScheduleNext] = useState(true);
   const [completed, setCompleted] = useState(false);
   const mutatingRef = useRef(false);
+  const buttonScale = useSharedValue(1);
+
+  const buttonAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
 
   const tasksQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
@@ -55,7 +68,11 @@ export default function CompleteTaskScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       setCompleted(true);
-      setTimeout(() => router.back(), 500);
+      buttonScale.value = withSequence(
+        withSpring(1.08, { damping: 8, stiffness: 200 }),
+        withSpring(1, { damping: 12, stiffness: 150 }),
+      );
+      setTimeout(() => router.back(), 800);
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -205,40 +222,47 @@ export default function CompleteTaskScreen() {
       </View>
 
       <Animated.View entering={FadeIn.delay(200).duration(300)}>
-        <Pressable
-          onPress={() => {
-            if (mutatingRef.current) return;
-            mutatingRef.current = true;
-            completeMutation.mutate();
-          }}
-          disabled={completeMutation.isPending || completed}
-          style={{
-            backgroundColor: completed ? palette.success500 : palette.primary500,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            paddingVertical: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            gap: 8,
-            opacity: completeMutation.isPending ? 0.7 : 1,
-          }}
-        >
-          {completed ? (
-            <Check size={20} color={palette.white} strokeWidth={2.5} />
-          ) : (
-            <Check size={20} color={palette.white} strokeWidth={2} />
-          )}
-          <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-            {completed
-              ? t('maintenance.completed', { defaultValue: 'Completed!' })
-              : completeMutation.isPending
-                ? t('maintenance.completing', { defaultValue: 'Completing...' })
-                : t('maintenance.markComplete', {
-                    defaultValue: 'Mark as Complete',
-                  })}
-          </Text>
-        </Pressable>
+        <Animated.View style={buttonAnimStyle}>
+          <Pressable
+            onPress={() => {
+              if (mutatingRef.current) return;
+              mutatingRef.current = true;
+              if (process.env.EXPO_OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+              completeMutation.mutate();
+            }}
+            disabled={completeMutation.isPending || completed}
+            style={{
+              backgroundColor: completed ? palette.success500 : palette.primary500,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 8,
+              opacity: completeMutation.isPending ? 0.7 : 1,
+            }}
+          >
+            {completed ? (
+              <Animated.View entering={ZoomIn.duration(200).springify()}>
+                <Check size={20} color={palette.white} strokeWidth={2.5} />
+              </Animated.View>
+            ) : (
+              <Check size={20} color={palette.white} strokeWidth={2} />
+            )}
+            <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
+              {completed
+                ? t('maintenance.completed', { defaultValue: 'Completed!' })
+                : completeMutation.isPending
+                  ? t('maintenance.completing', { defaultValue: 'Completing...' })
+                  : t('maintenance.markComplete', {
+                      defaultValue: 'Mark as Complete',
+                    })}
+            </Text>
+          </Pressable>
+        </Animated.View>
 
         <Pressable
           onPress={() => router.back()}
