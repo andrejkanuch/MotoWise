@@ -66,6 +66,8 @@ function BikeCard({
           haptic();
           onPress();
         }}
+        accessibilityRole="button"
+        accessibilityLabel={`${bike.make} ${bike.model}, ${bike.year}`}
         style={({ pressed }) => ({
           opacity: pressed ? 0.95 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],

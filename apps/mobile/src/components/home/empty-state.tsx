@@ -102,6 +102,7 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onAddBike();
           }}
+          accessibilityRole="button"
           style={{
             backgroundColor: palette.primary700,
             borderRadius: 20,
@@ -125,6 +126,7 @@ export function EmptyState({ isDark, onAddBike, onExplore }: EmptyStateProps) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onExplore();
           }}
+          accessibilityRole="button"
           style={{ alignItems: 'center', marginTop: 14 }}
         >
           <Text

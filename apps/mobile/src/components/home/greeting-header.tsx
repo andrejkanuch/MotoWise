@@ -58,6 +58,8 @@ export function GreetingHeader({
           if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           onAvatarPress();
         }}
+        accessibilityRole="button"
+        accessibilityLabel="Profile"
       >
         <View
           style={{

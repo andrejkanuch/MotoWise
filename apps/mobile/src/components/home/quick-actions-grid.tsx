@@ -39,6 +39,8 @@ export function QuickActionsGrid({ actions, isDark, onActionPress }: QuickAction
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     onActionPress(action.route);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(action.titleKey as never)}
                   style={({ pressed }) => ({
                     paddingVertical: 16,
                     paddingHorizontal: 8,

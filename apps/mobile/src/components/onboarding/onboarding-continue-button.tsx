@@ -26,6 +26,8 @@ export function OnboardingContinueButton({
     <Pressable
       onPress={handlePress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
       style={({ pressed }) => ({
         backgroundColor: disabled ? ONBOARDING_COLORS.textDimmed : ONBOARDING_COLORS.textPrimary,
         borderRadius: 20,

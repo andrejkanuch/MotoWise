@@ -35,6 +35,9 @@ export function OptionCard<T extends string>({
   return (
     <Pressable
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+      accessibilityState={{ selected }}
       style={({ pressed }) => ({
         backgroundColor: selected ? ONBOARDING_COLORS.cardBgSelected : ONBOARDING_COLORS.cardBg,
         borderWidth: selected ? 2 : 1,

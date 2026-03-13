@@ -93,12 +93,14 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
         {/* Close button */}
         <Pressable
           onPress={onDismiss}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
           style={{
             position: 'absolute',
             top: insets.top + 16,
             right: 20,
-            width: 36,
-            height: 36,
+            width: 44,
+            height: 44,
             borderRadius: 18,
             backgroundColor: 'rgba(255,255,255,0.1)',
             alignItems: 'center',
@@ -205,6 +207,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
         <View style={{ paddingHorizontal: 24, paddingBottom: 16 }}>
           <Pressable
             onPress={handleUpgrade}
+            accessibilityRole="button"
             style={{
               backgroundColor: palette.primary700,
               borderRadius: 20,
@@ -221,7 +224,11 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
             </Text>
           </Pressable>
 
-          <Pressable onPress={onDismiss} style={{ alignItems: 'center', paddingVertical: 14 }}>
+          <Pressable
+            onPress={onDismiss}
+            accessibilityRole="button"
+            style={{ alignItems: 'center', paddingVertical: 14 }}
+          >
             <Text style={{ fontSize: 15, color: palette.neutral400, fontWeight: '500' }}>
               {t('proGate.maybeLater', { defaultValue: 'Maybe Later' })}
             </Text>

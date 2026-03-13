@@ -102,7 +102,20 @@ export function FleetHealthHero({
   return (
     <Animated.View entering={FadeInUp.delay(50).duration(300)}>
       <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
-        <Pressable onPress={onPress}>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={
+            hasData
+              ? t('home.fleetHealthA11y', {
+                  score,
+                  defaultValue: `Fleet health score: ${score} out of 100`,
+                })
+              : t('home.fleetHealthNoDataA11y', {
+                  defaultValue: 'Fleet health: no maintenance data yet',
+                })
+          }
+        >
           <LinearGradient
             colors={[palette.gradientHeroStart, palette.gradientHeroMid, palette.gradientHeroEnd]}
             start={{ x: 0, y: 0 }}

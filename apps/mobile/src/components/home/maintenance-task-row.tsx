@@ -53,6 +53,8 @@ export function MaintenanceTaskRow({
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onPress();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`${task.title}, ${bikeName}${isOverdue ? ', overdue' : ''}`}
           style={{
             flexDirection: 'row',
             alignItems: 'center',

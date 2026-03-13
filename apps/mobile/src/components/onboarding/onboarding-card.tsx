@@ -30,6 +30,9 @@ export function OnboardingCard<T extends string>({
   return (
     <Pressable
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${label}, ${subtitle}` : label}
+      accessibilityState={{ selected }}
       style={({ pressed }) => ({
         backgroundColor: selected ? ONBOARDING_COLORS.cardBgSelected : ONBOARDING_COLORS.cardBg,
         borderWidth: selected ? 2 : 1,
