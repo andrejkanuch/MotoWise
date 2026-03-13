@@ -10,6 +10,7 @@ import {
   Gauge,
   Trash2,
 } from 'lucide-react-native';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
@@ -67,7 +68,7 @@ function PriorityBadge({ priority }: { priority: string }) {
 }
 
 /** Swipeable task card with left/right actions */
-export function SwipeableTaskCard({
+export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   task,
   index,
   isDark,
@@ -362,4 +363,4 @@ export function SwipeableTaskCard({
       </View>
     </Animated.View>
   );
-}
+});

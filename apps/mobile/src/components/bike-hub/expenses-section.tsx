@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChevronDown, Plus, Receipt, Trash2 } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -238,49 +238,45 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
   const categories = expenses?.categories ?? [];
 
   // Flatten all expenses for the list
-  const allExpenses = categories
-    .flatMap(
-      (cat: {
-        category: string;
-        total: number;
-        expenses: Array<{
-          id: string;
-          amount: number;
-          category: string;
-          description?: string | null;
-          date: string;
-          createdAt: string;
-        }>;
-      }) => cat.expenses,
-    )
-    .sort(
-      (a: { date: string }, b: { date: string }) =>
-        new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
+  const allExpenses = useMemo(
+    () =>
+      categories
+        .flatMap(
+          (cat: {
+            category: string;
+            total: number;
+            expenses: Array<{
+              id: string;
+              amount: number;
+              category: string;
+              description?: string | null;
+              date: string;
+              createdAt: string;
+            }>;
+          }) => cat.expenses,
+        )
+        .sort(
+          (a: { date: string }, b: { date: string }) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime(),
+        ),
+    [categories],
+  );
 
   const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, 5);
 
-  const totalByCategory = categories.reduce(
-    (acc: Record<string, number>, cat: { category: string; total: number }) => {
-      acc[cat.category] = cat.total;
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
-
-  const grandTotal = Object.values(totalByCategory).reduce(
-    (sum: number, v) => sum + (v as number),
-    0,
+  const grandTotal = useMemo(
+    () => categories.reduce((sum: number, cat: { total: number }) => sum + cat.total, 0),
+    [categories],
   );
 
   const cardBg = isDark ? palette.neutral800 : palette.white;
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      deleteMutation.mutate(id);
-    },
-    [deleteMutation],
-  );
+  const deleteMutateRef = useRef(deleteMutation.mutate);
+  deleteMutateRef.current = deleteMutation.mutate;
+
+  const handleDelete = useCallback((id: string) => {
+    deleteMutateRef.current(id);
+  }, []);
 
   const toggleYear = () => {
     if (process.env.EXPO_OS === 'ios') {

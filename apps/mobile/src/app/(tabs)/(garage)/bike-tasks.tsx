@@ -70,6 +70,12 @@ export default function BikeTasksScreen() {
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
     },
+    onError: () => {
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        t('maintenance.deleteFailed', { defaultValue: 'Failed to delete task.' }),
+      );
+    },
   });
 
   const filteredTasks = useMemo(() => {

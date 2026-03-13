@@ -4,7 +4,7 @@ import {
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -24,6 +24,8 @@ import { TaskPhoto } from './models/task-photo.model';
 
 @Resolver(() => MaintenanceTask)
 export class MaintenanceTasksResolver {
+  private readonly logger = new Logger(MaintenanceTasksResolver.name);
+
   constructor(
     private readonly maintenanceTasksService: MaintenanceTasksService,
     private readonly expensesService: ExpensesService,
@@ -91,17 +93,21 @@ export class MaintenanceTasksResolver {
   ): Promise<CompleteTaskResult> {
     const completed = await this.maintenanceTasksService.complete(user.id, id, input ?? undefined);
 
-    // Auto-create expense if task has costs
+    // Auto-create expense if task has costs (don't block task completion on failure)
     const totalCost =
       (completed.cost ?? 0) + (completed.partsCost ?? 0) + (completed.laborCost ?? 0);
     if (totalCost > 0) {
-      await this.expensesService.createFromTask(
-        user.id,
-        completed.motorcycleId,
-        completed.id,
-        totalCost,
-        completed.title,
-      );
+      try {
+        await this.expensesService.createFromTask(
+          user.id,
+          completed.motorcycleId,
+          completed.id,
+          totalCost,
+          completed.title,
+        );
+      } catch (err) {
+        this.logger.warn(`Auto-expense creation failed for task ${completed.id}: ${err}`);
+      }
     }
 
     const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;

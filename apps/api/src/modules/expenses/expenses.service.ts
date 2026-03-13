@@ -25,19 +25,20 @@ export class ExpensesService {
       `findByMotorcycle: userId=${userId}, motorcycleId=${motorcycleId}, year=${year}`,
     );
 
-    const targetYear = year ?? new Date().getFullYear();
-    const yearStart = `${targetYear}-01-01`;
-    const yearEnd = `${targetYear}-12-31`;
-
-    const query = this.supabase
+    let query = this.supabase
       .from('expenses')
       .select('*')
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .is('deleted_at', null)
-      .gte('date', yearStart)
-      .lte('date', yearEnd)
       .order('date', { ascending: false });
+
+    // year=0 or undefined means "all time"; otherwise filter to that year
+    if (year && year > 0) {
+      const yearStart = `${year}-01-01`;
+      const yearEnd = `${year}-12-31`;
+      query = query.gte('date', yearStart).lte('date', yearEnd);
+    }
 
     const { data, error } = await query;
 
@@ -151,7 +152,7 @@ export class ExpensesService {
         return null;
       }
       this.logger.error(`createFromTask failed: ${error.message} (${error.code})`);
-      return null;
+      throw new InternalServerErrorException('Failed to create expense from task');
     }
 
     return data ? this.mapRow(data) : null;
