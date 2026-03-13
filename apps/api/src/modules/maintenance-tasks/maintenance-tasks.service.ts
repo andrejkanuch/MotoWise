@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { ExpensesService } from '../expenses/expenses.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { MaintenanceTask } from './models/maintenance-task.model';
@@ -24,6 +25,7 @@ export class MaintenanceTasksService {
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly configService: ConfigService,
+    private readonly expensesService: ExpensesService,
   ) {
     this.supabaseUrl = this.configService.getOrThrow('SUPABASE_URL');
   }
@@ -200,7 +202,27 @@ export class MaintenanceTasksService {
       this.logger.error(`complete failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to complete maintenance task');
     }
-    return this.mapRow(data);
+
+    const completed = this.mapRow(data);
+
+    // Auto-create expense if task has costs (don't block task completion on failure)
+    const totalCost =
+      (completed.cost ?? 0) + (completed.partsCost ?? 0) + (completed.laborCost ?? 0);
+    if (totalCost > 0) {
+      try {
+        await this.expensesService.createFromTask(
+          userId,
+          completed.motorcycleId,
+          completed.id,
+          totalCost,
+          completed.title,
+        );
+      } catch (err) {
+        this.logger.warn(`Auto-expense creation failed for task ${completed.id}: ${err}`);
+      }
+    }
+
+    return completed;
   }
 
   async softDelete(userId: string, id: string): Promise<boolean> {

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { ChevronDown, Plus, Receipt, Trash2 } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -38,12 +38,14 @@ interface ExpensesSectionProps {
   isDark: boolean;
 }
 
+const currencyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 2,
+});
+
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return currencyFormatter.format(amount);
 }
 
 function formatExpenseDate(dateStr: string) {
@@ -123,7 +125,7 @@ function SwipeableExpense({ expense, isDark, onDelete, index }: SwipeableExpense
   const catColor = CATEGORY_COLORS[expense.category] ?? palette.neutral500;
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 50).duration(250)}>
+    <Animated.View entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(250)}>
       <View style={{ position: 'relative' }}>
         {/* Delete background */}
         <Animated.View
@@ -241,42 +243,21 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
   const allExpenses = useMemo(
     () =>
       categories
-        .flatMap(
-          (cat: {
-            category: string;
-            total: number;
-            expenses: Array<{
-              id: string;
-              amount: number;
-              category: string;
-              description?: string | null;
-              date: string;
-              createdAt: string;
-            }>;
-          }) => cat.expenses,
-        )
-        .sort(
-          (a: { date: string }, b: { date: string }) =>
-            new Date(b.date).getTime() - new Date(a.date).getTime(),
-        ),
+        .flatMap((cat) => cat.expenses)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [categories],
   );
 
   const displayedExpenses = showAll ? allExpenses : allExpenses.slice(0, 5);
 
-  const grandTotal = useMemo(
-    () => categories.reduce((sum: number, cat: { total: number }) => sum + cat.total, 0),
-    [categories],
-  );
-
   const cardBg = isDark ? palette.neutral800 : palette.white;
 
-  const deleteMutateRef = useRef(deleteMutation.mutate);
-  deleteMutateRef.current = deleteMutation.mutate;
-
-  const handleDelete = useCallback((id: string) => {
-    deleteMutateRef.current(id);
-  }, []);
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteMutation.mutate(id);
+    },
+    [deleteMutation],
+  );
 
   const toggleYear = () => {
     if (process.env.EXPO_OS === 'ios') {
@@ -413,13 +394,25 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
               alignItems: 'center',
             }}
           >
-            <Receipt size={24} color={palette.neutral400} strokeWidth={1.5} />
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Receipt size={22} color={palette.neutral400} strokeWidth={1.5} />
+            </View>
             <Text
               style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral600,
-                marginTop: 8,
+                fontSize: 15,
+                fontWeight: '700',
+                color: isDark ? palette.neutral200 : palette.neutral800,
+                marginTop: 12,
                 textAlign: 'center',
               }}
             >
@@ -427,20 +420,20 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
             </Text>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: palette.neutral500,
-                marginTop: 2,
+                marginTop: 4,
                 textAlign: 'center',
               }}
             >
-              {t('expenses.emptyHint', { defaultValue: 'Tap + to log your first' })}
+              {t('expenses.emptyHint', { defaultValue: 'Tap to log parts, service, or gear.' })}
             </Text>
           </Pressable>
         </Animated.View>
       )}
 
       {/* Category breakdown bar */}
-      {!isLoading && allExpenses.length > 0 && grandTotal > 0 && (
+      {!isLoading && allExpenses.length > 0 && ytdTotal > 0 && (
         <Animated.View entering={FadeInUp.duration(250)}>
           <View
             style={{
@@ -463,8 +456,8 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
                 marginBottom: 10,
               }}
             >
-              {categories.map((cat: { category: string; total: number }) => {
-                const pct = grandTotal > 0 ? (cat.total / grandTotal) * 100 : 0;
+              {categories.map((cat) => {
+                const pct = ytdTotal > 0 ? (cat.total / ytdTotal) * 100 : 0;
                 if (pct === 0) return null;
                 return (
                   <View
@@ -480,7 +473,7 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
 
             {/* Category legend */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-              {categories.map((cat: { category: string; total: number }) => {
+              {categories.map((cat) => {
                 if (cat.total === 0) return null;
                 return (
                   <View
@@ -518,26 +511,15 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
       {/* Expense list */}
       {!isLoading && allExpenses.length > 0 && (
         <View style={{ gap: 6 }}>
-          {displayedExpenses.map(
-            (
-              expense: {
-                id: string;
-                amount: number;
-                category: string;
-                description?: string | null;
-                date: string;
-              },
-              index: number,
-            ) => (
-              <SwipeableExpense
-                key={expense.id}
-                expense={expense}
-                isDark={isDark}
-                onDelete={handleDelete}
-                index={index}
-              />
-            ),
-          )}
+          {displayedExpenses.map((expense, index) => (
+            <SwipeableExpense
+              key={expense.id}
+              expense={expense}
+              isDark={isDark}
+              onDelete={handleDelete}
+              index={index}
+            />
+          ))}
 
           {/* See all / Show less */}
           {allExpenses.length > 5 && (

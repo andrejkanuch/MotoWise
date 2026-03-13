@@ -22,7 +22,7 @@ export class ExpensesResolver {
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
     @Args('year', { type: () => Int, nullable: true }) year?: number,
   ): Promise<ExpenseSummary> {
-    return this.expensesService.findByMotorcycle(user.id, motorcycleId, year ?? undefined);
+    return this.expensesService.findByMotorcycle(user.id, motorcycleId, year);
   }
 
   @Mutation(() => Expense)

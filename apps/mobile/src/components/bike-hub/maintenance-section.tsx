@@ -1,21 +1,15 @@
 import { palette } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
-import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { haptic } from '../../lib/haptics';
 import { PRIORITY_ORDER, SwipeableTaskCard } from './swipeable-task-card';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 interface MaintenanceSectionProps {
   tasks: Task[];
@@ -40,29 +34,37 @@ export function MaintenanceSection({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
 
-  const activeTasks = useMemo(
-    () =>
-      tasks
-        .filter((task) => task.status === 'pending' || task.status === 'in_progress')
-        .sort((a, b) => {
-          // Overdue first
-          const aOverdue = a.dueDate ? new Date(a.dueDate) < new Date() : false;
-          const bOverdue = b.dueDate ? new Date(b.dueDate) < new Date() : false;
-          if (aOverdue && !bOverdue) return -1;
-          if (!aOverdue && bOverdue) return 1;
+  const { activeTasks, overdueCount } = useMemo(() => {
+    const now = Date.now();
+    let overdue = 0;
+    const active = tasks
+      .filter((task) => task.status === 'pending' || task.status === 'in_progress')
+      .sort((a, b) => {
+        // Overdue first
+        const aOverdue = a.dueDate ? new Date(a.dueDate).getTime() < now : false;
+        const bOverdue = b.dueDate ? new Date(b.dueDate).getTime() < now : false;
+        if (aOverdue && !bOverdue) return -1;
+        if (!aOverdue && bOverdue) return 1;
 
-          // Then by date
-          if (a.dueDate && b.dueDate) {
-            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-          }
-          if (a.dueDate && !b.dueDate) return -1;
-          if (!a.dueDate && b.dueDate) return 1;
+        // Then by date
+        if (a.dueDate && b.dueDate) {
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        }
+        if (a.dueDate && !b.dueDate) return -1;
+        if (!a.dueDate && b.dueDate) return 1;
 
-          // Then by priority
-          return (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
-        }),
-    [tasks],
-  );
+        // Then by priority
+        return (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
+      });
+
+    for (const task of active) {
+      if (task.dueDate && new Date(task.dueDate).getTime() < now) {
+        overdue++;
+      }
+    }
+
+    return { activeTasks: active, overdueCount: overdue };
+  }, [tasks]);
 
   const completedTasks = useMemo(
     () =>
@@ -74,15 +76,6 @@ export function MaintenanceSection({
           return bDate - aDate;
         }),
     [tasks],
-  );
-
-  const overdueCount = useMemo(
-    () =>
-      activeTasks.filter((task) => {
-        if (!task.dueDate) return false;
-        return new Date(task.dueDate) < new Date();
-      }).length,
-    [activeTasks],
   );
 
   const displayedTasks =
@@ -257,7 +250,7 @@ export function MaintenanceSection({
             task={task}
             index={index}
             isDark={isDark}
-            expandedId={expandedId}
+            isExpanded={expandedId === task.id}
             motorcycleId={motorcycleId}
             onToggleExpand={onToggleExpand}
             onComplete={onComplete}

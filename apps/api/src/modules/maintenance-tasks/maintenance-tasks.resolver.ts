@@ -4,14 +4,13 @@ import {
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motovault/types';
-import { Logger, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { ExpensesService } from '../expenses/expenses.service';
 import { AddTaskPhotoInput } from './dto/add-task-photo.input';
 import { CompleteMaintenanceTaskInput } from './dto/complete-task.input';
 import { CreateMaintenanceTaskInput } from './dto/create-maintenance-task.input';
@@ -24,12 +23,7 @@ import { TaskPhoto } from './models/task-photo.model';
 
 @Resolver(() => MaintenanceTask)
 export class MaintenanceTasksResolver {
-  private readonly logger = new Logger(MaintenanceTasksResolver.name);
-
-  constructor(
-    private readonly maintenanceTasksService: MaintenanceTasksService,
-    private readonly expensesService: ExpensesService,
-  ) {}
+  constructor(private readonly maintenanceTasksService: MaintenanceTasksService) {}
 
   @Query(() => [MaintenanceTask])
   @UseGuards(GqlAuthGuard)
@@ -92,23 +86,6 @@ export class MaintenanceTasksResolver {
     createNextOccurrence: boolean | null,
   ): Promise<CompleteTaskResult> {
     const completed = await this.maintenanceTasksService.complete(user.id, id, input ?? undefined);
-
-    // Auto-create expense if task has costs (don't block task completion on failure)
-    const totalCost =
-      (completed.cost ?? 0) + (completed.partsCost ?? 0) + (completed.laborCost ?? 0);
-    if (totalCost > 0) {
-      try {
-        await this.expensesService.createFromTask(
-          user.id,
-          completed.motorcycleId,
-          completed.id,
-          totalCost,
-          completed.title,
-        );
-      } catch (err) {
-        this.logger.warn(`Auto-expense creation failed for task ${completed.id}: ${err}`);
-      }
-    }
 
     const shouldCreateNext = createNextOccurrence ?? completed.isRecurring;
     let nextOccurrence: MaintenanceTask | undefined;

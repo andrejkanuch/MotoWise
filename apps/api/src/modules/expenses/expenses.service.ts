@@ -10,6 +10,19 @@ import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
 import type { ExpenseCategory, ExpenseSummary } from './models/expense-summary.model';
 
+/** Mirrors the selected columns from the expenses table (not yet in generated database.types.ts). */
+interface ExpenseRow {
+  id: string;
+  user_id: string;
+  motorcycle_id: string;
+  amount: number | string; // DECIMAL comes back as string from Supabase
+  category: string;
+  date: string;
+  description: string | null;
+  maintenance_task_id: string | null;
+  created_at: string;
+}
+
 @Injectable()
 export class ExpensesService {
   private readonly logger = new Logger(ExpensesService.name);
@@ -27,7 +40,9 @@ export class ExpensesService {
 
     let query = this.supabase
       .from('expenses')
-      .select('*')
+      .select(
+        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+      )
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
       .is('deleted_at', null)
@@ -93,7 +108,9 @@ export class ExpensesService {
         date: input.date,
         description: input.description,
       })
-      .select()
+      .select(
+        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+      )
       .single();
 
     if (error || !data) {
@@ -112,7 +129,7 @@ export class ExpensesService {
       .eq('id', id)
       .eq('user_id', userId)
       .is('deleted_at', null)
-      .select()
+      .select('id')
       .single();
 
     if (error || !data) {
@@ -142,7 +159,9 @@ export class ExpensesService {
         description: taskTitle,
         maintenance_task_id: taskId,
       })
-      .select()
+      .select(
+        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+      )
       .single();
 
     if (error) {
@@ -158,16 +177,16 @@ export class ExpensesService {
     return data ? this.mapRow(data) : null;
   }
 
-  private mapRow(row: Record<string, unknown>): Expense {
+  private mapRow(row: ExpenseRow): Expense {
     return {
-      id: row.id as string,
-      motorcycleId: row.motorcycle_id as string,
-      amount: row.amount as number,
-      category: row.category as string,
-      date: row.date as string,
-      description: (row.description as string) ?? undefined,
-      maintenanceTaskId: (row.maintenance_task_id as string) ?? undefined,
-      createdAt: row.created_at as string,
+      id: row.id,
+      motorcycleId: row.motorcycle_id,
+      amount: Math.round(Number(row.amount) * 100) / 100,
+      category: row.category,
+      date: row.date,
+      description: row.description ?? undefined,
+      maintenanceTaskId: row.maintenance_task_id ?? undefined,
+      createdAt: row.created_at,
     };
   }
 }

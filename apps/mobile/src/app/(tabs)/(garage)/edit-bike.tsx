@@ -7,6 +7,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Camera, Trash2 } from 'lucide-react-native';
@@ -16,9 +17,9 @@ import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
+  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -28,16 +29,10 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { haptic } from '../../../lib/haptics';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
-
 export default function EditBikeScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -394,12 +389,12 @@ export default function EditBikeScreen() {
                 <Image
                   source={{ uri: photoUrl }}
                   style={{ width: '100%', height: 200 }}
-                  resizeMode="cover"
+                  contentFit="cover"
                 />
                 {uploadingPhoto && (
                   <View
                     style={{
-                      ...StyleSheet_absoluteFill,
+                      ...StyleSheet.absoluteFillObject,
                       backgroundColor: 'rgba(0,0,0,0.4)',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -683,12 +678,3 @@ export default function EditBikeScreen() {
     </View>
   );
 }
-
-/** Inline helper mimicking StyleSheet.absoluteFillObject for the overlay */
-const StyleSheet_absoluteFill = {
-  position: 'absolute' as const,
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-};

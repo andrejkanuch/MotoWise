@@ -5,7 +5,6 @@ import {
   type MaintenanceTasksByMotorcycleQuery,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
@@ -26,16 +25,11 @@ import {
   SwipeableTaskCard,
 } from '../../../components/bike-hub/swipeable-task-card';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { haptic } from '../../../lib/haptics';
 import { queryKeys } from '../../../lib/query-keys';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 export default function BikeTasksScreen() {
   const { t } = useTranslation();
@@ -79,7 +73,7 @@ export default function BikeTasksScreen() {
   });
 
   const filteredTasks = useMemo(() => {
-    const now = new Date();
+    const now = Date.now();
     let filtered: Task[];
 
     switch (activeFilter) {
@@ -88,14 +82,14 @@ export default function BikeTasksScreen() {
           (task) =>
             (task.status === 'pending' || task.status === 'in_progress') &&
             task.dueDate &&
-            new Date(task.dueDate) < now,
+            new Date(task.dueDate).getTime() < now,
         );
         break;
       case 'upcoming':
         filtered = tasks.filter(
           (task) =>
             (task.status === 'pending' || task.status === 'in_progress') &&
-            (!task.dueDate || new Date(task.dueDate) >= now),
+            (!task.dueDate || new Date(task.dueDate).getTime() >= now),
         );
         break;
       case 'completed':
@@ -115,8 +109,8 @@ export default function BikeTasksScreen() {
       }
 
       // Overdue first
-      const aOverdue = a.dueDate ? new Date(a.dueDate) < new Date() : false;
-      const bOverdue = b.dueDate ? new Date(b.dueDate) < new Date() : false;
+      const aOverdue = a.dueDate ? new Date(a.dueDate).getTime() < now : false;
+      const bOverdue = b.dueDate ? new Date(b.dueDate).getTime() < now : false;
       if (aOverdue && !bOverdue) return -1;
       if (!aOverdue && bOverdue) return 1;
 
@@ -169,11 +163,29 @@ export default function BikeTasksScreen() {
     { key: 'completed', label: t('maintenance.completed', { defaultValue: 'Completed' }) },
   ];
 
-  const emptyMessages: Record<FilterTab, string> = {
-    all: t('maintenance.noTasks', { defaultValue: 'No maintenance tasks yet' }),
-    overdue: t('maintenance.noOverdue', { defaultValue: 'No overdue tasks' }),
-    upcoming: t('maintenance.noUpcoming', { defaultValue: 'No upcoming tasks' }),
-    completed: t('maintenance.noCompleted', { defaultValue: 'No completed tasks yet' }),
+  const emptyMessages: Record<FilterTab, { title: string; subtitle: string }> = {
+    all: {
+      title: t('maintenance.noTasks', { defaultValue: 'No maintenance tasks yet' }),
+      subtitle: t('maintenance.noTasksHint', {
+        defaultValue: 'Add tasks to track oil changes, tire wear, and more.',
+      }),
+    },
+    overdue: {
+      title: t('maintenance.noOverdue', { defaultValue: 'No overdue tasks' }),
+      subtitle: t('maintenance.noOverdueHint', { defaultValue: "You're all caught up." }),
+    },
+    upcoming: {
+      title: t('maintenance.noUpcoming', { defaultValue: 'No upcoming tasks' }),
+      subtitle: t('maintenance.noUpcomingHint', {
+        defaultValue: 'Nothing scheduled in the next 30 days.',
+      }),
+    },
+    completed: {
+      title: t('maintenance.noCompleted', { defaultValue: 'No completed tasks yet' }),
+      subtitle: t('maintenance.noCompletedHint', {
+        defaultValue: 'Completed tasks will appear here.',
+      }),
+    },
   };
 
   return (
@@ -249,16 +261,40 @@ export default function BikeTasksScreen() {
               paddingVertical: 60,
             }}
           >
-            <Wrench size={40} color={palette.neutral400} strokeWidth={1.2} />
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Wrench size={28} color={palette.neutral400} strokeWidth={1.5} />
+            </View>
             <Text
               style={{
                 fontSize: 16,
-                fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral700,
+                fontWeight: '700',
+                color: isDark ? palette.neutral200 : palette.neutral800,
                 marginTop: 16,
               }}
             >
-              {emptyMessages[activeFilter]}
+              {emptyMessages[activeFilter].title}
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: palette.neutral500,
+                marginTop: 4,
+                textAlign: 'center',
+                maxWidth: 260,
+              }}
+            >
+              {emptyMessages[activeFilter].subtitle}
             </Text>
           </Animated.View>
         ) : (
@@ -268,7 +304,7 @@ export default function BikeTasksScreen() {
               task={task}
               index={index}
               isDark={isDark}
-              expandedId={expandedId}
+              isExpanded={expandedId === task.id}
               motorcycleId={motorcycleId}
               onToggleExpand={handleToggleExpand}
               onComplete={handleComplete}

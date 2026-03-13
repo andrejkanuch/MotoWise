@@ -1,6 +1,5 @@
 import { palette } from '@motovault/design-system';
 import type { MaintenanceTasksByMotorcycleQuery } from '@motovault/graphql';
-import * as Haptics from 'expo-haptics';
 import {
   Calendar,
   Check,
@@ -14,6 +13,7 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import { haptic } from '../../lib/haptics';
 import { getRelativeDueDate } from '../../lib/health-score';
 import { TaskPhotoGallery } from '../TaskPhotoGallery';
 
@@ -30,12 +30,6 @@ export const PRIORITY_ORDER: Record<string, number> = {
   medium: 2,
   low: 3,
 };
-
-export function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function PriorityBadge({ priority }: { priority: string }) {
   const { t } = useTranslation();
@@ -72,7 +66,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   task,
   index,
   isDark,
-  expandedId,
+  isExpanded,
   motorcycleId,
   onToggleExpand,
   onComplete,
@@ -81,21 +75,20 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   task: MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   index: number;
   isDark: boolean;
-  expandedId: string | null;
+  isExpanded: boolean;
   motorcycleId: string;
   onToggleExpand: (id: string) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
 }) {
   const { t } = useTranslation();
-  const isExpanded = expandedId === task.id;
   const isCompleted = task.status === 'completed';
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
 
   return (
     <Animated.View
       key={task.id}
-      entering={FadeInUp.delay(index * 50).duration(300)}
+      entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(300)}
       exiting={FadeOutLeft.duration(250)}
       layout={LinearTransition.duration(200)}
     >

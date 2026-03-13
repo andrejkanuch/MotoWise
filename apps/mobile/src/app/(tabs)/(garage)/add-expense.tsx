@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { haptic } from '../../../lib/haptics';
 import { queryKeys } from '../../../lib/query-keys';
 
 const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
@@ -21,12 +22,6 @@ const CATEGORY_META: Record<Category, { color: string; label: string }> = {
   parts: { color: palette.success500, label: 'Parts' },
   gear: { color: palette.danger500, label: 'Gear' },
 };
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
