@@ -15,7 +15,6 @@ import {
   Calendar,
   Camera,
   ChevronDown,
-  ChevronRight,
   DollarSign,
   Edit3,
   MoreHorizontal,
@@ -698,7 +697,7 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* 4. Maintenance Section — tabbed (Active | History) */}
-        <View style={{ marginTop: 20 }}>
+        <Animated.View entering={FadeInUp.delay(140).duration(400)} style={{ marginTop: 20 }}>
           <MaintenanceSection
             tasks={tasks}
             isDark={isDark}
@@ -708,16 +707,16 @@ export default function BikeDetailScreen() {
             onComplete={handleCompleteTask}
             onDelete={handleDeleteTask}
           />
-        </View>
+        </Animated.View>
 
         {/* 5. Expenses Section */}
-        <View style={{ marginTop: 24 }}>
+        <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ marginTop: 24 }}>
           <ExpensesSection motorcycleId={id} isDark={isDark} />
-        </View>
+        </Animated.View>
 
         {/* 6. Details section (collapsible) */}
         <Animated.View
-          entering={FadeInUp.delay(160).duration(400)}
+          entering={FadeInUp.delay(260).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 20 }}
         >
           <Pressable
@@ -747,11 +746,13 @@ export default function BikeDetailScreen() {
             >
               {t('garage.tab_details', { defaultValue: 'Details' })}
             </Text>
-            {showDetails ? (
+            <Animated.View
+              style={{
+                transform: [{ rotate: showDetails ? '0deg' : '-90deg' }],
+              }}
+            >
               <ChevronDown size={18} color={palette.neutral400} />
-            ) : (
-              <ChevronRight size={18} color={palette.neutral400} />
-            )}
+            </Animated.View>
           </Pressable>
           {showDetails && (
             <Animated.View entering={FadeIn.duration(200)}>
