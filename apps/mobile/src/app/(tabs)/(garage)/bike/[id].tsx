@@ -488,7 +488,7 @@ export default function BikeDetailScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: 'rgba(245,158,11,0.9)',
+                  backgroundColor: palette.warning500,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 20,

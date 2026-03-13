@@ -66,6 +66,7 @@ export function GreetingHeader({
             width: 48,
             height: 48,
             borderRadius: 24,
+            borderCurve: 'continuous',
             backgroundColor: palette.primary500,
             alignItems: 'center',
             justifyContent: 'center',

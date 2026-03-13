@@ -104,7 +104,7 @@ function BikeCard({
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: 'rgba(245,158,11,0.9)',
+                  backgroundColor: palette.warning500,
                   paddingHorizontal: 10,
                   paddingVertical: 5,
                   borderRadius: 20,

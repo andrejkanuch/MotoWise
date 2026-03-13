@@ -232,6 +232,7 @@ export function FleetHealthHero({
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.15)',
                         borderRadius: 999,
+                        borderCurve: 'continuous',
                         paddingHorizontal: 10,
                         paddingVertical: 4,
                       }}

@@ -311,7 +311,7 @@ export default function ProfileScreen() {
                   height: 44,
                   borderRadius: 12,
                   borderCurve: 'continuous',
-                  backgroundColor: isDark ? 'rgba(51,102,230,0.15)' : palette.primary50,
+                  backgroundColor: isDark ? `${palette.primary500}25` : palette.primary50,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -390,7 +390,7 @@ export default function ProfileScreen() {
                   {bike.isPrimary && (
                     <View
                       style={{
-                        backgroundColor: 'rgba(245,158,11,0.15)',
+                        backgroundColor: `${palette.warning500}25`,
                         paddingHorizontal: 8,
                         paddingVertical: 3,
                         borderRadius: 6,

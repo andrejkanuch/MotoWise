@@ -40,8 +40,8 @@ export function MaintenanceTaskRow({
         style={{
           backgroundColor: isOverdue
             ? isDark
-              ? 'rgba(239,68,68,0.1)'
-              : 'rgba(239,68,68,0.06)'
+              ? `${palette.danger500}1A`
+              : `${palette.danger500}0F`
             : isDark
               ? palette.cardDark
               : palette.white,
@@ -105,6 +105,7 @@ export function MaintenanceTaskRow({
                   style={{
                     backgroundColor: `${palette.danger500}18`,
                     borderRadius: 999,
+                    borderCurve: 'continuous',
                     paddingHorizontal: 6,
                     paddingVertical: 1,
                   }}
