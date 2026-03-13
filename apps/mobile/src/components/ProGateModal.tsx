@@ -194,7 +194,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
                   <item.icon size={16} color={palette.primary400} strokeWidth={2} />
                 </View>
                 <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>
-                  {String(t(item.labelKey))}
+                  {String(t(item.labelKey as never))}
                 </Text>
               </Animated.View>
             ))}
