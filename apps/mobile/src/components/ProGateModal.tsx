@@ -2,8 +2,8 @@ import { palette } from '@motovault/design-system';
 import type { ProFeature } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Bell, Bike, BookOpen, Brain, FileText, X } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
+import { Bell, Bike, BookOpen, Brain, FileText, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -193,9 +193,7 @@ export function ProGateModal({ visible, feature, onDismiss }: ProGateModalProps)
                 >
                   <item.icon size={16} color={palette.primary400} strokeWidth={2} />
                 </View>
-                <Text
-                  style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}
-                >
+                <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' }}>
                   {String(t(item.labelKey))}
                 </Text>
               </Animated.View>
