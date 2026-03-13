@@ -379,6 +379,7 @@ export class MaintenanceTasksService {
       .from('maintenance_task_photos')
       .insert({
         task_id: taskId,
+        user_id: userId,
         storage_path: storagePath,
         file_size_bytes: fileSizeBytes ?? null,
         mime_type: mimeType,

@@ -32,17 +32,23 @@ values (
 on conflict (id) do nothing;
 
 -- RLS policy: users can only read their own exports
-create policy "Users can read own exports"
-  on storage.objects for select
-  using (
-    bucket_id = 'user-exports'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+do $$ begin
+  create policy "Users can read own exports"
+    on storage.objects for select
+    using (
+      bucket_id = 'user-exports'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
+exception when duplicate_object then null;
+end $$;
 
 -- Service role can insert/delete (used by the API for generating + cleanup)
-create policy "Service role can manage exports"
-  on storage.objects for all
-  using (
-    bucket_id = 'user-exports'
-    and auth.role() = 'service_role'
-  );
+do $$ begin
+  create policy "Service role can manage exports"
+    on storage.objects for all
+    using (
+      bucket_id = 'user-exports'
+      and auth.role() = 'service_role'
+    );
+exception when duplicate_object then null;
+end $$;
