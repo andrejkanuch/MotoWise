@@ -13,7 +13,6 @@
     "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
     "@apollo/server": "^4.11.0",
     "@as-integrations/express5": "^1.1.2",
     "@motovault/types": "workspace:*",
