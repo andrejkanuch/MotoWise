@@ -175,7 +175,7 @@ export default function NewDiagnosticScreen() {
           onPress={handleClose}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={t('diagnoseV2.close')}
+          accessibilityLabel={t('diagnoseV2.close' as any)}
         >
           <X size={22} color={palette.neutral600} strokeWidth={2} />
         </Pressable>

@@ -11,7 +11,12 @@ import { useShallow } from 'zustand/react/shallow';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import type { Step } from '../../stores/diagnostic-flow.store';
-import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import {
+  PREDEFINED_LOCATION,
+  PREDEFINED_SYMPTOMS,
+  PREDEFINED_TIMING,
+  useDiagnosticFlowStore,
+} from '../../stores/diagnostic-flow.store';
 import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 
 interface StepReviewSubmitProps {
@@ -124,10 +129,17 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
     preventive: t('diagnoseV2.urgencyPreventive'),
   };
 
+  const ALL_PREDEFINED = new Set<string>([
+    ...PREDEFINED_SYMPTOMS,
+    ...PREDEFINED_LOCATION,
+    ...PREDEFINED_TIMING,
+  ]);
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
-    // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
-    .map((v: string) => t(`diagnoseV2.option.${v}` as any) as string);
+    .map((v: string) =>
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
+      ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`,
+    );
 
   return (
     <View style={{ flex: 1 }}>
@@ -160,7 +172,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             {t('diagnoseV2.review')}
           </Text>
           <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
-            {t('diagnoseV2.reviewHint')}
+            {t('diagnoseV2.reviewHint' as any)}
           </Text>
         </View>
 

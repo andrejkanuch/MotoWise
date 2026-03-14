@@ -310,7 +310,7 @@ export function StepProblemDescription() {
           onChangeText={(text) => setCustomInput(sanitizeInput(text.slice(0, 50)))}
           placeholder={canAddCustom ? 'Type your own...' : 'Maximum reached'}
           placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
-          accessibilityLabel={t('diagnoseV2.customOption')}
+          accessibilityLabel={t('diagnoseV2.customOption' as any)}
           style={{
             flex: 1,
             color: DIAGNOSTIC_COLORS.textPrimary,
@@ -361,7 +361,7 @@ export function StepProblemDescription() {
                     backgroundColor:
                       i === wizardSubStep ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.2)',
                   }}
-                  accessibilityLabel={t('diagnoseV2.wizardSubStep', {
+                  accessibilityLabel={t('diagnoseV2.wizardSubStep' as any, {
                     current: i + 1,
                     total: WIZARD_STEPS.length,
                   })}
@@ -399,7 +399,7 @@ export function StepProblemDescription() {
                 {t('diagnoseV2.describeProblem')}
               </Text>
               <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
-                {t('diagnoseV2.describeProblemHint')}
+                {t('diagnoseV2.describeProblemHint' as any)}
               </Text>
             </>
           )}
@@ -492,8 +492,10 @@ export function StepProblemDescription() {
                       {group.options.map((option) => (
                         <WizardOptionChip
                           key={option}
-                          label={t(`diagnoseV2.option.${option}`)}
-                          subtitle={isBeginner ? t(`diagnoseV2.subtitle.${option}`) : undefined}
+                          label={t(`diagnoseV2.option.${option}` as any)}
+                          subtitle={
+                            isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
+                          }
                           selected={selectionSet.has(option)}
                           IconComponent={SYMPTOM_ICONS[option]}
                           onPress={() => toggleWizardOption(currentKey, option)}
@@ -539,8 +541,10 @@ export function StepProblemDescription() {
                         style={{ width: '47%' }}
                       >
                         <WizardOptionChip
-                          label={t(`diagnoseV2.option.${option}`)}
-                          subtitle={isBeginner ? t(`diagnoseV2.subtitle.${option}`) : undefined}
+                          label={t(`diagnoseV2.option.${option}` as any)}
+                          subtitle={
+                            isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
+                          }
                           selected={selectionSet.has(option)}
                           IconComponent={IconComp}
                           onPress={() => toggleWizardOption(currentKey, option)}
