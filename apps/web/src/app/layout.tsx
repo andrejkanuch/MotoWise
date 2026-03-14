@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
@@ -38,7 +39,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
       </head>
-      <body className="bg-[--color-surface] text-[--color-on-surface] m-0">{children}</body>
+      <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
