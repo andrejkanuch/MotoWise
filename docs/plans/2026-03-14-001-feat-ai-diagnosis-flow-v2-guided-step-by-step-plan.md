@@ -1,7 +1,7 @@
 ---
 title: "feat: AI Diagnosis Flow v2 — Guided Step-by-Step Redesign"
 type: feat
-status: active
+status: completed
 date: 2026-03-14
 ---
 
