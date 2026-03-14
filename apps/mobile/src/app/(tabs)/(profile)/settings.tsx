@@ -63,9 +63,59 @@ const GOAL_DEFAULT_LABELS: Record<RidingGoal, string> = {
   track_bike_health: 'Track Bike Health',
 };
 
+const LEARNING_FORMATS = [
+  'quick_tips',
+  'deep_dives',
+  'video_walkthroughs',
+  'hands_on_quizzes',
+] as const;
+type LearningFormat = (typeof LEARNING_FORMATS)[number];
+
+const LEARNING_FORMAT_LABEL_KEYS: Record<LearningFormat, string> = {
+  quick_tips: 'settings.formatQuickTips',
+  deep_dives: 'settings.formatDeepDives',
+  video_walkthroughs: 'settings.formatVideoWalkthroughs',
+  hands_on_quizzes: 'settings.formatHandsOnQuizzes',
+};
+
+const LEARNING_FORMAT_DEFAULT_LABELS: Record<LearningFormat, string> = {
+  quick_tips: 'Quick Tips',
+  deep_dives: 'Deep Dives',
+  video_walkthroughs: 'Video Walkthroughs',
+  hands_on_quizzes: 'Hands-on Quizzes',
+};
+
+const RIDING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'seasonal'] as const;
+type RidingFrequency = (typeof RIDING_FREQUENCIES)[number];
+
+const RIDING_FREQUENCY_LABEL_KEYS: Record<RidingFrequency, string> = {
+  daily: 'settings.frequencyDaily',
+  weekly: 'settings.frequencyWeekly',
+  monthly: 'settings.frequencyMonthly',
+  seasonal: 'settings.frequencySeasonal',
+};
+
+const MAINTENANCE_STYLES = ['diy', 'mix', 'shop'] as const;
+type MaintenanceStyle = (typeof MAINTENANCE_STYLES)[number];
+
+const MAINTENANCE_STYLE_LABEL_KEYS: Record<MaintenanceStyle, string> = {
+  diy: 'settings.maintenanceDiy',
+  mix: 'settings.maintenanceMix',
+  shop: 'settings.maintenanceShop',
+};
+
+const MAINTENANCE_STYLE_DEFAULT_LABELS: Record<MaintenanceStyle, string> = {
+  diy: 'DIY',
+  mix: 'Mix',
+  shop: 'Shop',
+};
+
 type UserPreferences = {
   experienceLevel?: string;
   ridingGoals?: string[];
+  learningFormats?: string[];
+  ridingFrequency?: string;
+  maintenanceStyle?: string;
 };
 
 function haptic() {
@@ -98,6 +148,9 @@ export default function SettingsScreen() {
   const [fullName, setFullName] = useState('');
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('beginner');
   const [selectedGoals, setSelectedGoals] = useState<RidingGoal[]>([]);
+  const [selectedFormats, setSelectedFormats] = useState<LearningFormat[]>([]);
+  const [ridingFrequency, setRidingFrequency] = useState<RidingFrequency | null>(null);
+  const [maintenanceStyle, setMaintenanceStyle] = useState<MaintenanceStyle | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -109,6 +162,22 @@ export default function SettingsScreen() {
         (RIDING_GOALS as readonly string[]).includes(g),
       );
       setSelectedGoals(validGoals);
+      const storedFormats = (preferences?.learningFormats as string[]) ?? [];
+      const validFormats = storedFormats.filter((f): f is LearningFormat =>
+        (LEARNING_FORMATS as readonly string[]).includes(f),
+      );
+      setSelectedFormats(validFormats);
+      const storedFrequency = preferences?.ridingFrequency as string | undefined;
+      if (storedFrequency && (RIDING_FREQUENCIES as readonly string[]).includes(storedFrequency)) {
+        setRidingFrequency(storedFrequency as RidingFrequency);
+      }
+      const storedMaintStyle = preferences?.maintenanceStyle as string | undefined;
+      if (
+        storedMaintStyle &&
+        (MAINTENANCE_STYLES as readonly string[]).includes(storedMaintStyle)
+      ) {
+        setMaintenanceStyle(storedMaintStyle as MaintenanceStyle);
+      }
       setIsInitialized(true);
     }
   }, [user, preferences, isInitialized]);
@@ -129,6 +198,13 @@ export default function SettingsScreen() {
     );
   }, []);
 
+  const toggleFormat = useCallback((format: LearningFormat) => {
+    haptic();
+    setSelectedFormats((prev) =>
+      prev.includes(format) ? prev.filter((f) => f !== format) : [...prev, format],
+    );
+  }, []);
+
   const handleSave = useCallback(() => {
     haptic();
     const input: { fullName?: string; preferences?: Record<string, unknown> } = {};
@@ -145,24 +221,45 @@ export default function SettingsScreen() {
           [...((preferences?.ridingGoals as RidingGoal[]) ?? [])]
             .filter((g): g is RidingGoal => (RIDING_GOALS as readonly string[]).includes(g))
             .sort(),
-        );
+        ) ||
+      JSON.stringify([...selectedFormats].sort()) !==
+        JSON.stringify([...((preferences?.learningFormats as LearningFormat[]) ?? [])].sort()) ||
+      ridingFrequency !== (preferences?.ridingFrequency ?? null) ||
+      maintenanceStyle !== (preferences?.maintenanceStyle ?? null);
 
     if (prefsChanged) {
       input.preferences = {
         experienceLevel,
         ridingGoals: selectedGoals,
+        learningFormats: selectedFormats,
+        ridingFrequency,
+        maintenanceStyle,
       };
     }
 
     updateMutation.mutate(input);
-  }, [fullName, experienceLevel, selectedGoals, updateMutation, user, preferences]);
+  }, [
+    fullName,
+    experienceLevel,
+    selectedGoals,
+    selectedFormats,
+    ridingFrequency,
+    maintenanceStyle,
+    updateMutation,
+    user,
+    preferences,
+  ]);
 
   const hasChanges =
     isInitialized &&
     (fullName !== (user?.fullName ?? '') ||
       experienceLevel !== ((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner') ||
       JSON.stringify([...selectedGoals].sort()) !==
-        JSON.stringify([...((preferences?.ridingGoals as RidingGoal[]) ?? [])].sort()));
+        JSON.stringify([...((preferences?.ridingGoals as RidingGoal[]) ?? [])].sort()) ||
+      JSON.stringify([...selectedFormats].sort()) !==
+        JSON.stringify([...((preferences?.learningFormats as LearningFormat[]) ?? [])].sort()) ||
+      ridingFrequency !== (preferences?.ridingFrequency ?? null) ||
+      maintenanceStyle !== (preferences?.maintenanceStyle ?? null));
 
   if (meQuery.isLoading) {
     return (
@@ -431,9 +528,235 @@ export default function SettingsScreen() {
           </View>
         </Animated.View>
 
+        {/* Learning Formats Section */}
+        <Animated.View
+          entering={FadeInUp.delay(240).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 28 }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: palette.neutral500,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 8,
+              marginLeft: 4,
+            }}
+          >
+            {t('settings.learningFormatsLabel', { defaultValue: 'Learning Formats' })}
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            {LEARNING_FORMATS.map((format, index) => {
+              const selected = selectedFormats.includes(format);
+              return (
+                <Animated.View
+                  key={format}
+                  entering={FadeInUp.delay(240 + index * 50).duration(350)}
+                >
+                  <Pressable
+                    onPress={() => toggleFormat(format)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      paddingHorizontal: 14,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      borderWidth: 1.5,
+                      borderColor: selected
+                        ? isDark
+                          ? palette.primary600
+                          : palette.primary500
+                        : isDark
+                          ? 'rgba(255,255,255,0.1)'
+                          : palette.neutral200,
+                      backgroundColor: selected
+                        ? isDark
+                          ? `${palette.primary500}25`
+                          : `${palette.primary500}14`
+                        : isDark
+                          ? palette.neutral800
+                          : palette.white,
+                    }}
+                  >
+                    {selected && (
+                      <Check
+                        size={14}
+                        color={isDark ? palette.primary400 : palette.primary600}
+                        strokeWidth={2.5}
+                      />
+                    )}
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: selected ? '600' : '500',
+                        color: selected
+                          ? isDark
+                            ? palette.primary300
+                            : palette.primary700
+                          : isDark
+                            ? palette.neutral300
+                            : palette.neutral600,
+                      }}
+                    >
+                      {t(LEARNING_FORMAT_LABEL_KEYS[format], {
+                        defaultValue: LEARNING_FORMAT_DEFAULT_LABELS[format],
+                      })}
+                    </Text>
+                  </Pressable>
+                </Animated.View>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* Riding Frequency Section */}
+        <Animated.View
+          entering={FadeInUp.delay(320).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 28 }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: palette.neutral500,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 8,
+              marginLeft: 4,
+            }}
+          >
+            {t('settings.ridingFrequencyLabel', { defaultValue: 'Riding Frequency' })}
+          </Text>
+          <View
+            style={{
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              flexDirection: 'row',
+              padding: 4,
+              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+            }}
+          >
+            {RIDING_FREQUENCIES.map((freq) => {
+              const selected = ridingFrequency === freq;
+              return (
+                <Pressable
+                  key={freq}
+                  onPress={() => {
+                    haptic();
+                    setRidingFrequency(freq);
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 10,
+                    borderCurve: 'continuous',
+                    alignItems: 'center',
+                    backgroundColor: selected
+                      ? isDark
+                        ? palette.primary700
+                        : palette.primary500
+                      : 'transparent',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: selected
+                        ? palette.white
+                        : isDark
+                          ? palette.neutral400
+                          : palette.neutral600,
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {t(RIDING_FREQUENCY_LABEL_KEYS[freq], { defaultValue: freq })}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* Maintenance Style Section */}
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 28 }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: palette.neutral500,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+              marginBottom: 8,
+              marginLeft: 4,
+            }}
+          >
+            {t('settings.maintenanceStyleLabel', { defaultValue: 'Maintenance Style' })}
+          </Text>
+          <View
+            style={{
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              flexDirection: 'row',
+              padding: 4,
+              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+            }}
+          >
+            {MAINTENANCE_STYLES.map((style) => {
+              const selected = maintenanceStyle === style;
+              return (
+                <Pressable
+                  key={style}
+                  onPress={() => {
+                    haptic();
+                    setMaintenanceStyle(style);
+                  }}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 10,
+                    borderCurve: 'continuous',
+                    alignItems: 'center',
+                    backgroundColor: selected
+                      ? isDark
+                        ? palette.primary700
+                        : palette.primary500
+                      : 'transparent',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: selected
+                        ? palette.white
+                        : isDark
+                          ? palette.neutral400
+                          : palette.neutral600,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {t(MAINTENANCE_STYLE_LABEL_KEYS[style], {
+                      defaultValue: MAINTENANCE_STYLE_DEFAULT_LABELS[style],
+                    })}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Animated.View>
+
         {/* Save Button */}
         <Animated.View
-          entering={FadeInUp.delay(460).duration(400)}
+          entering={FadeInUp.delay(500).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 36 }}
         >
           <Pressable

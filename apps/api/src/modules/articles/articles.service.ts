@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_ANON } from '../supabase/supabase-anon.provider';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
@@ -15,7 +16,10 @@ import { ArticleConnection } from './models/article-connection.model';
 export class ArticlesService {
   private readonly logger = new Logger(ArticlesService.name);
 
-  constructor(@Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+  ) {}
 
   async search(input: {
     query?: string;
@@ -24,7 +28,7 @@ export class ArticlesService {
     first?: number;
     after?: string;
   }): Promise<ArticleConnection> {
-    const limit = Math.min(Math.max(input.first ?? 20, 1), 50);
+    const limit = input.first ?? 20;
     let query = this.anonClient
       .from('articles')
       .select(
@@ -104,35 +108,33 @@ export class ArticlesService {
   }
 
   async findSimilar(topic: string): Promise<{ title: string; slug: string }[]> {
-    const { data } = await this.anonClient
+    const searchTerm = topic.trim().split(/\s+/).slice(0, 5).join(' & ');
+    const { data } = await this.adminClient
       .from('articles')
       .select('title, slug')
-      .eq('is_hidden', false)
-      .textSearch('search_vector', topic.trim(), { type: 'websearch' })
+      .textSearch('search_vector', searchTerm, { type: 'websearch' })
       .limit(3);
     return data ?? [];
   }
 
   async findPopular(first = 10): Promise<Article[]> {
     const limit = Math.min(Math.max(first, 1), 20);
-    const { data, error } = await this.anonClient
+    const { data, error } = await this.adminClient
       .from('articles')
       .select(
-        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at, read_time_minutes, keywords',
+        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at, content_json, read_time_minutes, keywords',
       )
       .eq('is_hidden', false)
       .order('view_count', { ascending: false })
       .limit(limit);
-
     if (error) {
       this.logger.error('Failed to fetch popular articles', error);
       return [];
     }
-    // biome-ignore lint/suspicious/noExplicitAny: keywords not in generated DB types yet
-    return (data ?? []).map((row) => this.mapRow(row as any));
+    return (data ?? []).map((row) => this.mapRow(row));
   }
 
-  private mapRow(
+  mapRow(
     row: Pick<
       Tables<'articles'>,
       | 'id'
