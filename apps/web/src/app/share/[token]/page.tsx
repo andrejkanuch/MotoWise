@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const API_URL = process.env.API_URL ?? 'http://localhost:4000/graphql';
+const API_URL = process.env.API_URL ?? 'https://motovault-api.onrender.com/graphql';
 
 const SHARED_BIKE_HISTORY_QUERY = `
   query SharedBikeHistory($token: String!) {
