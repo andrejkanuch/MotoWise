@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { uploadBikePhoto } from '../../lib/image-upload';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -60,6 +61,7 @@ export default function PersonalizingScreen() {
     },
   });
 
+  const session = useAuthStore((s) => s.session);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
@@ -82,38 +84,54 @@ export default function PersonalizingScreen() {
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
-    const input: CompleteOnboardingInput = {
-      experienceLevel: experienceLevel ?? 'beginner',
-      ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
-      learningFormats: learningFormats.length > 0 ? learningFormats : [],
-      maintenanceReminders,
-      seasonalTips,
-      recallAlerts,
-      weeklySummary,
-      ...(ridingFrequency && { ridingFrequency }),
-      ...(maintenanceStyle && { maintenanceStyle }),
-      ...(annualRepairSpend && { annualRepairSpend }),
-      ...(reminderChannel && { reminderChannel }),
-      ...(lastServiceDate && { lastServiceDate }),
-      ...(bikeData && {
-        bikeMake: bikeData.make,
-        bikeModel: bikeData.model,
-        bikeYear: bikeData.year,
-        bikeType: bikeData.type,
-        bikeMileage: bikeData.currentMileage,
-        ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
-      }),
+    const run = async () => {
+      let bikePhotoUrl: string | undefined;
+
+      // Upload bike photo if provided
+      if (bikeData?.photoUri && session?.user?.id && bikeData.make) {
+        try {
+          const tempId = `onboarding-${Date.now()}`;
+          const result = await uploadBikePhoto(bikeData.photoUri, session.user.id, tempId);
+          bikePhotoUrl = result.publicUrl;
+        } catch (e) {
+          console.warn('[Personalizing] Photo upload failed, continuing without photo:', e);
+        }
+      }
+
+      const input: CompleteOnboardingInput = {
+        experienceLevel: experienceLevel ?? 'beginner',
+        ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
+        learningFormats: learningFormats.length > 0 ? learningFormats : [],
+        maintenanceReminders,
+        seasonalTips,
+        recallAlerts,
+        weeklySummary,
+        ...(ridingFrequency && { ridingFrequency }),
+        ...(maintenanceStyle && { maintenanceStyle }),
+        ...(annualRepairSpend && { annualRepairSpend }),
+        ...(reminderChannel && { reminderChannel }),
+        ...(lastServiceDate && { lastServiceDate }),
+        ...(bikeData && {
+          bikeMake: bikeData.make,
+          bikeModel: bikeData.model,
+          bikeYear: bikeData.year,
+          bikeType: bikeData.type,
+          bikeMileage: bikeData.currentMileage,
+          bikeMileageUnit: bikeData.mileageUnit,
+          ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
+          ...(bikePhotoUrl && { bikePhotoUrl }),
+        }),
+      };
+
+      await completeOnboarding(input);
+      setOnboardingCompleted(true);
+      setMutationDone(true);
     };
 
-    completeOnboarding(input)
-      .then(() => {
-        setOnboardingCompleted(true);
-        setMutationDone(true);
-      })
-      .catch((error) => {
-        console.error('[Personalizing] Attempt failed:', error);
-        setShowRetry(true);
-      });
+    run().catch((error) => {
+      console.error('[Personalizing] Attempt failed:', error);
+      setShowRetry(true);
+    });
   }, [retryCount]);
 
   // Animation steps + minimum display time

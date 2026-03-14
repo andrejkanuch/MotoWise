@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
@@ -68,7 +69,7 @@ export default function LoginScreen() {
   const canSubmit = email.length > 0 && password.length > 0 && !loading;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
         <ScrollView
           style={{ flex: 1 }}
@@ -102,7 +103,7 @@ export default function LoginScreen() {
               style={{
                 fontSize: 32,
                 fontWeight: '800',
-                color: '#FFFFFF',
+                color: palette.white,
                 letterSpacing: -0.5,
                 textAlign: 'center',
               }}
@@ -129,7 +130,7 @@ export default function LoginScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: palette.white,
                   borderRadius: 16,
                   borderCurve: 'continuous',
                   paddingVertical: 16,
@@ -161,8 +162,8 @@ export default function LoginScreen() {
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
-              <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF' }}>G</Text>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFFFFF' }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white }}>G</Text>
+              <Text style={{ fontSize: 16, fontWeight: '600', color: palette.white }}>
                 {t('auth.continueWithGoogle')}
               </Text>
             </Pressable>
@@ -199,7 +200,7 @@ export default function LoginScreen() {
                 paddingHorizontal: 18,
                 paddingVertical: 16,
                 fontSize: 16,
-                color: '#FFFFFF',
+                color: palette.white,
               }}
             />
             <TextInput
@@ -218,14 +219,14 @@ export default function LoginScreen() {
                 paddingHorizontal: 18,
                 paddingVertical: 16,
                 fontSize: 16,
-                color: '#FFFFFF',
+                color: palette.white,
               }}
             />
             <Pressable
               onPress={handleLogin}
               disabled={!canSubmit}
               style={({ pressed }) => ({
-                backgroundColor: canSubmit ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
+                backgroundColor: canSubmit ? palette.white : 'rgba(255, 255, 255, 0.12)',
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 paddingVertical: 18,
@@ -237,12 +238,12 @@ export default function LoginScreen() {
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               })}
             >
-              {loading && <ActivityIndicator size="small" color="#0F172A" />}
+              {loading && <ActivityIndicator size="small" color={palette.surfaceDark} />}
               <Text
                 style={{
                   fontSize: 17,
                   fontWeight: '700',
-                  color: canSubmit ? '#0F172A' : 'rgba(255, 255, 255, 0.3)',
+                  color: canSubmit ? palette.surfaceDark : 'rgba(255, 255, 255, 0.3)',
                 }}
               >
                 {loading ? t('auth.signingIn') : t('auth.signIn')}
@@ -259,7 +260,7 @@ export default function LoginScreen() {
               <Pressable
                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingVertical: 8 })}
               >
-                <Text style={{ fontSize: 15, color: '#60A5FA', fontWeight: '600' }}>
+                <Text style={{ fontSize: 15, color: palette.moduleSuspension, fontWeight: '600' }}>
                   {t('auth.noAccount')}
                 </Text>
               </Pressable>

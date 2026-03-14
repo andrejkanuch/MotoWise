@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -65,8 +69,10 @@ input CompleteOnboardingInput {
   annualRepairSpend: String
   bikeMake: String
   bikeMileage: Int
+  bikeMileageUnit: String
   bikeModel: String
   bikeNickname: String
+  bikePhotoUrl: String
   bikeType: String
   bikeYear: Int
   experienceLevel: String!
