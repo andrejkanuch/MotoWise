@@ -641,6 +641,13 @@
       "braking": "Beim Bremsen",
       "acceleration": "Beim Beschleunigen",
       "turning": "Beim Lenken"
-    }
+    },
+    "searchModel": "Modelle suchen...",
+    "popularMakes": "Beliebte Marken",
+    "noMakesFound": "Keine Marken gefunden",
+    "noModelsFound": "Keine Modelle gefunden",
+    "tapToChange": "Tippen zum Ändern",
+    "confirmModel": "Modell bestätigen",
+    "cantLoadTypeManually": "Kann nicht laden? Manuell eingeben"
   }
 }

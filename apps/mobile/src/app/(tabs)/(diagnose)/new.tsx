@@ -175,6 +175,7 @@ export default function NewDiagnosticScreen() {
           onPress={handleClose}
           hitSlop={8}
           accessibilityRole="button"
+          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
           accessibilityLabel={t('diagnoseV2.close' as any)}
         >
           <X size={22} color={palette.neutral600} strokeWidth={2} />

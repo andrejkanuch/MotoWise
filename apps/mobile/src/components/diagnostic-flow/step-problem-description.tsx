@@ -310,6 +310,7 @@ export function StepProblemDescription() {
           onChangeText={(text) => setCustomInput(sanitizeInput(text.slice(0, 50)))}
           placeholder={canAddCustom ? 'Type your own...' : 'Maximum reached'}
           placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
           accessibilityLabel={t('diagnoseV2.customOption' as any)}
           style={{
             flex: 1,
@@ -399,6 +400,7 @@ export function StepProblemDescription() {
                 {t('diagnoseV2.describeProblem')}
               </Text>
               <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+                {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
                 {t('diagnoseV2.describeProblemHint' as any)}
               </Text>
             </>
@@ -492,8 +494,10 @@ export function StepProblemDescription() {
                       {group.options.map((option) => (
                         <WizardOptionChip
                           key={option}
+                          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                           label={t(`diagnoseV2.option.${option}` as any)}
                           subtitle={
+                            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                             isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
                           }
                           selected={selectionSet.has(option)}
@@ -541,8 +545,10 @@ export function StepProblemDescription() {
                         style={{ width: '47%' }}
                       >
                         <WizardOptionChip
+                          // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                           label={t(`diagnoseV2.option.${option}` as any)}
                           subtitle={
+                            // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                             isBeginner ? t(`diagnoseV2.subtitle.${option}` as any) : undefined
                           }
                           selected={selectionSet.has(option)}
