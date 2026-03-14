@@ -18,6 +18,7 @@ type Article {
   generatedAt: String!
   id: ID!
   isSafetyCritical: Boolean!
+  keywords: [String!]
   readTime: Int
   slug: String!
   title: String!
@@ -416,6 +417,7 @@ type Query {
   myProgress: [LearningProgress!]!
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
+  popularArticles(first: Int = 10): [Article!]!
   quizByArticle(articleId: String!): Quiz
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
