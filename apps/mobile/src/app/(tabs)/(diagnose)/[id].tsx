@@ -18,7 +18,7 @@ import { queryKeys } from '../../../lib/query-keys';
 
 const SEVERITY_CONFIG = {
   critical: { color: palette.danger500, bg: palette.dangerBgLight },
-  high: { color: '#f97316', bg: '#fff7ed' },
+  high: { color: palette.signature400, bg: '#fff7ed' },
   medium: { color: palette.warning500, bg: palette.warningBgLight },
   low: { color: palette.success500, bg: palette.successBgLight },
 } as const;
@@ -26,7 +26,7 @@ const SEVERITY_CONFIG = {
 const DIFFICULTY_CONFIG: Record<string, string> = {
   easy: palette.success500,
   moderate: palette.warning500,
-  hard: '#f97316',
+  hard: palette.signature400,
   professional: palette.danger500,
 };
 

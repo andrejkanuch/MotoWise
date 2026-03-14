@@ -6,7 +6,17 @@ import { useRouter } from 'expo-router';
 import { Bike, ChevronRight, Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -107,7 +117,12 @@ export default function BikeModelScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={4} totalScreens={TOTAL_SCREENS} />
 
-      <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text
           entering={FadeInDown.duration(300)}
           style={{
@@ -346,36 +361,38 @@ export default function BikeModelScreen() {
             </Text>
           </Animated.View>
         )}
-      </View>
 
-      {/* Continue button */}
-      {canContinue && (
-        <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
-          <Animated.View entering={FadeInUp.duration(250)}>
-            <Pressable
-              onPress={handleContinue}
-              style={({ pressed }) => ({
-                backgroundColor: ONBOARDING_COLORS.textPrimary,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                paddingVertical: 16,
-                alignItems: 'center',
-                opacity: pressed ? 0.85 : 1,
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 8,
-              })}
-            >
-              <Text
-                style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.background }}
+        {/* Continue button */}
+        {canContinue && (
+          <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
+            <Animated.View entering={FadeInUp.duration(250)}>
+              <Pressable
+                onPress={handleContinue}
+                style={({ pressed }) => ({
+                  backgroundColor: ONBOARDING_COLORS.textPrimary,
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  gap: 8,
+                })}
               >
-                {t('onboarding.continue')}
-              </Text>
-              <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
-            </Pressable>
-          </Animated.View>
-        </View>
-      )}
+                <Text
+                  style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.background }}
+                >
+                  {t('onboarding.continue')}
+                </Text>
+                <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+              </Pressable>
+            </Animated.View>
+          </View>
+        )}
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </View>
   );
 }

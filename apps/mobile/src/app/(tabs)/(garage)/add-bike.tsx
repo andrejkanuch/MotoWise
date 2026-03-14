@@ -6,7 +6,6 @@ import {
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { useState } from 'react';
@@ -427,11 +426,9 @@ export default function AddBikeScreen() {
             opacity: !isValid || isPending ? 0.5 : 1,
           }}
         >
-          <LinearGradient
-            colors={[palette.primary600, palette.primary500]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             style={{
+              backgroundColor: palette.primary700,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -443,7 +440,7 @@ export default function AddBikeScreen() {
             <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
               {isPending ? t('garage.saving') : t('garage.addBike')}
             </Text>
-          </LinearGradient>
+          </View>
         </Pressable>
       </Animated.View>
     </ScrollView>

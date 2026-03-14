@@ -1,5 +1,15 @@
 {
   "permissions": {
-    "allow": ["Bash(curl:*)", "Bash(git add:*)", "Bash(git commit:*)", "Bash(git push:*)"]
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr:*)",
+      "Bash(grep -l \"backgroundColor\\\\|color:\" /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/components/*.tsx | while read f; do if ! grep -q \"isDark\" \"$f\"; then echo \"$f\"; fi; done)",
+      "Bash(ls /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/app/\\\\\\(onboarding\\\\\\)/)",
+      "Read(//Users/andrejmacm5/.claude/**)",
+      "Bash(which npx:*)"
+    ]
   }
 }

@@ -1,6 +1,7 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import { uploadBikePhoto } from '../../lib/image-upload';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -60,6 +61,7 @@ export default function PersonalizingScreen() {
     },
   });
 
+  const session = useAuthStore((s) => s.session);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
@@ -82,38 +84,54 @@ export default function PersonalizingScreen() {
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
-    const input: CompleteOnboardingInput = {
-      experienceLevel: experienceLevel ?? 'beginner',
-      ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
-      learningFormats: learningFormats.length > 0 ? learningFormats : [],
-      maintenanceReminders,
-      seasonalTips,
-      recallAlerts,
-      weeklySummary,
-      ...(ridingFrequency && { ridingFrequency }),
-      ...(maintenanceStyle && { maintenanceStyle }),
-      ...(annualRepairSpend && { annualRepairSpend }),
-      ...(reminderChannel && { reminderChannel }),
-      ...(lastServiceDate && { lastServiceDate }),
-      ...(bikeData && {
-        bikeMake: bikeData.make,
-        bikeModel: bikeData.model,
-        bikeYear: bikeData.year,
-        bikeType: bikeData.type,
-        bikeMileage: bikeData.currentMileage,
-        ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
-      }),
+    const run = async () => {
+      let bikePhotoUrl: string | undefined;
+
+      // Upload bike photo if provided
+      if (bikeData?.photoUri && session?.user?.id && bikeData.make) {
+        try {
+          const tempId = `onboarding-${Date.now()}`;
+          const result = await uploadBikePhoto(bikeData.photoUri, session.user.id, tempId);
+          bikePhotoUrl = result.publicUrl;
+        } catch (e) {
+          console.warn('[Personalizing] Photo upload failed, continuing without photo:', e);
+        }
+      }
+
+      const input: CompleteOnboardingInput = {
+        experienceLevel: experienceLevel ?? 'beginner',
+        ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
+        learningFormats: learningFormats.length > 0 ? learningFormats : [],
+        maintenanceReminders,
+        seasonalTips,
+        recallAlerts,
+        weeklySummary,
+        ...(ridingFrequency && { ridingFrequency }),
+        ...(maintenanceStyle && { maintenanceStyle }),
+        ...(annualRepairSpend && { annualRepairSpend }),
+        ...(reminderChannel && { reminderChannel }),
+        ...(lastServiceDate && { lastServiceDate }),
+        ...(bikeData && {
+          bikeMake: bikeData.make,
+          bikeModel: bikeData.model,
+          bikeYear: bikeData.year,
+          bikeType: bikeData.type,
+          bikeMileage: bikeData.currentMileage,
+          bikeMileageUnit: bikeData.mileageUnit,
+          ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
+          ...(bikePhotoUrl && { bikePhotoUrl }),
+        }),
+      };
+
+      await completeOnboarding(input);
+      setOnboardingCompleted(true);
+      setMutationDone(true);
     };
 
-    completeOnboarding(input)
-      .then(() => {
-        setOnboardingCompleted(true);
-        setMutationDone(true);
-      })
-      .catch((error) => {
-        console.error('[Personalizing] Attempt failed:', error);
-        setShowRetry(true);
-      });
+    run().catch((error) => {
+      console.error('[Personalizing] Attempt failed:', error);
+      setShowRetry(true);
+    });
   }, [retryCount]);
 
   // Animation steps + minimum display time

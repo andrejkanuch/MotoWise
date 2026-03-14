@@ -65,8 +65,10 @@ input CompleteOnboardingInput {
   annualRepairSpend: String
   bikeMake: String
   bikeMileage: Int
+  bikeMileageUnit: String
   bikeModel: String
   bikeNickname: String
+  bikePhotoUrl: String
   bikeType: String
   bikeYear: Int
   experienceLevel: String!

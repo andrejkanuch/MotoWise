@@ -82,7 +82,7 @@ export default function DiagnoseScreen() {
             </Text>
             {!isPro && (
               <View className="flex-row items-center gap-1 mt-2">
-                <Crown size={12} color="#FACC15" strokeWidth={2} />
+                <Crown size={12} color={palette.signature500} strokeWidth={2} />
                 <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
                   {t('proGate.diagnosticsRemaining', {
                     remaining: Math.max(0, 3 - monthlyDiagCount),

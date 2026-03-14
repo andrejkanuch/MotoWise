@@ -55,4 +55,10 @@ export class CompleteOnboardingInput {
 
   @Field({ nullable: true })
   bikeNickname?: string;
+
+  @Field({ nullable: true })
+  bikePhotoUrl?: string;
+
+  @Field({ nullable: true })
+  bikeMileageUnit?: string;
 }

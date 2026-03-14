@@ -89,8 +89,10 @@ export type CompleteOnboardingInput = {
   annualRepairSpend?: InputMaybe<Scalars['String']['input']>;
   bikeMake?: InputMaybe<Scalars['String']['input']>;
   bikeMileage?: InputMaybe<Scalars['Int']['input']>;
+  bikeMileageUnit?: InputMaybe<Scalars['String']['input']>;
   bikeModel?: InputMaybe<Scalars['String']['input']>;
   bikeNickname?: InputMaybe<Scalars['String']['input']>;
+  bikePhotoUrl?: InputMaybe<Scalars['String']['input']>;
   bikeType?: InputMaybe<Scalars['String']['input']>;
   bikeYear?: InputMaybe<Scalars['Int']['input']>;
   experienceLevel: Scalars['String']['input'];

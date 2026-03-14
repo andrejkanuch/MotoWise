@@ -114,6 +114,8 @@ export class UsersService {
       p_bike_type: input.bikeType ?? null,
       p_bike_mileage: input.bikeMileage ?? null,
       p_bike_nickname: input.bikeNickname ?? null,
+      p_bike_photo_url: input.bikePhotoUrl ?? null,
+      p_mileage_unit: input.bikeMileageUnit ?? null,
     });
 
     if (error) {

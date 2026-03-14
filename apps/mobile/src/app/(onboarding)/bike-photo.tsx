@@ -6,7 +6,18 @@ import { useRouter } from 'expo-router';
 import { Camera, ChevronRight, Image as ImageIcon, SkipForward, Tag, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -117,12 +128,17 @@ export default function BikePhotoScreen() {
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={7} totalScreens={TOTAL_SCREENS} />
 
-      <ScrollView
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 120 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 120 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
         <Animated.Text
           entering={FadeInDown.duration(300)}
           style={{
@@ -372,7 +388,7 @@ export default function BikePhotoScreen() {
             </View>
           )}
         </Animated.View>
-      </ScrollView>
+        </ScrollView>
 
       {/* Bottom buttons (only when no photo preview) */}
       {!photoUri && (
@@ -427,6 +443,7 @@ export default function BikePhotoScreen() {
           </Pressable>
         </View>
       )}
+      </KeyboardAvoidingView>
     </View>
   );
 }
