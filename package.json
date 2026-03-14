@@ -30,6 +30,15 @@
     "typescript": "~5.7.0"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "@apollo/protobufjs",
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@sentry/cli",
+      "@swc/core",
+      "esbuild",
+      "sharp"
+    ],
     "overrides": {
       "react": "19.1.0",
       "react-dom": "19.1.0",

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoVault SEO Audit Report — March 2026</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #e5e5e5;
+    --text-muted: #a3a3a3;
+    --accent: #3b82f6;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --orange: #f97316;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.5rem; font-weight: 600; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+  p { margin-bottom: 0.75rem; color: var(--text-muted); }
+  .subtitle { color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-critical { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-high { background: rgba(249,115,22,0.15); color: var(--orange); }
+  .badge-medium { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .badge-low { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-pass { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-fail { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-warn { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .score-card { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+  .score-item { flex: 1; min-width: 140px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
+  .score-item .number { font-size: 2rem; font-weight: 700; }
+  .score-item .label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+  .score-green .number { color: var(--green); }
+  .score-yellow .number { color: var(--yellow); }
+  .score-red .number { color: var(--red); }
+  .score-blue .number { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th { text-align: left; padding: 0.6rem 0.75rem; background: var(--surface); border-bottom: 2px solid var(--border); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: var(--surface); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .card h4 { font-size: 1rem; font-weight: 600; }
+  .summary-box { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); border: 1px solid rgba(59,130,246,0.2); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; }
+  .summary-box p { color: var(--text); }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-pass::before { content: "✓"; color: var(--green); font-weight: 700; font-size: 1.1rem; }
+  .check-fail::before { content: "✗"; color: var(--red); font-weight: 700; font-size: 1.1rem; }
+  .check-warn::before { content: "!"; color: var(--yellow); font-weight: 700; font-size: 1.1rem; background: rgba(234,179,8,0.15); width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem; }
+  .action-list { list-style: none; padding: 0; }
+  .action-list li { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .action-list li:last-child { border-bottom: none; }
+  .action-title { font-weight: 600; color: var(--text); }
+  .action-meta { display: flex; gap: 0.75rem; margin-top: 0.25rem; font-size: 0.8rem; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 0.75rem; background: var(--surface-2); color: var(--text-muted); }
+  .competitor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  @media (max-width: 640px) {
+    .score-card { flex-direction: column; }
+    .container { padding: 1rem; }
+    h1 { font-size: 1.5rem; }
+    table { font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>MotoVault.app — SEO Audit</h1>
+<p class="subtitle">Full site audit &bull; March 14, 2026 &bull; Domain: motovault.app</p>
+
+<!-- Executive Summary -->
+<div class="summary-box">
+  <h3 style="margin-top:0">Executive Summary</h3>
+  <p>MotoVault has a <strong>solid technical SEO foundation</strong> — proper meta tags, structured data (Organization + FAQPage), i18n with hreflang, strong security headers, and a clean URL structure. The biggest strength is the well-implemented internationalization across 5 locales with proper alternate URLs. However, the site's <strong>top 3 priorities</strong> are: (1) the sitemap is critically incomplete — only 3 pages are indexed while 5 public pages exist, and the support page is entirely missing; (2) there is <strong>zero blog or content marketing</strong>, meaning the site cannot rank for informational keywords that drive organic traffic in this space; and (3) competitors like MotoDoc, FixioMoto, and Moto Shed are actively publishing SEO content while MotoVault relies solely on a single landing page. Overall assessment: <strong>strong technical foundation, but severely limited content footprint</strong>.</p>
+</div>
+
+<!-- Score Cards -->
+<div class="score-card">
+  <div class="score-item score-green"><div class="number">82</div><div class="label">Technical SEO</div></div>
+  <div class="score-item score-yellow"><div class="number">65</div><div class="label">On-Page SEO</div></div>
+  <div class="score-item score-red"><div class="number">20</div><div class="label">Content Strategy</div></div>
+  <div class="score-item score-yellow"><div class="number">55</div><div class="label">Competitive Position</div></div>
+  <div class="score-item score-blue"><div class="number">3</div><div class="label">Indexed Pages</div></div>
+</div>
+
+<!-- Keyword Opportunities -->
+<h2>Keyword Opportunities</h2>
+<p>Based on competitive research and search landscape analysis for the motorcycle maintenance/learning/diagnostics app space.</p>
+
+<table>
+<thead>
+<tr><th>Keyword</th><th>Est. Difficulty</th><th>Opportunity</th><th>Intent</th><th>Recommended Content</th></tr>
+</thead>
+<tbody>
+<tr><td>motorcycle maintenance app</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-pass">High</span></td><td>Commercial</td><td>Landing page + comparison</td></tr>
+<tr><td>motorcycle diagnostics app</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-pass">High</span></td><td>Commercial</td><td>Feature page</td></tr>
+<tr><td>AI motorcycle diagnosis</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-pass">High</span></td><td>Commercial</td><td>Feature page + blog</td></tr>
+<tr><td>motorcycle maintenance schedule</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-pass">High</span></td><td>Informational</td><td>Guide + interactive tool</td></tr>
+<tr><td>how to diagnose motorcycle problems</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-pass">High</span></td><td>Informational</td><td>Pillar blog post</td></tr>
+<tr><td>motorcycle warning lights meaning</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-pass">High</span></td><td>Informational</td><td>Comprehensive guide</td></tr>
+<tr><td>learn motorcycle maintenance</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-pass">High</span></td><td>Informational</td><td>Course landing page</td></tr>
+<tr><td>motorcycle oil change guide</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Step-by-step blog post</td></tr>
+<tr><td>motorcycle chain maintenance</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Blog post</td></tr>
+<tr><td>motorcycle suspension tuning guide</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>In-depth guide</td></tr>
+<tr><td>best motorcycle maintenance apps 2026</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-pass">High</span></td><td>Commercial</td><td>Comparison page</td></tr>
+<tr><td>motorcycle electrical system troubleshooting</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Blog post</td></tr>
+<tr><td>motorcycle service log app</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Commercial</td><td>Feature page</td></tr>
+<tr><td>motorcycle maintenance for beginners</td><td><span class="badge badge-medium">Moderate</span></td><td><span class="badge badge-pass">High</span></td><td>Informational</td><td>Pillar guide</td></tr>
+<tr><td>motorcycle tire pressure guide</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Blog post</td></tr>
+<tr><td>motorcycle brake inspection</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Blog post</td></tr>
+<tr><td>motorcycle maintenance cost calculator</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Transactional</td><td>Interactive tool</td></tr>
+<tr><td>moto shed vs motomanage</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Commercial</td><td>Comparison page</td></tr>
+<tr><td>motorcycle garage management</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Commercial</td><td>Feature page</td></tr>
+<tr><td>how to read motorcycle fault codes</td><td><span class="badge badge-low">Easy</span></td><td><span class="badge badge-warn">Medium</span></td><td>Informational</td><td>Guide + blog post</td></tr>
+</tbody>
+</table>
+
+<!-- On-Page SEO Issues -->
+<h2>On-Page SEO Issues</h2>
+
+<table>
+<thead>
+<tr><th>Page</th><th>Issue</th><th>Severity</th><th>Recommended Fix</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Homepage</td>
+  <td>Title tag is 57 characters — good length, but keyword-stuffed pattern "MotoVault — AI-Powered Motorcycle Learning & Diagnostics | MotoVault" repeats brand name</td>
+  <td><span class="badge badge-medium">Medium</span></td>
+  <td>Remove trailing "| MotoVault" since the template already appends it. Use: "AI-Powered Motorcycle Learning & Diagnostics"</td>
+</tr>
+<tr>
+  <td>Homepage</td>
+  <td>H1 ("LEARN YOUR BIKE. FIX YOUR BIKE.") is a tagline with no target keywords</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Include keywords in H1 or add a keyword-rich subheading. Consider: "AI-Powered Motorcycle Diagnostics & Learning Platform"</td>
+</tr>
+<tr>
+  <td>Homepage</td>
+  <td>Meta description (128 chars) is good but could be more action-oriented with a CTA</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td>Add urgency/CTA: "...Learn your bike. Fix your bike. Join 12,000+ riders — get early access free."</td>
+</tr>
+<tr>
+  <td>Sitemap</td>
+  <td>Only 3 pages in sitemap (/, /privacy, /terms) — missing /support and /account-deletion</td>
+  <td><span class="badge badge-critical">Critical</span></td>
+  <td>Add all public pages to sitemap.ts: /support, /account-deletion</td>
+</tr>
+<tr>
+  <td>Sitemap</td>
+  <td>Sitemap only lists 3 locales (en, es, de) but the site supports 5 (en, es, de, fr, it)</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Update sitemap.ts locales array to include 'fr' and 'it'</td>
+</tr>
+<tr>
+  <td>All pages</td>
+  <td>No canonical tags explicitly set on marketing pages</td>
+  <td><span class="badge badge-medium">Medium</span></td>
+  <td>Add explicit canonical URLs in generateMetadata() for each page</td>
+</tr>
+<tr>
+  <td>Homepage</td>
+  <td>Organization JSON-LD is minimal — missing sameAs (social profiles), foundingDate, contactPoint</td>
+  <td><span class="badge badge-medium">Medium</span></td>
+  <td>Expand Organization schema with social links, contact info, and app store links</td>
+</tr>
+<tr>
+  <td>Homepage</td>
+  <td>No SoftwareApplication JSON-LD schema for the app itself</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Add SoftwareApplication schema with name, operatingSystem, applicationCategory, offers, and aggregateRating</td>
+</tr>
+<tr>
+  <td>Support</td>
+  <td>Support page has FAQ content but no FAQPage structured data</td>
+  <td><span class="badge badge-medium">Medium</span></td>
+  <td>Add FAQPage JSON-LD to the support page (same pattern as homepage)</td>
+</tr>
+<tr>
+  <td>Homepage</td>
+  <td>App preview image has good alt text, but feature card SVG illustrations likely lack descriptive alt text</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td>Ensure all feature card images have keyword-rich alt text</td>
+</tr>
+<tr>
+  <td>All pages</td>
+  <td>No Open Graph title/description overrides on privacy, terms, support, or account-deletion pages</td>
+  <td><span class="badge badge-low">Low</span></td>
+  <td>Add OG tags to legal/support pages for better social sharing appearance</td>
+</tr>
+</tbody>
+</table>
+
+<!-- Content Gap Analysis -->
+<h2>Content Gap Analysis</h2>
+<p>MotoVault currently has 1 marketing page (homepage) plus legal/support pages. There is no blog, no resource center, and no keyword-targeted content pages. This is the single biggest SEO weakness — competitors are actively capturing organic traffic through educational content.</p>
+
+<table>
+<thead>
+<tr><th>Missing Content</th><th>Why It Matters</th><th>Format</th><th>Priority</th><th>Effort</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Blog / Resource Center</strong></td>
+  <td>No mechanism to target informational keywords. Competitors rank for hundreds of motorcycle maintenance queries.</td>
+  <td>Blog section at /blog</td>
+  <td><span class="badge badge-critical">Critical</span></td>
+  <td>1-2 days setup</td>
+</tr>
+<tr>
+  <td><strong>"Motorcycle Maintenance for Beginners" pillar</strong></td>
+  <td>High-volume keyword cluster. Alison.com's free course ranks #1 — MotoVault's learning paths are a natural fit.</td>
+  <td>Pillar page + 8-10 supporting posts</td>
+  <td><span class="badge badge-critical">Critical</span></td>
+  <td>Multi-week series</td>
+</tr>
+<tr>
+  <td><strong>AI Diagnostics feature page</strong></td>
+  <td>No dedicated page for the core feature. Competitors MotoDoc and FixioMoto have standalone pages ranking for "AI motorcycle diagnosis."</td>
+  <td>Feature landing page at /features/ai-diagnostics</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Half day</td>
+</tr>
+<tr>
+  <td><strong>Comparison pages</strong></td>
+  <td>"Best motorcycle maintenance apps 2026" is a commercial keyword with clear purchase intent. No comparison content exists.</td>
+  <td>Comparison landing pages (MotoVault vs Moto Shed, vs MotorManage, etc.)</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Half day each</td>
+</tr>
+<tr>
+  <td><strong>Motorcycle warning lights guide</strong></td>
+  <td>High-volume, easy-difficulty keyword. Natural tie-in to AI diagnostics feature.</td>
+  <td>Comprehensive illustrated guide</td>
+  <td><span class="badge badge-high">High</span></td>
+  <td>Half day</td>
+</tr>
+<tr>
+  <td><strong>Motorcycle maintenance schedule templates</strong></td>
+  <td>Transactional intent — users searching for this are exactly MotoVault's target audience.</td>
+  <td>Interactive tool + downloadable templates</td>
+  <td><span class="badge badge-warn">Medium</span></td>
+  <td>1-2 days</td>
+</tr>
+<tr>
+  <td><strong>Learning path preview pages</strong></td>
+  <td>Each learning path topic (Engine Internals, Suspension Tuning, Electrical Systems, Routine Maintenance) could be a keyword-targeted page.</td>
+  <td>Course preview pages at /learn/{topic}</td>
+  <td><span class="badge badge-warn">Medium</span></td>
+  <td>Half day each</td>
+</tr>
+<tr>
+  <td><strong>Use cases / rider stories</strong></td>
+  <td>Social proof + long-tail keyword coverage. Competitors lack this.</td>
+  <td>Case study blog posts</td>
+  <td><span class="badge badge-warn">Medium</span></td>
+  <td>2-3 hours each</td>
+</tr>
+<tr>
+  <td><strong>Motorcycle maintenance cost guide</strong></td>
+  <td>High commercial intent — people researching costs are ready to adopt tools that help manage them.</td>
+  <td>Interactive calculator + guide</td>
+  <td><span class="badge badge-warn">Medium</span></td>
+  <td>1-2 days</td>
+</tr>
+</tbody>
+</table>
+
+<!-- Technical SEO Checklist -->
+<h2>Technical SEO Checklist</h2>
+
+<div class="card">
+<ul class="checklist">
+  <li class="check-pass">HTTPS enabled with HSTS (max-age=63072000, includeSubDomains, preload)</li>
+  <li class="check-pass">robots.txt properly configured — allows / , disallows /admin/, includes sitemap URL</li>
+  <li class="check-pass">XML sitemap exists with localized alternates and hreflang tags</li>
+  <li class="check-pass">Proper viewport meta tag (width=device-width, initialScale=1)</li>
+  <li class="check-pass">Font loading optimized (display: 'swap' on Google Fonts)</li>
+  <li class="check-pass">DNS prefetch for Supabase API endpoint</li>
+  <li class="check-pass">Strong security headers (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)</li>
+  <li class="check-pass">Semantic HTML with skip-to-content link for accessibility</li>
+  <li class="check-pass">Language tag set dynamically on &lt;html&gt; element based on locale</li>
+  <li class="check-pass">Open Graph and Twitter Card tags configured globally</li>
+  <li class="check-pass">FAQPage and Organization structured data on homepage</li>
+  <li class="check-pass">Next.js React Compiler enabled for performance</li>
+  <li class="check-warn">Sitemap missing /support and /account-deletion pages</li>
+  <li class="check-warn">Sitemap missing fr and it locales (only includes en, es, de)</li>
+  <li class="check-warn">No explicit canonical URLs on marketing pages (relying on Next.js defaults)</li>
+  <li class="check-warn">No SoftwareApplication schema for app store discoverability</li>
+  <li class="check-warn">No breadcrumb structured data</li>
+  <li class="check-warn">CSP connect-src limited to 'self' — may block analytics if added later</li>
+  <li class="check-fail">No web analytics installed (no Google Analytics, Plausible, or similar)</li>
+  <li class="check-fail">No Google Search Console verification meta tag detected (file-based verification exists)</li>
+  <li class="check-fail">No blog/content section — severely limits crawlable and indexable pages</li>
+</ul>
+</div>
+
+<!-- Competitor Comparison -->
+<h2>Competitor SEO Comparison</h2>
+<p>Comparing MotoVault against the three closest competitors in the AI motorcycle diagnostics and maintenance learning space.</p>
+
+<table>
+<thead>
+<tr><th>Dimension</th><th>MotoVault</th><th>MotoDoc</th><th>FixioMoto</th><th>Moto Shed</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Core differentiator</strong></td>
+  <td>AI diagnostics + structured learning paths + garage management</td>
+  <td>AI photo diagnosis + live mechanic video calls</td>
+  <td>AI camera diagnostics + defect detection + bike tracker</td>
+  <td>Maintenance tracker + fuel logging + recall alerts</td>
+</tr>
+<tr>
+  <td><strong>Indexable pages</strong></td>
+  <td style="color:var(--red)">~3 pages</td>
+  <td>~10-15 pages</td>
+  <td>~5-8 pages</td>
+  <td>~8-12 pages</td>
+</tr>
+<tr>
+  <td><strong>Blog / content</strong></td>
+  <td style="color:var(--red)">None</td>
+  <td>Feature pages</td>
+  <td>App Store description only</td>
+  <td>Play Store + some web content</td>
+</tr>
+<tr>
+  <td><strong>Structured data</strong></td>
+  <td style="color:var(--green)">Organization + FAQPage</td>
+  <td>Basic only</td>
+  <td>None detected</td>
+  <td>None detected</td>
+</tr>
+<tr>
+  <td><strong>i18n / Localization</strong></td>
+  <td style="color:var(--green)">5 locales with hreflang</td>
+  <td>English only</td>
+  <td>English + Spanish</td>
+  <td>English only</td>
+</tr>
+<tr>
+  <td><strong>Learning content</strong></td>
+  <td style="color:var(--green)">50+ lessons, quizzes, paths</td>
+  <td>Repair guidance only</td>
+  <td>None</td>
+  <td>None</td>
+</tr>
+<tr>
+  <td><strong>App Store presence</strong></td>
+  <td>Pre-launch (early access)</td>
+  <td>iOS App Store</td>
+  <td>iOS + Android</td>
+  <td>Android (Google Play)</td>
+</tr>
+<tr>
+  <td><strong>SEO content strategy</strong></td>
+  <td style="color:var(--red)">Single landing page</td>
+  <td>Feature-focused site</td>
+  <td>Minimal web presence</td>
+  <td>Play Store optimization</td>
+</tr>
+<tr>
+  <td><strong>Unique SEO advantage</strong></td>
+  <td>i18n coverage, structured data, tech stack</td>
+  <td>First-mover in AI moto diagnosis</td>
+  <td>Camera-based defect detection</td>
+  <td>VIN-based recall alerts</td>
+</tr>
+</tbody>
+</table>
+
+<div class="summary-box">
+  <p><strong>Competitive takeaway:</strong> MotoVault has the strongest technical SEO foundation of all competitors (structured data, i18n, security headers) and the most comprehensive feature set (learning + diagnostics + garage). However, competitors with even basic web content are capturing organic traffic that MotoVault misses entirely. The learning paths are a massive untapped SEO asset — no competitor offers structured motorcycle education content on the web.</p>
+</div>
+
+<!-- Prioritized Action Plan -->
+<h2>Prioritized Action Plan</h2>
+
+<h3>Quick Wins (this week)</h3>
+<div class="card">
+<ul class="action-list">
+  <li>
+    <div class="action-title">1. Fix sitemap — add missing pages and locales</div>
+    <p>Update <code>sitemap.ts</code> to include /support and /account-deletion. Add 'fr' and 'it' to the locales array.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 15 min</span><span class="tag">File: apps/web/src/app/sitemap.ts</span></div>
+  </li>
+  <li>
+    <div class="action-title">2. Fix homepage title tag duplication</div>
+    <p>The homepage title renders as "MotoVault — AI-Powered... | MotoVault" because the page sets a full title AND the template adds "| MotoVault". Fix by either removing the template on the homepage or adjusting the page title.</p>
+    <div class="action-meta"><span class="tag">Impact: Medium</span><span class="tag">Effort: 10 min</span><span class="tag">File: en.json Metadata.title</span></div>
+  </li>
+  <li>
+    <div class="action-title">3. Add SoftwareApplication JSON-LD schema</div>
+    <p>Add schema.org/SoftwareApplication with applicationCategory: "LifestyleApplication", operatingSystem: "iOS, Android", offers (pricing), and description. This helps Google show rich results for app searches.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 30 min</span><span class="tag">File: apps/web/src/app/[locale]/(marketing)/page.tsx</span></div>
+  </li>
+  <li>
+    <div class="action-title">4. Add FAQPage structured data to /support page</div>
+    <p>The support page has 6 FAQ items but no JSON-LD. Copy the pattern from the homepage to add FAQPage schema.</p>
+    <div class="action-meta"><span class="tag">Impact: Medium</span><span class="tag">Effort: 20 min</span><span class="tag">File: apps/web/src/app/[locale]/(marketing)/support/page.tsx</span></div>
+  </li>
+  <li>
+    <div class="action-title">5. Add explicit canonical URLs to all marketing pages</div>
+    <p>Set canonical in generateMetadata() for each page to prevent duplicate content across locale variants.</p>
+    <div class="action-meta"><span class="tag">Impact: Medium</span><span class="tag">Effort: 20 min</span></div>
+  </li>
+  <li>
+    <div class="action-title">6. Verify Google Search Console is fully set up</div>
+    <p>The google2cfdfd4cab394901.html file exists, but ensure the sitemap is submitted and index coverage is reviewed.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 15 min</span></div>
+  </li>
+</ul>
+</div>
+
+<h3>Strategic Investments (this quarter)</h3>
+<div class="card">
+<ul class="action-list">
+  <li>
+    <div class="action-title">7. Launch a blog at /blog with Next.js MDX support</div>
+    <p>This is the single highest-impact SEO investment. Set up a /blog route with MDX or CMS-backed content. Target informational keywords from the keyword table above. Publish 2-4 articles per month. Topics: motorcycle maintenance guides, diagnostics tips, learning path previews.</p>
+    <div class="action-meta"><span class="tag">Impact: Critical</span><span class="tag">Effort: 2-3 days setup</span><span class="tag">Dependencies: Content pipeline</span></div>
+  </li>
+  <li>
+    <div class="action-title">8. Create dedicated feature landing pages</div>
+    <p>Build individual pages for each core feature: /features/ai-diagnostics, /features/learning-paths, /features/garage-management. Each targets a different keyword cluster and gives Google more content to index.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 1-2 days</span></div>
+  </li>
+  <li>
+    <div class="action-title">9. Build "Motorcycle Maintenance for Beginners" pillar content</div>
+    <p>Create a comprehensive guide that becomes the pillar page for a topic cluster. Link to supporting blog posts on oil changes, chain maintenance, brake inspection, tire pressure, etc. This directly maps to MotoVault's learning paths feature.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 1-2 weeks</span></div>
+  </li>
+  <li>
+    <div class="action-title">10. Create competitor comparison pages</div>
+    <p>"MotoVault vs Moto Shed", "MotoVault vs MotoDoc", "Best Motorcycle Apps 2026" — these target high-intent commercial keywords. Include honest feature comparisons.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: Half day each</span></div>
+  </li>
+  <li>
+    <div class="action-title">11. Add web analytics (Plausible or PostHog)</div>
+    <p>Without analytics, you can't measure SEO impact. Install a privacy-friendly analytics tool and set up conversion tracking for early access signups. Update CSP connect-src accordingly.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: 1-2 hours</span></div>
+  </li>
+  <li>
+    <div class="action-title">12. Publish learning path preview content on the web</div>
+    <p>Your 50+ in-app lessons are a treasure trove of SEO content. Publish free preview lessons on the web (first lesson of each path). This creates dozens of indexable pages targeting long-tail keywords like "motorcycle suspension tuning basics" and drives app downloads.</p>
+    <div class="action-meta"><span class="tag">Impact: High</span><span class="tag">Effort: Multi-week</span><span class="tag">Dependencies: Blog setup, content API</span></div>
+  </li>
+</ul>
+</div>
+
+<hr class="divider">
+
+<p style="text-align:center; color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">
+  MotoVault SEO Audit &bull; Generated March 14, 2026
+</p>
+
+</div>
+</body>
+</html>

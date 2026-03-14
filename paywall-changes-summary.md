@@ -26,7 +26,7 @@ The RevenueCat paywall uses dynamic `{{ product.* }}` variables that pull prices
 | Terms URL | https://example.com | **https://motovault.app/terms** |
 | Privacy URL | https://example.com | **https://motovault.app/privacy** |
 
-**Status:** Draft — click "Publish changes" when ready.
+**Status:** Published (March 14, 2026)
 
 ### 2. Codebase Files Updated
 
@@ -40,10 +40,23 @@ The RevenueCat paywall uses dynamic `{{ product.* }}` variables that pull prices
 
 The `upgrade.tsx` screen uses dynamic pricing from `Purchases.getOfferings()` — no hardcoded dollar amounts. The i18n files (`en.json`, `es.json`, `de.json`) use dynamic variables for pricing. Trial days (7 annual, 3 monthly) are correctly hardcoded and unchanged.
 
+### 4. App Store Connect Pricing Updated
+
+| Product | Price | Status |
+|---------|-------|--------|
+| MotoVault Pro Annual (`motovault_pro_annual`) | $59.99/yr | Set (March 14, 2026) |
+| MotoVault Pro Monthly (`motovault_pro_monthly`) | $9.99/mo | Set (March 14, 2026) |
+
+Prices were set with "Recalculate prices for all countries or regions" — equivalent prices auto-calculated for all 175 countries.
+
+### 5. RevenueCat Paywall Published
+
+Published March 14, 2026. All localization changes (page titles, subtitles, terms/privacy URLs) are now live.
+
 ## Remaining Action Items
 
-1. **Update App Store Connect product prices** to $9.99/mo and $59.99/yr
-2. **Update Google Play Console product prices** to match
-3. **Click "Publish changes"** in RevenueCat paywall builder when ready
+1. ~~Update App Store Connect product prices~~ — DONE
+2. **Update Google Play Console product prices** to $9.99/mo and $59.99/yr to match
+3. ~~Click "Publish changes" in RevenueCat paywall builder~~ — DONE
 4. **Consider adding trust signals** to the RevenueCat paywall (e.g., "Cancel anytime" text component near the Continue button) — the in-app `upgrade.tsx` already has these, but the remote RevenueCat paywall does not
 5. **Update the carousel image on Page 3** — currently shows the Route & Trip Planner illustration. Replace with a learning/education themed image to match "Learn & Master"

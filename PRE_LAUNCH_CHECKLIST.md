@@ -89,12 +89,17 @@ Last updated: March 14, 2026
    - Privacy, Terms, Support, Account Deletion must be accessible
    - Test all 5 language variants
 
-5. **App Store Localization** (Optional but recommended)
-   - Add localized App Store metadata (description, keywords, screenshots) for ES, DE, FR, IT
-   - Can be done in App Store Connect under the language dropdown
+5. ~~**App Store Localization**~~ (DONE)
+   - [x] French — Promotional Text, Description, Keywords localized
+   - [x] German — Promotional Text, Description, Keywords localized
+   - [x] Spanish (Spain) — Promotional Text, Description, Keywords localized
+   - [x] Italian — Promotional Text, Description, Keywords localized
+   - [ ] Localized screenshots (optional — can reuse English screenshots)
 
-6. **Review "Sign-in required" checkbox**
-   - Currently unchecked — if the app requires sign-in for core features, check it and provide demo credentials
+6. ~~**Review "Sign-in required" checkbox**~~ (DONE)
+   - [x] Sign-in required: Checked
+   - [x] Demo credentials: test@test.com / testClient123
+   - [x] Review Notes updated with demo credentials and feature walkthrough
 
 7. **RevenueCat / In-App Purchases**
    - Ensure IAP products are created and approved in App Store Connect
