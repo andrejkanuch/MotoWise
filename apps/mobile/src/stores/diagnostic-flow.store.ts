@@ -1,5 +1,3 @@
-import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
 import { create } from 'zustand';
 
 export type Step = 1 | 2 | 3 | 4;
@@ -190,10 +188,6 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
   setIsTransitioning: (transitioning) => set({ isTransitioning: transitioning }),
 
   toggleWizardOption: (field, value) => {
-    if (Platform.OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     set((s) => {
       const current = [...s.wizardAnswers[field]];
       const isDontKnow = value === 'dont_know';

@@ -26,6 +26,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const isDark = useColorScheme() === 'dark';
+  const queryClient = useQueryClient();
 
   // Badge count for garage tab
   const { data: maintenanceData } = useQuery({
@@ -92,6 +93,17 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             navigation.navigate(route.name, route.params);
+          } else if (isFocused && !event.defaultPrevented) {
+            // Pop to top when tapping already-focused tab (guard against in-flight mutations)
+            const routeState = route.state;
+            if (
+              routeState &&
+              routeState.index &&
+              routeState.index > 0 &&
+              queryClient.isMutating() === 0
+            ) {
+              navigation.dispatch(StackActions.popToTop());
+            }
           }
         };
 

@@ -23,3 +23,6 @@ CREATE TRIGGER trg_auto_hide_flagged
 CREATE INDEX IF NOT EXISTS idx_articles_popular
   ON articles (view_count DESC)
   WHERE is_hidden = false;
+
+-- Add 'rejected' to content_generation_log status if not already there
+-- (status is likely TEXT, so no enum change needed)

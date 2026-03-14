@@ -201,7 +201,10 @@ export default function ArticleScreen() {
                   className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-2.5"
                   style={{ borderCurve: 'continuous' }}
                   onPress={() => {
-                    router.navigate({ pathname: '/(tabs)/(learn)', params: { q: topic } });
+                    router.navigate({
+                      pathname: '/(tabs)/(learn)',
+                      params: { q: topic },
+                    });
                   }}
                 >
                   <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">

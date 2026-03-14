@@ -19,6 +19,12 @@ import {
 } from '../../stores/diagnostic-flow.store';
 import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 
+const ALL_PREDEFINED = new Set<string>([
+  ...PREDEFINED_SYMPTOMS,
+  ...PREDEFINED_LOCATION,
+  ...PREDEFINED_TIMING,
+]);
+
 interface StepReviewSubmitProps {
   onSubmit: () => void;
 }
@@ -129,11 +135,6 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
     preventive: t('diagnoseV2.urgencyPreventive'),
   };
 
-  const ALL_PREDEFINED = new Set<string>([
-    ...PREDEFINED_SYMPTOMS,
-    ...PREDEFINED_LOCATION,
-    ...PREDEFINED_TIMING,
-  ]);
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
     .map((v: string) =>
@@ -392,7 +393,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               : DIAGNOSTIC_COLORS.accent,
             borderCurve: 'continuous',
           }}
-          onPress={store.submitError ? onSubmit : onSubmit}
+          onPress={onSubmit}
           disabled={store.isSubmitting}
         >
           {store.isSubmitting ? (

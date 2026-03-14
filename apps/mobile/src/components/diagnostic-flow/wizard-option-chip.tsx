@@ -1,7 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
 import { HelpCircle, X } from 'lucide-react-native';
-import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 
@@ -11,10 +10,6 @@ interface WizardOptionChipProps {
   label: string;
   subtitle?: string;
   selected: boolean;
-  /** @deprecated Use variant="dont-know" instead */
-  isIDontKnow?: boolean;
-  /** @deprecated Use IconComponent instead */
-  icon?: ReactNode;
   IconComponent?: LucideIcon;
   variant?: ChipVariant;
   onPress: () => void;
@@ -25,15 +20,11 @@ export function WizardOptionChip({
   label,
   subtitle,
   selected,
-  isIDontKnow,
-  icon,
   IconComponent,
-  variant: variantProp,
+  variant = 'default',
   onPress,
   onRemove,
 }: WizardOptionChipProps) {
-  const variant = variantProp ?? (isIDontKnow ? 'dont-know' : 'default');
-
   const handlePress = () => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -41,33 +32,39 @@ export function WizardOptionChip({
     onPress();
   };
 
-  const getBorderColor = () => {
-    if (variant === 'dont-know') {
-      return selected ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
-    }
-    return selected ? DIAGNOSTIC_COLORS.cardBorderSelected : DIAGNOSTIC_COLORS.cardBorder;
-  };
+  const isDontKnow = variant === 'dont-know';
 
-  const getBgColor = () => {
-    if (variant === 'dont-know') {
-      return selected ? DIAGNOSTIC_COLORS.cardBgSelected : 'transparent';
-    }
-    return selected ? DIAGNOSTIC_COLORS.cardBgSelected : DIAGNOSTIC_COLORS.cardBg;
-  };
+  const borderColor = isDontKnow
+    ? selected
+      ? 'rgba(255,255,255,0.3)'
+      : 'rgba(255,255,255,0.15)'
+    : selected
+      ? DIAGNOSTIC_COLORS.cardBorderSelected
+      : DIAGNOSTIC_COLORS.cardBorder;
 
-  const getTextColor = () => {
-    if (variant === 'dont-know') {
-      return selected ? DIAGNOSTIC_COLORS.textSecondary : DIAGNOSTIC_COLORS.textMuted;
-    }
-    return selected ? DIAGNOSTIC_COLORS.textPrimary : DIAGNOSTIC_COLORS.textSecondary;
-  };
+  const bgColor = isDontKnow
+    ? selected
+      ? DIAGNOSTIC_COLORS.cardBgSelected
+      : 'transparent'
+    : selected
+      ? DIAGNOSTIC_COLORS.cardBgSelected
+      : DIAGNOSTIC_COLORS.cardBg;
 
-  const getIconColor = () => {
-    if (variant === 'dont-know') {
-      return selected ? DIAGNOSTIC_COLORS.textSecondary : DIAGNOSTIC_COLORS.textMuted;
-    }
-    return selected ? DIAGNOSTIC_COLORS.accent : DIAGNOSTIC_COLORS.textMuted;
-  };
+  const textColor = isDontKnow
+    ? selected
+      ? DIAGNOSTIC_COLORS.textSecondary
+      : DIAGNOSTIC_COLORS.textMuted
+    : selected
+      ? DIAGNOSTIC_COLORS.textPrimary
+      : DIAGNOSTIC_COLORS.textSecondary;
+
+  const iconColor = isDontKnow
+    ? selected
+      ? DIAGNOSTIC_COLORS.textSecondary
+      : DIAGNOSTIC_COLORS.textMuted
+    : selected
+      ? DIAGNOSTIC_COLORS.accent
+      : DIAGNOSTIC_COLORS.textMuted;
 
   return (
     <Pressable
@@ -75,9 +72,9 @@ export function WizardOptionChip({
         borderRadius: 16,
         padding: 16,
         borderWidth: 2,
-        borderStyle: variant === 'dont-know' && !selected ? 'dashed' : 'solid',
-        borderColor: getBorderColor(),
-        backgroundColor: getBgColor(),
+        borderStyle: isDontKnow && !selected ? 'dashed' : 'solid',
+        borderColor,
+        backgroundColor: bgColor,
         borderCurve: 'continuous',
       }}
       onPress={handlePress}
@@ -86,19 +83,17 @@ export function WizardOptionChip({
       accessibilityLabel={label}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        {variant === 'dont-know' ? (
-          <HelpCircle size={18} color={getIconColor()} strokeWidth={1.5} />
+        {isDontKnow ? (
+          <HelpCircle size={18} color={iconColor} strokeWidth={1.5} />
         ) : IconComponent ? (
-          <IconComponent size={16} color={getIconColor()} strokeWidth={1.5} />
-        ) : icon ? (
-          icon
+          <IconComponent size={16} color={iconColor} strokeWidth={1.5} />
         ) : null}
         <Text
           style={{
             fontSize: 14,
             fontWeight: '500',
             flex: 1,
-            color: getTextColor(),
+            color: textColor,
           }}
         >
           {label}
