@@ -346,7 +346,7 @@ Requirements:
       | 'updated_at'
       | 'content_json'
       | 'read_time_minutes'
-    >,
+    > & { keywords?: string[] },
   ): Article {
     return {
       id: row.id,
@@ -360,6 +360,7 @@ Requirements:
       updatedAt: row.updated_at,
       contentJson: row.content_json as Record<string, unknown> | undefined,
       readTime: row.read_time_minutes ?? undefined,
+      keywords: row.keywords ?? undefined,
     };
   }
 }

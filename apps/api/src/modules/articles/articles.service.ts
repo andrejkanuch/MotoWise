@@ -7,7 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_ANON } from '../supabase/supabase-anon.provider';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
@@ -16,10 +15,7 @@ import { ArticleConnection } from './models/article-connection.model';
 export class ArticlesService {
   private readonly logger = new Logger(ArticlesService.name);
 
-  constructor(
-    @Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient,
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient) {}
 
   async search(input: {
     query?: string;
@@ -28,7 +24,7 @@ export class ArticlesService {
     first?: number;
     after?: string;
   }): Promise<ArticleConnection> {
-    const limit = input.first ?? 20;
+    const limit = Math.min(Math.max(input.first ?? 20, 1), 50);
     let query = this.anonClient
       .from('articles')
       .select(
@@ -108,11 +104,11 @@ export class ArticlesService {
   }
 
   async findSimilar(topic: string): Promise<{ title: string; slug: string }[]> {
-    const searchTerm = topic.trim().split(/\s+/).slice(0, 5).join(' & ');
-    const { data } = await this.adminClient
+    const { data } = await this.anonClient
       .from('articles')
       .select('title, slug')
-      .textSearch('search_vector', searchTerm, { type: 'websearch' })
+      .eq('is_hidden', false)
+      .textSearch('search_vector', topic.trim(), { type: 'websearch' })
       .limit(3);
     return data ?? [];
   }
@@ -136,7 +132,7 @@ export class ArticlesService {
     return (data ?? []).map((row) => this.mapRow(row as any));
   }
 
-  mapRow(
+  private mapRow(
     row: Pick<
       Tables<'articles'>,
       | 'id'
