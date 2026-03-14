@@ -99,19 +99,16 @@ export class AiBudgetService {
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
 
-    const { data, error } = await this.adminClient
-      .from('content_generation_log')
-      .select('cost_cents.sum()')
-      .gte('created_at', todayStart.toISOString())
-      .eq('status', 'success')
-      .single();
+    const { data, error } = await this.adminClient.rpc('get_daily_ai_spend', {
+      p_since: todayStart.toISOString(),
+    });
 
     if (error) {
       this.logger.error('Failed to check global AI spend', error);
       throw new HttpException('AI service temporarily unavailable', HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    const totalCents = (data as Record<string, number>)?.sum ?? 0;
+    const totalCents = (data as number) ?? 0;
 
     if (totalCents >= AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS) {
       this.circuitBreakerOpen = true;
@@ -135,12 +132,9 @@ export class AiBudgetService {
     todayStart.setUTCHours(0, 0, 0, 0);
 
     const [spendResult, countResult] = await Promise.all([
-      this.adminClient
-        .from('content_generation_log')
-        .select('cost_cents.sum()')
-        .gte('created_at', todayStart.toISOString())
-        .eq('status', 'success')
-        .single(),
+      this.adminClient.rpc('get_daily_ai_spend', {
+        p_since: todayStart.toISOString(),
+      }),
       this.adminClient
         .from('content_generation_log')
         .select('id', { count: 'exact', head: true })
@@ -153,7 +147,7 @@ export class AiBudgetService {
       throw new InternalServerErrorException('Failed to fetch AI budget status');
     }
 
-    const totalCents = (spendResult.data as Record<string, number>)?.sum ?? 0;
+    const totalCents = (spendResult.data as number) ?? 0;
 
     return {
       circuitBreakerOpen: this.circuitBreakerOpen,
