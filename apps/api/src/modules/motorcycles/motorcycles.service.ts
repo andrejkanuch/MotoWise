@@ -27,7 +27,7 @@ export class MotorcyclesService {
     const { data, error } = await this.supabase
       .from('motorcycles')
       .select(
-        'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, created_at',
+        'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, created_at',
       )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -174,6 +174,8 @@ export class MotorcyclesService {
       | 'current_mileage'
       | 'mileage_unit'
       | 'mileage_updated_at'
+      | 'type'
+      | 'engine_cc'
       | 'created_at'
     >,
   ): Motorcycle {
@@ -189,6 +191,8 @@ export class MotorcyclesService {
       currentMileage: row.current_mileage ?? undefined,
       mileageUnit: row.mileage_unit ?? undefined,
       mileageUpdatedAt: row.mileage_updated_at ?? undefined,
+      type: row.type ?? undefined,
+      engineCc: row.engine_cc ?? undefined,
       createdAt: row.created_at,
     };
   }
