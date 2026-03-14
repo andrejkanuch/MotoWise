@@ -1,6 +1,6 @@
 import { GenerateArticleSchema } from '@motovault/types';
-import { BadRequestException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -45,6 +45,16 @@ export class ArticlesResolver {
     return this.articlesService.findBySlugFull(slug);
   }
 
+  @Query(() => [Article])
+  @UseGuards(GqlAuthGuard)
+  @Public()
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  async popularArticles(
+    @Args('first', { type: () => Int, defaultValue: 10 }) first: number,
+  ): Promise<Article[]> {
+    return this.articlesService.findPopular(first);
+  }
+
   @Mutation(() => Article)
   @UseGuards(GqlAuthGuard)
   @Throttle({ ai: { ttl: 60000, limit: 5 } })
@@ -52,15 +62,7 @@ export class ArticlesResolver {
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(GenerateArticleSchema)) input: GenerateArticleInput,
   ): Promise<Article> {
-    // Check for existing similar articles before generating
-    const similar = await this.articlesService.findSimilar(input.topic);
-    if (similar.length > 0) {
-      throw new BadRequestException(
-        `Similar article already exists: "${similar[0].title}". Slug: ${similar[0].slug}`,
-      );
-    }
-
-    return this.articleGeneratorService.generate(
+    return this.articleGeneratorService.generateWithValidation(
       user.id,
       input.topic,
       input.category,

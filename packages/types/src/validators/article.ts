@@ -15,6 +15,7 @@ export const ArticleContentSchema = z.object({
   sections: z.array(ArticleSectionSchema),
   keyTakeaways: z.array(z.string()),
   relatedTopics: z.array(z.string()),
+  keywords: z.array(z.string()).optional(),
   quizSeed: z.string().optional(),
 });
 export type ArticleContent = z.infer<typeof ArticleContentSchema>;

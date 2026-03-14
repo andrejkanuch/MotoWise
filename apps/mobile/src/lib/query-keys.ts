@@ -29,6 +29,7 @@ export const queryKeys = {
     all: ['articles'] as const,
     list: (filters?: Record<string, unknown>) =>
       [...queryKeys.articles.all, 'list', filters] as const,
+    popular: (first?: number) => [...queryKeys.articles.all, 'popular', first] as const,
     detail: (slug: string) => ['articles', 'detail', slug] as const,
   },
   onboarding: {

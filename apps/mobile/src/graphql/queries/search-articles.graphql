@@ -11,6 +11,7 @@ query SearchArticles($input: SearchArticlesInput!) {
         isSafetyCritical
         generatedAt
         updatedAt
+        keywords
       }
       cursor
     }

@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ANON } from '../supabase/supabase-anon.provider';
@@ -12,6 +13,8 @@ import { ArticleConnection } from './models/article-connection.model';
 
 @Injectable()
 export class ArticlesService {
+  private readonly logger = new Logger(ArticlesService.name);
+
   constructor(@Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient) {}
 
   async search(input: {
@@ -21,7 +24,7 @@ export class ArticlesService {
     first?: number;
     after?: string;
   }): Promise<ArticleConnection> {
-    const limit = input.first ?? 20;
+    const limit = Math.min(Math.max(input.first ?? 20, 1), 50);
     let query = this.anonClient
       .from('articles')
       .select(
@@ -100,28 +103,33 @@ export class ArticlesService {
     return this.mapRowFull(data);
   }
 
-  async findSimilar(topic: string, threshold?: number): Promise<Article[]> {
-    const searchTerms = topic
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 2)
-      .slice(0, 5);
+  async findSimilar(topic: string): Promise<{ title: string; slug: string }[]> {
+    const { data } = await this.anonClient
+      .from('articles')
+      .select('title, slug')
+      .eq('is_hidden', false)
+      .textSearch('search_vector', topic.trim(), { type: 'websearch' })
+      .limit(3);
+    return data ?? [];
+  }
 
-    if (searchTerms.length === 0) return [];
-
-    const pattern = `%${searchTerms.join('%')}%`;
-
+  async findPopular(first = 10): Promise<Article[]> {
+    const limit = Math.min(Math.max(first, 1), 20);
     const { data, error } = await this.anonClient
       .from('articles')
       .select(
-        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
+        'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at, read_time_minutes, keywords',
       )
       .eq('is_hidden', false)
-      .ilike('title', pattern)
-      .limit(threshold ?? 5);
+      .order('view_count', { ascending: false })
+      .limit(limit);
 
-    if (error) return [];
-    return (data ?? []).map((row) => this.mapRow(row));
+    if (error) {
+      this.logger.error('Failed to fetch popular articles', error);
+      return [];
+    }
+    // biome-ignore lint/suspicious/noExplicitAny: keywords not in generated DB types yet
+    return (data ?? []).map((row) => this.mapRow(row as any));
   }
 
   private mapRow(
@@ -136,7 +144,7 @@ export class ArticlesService {
       | 'is_safety_critical'
       | 'generated_at'
       | 'updated_at'
-    >,
+    > & { keywords?: string[] },
   ): Article {
     return {
       id: row.id,
@@ -148,6 +156,7 @@ export class ArticlesService {
       isSafetyCritical: row.is_safety_critical,
       generatedAt: row.generated_at,
       updatedAt: row.updated_at,
+      keywords: row.keywords ?? undefined,
     };
   }
 
@@ -165,7 +174,7 @@ export class ArticlesService {
       | 'updated_at'
       | 'content_json'
       | 'read_time_minutes'
-    >,
+    > & { keywords?: string[] },
   ): Article {
     return {
       id: row.id,
@@ -179,6 +188,7 @@ export class ArticlesService {
       updatedAt: row.updated_at,
       contentJson: row.content_json as Record<string, unknown> | undefined,
       readTime: row.read_time_minutes ?? undefined,
+      keywords: row.keywords ?? undefined,
     };
   }
 }
