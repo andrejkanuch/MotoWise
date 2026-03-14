@@ -34,7 +34,7 @@ envVarGroups:
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
-      - key: ANTHROPIC_API_KEY
+      - key: OPENAI_API_KEY
         sync: false
       - key: REVENUECAT_SECRET_API_KEY
         sync: false
