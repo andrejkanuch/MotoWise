@@ -336,7 +336,7 @@ The flow is organized into **5 logical sections** with **17 total screens**. Eac
   - If maintenance reminders: "Smart alerts for your [Make Model]"
   - If safety concern: "AI diagnostics to keep rides safe"
   - If high repair spend: "Save on repairs with predictive maintenance"
-- Pricing: Monthly $6.99/mo (3-day trial) / Annual $39.99/yr (7-day trial, 52% savings)
+- Pricing: Monthly $9.99/mo (3-day trial) / Annual $59.99/yr (7-day trial, 50% savings — $4.99/mo equivalent)
 - Free tier: 1 bike, 3 articles/wk, basic diagnostics, no maintenance reminders
 - Trust: "Cancel anytime" / "No charge during trial"
 - "Continue with Free" at bottom (muted text)

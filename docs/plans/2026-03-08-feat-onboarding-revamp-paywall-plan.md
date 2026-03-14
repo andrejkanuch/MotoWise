@@ -719,10 +719,10 @@ erDiagram
 
 | Plan | Price | Trial | Billing |
 |------|-------|-------|---------|
-| Monthly | $6.99/mo | 3-day free trial | Monthly recurring |
-| Annual | $39.99/yr ($3.33/mo) | 7-day free trial | Annual recurring |
+| Monthly | $9.99/mo | 3-day free trial | Monthly recurring |
+| Annual | $59.99/yr ($4.99/mo) | 7-day free trial | Annual recurring |
 
-Annual plan saves 52% vs. monthly.
+Annual plan saves 50% vs. monthly. Pricing uses charm pricing ($X.99) with left-digit bias for maximum conversion. The $4.99/mo annual equivalent anchors below the "less than a coffee" psychological threshold.
 
 ## Sources & References
 

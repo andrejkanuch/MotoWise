@@ -41,7 +41,7 @@
 
 **Concerning:**
 - US motorcycle sales declining, rider population aging
-- No proof yet that riders will pay $6.99/mo for a maintenance/learning app
+- No proof yet that riders will pay $9.99/mo for a maintenance/learning app
 - Existing apps (REVER, TONIT) with larger user bases haven't cracked monetization
 - The "motorcycle app" category has historically underperformed on retention
 
@@ -51,7 +51,7 @@
 - ~30% are active DIY maintainers = 2.55M potential users
 - Realistic app adoption: 2-5% of addressable = 50K-125K downloads in year 1
 - Conversion to paid (6% target): 3K-7.5K paying subscribers
-- At $6.99/mo or $39.99/yr: **$120K-$300K ARR in year 1** (optimistic scenario)
+- At $9.99/mo or $59.99/yr: **$180K-$450K ARR in year 1** (optimistic scenario)
 - This is a small business, not a venture-scale opportunity (unless you expand internationally or add B2B)
 
 ### Verdict
@@ -173,7 +173,7 @@ Motorcycle riders are passionate and knowledgeable. If the AI gives bad advice (
 
 ### Verdict
 
-The concept is sound, the gap is real, and the feature set addresses genuine pain points. But product-market fit is a hypothesis until real users validate it. The biggest unknowns are: will riders trust AI-generated diagnostics, will the learning content be good enough to drive repeat usage, and will enough riders pay $6.99/mo when free alternatives cover individual features.
+The concept is sound, the gap is real, and the feature set addresses genuine pain points. But product-market fit is a hypothesis until real users validate it. The biggest unknowns are: will riders trust AI-generated diagnostics, will the learning content be good enough to drive repeat usage, and will enough riders pay $9.99/mo when free alternatives cover individual features.
 
 ---
 
@@ -183,8 +183,8 @@ The concept is sound, the gap is real, and the feature set addresses genuine pai
 
 **Proposed pricing:**
 - Free tier: 1 bike, 3 articles/week, basic diagnostics, no maintenance reminders
-- Monthly: $6.99 (3-day trial)
-- Annual: $39.99 (7-day trial, 52% savings)
+- Monthly: $9.99 (3-day trial)
+- Annual: $59.99 (7-day trial, 50% savings)
 
 **Comparable apps:**
 - MotorManage: Free (2 bikes), paid for unlimited
@@ -193,7 +193,7 @@ The concept is sound, the gap is real, and the feature set addresses genuine pai
 - REVER Pro: Subscription (pricing varies)
 - TorqueAI: Free (no paid tier yet)
 
-**The pricing is in the right range** for a utility/hobby app. $6.99/mo or $39.99/yr aligns with what riders pay for other motorcycle-specific tools.
+**The pricing is in the right range** for a utility/hobby app. $9.99/mo or $59.99/yr aligns with what riders pay for other motorcycle-specific tools (Calimoto charges $60/yr for routing alone).
 
 **Revenue model risks:**
 
@@ -203,7 +203,7 @@ The concept is sound, the gap is real, and the feature set addresses genuine pai
 
 3. **Churn risk from seasonality:** Annual subscriptions mitigate this, but monthly subscribers may cancel during off-season months. Aim for 60%+ annual vs monthly split.
 
-4. **Web checkout strategy is smart:** RevenueCat Web Billing to avoid Apple's 30% cut (post-Epic ruling) could save significant revenue. At $39.99/yr, that's $12/user/year saved.
+4. **Web checkout strategy is smart:** RevenueCat Web Billing to avoid Apple's 30% cut (post-Epic ruling) could save significant revenue. At $59.99/yr, that's $18/user/year saved.
 
 5. **No B2B play yet:** The biggest monetization upside is in B2B — motorcycle shops, dealerships, fleet managers. The current product is 100% consumer-focused. A shop/fleet tier could unlock $50-200/mo pricing.
 
@@ -229,7 +229,7 @@ The monetization model is reasonable but untested. Year-1 revenue will likely be
 |------|--------|------------|------------|
 | **AI diagnostic gives wrong advice** | Critical | Medium | Add strong disclaimers, show confidence scores, "consult a mechanic" CTAs, human review for critical diagnoses |
 | **Low retention after onboarding** | High | High | Build daily engagement hooks: streak system, micro-lessons, seasonal tips, maintenance countdowns |
-| **Riders won't pay $6.99/mo** | High | Medium | A/B test pricing, consider lower entry ($3.99), ensure free-to-paid upgrade moment is compelling |
+| **Riders won't pay $9.99/mo** | High | Medium | A/B test pricing via RevenueCat experiments, ensure free-to-paid upgrade moment is compelling |
 | **Content quality insufficient** | High | Medium | Hire/contract experienced mechanics to review AI-generated content before publishing |
 | **App Store rejection** | Medium | Low | Avoid "diagnostic" language that implies medical/safety guarantees, use "educational" framing |
 | **Seasonal churn** | Medium | High | Push annual subscriptions, add off-season content (winter maintenance, gear reviews, learning paths) |

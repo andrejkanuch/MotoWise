@@ -1,0 +1,296 @@
+{
+  "Metadata": {
+    "title": "MotoVault — Apprentissage et Diagnostic de Motos Alimentés par l'IA",
+    "titleTemplate": "%s | MotoVault",
+    "description": "Maîtrisez l'entretien des motos, diagnostiquez les problèmes avec l'IA par photos, et suivez la santé de votre moto. Apprenez votre moto. Réparez votre moto.",
+    "ogDescription": "Maîtrisez l'entretien des motos, diagnostiquez les problèmes avec l'IA par photos, et suivez la santé de votre moto. Apprenez votre moto. Réparez votre moto."
+  },
+  "Navbar": {
+    "features": "Fonctionnalités",
+    "faq": "FAQ",
+    "download": "Accès Anticipé",
+    "login": "Connexion",
+    "openMenu": "Ouvrir le menu de navigation",
+    "closeMenu": "Fermer le menu de navigation"
+  },
+  "Hero": {
+    "line1": "APPRENEZ VOTRE MOTO.",
+    "line2": "RÉPAREZ",
+    "line3": "VOTRE MOTO.",
+    "subtitle": "Diagnostic et apprentissage des motos alimentés par l'IA — bientôt disponible.",
+    "downloadCta": "Accès Anticipé",
+    "exploreFeatures": "Découvrir les Fonctionnalités",
+    "scrollDown": "Faites défiler vers le bas"
+  },
+  "Features": {
+    "sectionTitle": "Conçu pour les Motards",
+    "sectionSubtitle": "Tout ce dont vous avez besoin pour apprendre, entretenir et maîtriser votre moto.",
+    "diag": {
+      "title": "Diagnostic IA",
+      "tagline": "Prenez une photo. Obtenez des réponses.",
+      "description": "Pointez votre caméra sur n'importe quelle pièce, voyant d'avertissement ou problème. Notre IA identifie les composants, diagnostique les problèmes et suggère des solutions — tout en quelques secondes.",
+      "badge": "< 5 sec"
+    },
+    "learn": {
+      "title": "Parcours d'Apprentissage",
+      "tagline": "Cours structurés pour tous les niveaux.",
+      "description": "Plongez dans les Moteurs Internes, le Tuning de la Suspension, les Systèmes Électriques et l'Entretien Routinier — chacun avec des leçons, des quiz et des défis pratiques.",
+      "badge": "50+ leçons"
+    },
+    "garage": {
+      "title": "Gestion du Garage",
+      "tagline": "Suivez vos motos.",
+      "description": "Stockez chaque moto par marque, modèle et année. Enregistrez l'entretien, définissez des rappels de service et maintenez un historique complet pour ne rien oublier.",
+      "badge": "Motos illimitées"
+    },
+    "progress": {
+      "title": "Suivi de la Progression",
+      "tagline": "Maîtrisez vos connaissances.",
+      "description": "Montez en niveau au fur et à mesure que vous complétez des leçons et réussissez des quiz. Gagnez des badges, suivez vos scores sur tous les modules et regardez votre expertise croître au fil du temps.",
+      "badge": "Suivi de progression"
+    },
+    "community": {
+      "title": "Communauté",
+      "tagline": "Rejoignez d'autres motards.",
+      "description": "Partagez votre garage, comparez votre progression et apprenez aux côtés de motards de tous les niveaux. La connaissance des motos est meilleure ensemble.",
+      "badge": "À venir"
+    }
+  },
+  "SocialProof": {
+    "riders": "Motards en Accès Anticipé",
+    "ridersCount": "12 000+",
+    "diagnostics": "Diagnostics IA",
+    "diagnosticsCount": "85 000+",
+    "bikes": "Motos Supportées",
+    "bikesCount": "18 000+"
+  },
+  "HowItWorks": {
+    "sectionTitle": "Comment Ça Fonctionne",
+    "sectionSubtitle": "Trois étapes simples pour maîtriser votre moto.",
+    "step1Title": "Ajoutez Votre Moto",
+    "step1Desc": "Recherchez par marque, modèle et année. Les spécifications de votre moto sont chargées automatiquement à partir des bases de données officielles.",
+    "step2Title": "Obtenez des Insights IA",
+    "step2Desc": "Prenez une photo de n'importe quelle pièce ou problème. Notre IA identifie les composants, diagnostique les problèmes et suggère des solutions.",
+    "step3Title": "Suivez et Apprenez",
+    "step3Desc": "Suivez des calendriers d'entretien personnalisés et des parcours d'apprentissage structurés pour maîtriser votre moto."
+  },
+  "Testimonials": {
+    "sectionTitle": "Ce que les Motards Disent",
+    "badge": "Accès Anticipé",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "quote": "MotoVault a diagnostiqué un problème de tension de chaîne que j'ignorais. M'a sauvé d'une panne lors d'un long trajet.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "quote": "Les parcours d'apprentissage sont parfaits pour quelqu'un qui débute en mécanique. J'ai changé mes propres plaquettes de frein grâce à MotoVault.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "quote": "Avoir tout mon historique d'entretien en un seul endroit est un atout énorme. Plus besoin de deviner quand a été la dernière vidange.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "quote": "Le diagnostic IA m'a époustouflée. J'ai pointé mon appareil photo sur un voyant d'avertissement et j'ai obtenu l'explication exacte en quelques secondes.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "quote": "Enfin une app qui prend l'entretien des motos au sérieux. Rien que la fonction garage en vaut la peine.",
+        "stars": 4
+      }
+    ]
+  },
+  "Cta": {
+    "socialProof": "Approuvé par les motards en accès anticipé",
+    "headline": "Soyez le Premier à Maîtriser Votre Moto",
+    "subtitle": "Obtenez un accès anticipé lors de notre lancement sur iOS et Android.",
+    "trustFree": "Gratuit au lancement",
+    "trustNoCard": "Pas de carte de crédit",
+    "trustCancel": "Annulez à tout moment",
+    "disclaimer": "Bientôt disponible sur iOS et Android."
+  },
+  "Faq": {
+    "sectionTitle": "Questions Fréquemment Posées",
+    "items": [
+      {
+        "question": "Qu'est-ce que MotoVault?",
+        "answer": "MotoVault est une plateforme alimentée par l'IA conçue pour les passionnés de motos. Elle vous aide à apprendre l'entretien, diagnostiquer les problèmes via l'analyse de photos par IA, suivre vos motos dans un garage numérique et construire vos connaissances via des cours structurés et des quiz."
+      },
+      {
+        "question": "MotoVault est-il gratuit?",
+        "answer": "Oui! MotoVault offre un plan gratuit incluant le contenu d'apprentissage basique, une moto dans votre garage et des diagnostics IA limités. Pour les diagnostics illimités, tout le contenu d'apprentissage et les motos illimitées, vous pouvez passer à MotoVault Pro depuis l'app."
+      },
+      {
+        "question": "Quelles motos sont supportées?",
+        "answer": "MotoVault supporte toutes les marques et modèles de motos. Notre base de données utilise les données officielles des véhicules de la NHTSA, couvrant des milliers de marques et de modèles sur toutes les années. Cherchez simplement votre moto en l'ajoutant à votre garage."
+      },
+      {
+        "question": "Comment fonctionne le diagnostic IA?",
+        "answer": "Prenez une photo d'une partie quelconque de votre moto et décrivez le problème. Notre IA analyse l'image et fournit une évaluation diagnostique avec des niveaux de gravité — des problèmes critiques nécessitant une attention immédiate aux suggestions de maintenance mineures."
+      },
+      {
+        "question": "Mes données sont-elles en sécurité?",
+        "answer": "Vos données sont protégées par chiffrement au niveau entreprise et des contrôles d'accès stricts. Les tokens d'authentification sont stockés de manière sécurisée via le stockage sécurisé natif de la plateforme, et toutes les communications sont chiffrées en transit. Nous ne partageons jamais vos informations personnelles ou données de moto avec des tiers."
+      },
+      {
+        "question": "Qu'est-ce qui est inclus dans MotoVault Pro?",
+        "answer": "MotoVault Pro déverrouille les diagnostics IA illimités, l'accès à tous les modules et cours d'apprentissage, les motos illimitées dans votre garage, le support prioritaire et le contenu exclusif. Vous pouvez vous abonner mensuellement ou annuellement depuis l'app."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Produit",
+    "company": "Entreprise",
+    "tagline": "Apprenez votre moto. Réparez votre moto.",
+    "copyright": "© 2026 MotoVault. Tous les droits réservés.",
+    "features": "Fonctionnalités",
+    "download": "Accès Anticipé",
+    "faq": "FAQ",
+    "support": "Support",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "accountDeletion": "Suppression de Compte",
+    "builtWithAi": "Alimenté par l'IA"
+  },
+  "Privacy": {
+    "title": "Politique de Confidentialité",
+    "lastUpdated": "Dernière mise à jour: 14 mars 2026",
+    "infoCollectTitle": "Informations que Nous Collectons",
+    "infoCollect": "MotoVault collecte les types d'informations suivants: (1) Données d'Authentification — adresse email et nom via Supabase Auth (connexion Google, Apple ou email); (2) Données de Moto — marque, modèle, année, historique d'entretien et dossiers de service que vous ajoutez à votre garage; (3) Images de Diagnostic — photos que vous téléchargez pour analyse IA; celles-ci sont traitées en temps réel et supprimées après l'analyse; (4) Analyse d'Utilisation — interactions d'app et utilisation de fonctionnalités suivies via PostHog pour améliorer les services; (5) Rapports d'Erreurs — données d'erreurs techniques collectées par Sentry pour diagnostiquer et corriger les problèmes; (6) Informations d'Appareil — identifiants d'appareil basiques pour l'authentification et la fonctionnalité d'app.",
+    "howWeUseTitle": "Comment Nous Utilisons Vos Informations",
+    "howWeUse": "Vos informations sont utilisées pour: (1) Fournir les services principaux — gestion de compte, fonctionnalité de garage, diagnostics IA et modules d'apprentissage; (2) Améliorer les produits — analyser les patterns d'utilisation pour améliorer les fonctionnalités et l'expérience utilisateur; (3) Prévenir la fraude et les menaces de sécurité — détecter les accès non autorisés et les activités suspectes; (4) Se conformer aux obligations légales — répondre aux demandes légitimes et appliquer nos conditions; (5) Envoyer des mises à jour de service — notifications sur les changements de compte, nouvelles fonctionnalités et mises à jour de politique importantes. Nous ne vendons, ne louons et ne partageons pas vos informations personnelles avec des tiers à des fins de marketing.",
+    "thirdPartyTitle": "Services de Tiers",
+    "thirdParty": "MotoVault dépend des services de confiance suivants: (1) Supabase — authentification, base de données et gestion utilisateur avec chiffrement entreprise; (2) Anthropic Claude IA — traite les images de diagnostic et génère des analyses (les images ne sont pas conservées); (3) Sentry — surveille les erreurs d'application et les crashes pour améliorer la stabilité; (4) PostHog — suit l'utilisation de fonctionnalités et l'engagement pour optimiser l'expérience utilisateur; (5) NHTSA — fournit les données de marque/modèle/année de moto (aucune donnée personnelle partagée). Chaque fournisseur de services maintient des pratiques de protection des données strictes et se conforme aux lois de confidentialité applicables.",
+    "dataRetentionTitle": "Conservation des Données",
+    "dataRetention": "Nous conservons vos données seulement aussi longtemps que nécessaire: (1) Données de compte — conservées pendant que votre compte est actif et pendant 90 jours après suppression; (2) Images de diagnostic — traitées et supprimées dans les heures suivant le téléchargement; nous ne stockons pas les images de façon permanente; (3) Analyse d'utilisation — conservée pendant 6 mois pour identifier les tendances; (4) Rapports d'erreurs — conservés pendant 30 jours pour diagnostiquer et corriger les problèmes; (5) Copies de sauvegarde — maintenues pendant 30 jours pour la récupération en cas de sinistre. Vous pouvez demander la suppression permanente de votre compte et données associées à tout moment.",
+    "securityTitle": "Sécurité des Données",
+    "security": "MotoVault met en œuvre des mesures de sécurité au niveau entreprise: (1) Chiffrement en transit — toutes les données transmises via HTTPS/TLS; (2) Chiffrement au repos — données sensibles chiffrées dans les bases de données; (3) Authentification — tokens JWT sécurisés validés localement sans exposition réseau; (4) Stockage sécurisé — tokens d'authentification stockés dans le stockage sécurisé natif de la plateforme sur mobile, jamais dans AsyncStorage; (5) Contrôles d'accès — politiques d'accès basées sur les rôles strictes pour le personnel; (6) Audits réguliers — pratiques de sécurité régulièrement examinées et mises à jour. Bien que nous employons des protections fortes, aucun système n'est 100% sûr; nous maintenons une assurance appropriée et des procédures de réponse aux incidents.",
+    "yourRightsTitle": "Vos Droits",
+    "yourRights": "Selon le RGPD (résidents de l'UE) et la CCPA (résidents de Californie), vous avez les droits suivants: (1) Droit d'Accès — demander une copie de vos données personnelles; (2) Droit de Rectification — corriger les informations inexactes; (3) Droit à l'Oubli — demander la suppression de vos données; (4) Droit de Limiter le Traitement — limiter comment vos données sont utilisées; (5) Droit à la Portabilité des Données — recevoir vos données dans un format structuré et portable; (6) Droit d'Opposition — refuser certains traitements, incluant le marketing et l'analyse; (7) Droit de Retirer le Consentement — révoquer tout consentement préalable pour les usages de données spécifiques. Les résidents de Californie ont aussi le droit de savoir si leurs données sont vendues et peuvent demander la suppression de données collectées. Pour exercer l'un de ces droits, contactez privacy@motovault.app avec les détails spécifiques de votre demande et une vérification d'identité.",
+    "childrenPrivacyTitle": "Confidentialité des Enfants",
+    "childrenPrivacy": "MotoVault n'est pas destiné aux utilisateurs de moins de 13 ans. Nous ne collectons pas sciemment les informations personnelles des enfants de moins de 13 ans. Si nous découvrons que nous avons collecté de telles informations, nous les supprimerons immédiatement et prendrons des mesures pour prévenir toute collecte future. Les parents ou tuteurs qui croient que nous avons collecté les données d'un enfant doivent nous contacter immédiatement à privacy@motovault.app.",
+    "internationalTransfersTitle": "Transferts de Données Internationaux",
+    "internationalTransfers": "MotoVault opère mondialement. Vos données peuvent être transférées vers, stockées et traitées dans des pays en dehors de votre pays de résidence, incluant les États-Unis. Ces pays peuvent ne pas offrir le même niveau de protection des données que votre pays de résidence. En utilisant MotoVault, vous consentez au transfert de vos informations vers des pays en dehors de votre pays de résidence pour les fins décrites dans cette politique. Nous mettons en œuvre des clauses contractuelles standards et d'autres mécanismes pour assurer une protection adéquate aux transferts de données internationaux.",
+    "accountDeletionTitle": "Suppression de Compte",
+    "accountDeletion": "Vous pouvez supprimer votre compte et demander la suppression permanente de vos données personnelles à tout moment. Pour ce faire: (1) Connectez-vous à votre compte MotoVault; (2) Allez à Paramètres > Confidentialité & Données; (3) Sélectionnez 'Supprimer Mon Compte'; (4) Confirmez la suppression (cette action est irréversible). Votre email, informations personnelles et données de garage seront supprimés définitivement de nos systèmes dans les 90 jours. Certaines données peuvent être conservées plus longtemps si requis par la loi ou sous forme anonymisée/agrégée pour l'analyse.",
+    "changesTitle": "Modifications de cette Politique",
+    "changes": "MotoVault peut mettre à jour cette Politique de Confidentialité pour refléter de nouvelles fonctionnalités, services ou exigences légales. Nous vous aviserons des changements matériels par email ou en affichant un avis important sur notre site web. Votre utilisation continue de MotoVault après la mise en œuvre des changements constitue l'acceptation de la politique mise à jour. Nous vous encourageons à revoir cette politique périodiquement pour rester informé de comment nous protégeons vos informations.",
+    "contactTitle": "Nous Contacter",
+    "contact": "Pour les questions, préoccupations ou demandes liées à votre confidentialité, accès aux données ou pour exercer vos droits selon le RGPD/CCPA, contactez: Équipe Confidentialité MotoVault, Email: privacy@motovault.app. Nous répondrons aux demandes valides dans les 30 jours comme requis par la loi applicable. Si vous êtes résident de l'UE ou de Californie et croyez que nous avons violé vos droits de confidentialité, vous avez aussi le droit de déposer une plainte auprès de votre autorité locale de protection des données ou du Procureur Général de Californie."
+  },
+  "Terms": {
+    "title": "Conditions d'Utilisation",
+    "lastUpdated": "Dernière mise à jour: 14 mars 2026",
+    "acceptanceTitle": "1. Acceptation des Conditions",
+    "acceptance": "En accédant ou en utilisant MotoVault, vous acceptez d'être lié par ces Conditions d'Utilisation et toutes les lois et réglementations applicables. Si vous n'acceptez pas de vous conformer à ces conditions, vous êtes interdit d'utiliser ou d'accéder à ce service.",
+    "serviceDescriptionTitle": "2. Description du Service",
+    "serviceDescription": "MotoVault est une plateforme d'apprentissage et de diagnostic de motos alimentée par l'IA conçue pour les passionnés de motos. Le service inclut du contenu éducatif, des parcours d'apprentissage structurés, des diagnostics assistés par IA basés sur des photos, des outils de gestion de garage, le suivi de la progression et des fonctionnalités communautaires. MotoVault Pro est disponible comme service d'abonnement avec des options de facturation mensuelle et annuelle.",
+    "accountsTitle": "3. Comptes Utilisateur",
+    "accounts": "Vous êtes responsable du maintien de la confidentialité de vos identifiants de compte et responsable de toutes les activités qui se produisent sous votre compte. Vous acceptez de fournir des informations exactes, complètes et actuelles lors de la création de votre compte et de mettre à jour vos informations selon les besoins. Vous devez nous notifier immédiatement de tout usage non autorisé de votre compte ou toute autre violation de sécurité.",
+    "subscriptionsTitle": "4. Abonnements & Achats In-App",
+    "subscriptions": "Les abonnements MotoVault Pro sont disponibles via les achats in-app sur iOS et Android. Tous les abonnements sont soumis au renouvellement automatique sauf s'ils sont annulés avant la fin de la période de facturation actuelle. Vous comprenez que l'annulation doit être complétée via l'App Store (Apple) ou Google Play (Android), pas via l'app elle-même. Les tarifs, cycles de facturation et conditions de renouvellement sont affichés dans l'app avant l'achat. Les remboursements sont sujets aux politiques de chaque app store. En achetant un abonnement, vous autorisez l'app store à facturer votre méthode de paiement de manière récurrente.",
+    "aiDisclaimerTitle": "5. Avertissement sur le Contenu et Diagnostics Générés par l'IA",
+    "aiDisclaimer": "MotoVault utilise l'intelligence artificielle (Claude d'Anthropic) pour générer du contenu éducatif, des évaluations de diagnostic et des matériels d'apprentissage. Tout contenu généré par l'IA est fourni à des fins éducatives et informatives uniquement et ne constitue pas des conseils professionnels mécaniques, techniques ou d'ingénierie. Les résultats de diagnostic IA incluent un score de confiance indiquant la certitude du modèle — les résultats doivent être interprétés dans le contexte de ce score. MotoVault ne garantit pas l'exactitude, l'exhaustivité ou la fiabilité du contenu généré par l'IA ou des évaluations de diagnostic. Vous devez toujours consulter un mécanicien moto qualifié avant d'effectuer toute réparation, pour les problèmes critiques pour la sécurité et pour vérifier les conseils générés par l'IA. En utilisant les fonctionnalités IA de MotoVault, vous reconnaissez et acceptez ces limitations.",
+    "ipTitle": "6. Propriété Intellectuelle",
+    "ip": "Tout contenu, fonctionnalités, graphiques, designs et fonctionnalités de MotoVault sont la propriété de MotoVault ou de ses fournisseurs de contenu et sont protégés par les droits d'auteur, les marques et autres lois de propriété intellectuelle. Le contenu d'apprentissage, les cours, les quiz et les matériels éducatifs ne peuvent être reproduits, distribués ou transmis sous aucune forme sans la permission écrite préalable de MotoVault.",
+    "userContentTitle": "7. Contenu Utilisateur",
+    "userContent": "Lorsque vous téléchargez des photos ou d'autres contenus sur MotoVault à des fins de diagnostic, vous accordez à MotoVault une licence non exclusive pour utiliser, traiter et analyser ce contenu pour fournir le service. Les photos téléchargées sont traitées pour analyse IA et ne sont pas stockées de façon permanente sans votre consentement. Vous êtes responsable de vous assurer que vous possédez ou avez le droit d'utiliser tout contenu que vous téléchargez, et que vos téléchargements ne violent aucun droit de tiers, loi ou réglementation.",
+    "prohibitedUsesTitle": "8. Usages Interdits",
+    "prohibitedUses": "Vous acceptez de ne pas utiliser MotoVault à des fins illégales ou d'une manière qui viole ces Conditions d'Utilisation. Les usages interdits incluent: l'ingénierie inverse, les tentatives d'accès non autorisé, l'utilisation du service à des fins commerciales sans notre permission, le téléchargement de malware ou de contenu nuisible, le harcèlement ou abus d'autres utilisateurs, l'usurpation d'identité, ou la violation de lois ou réglementations applicables.",
+    "terminationTitle": "9. Résiliation",
+    "termination": "MotoVault se réserve le droit de suspendre ou résilier votre compte et accès au service à tout moment, avec ou sans cause, et avec ou sans préavis, si nous croyons que vous avez violé ces Conditions d'Utilisation, adopté une conduite interdite, ou pour toute raison à notre entière discrétion. À la résiliation, votre droit d'utiliser le service cesse immédiatement.",
+    "liabilityTitle": "10. Limitation de Responsabilité",
+    "liability": "MotoVault est fourni \"tel quel\" et \"selon la disponibilité\" sans garanties d'aucun type, expresses ou implicites. MotoVault ne garantit pas que le service sera ininterrompu, sans erreurs ou exempt de virus ou autres composants nuisibles. Dans le maximum autorisé par la loi, MotoVault ne sera pas responsable de dommages indirects, accessoires, spéciaux, consécutifs ou punitifs découlant de votre utilisation ou incapacité d'utiliser le service, même si MotoVault a été avisée de la possibilité de tels dommages.",
+    "indemnificationTitle": "11. Indemnification",
+    "indemnification": "Vous acceptez d'indemniser, de défendre et de dégager de responsabilité MotoVault et ses dirigeants, administrateurs, employés et agents de toute réclamation, dommages, pertes, responsabilités et frais découlant de votre utilisation du service, votre violation de ces Conditions d'Utilisation, ou votre violation des droits de tiers. Cela inclut les réclamations liées à votre contenu téléchargé ou votre confiance dans les diagnostics générés par l'IA.",
+    "governingLawTitle": "12. Loi Applicable & Juridiction",
+    "governingLaw": "Ces Conditions d'Utilisation sont régies par et interprétées selon les lois de la République Slovaque (Slovaquie), Union Européenne, sans égard à ses principes de conflit de lois. Vous acceptez de vous soumettre à la juridiction exclusive des tribunaux situés en Slovaquie pour la résolution de tout différend découlant de ces Conditions d'Utilisation ou de votre utilisation de MotoVault.",
+    "disputeResolutionTitle": "13. Résolution des Différends",
+    "disputeResolution": "Avant d'engager une action en justice, vous acceptez de tenter de résoudre tout différend en contactant support@motovault.app avec une description écrite du problème. Si le différend ne peut être résolu dans les trente (30) jours, chaque partie peut poursuivre des recours juridiques conformément à la section Loi Applicable ci-dessus.",
+    "modificationsTitle": "14. Modifications des Conditions",
+    "modifications": "MotoVault se réserve le droit de modifier ces Conditions d'Utilisation à tout moment. Les modifications prendront effet une fois affichées sur le service, et votre utilisation continue de MotoVault suivant les modifications constitue votre acceptation des conditions mises à jour. Nous vous aviserons des changements matériels par email ou via le service.",
+    "contactTitle": "15. Nous Contacter",
+    "contact": "Si vous avez des questions sur ces Conditions d'Utilisation, contactez-nous à support@motovault.app. MotoVault est basé en Slovaquie, Union Européenne."
+  },
+  "Support": {
+    "title": "Aide & Support",
+    "subtitle": "Nous sommes ici pour vous aider à tirer le meilleur parti de MotoVault.",
+    "contactTitle": "Nous Contacter",
+    "contactDescription": "Vous avez une question ou besoin d'aide? Notre équipe de support est prête à vous assister.",
+    "emailLabel": "Email",
+    "responseTimeLabel": "Temps de réponse",
+    "responseTime": "Dans les 24 heures les jours ouvrables",
+    "faqTitle": "Questions Fréquemment Posées",
+    "faq1Question": "Comment ajouter une moto à mon garage?",
+    "faq1Answer": "Allez à l'onglet Garage, appuyez sur le bouton +, et recherchez votre moto par marque, modèle et année. Les spécifications de votre moto sont chargées automatiquement à partir des bases de données officielles.",
+    "faq2Question": "Comment fonctionne le diagnostic IA?",
+    "faq2Answer": "Prenez une photo de n'importe quelle partie de votre moto ou décrivez vos symptômes. Notre IA analyse l'image et fournit une évaluation diagnostique avec des niveaux de gravité et des actions recommandées.",
+    "faq3Question": "MotoVault est-il gratuit?",
+    "faq3Answer": "Oui! MotoVault offre un plan gratuit avec du contenu d'apprentissage basique, une moto dans votre garage et des diagnostics IA limités. Passez à MotoVault Pro pour un accès illimité à toutes les fonctionnalités.",
+    "faq4Question": "Comment puis-je annuler mon abonnement?",
+    "faq4Answer": "Les abonnements MotoVault Pro sont gérés via l'App Store (iOS) ou Google Play (Android). Allez à la configuration de votre abonnement pour annuler ou gérer votre plan.",
+    "faq5Question": "Puis-je supprimer mon compte?",
+    "faq5Answer": "Oui. Vous pouvez supprimer votre compte via Paramètres > Confidentialité & Données > Supprimer Mon Compte dans l'app, ou visitez notre page Suppression de Compte pour plus de détails.",
+    "faq6Question": "Quelles motos sont supportées?",
+    "faq6Answer": "MotoVault supporte toutes les marques et modèles de motos utilisant les données officielles de la NHTSA, couvrant des milliers de marques et modèles sur toutes les années.",
+    "bugReportTitle": "Signaler un Bug",
+    "bugReportDescription": "Vous avez trouvé quelque chose qui ne fonctionne pas? Envoyez-nous un email à support@motovault.app avec une description du problème, le modèle de votre appareil et la version de l'app. Les captures d'écran sont utiles!",
+    "featureRequestTitle": "Demandes de Fonctionnalités",
+    "featureRequestDescription": "Vous avez une idée pour MotoVault? Nous aimerions l'entendre! Envoyez vos suggestions à support@motovault.app et notre équipe les examinera."
+  },
+  "AccountDeletion": {
+    "title": "Suppression de Compte",
+    "subtitle": "Apprenez comment supprimer définitivement votre compte MotoVault et vos données.",
+    "howToDeleteTitle": "Comment Supprimer Votre Compte",
+    "howToDeleteIntro": "Vous pouvez supprimer votre compte MotoVault directement depuis l'app:",
+    "step1": "Ouvrez MotoVault et allez à votre onglet Profil.",
+    "step2": "Naviguez vers Paramètres > Confidentialité & Données.",
+    "step3": "Appuyez sur \"Supprimer Mon Compte\".",
+    "step4": "Confirmez la suppression. Cette action est permanente et ne peut être annulée.",
+    "whatDeletedTitle": "Ce Qui Est Supprimé",
+    "whatDeletedDescription": "Lorsque vous supprimez votre compte, les données suivantes sont définitivement supprimées:",
+    "deletedItem1": "Votre adresse email et informations de profil",
+    "deletedItem2": "Toutes les motos de votre garage et leur historique d'entretien",
+    "deletedItem3": "Votre progression d'apprentissage, scores de quiz et badges gagnés",
+    "deletedItem4": "L'historique des diagnostics IA et photos téléchargées",
+    "deletedItem5": "Toutes vos préférences et paramètres",
+    "retentionTitle": "Conservation des Données Après Suppression",
+    "retentionDescription": "Vos données seront définitivement supprimées de nos systèmes actifs dans les 30 jours. Les copies de sauvegarde sont supprimées dans les 90 jours. Certaines données peuvent être conservées sous forme anonymisée ou agrégée à des fins d'analyse, ou comme requis par la loi.",
+    "alternativeTitle": "Alternative: Demande par Email",
+    "alternativeDescription": "Si vous ne pouvez pas accéder à l'app, vous pouvez demander la suppression de votre compte en envoyant un email à privacy@motovault.app depuis l'adresse email associée à votre compte. Incluez \"Account Deletion Request\" dans la ligne d'objet. Nous traiterons votre demande dans les 30 jours.",
+    "contactTitle": "Des Questions?",
+    "contactDescription": "Pour toute question sur la suppression de compte ou la confidentialité des données, contactez-nous à"
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "Cette page n'existe pas.",
+    "backHome": "Retour à l'Accueil"
+  },
+  "Error": {
+    "title": "Quelque chose s'est mal passé",
+    "message": "Nous avons rencontré une erreur inattendue. Veuillez réessayer.",
+    "retry": "Réessayer"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Sélectionner une langue",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano"
+  },
+  "JsonLd": {
+    "organizationName": "MotoVault",
+    "organizationDescription": "Plateforme d'apprentissage et diagnostic de motos alimentée par l'IA"
+  }
+}

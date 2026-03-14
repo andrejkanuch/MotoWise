@@ -27,9 +27,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     url: 'https://u.expo.dev/359ae282-329d-455d-b9f3-64919afad0b4',
   },
   splash: {
-    image: './src/assets/icon.png',
+    image: './src/assets/images/MotoVault.png',
     resizeMode: 'contain',
-    backgroundColor: '#1b2e4b',
+    backgroundColor: '#0F1B2D',
   },
   plugins: [
     [
@@ -70,6 +70,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     [
+      'expo-splash-screen',
+      {
+        image: './src/assets/images/MotoVault.png',
+        imageWidth: 200,
+        backgroundColor: '#0F1B2D',
+        dark: {
+          image: './src/assets/images/MotoVaultDark.png',
+          backgroundColor: '#1A1A1A',
+        },
+      },
+    ],
+    [
       'expo-build-properties',
       {
         android: {
@@ -88,6 +100,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.motovault.app',
     supportsTablet: true,
     usesAppleSignIn: true,
+    icon: {
+      light: './src/assets/images/MotoVault.png',
+      dark: './src/assets/images/MotoVaultDark.png',
+      tinted: './src/assets/images/MotoVault.png',
+    },
     infoPlist: {
       CFBundleDisplayName: 'MotoVault',
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
@@ -101,8 +118,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.motovault.app',
     adaptiveIcon: {
-      foregroundImage: './src/assets/adaptive-icon.png',
-      backgroundColor: '#1b2e4b',
+      foregroundImage: './src/assets/images/MotoVault.png',
+      monochromeImage: './src/assets/images/MotoVaultDark.png',
+      backgroundColor: '#0F1B2D',
     },
     permissions: ['CAMERA', 'READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
   },

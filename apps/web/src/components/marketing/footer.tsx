@@ -46,6 +46,8 @@ export async function Footer() {
   const companyLinks = [
     { label: t('privacy'), href: '/privacy' },
     { label: t('terms'), href: '/terms' },
+    { label: t('support'), href: '/support' },
+    { label: t('accountDeletion'), href: '/account-deletion' },
   ];
 
   return (
