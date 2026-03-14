@@ -119,7 +119,7 @@ export class ArticlesService {
 
   async findPopular(first = 10): Promise<Article[]> {
     const limit = Math.min(Math.max(first, 1), 20);
-    const { data, error } = await this.adminClient
+    const { data, error } = await this.anonClient
       .from('articles')
       .select(
         'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at, read_time_minutes, keywords',
