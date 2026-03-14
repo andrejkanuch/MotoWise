@@ -28,14 +28,30 @@
       "channel": "preview",
       "autoIncrement": true,
       "env": {
-        "APP_VARIANT": "preview"
+        "APP_VARIANT": "preview",
+        "EXPO_PUBLIC_API_URL": "https://motowise.onrender.com/graphql",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://tpsoneenbrmdwvzcbifw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_NBrimqV0qtntF5X8aFXcTQ_cb86XvMB",
+        "EXPO_PUBLIC_RC_IOS_KEY": "appl_foMmORktDsSGwpIRgFvcKSwjuLL",
+        "EXPO_PUBLIC_RC_ANDROID_KEY": "goog_MjrkYQlfGYSTwsvivucHONPZyKk",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "276412017775-isv53eql784m49odedq1v4v6qg7m56em.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "276412017775-u00mgu2n51d8kuhfkgkcpetj9bhin6ps.apps.googleusercontent.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "production": {
       "channel": "production",
       "autoIncrement": true,
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_API_URL": "https://motowise.onrender.com/graphql",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://tpsoneenbrmdwvzcbifw.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_NBrimqV0qtntF5X8aFXcTQ_cb86XvMB",
+        "EXPO_PUBLIC_RC_IOS_KEY": "appl_foMmORktDsSGwpIRgFvcKSwjuLL",
+        "EXPO_PUBLIC_RC_ANDROID_KEY": "goog_MjrkYQlfGYSTwsvivucHONPZyKk",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "276412017775-isv53eql784m49odedq1v4v6qg7m56em.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "276412017775-u00mgu2n51d8kuhfkgkcpetj9bhin6ps.apps.googleusercontent.com",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }
   },

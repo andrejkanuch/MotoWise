@@ -77,7 +77,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         backgroundColor: '#0F1B2D',
         dark: {
           image: './src/assets/images/MotoVaultDark.png',
-          backgroundColor: '#1A1A1A',
+          backgroundColor: '#0F0F10',
         },
       },
     ],
