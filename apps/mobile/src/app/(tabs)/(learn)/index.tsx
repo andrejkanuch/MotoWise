@@ -1,12 +1,13 @@
 import { palette } from '@motovault/design-system';
 import {
   GenerateArticleDocument,
+  ListPopularArticlesDocument,
   MyMotorcyclesDocument,
   MyProgressDocument,
   SearchArticlesDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertCircle,
   BookOpen,
@@ -15,14 +16,17 @@ import {
   Eye,
   Search,
   Sparkles,
+  TrendingUp,
   Wrench,
+  X,
   Zap,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -70,9 +74,19 @@ export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { q } = useLocalSearchParams<{ q?: string }>();
   const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const generateGuard = useRef(false);
+
+  // Sync URL q param to search — only trigger on q changes, not searchQuery
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only sync when URL param changes
+  useEffect(() => {
+    if (q && q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, [q]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -81,6 +95,12 @@ export default function LearnScreen() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  const handleClear = () => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+    router.setParams({ q: undefined });
+  };
 
   const { data: progressData } = useQuery({
     queryKey: queryKeys.progress.all,
@@ -140,11 +160,25 @@ export default function LearnScreen() {
     },
   });
 
+  // Popular articles
+  const { data: popularData } = useQuery({
+    queryKey: queryKeys.articles.popular(10),
+    queryFn: () => gqlFetcher(ListPopularArticlesDocument),
+    staleTime: 5 * 60 * 1000,
+  });
+  const popularArticles = popularData?.popularArticles ?? [];
+
   const isGenerating = generateMutation.isPending;
   const handleGenerate = () => {
+    if (generateGuard.current) return;
     if (!requirePro('unlimited_articles')) return;
+    generateGuard.current = true;
     setGenerateError(null);
-    generateMutation.mutate(debouncedQuery);
+    generateMutation.mutate(debouncedQuery, {
+      onSettled: () => {
+        generateGuard.current = false;
+      },
+    });
   };
 
   return (
@@ -176,6 +210,11 @@ export default function LearnScreen() {
               onChangeText={setSearchQuery}
               returnKeyType="search"
             />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={handleClear} hitSlop={8}>
+                <X size={18} color={palette.neutral400} strokeWidth={2} />
+              </Pressable>
+            )}
           </View>
         </Animated.View>
 
@@ -293,6 +332,14 @@ export default function LearnScreen() {
           </Animated.View>
         ) : (
           <>
+            {/* Onboarding Card */}
+            <LearnOnboardingCard
+              onBrowse={() => {}}
+              onGenerate={() => {
+                if (!requirePro('unlimited_articles')) return;
+              }}
+            />
+
             {/* Progress Card */}
             <Animated.View entering={FadeInUp.delay(200).duration(400)} className="px-5 mt-4">
               <View
@@ -375,6 +422,65 @@ export default function LearnScreen() {
                 })}
               </View>
             </Animated.View>
+
+            {/* Popular in the Community */}
+            {popularArticles.length >= 5 && (
+              <Animated.View entering={FadeInUp.delay(500).duration(400)} className="mt-5">
+                <View className="flex-row items-center gap-2 px-5 mb-3">
+                  <TrendingUp size={18} color={palette.primary500} strokeWidth={2} />
+                  <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
+                    {t('learn.popularInCommunity', { defaultValue: 'Popular in the Community' })}
+                  </Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+                >
+                  {popularArticles.map((article) => (
+                    <Pressable
+                      key={article.id}
+                      style={{ width: 200, borderRadius: 16, borderCurve: 'continuous' }}
+                      className="bg-white dark:bg-neutral-800 p-4"
+                      onPress={() =>
+                        router.push(`/(tabs)/(learn)/article/${article.slug}` as `/${string}`)
+                      }
+                    >
+                      <Text
+                        className="text-sm font-semibold text-neutral-950 dark:text-neutral-50"
+                        numberOfLines={2}
+                      >
+                        {article.title}
+                      </Text>
+                      <View className="flex-row items-center gap-2 mt-2">
+                        <View
+                          className="rounded-md px-2 py-0.5"
+                          style={{
+                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? palette.neutral400}15`,
+                            borderCurve: 'continuous',
+                          }}
+                        >
+                          <Text
+                            className="text-xs capitalize"
+                            style={{
+                              color:
+                                (DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ??
+                                palette.neutral400,
+                            }}
+                          >
+                            {article.difficulty}
+                          </Text>
+                        </View>
+                        <View className="flex-row items-center gap-1">
+                          <Eye size={12} color={palette.neutral400} strokeWidth={2} />
+                          <Text className="text-xs text-neutral-500">{article.viewCount}</Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </Animated.View>
+            )}
           </>
         )}
       </ScrollView>

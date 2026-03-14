@@ -1,0 +1,14 @@
+query ListPopularArticles($first: Int) {
+  popularArticles(first: $first) {
+    id
+    slug
+    title
+    difficulty
+    category
+    viewCount
+    isSafetyCritical
+    generatedAt
+    readTime
+    keywords
+  }
+}
