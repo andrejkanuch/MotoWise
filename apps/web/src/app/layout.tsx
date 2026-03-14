@@ -35,6 +35,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale();
   return (
     <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
+      <head>
+        <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
+      </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">{children}</body>
     </html>
   );

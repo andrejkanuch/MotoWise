@@ -122,11 +122,11 @@ export async function FeaturesGrid() {
   const t = await getTranslations('Features');
 
   return (
-    <section id="features" className="px-4 py-24">
+    <section id="features" className="px-4 py-32">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
-        <div className="reveal-on-scroll mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+        <div className="reveal-on-scroll mb-20 text-center">
+          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
             {t('sectionTitle')}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
@@ -137,7 +137,7 @@ export async function FeaturesGrid() {
           {FEATURES.map((feature, index) => (
             <article
               key={feature.key}
-              className={`reveal-on-scroll group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700 md:p-8 ${GRID_CLASSES[feature.key]}`}
+              className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-2xl border-2 border-neutral-800 bg-neutral-900/50 p-8 transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Radial glow — intensifies on hover */}
@@ -149,10 +149,10 @@ export async function FeaturesGrid() {
               />
 
               {/* Bottom accent on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-[2px] bg-transparent transition-colors duration-300 group-hover:bg-primary-500/50" />
+              <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
 
               {/* Content */}
-              <div className="relative z-10 flex h-full flex-col">
+              <div className="relative z-10 flex h-full min-w-0 flex-col">
                 <div className="flex items-start justify-between">
                   <div
                     className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 transition-transform duration-300 group-hover:rotate-[5deg] group-hover:scale-105 ${feature.accentClass}`}
@@ -161,18 +161,18 @@ export async function FeaturesGrid() {
                   </div>
 
                   {/* Metric badge */}
-                  <span className="rounded-full border border-neutral-700 bg-neutral-800 px-3 py-1 text-xs font-medium text-accent-400">
+                  <span className="rounded-full border border-warm-500/30 bg-warm-500/10 px-3 py-1 text-xs font-medium text-warm-400">
                     {t(`${feature.key}.badge`)}
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold text-neutral-50">
+                <h3 className="truncate text-lg font-semibold text-neutral-50">
                   {t(`${feature.key}.title`)}
                 </h3>
                 <p className={`mt-1 text-sm font-medium ${feature.accentClass}`}>
                   {t(`${feature.key}.tagline`)}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-neutral-400">
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-400">
                   {t(`${feature.key}.description`)}
                 </p>
               </div>

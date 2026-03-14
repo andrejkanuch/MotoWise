@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "bundleIdentifier": "com.anonymous.-motovaultweb"
+  },
+  "android": {
+    "package": "com.anonymous.motovaultweb"
+  }
+}

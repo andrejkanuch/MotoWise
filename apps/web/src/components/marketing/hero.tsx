@@ -30,7 +30,7 @@ export function Hero() {
         {SPEED_LINES.map((line) => (
           <div
             key={line.top}
-            className="absolute right-0 h-px bg-gradient-to-l from-neutral-700/60 to-transparent"
+            className="absolute right-0 h-px bg-gradient-to-l from-warm-500/20 to-transparent"
             style={{
               top: line.top,
               width: line.width,
@@ -42,30 +42,27 @@ export function Hero() {
       </div>
 
       {/* Main content container */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-24">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-32">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
           <h1 className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50">
             {t('line1')}
             <br />
             <span>
-              <span className="bg-gradient-to-r from-primary-400 to-accent-500 bg-clip-text text-transparent">
-                {t('line2')}
-              </span>{' '}
-              {t('line3')}
+              <span className="text-warm-400">{t('line2')}</span> {t('line3')}
             </span>
           </h1>
 
           {/* Gradient accent line */}
-          <div className="mt-4 h-[3px] w-[120px] rounded-full bg-gradient-to-r from-primary-400 to-accent-500" />
+          <div className="accent-line-enter mt-4 h-1 w-32 rounded-full bg-signature-500" />
 
-          <p className="mt-6 max-w-lg text-lg text-neutral-400">{t('subtitle')}</p>
+          <p className="mt-6 max-w-lg text-xl text-neutral-300">{t('subtitle')}</p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-12 flex flex-wrap items-center gap-4">
             {/* Primary CTA with glow */}
             <a
               href="#cta"
-              className="group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400"
+              className="cta-primary group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
               <span className="relative">{t('downloadCta')}</span>
@@ -74,7 +71,7 @@ export function Hero() {
             {/* Secondary CTA with glass effect */}
             <a
               href="#features"
-              className="inline-flex items-center justify-center rounded-full border border-neutral-700 bg-neutral-900/30 px-8 py-3 text-neutral-300 backdrop-blur-sm transition-colors hover:border-neutral-500 hover:text-neutral-100"
+              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-8 py-3 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100"
             >
               {t('exploreFeatures')}
             </a>
@@ -107,7 +104,7 @@ export function Hero() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="animate-bounce text-neutral-500"
+          className="scroll-hint text-neutral-500"
           role="img"
         >
           <title>{t('scrollDown')}</title>

@@ -89,13 +89,13 @@ export function Navbar() {
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-white/10 bg-neutral-950/60 saturate-150 backdrop-blur-xl'
+          ? 'border-b border-warm-500/20 bg-neutral-950/60 saturate-150 backdrop-blur-xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5">
         {/* Logo */}
-        <Link href="/" className="text-lg font-bold text-neutral-50">
+        <Link href="/" className="logo-glow text-xl font-extrabold tracking-tight text-neutral-50">
           MotoVault
         </Link>
 
@@ -119,7 +119,7 @@ export function Navbar() {
           </a>
           <a
             href="#cta"
-            className="rounded-full bg-warm-500 px-4 py-1.5 text-sm font-semibold text-neutral-950 transition-opacity hover:opacity-90"
+            className="cta-primary rounded-full bg-warm-500 px-5 py-2 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90"
           >
             {t('download')}
           </a>
@@ -168,7 +168,7 @@ export function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label={t('openMenu')}
-          className="fixed inset-0 top-16 z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl md:hidden"
+          className="fixed inset-0 top-[72px] z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl md:hidden"
         >
           <div className="flex flex-1 flex-col items-center justify-center gap-8">
             {NAV_LINKS.map((link, i) => (
@@ -187,7 +187,7 @@ export function Navbar() {
             <a
               href="#cta"
               onClick={closeMobile}
-              className="mt-4 rounded-full bg-warm-500 px-8 py-3 text-base font-semibold text-neutral-950 transition-opacity hover:opacity-90"
+              className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90"
             >
               {t('download')}
             </a>

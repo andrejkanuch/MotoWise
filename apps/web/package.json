@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@motovault/design-system": "workspace:*",
@@ -23,7 +25,9 @@
     "postcss": "^8.5.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.1",
+    "expo": "~54.0.33",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",

@@ -107,7 +107,7 @@
   .hero-text-fade {
     animation: hero-text-fade-out linear both;
     animation-timeline: scroll();
-    animation-range: 0% 100vh;
+    animation-range: 30vh 100vh;
   }
 
   .hero-scroll-indicator {
@@ -124,6 +124,82 @@
   .hero-text-fade,
   .hero-scroll-indicator {
     animation: none !important;
+  }
+}
+
+/* ── Logo hover glow ── */
+.logo-glow {
+  transition: text-shadow 300ms var(--ease-out-quart, ease);
+}
+.logo-glow:hover {
+  text-shadow: 0 0 20px oklch(0.60 0.16 45 / 0.5);
+}
+
+/* ── Custom easing ── */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Button micro-interactions ── */
+.cta-primary {
+  transition: transform 150ms var(--ease-out-quart), box-shadow 200ms var(--ease-out-quart), background-color 200ms ease;
+}
+.cta-primary:hover {
+  transform: translateY(-1px);
+}
+.cta-primary:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+.cta-secondary {
+  transition: transform 150ms var(--ease-out-quart), border-color 200ms ease, color 200ms ease;
+}
+.cta-secondary:hover {
+  transform: translateY(-1px);
+}
+.cta-secondary:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 80ms;
+}
+
+/* ── Card lift on hover ── */
+.card-lift {
+  transition: transform 250ms var(--ease-out-quart), border-color 250ms ease, box-shadow 250ms var(--ease-out-quart);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px oklch(0 0 0 / 0.4);
+}
+
+/* ── Step circle pulse on hover ── */
+.step-circle {
+  transition: transform 250ms var(--ease-out-quart), box-shadow 250ms var(--ease-out-quart);
+}
+.step-circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 24px oklch(0.6 0.16 45 / 0.3);
+}
+
+/* ── Hero accent line entrance ── */
+@supports (animation-timeline: view()) {
+  .accent-line-enter {
+    animation: accent-grow 0.8s var(--ease-out-expo) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 30%;
+    transform-origin: left;
+  }
+
+  @keyframes accent-grow {
+    from {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    to {
+      transform: scaleX(1);
+      opacity: 1;
+    }
   }
 }
 
@@ -152,17 +228,18 @@
   animation: phone-float 4s ease-in-out infinite;
 }
 
-/* Social proof stat counter (CSS counter via @property) */
-@property --stat-value {
-  syntax: "<integer>";
-  initial-value: 0;
-  inherits: false;
+/* Subtle scroll hint animation (replaces bounce) */
+@keyframes scroll-hint {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
 }
 
-@keyframes count-up {
-  from {
-    --stat-value: 0;
-  }
+.scroll-hint {
+  animation: scroll-hint 2s ease-in-out infinite;
 }
 
 /* How-it-works connector line draw */
@@ -188,12 +265,36 @@
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 50;
   pointer-events: none;
   opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 256px 256px;
-  will-change: auto;
-  isolation: isolate;
+}
+
+/* Reduce motion: disable animations and transitions */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint,
+  .phone-float {
+    animation: none !important;
+  }
+  .cta-primary,
+  .cta-secondary,
+  .card-lift,
+  .step-circle {
+    transition: none !important;
+    transform: none !important;
+  }
+  .card-lift:hover,
+  .step-circle:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Paint containment for below-fold sections — avoids layout/paint work until visible */
+section:not(:first-child) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
 }

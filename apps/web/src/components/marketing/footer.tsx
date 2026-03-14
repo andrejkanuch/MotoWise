@@ -52,15 +52,17 @@ export async function Footer() {
 
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-black">
-      <div className="mx-auto max-w-7xl px-6 pb-12">
+      <div className="mx-auto max-w-7xl px-6 pb-16">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <FooterColumn title={t('product')} links={productLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 md:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t-2 border-neutral-800 pt-8 md:flex-row">
           <div>
-            <p className="text-sm font-semibold text-neutral-50">MotoVault</p>
+            <p className="text-lg font-bold text-neutral-50">
+              Moto<span className="text-warm-400">Vault</span>
+            </p>
             <p className="mt-1 text-xs text-neutral-500">{t('tagline')}</p>
           </div>
 

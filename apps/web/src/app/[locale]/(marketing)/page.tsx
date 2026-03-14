@@ -14,6 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t('title'),
     description: t('description'),
+    alternates: {
+      canonical: BASE_URL,
+    },
   };
 }
 
@@ -40,6 +43,27 @@ export default async function HomePage() {
     url: BASE_URL,
     logo: `${BASE_URL}/icon.png`,
     description: tJsonLd('organizationDescription'),
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'support@motovault.app',
+      contactType: 'customer support',
+    },
+    sameAs: [],
+  };
+
+  const softwareAppSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: tJsonLd('organizationName'),
+    applicationCategory: 'LifestyleApplication',
+    operatingSystem: 'iOS, Android',
+    description: tJsonLd('organizationDescription'),
+    url: BASE_URL,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
   };
 
   const faqItems = Array.from({ length: 6 }, (_, i) => ({
@@ -63,6 +87,7 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={organizationSchema} />
+      <JsonLd data={softwareAppSchema} />
       <JsonLd data={faqSchema} />
       <Hero />
       <SocialProofBar />

@@ -8,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('title'),
     description: t('subtitle'),
     alternates: {
+      canonical: `${BASE_URL}/account-deletion`,
       languages: {
         en: `${BASE_URL}/account-deletion`,
         es: `${BASE_URL}/es/account-deletion`,

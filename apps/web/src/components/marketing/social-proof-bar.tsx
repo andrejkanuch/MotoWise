@@ -10,7 +10,7 @@ export async function SocialProofBar() {
   const t = await getTranslations('SocialProof');
 
   return (
-    <section className="border-y border-neutral-800/50 bg-neutral-950 px-4 py-16">
+    <section className="border-t-2 border-warm-500/30 bg-neutral-950 px-4 py-20">
       <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-12 md:flex-row md:gap-20">
         {STATS.map((stat, index) => (
           <div
@@ -18,10 +18,10 @@ export async function SocialProofBar() {
             className="reveal-on-scroll text-center"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <p className="bg-gradient-to-r from-primary-400 to-accent-500 bg-clip-text text-5xl font-extrabold tabular-nums text-transparent">
+            <p className="text-6xl font-extrabold tabular-nums text-warm-400 md:text-7xl">
               {t(stat.countKey)}
             </p>
-            <p className="mt-2 text-sm font-medium uppercase tracking-wider text-neutral-500">
+            <p className="mt-2 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
               {t(stat.key)}
             </p>
           </div>

@@ -8,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('title'),
     description: t('acceptance'),
     alternates: {
+      canonical: `${BASE_URL}/terms`,
       languages: {
         en: `${BASE_URL}/terms`,
         es: `${BASE_URL}/es/terms`,

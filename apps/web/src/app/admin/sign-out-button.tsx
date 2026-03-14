@@ -2,11 +2,14 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function SignOutButton() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleSignOut = async () => {
+    setLoading(true);
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
@@ -19,9 +22,10 @@ export function SignOutButton() {
     <button
       type="button"
       onClick={handleSignOut}
-      className="bg-transparent border-none text-danger-500 cursor-pointer p-0 text-sm hover:text-danger-600 dark:text-danger-400 dark:hover:text-danger-300 transition-colors"
+      disabled={loading}
+      className="bg-transparent border-none text-danger-400 cursor-pointer p-0 text-sm hover:text-danger-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      Sign Out
+      {loading ? 'Signing out...' : 'Sign Out'}
     </button>
   );
 }

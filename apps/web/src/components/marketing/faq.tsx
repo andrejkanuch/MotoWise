@@ -14,10 +14,10 @@ export function Faq() {
   }
 
   return (
-    <section id="faq" className="px-4 py-24">
+    <section id="faq" className="px-4 py-32">
       <div className="mx-auto max-w-4xl">
         {/* Section header with icon */}
-        <div className="reveal-on-scroll mb-16 flex items-center justify-center gap-3 text-center">
+        <div className="reveal-on-scroll mb-20 flex items-center justify-center gap-3 text-center">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -25,14 +25,14 @@ export function Faq() {
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="size-8 text-primary-400"
+            className="size-10 text-primary-400"
             aria-hidden="true"
           >
             <circle cx="12" cy="12" r="10" />
             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
             <path d="M12 17h.01" />
           </svg>
-          <h2 className="text-3xl font-bold tracking-tight text-neutral-50 md:text-4xl">
+          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 md:text-5xl">
             {t('sectionTitle')}
           </h2>
         </div>
@@ -52,10 +52,10 @@ export function Faq() {
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${index}`}
                 >
-                  <span className="text-sm font-medium text-accent-500">
+                  <span className="text-sm font-medium text-warm-500">
                     {String(index + 1).padStart(2, '0')}.
                   </span>
-                  <span className="font-medium">{t(`items.${index}.question`)}</span>
+                  <span className="text-lg font-medium">{t(`items.${index}.question`)}</span>
                   <svg
                     width="20"
                     height="20"
@@ -75,7 +75,7 @@ export function Faq() {
                 </button>
 
                 {/* Accordion body with grid-rows animation */}
-                <section
+                <div
                   id={`faq-answer-${index}`}
                   className="grid transition-[grid-template-rows] duration-300 ease-out"
                   style={{
@@ -85,7 +85,7 @@ export function Faq() {
                   <div className="overflow-hidden">
                     <div
                       className={`pb-4 text-base leading-7 text-neutral-300 transition-opacity duration-300 lg:max-w-2xl ${
-                        isOpen ? 'border-l-2 border-primary-400 pl-4' : ''
+                        isOpen ? 'border-l-2 border-warm-500 pl-4' : ''
                       }`}
                       style={{
                         opacity: isOpen ? 1 : 0,
@@ -95,7 +95,7 @@ export function Faq() {
                       {t(`items.${index}.answer`)}
                     </div>
                   </div>
-                </section>
+                </div>
               </div>
             );
           })}

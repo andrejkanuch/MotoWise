@@ -64,33 +64,33 @@ export async function HowItWorks() {
   const t = await getTranslations('HowItWorks');
 
   return (
-    <section className="px-4 py-24">
+    <section className="px-4 py-32">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
-        <div className="reveal-on-scroll mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+        <div className="reveal-on-scroll mb-20 text-center">
+          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
             {t('sectionTitle')}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
         </div>
 
         {/* Steps */}
-        <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+        <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
           {/* Connector lines (desktop only) */}
-          <div className="pointer-events-none absolute inset-0 hidden md:block" aria-hidden="true">
-            <svg className="h-full w-full" preserveAspectRatio="none" aria-hidden="true">
-              <line
-                x1="33%"
-                y1="72"
-                x2="67%"
-                y2="72"
-                stroke="oklch(0.37 0 0)"
-                strokeWidth="2"
-                strokeDasharray="8 6"
-                className="draw-line"
-                style={{ strokeDashoffset: '100%' }}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-[44px] hidden md:block"
+            aria-hidden="true"
+          >
+            <div className="mx-auto flex max-w-[66%] items-center">
+              <div
+                className="draw-line h-[2px] flex-1 bg-neutral-700"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(90deg, currentColor 0, currentColor 8px, transparent 8px, transparent 14px)',
+                  color: 'var(--color-neutral-700)',
+                }}
               />
-            </svg>
+            </div>
           </div>
 
           {STEPS.map((step, index) => (
@@ -99,23 +99,19 @@ export async function HowItWorks() {
               className="reveal-on-scroll relative flex flex-col items-center text-center"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              {/* Numbered circle with gradient ring */}
-              <div className="relative mb-6">
-                <div className="flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-accent-500 p-[2px]">
-                  <div className="flex size-full items-center justify-center rounded-full bg-neutral-950">
-                    <span className="text-lg font-bold text-neutral-50">{step.number}</span>
-                  </div>
-                </div>
-
-                {/* Icon below circle */}
-                <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 items-center justify-center rounded-lg bg-neutral-800/80 p-1.5 text-primary-400">
-                  {step.icon}
+              {/* Numbered circle with icon inside */}
+              <div className="step-circle mb-8 flex size-[88px] items-center justify-center rounded-full bg-gradient-to-br from-warm-400 to-signature-600 p-[2px]">
+                <div className="flex size-full flex-col items-center justify-center gap-0.5 rounded-full bg-neutral-950">
+                  <span className="text-xl font-extrabold leading-none text-neutral-50">
+                    {step.number}
+                  </span>
+                  <div className="text-warm-400">{step.icon}</div>
                 </div>
               </div>
 
               {/* Card */}
-              <div className="mt-4 rounded-2xl border border-neutral-700 bg-neutral-900/70 p-6">
-                <h3 className="text-lg font-semibold text-neutral-50">
+              <div className="card-lift w-full rounded-2xl border-2 border-neutral-800 bg-neutral-900/70 p-8">
+                <h3 className="text-xl font-semibold text-neutral-50">
                   {t(`step${index + 1}Title`)}
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-neutral-400">

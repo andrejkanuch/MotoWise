@@ -8,6 +8,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('title'),
     description: t('infoCollect'),
     alternates: {
+      canonical: `${BASE_URL}/privacy`,
       languages: {
         en: `${BASE_URL}/privacy`,
         es: `${BASE_URL}/es/privacy`,
