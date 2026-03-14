@@ -1,11 +1,13 @@
 -- Add keywords array column to articles
 ALTER TABLE articles ADD COLUMN keywords TEXT[] NOT NULL DEFAULT '{}';
 
--- Add CHECK constraint for max 20 keywords
+-- Add CHECK constraint for max 20 keywords, each max 50 chars
 ALTER TABLE articles ADD CONSTRAINT chk_keywords_length
   CHECK (array_length(keywords, 1) IS NULL OR array_length(keywords, 1) <= 20);
 
 -- Drop old search_vector and recreate with weighted keywords
+-- The search_vector is a GENERATED ALWAYS AS stored column
+-- First drop the existing generated column, then recreate with keywords included
 ALTER TABLE articles DROP COLUMN search_vector;
 ALTER TABLE articles ADD COLUMN search_vector tsvector
   GENERATED ALWAYS AS (

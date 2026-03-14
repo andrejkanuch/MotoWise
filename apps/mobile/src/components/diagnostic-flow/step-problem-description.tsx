@@ -362,6 +362,7 @@ export function StepProblemDescription() {
                     backgroundColor:
                       i === wizardSubStep ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.2)',
                   }}
+                  // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                   accessibilityLabel={t('diagnoseV2.wizardSubStep' as any, {
                     current: i + 1,
                     total: WIZARD_STEPS.length,

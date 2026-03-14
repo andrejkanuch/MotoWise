@@ -16,7 +16,6 @@ import {
   Eye,
   Search,
   Sparkles,
-  TrendingUp,
   Wrench,
   X,
   Zap,
@@ -73,15 +72,15 @@ const CATEGORY_COLORS = {
 export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { q } = useLocalSearchParams<{ q?: string }>();
+  const insets = useSafeAreaInsets();
   const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const generateGuard = useRef(false);
+  const generateGuardRef = useRef(false);
 
-  // Sync URL q param to search — only trigger on q changes, not searchQuery
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally only sync when URL param changes
+  // Sync q param to search — intentionally only trigger on q changes, not searchQuery
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only sync when URL param changes
   useEffect(() => {
     if (q && q !== searchQuery) {
       setSearchQuery(q);
@@ -95,12 +94,6 @@ export default function LearnScreen() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  const handleClear = () => {
-    setSearchQuery('');
-    setDebouncedQuery('');
-    router.setParams({ q: undefined });
-  };
 
   const { data: progressData } = useQuery({
     queryKey: queryKeys.progress.all,
@@ -123,6 +116,13 @@ export default function LearnScreen() {
 
   const searchResults = searchData?.searchArticles?.edges ?? [];
   const isSearchActive = debouncedQuery.length > 0;
+
+  const { data: popularData } = useQuery({
+    queryKey: queryKeys.articles.popular(10),
+    queryFn: () => gqlFetcher(ListPopularArticlesDocument),
+    staleTime: 5 * 60 * 1000,
+  });
+  const popularArticles = popularData?.popularArticles ?? [];
 
   const queryClient = useQueryClient();
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -160,25 +160,23 @@ export default function LearnScreen() {
     },
   });
 
-  // Popular articles
-  const { data: popularData } = useQuery({
-    queryKey: queryKeys.articles.popular(10),
-    queryFn: () => gqlFetcher(ListPopularArticlesDocument),
-    staleTime: 5 * 60 * 1000,
-  });
-  const popularArticles = popularData?.popularArticles ?? [];
-
   const isGenerating = generateMutation.isPending;
   const handleGenerate = () => {
-    if (generateGuard.current) return;
+    if (generateGuardRef.current || isGenerating) return;
     if (!requirePro('unlimited_articles')) return;
-    generateGuard.current = true;
+    generateGuardRef.current = true;
     setGenerateError(null);
     generateMutation.mutate(debouncedQuery, {
       onSettled: () => {
-        generateGuard.current = false;
+        generateGuardRef.current = false;
       },
     });
+  };
+
+  const handleClear = () => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+    router.setParams({ q: undefined });
   };
 
   return (
@@ -212,7 +210,7 @@ export default function LearnScreen() {
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={handleClear} hitSlop={8}>
-                <X size={18} color={palette.neutral400} strokeWidth={2} />
+                <X size={16} color={palette.neutral400} strokeWidth={2} />
               </Pressable>
             )}
           </View>
@@ -334,9 +332,15 @@ export default function LearnScreen() {
           <>
             {/* Onboarding Card */}
             <LearnOnboardingCard
-              onBrowse={() => {}}
+              onBrowse={() => {
+                // Scroll down to modules - no-op, they're visible below
+              }}
               onGenerate={() => {
                 if (!requirePro('unlimited_articles')) return;
+                setSearchQuery('');
+                setDebouncedQuery('');
+                // Navigate to generate flow by setting a default topic
+                generateMutation.mutate('motorcycle basics');
               }}
             />
 
@@ -426,57 +430,114 @@ export default function LearnScreen() {
             {/* Popular in the Community */}
             {popularArticles.length >= 5 && (
               <Animated.View entering={FadeInUp.delay(500).duration(400)} className="mt-5">
-                <View className="flex-row items-center gap-2 px-5 mb-3">
-                  <TrendingUp size={18} color={palette.primary500} strokeWidth={2} />
-                  <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
-                    {t('learn.popularInCommunity', { defaultValue: 'Popular in the Community' })}
-                  </Text>
-                </View>
+                <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3 px-5">
+                  {t('learn.popularInCommunity', { defaultValue: 'Popular in the Community' })}
+                </Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
                 >
-                  {popularArticles.map((article) => (
-                    <Pressable
+                  {popularArticles.map((article, index) => (
+                    <Animated.View
                       key={article.id}
-                      style={{ width: 200, borderRadius: 16, borderCurve: 'continuous' }}
-                      className="bg-white dark:bg-neutral-800 p-4"
-                      onPress={() =>
-                        router.push(`/(tabs)/(learn)/article/${article.slug}` as `/${string}`)
-                      }
+                      entering={FadeInUp.delay(520 + index * 40).duration(400)}
                     >
-                      <Text
-                        className="text-sm font-semibold text-neutral-950 dark:text-neutral-50"
-                        numberOfLines={2}
+                      <Pressable
+                        style={{
+                          width: 200,
+                          backgroundColor: (CATEGORY_COLORS as Record<string, string>)[
+                            article.category
+                          ]
+                            ? `${(CATEGORY_COLORS as Record<string, string>)[article.category]}08`
+                            : undefined,
+                          borderRadius: 16,
+                          borderCurve: 'continuous',
+                          padding: 14,
+                        }}
+                        className="bg-white dark:bg-neutral-800"
+                        onPress={() =>
+                          router.push(`/(tabs)/(learn)/article/${article.slug}` as `/${string}`)
+                        }
                       >
-                        {article.title}
-                      </Text>
-                      <View className="flex-row items-center gap-2 mt-2">
+                        <Text
+                          className="text-sm font-semibold text-neutral-950 dark:text-neutral-50"
+                          numberOfLines={2}
+                        >
+                          {article.title}
+                        </Text>
                         <View
-                          className="rounded-md px-2 py-0.5"
                           style={{
-                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? palette.neutral400}15`,
-                            borderCurve: 'continuous',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 6,
+                            marginTop: 8,
+                            flexWrap: 'wrap',
                           }}
                         >
-                          <Text
-                            className="text-xs capitalize"
+                          {/* Category badge */}
+                          <View
                             style={{
-                              color:
-                                (DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ??
-                                palette.neutral400,
+                              borderRadius: 8,
+                              borderCurve: 'continuous',
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[article.category] ?? palette.primary500}15`,
                             }}
                           >
-                            {article.difficulty}
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: '500',
+                                color:
+                                  (CATEGORY_COLORS as Record<string, string>)[article.category] ??
+                                  palette.primary500,
+                                textTransform: 'capitalize',
+                              }}
+                            >
+                              {article.category.replace(/-/g, ' ')}
+                            </Text>
+                          </View>
+                          {/* Difficulty badge */}
+                          <View
+                            style={{
+                              borderRadius: 8,
+                              borderCurve: 'continuous',
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? palette.neutral400}15`,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: '500',
+                                color:
+                                  (DIFFICULTY_COLORS as Record<string, string>)[
+                                    article.difficulty
+                                  ] ?? palette.neutral400,
+                                textTransform: 'capitalize',
+                              }}
+                            >
+                              {article.difficulty}
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginTop: 6,
+                          }}
+                        >
+                          <Eye size={11} color={palette.neutral400} strokeWidth={2} />
+                          <Text style={{ fontSize: 11, color: palette.neutral400 }}>
+                            {article.viewCount}
                           </Text>
                         </View>
-                        <View className="flex-row items-center gap-1">
-                          <Eye size={12} color={palette.neutral400} strokeWidth={2} />
-                          <Text className="text-xs text-neutral-500">{article.viewCount}</Text>
-                        </View>
-                      </View>
-                    </Pressable>
+                      </Pressable>
+                    </Animated.View>
                   ))}
                 </ScrollView>
               </Animated.View>
