@@ -1,15 +1,16 @@
 interface AppPreviewProps {
-  imageSrc: string;
-  alt: string;
+  imageSrc?: string;
+  alt?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function AppPreview({ imageSrc, alt, className = '' }: AppPreviewProps) {
+export function AppPreview({ imageSrc, alt = '', className = '', children }: AppPreviewProps) {
   return (
     <div className={`phone-float ${className}`}>
       {/* Phone frame */}
       <div
-        className="relative mx-auto w-[280px] rounded-[2.5rem] border-[6px] border-neutral-700 bg-neutral-900 p-2 shadow-2xl shadow-primary-500/10"
+        className="relative mx-auto w-[340px] rounded-[3rem] border-[6px] border-neutral-700 bg-neutral-900 p-2 shadow-2xl shadow-primary-500/10"
         style={{
           transform: 'perspective(1000px) rotateY(-5deg) rotateX(2deg)',
         }}
@@ -29,9 +30,11 @@ export function AppPreview({ imageSrc, alt, className = '' }: AppPreviewProps) {
             </div>
           </div>
 
-          {/* App screenshot */}
-          {/* biome-ignore lint/performance/noImgElement: next/image not needed for decorative marketing preview */}
-          <img src={imageSrc} alt={alt} className="block w-full" loading="eager" />
+          {/* App content — either children (carousel) or single image */}
+          {children ?? (
+            // biome-ignore lint/performance/noImgElement: next/image not needed for decorative marketing preview
+            <img src={imageSrc} alt={alt} className="block w-full" loading="eager" />
+          )}
         </div>
 
         {/* Home indicator */}

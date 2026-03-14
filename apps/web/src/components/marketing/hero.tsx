@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { AppPreview } from './app-preview';
+import { HeroCarousel } from './hero-carousel';
 
 const SPEED_LINES = [
   { top: '22%', duration: '2s', delay: '0s', width: '180px' },
@@ -83,10 +84,9 @@ export function Hero() {
           className="hero-moto-parallax pointer-events-none hidden items-center justify-end md:relative md:flex md:w-[45%]"
           aria-hidden="true"
         >
-          <AppPreview
-            imageSrc="/images/app-preview-home.png"
-            alt="MotoVault app showing your bike's diagnostics and maintenance"
-          />
+          <AppPreview>
+            <HeroCarousel />
+          </AppPreview>
         </div>
       </div>
 
