@@ -36,4 +36,7 @@ export class Article {
 
   @Field(() => Int, { nullable: true })
   readTime?: number;
+
+  @Field(() => [String], { nullable: true })
+  keywords?: string[];
 }

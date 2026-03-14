@@ -641,6 +641,13 @@
       "braking": "Al frenar",
       "acceleration": "Al acelerar",
       "turning": "Al girar"
-    }
+    },
+    "searchModel": "Buscar modelos...",
+    "popularMakes": "Marcas Populares",
+    "noMakesFound": "No se encontraron marcas",
+    "noModelsFound": "No se encontraron modelos",
+    "tapToChange": "Toca para cambiar",
+    "confirmModel": "Confirmar Modelo",
+    "cantLoadTypeManually": "¿No se puede cargar? Escribe manualmente"
   }
 }
