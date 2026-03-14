@@ -3,11 +3,11 @@ import GraphQLJSON from 'graphql-type-json';
 
 @InputType()
 export class CreateDiagnosticInput {
-  @Field()
-  motorcycleId: string;
+  @Field({ nullable: true })
+  motorcycleId?: string;
 
   @Field(() => GraphQLJSON, { nullable: true })
-  wizardAnswers?: Record<string, string>;
+  wizardAnswers?: { symptoms?: string; location?: string; timing?: string };
 
   @Field({ defaultValue: false })
   dataSharingOptedIn: boolean;

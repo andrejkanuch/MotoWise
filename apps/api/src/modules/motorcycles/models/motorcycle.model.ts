@@ -1,4 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
+import { GqlMotorcycleType } from '../../../common/enums/graphql-enums';
 
 @ObjectType()
 export class Motorcycle {
@@ -34,6 +35,12 @@ export class Motorcycle {
 
   @Field({ nullable: true })
   mileageUpdatedAt?: string;
+
+  @Field(() => GqlMotorcycleType, { nullable: true })
+  type?: string;
+
+  @Field(() => Int, { nullable: true })
+  engineCc?: number;
 
   @Field()
   createdAt: string;

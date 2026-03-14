@@ -26,6 +26,7 @@ import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { UsersModule } from './modules/users/users.module';
+import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
@@ -70,6 +71,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     MaintenanceTasksModule,
     OemSchedulesModule,
     ShareLinksModule,
+    WaitlistModule,
     WebhooksModule,
     HealthModule,
   ],

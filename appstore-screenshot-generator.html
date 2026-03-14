@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoVault — App Store Screenshot Generator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0f;
+    color: #fff;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #4ecdc4, #44a8f2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: #888;
+    font-size: 16px;
+  }
+  .header .dims {
+    color: #666;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .controls button {
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #4ecdc4, #44a8f2);
+    color: #000;
+  }
+  .btn-primary:hover { transform: scale(1.05); }
+  .btn-secondary {
+    background: #1e1e2e;
+    color: #aaa;
+    border: 1px solid #333 !important;
+  }
+  .btn-secondary:hover { background: #2a2a3e; color: #fff; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: #13131f;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #222;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #444; }
+
+  .card-header {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ccc;
+  }
+  .card-header .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .badge-ready { background: #1a3a2a; color: #4ecdc4; }
+  .badge-empty { background: #2a2020; color: #e87461; }
+
+  .preview-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1284/2778;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .preview-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .drop-zone {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .drop-zone.visible { opacity: 1; background: rgba(10,10,15,0.85); }
+  .preview-container:hover .drop-zone { opacity: 1; }
+  .drop-zone.dragging { opacity: 1; background: rgba(78,205,196,0.15); border: 2px dashed #4ecdc4; }
+  .drop-zone svg { width: 48px; height: 48px; color: #4ecdc4; }
+  .drop-zone span { font-size: 13px; color: #888; }
+
+  .card-footer {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .card-footer button {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-sm-primary {
+    background: linear-gradient(135deg, #4ecdc4, #44a8f2);
+    color: #000;
+  }
+  .btn-sm-danger {
+    background: #2a1a1a;
+    color: #e87461;
+  }
+
+  .edit-row {
+    padding: 0 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .edit-row label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+  .edit-row input, .edit-row textarea {
+    background: #0e0e18;
+    border: 1px solid #2a2a3a;
+    border-radius: 8px;
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .edit-row input:focus, .edit-row textarea:focus { border-color: #4ecdc4; }
+  .edit-row textarea { resize: none; height: 42px; }
+
+  input[type="file"] { display: none; }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1e1e2e;
+    color: #4ecdc4;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid #333;
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+  .toast.visible { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>MotoVault App Store Screenshots</h1>
+  <p>Drag & drop your app screenshots to create stunning App Store listings</p>
+  <p class="dims">Output: 1284 × 2778 px (iPhone 6.5" & 6.7")</p>
+</div>
+
+<div class="controls">
+  <button class="btn-primary" onclick="downloadAll()">Download All</button>
+  <button class="btn-secondary" onclick="resetAll()">Reset All</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="toast" id="toast">Screenshot saved!</div>
+
+<script>
+const W = 1284, H = 2778;
+
+// Slide definitions
+const slides = [
+  {
+    id: 'home',
+    title: 'Home Dashboard',
+    headline: 'Your Bike\'s\nCommand Center',
+    subtitle: 'Everything you need, at a glance',
+    gradient: ['#0b1628', '#0a2540', '#0d3b5c'],
+    accent: '#4ecdc4',
+  },
+  {
+    id: 'garage',
+    title: 'Bike Details',
+    headline: 'Your Complete\nDigital Garage',
+    subtitle: 'Track maintenance, expenses & health',
+    gradient: ['#0f1a0b', '#0a2a18', '#0d3b2a'],
+    accent: '#4ecdc4',
+  },
+  {
+    id: 'diagnose',
+    title: 'AI Diagnostics',
+    headline: 'AI-Powered\nDiagnostics',
+    subtitle: 'Snap a photo, get instant answers',
+    gradient: ['#1a0b1e', '#2a0a30', '#3b0d42'],
+    accent: '#e87461',
+  },
+  {
+    id: 'learn',
+    title: 'Learning Hub',
+    headline: 'Master Your\nMachine',
+    subtitle: '45+ lessons across 4 modules',
+    gradient: ['#1a1a0b', '#2a2a0a', '#3b380d'],
+    accent: '#f4a261',
+  },
+  {
+    id: 'expense',
+    title: 'Expense Tracker',
+    headline: 'Track Every\nDollar Spent',
+    subtitle: 'Fuel, parts, maintenance & gear',
+    gradient: ['#0b1a28', '#0a2540', '#0d4060'],
+    accent: '#44a8f2',
+  },
+  {
+    id: 'edit',
+    title: 'Edit Bike',
+    headline: 'Every Detail\nMatters',
+    subtitle: 'Make, model, mileage & more',
+    gradient: ['#1a0b0b', '#2a1515', '#3b1e1e'],
+    accent: '#e87461',
+  }
+];
+
+const state = {};
+
+function init() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  slides.forEach((slide, i) => {
+    state[slide.id] = { img: null, headline: slide.headline, subtitle: slide.subtitle };
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-header">
+        <h3>${i + 1}. ${slide.title}</h3>
+        <span class="badge badge-empty" id="badge-${slide.id}">No image</span>
+      </div>
+      <div class="preview-container" id="container-${slide.id}">
+        <canvas class="preview-canvas" id="canvas-${slide.id}" width="${W}" height="${H}"></canvas>
+        <div class="drop-zone visible" id="dropzone-${slide.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 16V4m0 0L8 8m4-4l4 4M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"/>
+          </svg>
+          <span>Drop screenshot or click to upload</span>
+        </div>
+        <input type="file" accept="image/*" id="input-${slide.id}" />
+      </div>
+      <div class="edit-row">
+        <label>Headline</label>
+        <textarea id="headline-${slide.id}" oninput="onTextChange('${slide.id}')">${slide.headline}</textarea>
+      </div>
+      <div class="edit-row">
+        <label>Subtitle</label>
+        <input id="subtitle-${slide.id}" value="${slide.subtitle}" oninput="onTextChange('${slide.id}')" />
+      </div>
+      <div class="card-footer">
+        <button class="btn-sm-danger" onclick="clearSlide('${slide.id}')">Clear</button>
+        <button class="btn-sm-primary" onclick="downloadOne('${slide.id}')">Download</button>
+      </div>
+    `;
+    grid.appendChild(card);
+
+    // Draw empty state
+    drawSlide(slide.id);
+
+    // File input
+    const input = card.querySelector(`#input-${slide.id}`);
+    const container = card.querySelector(`#container-${slide.id}`);
+    const dropzone = card.querySelector(`#dropzone-${slide.id}`);
+
+    container.addEventListener('click', () => input.click());
+    input.addEventListener('change', (e) => {
+      if (e.target.files[0]) loadImage(slide.id, e.target.files[0]);
+    });
+
+    // Drag & drop
+    container.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragging'); });
+    container.addEventListener('dragleave', () => dropzone.classList.remove('dragging'));
+    container.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragging');
+      if (e.dataTransfer.files[0]) loadImage(slide.id, e.dataTransfer.files[0]);
+    });
+  });
+}
+
+function loadImage(id, file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      state[id].img = img;
+      drawSlide(id);
+      document.getElementById(`dropzone-${id}`).classList.remove('visible');
+      document.getElementById(`badge-${id}`).className = 'badge badge-ready';
+      document.getElementById(`badge-${id}`).textContent = 'Ready';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function drawSlide(id) {
+  const slide = slides.find(s => s.id === id);
+  const canvas = document.getElementById(`canvas-${id}`);
+  const ctx = canvas.getContext('2d');
+  const s = state[id];
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, slide.gradient[0]);
+  grad.addColorStop(0.5, slide.gradient[1]);
+  grad.addColorStop(1, slide.gradient[2]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle radial glow at top
+  const rGrad = ctx.createRadialGradient(W / 2, 200, 0, W / 2, 200, 600);
+  rGrad.addColorStop(0, slide.accent + '18');
+  rGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = rGrad;
+  ctx.fillRect(0, 0, W, 800);
+
+  // Headline text
+  const headline = s.headline || slide.headline;
+  const lines = headline.split('\n');
+  ctx.textAlign = 'center';
+
+  // Draw headline (large bold)
+  ctx.font = `800 ${108}px -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  const headlineY = 280;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, headlineY + i * 130);
+  });
+
+  // Draw subtitle
+  const subtitle = s.subtitle || slide.subtitle;
+  ctx.font = `400 ${48}px -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif`;
+  ctx.fillStyle = '#ffffff99';
+  ctx.fillText(subtitle, W / 2, headlineY + lines.length * 130 + 40);
+
+  // Phone frame
+  if (s.img) {
+    const phoneW = 820;
+    const phoneH = 1680;
+    const phoneX = (W - phoneW) / 2;
+    const phoneY = H - phoneH - 80;
+    const phoneR = 52;
+
+    // Phone shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 60;
+    ctx.shadowOffsetY = 20;
+
+    // Phone bezel (dark)
+    drawRoundRect(ctx, phoneX - 10, phoneY - 10, phoneW + 20, phoneH + 20, phoneR + 6);
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Bezel highlight
+    drawRoundRect(ctx, phoneX - 11, phoneY - 11, phoneW + 22, phoneH + 22, phoneR + 7);
+    ctx.strokeStyle = '#ffffff15';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Screenshot area (clipped)
+    ctx.save();
+    drawRoundRect(ctx, phoneX, phoneY, phoneW, phoneH, phoneR);
+    ctx.clip();
+
+    // Draw screenshot scaled to fill
+    const imgAspect = s.img.width / s.img.height;
+    const frameAspect = phoneW / phoneH;
+    let drawW, drawH, drawX, drawY;
+    if (imgAspect > frameAspect) {
+      drawH = phoneH;
+      drawW = phoneH * imgAspect;
+      drawX = phoneX - (drawW - phoneW) / 2;
+      drawY = phoneY;
+    } else {
+      drawW = phoneW;
+      drawH = phoneW / imgAspect;
+      drawX = phoneX;
+      drawY = phoneY;
+    }
+    ctx.drawImage(s.img, drawX, drawY, drawW, drawH);
+
+    // Subtle top notch/status bar area overlay
+    const notchGrad = ctx.createLinearGradient(phoneX, phoneY, phoneX, phoneY + 100);
+    notchGrad.addColorStop(0, 'rgba(0,0,0,0.3)');
+    notchGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = notchGrad;
+    ctx.fillRect(phoneX, phoneY, phoneW, 100);
+
+    ctx.restore();
+
+    // Inner screen border
+    drawRoundRect(ctx, phoneX, phoneY, phoneW, phoneH, phoneR);
+    ctx.strokeStyle = '#ffffff10';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else {
+    // Empty phone placeholder
+    const phoneW = 820;
+    const phoneH = 1680;
+    const phoneX = (W - phoneW) / 2;
+    const phoneY = H - phoneH - 80;
+    const phoneR = 52;
+
+    drawRoundRect(ctx, phoneX, phoneY, phoneW, phoneH, phoneR);
+    ctx.fillStyle = '#ffffff08';
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff15';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = `500 ${36}px -apple-system, sans-serif`;
+    ctx.fillStyle = '#ffffff30';
+    ctx.fillText('Drop screenshot here', W / 2, phoneY + phoneH / 2);
+  }
+
+  // Bottom accent line
+  const lineGrad = ctx.createLinearGradient(W * 0.2, 0, W * 0.8, 0);
+  lineGrad.addColorStop(0, 'transparent');
+  lineGrad.addColorStop(0.5, slide.accent + '40');
+  lineGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = lineGrad;
+  ctx.fillRect(W * 0.2, H - 30, W * 0.6, 2);
+}
+
+function drawRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function onTextChange(id) {
+  state[id].headline = document.getElementById(`headline-${id}`).value;
+  state[id].subtitle = document.getElementById(`subtitle-${id}`).value;
+  drawSlide(id);
+}
+
+function clearSlide(id) {
+  const slide = slides.find(s => s.id === id);
+  state[id].img = null;
+  state[id].headline = slide.headline;
+  state[id].subtitle = slide.subtitle;
+  document.getElementById(`headline-${id}`).value = slide.headline;
+  document.getElementById(`subtitle-${id}`).value = slide.subtitle;
+  document.getElementById(`dropzone-${id}`).classList.add('visible');
+  document.getElementById(`badge-${id}`).className = 'badge badge-empty';
+  document.getElementById(`badge-${id}`).textContent = 'No image';
+  drawSlide(id);
+}
+
+function downloadOne(id) {
+  const canvas = document.getElementById(`canvas-${id}`);
+  const link = document.createElement('a');
+  link.download = `motovault-appstore-${id}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast(`Downloaded ${id} screenshot!`);
+}
+
+function downloadAll() {
+  const hasAny = slides.some(s => state[s.id].img);
+  slides.forEach((slide, i) => {
+    setTimeout(() => downloadOne(slide.id), i * 300);
+  });
+}
+
+function resetAll() {
+  slides.forEach(s => clearSlide(s.id));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('visible');
+  setTimeout(() => t.classList.remove('visible'), 2000);
+}
+
+init();
+</script>
+</body>
+</html>

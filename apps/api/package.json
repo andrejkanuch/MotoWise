@@ -13,7 +13,6 @@
     "generate:schema": "ts-node --transpile-only scripts/generate-schema.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
     "@apollo/server": "^4.11.0",
     "@as-integrations/express5": "^1.1.2",
     "@motovault/types": "workspace:*",
@@ -31,6 +30,7 @@
     "graphql-type-json": "^0.3.2",
     "helmet": "^8.0.0",
     "jose": "^6.0.0",
+    "openai": "^6.29.0",
     "reflect-metadata": "^0.2.0",
     "resend": "^4.0.0",
     "rxjs": "^7.8.0",

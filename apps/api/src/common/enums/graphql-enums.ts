@@ -14,6 +14,7 @@ import type {
   RidingGoal,
   SubscriptionTier,
   SupportedLocale,
+  Urgency,
   UserRole,
 } from '@motovault/types';
 import { registerEnumType } from '@nestjs/graphql';
@@ -267,6 +268,23 @@ const _insightTypeSync: Record<InsightType, GqlInsightType> = {
   maintenance: GqlInsightType.maintenance,
   learning: GqlInsightType.learning,
   community: GqlInsightType.community,
+};
+
+export enum GqlUrgency {
+  stranded = 'stranded',
+  soon = 'soon',
+  preventive = 'preventive',
+}
+
+registerEnumType(GqlUrgency, {
+  name: 'Urgency',
+  description: 'User-reported urgency level for diagnostic requests',
+});
+
+const _urgencySync: Record<Urgency, GqlUrgency> = {
+  stranded: GqlUrgency.stranded,
+  soon: GqlUrgency.soon,
+  preventive: GqlUrgency.preventive,
 };
 
 export enum GqlMaintenanceTaskSource {

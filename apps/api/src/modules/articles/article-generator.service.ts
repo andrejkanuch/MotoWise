@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { ArticleContentSchema, FREE_TIER_LIMITS } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
@@ -10,26 +9,58 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import OpenAI from 'openai';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { Article } from './models/article.model';
 
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'gpt-4.1';
 const INPUT_COST_PER_MTOK = 3;
-const OUTPUT_COST_PER_MTOK = 15;
+const OUTPUT_COST_PER_MTOK = 12;
+
+// zodResponseFormat-compatible schema (no .optional(), no .refine())
+const ArticleAiResponseSchema = z.object({
+  title: z.string().describe('Article title'),
+  slug: z.string().describe('URL-friendly slug in kebab-case'),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
+  category: z.enum([
+    'engine',
+    'brakes',
+    'electrical',
+    'suspension',
+    'drivetrain',
+    'tires',
+    'fuel',
+    'general',
+  ]),
+  sections: z
+    .array(
+      z.object({
+        heading: z.string().describe('Section heading'),
+        body: z.string().describe('Section body text'),
+      }),
+    )
+    .describe('3-5 detailed sections'),
+  keyTakeaways: z.array(z.string()).describe('3-5 key takeaways'),
+  relatedTopics: z.array(z.string()).describe('2-4 related topic suggestions'),
+});
 
 @Injectable()
 export class ArticleGeneratorService {
   private readonly logger = new Logger(ArticleGeneratorService.name);
-  private readonly anthropic: Anthropic;
+  private readonly openai: OpenAI;
 
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly aiBudgetService: AiBudgetService,
   ) {
-    this.anthropic = new Anthropic({
-      apiKey: this.configService.getOrThrow('ANTHROPIC_API_KEY'),
+    this.openai = new OpenAI({
+      apiKey: this.configService.getOrThrow('OPENAI_API_KEY'),
+      maxRetries: 3,
+      timeout: 60_000,
     });
   }
 
@@ -60,96 +91,32 @@ Requirements:
 - If the topic is safety-related, note that in your content`;
 
     try {
-      const response = await this.anthropic.messages.create({
+      const completion = await this.openai.chat.completions.parse({
         model: MODEL,
-        max_tokens: 4096,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-        tools: [
-          {
-            name: 'create_article',
-            description: 'Create a structured motorcycle educational article',
-            input_schema: {
-              type: 'object' as const,
-              properties: {
-                title: { type: 'string', description: 'Article title' },
-                slug: {
-                  type: 'string',
-                  description: 'URL-friendly slug (kebab-case)',
-                },
-                difficulty: {
-                  type: 'string',
-                  enum: ['beginner', 'intermediate', 'advanced'],
-                },
-                category: {
-                  type: 'string',
-                  enum: [
-                    'engine',
-                    'brakes',
-                    'electrical',
-                    'suspension',
-                    'drivetrain',
-                    'tires',
-                    'fuel',
-                    'general',
-                  ],
-                },
-                sections: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      heading: { type: 'string' },
-                      body: { type: 'string' },
-                    },
-                    required: ['heading', 'body'],
-                  },
-                  minItems: 3,
-                  maxItems: 5,
-                },
-                keyTakeaways: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  minItems: 3,
-                  maxItems: 5,
-                },
-                relatedTopics: {
-                  type: 'array',
-                  items: { type: 'string' },
-                  minItems: 2,
-                  maxItems: 4,
-                },
-              },
-              required: [
-                'title',
-                'slug',
-                'difficulty',
-                'category',
-                'sections',
-                'keyTakeaways',
-                'relatedTopics',
-              ],
-            },
-          },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
         ],
-        tool_choice: { type: 'tool', name: 'create_article' },
+        response_format: zodResponseFormat(ArticleAiResponseSchema, 'article'),
+        max_tokens: 4096,
       });
 
-      const inputTokens = response.usage.input_tokens;
-      const outputTokens = response.usage.output_tokens;
+      const inputTokens = completion.usage?.prompt_tokens ?? 0;
+      const outputTokens = completion.usage?.completion_tokens ?? 0;
 
-      const toolBlock = response.content.find((block) => block.type === 'tool_use');
-      if (!toolBlock || toolBlock.type !== 'tool_use') {
+      const parsed = completion.choices[0].message.parsed;
+      if (!parsed) {
         throw new InternalServerErrorException('AI did not return structured article content');
       }
 
-      const parsed = ArticleContentSchema.safeParse(toolBlock.input);
-      if (!parsed.success) {
-        this.logger.error('AI output validation failed', parsed.error.flatten());
+      // Validate with the existing ArticleContentSchema for consistency
+      const validated = ArticleContentSchema.safeParse(parsed);
+      if (!validated.success) {
+        this.logger.error('AI output validation failed', validated.error.flatten());
         throw new InternalServerErrorException('AI generated invalid article structure');
       }
 
-      const content = parsed.data;
+      const content = validated.data;
       const uniqueSuffix = Math.random().toString(36).substring(2, 6);
       const slug = `${content.slug}-${uniqueSuffix}`;
 

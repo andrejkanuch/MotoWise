@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -108,7 +104,7 @@ type ContentFlag {
 
 input CreateDiagnosticInput {
   dataSharingOptedIn: Boolean! = false
-  motorcycleId: String!
+  motorcycleId: String
   wizardAnswers: JSON
 }
 
@@ -156,11 +152,12 @@ type Diagnostic {
   dataSharingOptedIn: Boolean!
   description: String
   id: ID!
-  motorcycleId: String!
+  motorcycleId: String
   relatedArticleId: String
   resultJson: JSON
   severity: DiagnosticSeverity
   status: String!
+  urgency: Urgency
   userId: String!
 }
 
@@ -295,9 +292,17 @@ enum MaintenanceTaskStatus {
   skipped
 }
 
+input ManualBikeInfoInput {
+  make: String
+  model: String
+  type: MotorcycleType!
+  year: Int
+}
+
 type Motorcycle {
   createdAt: String!
   currentMileage: Int
+  engineCc: Int
   id: ID!
   isPrimary: Boolean!
   make: String!
@@ -306,6 +311,7 @@ type Motorcycle {
   model: String!
   nickname: String
   primaryPhotoUrl: String
+  type: MotorcycleType
   userId: String!
   year: Int!
 }
@@ -319,6 +325,18 @@ type MotorcycleMake {
 type MotorcycleModelResult {
   modelId: Int!
   modelName: String!
+}
+
+"""Type/category of motorcycle"""
+enum MotorcycleType {
+  cruiser
+  dirt_bike
+  dual_sport
+  other
+  scooter
+  sportbike
+  standard
+  touring
 }
 
 type Mutation {
@@ -473,10 +491,13 @@ type SpendingSummary {
 }
 
 input SubmitDiagnosticInput {
+  additionalNotes: String
   dataSharingOptedIn: Boolean! = false
-  description: String
-  motorcycleId: String!
-  photoBase64: String!
+  freeTextDescription: String
+  manualBikeInfo: ManualBikeInfoInput
+  motorcycleId: String
+  photoBase64: String
+  urgency: Urgency
   wizardAnswers: JSON
 }
 
@@ -519,6 +540,13 @@ input UpdateMotorcycleInput {
 input UpdateUserInput {
   fullName: String
   preferences: JSON
+}
+
+"""User-reported urgency level for diagnostic requests"""
+enum Urgency {
+  preventive
+  soon
+  stranded
 }
 
 type User {

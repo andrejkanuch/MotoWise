@@ -97,6 +97,56 @@ export class EmailService {
     await this.send(email, subject, html);
   }
 
+  async sendWaitlistNotification(email: string): Promise<void> {
+    const notifyEmail = this.config.get<string>('NOTIFY_EMAIL') ?? 'andrej.kanuch@gmail.com';
+
+    // Notify the team
+    await this.send(
+      notifyEmail,
+      `New MotoVault interest: ${email}`,
+      `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+        <h1 style="font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px;">
+          New interest signup
+        </h1>
+        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 8px;">
+          Someone wants to join MotoVault:
+        </p>
+        <p style="font-size: 18px; font-weight: 600; color: #0F172A; background: #F1F5F9; padding: 12px 16px; border-radius: 8px;">
+          ${email}
+        </p>
+        <p style="font-size: 13px; color: #94A3B8; margin-top: 24px;">
+          Submitted at ${new Date().toISOString()}
+        </p>
+      </div>
+    `,
+    );
+
+    // Confirm to the user
+    await this.send(
+      email,
+      "You're on the MotoVault list!",
+      `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px;">
+        <h1 style="font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px;">
+          Welcome to MotoVault
+        </h1>
+        <p style="font-size: 15px; color: #475569; line-height: 1.6; margin-bottom: 24px;">
+          Thanks for your interest! We'll notify you as soon as MotoVault is available
+          on iOS and Android. You'll be among the first to know about updates and early access.
+        </p>
+        <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+          Ride safe,<br/>
+          <strong>The MotoVault Team</strong>
+        </p>
+        <p style="font-size: 13px; color: #94A3B8; margin-top: 32px; line-height: 1.5;">
+          If you didn't sign up for this, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+    );
+  }
+
   private async send(to: string, subject: string, html: string): Promise<void> {
     if (!this.resend) {
       this.logger.warn(`[DRY RUN] Email to ${to}: ${subject}`);

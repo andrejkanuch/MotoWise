@@ -170,5 +170,8 @@ export const MaintenanceTaskSource = {
 export type MaintenanceTaskSource =
   (typeof MaintenanceTaskSource)[keyof typeof MaintenanceTaskSource];
 
+export const URGENCY_VALUES = ['stranded', 'soon', 'preventive'] as const;
+export type Urgency = (typeof URGENCY_VALUES)[number];
+
 export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

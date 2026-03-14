@@ -12,7 +12,7 @@ export class DiagnosticsService {
     const { data, error } = await this.supabase
       .from('diagnostics')
       .select(
-        'id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, status, created_at',
+        'id, user_id, motorcycle_id, severity, confidence, related_article_id, data_sharing_opted_in, status, urgency, created_at',
       )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -37,20 +37,25 @@ export class DiagnosticsService {
   async create(
     userId: string,
     input: {
-      motorcycleId: string;
-      wizardAnswers?: Record<string, string> | null;
+      motorcycleId?: string;
+      wizardAnswers?: { symptoms?: string; location?: string; timing?: string } | null;
       dataSharingOptedIn: boolean;
-      description?: string;
+      freeTextDescription?: string;
+      urgency?: string;
+      manualBikeInfo?: { type: string; year?: number; make?: string; model?: string } | null;
     },
   ): Promise<Diagnostic> {
     const { data, error } = await this.supabase
       .from('diagnostics')
       .insert({
         user_id: userId,
-        motorcycle_id: input.motorcycleId,
+        motorcycle_id: input.motorcycleId ?? null,
         result_json: {},
         wizard_answers: input.wizardAnswers ?? null,
         data_sharing_opted_in: input.dataSharingOptedIn,
+        free_text_description: input.freeTextDescription ?? null,
+        urgency: input.urgency ?? null,
+        manual_bike_info: input.manualBikeInfo ?? null,
         status: 'processing',
       })
       .select()
@@ -58,6 +63,21 @@ export class DiagnosticsService {
 
     if (error || !data) throw new InternalServerErrorException('Failed to create diagnostic');
     return this.mapRow(data);
+  }
+
+  async countUserDiagnosticsThisMonth(userId: string): Promise<number> {
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.supabase
+      .from('diagnostics')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', monthStart.toISOString());
+
+    if (error) throw new InternalServerErrorException('Failed to count diagnostics');
+    return count ?? 0;
   }
 
   private mapRow(
@@ -72,17 +92,18 @@ export class DiagnosticsService {
       | 'data_sharing_opted_in'
       | 'status'
       | 'created_at'
-    >,
+    > & { urgency?: string | null },
   ): Diagnostic {
     return {
       id: row.id,
       userId: row.user_id,
-      motorcycleId: row.motorcycle_id,
+      motorcycleId: row.motorcycle_id ?? undefined,
       severity: row.severity ?? undefined,
       confidence: row.confidence ?? undefined,
       relatedArticleId: row.related_article_id ?? undefined,
       status: row.status ?? 'pending',
       dataSharingOptedIn: row.data_sharing_opted_in,
+      urgency: row.urgency ?? undefined,
       createdAt: row.created_at,
     };
   }
@@ -100,17 +121,18 @@ export class DiagnosticsService {
       | 'status'
       | 'created_at'
       | 'result_json'
-    >,
+    > & { urgency?: string | null; free_text_description?: string | null },
   ): Diagnostic {
     return {
       id: row.id,
       userId: row.user_id,
-      motorcycleId: row.motorcycle_id,
+      motorcycleId: row.motorcycle_id ?? undefined,
       severity: row.severity ?? undefined,
       confidence: row.confidence ?? undefined,
       relatedArticleId: row.related_article_id ?? undefined,
       status: row.status ?? 'pending',
       dataSharingOptedIn: row.data_sharing_opted_in,
+      urgency: row.urgency ?? undefined,
       createdAt: row.created_at,
       resultJson: row.result_json as Record<string, unknown> | undefined,
     };
