@@ -39,6 +39,8 @@ export function QuickActionsGrid({ actions, isDark, onActionPress }: QuickAction
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     onActionPress(action.route);
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(action.titleKey as never)}
                   style={({ pressed }) => ({
                     paddingVertical: 16,
                     paddingHorizontal: 8,
@@ -62,8 +64,8 @@ export function QuickActionsGrid({ actions, isDark, onActionPress }: QuickAction
                   </View>
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontWeight: '600',
+                      fontSize: 13,
+                      fontWeight: '500',
                       color: isDark ? palette.neutral50 : palette.neutral950,
                       textAlign: 'center',
                     }}

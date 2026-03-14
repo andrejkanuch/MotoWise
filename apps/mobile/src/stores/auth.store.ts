@@ -44,7 +44,6 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         locale: state.locale,
         colorScheme: state.colorScheme,
-        onboardingCompleted: state.onboardingCompleted,
       }),
     },
   ),

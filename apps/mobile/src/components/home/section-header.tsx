@@ -61,6 +61,7 @@ export function SectionHeader({
             style={{
               backgroundColor: `${badgeColor}20`,
               borderRadius: 999,
+              borderCurve: 'continuous',
               paddingHorizontal: 8,
               paddingVertical: 2,
             }}

@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { Crown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
@@ -18,19 +19,24 @@ export function ProBadge({ size = 'default' }: ProBadgeProps) {
           flexDirection: 'row',
           alignItems: 'center',
           gap: isSmall ? 3 : 5,
-          backgroundColor: 'rgba(250,204,21,0.15)',
+          backgroundColor: `${palette.signature500}25`,
           paddingHorizontal: isSmall ? 8 : 12,
           paddingVertical: isSmall ? 3 : 5,
           borderRadius: isSmall ? 8 : 12,
           borderCurve: 'continuous',
         }}
       >
-        <Crown size={isSmall ? 11 : 14} color="#FACC15" strokeWidth={2.5} fill="#FACC15" />
+        <Crown
+          size={isSmall ? 11 : 14}
+          color={palette.signature500}
+          strokeWidth={2.5}
+          fill={palette.signature500}
+        />
         <Text
           style={{
             fontSize: isSmall ? 10 : 12,
             fontWeight: '700',
-            color: '#FACC15',
+            color: palette.signature500,
             letterSpacing: 0.5,
           }}
         >

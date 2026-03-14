@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { MileageSlider } from '../../components/onboarding/mileage-slider';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -54,7 +55,7 @@ export default function BikeMileageScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={6} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -67,7 +68,7 @@ export default function BikeMileageScreen() {
           style={{
             fontSize: 28,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 32,
           }}
@@ -89,7 +90,7 @@ export default function BikeMileageScreen() {
         <Pressable
           onPress={handleContinue}
           style={({ pressed }) => ({
-            backgroundColor: '#FFFFFF',
+            backgroundColor: ONBOARDING_COLORS.textPrimary,
             borderRadius: 16,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -104,12 +105,12 @@ export default function BikeMileageScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: '#0F172A',
+              color: ONBOARDING_COLORS.background,
             }}
           >
             {t('onboarding.continue')}
           </Text>
-          <ChevronRight size={20} color="#0F172A" />
+          <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
         </Pressable>
 
         <Pressable
@@ -124,7 +125,7 @@ export default function BikeMileageScreen() {
             style={{
               fontSize: 15,
               fontWeight: '600',
-              color: 'rgba(255,255,255,0.5)',
+              color: ONBOARDING_COLORS.textMuted,
               textDecorationLine: 'underline',
             }}
           >

@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -6,15 +7,31 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
 const MOTORCYCLE_TYPE_OPTIONS = [
-  { value: MotorcycleType.CRUISER, icon: Bike, labelKey: 'cruiser', color: '#F59E0B' },
-  { value: MotorcycleType.SPORTBIKE, icon: Gauge, labelKey: 'sportbike', color: '#EF4444' },
-  { value: MotorcycleType.STANDARD, icon: Bike, labelKey: 'standard', color: '#60A5FA' },
-  { value: MotorcycleType.TOURING, icon: MapPin, labelKey: 'touring', color: '#34D399' },
+  {
+    value: MotorcycleType.CRUISER,
+    icon: Bike,
+    labelKey: 'cruiser',
+    color: ONBOARDING_COLORS.warning,
+  },
+  { value: MotorcycleType.SPORTBIKE, icon: Gauge, labelKey: 'sportbike', color: palette.danger500 },
+  {
+    value: MotorcycleType.STANDARD,
+    icon: Bike,
+    labelKey: 'standard',
+    color: palette.moduleSuspension,
+  },
+  {
+    value: MotorcycleType.TOURING,
+    icon: MapPin,
+    labelKey: 'touring',
+    color: ONBOARDING_COLORS.success,
+  },
   { value: MotorcycleType.DUAL_SPORT, icon: Mountain, labelKey: 'dual_sport', color: '#A78BFA' },
   { value: MotorcycleType.DIRT_BIKE, icon: Mountain, labelKey: 'dirt_bike', color: '#FB923C' },
   { value: MotorcycleType.SCOOTER, icon: Bike, labelKey: 'scooter', color: '#38BDF8' },
@@ -45,7 +62,7 @@ export default function BikeTypeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={5} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -58,7 +75,7 @@ export default function BikeTypeScreen() {
           style={{
             fontSize: 28,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 8,
           }}
@@ -71,7 +88,7 @@ export default function BikeTypeScreen() {
             entering={FadeInUp.delay(100).duration(300)}
             style={{
               fontSize: 15,
-              color: 'rgba(255,255,255,0.6)',
+              color: ONBOARDING_COLORS.textSecondary,
               marginBottom: 24,
             }}
           >

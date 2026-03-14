@@ -15,7 +15,6 @@ import {
   Calendar,
   Camera,
   ChevronDown,
-  ChevronRight,
   DollarSign,
   Edit3,
   MoreHorizontal,
@@ -290,7 +289,7 @@ export default function BikeDetailScreen() {
         model: bike.model,
         year: bike.year,
         nickname: bike.nickname ?? undefined,
-        mileageUnit: 'mi',
+        mileageUnit: bike.mileageUnit ?? 'mi',
       };
       const pdfTasks: PdfTask[] = tasks.map((task) => ({
         title: task.title,
@@ -488,7 +487,7 @@ export default function BikeDetailScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: 'rgba(245,158,11,0.9)',
+                  backgroundColor: palette.warning500,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 20,
@@ -583,7 +582,7 @@ export default function BikeDetailScreen() {
                 params: { motorcycleId: id, bikeName },
               });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -591,7 +590,8 @@ export default function BikeDetailScreen() {
               backgroundColor: palette.primary500,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <Wrench size={16} color={palette.white} strokeWidth={2.5} />
             <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>
@@ -607,7 +607,7 @@ export default function BikeDetailScreen() {
                 params: { motorcycleId: id },
               });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -615,7 +615,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <DollarSign
               size={16}
@@ -638,7 +639,7 @@ export default function BikeDetailScreen() {
               haptic();
               router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
             }}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -646,7 +647,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <Edit3
               size={16}
@@ -666,7 +668,7 @@ export default function BikeDetailScreen() {
 
           <Pressable
             onPress={handleMoreActions}
-            style={{
+            style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
               gap: 4,
@@ -674,7 +676,8 @@ export default function BikeDetailScreen() {
               backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
               borderRadius: 12,
               borderCurve: 'continuous',
-            }}
+              transform: [{ scale: pressed ? 0.95 : 1 }],
+            })}
           >
             <MoreHorizontal
               size={16}
@@ -694,7 +697,7 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* 4. Maintenance Section — tabbed (Active | History) */}
-        <View style={{ marginTop: 20 }}>
+        <Animated.View entering={FadeInUp.delay(140).duration(400)} style={{ marginTop: 20 }}>
           <MaintenanceSection
             tasks={tasks}
             isDark={isDark}
@@ -704,16 +707,16 @@ export default function BikeDetailScreen() {
             onComplete={handleCompleteTask}
             onDelete={handleDeleteTask}
           />
-        </View>
+        </Animated.View>
 
         {/* 5. Expenses Section */}
-        <View style={{ marginTop: 24 }}>
+        <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ marginTop: 24 }}>
           <ExpensesSection motorcycleId={id} isDark={isDark} />
-        </View>
+        </Animated.View>
 
         {/* 6. Details section (collapsible) */}
         <Animated.View
-          entering={FadeInUp.delay(160).duration(400)}
+          entering={FadeInUp.delay(260).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 20 }}
         >
           <Pressable
@@ -743,11 +746,13 @@ export default function BikeDetailScreen() {
             >
               {t('garage.tab_details', { defaultValue: 'Details' })}
             </Text>
-            {showDetails ? (
+            <Animated.View
+              style={{
+                transform: [{ rotate: showDetails ? '0deg' : '-90deg' }],
+              }}
+            >
               <ChevronDown size={18} color={palette.neutral400} />
-            ) : (
-              <ChevronRight size={18} color={palette.neutral400} />
-            )}
+            </Animated.View>
           </Pressable>
           {showDetails && (
             <Animated.View entering={FadeIn.duration(200)}>

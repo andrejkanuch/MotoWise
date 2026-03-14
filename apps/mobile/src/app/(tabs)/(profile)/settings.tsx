@@ -2,7 +2,6 @@ import { palette } from '@motovault/design-system';
 import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -396,8 +395,8 @@ export default function SettingsScreen() {
                           : palette.neutral200,
                       backgroundColor: selected
                         ? isDark
-                          ? 'rgba(51,102,230,0.15)'
-                          : 'rgba(51,102,230,0.08)'
+                          ? `${palette.primary500}25`
+                          : `${palette.primary500}14`
                         : isDark
                           ? palette.neutral800
                           : palette.white,
@@ -442,17 +441,14 @@ export default function SettingsScreen() {
             disabled={updateMutation.isPending || !hasChanges}
             style={{ borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' }}
           >
-            <LinearGradient
-              colors={
-                hasChanges && !updateMutation.isPending
-                  ? [palette.primary500, palette.primary700]
-                  : isDark
-                    ? [palette.neutral700, palette.neutral700]
-                    : [palette.neutral300, palette.neutral300]
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
+                backgroundColor:
+                  hasChanges && !updateMutation.isPending
+                    ? palette.primary700
+                    : isDark
+                      ? palette.neutral700
+                      : palette.neutral300,
                 paddingVertical: 16,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -484,7 +480,7 @@ export default function SettingsScreen() {
                   {t('settings.saveChanges', { defaultValue: 'Save Changes' })}
                 </Text>
               )}
-            </LinearGradient>
+            </View>
           </Pressable>
 
           {updateMutation.isError && (

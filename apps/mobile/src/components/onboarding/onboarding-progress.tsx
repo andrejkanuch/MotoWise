@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ONBOARDING_COLORS } from './onboarding-colors';
 
 interface OnboardingProgressProps {
   screenIndex: number;
@@ -21,7 +22,7 @@ export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProg
       <View
         style={{
           height: 4,
-          backgroundColor: 'rgba(255,255,255,0.15)',
+          backgroundColor: ONBOARDING_COLORS.textMuted,
           borderRadius: 2,
           borderCurve: 'continuous',
           overflow: 'hidden',
@@ -31,7 +32,7 @@ export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProg
           style={[
             {
               height: '100%',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: ONBOARDING_COLORS.textPrimary,
               borderRadius: 2,
               borderCurve: 'continuous',
             },

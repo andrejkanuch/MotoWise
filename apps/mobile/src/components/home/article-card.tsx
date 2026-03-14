@@ -28,6 +28,8 @@ export function ArticleCard({ article, diffColor, index, onPress }: ArticleCardP
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onPress();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`${article.title}, ${article.difficulty}`}
         >
           <LinearGradient
             colors={[`${diffColor}20`, `${diffColor}08`]}
@@ -46,7 +48,6 @@ export function ArticleCard({ article, diffColor, index, onPress }: ArticleCardP
               style={{
                 fontSize: 15,
                 fontWeight: '700',
-                color: palette.neutral950,
               }}
               className="text-neutral-950 dark:text-neutral-50"
               numberOfLines={2}

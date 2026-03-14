@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { LastServiceDate, ReminderChannel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -17,28 +19,28 @@ const TOGGLE_ROWS = [
     icon: Bell,
     labelKey: 'maintenanceRemindersLabel',
     descKey: 'maintenanceRemindersDesc',
-    color: '#818CF8',
+    color: ONBOARDING_COLORS.accent,
   },
   {
     key: 'seasonalTips',
     icon: Sun,
     labelKey: 'seasonalTipsLabel',
     descKey: 'seasonalTipsDesc',
-    color: '#F59E0B',
+    color: ONBOARDING_COLORS.warning,
   },
   {
     key: 'recallAlerts',
     icon: ShieldAlert,
     labelKey: 'recallAlertsLabel',
     descKey: 'recallAlertsDesc',
-    color: '#EF4444',
+    color: palette.danger500,
   },
   {
     key: 'weeklySummary',
     icon: BarChart3,
     labelKey: 'weeklySummaryLabel',
     descKey: 'weeklySummaryDesc',
-    color: '#34D399',
+    color: ONBOARDING_COLORS.success,
   },
 ] as const;
 
@@ -51,9 +53,24 @@ const LAST_SERVICE_OPTIONS = [
 ] as const;
 
 const REMINDER_CHANNEL_OPTIONS = [
-  { value: ReminderChannel.PUSH, labelKey: 'reminderChannel_push', icon: Bell, color: '#818CF8' },
-  { value: ReminderChannel.EMAIL, labelKey: 'reminderChannel_email', icon: Bell, color: '#60A5FA' },
-  { value: ReminderChannel.BOTH, labelKey: 'reminderChannel_both', icon: Bell, color: '#34D399' },
+  {
+    value: ReminderChannel.PUSH,
+    labelKey: 'reminderChannel_push',
+    icon: Bell,
+    color: ONBOARDING_COLORS.accent,
+  },
+  {
+    value: ReminderChannel.EMAIL,
+    labelKey: 'reminderChannel_email',
+    icon: Bell,
+    color: palette.moduleSuspension,
+  },
+  {
+    value: ReminderChannel.BOTH,
+    labelKey: 'reminderChannel_both',
+    icon: Bell,
+    color: ONBOARDING_COLORS.success,
+  },
 ] as const;
 
 type ToggleKey = 'maintenanceReminders' | 'seasonalTips' | 'recallAlerts' | 'weeklySummary';
@@ -117,7 +134,7 @@ export default function SmartMaintenanceScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={13} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -130,7 +147,7 @@ export default function SmartMaintenanceScreen() {
           style={{
             fontSize: 28,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 32,
           }}
@@ -167,10 +184,18 @@ export default function SmartMaintenanceScreen() {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '600' }}>
+                  <Text
+                    style={{
+                      color: ONBOARDING_COLORS.textPrimary,
+                      fontSize: 17,
+                      fontWeight: '600',
+                    }}
+                  >
                     {t(`onboarding.${row.labelKey}`)}
                   </Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginTop: 2 }}>
+                  <Text
+                    style={{ color: ONBOARDING_COLORS.textSecondary, fontSize: 14, marginTop: 2 }}
+                  >
                     {t(`onboarding.${row.descKey}`)}
                   </Text>
                 </View>
@@ -178,8 +203,11 @@ export default function SmartMaintenanceScreen() {
                 <Switch
                   value={toggles[row.key]}
                   onValueChange={() => handleToggle(row.key)}
-                  trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#818CF8' }}
-                  thumbColor="#FFFFFF"
+                  trackColor={{
+                    false: ONBOARDING_COLORS.textMuted,
+                    true: ONBOARDING_COLORS.accent,
+                  }}
+                  thumbColor={ONBOARDING_COLORS.textPrimary}
                 />
               </Animated.View>
             );
@@ -192,7 +220,7 @@ export default function SmartMaintenanceScreen() {
           style={{
             fontSize: 20,
             fontWeight: '700',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             marginBottom: 12,
           }}
         >
@@ -209,7 +237,7 @@ export default function SmartMaintenanceScreen() {
                 value={option.value}
                 icon={Bell}
                 label={t(`onboarding.${option.labelKey}`)}
-                color="#818CF8"
+                color={ONBOARDING_COLORS.accent}
                 selected={lastService === option.value}
                 onPress={handleLastServicePress}
               />
@@ -225,7 +253,7 @@ export default function SmartMaintenanceScreen() {
               style={{
                 fontSize: 20,
                 fontWeight: '700',
-                color: '#FFFFFF',
+                color: ONBOARDING_COLORS.textPrimary,
                 marginBottom: 12,
               }}
             >
@@ -258,7 +286,9 @@ export default function SmartMaintenanceScreen() {
           onPress={handleContinue}
           disabled={!canContinue}
           style={({ pressed }) => ({
-            backgroundColor: canContinue ? '#FFFFFF' : 'rgba(255,255,255,0.2)',
+            backgroundColor: canContinue
+              ? ONBOARDING_COLORS.textPrimary
+              : ONBOARDING_COLORS.textDimmed,
             borderRadius: 20,
             borderCurve: 'continuous',
             paddingVertical: 16,
@@ -270,7 +300,7 @@ export default function SmartMaintenanceScreen() {
             style={{
               fontSize: 17,
               fontWeight: '700',
-              color: canContinue ? '#0F172A' : 'rgba(255,255,255,0.4)',
+              color: canContinue ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted,
             }}
           >
             {t('onboarding.continue')}

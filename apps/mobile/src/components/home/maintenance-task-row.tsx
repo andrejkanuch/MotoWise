@@ -40,10 +40,10 @@ export function MaintenanceTaskRow({
         style={{
           backgroundColor: isOverdue
             ? isDark
-              ? 'rgba(239,68,68,0.1)'
-              : 'rgba(239,68,68,0.06)'
+              ? `${palette.danger500}1A`
+              : `${palette.danger500}0F`
             : isDark
-              ? '#2a2a2a'
+              ? palette.cardDark
               : palette.white,
         }}
       >
@@ -53,6 +53,8 @@ export function MaintenanceTaskRow({
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             onPress();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`${task.title}, ${bikeName}${isOverdue ? ', overdue' : ''}`}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -93,8 +95,7 @@ export function MaintenanceTaskRow({
                 style={{
                   fontSize: 12,
                   fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  opacity: 0.6,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
                 }}
               >
                 {bikeName}
@@ -104,6 +105,7 @@ export function MaintenanceTaskRow({
                   style={{
                     backgroundColor: `${palette.danger500}18`,
                     borderRadius: 999,
+                    borderCurve: 'continuous',
                     paddingHorizontal: 6,
                     paddingVertical: 1,
                   }}

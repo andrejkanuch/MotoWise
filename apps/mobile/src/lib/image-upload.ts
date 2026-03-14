@@ -1,3 +1,4 @@
+import { File as ExpoFile } from 'expo-file-system';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from './supabase';
@@ -35,10 +36,10 @@ export async function uploadBikePhoto(
   motorcycleId: string,
 ): Promise<{ publicUrl: string }> {
   const compressedUri = await compressImage(uri);
-  const response = await fetch(compressedUri);
-  const blob = await response.blob();
+  const file = new ExpoFile(compressedUri);
+  const arrayBuffer = await file.arrayBuffer();
   const filePath = `${userId}/${motorcycleId}/hero.webp`;
-  const { error } = await supabase.storage.from('bike-photos').upload(filePath, blob, {
+  const { error } = await supabase.storage.from('bike-photos').upload(filePath, arrayBuffer, {
     contentType: 'image/webp',
     upsert: true,
   });
@@ -55,16 +56,18 @@ export async function uploadMaintenancePhoto(
   taskId: string,
 ): Promise<{ storagePath: string; fileSizeBytes: number }> {
   const compressedUri = await compressImage(uri);
-  const response = await fetch(compressedUri);
-  const blob = await response.blob();
+  const file = new ExpoFile(compressedUri);
+  const arrayBuffer = await file.arrayBuffer();
   const filePath = `${userId}/${taskId}/${Date.now()}.webp`;
-  const { error } = await supabase.storage.from('maintenance-photos').upload(filePath, blob, {
-    contentType: 'image/webp',
-    upsert: false,
-  });
+  const { error } = await supabase.storage
+    .from('maintenance-photos')
+    .upload(filePath, arrayBuffer, {
+      contentType: 'image/webp',
+      upsert: false,
+    });
   if (error) throw error;
   return {
     storagePath: filePath,
-    fileSizeBytes: blob.size,
+    fileSizeBytes: arrayBuffer.byteLength,
   };
 }

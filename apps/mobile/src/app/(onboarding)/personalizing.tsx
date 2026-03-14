@@ -13,6 +13,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
@@ -143,7 +144,7 @@ export default function PersonalizingScreen() {
     <View
       style={{
         flex: 1,
-        backgroundColor: '#0F172A',
+        backgroundColor: ONBOARDING_COLORS.background,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
@@ -168,7 +169,7 @@ export default function PersonalizingScreen() {
               borderRadius: 60,
               borderCurve: 'continuous',
               borderWidth: 3,
-              borderColor: '#818CF8',
+              borderColor: ONBOARDING_COLORS.accent,
             },
             pulseStyle,
           ]}
@@ -179,12 +180,12 @@ export default function PersonalizingScreen() {
             height: 60,
             borderRadius: 30,
             borderCurve: 'continuous',
-            backgroundColor: '#818CF8',
+            backgroundColor: ONBOARDING_COLORS.accent,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Sparkles size={28} color="#FFFFFF" strokeWidth={2} />
+          <Sparkles size={28} color={ONBOARDING_COLORS.textPrimary} strokeWidth={2} />
         </View>
       </View>
 
@@ -192,7 +193,7 @@ export default function PersonalizingScreen() {
         style={{
           fontSize: 24,
           fontWeight: '800',
-          color: '#FFFFFF',
+          color: ONBOARDING_COLORS.textPrimary,
           textAlign: 'center',
           marginBottom: 32,
         }}
@@ -213,11 +214,11 @@ export default function PersonalizingScreen() {
                 gap: 12,
               }}
             >
-              <StepIcon size={18} color="rgba(255,255,255,0.5)" />
+              <StepIcon size={18} color={ONBOARDING_COLORS.textMuted} />
               <Text
                 style={{
                   fontSize: 16,
-                  color: 'rgba(255,255,255,0.6)',
+                  color: ONBOARDING_COLORS.textSecondary,
                 }}
               >
                 {t(`onboarding.${stepKey}`)}
@@ -233,7 +234,9 @@ export default function PersonalizingScreen() {
           entering={FadeIn.duration(300)}
           style={{ marginTop: 32, alignItems: 'center', gap: 12 }}
         >
-          <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>
+          <Text
+            style={{ fontSize: 15, color: ONBOARDING_COLORS.textSecondary, textAlign: 'center' }}
+          >
             {t('onboarding.personalizingFailed')}
           </Text>
           {retryCount < 3 ? (
@@ -248,10 +251,10 @@ export default function PersonalizingScreen() {
                 paddingVertical: 12,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: ONBOARDING_COLORS.cardBorder,
               }}
             >
-              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -267,10 +270,10 @@ export default function PersonalizingScreen() {
                 paddingVertical: 12,
                 borderRadius: 12,
                 borderCurve: 'continuous',
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: ONBOARDING_COLORS.cardBorder,
               }}
             >
-              <Text style={{ color: '#818CF8', fontSize: 16, fontWeight: '600' }}>
+              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
                 {t('onboarding.personalizingSkip')}
               </Text>
             </Pressable>

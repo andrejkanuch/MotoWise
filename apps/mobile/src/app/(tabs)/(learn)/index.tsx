@@ -209,7 +209,7 @@ export default function LearnScreen() {
                     <ActivityIndicator size="small" color={palette.white} />
                   ) : (
                     <>
-                      <Crown size={14} color="#FACC15" strokeWidth={2} />
+                      <Crown size={14} color={palette.signature500} strokeWidth={2} />
                       <Sparkles size={16} color={palette.white} strokeWidth={2} />
                     </>
                   )}

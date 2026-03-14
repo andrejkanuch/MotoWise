@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { triggerImpact } from '../../utils/haptics';
+import { ONBOARDING_COLORS } from './onboarding-colors';
 
 const MILEAGE_FORMAT = new Intl.NumberFormat('en-US');
 
@@ -49,9 +50,9 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
   return (
     <View
       style={{
-        backgroundColor: 'rgba(255,255,255,0.06)',
+        backgroundColor: ONBOARDING_COLORS.cardBg,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.10)',
+        borderColor: ONBOARDING_COLORS.cardBorder,
         borderRadius: 16,
         borderCurve: 'continuous',
         padding: 20,
@@ -62,7 +63,7 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         style={{
           flexDirection: 'row',
           alignSelf: 'center',
-          backgroundColor: 'rgba(255,255,255,0.08)',
+          backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
           borderRadius: 12,
           borderCurve: 'continuous',
           padding: 3,
@@ -78,14 +79,14 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
               paddingVertical: 8,
               borderRadius: 10,
               borderCurve: 'continuous',
-              backgroundColor: unit === u ? 'rgba(255,255,255,0.15)' : 'transparent',
+              backgroundColor: unit === u ? ONBOARDING_COLORS.textMuted : 'transparent',
             }}
           >
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: unit === u ? '700' : '500',
-                color: unit === u ? '#FFFFFF' : 'rgba(255,255,255,0.45)',
+                color: unit === u ? ONBOARDING_COLORS.textPrimary : ONBOARDING_COLORS.textMuted,
               }}
             >
               {u}
@@ -99,7 +100,7 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         style={{
           fontSize: 28,
           fontWeight: '700',
-          color: '#FFFFFF',
+          color: ONBOARDING_COLORS.textPrimary,
           textAlign: 'center',
           marginBottom: 16,
           fontVariant: ['tabular-nums'],
@@ -115,9 +116,9 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         step={config.step}
         value={value}
         onValueChange={handleValueChange}
-        minimumTrackTintColor="#818CF8"
-        maximumTrackTintColor="rgba(255,255,255,0.15)"
-        thumbTintColor="#FFFFFF"
+        minimumTrackTintColor={ONBOARDING_COLORS.accent}
+        maximumTrackTintColor={ONBOARDING_COLORS.textMuted}
+        thumbTintColor={ONBOARDING_COLORS.textPrimary}
       />
 
       {/* Range labels */}
@@ -128,8 +129,8 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
           marginTop: 8,
         }}
       >
-        <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>0 {unit}</Text>
-        <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+        <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.textDimmed }}>0 {unit}</Text>
+        <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.textDimmed }}>
           {MILEAGE_FORMAT.format(config.max)} {unit}
         </Text>
       </View>
@@ -147,7 +148,7 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
           style={{
             fontSize: 14,
             fontWeight: '500',
-            color: 'rgba(255,255,255,0.45)',
+            color: ONBOARDING_COLORS.textMuted,
             textDecorationLine: 'underline',
           }}
         >

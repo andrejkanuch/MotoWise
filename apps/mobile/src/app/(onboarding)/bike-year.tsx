@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { MileageUnit, MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -6,6 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -50,7 +52,7 @@ export default function BikeYearScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={2} totalScreens={TOTAL_SCREENS} />
 
       <View
@@ -67,7 +69,7 @@ export default function BikeYearScreen() {
             style={{
               fontSize: 36,
               fontWeight: '800',
-              color: '#FFFFFF',
+              color: ONBOARDING_COLORS.textPrimary,
               letterSpacing: -0.5,
               marginBottom: 12,
             }}
@@ -79,7 +81,7 @@ export default function BikeYearScreen() {
             entering={FadeInUp.delay(100).duration(300)}
             style={{
               fontSize: 17,
-              color: 'rgba(255,255,255,0.6)',
+              color: ONBOARDING_COLORS.textSecondary,
               lineHeight: 24,
               marginBottom: 40,
             }}
@@ -96,12 +98,12 @@ export default function BikeYearScreen() {
                 marginBottom: 10,
               }}
             >
-              <Calendar size={18} color="rgba(255,255,255,0.4)" />
+              <Calendar size={18} color={ONBOARDING_COLORS.textMuted} />
               <Text
                 style={{
                   fontSize: 13,
                   fontWeight: '600',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: ONBOARDING_COLORS.textMuted,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                 }}
@@ -113,19 +115,21 @@ export default function BikeYearScreen() {
               value={year}
               onChangeText={setYear}
               placeholder={t('onboarding.yearPlaceholder')}
-              placeholderTextColor="rgba(255,255,255,0.25)"
+              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
               keyboardType="number-pad"
               maxLength={4}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: ONBOARDING_COLORS.cardBg,
                 borderWidth: 1,
-                borderColor: isValidYear ? 'rgba(129,140,248,0.5)' : 'rgba(255,255,255,0.10)',
+                borderColor: isValidYear
+                  ? `${ONBOARDING_COLORS.accent}80`
+                  : ONBOARDING_COLORS.cardBorder,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 20,
                 fontSize: 32,
                 fontWeight: '700',
-                color: '#FFFFFF',
+                color: ONBOARDING_COLORS.textPrimary,
                 textAlign: 'center',
                 letterSpacing: 4,
               }}
@@ -134,7 +138,7 @@ export default function BikeYearScreen() {
               <Text
                 style={{
                   fontSize: 14,
-                  color: '#EF4444',
+                  color: palette.danger500,
                   marginTop: 8,
                   textAlign: 'center',
                 }}
@@ -151,7 +155,9 @@ export default function BikeYearScreen() {
               onPress={handleContinue}
               disabled={!isValidYear}
               style={({ pressed }) => ({
-                backgroundColor: isValidYear ? '#FFFFFF' : 'rgba(255,255,255,0.15)',
+                backgroundColor: isValidYear
+                  ? ONBOARDING_COLORS.textPrimary
+                  : ONBOARDING_COLORS.textMuted,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 paddingVertical: 16,
@@ -166,12 +172,15 @@ export default function BikeYearScreen() {
                 style={{
                   fontSize: 17,
                   fontWeight: '700',
-                  color: isValidYear ? '#0F172A' : 'rgba(255,255,255,0.4)',
+                  color: isValidYear ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted,
                 }}
               >
                 {t('onboarding.continue')}
               </Text>
-              <ChevronRight size={20} color={isValidYear ? '#0F172A' : 'rgba(255,255,255,0.4)'} />
+              <ChevronRight
+                size={20}
+                color={isValidYear ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted}
+              />
             </Pressable>
           </Animated.View>
 
@@ -186,12 +195,12 @@ export default function BikeYearScreen() {
               opacity: pressed ? 0.6 : 1,
             })}
           >
-            <SkipForward size={16} color="rgba(255,255,255,0.5)" />
+            <SkipForward size={16} color={ONBOARDING_COLORS.textMuted} />
             <Text
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: 'rgba(255,255,255,0.5)',
+                color: ONBOARDING_COLORS.textMuted,
               }}
             >
               {t('onboarding.skipBikeSetup')}

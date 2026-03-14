@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { RidingFrequency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -16,10 +18,10 @@ const FREQUENCY_OPTIONS: {
   icon: typeof Calendar;
   color: string;
 }[] = [
-  { value: 'daily', icon: Calendar, color: '#34D399' },
-  { value: 'weekly', icon: CalendarDays, color: '#60A5FA' },
+  { value: 'daily', icon: Calendar, color: ONBOARDING_COLORS.success },
+  { value: 'weekly', icon: CalendarDays, color: palette.moduleSuspension },
   { value: 'monthly', icon: CalendarRange, color: '#A78BFA' },
-  { value: 'seasonally', icon: Sun, color: '#F59E0B' },
+  { value: 'seasonally', icon: Sun, color: ONBOARDING_COLORS.warning },
 ];
 
 export default function RidingFrequencyScreen() {
@@ -43,7 +45,7 @@ export default function RidingFrequencyScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={8} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
@@ -52,7 +54,7 @@ export default function RidingFrequencyScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 32,
           }}

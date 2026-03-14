@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import type { ExperienceLevel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -16,19 +18,19 @@ const EXPERIENCE_LEVELS = [
     key: 'beginner' as ExperienceLevel,
     descKey: 'beginnerDesc',
     icon: Bike,
-    color: '#34D399',
+    color: ONBOARDING_COLORS.success,
   },
   {
     key: 'intermediate' as ExperienceLevel,
     descKey: 'intermediateDesc',
     icon: Gauge,
-    color: '#60A5FA',
+    color: palette.moduleSuspension,
   },
   {
     key: 'advanced' as ExperienceLevel,
     descKey: 'advancedDesc',
     icon: Flame,
-    color: '#F59E0B',
+    color: ONBOARDING_COLORS.warning,
   },
 ] as const;
 
@@ -52,7 +54,7 @@ export default function ExperienceScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={1} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
@@ -65,7 +67,7 @@ export default function ExperienceScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 8,
           }}
@@ -77,7 +79,7 @@ export default function ExperienceScreen() {
           entering={FadeInUp.delay(150).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255, 255, 255, 0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             lineHeight: 24,
             marginBottom: 40,
           }}

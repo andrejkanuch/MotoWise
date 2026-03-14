@@ -1,3 +1,4 @@
+import { palette } from '@motovault/design-system';
 import { Stack } from 'expo-router';
 
 export default function OnboardingLayout() {
@@ -5,7 +6,7 @@ export default function OnboardingLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#0F172A' },
+        contentStyle: { backgroundColor: palette.surfaceDark },
         animation: 'slide_from_right',
       }}
     >

@@ -20,7 +20,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function getScoreColor(score: number): string {
   if (score >= 75) return palette.success500;
-  if (score >= 60) return '#EAB308';
+  if (score >= 60) return palette.warning500;
   if (score >= 40) return palette.warning500;
   return palette.danger500;
 }
@@ -102,7 +102,20 @@ export function FleetHealthHero({
   return (
     <Animated.View entering={FadeInUp.delay(50).duration(300)}>
       <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
-        <Pressable onPress={onPress}>
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={
+            hasData
+              ? t('home.fleetHealthA11y', {
+                  score,
+                  defaultValue: `Fleet health score: ${score} out of 100`,
+                })
+              : t('home.fleetHealthNoDataA11y', {
+                  defaultValue: 'Fleet health: no maintenance data yet',
+                })
+          }
+        >
           <LinearGradient
             colors={[palette.gradientHeroStart, palette.gradientHeroMid, palette.gradientHeroEnd]}
             start={{ x: 0, y: 0 }}
@@ -219,6 +232,7 @@ export function FleetHealthHero({
                       style={{
                         backgroundColor: 'rgba(255,255,255,0.15)',
                         borderRadius: 999,
+                        borderCurve: 'continuous',
                         paddingHorizontal: 10,
                         paddingVertical: 4,
                       }}

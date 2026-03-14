@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -85,7 +86,7 @@ export default function BikeMakeScreen() {
   const showPopular = !search && !selectedMake && popularMakeItems.length > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
+    <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       <OnboardingProgress screenIndex={3} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
@@ -94,7 +95,7 @@ export default function BikeMakeScreen() {
           style={{
             fontSize: 36,
             fontWeight: '800',
-            color: '#FFFFFF',
+            color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.5,
             marginBottom: 12,
           }}
@@ -106,7 +107,7 @@ export default function BikeMakeScreen() {
           entering={FadeInUp.delay(100).duration(300)}
           style={{
             fontSize: 17,
-            color: 'rgba(255,255,255,0.6)',
+            color: ONBOARDING_COLORS.textSecondary,
             lineHeight: 24,
             marginBottom: 32,
           }}
@@ -123,9 +124,9 @@ export default function BikeMakeScreen() {
                 setSearch(selectedMake.makeName);
               }}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: ONBOARDING_COLORS.cardBg,
                 borderWidth: 1,
-                borderColor: '#818CF8',
+                borderColor: ONBOARDING_COLORS.accent,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
@@ -135,10 +136,12 @@ export default function BikeMakeScreen() {
                 justifyContent: 'space-between',
               }}
             >
-              <Text style={{ fontSize: 17, color: '#FFFFFF', fontWeight: '600' }}>
+              <Text
+                style={{ fontSize: 17, color: ONBOARDING_COLORS.textPrimary, fontWeight: '600' }}
+              >
                 {selectedMake.makeName}
               </Text>
-              <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+              <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
                 {t('onboarding.tapToChange')}
               </Text>
             </Pressable>
@@ -153,12 +156,12 @@ export default function BikeMakeScreen() {
                 marginBottom: 10,
               }}
             >
-              <Search size={18} color="rgba(255,255,255,0.4)" />
+              <Search size={18} color={ONBOARDING_COLORS.textMuted} />
               <Text
                 style={{
                   fontSize: 13,
                   fontWeight: '600',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: ONBOARDING_COLORS.textMuted,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                 }}
@@ -170,17 +173,17 @@ export default function BikeMakeScreen() {
               value={search}
               onChangeText={setSearch}
               placeholder={t('onboarding.searchMake')}
-              placeholderTextColor="rgba(255,255,255,0.25)"
+              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
               autoFocus
               style={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: ONBOARDING_COLORS.cardBg,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.10)',
+                borderColor: ONBOARDING_COLORS.cardBorder,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
                 fontSize: 17,
-                color: '#FFFFFF',
+                color: ONBOARDING_COLORS.textPrimary,
                 marginBottom: 12,
               }}
             />
@@ -189,26 +192,26 @@ export default function BikeMakeScreen() {
 
         {/* Loading */}
         {makesResult.isLoading && (
-          <ActivityIndicator color="#818CF8" style={{ marginVertical: 20 }} />
+          <ActivityIndicator color={ONBOARDING_COLORS.accent} style={{ marginVertical: 20 }} />
         )}
 
         {/* Error with retry */}
         {makesResult.isError && (
           <View style={{ alignItems: 'center', marginVertical: 20, gap: 12 }}>
-            <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)' }}>
+            <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
               {t('onboarding.makesLoadError')}
             </Text>
             <Pressable
               onPress={() => makesResult.refetch()}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: ONBOARDING_COLORS.cardBorder,
                 borderRadius: 12,
                 borderCurve: 'continuous',
                 paddingHorizontal: 20,
                 paddingVertical: 10,
               }}
             >
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#818CF8' }}>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: ONBOARDING_COLORS.accent }}>
                 {t('common.retry')}
               </Text>
             </Pressable>
@@ -220,9 +223,9 @@ export default function BikeMakeScreen() {
           <Animated.View entering={FadeInUp.duration(200)}>
             <View
               style={{
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: ONBOARDING_COLORS.cardBg,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.12)',
+                borderColor: ONBOARDING_COLORS.cardBgSelected,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 maxHeight: 300,
@@ -238,11 +241,15 @@ export default function BikeMakeScreen() {
                       paddingHorizontal: 16,
                       paddingVertical: 14,
                       borderBottomWidth: 1,
-                      borderBottomColor: 'rgba(255,255,255,0.06)',
-                      backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      borderBottomColor: ONBOARDING_COLORS.cardBg,
+                      backgroundColor: pressed
+                        ? ONBOARDING_COLORS.cardBorderDefault
+                        : 'transparent',
                     })}
                   >
-                    <Text style={{ fontSize: 16, color: '#FFFFFF' }}>{make.makeName}</Text>
+                    <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.textPrimary }}>
+                      {make.makeName}
+                    </Text>
                   </Pressable>
                 ))}
               </ScrollView>
@@ -252,7 +259,7 @@ export default function BikeMakeScreen() {
 
         {/* No results */}
         {showNoResults && (
-          <Text style={{ fontSize: 15, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+          <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted, marginTop: 4 }}>
             {t('onboarding.noMakesFound')}
           </Text>
         )}
@@ -264,7 +271,7 @@ export default function BikeMakeScreen() {
               style={{
                 fontSize: 13,
                 fontWeight: '600',
-                color: 'rgba(255,255,255,0.4)',
+                color: ONBOARDING_COLORS.textMuted,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
                 marginBottom: 12,
@@ -282,10 +289,10 @@ export default function BikeMakeScreen() {
                     onPress={() => handleSelectMake(make)}
                     style={({ pressed }) => ({
                       backgroundColor: pressed
-                        ? 'rgba(255,255,255,0.10)'
-                        : 'rgba(255,255,255,0.06)',
+                        ? ONBOARDING_COLORS.cardBorder
+                        : ONBOARDING_COLORS.cardBg,
                       borderWidth: 1,
-                      borderColor: 'rgba(255,255,255,0.10)',
+                      borderColor: ONBOARDING_COLORS.cardBorder,
                       borderRadius: 14,
                       borderCurve: 'continuous',
                       paddingHorizontal: 16,
@@ -295,10 +302,16 @@ export default function BikeMakeScreen() {
                       justifyContent: 'space-between',
                     })}
                   >
-                    <Text style={{ fontSize: 16, color: '#FFFFFF', fontWeight: '500' }}>
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: ONBOARDING_COLORS.textPrimary,
+                        fontWeight: '500',
+                      }}
+                    >
                       {make.makeName}
                     </Text>
-                    <ChevronRight size={18} color="rgba(255,255,255,0.3)" />
+                    <ChevronRight size={18} color={ONBOARDING_COLORS.textDimmed} />
                   </Pressable>
                 </Animated.View>
               ))}
@@ -314,7 +327,7 @@ export default function BikeMakeScreen() {
             <Pressable
               onPress={handleContinue}
               style={({ pressed }) => ({
-                backgroundColor: '#FFFFFF',
+                backgroundColor: ONBOARDING_COLORS.textPrimary,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 paddingVertical: 16,
@@ -325,10 +338,12 @@ export default function BikeMakeScreen() {
                 gap: 8,
               })}
             >
-              <Text style={{ fontSize: 17, fontWeight: '700', color: '#0F172A' }}>
+              <Text
+                style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.background }}
+              >
                 {t('onboarding.continue')}
               </Text>
-              <ChevronRight size={20} color="#0F172A" />
+              <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
             </Pressable>
           </Animated.View>
         </View>

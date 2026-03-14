@@ -56,6 +56,9 @@ export function PriorityActionCard({ action, isDark }: PriorityActionCardProps) 
             }
             action.onPress();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={`${action.title}. ${action.subtitle}`}
+          accessibilityHint={action.ctaLabel}
           style={{ padding: 16 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -90,8 +93,7 @@ export function PriorityActionCard({ action, isDark }: PriorityActionCardProps) 
                 style={{
                   fontSize: 13,
                   fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                  opacity: 0.6,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
                   marginTop: 2,
                 }}
                 numberOfLines={1}
@@ -100,12 +102,8 @@ export function PriorityActionCard({ action, isDark }: PriorityActionCardProps) 
               </Text>
             </View>
           </View>
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              action.onPress();
-            }}
+          {/* CTA label — part of the single touch target, no nested Pressable */}
+          <View
             style={{
               backgroundColor: isSolidCta ? action.accentColor : `${action.accentColor}15`,
               borderRadius: 14,
@@ -125,7 +123,7 @@ export function PriorityActionCard({ action, isDark }: PriorityActionCardProps) 
             >
               {action.ctaLabel}
             </Text>
-          </Pressable>
+          </View>
         </Pressable>
       </CardWrapper>
     </Animated.View>

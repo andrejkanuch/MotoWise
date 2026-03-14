@@ -1,8 +1,10 @@
+import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Check } from 'lucide-react-native';
 import type React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
+import { ONBOARDING_COLORS } from './onboarding/onboarding-colors';
 
 interface OptionCardProps<T extends string> {
   value: T;
@@ -33,10 +35,13 @@ export function OptionCard<T extends string>({
   return (
     <Pressable
       onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+      accessibilityState={{ selected }}
       style={({ pressed }) => ({
-        backgroundColor: selected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: selected ? ONBOARDING_COLORS.cardBgSelected : ONBOARDING_COLORS.cardBg,
         borderWidth: selected ? 2 : 1,
-        borderColor: selected ? color : 'rgba(255, 255, 255, 0.08)',
+        borderColor: selected ? color : ONBOARDING_COLORS.cardBorderDefault,
         borderRadius: 20,
         borderCurve: 'continuous',
         padding: 20,
@@ -62,9 +67,11 @@ export function OptionCard<T extends string>({
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text style={{ color: '#FFFFFF', fontSize: 17, fontWeight: '600' }}>{title}</Text>
+        <Text style={{ color: ONBOARDING_COLORS.textPrimary, fontSize: 17, fontWeight: '600' }}>
+          {title}
+        </Text>
         {subtitle ? (
-          <Text style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 14, marginTop: 2 }}>
+          <Text style={{ color: ONBOARDING_COLORS.textSecondary, fontSize: 14, marginTop: 2 }}>
             {subtitle}
           </Text>
         ) : null}
@@ -83,7 +90,7 @@ export function OptionCard<T extends string>({
             justifyContent: 'center',
           }}
         >
-          <Check size={16} color="#FFFFFF" />
+          <Check size={16} color={palette.white} />
         </Animated.View>
       ) : null}
     </Pressable>

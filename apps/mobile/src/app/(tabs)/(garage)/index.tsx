@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Calendar, ChevronRight, Crown, Plus, Star, Wrench } from 'lucide-react-native';
@@ -50,6 +51,7 @@ function BikeCard({
     year: number;
     nickname?: string | null;
     isPrimary: boolean;
+    primaryPhotoUrl?: string | null;
     createdAt: string;
   };
   index: number;
@@ -66,6 +68,8 @@ function BikeCard({
           haptic();
           onPress();
         }}
+        accessibilityRole="button"
+        accessibilityLabel={`${bike.make} ${bike.model}, ${bike.year}`}
         style={({ pressed }) => ({
           opacity: pressed ? 0.95 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
@@ -80,18 +84,40 @@ function BikeCard({
             boxShadow: isDark ? 'none' : '0 2px 12px rgba(0,0,0,0.08)',
           }}
         >
-          <LinearGradient
-            colors={isDark ? gradientPair : [palette.primary50, palette.primary100]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              height: 120,
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-            }}
-          >
-            <LottieMotorcycle animation="cardPlaceholder" size={120} loop speed={0.5} />
+          <View style={{ position: 'relative' }}>
+            {bike.primaryPhotoUrl ? (
+              <View style={{ height: 140 }}>
+                <Image
+                  source={{ uri: bike.primaryPhotoUrl }}
+                  style={{ width: '100%', height: 140 }}
+                  contentFit="cover"
+                  transition={200}
+                />
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.35)']}
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 60,
+                  }}
+                />
+              </View>
+            ) : (
+              <LinearGradient
+                colors={isDark ? gradientPair : [palette.primary50, palette.primary100]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  height: 120,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <LottieMotorcycle animation="cardPlaceholder" size={120} loop speed={0.5} />
+              </LinearGradient>
+            )}
 
             {bike.isPrimary && (
               <View
@@ -102,7 +128,7 @@ function BikeCard({
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 4,
-                  backgroundColor: 'rgba(245,158,11,0.9)',
+                  backgroundColor: palette.warning500,
                   paddingHorizontal: 10,
                   paddingVertical: 5,
                   borderRadius: 20,
@@ -115,7 +141,7 @@ function BikeCard({
                 </Text>
               </View>
             )}
-          </LinearGradient>
+          </View>
 
           <View style={{ padding: 16 }}>
             <View
@@ -238,11 +264,9 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
           }}
           style={{ borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' }}
         >
-          <LinearGradient
-            colors={[palette.primary600, palette.primary500]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+          <View
             style={{
+              backgroundColor: palette.primary700,
               flexDirection: 'row',
               alignItems: 'center',
               paddingHorizontal: 28,
@@ -254,7 +278,7 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
             <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
               {t('garage.addFirstBike')}
             </Text>
-          </LinearGradient>
+          </View>
         </Pressable>
       </Animated.View>
     </View>
@@ -395,7 +419,7 @@ export default function GarageScreen() {
             }}
           >
             {!isPro && motorcycles.length >= 1 ? (
-              <Crown size={18} color="#FACC15" strokeWidth={2.5} />
+              <Crown size={18} color={palette.signature500} strokeWidth={2.5} />
             ) : (
               <Plus
                 size={18}

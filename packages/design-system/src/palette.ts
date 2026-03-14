@@ -69,8 +69,24 @@ export const palette = {
   gradientHeroMid: '#1b3a6b',
   gradientHeroEnd: '#2563eb',
 
+  // Signature (exhaust copper)
+  signature400: '#E8723A',
+  signature500: '#D4622E',
+  signature600: '#B85226',
+  signatureBgLight: '#FFF1EB',
+  signatureBgDark: '#3B1A0A',
+
+  // Indigo (onboarding accent)
+  indigo400: '#818CF8',
+  indigo500: '#6366F1',
+  indigoBg: 'rgba(99,102,241,0.15)',
+
+  // Surfaces
+  surfaceDark: '#0F172A',
+  cardDark: '#1E293B',
+
   // Tab bar
-  tabActive: '#3366e6',
+  tabActive: '#D4622E',
   tabInactive: '#a3a3a3',
   tabBarLight: '#ffffff',
   tabBarDark: '#1c1c1e',

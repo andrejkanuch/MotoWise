@@ -26,8 +26,10 @@ export function OnboardingContinueButton({
     <Pressable
       onPress={handlePress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
       style={({ pressed }) => ({
-        backgroundColor: disabled ? 'rgba(255,255,255,0.3)' : ONBOARDING_COLORS.textPrimary,
+        backgroundColor: disabled ? ONBOARDING_COLORS.textDimmed : ONBOARDING_COLORS.textPrimary,
         borderRadius: 20,
         borderCurve: 'continuous',
         paddingVertical: 18,
@@ -45,7 +47,7 @@ export function OnboardingContinueButton({
         style={{
           fontSize: 17,
           fontWeight: '700',
-          color: disabled ? 'rgba(255,255,255,0.5)' : ONBOARDING_COLORS.background,
+          color: disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.background,
         }}
       >
         {label}
@@ -54,7 +56,7 @@ export function OnboardingContinueButton({
         <View>
           <ChevronRight
             size={20}
-            color={disabled ? 'rgba(255,255,255,0.5)' : ONBOARDING_COLORS.background}
+            color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.background}
           />
         </View>
       ) : null}
