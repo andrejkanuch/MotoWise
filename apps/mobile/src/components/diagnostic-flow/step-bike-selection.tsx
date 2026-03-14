@@ -3,20 +3,33 @@ import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { MotorcycleType } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Bike, ChevronRight, Plus } from 'lucide-react-native';
+import { Bike, Check, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useShallow } from 'zustand/react/shallow';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
 export function StepBikeSelection() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const store = useDiagnosticFlowStore();
+
+  const store = useDiagnosticFlowStore(
+    useShallow((s) => ({
+      selectedMotorcycleId: s.selectedMotorcycleId,
+      manualBikeInfo: s.manualBikeInfo,
+      showManualForm: s.showManualForm,
+      setSelectedMotorcycleId: s.setSelectedMotorcycleId,
+      setManualBikeInfo: s.setManualBikeInfo,
+      setShowManualForm: s.setShowManualForm,
+      goNext: s.goNext,
+    })),
+  );
 
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -46,85 +59,167 @@ export function StepBikeSelection() {
     store.setManualBikeInfo({ ...store.manualBikeInfo, type } as { type: string });
   };
 
+  const canProceed = store.selectedMotorcycleId || store.manualBikeInfo?.type;
+
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pt-2">
-          <Text className="text-xl font-bold text-neutral-950 dark:text-neutral-50 mb-1">
+        {/* Step header */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              color: DIAGNOSTIC_COLORS.textMuted,
+            }}
+          >
+            {t('diagnoseV2.stepOf', { current: 1, total: 4 })}
+          </Text>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textPrimary,
+              marginTop: 4,
+            }}
+          >
             {t('diagnoseV2.selectBike')}
           </Text>
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-5">
+          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
             {t('diagnoseV2.whichBike')}
           </Text>
         </View>
 
         {/* Garage bikes */}
-        {motorcycles.map((moto, index) => (
-          <Animated.View key={moto.id} entering={FadeInUp.delay(index * 50).duration(300)}>
-            <Pressable
-              className={`mx-5 mb-3 p-4 rounded-2xl flex-row items-center gap-3 border-2 ${
-                store.selectedMotorcycleId === moto.id
-                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-950'
-                  : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800'
-              }`}
-              style={{ borderCurve: 'continuous' }}
-              onPress={() => handleSelectBike(moto.id)}
-            >
-              {moto.primaryPhotoUrl ? (
-                <Image
-                  source={{ uri: moto.primaryPhotoUrl }}
-                  style={{ width: 56, height: 56, borderRadius: 12 }}
-                />
-              ) : (
-                <View
-                  className="w-14 h-14 rounded-xl bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
-                  style={{ borderCurve: 'continuous' }}
-                >
-                  <Bike size={24} color={palette.neutral400} strokeWidth={1.5} />
+        {motorcycles.map((moto, index) => {
+          const isSelected = store.selectedMotorcycleId === moto.id;
+          return (
+            <Animated.View key={moto.id} entering={FadeInUp.delay(index * 50).duration(300)}>
+              <Pressable
+                style={{
+                  marginHorizontal: 20,
+                  marginBottom: 12,
+                  padding: 16,
+                  borderRadius: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  borderWidth: 2,
+                  borderColor: isSelected
+                    ? DIAGNOSTIC_COLORS.cardBorderSelected
+                    : DIAGNOSTIC_COLORS.cardBorder,
+                  backgroundColor: isSelected
+                    ? DIAGNOSTIC_COLORS.cardBgSelected
+                    : DIAGNOSTIC_COLORS.cardBg,
+                  borderCurve: 'continuous',
+                }}
+                onPress={() => handleSelectBike(moto.id)}
+              >
+                {moto.primaryPhotoUrl ? (
+                  <Image
+                    source={{ uri: moto.primaryPhotoUrl }}
+                    style={{ width: 56, height: 56, borderRadius: 12 }}
+                  />
+                ) : (
+                  <View
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: 12,
+                      backgroundColor: 'rgba(255,255,255,0.08)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderCurve: 'continuous',
+                    }}
+                  >
+                    <Bike size={24} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
+                  </View>
+                )}
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: DIAGNOSTIC_COLORS.textPrimary,
+                    }}
+                  >
+                    {moto.nickname || `${moto.make} ${moto.model}`}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}>
+                    {moto.year} {moto.nickname ? `${moto.make} ${moto.model}` : ''}
+                  </Text>
                 </View>
-              )}
-              <View className="flex-1">
-                <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50">
-                  {moto.nickname || `${moto.make} ${moto.model}`}
-                </Text>
-                <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                  {moto.year} {moto.nickname ? `${moto.make} ${moto.model}` : ''}
-                </Text>
-              </View>
-              {store.selectedMotorcycleId === moto.id && (
-                <View className="w-6 h-6 rounded-full bg-primary-500 items-center justify-center">
-                  <ChevronRight size={14} color={palette.white} strokeWidth={2.5} />
-                </View>
-              )}
-            </Pressable>
-          </Animated.View>
-        ))}
+                {isSelected && (
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: DIAGNOSTIC_COLORS.accent,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Check size={14} color={palette.white} strokeWidth={2.5} />
+                  </View>
+                )}
+              </Pressable>
+            </Animated.View>
+          );
+        })}
 
         {/* Different bike option */}
         <Animated.View entering={FadeInUp.delay(motorcycles.length * 50).duration(300)}>
           <Pressable
-            className={`mx-5 mt-2 p-4 rounded-2xl flex-row items-center gap-3 border-2 ${
-              store.showManualForm
-                ? 'border-neutral-500 bg-neutral-50 dark:bg-neutral-850'
-                : 'border-dashed border-neutral-300 dark:border-neutral-600'
-            }`}
-            style={{ borderCurve: 'continuous' }}
+            style={{
+              marginHorizontal: 20,
+              marginTop: 8,
+              padding: 16,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              borderWidth: 2,
+              borderStyle: store.showManualForm ? 'solid' : 'dashed',
+              borderColor: store.showManualForm
+                ? DIAGNOSTIC_COLORS.cardBorderSelected
+                : 'rgba(255,255,255,0.15)',
+              backgroundColor: store.showManualForm
+                ? DIAGNOSTIC_COLORS.cardBgSelected
+                : 'transparent',
+              borderCurve: 'continuous',
+            }}
             onPress={() => {
               store.setShowManualForm(!store.showManualForm);
               store.setSelectedMotorcycleId(null);
             }}
           >
             <View
-              className="w-14 h-14 rounded-xl bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderCurve: 'continuous',
+              }}
             >
-              <Plus size={24} color={palette.neutral400} strokeWidth={1.5} />
+              <Plus size={24} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
             </View>
-            <Text className="text-base font-medium text-neutral-600 dark:text-neutral-300">
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '500',
+                color: DIAGNOSTIC_COLORS.textSecondary,
+              }}
+            >
               {t('diagnoseV2.differentBike')}
             </Text>
           </Pressable>
@@ -132,11 +227,21 @@ export function StepBikeSelection() {
 
         {/* Manual bike form */}
         {store.showManualForm && (
-          <Animated.View entering={FadeInUp.duration(250)} className="mx-5 mt-4">
-            <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+          <Animated.View
+            entering={FadeInUp.duration(250)}
+            style={{ marginHorizontal: 20, marginTop: 16 }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: DIAGNOSTIC_COLORS.textSecondary,
+                marginBottom: 12,
+              }}
+            >
               {t('diagnoseV2.bikeType')}
             </Text>
-            <View className="flex-row flex-wrap gap-2 mb-4">
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
               {Object.values(MotorcycleType).map((type: string) => (
                 <WizardOptionChip
                   key={type}
@@ -148,14 +253,31 @@ export function StepBikeSelection() {
               ))}
             </View>
 
-            <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: DIAGNOSTIC_COLORS.textSecondary,
+                marginBottom: 8,
+              }}
+            >
               {t('diagnoseV2.bikeYear')}
             </Text>
             <TextInput
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-950 dark:text-neutral-50 mb-4"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                fontSize: 16,
+                color: DIAGNOSTIC_COLORS.textPrimary,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+              }}
               placeholder={t('diagnoseV2.iDontKnow')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
               keyboardType="number-pad"
               maxLength={4}
               value={store.manualBikeInfo?.year?.toString() ?? ''}
@@ -169,14 +291,31 @@ export function StepBikeSelection() {
               }}
             />
 
-            <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: DIAGNOSTIC_COLORS.textSecondary,
+                marginBottom: 8,
+              }}
+            >
               {t('diagnoseV2.bikeMake')}
             </Text>
             <TextInput
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-950 dark:text-neutral-50 mb-4"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                fontSize: 16,
+                color: DIAGNOSTIC_COLORS.textPrimary,
+                marginBottom: 16,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+              }}
               placeholder={t('diagnoseV2.iDontKnow')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
               value={store.manualBikeInfo?.make ?? ''}
               onChangeText={(text) => {
                 store.setManualBikeInfo({
@@ -187,14 +326,30 @@ export function StepBikeSelection() {
               }}
             />
 
-            <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: DIAGNOSTIC_COLORS.textSecondary,
+                marginBottom: 8,
+              }}
+            >
               {t('diagnoseV2.bikeModel')}
             </Text>
             <TextInput
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-950 dark:text-neutral-50"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                fontSize: 16,
+                color: DIAGNOSTIC_COLORS.textPrimary,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+              }}
               placeholder={t('diagnoseV2.iDontKnow')}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
               value={store.manualBikeInfo?.model ?? ''}
               onChangeText={(text) => {
                 store.setManualBikeInfo({
@@ -210,25 +365,36 @@ export function StepBikeSelection() {
 
       {/* Next button */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
-        style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: DIAGNOSTIC_COLORS.background,
+          borderTopWidth: 1,
+          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 12,
+          paddingTop: 12,
+        }}
       >
         <Pressable
-          className={`rounded-2xl py-4 items-center ${
-            store.selectedMotorcycleId || store.manualBikeInfo?.type
-              ? 'bg-primary-500'
-              : 'bg-neutral-300 dark:bg-neutral-600'
-          }`}
-          style={{ borderCurve: 'continuous' }}
+          style={{
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            backgroundColor: canProceed ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.08)',
+            borderCurve: 'continuous',
+          }}
           onPress={() => store.goNext()}
-          disabled={!store.selectedMotorcycleId && !store.manualBikeInfo?.type}
+          disabled={!canProceed}
         >
           <Text
-            className={`font-semibold text-base ${
-              store.selectedMotorcycleId || store.manualBikeInfo?.type
-                ? 'text-white'
-                : 'text-neutral-500 dark:text-neutral-400'
-            }`}
+            style={{
+              fontWeight: '600',
+              fontSize: 16,
+              color: canProceed ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+            }}
           >
             {t('diagnoseV2.next')}
           </Text>

@@ -9,8 +9,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import {
+  PREDEFINED_LOCATION,
+  PREDEFINED_SYMPTOMS,
+  PREDEFINED_TIMING,
+  useDiagnosticFlowStore,
+} from '../../stores/diagnostic-flow.store';
 import type { Step } from '../../stores/diagnostic-flow.store';
-import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
 
 interface StepReviewSubmitProps {
   onSubmit: () => void;
@@ -86,10 +91,11 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
     preventive: t('diagnoseV2.urgencyPreventive'),
   };
 
+  const ALL_PREDEFINED = new Set([...PREDEFINED_SYMPTOMS, ...PREDEFINED_LOCATION, ...PREDEFINED_TIMING]);
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
     // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
-    .map((v: string) => t(`diagnoseV2.option.${v}` as any) as string);
+    .map((v: string) => ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`);
 
   return (
     <View className="flex-1">

@@ -1,7 +1,7 @@
-import { palette } from '@motovault/design-system';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 
 interface DiagnosticProgressBarProps {
   currentStep: number;
@@ -21,13 +21,32 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
       accessibilityLabel={t('diagnoseV2.stepOf', { current: currentStep, total: totalSteps })}
       accessibilityValue={{ min: 1, max: totalSteps, now: currentStep }}
     >
-      <Text className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+      <Text
+        style={{
+          fontSize: 12,
+          color: DIAGNOSTIC_COLORS.textMuted,
+          marginBottom: 4,
+        }}
+      >
         {t('diagnoseV2.stepOf', { current: currentStep, total: totalSteps })}
       </Text>
-      <View className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+      <View
+        style={{
+          height: 6,
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          borderRadius: 999,
+          overflow: 'hidden',
+        }}
+      >
         <Animated.View
-          className="h-full rounded-full"
-          style={[{ backgroundColor: palette.primary500 }, animatedWidth]}
+          style={[
+            {
+              height: '100%',
+              borderRadius: 999,
+              backgroundColor: DIAGNOSTIC_COLORS.accent,
+            },
+            animatedWidth,
+          ]}
         />
       </View>
     </View>

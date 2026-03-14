@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import i18n from '../i18n';
 import { identifyUser, initPostHog, initSentry, resetUser } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -230,11 +231,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <NavigationGate>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <NavigationGate>
           <Stack screenOptions={{ headerShown: false }} />
-        </NavigationGate>
-      </QueryClientProvider>
+          </NavigationGate>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

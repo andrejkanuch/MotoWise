@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, X } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Alert, Pressable, View } from 'react-native';
 import Animated, {
@@ -48,12 +48,25 @@ export default function NewDiagnosticScreen() {
 
   const store = useDiagnosticFlowStore;
 
-  // Reset store on focus
+  // Reset store on focus (but not if a submission is in progress)
   useFocusEffect(
     useCallback(() => {
-      reset();
+      const { isSubmitting } = useDiagnosticFlowStore.getState();
+      if (!isSubmitting) reset();
     }, [reset]),
   );
+
+  // Reset isTransitioning after step change animation completes
+  const transitionTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-run when currentStep changes
+  useEffect(() => {
+    transitionTimer.current = setTimeout(() => {
+      useDiagnosticFlowStore.getState().setIsTransitioning(false);
+    }, 300);
+    return () => {
+      if (transitionTimer.current) clearTimeout(transitionTimer.current);
+    };
+  }, [currentStep]);
 
   // Animations based on direction
   const entering = prefersReducedMotion
@@ -69,6 +82,7 @@ export default function NewDiagnosticScreen() {
       : FadeOutRight.duration(200);
 
   const handleBack = () => {
+    if (useDiagnosticFlowStore.getState().isSubmitting) return;
     if (currentStep > 1) {
       goBack();
       AccessibilityInfo.announceForAccessibility(
@@ -78,6 +92,7 @@ export default function NewDiagnosticScreen() {
   };
 
   const handleClose = () => {
+    if (useDiagnosticFlowStore.getState().isSubmitting) return;
     if (hasAnyData()) {
       Alert.alert(t('diagnoseV2.cancelTitle'), t('diagnoseV2.cancelMessage'), [
         { text: t('diagnoseV2.keepEditing'), style: 'cancel' },
@@ -97,6 +112,7 @@ export default function NewDiagnosticScreen() {
 
   const handleSubmit = async () => {
     const state = store.getState();
+    if (state.isSubmitting) return;
     state.setIsSubmitting(true);
     state.setSubmitError(null);
 
@@ -141,6 +157,8 @@ export default function NewDiagnosticScreen() {
             className="w-10 h-10 rounded-full items-center justify-center"
             onPress={handleBack}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('diagnoseV2.back')}
           >
             <ArrowLeft size={22} color={palette.neutral600} strokeWidth={2} />
           </Pressable>
@@ -156,6 +174,8 @@ export default function NewDiagnosticScreen() {
           className="w-10 h-10 rounded-full items-center justify-center"
           onPress={handleClose}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('diagnoseV2.close')}
         >
           <X size={22} color={palette.neutral600} strokeWidth={2} />
         </Pressable>
