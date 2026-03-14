@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://motovault-api.onrender.com/graphql';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://motowise.onrender.com/graphql';
 
 export function WaitlistForm() {
   const [email, setEmail] = useState('');
