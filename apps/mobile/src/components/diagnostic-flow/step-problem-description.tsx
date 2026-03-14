@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -173,7 +172,20 @@ const PREDEFINED_SETS: Record<string, ReadonlySet<string>> = {
   timing: new Set(PREDEFINED_TIMING),
 };
 
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional control char stripping for user input safety
 const sanitizeInput = (text: string) => text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+
+const SUB_STEP_QUESTIONS = [
+  {
+    question: 'What symptoms are you noticing?',
+    hint: 'Select all that apply \u2014 or type your own',
+  },
+  {
+    question: 'Where does the problem seem to be?',
+    hint: 'Select all that apply \u2014 or type your own',
+  },
+  { question: 'When does it happen?', hint: 'Select all that apply \u2014 or type your own' },
+];
 
 export function StepProblemDescription() {
   const { t } = useTranslation();
@@ -228,6 +240,7 @@ export function StepProblemDescription() {
   const currentSelections = wizardAnswers[currentKey];
   const selectionSet = useMemo(() => new Set(currentSelections), [currentSelections]);
   const isDontKnow = selectionSet.has('dont_know');
+  const subStepContent = SUB_STEP_QUESTIONS[wizardSubStep];
 
   const predefinedSet = PREDEFINED_SETS[currentKey] ?? new Set<string>();
   const customValues = currentSelections.filter((v) => v !== 'dont_know' && !predefinedSet.has(v));
@@ -316,73 +329,145 @@ export function StepProblemDescription() {
   );
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pt-2">
-          <Text className="text-xl font-bold text-neutral-950 dark:text-neutral-50 mb-4">
-            {t('diagnoseV2.describeProblem')}
-          </Text>
-
-          {/* Mode toggle */}
-          <View className="flex-row gap-2 mb-5">
-            <Pressable
-              className={`flex-1 py-3 rounded-xl items-center ${
-                inputMode === 'wizard' ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
-              }`}
-              style={{ borderCurve: 'continuous' }}
-              onPress={() => handleModeSwitch('wizard')}
+        {/* Step header */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                color: DIAGNOSTIC_COLORS.textMuted,
+              }}
             >
-              <Text
-                className={`text-sm font-semibold ${inputMode === 'wizard' ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'}`}
-              >
-                {t('diagnoseV2.guideMe')}
-              </Text>
-            </Pressable>
-            <Pressable
-              className={`flex-1 py-3 rounded-xl items-center ${
-                inputMode === 'freetext' ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-800'
-              }`}
-              style={{ borderCurve: 'continuous' }}
-              onPress={() => handleModeSwitch('freetext')}
-            >
-              <Text
-                className={`text-sm font-semibold ${inputMode === 'freetext' ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'}`}
-              >
-                {t('diagnoseV2.describeMyself')}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {inputMode === 'wizard' && currentStep ? (
-          <Animated.View entering={FadeIn.duration(200)} className="px-5">
+              {t('diagnoseV2.stepOf', { current: 2, total: 4 })}
+            </Text>
             {/* Sub-step dots */}
-            <View
-              className="flex-row gap-2 mb-4 justify-center"
-              accessibilityRole="tablist"
-              accessibilityLabel={t('diagnoseV2.wizardProgress')}
-            >
+            <View style={{ flexDirection: 'row', gap: 4, marginLeft: 4 }}>
               {WIZARD_STEPS.map((step, i) => (
                 <View
                   key={`dot-${step.key}`}
-                  className={`w-2 h-2 rounded-full ${
-                    i === wizardSubStep ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'
-                  }`}
-                  accessibilityLabel={t('diagnoseV2.wizardSubStep', { current: i + 1, total: WIZARD_STEPS.length })}
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor:
+                      i === wizardSubStep ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.2)',
+                  }}
+                  accessibilityLabel={t('diagnoseV2.wizardSubStep', {
+                    current: i + 1,
+                    total: WIZARD_STEPS.length,
+                  })}
                   accessibilityState={{ selected: i === wizardSubStep }}
                 />
               ))}
             </View>
+          </View>
+          {inputMode === 'wizard' && subStepContent ? (
+            <Animated.View key={`header-${wizardSubStep}`} entering={FadeIn.duration(200)}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '600',
+                  color: DIAGNOSTIC_COLORS.textPrimary,
+                  marginTop: 4,
+                }}
+              >
+                {subStepContent.question}
+              </Text>
+              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+                {subStepContent.hint}
+              </Text>
+            </Animated.View>
+          ) : (
+            <>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '600',
+                  color: DIAGNOSTIC_COLORS.textPrimary,
+                  marginTop: 4,
+                }}
+              >
+                {t('diagnoseV2.describeProblem')}
+              </Text>
+              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+                {t('diagnoseV2.describeProblemHint')}
+              </Text>
+            </>
+          )}
+        </View>
 
-            <Text className="text-lg font-semibold text-neutral-950 dark:text-neutral-50 mb-4">
-              {t(currentStep.titleKey)}
+        {/* Mode toggle */}
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: 8,
+            marginBottom: 20,
+            marginHorizontal: 20,
+            backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+            borderRadius: 12,
+            padding: 4,
+          }}
+        >
+          <Pressable
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              borderRadius: 10,
+              alignItems: 'center',
+              backgroundColor: inputMode === 'wizard' ? DIAGNOSTIC_COLORS.accent : 'transparent',
+              borderCurve: 'continuous',
+            }}
+            onPress={() => handleModeSwitch('wizard')}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: inputMode === 'wizard' ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+              }}
+            >
+              {t('diagnoseV2.guideMe')}
             </Text>
+          </Pressable>
+          <Pressable
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              borderRadius: 10,
+              alignItems: 'center',
+              backgroundColor: inputMode === 'freetext' ? DIAGNOSTIC_COLORS.accent : 'transparent',
+              borderCurve: 'continuous',
+            }}
+            onPress={() => handleModeSwitch('freetext')}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: inputMode === 'freetext' ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+              }}
+            >
+              {t('diagnoseV2.describeMyself')}
+            </Text>
+          </Pressable>
+        </View>
 
-            {/* Symptom chips — grouped layout */}
+        {inputMode === 'wizard' && currentStep ? (
+          <Animated.View
+            key={`wizard-${wizardSubStep}`}
+            entering={FadeIn.duration(200)}
+            style={{ paddingHorizontal: 20 }}
+          >
+            {/* Symptom chips -- grouped layout */}
             {wizardSubStep === 0 ? (
               <View style={{ gap: 24 }}>
                 {SYMPTOM_GROUPS.map((group, groupIndex) => (
@@ -418,7 +503,7 @@ export function StepProblemDescription() {
                   </Animated.View>
                 ))}
 
-                {/* I'm not sure — at the bottom for symptoms */}
+                {/* I'm not sure -- at the bottom for symptoms */}
                 <Animated.View entering={FadeInUp.delay(SYMPTOM_GROUPS.length * 60).duration(250)}>
                   <WizardOptionChip
                     label={t('diagnoseV2.imNotSure')}
@@ -431,10 +516,10 @@ export function StepProblemDescription() {
                 {customInputSection}
               </View>
             ) : (
-              /* Location and timing — flat rendering */
+              /* Location and timing -- flat rendering */
               <View>
                 {/* I don't know chip */}
-                <Animated.View entering={FadeInUp.duration(250)} className="mb-3">
+                <Animated.View entering={FadeInUp.duration(250)} style={{ marginBottom: 12 }}>
                   <WizardOptionChip
                     label={t('diagnoseV2.imNotSure')}
                     selected={isDontKnow}
@@ -444,7 +529,7 @@ export function StepProblemDescription() {
                 </Animated.View>
 
                 {/* Option chips */}
-                <View className="flex-row flex-wrap gap-3">
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                   {currentStep.options.map((option, index) => {
                     const IconComp = currentStep.icons[option];
                     return (
@@ -470,23 +555,41 @@ export function StepProblemDescription() {
             )}
           </Animated.View>
         ) : inputMode === 'freetext' ? (
-          <Animated.View entering={FadeIn.duration(200)} className="px-5">
+          <Animated.View entering={FadeIn.duration(200)} style={{ paddingHorizontal: 20 }}>
             <TextInput
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl px-4 py-4 text-base text-neutral-950 dark:text-neutral-50"
-              style={{ borderCurve: 'continuous', textAlignVertical: 'top', minHeight: 120 }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 16,
+                fontSize: 16,
+                color: DIAGNOSTIC_COLORS.textPrimary,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+                textAlignVertical: 'top',
+                minHeight: 120,
+              }}
               placeholder={
                 isBeginner
                   ? t('diagnoseV2.freeTextPlaceholderBeginner')
                   : t('diagnoseV2.freeTextPlaceholderAdvanced')
               }
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
               accessibilityLabel={t('diagnoseV2.describeProblem')}
               value={freeTextDescription}
               onChangeText={(text) => setFreeTextDescription(text.slice(0, 1000))}
               multiline
               maxLength={1000}
             />
-            <Text className="text-xs text-neutral-400 mt-1 text-right">
+            <Text
+              style={{
+                fontSize: 12,
+                color: DIAGNOSTIC_COLORS.textMuted,
+                marginTop: 4,
+                textAlign: 'right',
+              }}
+            >
               {t('diagnoseV2.charCount', { count: freeTextDescription.length, max: 1000 })}
             </Text>
           </Animated.View>
@@ -495,23 +598,40 @@ export function StepProblemDescription() {
 
       {/* Bottom button */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
-        style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: DIAGNOSTIC_COLORS.background,
+          borderTopWidth: 1,
+          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 12,
+          paddingTop: 12,
+        }}
       >
         {inputMode === 'wizard' && wizardSubStep > 0 && (
           <Pressable
-            className="mb-2 py-3 items-center"
+            style={{ marginBottom: 8, paddingVertical: 12, alignItems: 'center' }}
             onPress={() => setWizardSubStep((wizardSubStep - 1) as 0 | 1 | 2)}
           >
-            <Text className="text-sm text-neutral-500">{t('diagnoseV2.back')}</Text>
+            <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+              {t('diagnoseV2.back')}
+            </Text>
           </Pressable>
         )}
         <Pressable
-          className="bg-primary-500 rounded-2xl py-4 items-center"
-          style={{ borderCurve: 'continuous' }}
+          style={{
+            backgroundColor: DIAGNOSTIC_COLORS.accent,
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            borderCurve: 'continuous',
+          }}
           onPress={inputMode === 'wizard' ? handleWizardNext : handleFreeTextNext}
         >
-          <Text className="text-white font-semibold text-base">
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}
           </Text>
         </Pressable>
