@@ -45,9 +45,6 @@ export function WizardOptionChip({
     if (variant === 'dont-know') {
       return selected ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.15)';
     }
-    if (variant === 'custom') {
-      return selected ? DIAGNOSTIC_COLORS.cardBorderSelected : DIAGNOSTIC_COLORS.cardBorder;
-    }
     return selected ? DIAGNOSTIC_COLORS.cardBorderSelected : DIAGNOSTIC_COLORS.cardBorder;
   };
 

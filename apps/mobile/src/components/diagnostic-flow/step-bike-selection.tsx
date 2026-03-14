@@ -851,16 +851,19 @@ export function StepBikeSelection() {
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 
-  // Pre-select primary bike if nothing selected yet
-  if (
-    !store.selectedMotorcycleId &&
-    !store.manualBikeInfo &&
-    !store.showManualForm &&
-    motorcycles.length > 0
-  ) {
-    const primary = motorcycles.find((m) => m.isPrimary) ?? motorcycles[0];
-    if (primary) store.setSelectedMotorcycleId(primary.id);
-  }
+  // Pre-select primary bike when motorcycles first load
+  useEffect(() => {
+    const s = useDiagnosticFlowStore.getState();
+    if (
+      !s.selectedMotorcycleId &&
+      !s.manualBikeInfo &&
+      !s.showManualForm &&
+      motorcycles.length > 0
+    ) {
+      const primary = motorcycles.find((m) => m.isPrimary) ?? motorcycles[0];
+      if (primary) s.setSelectedMotorcycleId(primary.id);
+    }
+  }, [motorcycles]);
 
   const handleSelectBike = (id: string) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
