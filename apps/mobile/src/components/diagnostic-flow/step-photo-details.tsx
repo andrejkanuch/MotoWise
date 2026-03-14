@@ -11,6 +11,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import type { Urgency } from '../../stores/diagnostic-flow.store';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+
+const URGENCY_COLORS: Record<string, string> = {
+  stranded: palette.danger500,
+  soon: palette.warning500,
+  preventive: palette.success500,
+};
 
 const URGENCY_OPTIONS: { value: Urgency; labelKey: string; icon: typeof AlertTriangle }[] = [
   { value: 'stranded', labelKey: 'diagnoseV2.urgencyStranded', icon: AlertTriangle },
@@ -91,27 +98,55 @@ export function StepPhotoDetails() {
   };
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pt-2">
-          <Text className="text-xl font-bold text-neutral-950 dark:text-neutral-50 mb-1">
+        {/* Step header */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              color: DIAGNOSTIC_COLORS.textMuted,
+            }}
+          >
+            {t('diagnoseV2.stepOf', { current: 3, total: 4 })}
+          </Text>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textPrimary,
+              marginTop: 4,
+            }}
+          >
             {t('diagnoseV2.photoDetails')}
           </Text>
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-5">
+          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
             {t('diagnoseV2.photoEncouragement')}
           </Text>
         </View>
 
         {/* Photo section */}
         {photoUri ? (
-          <Animated.View entering={FadeInUp.duration(300)} className="px-5 mb-4">
+          <Animated.View
+            entering={FadeInUp.duration(300)}
+            style={{ paddingHorizontal: 20, marginBottom: 16 }}
+          >
             <View
-              className="rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-800"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                borderRadius: 16,
+                overflow: 'hidden',
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+              }}
             >
               <Image
                 source={{ uri: photoUri }}
@@ -119,7 +154,17 @@ export function StepPhotoDetails() {
                 resizeMode="cover"
               />
               <Pressable
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 items-center justify-center"
+                style={{
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
                 onPress={() => setPhotoUri(null)}
               >
                 <X size={16} color={palette.white} strokeWidth={2} />
@@ -127,104 +172,195 @@ export function StepPhotoDetails() {
             </View>
           </Animated.View>
         ) : (
-          <Animated.View entering={FadeIn.duration(300)} className="px-5 gap-3 mb-4">
+          <Animated.View
+            entering={FadeIn.duration(300)}
+            style={{ paddingHorizontal: 20, gap: 12, marginBottom: 16 }}
+          >
             <Pressable
-              className="bg-primary-500 rounded-2xl py-4 items-center flex-row justify-center gap-3"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.accent,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 12,
+                borderCurve: 'continuous',
+              }}
               onPress={() => handleCapture('camera')}
               disabled={compressing}
             >
               <Camera size={20} color={palette.white} strokeWidth={2} />
-              <Text className="text-white font-semibold text-base">
+              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
                 {t('diagnoseV2.takePhoto')}
               </Text>
             </Pressable>
             <Pressable
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl py-4 items-center flex-row justify-center gap-3"
-              style={{ borderCurve: 'continuous' }}
+              style={{
+                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 12,
+                borderWidth: 1,
+                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderCurve: 'continuous',
+              }}
               onPress={() => handleCapture('gallery')}
               disabled={compressing}
             >
-              <ImageIcon size={20} color={palette.neutral600} strokeWidth={2} />
-              <Text className="text-neutral-700 dark:text-neutral-300 font-semibold text-base">
+              <ImageIcon size={20} color={DIAGNOSTIC_COLORS.textSecondary} strokeWidth={2} />
+              <Text
+                style={{ color: DIAGNOSTIC_COLORS.textSecondary, fontWeight: '600', fontSize: 16 }}
+              >
                 {t('diagnoseV2.chooseFromGallery')}
               </Text>
             </Pressable>
-            <Pressable className="py-2 items-center" onPress={handleNext}>
-              <Text className="text-sm text-neutral-400">{t('diagnoseV2.skipPhoto')}</Text>
+            <Pressable style={{ paddingVertical: 8, alignItems: 'center' }} onPress={handleNext}>
+              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+                {t('diagnoseV2.skipPhoto')}
+              </Text>
             </Pressable>
           </Animated.View>
         )}
 
         {/* Additional notes */}
-        <Animated.View entering={FadeInUp.delay(100).duration(300)} className="px-5 mb-4">
-          <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+        <Animated.View
+          entering={FadeInUp.delay(100).duration(300)}
+          style={{ paddingHorizontal: 20, marginBottom: 16 }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textSecondary,
+              marginBottom: 8,
+            }}
+          >
             {t('diagnoseV2.additionalNotes')}
           </Text>
           <TextInput
-            className="bg-neutral-100 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-950 dark:text-neutral-50"
-            style={{ borderCurve: 'continuous', textAlignVertical: 'top', minHeight: 80 }}
+            style={{
+              backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              fontSize: 16,
+              color: DIAGNOSTIC_COLORS.textPrimary,
+              borderWidth: 1,
+              borderColor: DIAGNOSTIC_COLORS.cardBorder,
+              borderCurve: 'continuous',
+              textAlignVertical: 'top',
+              minHeight: 80,
+            }}
             placeholder={t('diagnoseV2.additionalNotesPlaceholder')}
-            placeholderTextColor={palette.neutral400}
+            placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
             value={additionalNotes}
             onChangeText={(text) => setAdditionalNotes(text.slice(0, 500))}
             multiline
             maxLength={500}
           />
-          <Text className="text-xs text-neutral-400 mt-1 text-right">
+          <Text
+            style={{
+              fontSize: 12,
+              color: DIAGNOSTIC_COLORS.textMuted,
+              marginTop: 4,
+              textAlign: 'right',
+            }}
+          >
             {t('diagnoseV2.charCount', { count: additionalNotes.length, max: 500 })}
           </Text>
         </Animated.View>
 
         {/* Urgency */}
-        <Animated.View entering={FadeInUp.delay(200).duration(300)} className="px-5">
-          <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-3">
+        <Animated.View
+          entering={FadeInUp.delay(200).duration(300)}
+          style={{ paddingHorizontal: 20 }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textSecondary,
+              marginBottom: 12,
+            }}
+          >
             {t('diagnoseV2.howUrgent')}
           </Text>
-          <View className="gap-2">
-            {URGENCY_OPTIONS.map(({ value, labelKey, icon: Icon }) => (
-              <Pressable
-                key={value}
-                className={`rounded-xl p-4 flex-row items-center gap-3 border-2 ${
-                  urgency === value
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-950'
-                    : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800'
-                }`}
-                style={{ borderCurve: 'continuous' }}
-                onPress={() => handleUrgencyPress(value)}
-              >
-                <Icon
-                  size={20}
-                  color={urgency === value ? palette.primary500 : palette.neutral400}
-                  strokeWidth={1.5}
-                />
-                <Text
-                  className={`text-sm font-medium ${
-                    urgency === value
-                      ? 'text-primary-700 dark:text-primary-300'
-                      : 'text-neutral-700 dark:text-neutral-300'
-                  }`}
+          <View style={{ gap: 8 }}>
+            {URGENCY_OPTIONS.map(({ value, labelKey, icon: Icon }) => {
+              const isSelected = urgency === value;
+              const accentColor = URGENCY_COLORS[value] ?? DIAGNOSTIC_COLORS.accent;
+              return (
+                <Pressable
+                  key={value}
+                  style={{
+                    borderRadius: 12,
+                    padding: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    borderWidth: 2,
+                    borderColor: isSelected ? accentColor : DIAGNOSTIC_COLORS.cardBorder,
+                    backgroundColor: isSelected
+                      ? DIAGNOSTIC_COLORS.cardBgSelected
+                      : DIAGNOSTIC_COLORS.cardBg,
+                    borderCurve: 'continuous',
+                  }}
+                  onPress={() => handleUrgencyPress(value)}
                 >
-                  {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
-                  {t(labelKey as any)}
-                </Text>
-              </Pressable>
-            ))}
+                  <Icon
+                    size={20}
+                    color={isSelected ? accentColor : DIAGNOSTIC_COLORS.textMuted}
+                    strokeWidth={1.5}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '500',
+                      color: isSelected
+                        ? DIAGNOSTIC_COLORS.textPrimary
+                        : DIAGNOSTIC_COLORS.textSecondary,
+                    }}
+                  >
+                    {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
+                    {t(labelKey as any)}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </Animated.View>
       </ScrollView>
 
       {/* Next button */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
-        style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: DIAGNOSTIC_COLORS.background,
+          borderTopWidth: 1,
+          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 12,
+          paddingTop: 12,
+        }}
       >
         <Pressable
-          className="bg-primary-500 rounded-2xl py-4 items-center"
-          style={{ borderCurve: 'continuous' }}
+          style={{
+            backgroundColor: DIAGNOSTIC_COLORS.accent,
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            borderCurve: 'continuous',
+          }}
           onPress={handleNext}
         >
-          <Text className="text-white font-semibold text-base">
+          <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
             {editingFromReview ? t('diagnoseV2.backToReview') : t('diagnoseV2.next')}
           </Text>
         </Pressable>

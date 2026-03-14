@@ -234,7 +234,7 @@ export default function RootLayout() {
       <KeyboardProvider>
         <QueryClientProvider client={queryClient}>
           <NavigationGate>
-          <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }} />
           </NavigationGate>
         </QueryClientProvider>
       </KeyboardProvider>

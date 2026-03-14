@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Bike, Pencil, Sparkles } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Pressable, ScrollView, Switch, Text, View } from 'react-native';
@@ -9,13 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import {
-  PREDEFINED_LOCATION,
-  PREDEFINED_SYMPTOMS,
-  PREDEFINED_TIMING,
-  useDiagnosticFlowStore,
-} from '../../stores/diagnostic-flow.store';
 import type { Step } from '../../stores/diagnostic-flow.store';
+import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
+import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
 
 interface StepReviewSubmitProps {
   onSubmit: () => void;
@@ -34,18 +31,54 @@ function ReviewCard({
 }) {
   const { t } = useTranslation();
   return (
-    <Animated.View entering={FadeInUp.delay(delay).duration(300)} className="mx-5 mb-3">
+    <Animated.View
+      entering={FadeInUp.delay(delay).duration(300)}
+      style={{ marginHorizontal: 20, marginBottom: 12 }}
+    >
       <View
-        className="bg-white dark:bg-neutral-800 rounded-2xl p-4 border border-neutral-200 dark:border-neutral-700"
-        style={{ borderCurve: 'continuous' }}
+        style={{
+          backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+          borderRadius: 16,
+          padding: 16,
+          borderWidth: 1,
+          borderColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderCurve: 'continuous',
+        }}
       >
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 8,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textMuted,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}
+          >
             {title}
           </Text>
-          <Pressable className="flex-row items-center gap-1 py-1 px-2" onPress={onEdit} hitSlop={8}>
-            <Pencil size={14} color={palette.primary500} strokeWidth={2} />
-            <Text className="text-xs font-medium text-primary-500">{t('diagnoseV2.edit')}</Text>
+          <Pressable
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+            }}
+            onPress={onEdit}
+            hitSlop={8}
+          >
+            <Pencil size={14} color={DIAGNOSTIC_COLORS.accent} strokeWidth={2} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: DIAGNOSTIC_COLORS.accent }}>
+              {t('diagnoseV2.edit')}
+            </Text>
           </Pressable>
         </View>
         {children}
@@ -91,28 +124,49 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
     preventive: t('diagnoseV2.urgencyPreventive'),
   };
 
-  const ALL_PREDEFINED = new Set([...PREDEFINED_SYMPTOMS, ...PREDEFINED_LOCATION, ...PREDEFINED_TIMING]);
   const wizardTags = Object.entries(store.wizardAnswers)
     .flatMap(([, values]) => (values as string[]).filter((v: string) => v !== 'dont_know'))
     // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from wizard answers
-    .map((v: string) => ALL_PREDEFINED.has(v) ? (t(`diagnoseV2.option.${v}` as any) as string) : `"${v}"`);
+    .map((v: string) => t(`diagnoseV2.option.${v}` as any) as string);
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <ScrollView
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pt-2 mb-4">
-          <Text className="text-xl font-bold text-neutral-950 dark:text-neutral-50">
+        {/* Step header */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              color: DIAGNOSTIC_COLORS.textMuted,
+            }}
+          >
+            {t('diagnoseV2.stepOf', { current: 4, total: 4 })}
+          </Text>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '600',
+              color: DIAGNOSTIC_COLORS.textPrimary,
+              marginTop: 4,
+            }}
+          >
             {t('diagnoseV2.review')}
+          </Text>
+          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+            {t('diagnoseV2.reviewHint')}
           </Text>
         </View>
 
         {/* Bike */}
         <ReviewCard title={t('diagnoseV2.reviewBike')} onEdit={() => editStep(1)} delay={0}>
-          <View className="flex-row items-center gap-3">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             {selectedBike?.primaryPhotoUrl ? (
               <Image
                 source={{ uri: selectedBike.primaryPhotoUrl }}
@@ -120,18 +174,31 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               />
             ) : (
               <View
-                className="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
-                style={{ borderCurve: 'continuous' }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderCurve: 'continuous',
+                }}
               >
-                <Bike size={18} color={palette.neutral400} strokeWidth={1.5} />
+                <Bike size={18} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
               </View>
             )}
-            <Text className="text-base text-neutral-950 dark:text-neutral-50 font-medium">
+            <Text
+              style={{
+                fontSize: 16,
+                color: DIAGNOSTIC_COLORS.textPrimary,
+                fontWeight: '500',
+              }}
+            >
               {selectedBike
                 ? selectedBike.nickname || `${selectedBike.make} ${selectedBike.model}`
                 : store.manualBikeInfo
                   ? t('diagnoseV2.unknownBikeType', { type: store.manualBikeInfo.type })
-                  : '—'}
+                  : '\u2014'}
             </Text>
           </View>
         </ReviewCard>
@@ -140,25 +207,41 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
         <ReviewCard title={t('diagnoseV2.reviewProblem')} onEdit={() => editStep(2)} delay={50}>
           {store.inputMode === 'wizard' ? (
             wizardTags.length > 0 ? (
-              <View className="flex-row flex-wrap gap-2">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {wizardTags.map((tag) => (
                   <View
                     key={tag}
-                    className="bg-primary-100 dark:bg-primary-900 rounded-lg px-3 py-1"
-                    style={{ borderCurve: 'continuous' }}
+                    style={{
+                      backgroundColor: DIAGNOSTIC_COLORS.accentBg,
+                      borderRadius: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 4,
+                      borderCurve: 'continuous',
+                    }}
                   >
-                    <Text className="text-xs font-medium text-primary-700 dark:text-primary-300">
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '500',
+                        color: DIAGNOSTIC_COLORS.accent,
+                      }}
+                    >
                       {tag}
                     </Text>
                   </View>
                 ))}
               </View>
             ) : (
-              <Text className="text-sm text-neutral-400">{t('diagnoseV2.notSureTag')}</Text>
+              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+                {t('diagnoseV2.notSureTag')}
+              </Text>
             )
           ) : (
-            <Text className="text-sm text-neutral-700 dark:text-neutral-300" numberOfLines={3}>
-              {store.freeTextDescription || '—'}
+            <Text
+              style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}
+              numberOfLines={3}
+            >
+              {store.freeTextDescription || '\u2014'}
             </Text>
           )}
         </ReviewCard>
@@ -172,14 +255,19 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               resizeMode="cover"
             />
           ) : (
-            <Text className="text-sm text-neutral-400">{t('diagnoseV2.reviewNoPhoto')}</Text>
+            <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+              {t('diagnoseV2.reviewNoPhoto')}
+            </Text>
           )}
         </ReviewCard>
 
         {/* Notes */}
         {store.additionalNotes.trim() && (
           <ReviewCard title={t('diagnoseV2.reviewDetails')} onEdit={() => editStep(3)} delay={150}>
-            <Text className="text-sm text-neutral-700 dark:text-neutral-300" numberOfLines={2}>
+            <Text
+              style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}
+              numberOfLines={2}
+            >
               {store.additionalNotes}
             </Text>
           </ReviewCard>
@@ -187,7 +275,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
         {/* Urgency */}
         <ReviewCard title={t('diagnoseV2.reviewUrgency')} onEdit={() => editStep(3)} delay={200}>
-          <Text className="text-sm text-neutral-700 dark:text-neutral-300">
+          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}>
             {store.urgency ? urgencyLabels[store.urgency] : t('diagnoseV2.reviewNoUrgency')}
           </Text>
         </ReviewCard>
@@ -195,57 +283,122 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
         {/* Data sharing toggle */}
         <Animated.View
           entering={FadeInUp.delay(250).duration(300)}
-          className="mx-5 mt-2 flex-row items-center justify-between"
+          style={{
+            marginHorizontal: 20,
+            marginTop: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
-          <Text className="text-sm text-neutral-600 dark:text-neutral-400 flex-1 mr-3">
+          <Text
+            style={{
+              fontSize: 14,
+              color: DIAGNOSTIC_COLORS.textSecondary,
+              flex: 1,
+              marginRight: 12,
+            }}
+          >
             {t('diagnoseV2.dataSharingLabel')}
           </Text>
           <Switch
             value={store.dataSharingOptedIn}
             onValueChange={store.setDataSharingOptedIn}
-            trackColor={{ false: palette.neutral300, true: palette.primary500 }}
+            trackColor={{ false: 'rgba(255,255,255,0.1)', true: DIAGNOSTIC_COLORS.accent }}
           />
         </Animated.View>
 
         {/* Disclaimer */}
-        <Animated.View entering={FadeInUp.delay(300).duration(300)} className="mx-5 mt-4">
-          <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center leading-4">
+        <Animated.View
+          entering={FadeInUp.delay(300).duration(300)}
+          style={{ marginHorizontal: 20, marginTop: 16 }}
+        >
+          <Text
+            style={{
+              fontSize: 12,
+              color: DIAGNOSTIC_COLORS.textMuted,
+              textAlign: 'center',
+              lineHeight: 16,
+            }}
+          >
             {t('diagnoseV2.disclaimer')}
           </Text>
         </Animated.View>
       </ScrollView>
 
+      {/* Gradient fade overlay */}
+      <LinearGradient
+        colors={['rgba(15,23,42,0)', 'rgba(15,23,42,1)']}
+        style={{
+          position: 'absolute',
+          bottom: insets.bottom + 12 + 56 + 12,
+          left: 0,
+          right: 0,
+          height: 40,
+          pointerEvents: 'none',
+        }}
+      />
+
       {/* Submit button */}
       <View
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-700 px-5"
-        style={{ paddingBottom: insets.bottom + 12, paddingTop: 12 }}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          borderTopWidth: 1,
+          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 12,
+          paddingTop: 12,
+          backgroundColor: DIAGNOSTIC_COLORS.background,
+        }}
       >
         {store.submitError && (
-          <Text className="text-sm text-danger-500 text-center mb-2">
+          <Text
+            style={{
+              fontSize: 14,
+              color: palette.danger500,
+              textAlign: 'center',
+              marginBottom: 8,
+            }}
+          >
             {t('diagnoseV2.submitError')}
           </Text>
         )}
         <Pressable
-          className={`rounded-2xl py-4 items-center flex-row justify-center gap-2 ${
-            store.isSubmitting ? 'bg-primary-400' : 'bg-primary-500'
-          }`}
-          style={{ borderCurve: 'continuous' }}
+          style={{
+            borderRadius: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            gap: 8,
+            backgroundColor: store.isSubmitting
+              ? 'rgba(129,140,248,0.7)'
+              : DIAGNOSTIC_COLORS.accent,
+            borderCurve: 'continuous',
+          }}
           onPress={store.submitError ? onSubmit : onSubmit}
           disabled={store.isSubmitting}
         >
           {store.isSubmitting ? (
             <>
               <ActivityIndicator size="small" color={palette.white} />
-              <Text className="text-white font-semibold text-base">
+              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
                 {t('diagnoseV2.analyzing')}
               </Text>
             </>
           ) : store.submitError ? (
-            <Text className="text-white font-semibold text-base">{t('diagnoseV2.tryAgain')}</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+              {t('diagnoseV2.tryAgain')}
+            </Text>
           ) : (
             <>
               <Sparkles size={18} color={palette.white} strokeWidth={2} />
-              <Text className="text-white font-semibold text-base">{t('diagnoseV2.analyze')}</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 16 }}>
+                {t('diagnoseV2.analyze')}
+              </Text>
             </>
           )}
         </Pressable>
