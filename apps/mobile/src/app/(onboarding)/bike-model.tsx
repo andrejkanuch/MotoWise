@@ -123,273 +123,283 @@ export default function BikeModelScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
-        <Animated.Text
-          entering={FadeInDown.duration(300)}
-          style={{
-            fontSize: 36,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-            marginBottom: 12,
-          }}
-        >
-          {t('onboarding.bikeModelTitle')}
-        </Animated.Text>
-
-        <Animated.Text
-          entering={FadeInUp.delay(100).duration(300)}
-          style={{
-            fontSize: 17,
-            color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 24,
-            marginBottom: 32,
-          }}
-        >
-          {existingBikeData?.year} {existingBikeData?.make}
-        </Animated.Text>
-
-        {/* Selected model chip */}
-        {selectedModel && !search ? (
-          <Animated.View entering={FadeInUp.delay(150).duration(300)}>
-            <Pressable
-              onPress={() => {
-                setSearch(selectedModel.modelName);
-                setSelectedModel(null);
-              }}
+            <Animated.Text
+              entering={FadeInDown.duration(300)}
               style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.accent,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                padding: 16,
-                marginBottom: 24,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <Text
-                style={{ fontSize: 17, color: ONBOARDING_COLORS.textPrimary, fontWeight: '600' }}
-              >
-                {selectedModel.modelName}
-              </Text>
-              <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
-                {t('onboarding.tapToChange')}
-              </Text>
-            </Pressable>
-          </Animated.View>
-        ) : !noApiResults ? (
-          <Animated.View entering={FadeInUp.delay(200).duration(300)}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 10,
-              }}
-            >
-              <Search size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                {t('onboarding.searchModel')}
-              </Text>
-            </View>
-            <TextInput
-              value={search}
-              onChangeText={(text) => {
-                setSearch(text);
-                setSelectedModel(null);
-                setCustomModel('');
-              }}
-              placeholder={t('onboarding.searchModel')}
-              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
-              autoFocus
-              style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.cardBorder,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                padding: 16,
-                fontSize: 17,
+                fontSize: 36,
+                fontWeight: '800',
                 color: ONBOARDING_COLORS.textPrimary,
+                letterSpacing: -0.5,
                 marginBottom: 12,
               }}
-            />
-          </Animated.View>
-        ) : null}
+            >
+              {t('onboarding.bikeModelTitle')}
+            </Animated.Text>
 
-        {/* Loading */}
-        {modelsResult.isLoading && (
-          <ActivityIndicator color={ONBOARDING_COLORS.accent} style={{ marginVertical: 20 }} />
-        )}
-
-        {/* Error with retry */}
-        {modelsResult.isError && (
-          <View style={{ alignItems: 'center', marginVertical: 20, gap: 12 }}>
-            <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
-              {t('onboarding.modelsLoadError')}
-            </Text>
-            <Pressable
-              onPress={() => modelsResult.refetch()}
+            <Animated.Text
+              entering={FadeInUp.delay(100).duration(300)}
               style={{
-                backgroundColor: ONBOARDING_COLORS.cardBorder,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                paddingHorizontal: 20,
-                paddingVertical: 10,
+                fontSize: 17,
+                color: ONBOARDING_COLORS.textSecondary,
+                lineHeight: 24,
+                marginBottom: 32,
               }}
             >
-              <Text style={{ fontSize: 15, fontWeight: '600', color: ONBOARDING_COLORS.accent }}>
-                {t('common.retry')}
+              {existingBikeData?.year} {existingBikeData?.make}
+            </Animated.Text>
+
+            {/* Selected model chip */}
+            {selectedModel && !search ? (
+              <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+                <Pressable
+                  onPress={() => {
+                    setSearch(selectedModel.modelName);
+                    setSelectedModel(null);
+                  }}
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.accent,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    padding: 16,
+                    marginBottom: 24,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 17,
+                      color: ONBOARDING_COLORS.textPrimary,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {selectedModel.modelName}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
+                    {t('onboarding.tapToChange')}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            ) : !noApiResults ? (
+              <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <Search size={18} color={ONBOARDING_COLORS.textMuted} />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: ONBOARDING_COLORS.textMuted,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {t('onboarding.searchModel')}
+                  </Text>
+                </View>
+                <TextInput
+                  value={search}
+                  onChangeText={(text) => {
+                    setSearch(text);
+                    setSelectedModel(null);
+                    setCustomModel('');
+                  }}
+                  placeholder={t('onboarding.searchModel')}
+                  placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+                  autoFocus
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    padding: 16,
+                    fontSize: 17,
+                    color: ONBOARDING_COLORS.textPrimary,
+                    marginBottom: 12,
+                  }}
+                />
+              </Animated.View>
+            ) : null}
+
+            {/* Loading */}
+            {modelsResult.isLoading && (
+              <ActivityIndicator color={ONBOARDING_COLORS.accent} style={{ marginVertical: 20 }} />
+            )}
+
+            {/* Error with retry */}
+            {modelsResult.isError && (
+              <View style={{ alignItems: 'center', marginVertical: 20, gap: 12 }}>
+                <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
+                  {t('onboarding.modelsLoadError')}
+                </Text>
+                <Pressable
+                  onPress={() => modelsResult.refetch()}
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBorder,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 15, fontWeight: '600', color: ONBOARDING_COLORS.accent }}
+                  >
+                    {t('common.retry')}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* Models list */}
+            {!selectedModel && filteredModels.length > 0 && !modelsResult.isLoading && (
+              <Animated.View entering={FadeInUp.duration(200)} style={{ flex: 1 }}>
+                <View
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.cardBgSelected,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    flex: 1,
+                    maxHeight: 340,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                    {filteredModels.slice(0, 30).map((model) => (
+                      <Pressable
+                        key={model.modelId}
+                        onPress={() => handleSelectModel(model)}
+                        style={({ pressed }) => ({
+                          paddingHorizontal: 16,
+                          paddingVertical: 14,
+                          borderBottomWidth: 1,
+                          borderBottomColor: ONBOARDING_COLORS.cardBg,
+                          backgroundColor: pressed
+                            ? ONBOARDING_COLORS.cardBorderDefault
+                            : 'transparent',
+                        })}
+                      >
+                        <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.textPrimary }}>
+                          {model.modelName}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              </Animated.View>
+            )}
+
+            {/* No search results within existing models */}
+            {noSearchResults && (
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: ONBOARDING_COLORS.textMuted,
+                  marginTop: 4,
+                }}
+              >
+                {t('onboarding.noModelsFound')}
               </Text>
-            </Pressable>
-          </View>
-        )}
+            )}
 
-        {/* Models list */}
-        {!selectedModel && filteredModels.length > 0 && !modelsResult.isLoading && (
-          <Animated.View entering={FadeInUp.duration(200)} style={{ flex: 1 }}>
-            <View
-              style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.cardBgSelected,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                flex: 1,
-                maxHeight: 340,
-                overflow: 'hidden',
-              }}
-            >
-              <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                {filteredModels.slice(0, 30).map((model) => (
+            {/* No API results — free-text input */}
+            {noApiResults && !selectedModel && (
+              <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <Bike size={18} color={ONBOARDING_COLORS.textMuted} />
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: ONBOARDING_COLORS.textMuted,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {t('onboarding.enterModelManually')}
+                  </Text>
+                </View>
+                <TextInput
+                  value={customModel}
+                  onChangeText={setCustomModel}
+                  placeholder={t('onboarding.modelPlaceholder')}
+                  placeholderTextColor={ONBOARDING_COLORS.textDimmed}
+                  autoFocus
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.cardBorder,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    padding: 16,
+                    fontSize: 17,
+                    color: ONBOARDING_COLORS.textPrimary,
+                    marginBottom: 12,
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: ONBOARDING_COLORS.textMuted,
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {t('onboarding.modelNotInDatabase')}
+                </Text>
+              </Animated.View>
+            )}
+
+            {/* Continue button */}
+            {canContinue && (
+              <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
+                <Animated.View entering={FadeInUp.duration(250)}>
                   <Pressable
-                    key={model.modelId}
-                    onPress={() => handleSelectModel(model)}
+                    onPress={handleContinue}
                     style={({ pressed }) => ({
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                      borderBottomWidth: 1,
-                      borderBottomColor: ONBOARDING_COLORS.cardBg,
-                      backgroundColor: pressed
-                        ? ONBOARDING_COLORS.cardBorderDefault
-                        : 'transparent',
+                      backgroundColor: ONBOARDING_COLORS.textPrimary,
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      paddingVertical: 16,
+                      alignItems: 'center',
+                      opacity: pressed ? 0.85 : 1,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      gap: 8,
                     })}
                   >
-                    <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.textPrimary }}>
-                      {model.modelName}
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        fontWeight: '700',
+                        color: ONBOARDING_COLORS.background,
+                      }}
+                    >
+                      {t('onboarding.continue')}
                     </Text>
+                    <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
                   </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          </Animated.View>
-        )}
-
-        {/* No search results within existing models */}
-        {noSearchResults && (
-          <Text
-            style={{
-              fontSize: 15,
-              color: ONBOARDING_COLORS.textMuted,
-              marginTop: 4,
-            }}
-          >
-            {t('onboarding.noModelsFound')}
-          </Text>
-        )}
-
-        {/* No API results — free-text input */}
-        {noApiResults && !selectedModel && (
-          <Animated.View entering={FadeInUp.delay(200).duration(300)}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 10,
-              }}
-            >
-              <Bike size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                {t('onboarding.enterModelManually')}
-              </Text>
-            </View>
-            <TextInput
-              value={customModel}
-              onChangeText={setCustomModel}
-              placeholder={t('onboarding.modelPlaceholder')}
-              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
-              autoFocus
-              style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.cardBorder,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                padding: 16,
-                fontSize: 17,
-                color: ONBOARDING_COLORS.textPrimary,
-                marginBottom: 12,
-              }}
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                color: ONBOARDING_COLORS.textMuted,
-                fontStyle: 'italic',
-              }}
-            >
-              {t('onboarding.modelNotInDatabase')}
-            </Text>
-          </Animated.View>
-        )}
-
-        {/* Continue button */}
-        {canContinue && (
-          <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
-            <Animated.View entering={FadeInUp.duration(250)}>
-              <Pressable
-                onPress={handleContinue}
-                style={({ pressed }) => ({
-                  backgroundColor: ONBOARDING_COLORS.textPrimary,
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  paddingVertical: 16,
-                  alignItems: 'center',
-                  opacity: pressed ? 0.85 : 1,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  gap: 8,
-                })}
-              >
-                <Text
-                  style={{ fontSize: 17, fontWeight: '700', color: ONBOARDING_COLORS.background }}
-                >
-                  {t('onboarding.continue')}
-                </Text>
-                <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
-              </Pressable>
-            </Animated.View>
-          </View>
-        )}
+                </Animated.View>
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>

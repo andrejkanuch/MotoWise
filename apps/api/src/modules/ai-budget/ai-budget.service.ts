@@ -111,7 +111,7 @@ export class AiBudgetService {
       throw new HttpException('AI service temporarily unavailable', HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    const totalCents = (data as any)?.sum ?? 0;
+    const totalCents = (data as Record<string, number>)?.sum ?? 0;
 
     if (totalCents >= AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS) {
       this.circuitBreakerOpen = true;
@@ -153,7 +153,7 @@ export class AiBudgetService {
       throw new InternalServerErrorException('Failed to fetch AI budget status');
     }
 
-    const totalCents = (spendResult.data as any)?.sum ?? 0;
+    const totalCents = (spendResult.data as Record<string, number>)?.sum ?? 0;
 
     return {
       circuitBreakerOpen: this.circuitBreakerOpen,

@@ -194,9 +194,7 @@ export default function BikeYearScreen() {
                   </Text>
                   <ChevronRight
                     size={20}
-                    color={
-                      isValidYear ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted
-                    }
+                    color={isValidYear ? ONBOARDING_COLORS.background : ONBOARDING_COLORS.textMuted}
                   />
                 </Pressable>
               </Animated.View>

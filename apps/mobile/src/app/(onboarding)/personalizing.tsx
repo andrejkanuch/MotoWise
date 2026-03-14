@@ -1,7 +1,6 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { uploadBikePhoto } from '../../lib/image-upload';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { uploadBikePhoto } from '../../lib/image-upload';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
