@@ -32,28 +32,10 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
 const MODULES = [
-  { key: 'engine', icon: Cog, color: palette.moduleEngine, lessons: 12, category: 'engine-basics' },
-  {
-    key: 'suspension',
-    icon: Sparkles,
-    color: palette.moduleSuspension,
-    lessons: 8,
-    category: 'suspension',
-  },
-  {
-    key: 'electrical',
-    icon: Zap,
-    color: palette.moduleElectrical,
-    lessons: 10,
-    category: 'electrical',
-  },
-  {
-    key: 'maintenance',
-    icon: Wrench,
-    color: palette.moduleMaintenance,
-    lessons: 15,
-    category: 'maintenance',
-  },
+  { key: 'engine', icon: Cog, color: palette.moduleEngine, category: 'engine-basics' },
+  { key: 'suspension', icon: Sparkles, color: palette.moduleSuspension, category: 'suspension' },
+  { key: 'electrical', icon: Zap, color: palette.moduleElectrical, category: 'electrical' },
+  { key: 'maintenance', icon: Wrench, color: palette.moduleMaintenance, category: 'maintenance' },
 ] as const;
 
 const DIFFICULTY_COLORS = {
@@ -219,9 +201,22 @@ export default function LearnScreen() {
         {isSearchActive ? (
           /* Search Results */
           <Animated.View entering={FadeInUp.duration(300)} className="px-5 mt-4">
-            <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
-              {t('learn.searchResults')}
-            </Text>
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
+                {t('learn.searchResults')}
+              </Text>
+              <Pressable
+                onPress={handleClear}
+                hitSlop={8}
+                className="flex-row items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-700"
+                style={{ borderCurve: 'continuous' }}
+              >
+                <X size={14} color={palette.neutral500} strokeWidth={2} />
+                <Text className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                  {t('common.back')}
+                </Text>
+              </Pressable>
+            </View>
 
             {isSearching ? (
               <View className="py-8 items-center">
@@ -416,9 +411,6 @@ export default function LearnScreen() {
                         </View>
                         <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50 mt-3 capitalize">
                           {t(`learn.module.${mod.key}`)}
-                        </Text>
-                        <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                          {t('learn.lessonsCount', { count: mod.lessons })}
                         </Text>
                       </Pressable>
                     </Animated.View>

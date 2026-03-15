@@ -5,6 +5,9 @@ import { z } from 'zod';
  * NO .optional(), NO .refine(), NO .record() — only .nullable() and .describe().
  */
 export const DiagnosticAiResultSchema = z.object({
+  description: z
+    .string()
+    .describe('A concise one or two sentence summary of the diagnosis for the user'),
   part: z.string().describe('The motorcycle part or component affected'),
   issues: z
     .array(

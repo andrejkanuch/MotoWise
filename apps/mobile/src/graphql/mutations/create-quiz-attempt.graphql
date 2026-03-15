@@ -1,9 +1,0 @@
-mutation CreateQuizAttempt($input: SubmitQuizInput!) {
-  submitQuiz(input: $input) {
-    id
-    quizId
-    score
-    totalQuestions
-    completedAt
-  }
-}

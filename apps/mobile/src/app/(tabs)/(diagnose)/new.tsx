@@ -1,4 +1,4 @@
-import { SubmitDiagnosticDocument } from '@motovault/graphql';
+import { type Urgency as GqlUrgency, SubmitDiagnosticDocument } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -134,24 +134,45 @@ export default function NewDiagnosticScreen() {
         });
       }
 
-      // TODO: After `pnpm generate`, the generated types will include v2 fields natively
+      const symptoms = state.wizardAnswers.symptoms.join(',');
+      const location = state.wizardAnswers.location.join(',');
+      const timing = state.wizardAnswers.timing.join(',');
+
       const result = await gqlFetcher(SubmitDiagnosticDocument, {
         input: {
-          motorcycleId: state.selectedMotorcycleId || '',
-          photoBase64: photoBase64 || '',
-          wizardAnswers: {
-            symptoms: state.wizardAnswers.symptoms.join(','),
-            location: state.wizardAnswers.location.join(','),
-            timing: state.wizardAnswers.timing.join(','),
-          },
+          motorcycleId: state.selectedMotorcycleId || undefined,
+          photoBase64: photoBase64 || undefined,
+          freeTextDescription: state.freeTextDescription?.trim() || undefined,
+          additionalNotes: state.additionalNotes?.trim() || undefined,
+          urgency: (state.urgency as GqlUrgency) || undefined,
+          wizardAnswers:
+            symptoms || location || timing
+              ? {
+                  symptoms: symptoms || undefined,
+                  location: location || undefined,
+                  timing: timing || undefined,
+                }
+              : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
         },
       });
 
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
-    } catch (error) {
-      state.setSubmitError(error instanceof Error ? error.message : 'Failed to analyze');
+    } catch (error: unknown) {
+      let message = 'Failed to analyze';
+      if (error && typeof error === 'object') {
+        // graphql-request ClientError has response.errors[]
+        const gqlErrors = (error as { response?: { errors?: { message: string }[] } }).response
+          ?.errors;
+        if (gqlErrors?.length) {
+          message = gqlErrors.map((e) => e.message).join('; ');
+        } else if (error instanceof Error) {
+          message = error.message;
+        }
+      }
+      console.error('[submitDiagnostic] error:', JSON.stringify(error, null, 2));
+      state.setSubmitError(message);
     } finally {
       state.setIsSubmitting(false);
     }

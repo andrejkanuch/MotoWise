@@ -8,6 +8,7 @@ query DiagnosticById($id: String!) {
     relatedArticleId
     resultJson
     description
+    photoUrl
     status
     dataSharingOptedIn
     createdAt

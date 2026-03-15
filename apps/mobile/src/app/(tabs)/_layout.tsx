@@ -102,7 +102,11 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               routeState.index > 0 &&
               queryClient.isMutating() === 0
             ) {
-              navigation.dispatch(StackActions.popToTop());
+              try {
+                navigation.dispatch(StackActions.popToTop());
+              } catch {
+                // Stack may not support popToTop in this state
+              }
             }
           }
         };
@@ -193,7 +197,11 @@ export default function TabsLayout() {
             if (route.state && route.state.index > 0) {
               e.preventDefault();
               if (queryClient.isMutating() === 0) {
+                try {
                 navigation.dispatch(StackActions.popToTop());
+              } catch {
+                // Stack may not support popToTop in this state
+              }
               }
             }
           },

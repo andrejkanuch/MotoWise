@@ -170,7 +170,7 @@ export function LearnOnboardingCard({ onBrowse, onGenerate }: LearnOnboardingCar
         >
           <Sparkles size={16} color={palette.white} strokeWidth={2} />
           <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-            {t('learn.generateArticle', { defaultValue: 'Generate Article' })}
+            {t('learn.generateArticle', { defaultValue: 'Surprise Me with an Article' })}
           </Text>
         </Pressable>
       </View>

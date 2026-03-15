@@ -11,12 +11,21 @@ describe('ArticlesResolver auth guard audit', () => {
   const resolverPrototype = ArticlesResolver.prototype;
 
   const getGuards = (methodName: string) => {
-    const guards = Reflect.getMetadata('__guards__', resolverPrototype[methodName]) ?? [];
+    const guards =
+      Reflect.getMetadata(
+        '__guards__',
+        (resolverPrototype as unknown as Record<string, unknown>)[methodName] as object,
+      ) ?? [];
     return guards;
   };
 
   const isPublic = (methodName: string) => {
-    return Reflect.getMetadata(IS_PUBLIC_KEY, resolverPrototype[methodName]) === true;
+    return (
+      Reflect.getMetadata(
+        IS_PUBLIC_KEY,
+        (resolverPrototype as unknown as Record<string, unknown>)[methodName] as object,
+      ) === true
+    );
   };
 
   describe('public queries (intentionally unauthenticated)', () => {

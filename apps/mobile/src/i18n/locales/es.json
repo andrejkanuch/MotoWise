@@ -119,8 +119,8 @@
     "articlePrefix": "Articulo: {{slug}}",
     "quizPrefix": "Cuestionario: {{id}}",
     "noResults": "No se encontraron articulos",
-    "generateArticle": "Generar con IA",
-    "generating": "La IA esta escribiendo tu articulo...",
+    "generateArticle": "Sorprendeme con un articulo",
+    "generating": "Escribiendo algo genial...",
     "searchResults": "Resultados de busqueda"
   },
   "article": {

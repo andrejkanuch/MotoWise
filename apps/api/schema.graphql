@@ -158,6 +158,7 @@ type Diagnostic {
   description: String
   id: ID!
   motorcycleId: String
+  photoUrl: String
   relatedArticleId: String
   resultJson: JSON
   severity: DiagnosticSeverity

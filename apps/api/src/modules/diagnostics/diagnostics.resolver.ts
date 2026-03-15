@@ -55,6 +55,18 @@ export class DiagnosticsResolver {
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,
   ): Promise<Diagnostic> {
+    console.log(
+      '[submitDiagnostic] input received:',
+      JSON.stringify(
+        {
+          ...input,
+          photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
+        },
+        null,
+        2,
+      ),
+    );
+
     // 0. Server-side monthly diagnostic limit check
     const userRecord = await this.usersService.findById(user.id);
     const tier = (userRecord.subscriptionTier as 'free' | 'pro') ?? 'free';
@@ -73,6 +85,7 @@ export class DiagnosticsResolver {
       wizardAnswers: input.wizardAnswers,
       dataSharingOptedIn: input.dataSharingOptedIn,
       freeTextDescription: input.freeTextDescription,
+      additionalNotes: input.additionalNotes,
       urgency: input.urgency,
       manualBikeInfo: input.manualBikeInfo,
     });
