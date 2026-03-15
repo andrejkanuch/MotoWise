@@ -1,9 +1,9 @@
 {
   "Metadata": {
-    "title": "MotoVault — KI-gestütztes Motorrad-Lernen & Diagnose",
+    "title": "MotoVault — KI-Motorraddiagnose & Lern-App",
     "titleTemplate": "%s | MotoVault",
-    "description": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und überwache den Zustand deines Motorrads. Lerne dein Bike. Repariere dein Bike.",
-    "ogDescription": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und überwache den Zustand deines Motorrads. Lerne dein Bike. Repariere dein Bike."
+    "description": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android.",
+    "ogDescription": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android."
   },
   "Navbar": {
     "features": "Funktionen",
@@ -20,10 +20,11 @@
     "subtitle": "KI-gestützte Motorraddiagnose & Lernen — bald verfügbar.",
     "downloadCta": "Early Access",
     "exploreFeatures": "Funktionen Entdecken",
-    "scrollDown": "Nach unten scrollen"
+    "scrollDown": "Nach unten scrollen",
+    "seoTitle": "KI-gestützte Motorraddiagnose & Lern-App"
   },
   "Features": {
-    "sectionTitle": "Für Motorradfahrer Entwickelt",
+    "sectionTitle": "Motorraddiagnose- und Wartungsfunktionen",
     "sectionSubtitle": "Alles, was du brauchst, um dein Motorrad zu lernen, zu warten und zu meistern.",
     "diag": {
       "title": "KI-Diagnose",
@@ -65,7 +66,7 @@
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
-    "sectionTitle": "So Funktioniert's",
+    "sectionTitle": "So funktioniert die KI-Motorraddiagnose",
     "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
     "step1Title": "Füge Dein Bike Hinzu",
     "step1Desc": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
@@ -75,7 +76,7 @@
     "step3Desc": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
   },
   "Testimonials": {
-    "sectionTitle": "Was Fahrer Sagen",
+    "sectionTitle": "Was Motorradfahrer sagen",
     "badge": "Early Access",
     "items": [
       {
@@ -112,7 +113,7 @@
   },
   "Cta": {
     "socialProof": "Vertraut von Fahrern im Early Access",
-    "headline": "Sei der Erste, der sein Motorrad meistert",
+    "headline": "Starte heute mit der Motorradwartung",
     "subtitle": "Erhalte Early Access, wenn wir auf iOS und Android starten.",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
@@ -154,6 +155,8 @@
     "tagline": "Lerne dein Bike. Repariere dein Bike.",
     "copyright": "© 2026 MotoVault. Alle Rechte vorbehalten.",
     "features": "Funktionen",
+    "learning": "Lernpfade",
+    "garage": "Garage",
     "download": "Early Access",
     "faq": "Häufige Fragen",
     "support": "Support",
@@ -289,8 +292,83 @@
     "fr": "Français",
     "it": "Italiano"
   },
+  "Blog": {
+    "title": "Motorrad-Wartungsblog",
+    "description": "Expertenanleitungen zu Motorradwartung, KI-Diagnose und Fahrtipps. Lerne dein Motorrad wie ein Profi zu warten und zu diagnostizieren.",
+    "readMore": "Weiterlesen",
+    "readingTime": "Min. Lesezeit",
+    "publishedOn": "Veroffentlicht am",
+    "backToBlog": "Zuruck zu allen Artikeln",
+    "by": "Von",
+    "relatedArticles": "Verwandte Artikel"
+  },
   "JsonLd": {
     "organizationName": "MotoVault",
     "organizationDescription": "KI-gestützte Plattform für Motorrad-Lernen und Diagnose"
+  },
+  "FeaturesDiagnostics": {
+    "title": "KI-Motorraddiagnose",
+    "description": "Mach ein Foto deines Motorradproblems und erhalte eine KI-gestützte Diagnose in Sekunden. Unterstützt über 18.000 Bike-Modelle.",
+    "heroTitle": "KI-gestützte Motorraddiagnose",
+    "heroSubtitle": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt das Problem und schlägt Lösungen vor — alles in Sekunden.",
+    "howItWorksTitle": "So Funktioniert's",
+    "step1Title": "Mach ein Foto",
+    "step1Desc": "Fotografiere das Motorradteil, die Warnleuchte oder das Problem, das du diagnostizieren möchtest.",
+    "step2Title": "KI Analysiert",
+    "step2Desc": "Unsere KI verarbeitet das Bild, identifiziert Komponenten und gleicht bekannte Probleme für dein spezifisches Bike-Modell ab.",
+    "step3Title": "Erhalte Deine Diagnose",
+    "step3Desc": "Erhalte eine detaillierte Diagnose mit Schweregrad, empfohlenen Maßnahmen und geschätzten Reparaturkosten.",
+    "issuesTitle": "Was Wir Diagnostizieren Können",
+    "issue1": "Warnleuchten und Armaturenbrettsymbole",
+    "issue2": "Motor- und mechanische Probleme",
+    "issue3": "Elektrische Systemprobleme",
+    "issue4": "Brems- und Fahrwerksverschleiß",
+    "issue5": "Ketten- und Antriebszustand",
+    "issue6": "Reifenverschleiß und Druckprobleme",
+    "issue7": "Flüssigkeitslecks und -stände",
+    "issue8": "Korrosion und Karosserieschäden"
+  },
+  "FeaturesLearning": {
+    "title": "Motorrad-Lernpfade und Quizze",
+    "description": "Meistere die Motorradwartung mit strukturierten Kursen, interaktiven Quizzen und Fortschrittsverfolgung. Von den Grundlagen bis Fortgeschritten.",
+    "heroTitle": "Lerne Motorradwartung",
+    "heroSubtitle": "Strukturierte Kurse, interaktive Quizze und praktische Herausforderungen — vom Anfänger zum Experten.",
+    "coursesTitle": "Verfügbare Kurse",
+    "course1Title": "Motorinterna",
+    "course1Desc": "Verstehe, wie dein Motor funktioniert, von den Grundlagen der Verbrennung bis zur Ventilsteuerung und häufigen Fehlerquellen.",
+    "course2Title": "Fahrwerkseinstellung",
+    "course2Desc": "Lerne Vorspannung, Zugstufe und Druckstufeneinstellungen. Stelle dein Fahrwerk auf deinen Fahrstil ein.",
+    "course3Title": "Elektrik",
+    "course3Desc": "Meistere Batteriepflege, Sicherungsdiagnose, Starterfehlerbehebung und Verkabelungsgrundlagen.",
+    "course4Title": "Routinewartung",
+    "course4Desc": "Ölwechsel, Kettenpflege, Bremseninspektion, Reifendruck — alles für die regelmäßige Wartung.",
+    "quizTitle": "Teste Dein Wissen",
+    "quizDesc": "Interaktive Quizze nach jeder Lektion. Verfolge deine Punkte, verdiene Abzeichen und baue echtes Fachwissen auf."
+  },
+  "FeaturesGarage": {
+    "title": "Motorrad-Garagenverwaltung",
+    "description": "Verfolge mehrere Bikes, protokolliere Wartungen, stelle Serviceerinnerungen ein. Unterstützt über 18.000 Modelle via NHTSA-Datenbank.",
+    "heroTitle": "Deine Digitale Motorrad-Garage",
+    "heroSubtitle": "Verfolge jedes Bike, das du besitzt. Protokolliere Wartungen, stelle Erinnerungen ein und führe eine vollständige Servicehistorie.",
+    "multiBikeTitle": "Multi-Bike-Verwaltung",
+    "multiBikeDesc": "Füge unbegrenzt Motorräder zu deiner digitalen Garage hinzu. Jedes Bike bekommt seine eigene Wartungszeitlinie und Servicehistorie.",
+    "nhtsaTitle": "Über 18.000 Bikes Unterstützt",
+    "nhtsaDesc": "Suche nach Marke, Modell und Baujahr. Unsere Datenbank nutzt offizielle NHTSA-Fahrzeugdaten aller großen Hersteller.",
+    "historyTitle": "Vollständige Wartungshistorie",
+    "historyDesc": "Protokolliere jeden Ölwechsel, Reifenwechsel und Servicebesuch. Vergiss nie, wann du eine kritische Komponente zuletzt gewartet hast.",
+    "remindersTitle": "Intelligente Serviceerinnerungen",
+    "remindersDesc": "Stelle kilometer- oder zeitbasierte Erinnerungen ein. Werde benachrichtigt, bevor die Wartung überfällig ist."
+  },
+  "FeaturesProgress": {
+    "title": "Verfolge Dein Motorradwissen",
+    "description": "Verdiene Abzeichen, verfolge Quizpunkte, baue Lernsträhnen auf. Gamifizierte Motorradausbildung, die dich motiviert hält.",
+    "heroTitle": "Verfolge Deinen Fortschritt",
+    "heroSubtitle": "Gamifiziertes Lernen, das dich motiviert hält. Verdiene Abzeichen, baue Strähnen auf und beobachte, wie dein Fachwissen wächst.",
+    "badgesTitle": "Verdiene Leistungsabzeichen",
+    "badgesDesc": "Schließe Kurse ab, meistere Quizze und erreiche Meilensteine, um Leistungsabzeichen freizuschalten. Zeige dein Motorradwissen.",
+    "streaksTitle": "Baue Lernsträhnen Auf",
+    "streaksDesc": "Lerne jeden Tag etwas Neues. Baue Strähnen auf, um konsistent zu bleiben und dauerhaftes Motorradwissen aufzubauen.",
+    "scoresTitle": "Verfolge Quizpunkte",
+    "scoresDesc": "Sieh deine Leistung über alle Module hinweg. Identifiziere schwache Bereiche und fokussiere dein Lernen dort, wo es am meisten zählt."
   }
 }

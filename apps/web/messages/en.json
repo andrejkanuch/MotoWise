@@ -1,9 +1,9 @@
 {
   "Metadata": {
-    "title": "MotoVault — AI-Powered Motorcycle Learning & Diagnostics",
+    "title": "MotoVault — AI Motorcycle Diagnostics & Learning App",
     "titleTemplate": "%s | MotoVault",
-    "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike.",
-    "ogDescription": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Learn your bike. Fix your bike."
+    "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Free on iOS & Android.",
+    "ogDescription": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Free on iOS & Android."
   },
   "Navbar": {
     "features": "Features",
@@ -20,10 +20,11 @@
     "subtitle": "AI-powered motorcycle diagnostics & learning — launching soon.",
     "downloadCta": "Get Early Access",
     "exploreFeatures": "Explore Features",
-    "scrollDown": "Scroll down"
+    "scrollDown": "Scroll down",
+    "seoTitle": "AI-Powered Motorcycle Diagnostics & Learning App"
   },
   "Features": {
-    "sectionTitle": "Built for Riders",
+    "sectionTitle": "Motorcycle Diagnostics & Maintenance Features",
     "sectionSubtitle": "Everything you need to learn, maintain, and master your motorcycle.",
     "diag": {
       "title": "AI Diagnostics",
@@ -65,7 +66,7 @@
     "bikesCount": "18,000+"
   },
   "HowItWorks": {
-    "sectionTitle": "How It Works",
+    "sectionTitle": "How AI Motorcycle Diagnostics Works",
     "sectionSubtitle": "Three simple steps to motorcycle mastery.",
     "step1Title": "Add Your Bike",
     "step1Desc": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
@@ -75,7 +76,7 @@
     "step3Desc": "Follow personalized maintenance schedules and structured learning paths to master your motorcycle."
   },
   "Testimonials": {
-    "sectionTitle": "What Riders Say",
+    "sectionTitle": "What Motorcycle Riders Say",
     "badge": "Early Access",
     "items": [
       {
@@ -112,7 +113,7 @@
   },
   "Cta": {
     "socialProof": "Trusted by riders in early access",
-    "headline": "Be First to Master Your Motorcycle",
+    "headline": "Start Learning Motorcycle Maintenance Today",
     "subtitle": "Get early access when we launch on iOS and Android.",
     "trustFree": "Free at launch",
     "trustNoCard": "No credit card",
@@ -154,6 +155,8 @@
     "tagline": "Learn your bike. Fix your bike.",
     "copyright": "© 2026 MotoVault. All rights reserved.",
     "features": "Features",
+    "learning": "Learning Paths",
+    "garage": "Garage",
     "download": "Early Access",
     "faq": "FAQ",
     "support": "Support",
@@ -289,8 +292,83 @@
     "fr": "Français",
     "it": "Italiano"
   },
+  "Blog": {
+    "title": "Motorcycle Maintenance Blog",
+    "description": "Expert guides on motorcycle maintenance, AI diagnostics, and riding tips. Learn to maintain and diagnose your bike like a pro.",
+    "readMore": "Read more",
+    "readingTime": "min read",
+    "publishedOn": "Published on",
+    "backToBlog": "Back to all articles",
+    "by": "By",
+    "relatedArticles": "Related Articles"
+  },
   "JsonLd": {
     "organizationName": "MotoVault",
     "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
+  },
+  "FeaturesDiagnostics": {
+    "title": "AI Motorcycle Diagnostics",
+    "description": "Snap a photo of your motorcycle issue and get an AI-powered diagnosis in seconds. Supports 18,000+ bike models.",
+    "heroTitle": "AI-Powered Motorcycle Diagnostics",
+    "heroSubtitle": "Point your camera at any part, warning light, or issue. Our AI identifies the problem and suggests fixes — all in seconds.",
+    "howItWorksTitle": "How It Works",
+    "step1Title": "Snap a Photo",
+    "step1Desc": "Take a photo of the motorcycle part, warning light, or issue you want diagnosed.",
+    "step2Title": "AI Analyzes",
+    "step2Desc": "Our AI processes the image, identifies components, and cross-references known issues for your specific bike model.",
+    "step3Title": "Get Your Diagnosis",
+    "step3Desc": "Receive a detailed diagnosis with severity rating, recommended actions, and estimated repair costs.",
+    "issuesTitle": "What We Can Diagnose",
+    "issue1": "Warning lights & dashboard symbols",
+    "issue2": "Engine & mechanical issues",
+    "issue3": "Electrical system problems",
+    "issue4": "Brake & suspension wear",
+    "issue5": "Chain & drivetrain condition",
+    "issue6": "Tire wear & pressure issues",
+    "issue7": "Fluid leaks & levels",
+    "issue8": "Corrosion & body damage"
+  },
+  "FeaturesLearning": {
+    "title": "Motorcycle Learning Paths & Quizzes",
+    "description": "Master motorcycle maintenance with structured courses, interactive quizzes, and progress tracking. From basics to advanced.",
+    "heroTitle": "Learn Motorcycle Maintenance",
+    "heroSubtitle": "Structured courses, interactive quizzes, and hands-on challenges — from beginner to expert.",
+    "coursesTitle": "Available Courses",
+    "course1Title": "Engine Internals",
+    "course1Desc": "Understand how your engine works, from combustion basics to valve timing and common failure points.",
+    "course2Title": "Suspension Tuning",
+    "course2Desc": "Learn preload, rebound, and compression settings. Set up your suspension for your riding style.",
+    "course3Title": "Electrical Systems",
+    "course3Desc": "Master battery care, fuse diagnostics, starter troubleshooting, and wiring basics.",
+    "course4Title": "Routine Maintenance",
+    "course4Desc": "Oil changes, chain care, brake inspection, tire pressure — everything for regular upkeep.",
+    "quizTitle": "Test Your Knowledge",
+    "quizDesc": "Interactive quizzes after every lesson. Track your scores, earn badges, and build real expertise."
+  },
+  "FeaturesGarage": {
+    "title": "Motorcycle Garage Management",
+    "description": "Track multiple bikes, log maintenance, set service reminders. Supports 18,000+ models via NHTSA database.",
+    "heroTitle": "Your Digital Motorcycle Garage",
+    "heroSubtitle": "Track every bike you own. Log maintenance, set reminders, and keep a complete service history.",
+    "multiBikeTitle": "Multi-Bike Management",
+    "multiBikeDesc": "Add unlimited motorcycles to your digital garage. Each bike gets its own maintenance timeline and service history.",
+    "nhtsaTitle": "18,000+ Bikes Supported",
+    "nhtsaDesc": "Search by make, model, and year. Our database uses official NHTSA vehicle data covering every major manufacturer.",
+    "historyTitle": "Complete Maintenance History",
+    "historyDesc": "Log every oil change, tire swap, and service visit. Never forget when you last maintained a critical component.",
+    "remindersTitle": "Smart Service Reminders",
+    "remindersDesc": "Set mileage-based or time-based reminders. Get notified before maintenance is overdue."
+  },
+  "FeaturesProgress": {
+    "title": "Track Your Motorcycle Knowledge",
+    "description": "Earn badges, track quiz scores, build learning streaks. Gamified motorcycle education that keeps you motivated.",
+    "heroTitle": "Track Your Progress",
+    "heroSubtitle": "Gamified learning that keeps you motivated. Earn badges, build streaks, and watch your expertise grow.",
+    "badgesTitle": "Earn Achievement Badges",
+    "badgesDesc": "Complete courses, ace quizzes, and hit milestones to unlock achievement badges. Show off your motorcycle knowledge.",
+    "streaksTitle": "Build Learning Streaks",
+    "streaksDesc": "Learn something new every day. Build streaks to stay consistent and build lasting motorcycle knowledge.",
+    "scoresTitle": "Track Quiz Scores",
+    "scoresDesc": "See your performance across all modules. Identify weak areas and focus your learning where it matters most."
   }
 }

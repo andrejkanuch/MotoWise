@@ -1,9 +1,9 @@
 {
   "Metadata": {
-    "title": "MotoVault — Aprendizaje y Diagnóstico de Motos con IA",
+    "title": "MotoVault — Diagnóstico y Aprendizaje de Motos con IA",
     "titleTemplate": "%s | MotoVault",
-    "description": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Aprende tu moto. Repárala.",
-    "ogDescription": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Aprende tu moto. Repárala."
+    "description": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Gratis en iOS y Android.",
+    "ogDescription": "Domina el mantenimiento de tu moto, diagnostica problemas con fotos e IA, y controla la salud de tu moto. Gratis en iOS y Android."
   },
   "Navbar": {
     "features": "Funciones",
@@ -20,10 +20,11 @@
     "subtitle": "Diagnóstico y aprendizaje de motos con IA — próximamente.",
     "downloadCta": "Acceso Anticipado",
     "exploreFeatures": "Explorar Funciones",
-    "scrollDown": "Desplazar hacia abajo"
+    "scrollDown": "Desplazar hacia abajo",
+    "seoTitle": "Diagnóstico de Motocicletas con IA y App de Aprendizaje"
   },
   "Features": {
-    "sectionTitle": "Diseñado para Motociclistas",
+    "sectionTitle": "Funciones de Diagnóstico y Mantenimiento de Motos",
     "sectionSubtitle": "Todo lo que necesitas para aprender, mantener y dominar tu motocicleta.",
     "diag": {
       "title": "Diagnóstico con IA",
@@ -65,7 +66,7 @@
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
-    "sectionTitle": "Cómo Funciona",
+    "sectionTitle": "Cómo Funciona el Diagnóstico de Motos con IA",
     "sectionSubtitle": "Tres simples pasos para dominar tu moto.",
     "step1Title": "Agrega Tu Moto",
     "step1Desc": "Busca por marca, modelo y año. Las especificaciones de tu moto se cargan automáticamente desde bases de datos oficiales.",
@@ -112,7 +113,7 @@
   },
   "Cta": {
     "socialProof": "Confiado por motociclistas en acceso anticipado",
-    "headline": "Sé el Primero en Dominar Tu Motocicleta",
+    "headline": "Empieza a Aprender Mantenimiento de Motos Hoy",
     "subtitle": "Obtén acceso anticipado cuando lancemos en iOS y Android.",
     "trustFree": "Gratis al lanzar",
     "trustNoCard": "Sin tarjeta de crédito",
@@ -154,6 +155,8 @@
     "tagline": "Aprende tu moto. Repara tu moto.",
     "copyright": "© 2026 MotoVault. Todos los derechos reservados.",
     "features": "Funciones",
+    "learning": "Rutas de Aprendizaje",
+    "garage": "Garaje",
     "download": "Acceso Anticipado",
     "faq": "Preguntas frecuentes",
     "support": "Soporte",
@@ -289,8 +292,83 @@
     "fr": "Français",
     "it": "Italiano"
   },
+  "Blog": {
+    "title": "Blog de Mantenimiento de Motos",
+    "description": "Guias expertas sobre mantenimiento de motos, diagnostico con IA y consejos de conduccion. Aprende a mantener y diagnosticar tu moto como un profesional.",
+    "readMore": "Leer mas",
+    "readingTime": "min de lectura",
+    "publishedOn": "Publicado el",
+    "backToBlog": "Volver a todos los articulos",
+    "by": "Por",
+    "relatedArticles": "Articulos Relacionados"
+  },
   "JsonLd": {
     "organizationName": "MotoVault",
     "organizationDescription": "Plataforma de aprendizaje y diagnóstico de motocicletas con IA"
+  },
+  "FeaturesDiagnostics": {
+    "title": "Diagnóstico de Motos con IA",
+    "description": "Toma una foto del problema de tu moto y obtén un diagnóstico impulsado por IA en segundos. Compatible con más de 18.000 modelos.",
+    "heroTitle": "Diagnóstico de Motos Impulsado por IA",
+    "heroSubtitle": "Apunta tu cámara a cualquier pieza, luz de advertencia o problema. Nuestra IA identifica el problema y sugiere soluciones — todo en segundos.",
+    "howItWorksTitle": "Cómo Funciona",
+    "step1Title": "Toma una Foto",
+    "step1Desc": "Fotografía la pieza de la moto, la luz de advertencia o el problema que quieres diagnosticar.",
+    "step2Title": "La IA Analiza",
+    "step2Desc": "Nuestra IA procesa la imagen, identifica componentes y cruza referencias con problemas conocidos para tu modelo específico.",
+    "step3Title": "Obtén Tu Diagnóstico",
+    "step3Desc": "Recibe un diagnóstico detallado con nivel de gravedad, acciones recomendadas y costos estimados de reparación.",
+    "issuesTitle": "Qué Podemos Diagnosticar",
+    "issue1": "Luces de advertencia y símbolos del tablero",
+    "issue2": "Problemas del motor y mecánicos",
+    "issue3": "Problemas del sistema eléctrico",
+    "issue4": "Desgaste de frenos y suspensión",
+    "issue5": "Estado de la cadena y transmisión",
+    "issue6": "Desgaste y presión de neumáticos",
+    "issue7": "Fugas y niveles de fluidos",
+    "issue8": "Corrosión y daños en la carrocería"
+  },
+  "FeaturesLearning": {
+    "title": "Rutas de Aprendizaje y Cuestionarios de Motos",
+    "description": "Domina el mantenimiento de motos con cursos estructurados, cuestionarios interactivos y seguimiento de progreso. Desde lo básico hasta lo avanzado.",
+    "heroTitle": "Aprende Mantenimiento de Motos",
+    "heroSubtitle": "Cursos estructurados, cuestionarios interactivos y desafíos prácticos — de principiante a experto.",
+    "coursesTitle": "Cursos Disponibles",
+    "course1Title": "Componentes del Motor",
+    "course1Desc": "Comprende cómo funciona tu motor, desde los fundamentos de la combustión hasta la sincronización de válvulas y los puntos de falla comunes.",
+    "course2Title": "Ajuste de Suspensión",
+    "course2Desc": "Aprende la precarga, el rebote y la configuración de compresión. Ajusta tu suspensión a tu estilo de conducción.",
+    "course3Title": "Sistemas Eléctricos",
+    "course3Desc": "Domina el cuidado de la batería, diagnóstico de fusibles, solución de problemas del arrancador y conceptos básicos del cableado.",
+    "course4Title": "Mantenimiento de Rutina",
+    "course4Desc": "Cambios de aceite, cuidado de la cadena, inspección de frenos, presión de neumáticos — todo para el mantenimiento regular.",
+    "quizTitle": "Pon a Prueba Tu Conocimiento",
+    "quizDesc": "Cuestionarios interactivos después de cada lección. Rastrea tus puntuaciones, gana insignias y construye experiencia real."
+  },
+  "FeaturesGarage": {
+    "title": "Gestión del Garaje de Motos",
+    "description": "Rastrea múltiples motos, registra mantenimiento, configura recordatorios de servicio. Compatible con más de 18.000 modelos vía base de datos NHTSA.",
+    "heroTitle": "Tu Garaje Digital de Motos",
+    "heroSubtitle": "Rastrea cada moto que posees. Registra mantenimiento, configura recordatorios y mantén un historial completo de servicio.",
+    "multiBikeTitle": "Gestión de Múltiples Motos",
+    "multiBikeDesc": "Agrega motos ilimitadas a tu garaje digital. Cada moto tiene su propia línea de tiempo de mantenimiento e historial de servicio.",
+    "nhtsaTitle": "Más de 18.000 Motos Compatibles",
+    "nhtsaDesc": "Busca por marca, modelo y año. Nuestra base de datos usa datos oficiales de vehículos NHTSA cubriendo todos los fabricantes principales.",
+    "historyTitle": "Historial Completo de Mantenimiento",
+    "historyDesc": "Registra cada cambio de aceite, cambio de neumáticos y visita de servicio. Nunca olvides cuándo mantuviste un componente crítico.",
+    "remindersTitle": "Recordatorios Inteligentes de Servicio",
+    "remindersDesc": "Configura recordatorios por kilometraje o por tiempo. Recibe notificaciones antes de que el mantenimiento se atrase."
+  },
+  "FeaturesProgress": {
+    "title": "Rastrea Tu Conocimiento de Motos",
+    "description": "Gana insignias, rastrea puntuaciones de cuestionarios, construye rachas de aprendizaje. Educación de motos gamificada que te mantiene motivado.",
+    "heroTitle": "Rastrea Tu Progreso",
+    "heroSubtitle": "Aprendizaje gamificado que te mantiene motivado. Gana insignias, construye rachas y mira crecer tu experiencia.",
+    "badgesTitle": "Gana Insignias de Logros",
+    "badgesDesc": "Completa cursos, domina cuestionarios y alcanza hitos para desbloquear insignias de logros. Muestra tu conocimiento de motos.",
+    "streaksTitle": "Construye Rachas de Aprendizaje",
+    "streaksDesc": "Aprende algo nuevo cada día. Construye rachas para mantenerte constante y construir conocimiento duradero de motos.",
+    "scoresTitle": "Rastrea Puntuaciones de Cuestionarios",
+    "scoresDesc": "Ve tu rendimiento en todos los módulos. Identifica áreas débiles y enfoca tu aprendizaje donde más importa."
   }
 }
