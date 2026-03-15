@@ -6,6 +6,7 @@ import { z } from 'zod';
  */
 export const DiagnosticAiResultSchema = z.object({
   part: z.string().describe('The motorcycle part or component affected'),
+  description: z.string().describe('A concise summary of the overall diagnosis'),
   issues: z
     .array(
       z.object({

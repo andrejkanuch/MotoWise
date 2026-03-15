@@ -13,6 +13,7 @@ export type DiagnosticIssue = z.infer<typeof DiagnosticIssueSchema>;
 
 export const DiagnosticResultSchema = z.object({
   part: z.string(),
+  description: z.string(),
   issues: z.array(DiagnosticIssueSchema),
   severity: z.enum(severities),
   toolsNeeded: z.array(z.string()),

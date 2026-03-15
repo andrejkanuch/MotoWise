@@ -134,16 +134,23 @@ export default function NewDiagnosticScreen() {
         });
       }
 
-      // TODO: After `pnpm generate`, the generated types will include v2 fields natively
+      // Build wizard answers only if any options were selected
+      const symptoms = state.wizardAnswers.symptoms.join(',');
+      const location = state.wizardAnswers.location.join(',');
+      const timing = state.wizardAnswers.timing.join(',');
+      const hasWizardAnswers = symptoms || location || timing;
+
       const result = await gqlFetcher(SubmitDiagnosticDocument, {
         input: {
-          motorcycleId: state.selectedMotorcycleId || '',
-          photoBase64: photoBase64 || '',
-          wizardAnswers: {
-            symptoms: state.wizardAnswers.symptoms.join(','),
-            location: state.wizardAnswers.location.join(','),
-            timing: state.wizardAnswers.timing.join(','),
-          },
+          motorcycleId: state.selectedMotorcycleId || undefined,
+          photoBase64: photoBase64 || undefined,
+          manualBikeInfo: state.manualBikeInfo || undefined,
+          freeTextDescription: state.freeTextDescription?.trim() || undefined,
+          additionalNotes: state.additionalNotes?.trim() || undefined,
+          urgency: state.urgency || undefined,
+          wizardAnswers: hasWizardAnswers
+            ? { symptoms: symptoms || undefined, location: location || undefined, timing: timing || undefined }
+            : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
         },
       });

@@ -85,29 +85,29 @@ const LEARNING_FORMAT_DEFAULT_LABELS: Record<LearningFormat, string> = {
   hands_on_quizzes: 'Hands-on Quizzes',
 };
 
-const RIDING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'seasonal'] as const;
+const RIDING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'seasonally'] as const;
 type RidingFrequency = (typeof RIDING_FREQUENCIES)[number];
 
 const RIDING_FREQUENCY_LABEL_KEYS: Record<RidingFrequency, string> = {
   daily: 'settings.frequencyDaily',
   weekly: 'settings.frequencyWeekly',
   monthly: 'settings.frequencyMonthly',
-  seasonal: 'settings.frequencySeasonal',
+  seasonally: 'settings.frequencySeasonally',
 };
 
-const MAINTENANCE_STYLES = ['diy', 'mix', 'shop'] as const;
+const MAINTENANCE_STYLES = ['diy', 'sometimes', 'mechanic'] as const;
 type MaintenanceStyle = (typeof MAINTENANCE_STYLES)[number];
 
 const MAINTENANCE_STYLE_LABEL_KEYS: Record<MaintenanceStyle, string> = {
   diy: 'settings.maintenanceDiy',
-  mix: 'settings.maintenanceMix',
-  shop: 'settings.maintenanceShop',
+  sometimes: 'settings.maintenanceSometimes',
+  mechanic: 'settings.maintenanceMechanic',
 };
 
 const MAINTENANCE_STYLE_DEFAULT_LABELS: Record<MaintenanceStyle, string> = {
   diy: 'DIY',
-  mix: 'Mix',
-  shop: 'Shop',
+  sometimes: 'Mix',
+  mechanic: 'Mechanic',
 };
 
 type UserPreferences = {
@@ -232,8 +232,8 @@ export default function SettingsScreen() {
         experienceLevel,
         ridingGoals: selectedGoals,
         learningFormats: selectedFormats,
-        ridingFrequency,
-        maintenanceStyle,
+        ...(ridingFrequency && { ridingFrequency }),
+        ...(maintenanceStyle && { maintenanceStyle }),
       };
     }
 

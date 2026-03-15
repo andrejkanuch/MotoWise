@@ -219,6 +219,7 @@ export class DiagnosticAiService {
 
       const result: DiagnosticResult = {
         part: parsed.part,
+        description: parsed.description,
         issues: parsed.issues,
         severity: parsed.severity as DiagnosticResult['severity'],
         toolsNeeded: parsed.toolsNeeded,
@@ -235,7 +236,7 @@ export class DiagnosticAiService {
           result_json: result as unknown as Record<string, unknown>,
           severity: result.severity,
           confidence: result.confidence,
-          related_article_id: result.relatedArticleId,
+          related_article_id: result.relatedArticleId || null,
           status: 'completed',
         })
         .eq('id', diagnosticId);

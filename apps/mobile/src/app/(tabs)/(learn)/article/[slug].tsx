@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import { ArticleBySlugFullDocument, MarkArticleReadDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, BookOpen, CheckCircle, Clock, Eye, HelpCircle } from 'lucide-react-native';
+import { AlertTriangle, BookOpen, CheckCircle, Clock, Eye } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -228,20 +228,6 @@ export default function ArticleScreen() {
             </Text>
           </View>
         </Animated.View>
-
-        {/* Take Quiz Button */}
-        {article.id && (
-          <Animated.View entering={FadeInUp.delay(380).duration(400)} className="px-5 mt-6">
-            <Pressable
-              className="bg-accent-500 dark:bg-accent-400 rounded-2xl py-4 items-center flex-row justify-center gap-2"
-              style={{ borderCurve: 'continuous' }}
-              onPress={() => router.push(`/(tabs)/(learn)/quiz/${article.id}` as `/${string}`)}
-            >
-              <HelpCircle size={18} color={palette.white} strokeWidth={2} />
-              <Text className="text-white font-semibold text-base">{t('article.takeQuiz')}</Text>
-            </Pressable>
-          </Animated.View>
-        )}
 
         {/* Mark as Read Button */}
         <Animated.View entering={FadeInUp.delay(400).duration(400)} className="px-5 mt-4">
