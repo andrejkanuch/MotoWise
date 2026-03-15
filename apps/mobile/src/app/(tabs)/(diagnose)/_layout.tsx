@@ -12,7 +12,10 @@ export default function DiagnoseLayout() {
           gestureEnabled: false,
         }}
       />
-      <Stack.Screen name="[id]" options={{ title: 'Diagnosis Result', headerBackTitle: 'Diagnose' }} />
+      <Stack.Screen
+        name="[id]"
+        options={{ title: 'Diagnosis Result', headerBackTitle: 'Diagnose' }}
+      />
     </Stack>
   );
 }
