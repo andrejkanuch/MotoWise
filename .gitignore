@@ -33,6 +33,11 @@ supabase/.branches/
 # Generated — committed so CI can typecheck without codegen
 # Regenerate with: pnpm generate
 
+# Google Service Account keys
+gcloud-service-key*.json
+*-firebase-adminsdk-*.json
+motowise-*.json
+
 # Expo
 *.jks
 *.p8
