@@ -96,12 +96,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
           } else if (isFocused && !event.defaultPrevented) {
             // Pop to top when tapping already-focused tab (guard against in-flight mutations)
             const routeState = route.state;
-            if (
-              routeState &&
-              routeState.index &&
-              routeState.index > 0 &&
-              queryClient.isMutating() === 0
-            ) {
+            if (routeState?.index && routeState.index > 0 && queryClient.isMutating() === 0) {
               try {
                 navigation.dispatch(StackActions.popToTop());
               } catch {
@@ -198,10 +193,10 @@ export default function TabsLayout() {
               e.preventDefault();
               if (queryClient.isMutating() === 0) {
                 try {
-                navigation.dispatch(StackActions.popToTop());
-              } catch {
-                // Stack may not support popToTop in this state
-              }
+                  navigation.dispatch(StackActions.popToTop());
+                } catch {
+                  // Stack may not support popToTop in this state
+                }
               }
             }
           },

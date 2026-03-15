@@ -22,10 +22,10 @@ let crashReportingEnabled = true;
 
 // ---- Initialisation ------------------------------------------------
 
-// biome-ignore lint/suspicious/noExplicitAny: Sentry internal type not publicly exported
-export const sentryNavigationIntegration: ReturnType<typeof Sentry.reactNavigationIntegration> = Sentry.reactNavigationIntegration({
-  enableTimeToInitialDisplay: true,
-});
+export const sentryNavigationIntegration: ReturnType<typeof Sentry.reactNavigationIntegration> =
+  Sentry.reactNavigationIntegration({
+    enableTimeToInitialDisplay: true,
+  });
 
 export function initSentry() {
   if (!SENTRY_DSN) return;
