@@ -38,9 +38,10 @@ export async function Footer() {
   const t = await getTranslations('Footer');
 
   const productLinks = [
-    { label: t('features'), href: '#features' },
+    { label: t('features'), href: '/features/ai-diagnostics' },
+    { label: t('learning'), href: '/features/learning-paths' },
+    { label: t('garage'), href: '/features/garage-management' },
     { label: t('download'), href: '#cta' },
-    { label: t('faq'), href: '#faq' },
   ];
 
   const companyLinks = [

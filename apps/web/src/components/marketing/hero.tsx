@@ -46,13 +46,17 @@ export function Hero() {
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-32">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
-          <h1 className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50">
+          <h1 className="sr-only">{t('seoTitle')}</h1>
+          <p
+            className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50"
+            aria-hidden="true"
+          >
             {t('line1')}
             <br />
             <span>
               <span className="text-warm-400">{t('line2')}</span> {t('line3')}
             </span>
-          </h1>
+          </p>
 
           {/* Gradient accent line */}
           <div className="accent-line-enter mt-4 h-1 w-32 rounded-full bg-signature-500" />

@@ -12,7 +12,7 @@ import { BASE_URL } from '@/lib/constants';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('Metadata');
   return {
-    title: t('title'),
+    title: { absolute: t('title') },
     description: t('description'),
     alternates: {
       canonical: BASE_URL,
