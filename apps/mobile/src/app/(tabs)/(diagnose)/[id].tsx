@@ -1,4 +1,4 @@
-import { palette, spacing, radii } from '@motovault/design-system';
+import { palette, radii, spacing } from '@motovault/design-system';
 import { DiagnosticByIdDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   ChevronRight,
   HardHat,
   RefreshCw,
@@ -26,7 +25,11 @@ const SEVERITY_CONFIG = {
     dark: { color: '#fca5a5', bg: palette.dangerBgDark, text: '#fca5a5' },
   },
   high: {
-    light: { color: palette.signature500, bg: palette.signatureBgLight, text: palette.signature600 },
+    light: {
+      color: palette.signature500,
+      bg: palette.signatureBgLight,
+      text: palette.signature600,
+    },
     dark: { color: palette.signature400, bg: palette.signatureBgDark, text: palette.signature400 },
   },
   medium: {
@@ -84,7 +87,9 @@ export default function DiagnosticResultScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
+      >
         <ActivityIndicator size="large" color={palette.primary500} />
         <Text style={{ fontSize: 14, color: textSecondary, marginTop: spacing[3] }}>
           {t('diagnose.processing')}
@@ -95,9 +100,19 @@ export default function DiagnosticResultScreen() {
 
   if (error || !diagnostic) {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', padding: spacing[6] }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: spacing[6],
+        }}
+      >
         <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
-        <Text style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}>
+        <Text
+          style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}
+        >
           {t('diagnose.failed')}
         </Text>
         <Pressable
@@ -125,9 +140,13 @@ export default function DiagnosticResultScreen() {
 
   if (diagnostic.status === 'processing') {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
+      >
         <ActivityIndicator size="large" color={palette.primary500} />
-        <Text style={{ fontSize: 16, fontWeight: '600', color: textPrimary, marginTop: spacing[4] }}>
+        <Text
+          style={{ fontSize: 16, fontWeight: '600', color: textPrimary, marginTop: spacing[4] }}
+        >
           {t('diagnose.processing')}
         </Text>
       </View>
@@ -136,9 +155,19 @@ export default function DiagnosticResultScreen() {
 
   if (diagnostic.status === 'failed') {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center', padding: spacing[6] }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: spacing[6],
+        }}
+      >
         <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
-        <Text style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}>
+        <Text
+          style={{ fontSize: 16, color: textSecondary, textAlign: 'center', marginTop: spacing[3] }}
+        >
           {t('diagnose.failed')}
         </Text>
         <Pressable
@@ -165,15 +194,25 @@ export default function DiagnosticResultScreen() {
   }
 
   const sevKey = (diagnostic.severity ?? 'low') as keyof typeof SEVERITY_CONFIG;
-  const sevTheme = SEVERITY_CONFIG[sevKey]?.[isDark ? 'dark' : 'light'] ?? SEVERITY_CONFIG.low[isDark ? 'dark' : 'light'];
+  const sevTheme =
+    SEVERITY_CONFIG[sevKey]?.[isDark ? 'dark' : 'light'] ??
+    SEVERITY_CONFIG.low[isDark ? 'dark' : 'light'];
   const confidence = diagnostic.confidence ?? 0;
   const diffKey = (resultJson?.difficulty ?? '') as keyof typeof DIFFICULTY_CONFIG;
   const diffConfig = DIFFICULTY_CONFIG[diffKey];
 
   const confidenceColor =
-    confidence > 0.7 ? (isDark ? '#4ade80' : palette.success500) :
-    confidence > 0.4 ? (isDark ? '#fbbf24' : palette.warning500) :
-    (isDark ? '#fca5a5' : palette.danger500);
+    confidence > 0.7
+      ? isDark
+        ? '#4ade80'
+        : palette.success500
+      : confidence > 0.4
+        ? isDark
+          ? '#fbbf24'
+          : palette.warning500
+        : isDark
+          ? '#fca5a5'
+          : palette.danger500;
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -185,15 +224,38 @@ export default function DiagnosticResultScreen() {
       >
         {/* Header: Part + Description */}
         {resultJson?.part && (
-          <Animated.View entering={FadeIn.duration(300)} style={{ paddingHorizontal: spacing[5], paddingTop: spacing[4] }}>
-            <Text style={{ fontSize: 11, fontWeight: '500', color: textTertiary, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: spacing[1] }}>
+          <Animated.View
+            entering={FadeIn.duration(300)}
+            style={{ paddingHorizontal: spacing[5], paddingTop: spacing[4] }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '500',
+                color: textTertiary,
+                textTransform: 'uppercase',
+                letterSpacing: 1.2,
+                marginBottom: spacing[1],
+              }}
+            >
               {t('diagnose.part')}
             </Text>
-            <Text selectable style={{ fontSize: 24, fontWeight: '700', color: textPrimary, lineHeight: 30 }}>
+            <Text
+              selectable
+              style={{ fontSize: 24, fontWeight: '700', color: textPrimary, lineHeight: 30 }}
+            >
               {resultJson.part}
             </Text>
             {resultJson.description && (
-              <Text selectable style={{ fontSize: 14, color: textSecondary, lineHeight: 20, marginTop: spacing[2] }}>
+              <Text
+                selectable
+                style={{
+                  fontSize: 14,
+                  color: textSecondary,
+                  lineHeight: 20,
+                  marginTop: spacing[2],
+                }}
+              >
                 {resultJson.description}
               </Text>
             )}
@@ -201,7 +263,10 @@ export default function DiagnosticResultScreen() {
         )}
 
         {/* Severity Badge */}
-        <Animated.View entering={FadeInUp.delay(50).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
+        <Animated.View
+          entering={FadeInUp.delay(50).duration(400)}
+          style={{ paddingHorizontal: spacing[5] }}
+        >
           <View
             style={{
               backgroundColor: sevTheme.bg,
@@ -215,22 +280,40 @@ export default function DiagnosticResultScreen() {
               borderColor: isDark ? 'rgba(255,255,255,0.06)' : `${sevTheme.color}20`,
             }}
           >
-            <View style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              backgroundColor: `${sevTheme.color}18`,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderCurve: 'continuous',
-            }}>
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: `${sevTheme.color}18`,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderCurve: 'continuous',
+              }}
+            >
               <ShieldAlert size={18} color={sevTheme.color} strokeWidth={2} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 11, fontWeight: '500', color: textSecondary, textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '500',
+                  color: textSecondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1,
+                }}
+              >
                 {t('diagnose.severity')}
               </Text>
-              <Text style={{ fontSize: 17, fontWeight: '700', color: sevTheme.text, textTransform: 'capitalize', marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: '700',
+                  color: sevTheme.text,
+                  textTransform: 'capitalize',
+                  marginTop: 2,
+                }}
+              >
                 {diagnostic.severity ?? 'unknown'}
               </Text>
             </View>
@@ -239,7 +322,10 @@ export default function DiagnosticResultScreen() {
 
         {/* Consult a Mechanic CTA — critical/high */}
         {(sevKey === 'critical' || sevKey === 'high') && (
-          <Animated.View entering={FadeInUp.delay(75).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
+          <Animated.View
+            entering={FadeInUp.delay(75).duration(400)}
+            style={{ paddingHorizontal: spacing[5] }}
+          >
             <Pressable
               onPress={() => {
                 if (process.env.EXPO_OS === 'ios') {
@@ -258,22 +344,34 @@ export default function DiagnosticResultScreen() {
                 borderColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.12)',
               }}
             >
-              <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: `${palette.danger500}18`,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderCurve: 'continuous',
-              }}>
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: `${palette.danger500}18`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderCurve: 'continuous',
+                }}
+              >
                 <HardHat size={18} color={isDark ? '#fca5a5' : palette.danger500} strokeWidth={2} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: isDark ? '#fca5a5' : '#991b1b' }}>
+                <Text
+                  style={{ fontSize: 15, fontWeight: '700', color: isDark ? '#fca5a5' : '#991b1b' }}
+                >
                   {t('diagnose.consultMechanic')}
                 </Text>
-                <Text style={{ fontSize: 12, color: isDark ? '#fca5a5' : '#b91c1c', opacity: 0.8, marginTop: 2, lineHeight: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isDark ? '#fca5a5' : '#b91c1c',
+                    opacity: 0.8,
+                    marginTop: 2,
+                    lineHeight: 16,
+                  }}
+                >
                   {t('diagnose.consultMechanicSubtitle')}
                 </Text>
               </View>
@@ -283,7 +381,10 @@ export default function DiagnosticResultScreen() {
         )}
 
         {/* Confidence */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
+        <Animated.View
+          entering={FadeInUp.delay(100).duration(400)}
+          style={{ paddingHorizontal: spacing[5] }}
+        >
           <View
             style={{
               backgroundColor: cardBg,
@@ -294,11 +395,28 @@ export default function DiagnosticResultScreen() {
               borderColor,
             }}
           >
-            <Text style={{ fontSize: 11, fontWeight: '500', color: textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing[2] }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '500',
+                color: textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                marginBottom: spacing[2],
+              }}
+            >
               {t('diagnose.confidence')}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
-              <View style={{ flex: 1, height: 6, backgroundColor: trackBg, borderRadius: 3, overflow: 'hidden' }}>
+              <View
+                style={{
+                  flex: 1,
+                  height: 6,
+                  backgroundColor: trackBg,
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                }}
+              >
                 <View
                   style={{
                     height: '100%',
@@ -308,7 +426,16 @@ export default function DiagnosticResultScreen() {
                   }}
                 />
               </View>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: confidenceColor, width: 48, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: confidenceColor,
+                  width: 48,
+                  textAlign: 'right',
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
                 {Math.round(confidence * 100)}%
               </Text>
             </View>
@@ -317,17 +444,35 @@ export default function DiagnosticResultScreen() {
 
         {/* Issues Found */}
         {resultJson?.issues && resultJson.issues.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(150).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary, marginBottom: spacing[2] }}>
+          <Animated.View
+            entering={FadeInUp.delay(150).duration(400)}
+            style={{ paddingHorizontal: spacing[5] }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: textPrimary,
+                marginBottom: spacing[2],
+              }}
+            >
               {t('diagnose.issues')}
             </Text>
             <View style={{ gap: spacing[2] }}>
-              {resultJson.issues.map((issue, i) => {
+              {resultJson.issues.map((issue) => {
                 const prob = issue.probability ?? 0;
                 const issueColor =
-                  prob > 0.5 ? (isDark ? palette.signature400 : palette.signature500) :
-                  prob > 0.25 ? (isDark ? '#93c5fd' : palette.primary500) :
-                  (isDark ? palette.neutral400 : palette.neutral500);
+                  prob > 0.5
+                    ? isDark
+                      ? palette.signature400
+                      : palette.signature500
+                    : prob > 0.25
+                      ? isDark
+                        ? '#93c5fd'
+                        : palette.primary500
+                      : isDark
+                        ? palette.neutral400
+                        : palette.neutral500;
 
                 return (
                   <View
@@ -341,12 +486,34 @@ export default function DiagnosticResultScreen() {
                       borderColor,
                     }}
                   >
-                    <Text selectable style={{ fontSize: 14, color: isDark ? palette.neutral200 : palette.neutral700, lineHeight: 20 }}>
+                    <Text
+                      selectable
+                      style={{
+                        fontSize: 14,
+                        color: isDark ? palette.neutral200 : palette.neutral700,
+                        lineHeight: 20,
+                      }}
+                    >
                       {issue.description}
                     </Text>
                     {issue.probability != null && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[2], marginTop: spacing[2] }}>
-                        <View style={{ flex: 1, height: 4, backgroundColor: trackBg, borderRadius: 2, overflow: 'hidden' }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: spacing[2],
+                          marginTop: spacing[2],
+                        }}
+                      >
+                        <View
+                          style={{
+                            flex: 1,
+                            height: 4,
+                            backgroundColor: trackBg,
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                          }}
+                        >
                           <View
                             style={{
                               height: '100%',
@@ -356,7 +523,16 @@ export default function DiagnosticResultScreen() {
                             }}
                           />
                         </View>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: issueColor, width: 40, textAlign: 'right', fontVariant: ['tabular-nums'] }}>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: issueColor,
+                            width: 40,
+                            textAlign: 'right',
+                            fontVariant: ['tabular-nums'],
+                          }}
+                        >
                           {Math.round(prob * 100)}%
                         </Text>
                       </View>
@@ -370,8 +546,18 @@ export default function DiagnosticResultScreen() {
 
         {/* Tools Needed */}
         {resultJson?.toolsNeeded && resultJson.toolsNeeded.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary, marginBottom: spacing[2] }}>
+          <Animated.View
+            entering={FadeInUp.delay(200).duration(400)}
+            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: textPrimary,
+                marginBottom: spacing[2],
+              }}
+            >
               {t('diagnose.toolsNeeded')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] }}>
@@ -392,7 +578,12 @@ export default function DiagnosticResultScreen() {
                   }}
                 >
                   <Wrench size={12} color={textSecondary} strokeWidth={2} />
-                  <Text style={{ fontSize: 13, color: isDark ? palette.neutral300 : palette.neutral700 }}>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: isDark ? palette.neutral300 : palette.neutral700,
+                    }}
+                  >
                     {tool}
                   </Text>
                 </View>
@@ -403,8 +594,20 @@ export default function DiagnosticResultScreen() {
 
         {/* Difficulty */}
         {diffConfig && (
-          <Animated.View entering={FadeInUp.delay(250).duration(400)} style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}>
-            <Text style={{ fontSize: 11, fontWeight: '500', color: textSecondary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing[2] }}>
+          <Animated.View
+            entering={FadeInUp.delay(250).duration(400)}
+            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '500',
+                color: textSecondary,
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                marginBottom: spacing[2],
+              }}
+            >
               {t('diagnose.difficulty')}
             </Text>
             <View
@@ -419,7 +622,13 @@ export default function DiagnosticResultScreen() {
                 borderColor: `${isDark ? diffConfig.dark : diffConfig.light}25`,
               }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '600', color: isDark ? diffConfig.dark : diffConfig.light }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: isDark ? diffConfig.dark : diffConfig.light,
+                }}
+              >
                 {diffConfig.label}
               </Text>
             </View>
@@ -428,37 +637,68 @@ export default function DiagnosticResultScreen() {
 
         {/* Next Steps */}
         {resultJson?.nextSteps && resultJson.nextSteps.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(300).duration(400)} style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: textPrimary, marginBottom: spacing[2] }}>
+          <Animated.View
+            entering={FadeInUp.delay(300).duration(400)}
+            style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: textPrimary,
+                marginBottom: spacing[2],
+              }}
+            >
               {t('diagnose.nextSteps')}
             </Text>
-            <View style={{
-              backgroundColor: cardBg,
-              borderRadius: 16,
-              padding: spacing[4],
-              gap: spacing[3],
-              borderCurve: 'continuous',
-              borderWidth: 1,
-              borderColor,
-            }}>
+            <View
+              style={{
+                backgroundColor: cardBg,
+                borderRadius: 16,
+                padding: spacing[4],
+                gap: spacing[3],
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor,
+              }}
+            >
               {resultJson.nextSteps.map((step: string, stepIndex: number) => (
-                <View key={step} style={{ flexDirection: 'row', gap: spacing[3], alignItems: 'flex-start' }}>
+                <View
+                  key={step}
+                  style={{ flexDirection: 'row', gap: spacing[3], alignItems: 'flex-start' }}
+                >
                   <View
                     style={{
                       width: 24,
                       height: 24,
                       borderRadius: 12,
-                      backgroundColor: isDark ? `${palette.primary400}20` : `${palette.primary500}15`,
+                      backgroundColor: isDark
+                        ? `${palette.primary400}20`
+                        : `${palette.primary500}15`,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginTop: 1,
                     }}
                   >
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? palette.primary300 : palette.primary600 }}>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontWeight: '700',
+                        color: isDark ? palette.primary300 : palette.primary600,
+                      }}
+                    >
                       {stepIndex + 1}
                     </Text>
                   </View>
-                  <Text selectable style={{ fontSize: 14, color: isDark ? palette.neutral300 : palette.neutral700, flex: 1, lineHeight: 20 }}>
+                  <Text
+                    selectable
+                    style={{
+                      fontSize: 14,
+                      color: isDark ? palette.neutral300 : palette.neutral700,
+                      flex: 1,
+                      lineHeight: 20,
+                    }}
+                  >
                     {step}
                   </Text>
                 </View>
@@ -469,13 +709,18 @@ export default function DiagnosticResultScreen() {
 
         {/* Related Article */}
         {diagnostic.relatedArticleId && (
-          <Animated.View entering={FadeInUp.delay(350).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
+          <Animated.View
+            entering={FadeInUp.delay(350).duration(400)}
+            style={{ paddingHorizontal: spacing[5] }}
+          >
             <Pressable
               onPress={() => {
                 if (process.env.EXPO_OS === 'ios') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }
-                router.push(`/(tabs)/(learn)/article/${diagnostic.relatedArticleId}` as `/${string}`);
+                router.push(
+                  `/(tabs)/(learn)/article/${diagnostic.relatedArticleId}` as `/${string}`,
+                );
               }}
               style={{
                 backgroundColor: isDark ? `${palette.primary500}15` : palette.primary50,
@@ -489,27 +734,47 @@ export default function DiagnosticResultScreen() {
                 borderColor: isDark ? `${palette.primary500}20` : `${palette.primary500}12`,
               }}
             >
-              <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: `${palette.primary500}18`,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderCurve: 'continuous',
-              }}>
-                <BookOpen size={16} color={isDark ? palette.primary300 : palette.primary600} strokeWidth={2} />
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  backgroundColor: `${palette.primary500}18`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderCurve: 'continuous',
+                }}
+              >
+                <BookOpen
+                  size={16}
+                  color={isDark ? palette.primary300 : palette.primary600}
+                  strokeWidth={2}
+                />
               </View>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? palette.primary300 : palette.primary700, flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: isDark ? palette.primary300 : palette.primary700,
+                  flex: 1,
+                }}
+              >
                 {t('diagnose.findArticle')}
               </Text>
-              <ArrowRight size={16} color={isDark ? palette.primary400 : palette.primary500} strokeWidth={2} />
+              <ArrowRight
+                size={16}
+                color={isDark ? palette.primary400 : palette.primary500}
+                strokeWidth={2}
+              />
             </Pressable>
           </Animated.View>
         )}
 
         {/* Disclaimer */}
-        <Animated.View entering={FadeInUp.delay(400).duration(400)} style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}>
+        <Animated.View
+          entering={FadeInUp.delay(400).duration(400)}
+          style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
+        >
           <View
             style={{
               backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
@@ -522,15 +787,31 @@ export default function DiagnosticResultScreen() {
               borderColor: isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.15)',
             }}
           >
-            <AlertTriangle size={16} color={isDark ? '#fbbf24' : palette.warning500} strokeWidth={2} style={{ marginTop: 1 }} />
-            <Text selectable style={{ fontSize: 12, color: isDark ? '#fde68a' : '#92400e', flex: 1, lineHeight: 17 }}>
+            <AlertTriangle
+              size={16}
+              color={isDark ? '#fbbf24' : palette.warning500}
+              strokeWidth={2}
+              style={{ marginTop: 1 }}
+            />
+            <Text
+              selectable
+              style={{
+                fontSize: 12,
+                color: isDark ? '#fde68a' : '#92400e',
+                flex: 1,
+                lineHeight: 17,
+              }}
+            >
               {t('diagnose.disclaimer')}
             </Text>
           </View>
         </Animated.View>
 
         {/* Timestamp */}
-        <Animated.View entering={FadeInUp.delay(450).duration(400)} style={{ paddingHorizontal: spacing[5] }}>
+        <Animated.View
+          entering={FadeInUp.delay(450).duration(400)}
+          style={{ paddingHorizontal: spacing[5] }}
+        >
           <Text style={{ fontSize: 12, color: textTertiary, textAlign: 'center' }}>
             {new Date(diagnostic.createdAt).toLocaleString()}
           </Text>

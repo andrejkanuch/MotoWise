@@ -149,7 +149,11 @@ export default function NewDiagnosticScreen() {
           additionalNotes: state.additionalNotes?.trim() || undefined,
           urgency: state.urgency || undefined,
           wizardAnswers: hasWizardAnswers
-            ? { symptoms: symptoms || undefined, location: location || undefined, timing: timing || undefined }
+            ? {
+                symptoms: symptoms || undefined,
+                location: location || undefined,
+                timing: timing || undefined,
+              }
             : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
         },
