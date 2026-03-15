@@ -41,6 +41,7 @@ export class DiagnosticsService {
       wizardAnswers?: { symptoms?: string; location?: string; timing?: string } | null;
       dataSharingOptedIn: boolean;
       freeTextDescription?: string;
+      additionalNotes?: string;
       urgency?: string;
       manualBikeInfo?: { type: string; year?: number; make?: string; model?: string } | null;
     },
@@ -54,6 +55,7 @@ export class DiagnosticsService {
         wizard_answers: input.wizardAnswers ?? null,
         data_sharing_opted_in: input.dataSharingOptedIn,
         free_text_description: input.freeTextDescription ?? null,
+        additional_notes: input.additionalNotes ?? null,
         urgency: input.urgency ?? null,
         manual_bike_info: input.manualBikeInfo ?? null,
         status: 'processing',
@@ -121,7 +123,12 @@ export class DiagnosticsService {
       | 'status'
       | 'created_at'
       | 'result_json'
-    > & { urgency?: string | null; free_text_description?: string | null },
+    > & {
+      urgency?: string | null;
+      free_text_description?: string | null;
+      description?: string | null;
+      photo_url?: string | null;
+    },
   ): Diagnostic {
     return {
       id: row.id,
@@ -135,6 +142,8 @@ export class DiagnosticsService {
       urgency: row.urgency ?? undefined,
       createdAt: row.created_at,
       resultJson: row.result_json as Record<string, unknown> | undefined,
+      description: row.description ?? undefined,
+      photoUrl: row.photo_url ?? undefined,
     };
   }
 }
