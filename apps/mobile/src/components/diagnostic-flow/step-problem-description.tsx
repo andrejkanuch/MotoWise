@@ -43,7 +43,7 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
-import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
 const SYMPTOM_OPTIONS = [
@@ -189,6 +189,7 @@ const SUB_STEP_QUESTIONS = [
 
 export function StepProblemDescription() {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
   const insets = useSafeAreaInsets();
 
   const {
@@ -296,25 +297,25 @@ export function StepProblemDescription() {
           marginTop: 16,
           paddingHorizontal: 16,
           paddingVertical: 12,
-          backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+          backgroundColor: colors.cardBg,
           borderWidth: 1,
-          borderColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderColor: colors.cardBorder,
           borderRadius: 12,
           borderCurve: 'continuous',
           opacity: canAddCustom ? 1 : 0.5,
         }}
       >
-        <Plus size={16} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={2} />
+        <Plus size={16} color={colors.textMuted} strokeWidth={2} />
         <TextInput
           value={customInput}
           onChangeText={(text) => setCustomInput(sanitizeInput(text.slice(0, 50)))}
           placeholder={canAddCustom ? 'Type your own...' : 'Maximum reached'}
-          placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+          placeholderTextColor={colors.textMuted}
           // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
           accessibilityLabel={t('diagnoseV2.customOption' as any)}
           style={{
             flex: 1,
-            color: DIAGNOSTIC_COLORS.textPrimary,
+            color: colors.textPrimary,
             fontSize: 14,
           }}
           editable={canAddCustom}
@@ -335,6 +336,7 @@ export function StepProblemDescription() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Step header */}
         <View style={{ paddingHorizontal: 24, paddingTop: 8, marginBottom: 24 }}>
@@ -345,7 +347,7 @@ export function StepProblemDescription() {
                 fontWeight: '600',
                 textTransform: 'uppercase',
                 letterSpacing: 1,
-                color: DIAGNOSTIC_COLORS.textMuted,
+                color: colors.textMuted,
               }}
             >
               {t('diagnoseV2.stepOf', { current: 2, total: 4 })}
@@ -359,8 +361,7 @@ export function StepProblemDescription() {
                     width: 6,
                     height: 6,
                     borderRadius: 3,
-                    backgroundColor:
-                      i === wizardSubStep ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.2)',
+                    backgroundColor: i === wizardSubStep ? colors.accent : colors.dontKnowBorder,
                   }}
                   // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
                   accessibilityLabel={t('diagnoseV2.wizardSubStep' as any, {
@@ -378,13 +379,13 @@ export function StepProblemDescription() {
                 style={{
                   fontSize: 24,
                   fontWeight: '600',
-                  color: DIAGNOSTIC_COLORS.textPrimary,
+                  color: colors.textPrimary,
                   marginTop: 4,
                 }}
               >
                 {subStepContent.question}
               </Text>
-              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+              <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
                 {subStepContent.hint}
               </Text>
             </Animated.View>
@@ -394,13 +395,13 @@ export function StepProblemDescription() {
                 style={{
                   fontSize: 24,
                   fontWeight: '600',
-                  color: DIAGNOSTIC_COLORS.textPrimary,
+                  color: colors.textPrimary,
                   marginTop: 4,
                 }}
               >
                 {t('diagnoseV2.describeProblem')}
               </Text>
-              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+              <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
                 {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
                 {t('diagnoseV2.describeProblemHint' as any)}
               </Text>
@@ -415,7 +416,7 @@ export function StepProblemDescription() {
             gap: 8,
             marginBottom: 20,
             marginHorizontal: 20,
-            backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+            backgroundColor: colors.cardBg,
             borderRadius: 12,
             padding: 4,
           }}
@@ -426,7 +427,7 @@ export function StepProblemDescription() {
               paddingVertical: 12,
               borderRadius: 10,
               alignItems: 'center',
-              backgroundColor: inputMode === 'wizard' ? DIAGNOSTIC_COLORS.accent : 'transparent',
+              backgroundColor: inputMode === 'wizard' ? colors.accent : 'transparent',
               borderCurve: 'continuous',
             }}
             onPress={() => handleModeSwitch('wizard')}
@@ -435,7 +436,7 @@ export function StepProblemDescription() {
               style={{
                 fontSize: 14,
                 fontWeight: '600',
-                color: inputMode === 'wizard' ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+                color: inputMode === 'wizard' ? '#FFFFFF' : colors.textMuted,
               }}
             >
               {t('diagnoseV2.guideMe')}
@@ -447,7 +448,7 @@ export function StepProblemDescription() {
               paddingVertical: 12,
               borderRadius: 10,
               alignItems: 'center',
-              backgroundColor: inputMode === 'freetext' ? DIAGNOSTIC_COLORS.accent : 'transparent',
+              backgroundColor: inputMode === 'freetext' ? colors.accent : 'transparent',
               borderCurve: 'continuous',
             }}
             onPress={() => handleModeSwitch('freetext')}
@@ -456,7 +457,7 @@ export function StepProblemDescription() {
               style={{
                 fontSize: 14,
                 fontWeight: '600',
-                color: inputMode === 'freetext' ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+                color: inputMode === 'freetext' ? '#FFFFFF' : colors.textMuted,
               }}
             >
               {t('diagnoseV2.describeMyself')}
@@ -484,7 +485,7 @@ export function StepProblemDescription() {
                         fontWeight: '600',
                         textTransform: 'uppercase',
                         letterSpacing: 1,
-                        color: DIAGNOSTIC_COLORS.textMuted,
+                        color: colors.textMuted,
                         marginBottom: 12,
                         paddingHorizontal: 4,
                       }}
@@ -569,14 +570,14 @@ export function StepProblemDescription() {
           <Animated.View entering={FadeIn.duration(200)} style={{ paddingHorizontal: 20 }}>
             <TextInput
               style={{
-                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                backgroundColor: colors.cardBg,
                 borderRadius: 16,
                 paddingHorizontal: 16,
                 paddingVertical: 16,
                 fontSize: 16,
-                color: DIAGNOSTIC_COLORS.textPrimary,
+                color: colors.textPrimary,
                 borderWidth: 1,
-                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderColor: colors.cardBorder,
                 borderCurve: 'continuous',
                 textAlignVertical: 'top',
                 minHeight: 120,
@@ -586,7 +587,7 @@ export function StepProblemDescription() {
                   ? t('diagnoseV2.freeTextPlaceholderBeginner')
                   : t('diagnoseV2.freeTextPlaceholderAdvanced')
               }
-              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               accessibilityLabel={t('diagnoseV2.describeProblem')}
               value={freeTextDescription}
               onChangeText={(text) => setFreeTextDescription(text.slice(0, 1000))}
@@ -596,7 +597,7 @@ export function StepProblemDescription() {
             <Text
               style={{
                 fontSize: 12,
-                color: DIAGNOSTIC_COLORS.textMuted,
+                color: colors.textMuted,
                 marginTop: 4,
                 textAlign: 'right',
               }}
@@ -614,9 +615,9 @@ export function StepProblemDescription() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: DIAGNOSTIC_COLORS.background,
+          backgroundColor: colors.background,
           borderTopWidth: 1,
-          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
           paddingBottom: insets.bottom + 12,
           paddingTop: 12,
@@ -627,14 +628,12 @@ export function StepProblemDescription() {
             style={{ marginBottom: 8, paddingVertical: 12, alignItems: 'center' }}
             onPress={() => setWizardSubStep((wizardSubStep - 1) as 0 | 1 | 2)}
           >
-            <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
-              {t('diagnoseV2.back')}
-            </Text>
+            <Text style={{ fontSize: 14, color: colors.textMuted }}>{t('diagnoseV2.back')}</Text>
           </Pressable>
         )}
         <Pressable
           style={{
-            backgroundColor: DIAGNOSTIC_COLORS.accent,
+            backgroundColor: colors.accent,
             borderRadius: 16,
             paddingVertical: 16,
             alignItems: 'center',

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+import { useDiagnosticColors } from './diagnostic-colors';
 
 interface DiagnosticProgressBarProps {
   currentStep: number;
@@ -10,6 +10,7 @@ interface DiagnosticProgressBarProps {
 
 export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticProgressBarProps) {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
 
   const animatedWidth = useAnimatedStyle(() => ({
     width: withTiming(`${(currentStep / totalSteps) * 100}%`, { duration: 250 }),
@@ -24,7 +25,7 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
       <Text
         style={{
           fontSize: 12,
-          color: DIAGNOSTIC_COLORS.textMuted,
+          color: colors.textMuted,
           marginBottom: 4,
         }}
       >
@@ -33,7 +34,7 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
       <View
         style={{
           height: 6,
-          backgroundColor: 'rgba(255,255,255,0.06)',
+          backgroundColor: colors.progressTrack,
           borderRadius: 999,
           overflow: 'hidden',
         }}
@@ -43,7 +44,7 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
             {
               height: '100%',
               borderRadius: 999,
-              backgroundColor: DIAGNOSTIC_COLORS.accent,
+              backgroundColor: colors.accent,
             },
             animatedWidth,
           ]}

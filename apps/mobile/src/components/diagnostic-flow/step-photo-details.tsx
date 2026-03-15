@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 import type { Urgency } from '../../stores/diagnostic-flow.store';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
-import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+import { useDiagnosticColors } from './diagnostic-colors';
 
 const URGENCY_COLORS: Record<string, string> = {
   stranded: palette.danger500,
@@ -35,6 +35,7 @@ async function compressPhoto(uri: string): Promise<string> {
 
 export function StepPhotoDetails() {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
   const insets = useSafeAreaInsets();
   const [compressing, setCompressing] = useState(false);
 
@@ -112,7 +113,7 @@ export function StepPhotoDetails() {
               fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: 1,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
             }}
           >
             {t('diagnoseV2.stepOf', { current: 3, total: 4 })}
@@ -121,13 +122,13 @@ export function StepPhotoDetails() {
             style={{
               fontSize: 24,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textPrimary,
+              color: colors.textPrimary,
               marginTop: 4,
             }}
           >
             {t('diagnoseV2.photoDetails')}
           </Text>
-          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
             {t('diagnoseV2.photoEncouragement')}
           </Text>
         </View>
@@ -142,9 +143,9 @@ export function StepPhotoDetails() {
               style={{
                 borderRadius: 16,
                 overflow: 'hidden',
-                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                backgroundColor: colors.cardBg,
                 borderWidth: 1,
-                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderColor: colors.cardBorder,
                 borderCurve: 'continuous',
               }}
             >
@@ -178,7 +179,7 @@ export function StepPhotoDetails() {
           >
             <Pressable
               style={{
-                backgroundColor: DIAGNOSTIC_COLORS.accent,
+                backgroundColor: colors.accent,
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: 'center',
@@ -197,7 +198,7 @@ export function StepPhotoDetails() {
             </Pressable>
             <Pressable
               style={{
-                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                backgroundColor: colors.cardBg,
                 borderRadius: 16,
                 paddingVertical: 16,
                 alignItems: 'center',
@@ -205,21 +206,19 @@ export function StepPhotoDetails() {
                 justifyContent: 'center',
                 gap: 12,
                 borderWidth: 1,
-                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderColor: colors.cardBorder,
                 borderCurve: 'continuous',
               }}
               onPress={() => handleCapture('gallery')}
               disabled={compressing}
             >
-              <ImageIcon size={20} color={DIAGNOSTIC_COLORS.textSecondary} strokeWidth={2} />
-              <Text
-                style={{ color: DIAGNOSTIC_COLORS.textSecondary, fontWeight: '600', fontSize: 16 }}
-              >
+              <ImageIcon size={20} color={colors.textSecondary} strokeWidth={2} />
+              <Text style={{ color: colors.textSecondary, fontWeight: '600', fontSize: 16 }}>
                 {t('diagnoseV2.chooseFromGallery')}
               </Text>
             </Pressable>
             <Pressable style={{ paddingVertical: 8, alignItems: 'center' }} onPress={handleNext}>
-              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+              <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 {t('diagnoseV2.skipPhoto')}
               </Text>
             </Pressable>
@@ -235,7 +234,7 @@ export function StepPhotoDetails() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -243,20 +242,20 @@ export function StepPhotoDetails() {
           </Text>
           <TextInput
             style={{
-              backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+              backgroundColor: colors.cardBg,
               borderRadius: 12,
               paddingHorizontal: 16,
               paddingVertical: 12,
               fontSize: 16,
-              color: DIAGNOSTIC_COLORS.textPrimary,
+              color: colors.textPrimary,
               borderWidth: 1,
-              borderColor: DIAGNOSTIC_COLORS.cardBorder,
+              borderColor: colors.cardBorder,
               borderCurve: 'continuous',
               textAlignVertical: 'top',
               minHeight: 80,
             }}
             placeholder={t('diagnoseV2.additionalNotesPlaceholder')}
-            placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={additionalNotes}
             onChangeText={(text) => setAdditionalNotes(text.slice(0, 500))}
             multiline
@@ -265,7 +264,7 @@ export function StepPhotoDetails() {
           <Text
             style={{
               fontSize: 12,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
               marginTop: 4,
               textAlign: 'right',
             }}
@@ -283,7 +282,7 @@ export function StepPhotoDetails() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 12,
             }}
           >
@@ -292,7 +291,7 @@ export function StepPhotoDetails() {
           <View style={{ gap: 8 }}>
             {URGENCY_OPTIONS.map(({ value, labelKey, icon: Icon }) => {
               const isSelected = urgency === value;
-              const accentColor = URGENCY_COLORS[value] ?? DIAGNOSTIC_COLORS.accent;
+              const accentColor = URGENCY_COLORS[value] ?? colors.accent;
               return (
                 <Pressable
                   key={value}
@@ -303,26 +302,22 @@ export function StepPhotoDetails() {
                     alignItems: 'center',
                     gap: 12,
                     borderWidth: 2,
-                    borderColor: isSelected ? accentColor : DIAGNOSTIC_COLORS.cardBorder,
-                    backgroundColor: isSelected
-                      ? DIAGNOSTIC_COLORS.cardBgSelected
-                      : DIAGNOSTIC_COLORS.cardBg,
+                    borderColor: isSelected ? accentColor : colors.cardBorder,
+                    backgroundColor: isSelected ? colors.cardBgSelected : colors.cardBg,
                     borderCurve: 'continuous',
                   }}
                   onPress={() => handleUrgencyPress(value)}
                 >
                   <Icon
                     size={20}
-                    color={isSelected ? accentColor : DIAGNOSTIC_COLORS.textMuted}
+                    color={isSelected ? accentColor : colors.textMuted}
                     strokeWidth={1.5}
                   />
                   <Text
                     style={{
                       fontSize: 14,
                       fontWeight: '500',
-                      color: isSelected
-                        ? DIAGNOSTIC_COLORS.textPrimary
-                        : DIAGNOSTIC_COLORS.textSecondary,
+                      color: isSelected ? colors.textPrimary : colors.textSecondary,
                     }}
                   >
                     {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
@@ -342,9 +337,9 @@ export function StepPhotoDetails() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: DIAGNOSTIC_COLORS.background,
+          backgroundColor: colors.background,
           borderTopWidth: 1,
-          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
           paddingBottom: insets.bottom + 12,
           paddingTop: 12,
@@ -352,7 +347,7 @@ export function StepPhotoDetails() {
       >
         <Pressable
           style={{
-            backgroundColor: DIAGNOSTIC_COLORS.accent,
+            backgroundColor: colors.accent,
             borderRadius: 16,
             paddingVertical: 16,
             alignItems: 'center',

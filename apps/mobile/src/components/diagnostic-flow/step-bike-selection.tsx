@@ -23,12 +23,13 @@ import { detectTypeFromModel, useMotorcycleModels } from '../../hooks/use-motorc
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../stores/diagnostic-flow.store';
-import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+import { useDiagnosticColors } from './diagnostic-colors';
 import { WizardOptionChip } from './wizard-option-chip';
 
 /** Inline NHTSA-powered "Different Bike" sub-flow */
 function ManualBikeForm() {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
 
   const store = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -182,14 +183,14 @@ function ManualBikeForm() {
   };
 
   const inputStyle = {
-    backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+    backgroundColor: colors.cardBg,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: DIAGNOSTIC_COLORS.textPrimary,
+    color: colors.textPrimary,
     borderWidth: 1,
-    borderColor: DIAGNOSTIC_COLORS.cardBorder,
+    borderColor: colors.cardBorder,
     borderCurve: 'continuous' as const,
   };
 
@@ -203,7 +204,7 @@ function ManualBikeForm() {
         style={{
           fontSize: 14,
           fontWeight: '600',
-          color: DIAGNOSTIC_COLORS.textSecondary,
+          color: colors.textSecondary,
           marginBottom: 12,
         }}
       >
@@ -239,11 +240,11 @@ function ManualBikeForm() {
             marginBottom: 12,
           }}
         >
-          <ChevronLeft size={16} color={DIAGNOSTIC_COLORS.accent} />
+          <ChevronLeft size={16} color={colors.accent} />
           <Text
             style={{
               fontSize: 13,
-              color: DIAGNOSTIC_COLORS.accent,
+              color: colors.accent,
               fontWeight: '500',
             }}
           >
@@ -259,7 +260,7 @@ function ManualBikeForm() {
         <Text
           style={{
             fontSize: 13,
-            color: DIAGNOSTIC_COLORS.textMuted,
+            color: colors.textMuted,
             marginBottom: 4,
           }}
         >
@@ -276,7 +277,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -285,7 +286,7 @@ function ManualBikeForm() {
           <TextInput
             style={{ ...inputStyle, marginBottom: 12 }}
             placeholder={t('diagnoseV2.iDontKnow')}
-            placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+            placeholderTextColor={colors.textMuted}
             keyboardType="number-pad"
             maxLength={4}
             value={yearInput}
@@ -294,7 +295,7 @@ function ManualBikeForm() {
           <Pressable
             onPress={handleYearConfirm}
             style={{
-              backgroundColor: DIAGNOSTIC_COLORS.accent,
+              backgroundColor: colors.accent,
               borderRadius: 12,
               paddingVertical: 12,
               alignItems: 'center',
@@ -319,7 +320,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -335,11 +336,11 @@ function ManualBikeForm() {
               marginBottom: 8,
             }}
           >
-            <Search size={16} color={DIAGNOSTIC_COLORS.textMuted} />
+            <Search size={16} color={colors.textMuted} />
             <TextInput
               style={{ ...inputStyle, flex: 1 }}
               placeholder={t('diagnoseV2.searchMakes')}
-              placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={makeSearch}
               onChangeText={handleMakeSearchChange}
               autoFocus
@@ -349,13 +350,13 @@ function ManualBikeForm() {
           {/* Loading */}
           {makesLoading && (
             <View style={{ alignItems: 'center', paddingVertical: 16 }}>
-              <ActivityIndicator color={DIAGNOSTIC_COLORS.accent} />
+              <ActivityIndicator color={colors.accent} />
               {showManualFallback && (
                 <Pressable onPress={handleManualMakeFallback} style={{ marginTop: 12 }}>
                   <Text
                     style={{
                       fontSize: 13,
-                      color: DIAGNOSTIC_COLORS.accent,
+                      color: colors.accent,
                     }}
                   >
                     {t('diagnoseV2.cantLoadTypeManually')}
@@ -372,7 +373,7 @@ function ManualBikeForm() {
                 style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: DIAGNOSTIC_COLORS.textMuted,
+                  color: colors.textMuted,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                   marginBottom: 8,
@@ -392,11 +393,9 @@ function ManualBikeForm() {
                     key={make.makeId}
                     onPress={() => handleMakeSelect(make)}
                     style={({ pressed }) => ({
-                      backgroundColor: pressed
-                        ? DIAGNOSTIC_COLORS.cardBgSelected
-                        : DIAGNOSTIC_COLORS.cardBg,
+                      backgroundColor: pressed ? colors.cardBgSelected : colors.cardBg,
                       borderWidth: 1,
-                      borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                      borderColor: colors.cardBorder,
                       borderRadius: 10,
                       borderCurve: 'continuous',
                       paddingHorizontal: 14,
@@ -406,7 +405,7 @@ function ManualBikeForm() {
                     <Text
                       style={{
                         fontSize: 14,
-                        color: DIAGNOSTIC_COLORS.textPrimary,
+                        color: colors.textPrimary,
                         fontWeight: '500',
                       }}
                     >
@@ -422,9 +421,9 @@ function ManualBikeForm() {
           {!makesLoading && debouncedMakeSearch.length > 0 && filteredMakes.length > 0 && (
             <View
               style={{
-                backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                backgroundColor: colors.cardBg,
                 borderWidth: 1,
-                borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                borderColor: colors.cardBorder,
                 borderRadius: 12,
                 borderCurve: 'continuous',
                 maxHeight: 200,
@@ -440,14 +439,14 @@ function ManualBikeForm() {
                       paddingHorizontal: 16,
                       paddingVertical: 12,
                       borderBottomWidth: 1,
-                      borderBottomColor: DIAGNOSTIC_COLORS.cardBorder,
-                      backgroundColor: pressed ? DIAGNOSTIC_COLORS.cardBgSelected : 'transparent',
+                      borderBottomColor: colors.cardBorder,
+                      backgroundColor: pressed ? colors.cardBgSelected : 'transparent',
                     })}
                   >
                     <Text
                       style={{
                         fontSize: 15,
-                        color: DIAGNOSTIC_COLORS.textPrimary,
+                        color: colors.textPrimary,
                       }}
                     >
                       {make.makeName}
@@ -464,7 +463,7 @@ function ManualBikeForm() {
               <Text
                 style={{
                   fontSize: 14,
-                  color: DIAGNOSTIC_COLORS.textMuted,
+                  color: colors.textMuted,
                 }}
               >
                 {t('diagnoseV2.noMakesFound')}
@@ -473,7 +472,7 @@ function ManualBikeForm() {
                 <Text
                   style={{
                     fontSize: 13,
-                    color: DIAGNOSTIC_COLORS.accent,
+                    color: colors.accent,
                   }}
                 >
                   {t('diagnoseV2.cantLoadTypeManually')}
@@ -491,7 +490,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -500,7 +499,7 @@ function ManualBikeForm() {
           <TextInput
             style={{ ...inputStyle, marginBottom: 12 }}
             placeholder={t('diagnoseV2.iDontKnow')}
-            placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={manualMakeText}
             onChangeText={setManualMakeText}
             autoFocus
@@ -519,9 +518,7 @@ function ManualBikeForm() {
               setUsingManualModelFallback(true);
             }}
             style={{
-              backgroundColor: manualMakeText.trim()
-                ? DIAGNOSTIC_COLORS.accent
-                : 'rgba(255,255,255,0.08)',
+              backgroundColor: manualMakeText.trim() ? colors.accent : colors.disabledBg,
               borderRadius: 12,
               paddingVertical: 12,
               alignItems: 'center',
@@ -536,15 +533,12 @@ function ManualBikeForm() {
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: manualMakeText.trim() ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+                color: manualMakeText.trim() ? '#FFFFFF' : colors.textMuted,
               }}
             >
               {t('diagnoseV2.next')}
             </Text>
-            <ChevronRight
-              size={16}
-              color={manualMakeText.trim() ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted}
-            />
+            <ChevronRight size={16} color={manualMakeText.trim() ? '#FFFFFF' : colors.textMuted} />
           </Pressable>
         </View>
       )}
@@ -556,7 +550,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -574,9 +568,9 @@ function ManualBikeForm() {
                 });
               }}
               style={{
-                backgroundColor: DIAGNOSTIC_COLORS.cardBgSelected,
+                backgroundColor: colors.cardBgSelected,
                 borderWidth: 1,
-                borderColor: DIAGNOSTIC_COLORS.accent,
+                borderColor: colors.accent,
                 borderRadius: 12,
                 borderCurve: 'continuous',
                 padding: 14,
@@ -588,7 +582,7 @@ function ManualBikeForm() {
               <Text
                 style={{
                   fontSize: 15,
-                  color: DIAGNOSTIC_COLORS.textPrimary,
+                  color: colors.textPrimary,
                   fontWeight: '600',
                 }}
               >
@@ -597,7 +591,7 @@ function ManualBikeForm() {
               <Text
                 style={{
                   fontSize: 12,
-                  color: DIAGNOSTIC_COLORS.textMuted,
+                  color: colors.textMuted,
                 }}
               >
                 {t('diagnoseV2.tapToChange')}
@@ -614,11 +608,11 @@ function ManualBikeForm() {
                   marginBottom: 8,
                 }}
               >
-                <Search size={16} color={DIAGNOSTIC_COLORS.textMuted} />
+                <Search size={16} color={colors.textMuted} />
                 <TextInput
                   style={{ ...inputStyle, flex: 1 }}
                   placeholder={t('diagnoseV2.searchModel')}
-                  placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   value={modelSearch}
                   onChangeText={handleModelSearchChange}
                   autoFocus
@@ -628,13 +622,13 @@ function ManualBikeForm() {
               {/* Loading */}
               {modelsLoading && (
                 <View style={{ alignItems: 'center', paddingVertical: 16 }}>
-                  <ActivityIndicator color={DIAGNOSTIC_COLORS.accent} />
+                  <ActivityIndicator color={colors.accent} />
                   {showManualFallback && (
                     <Pressable onPress={handleManualModelFallback} style={{ marginTop: 12 }}>
                       <Text
                         style={{
                           fontSize: 13,
-                          color: DIAGNOSTIC_COLORS.accent,
+                          color: colors.accent,
                         }}
                       >
                         {t('diagnoseV2.cantLoadTypeManually')}
@@ -648,9 +642,9 @@ function ManualBikeForm() {
               {!modelsLoading && filteredModels.length > 0 && (
                 <View
                   style={{
-                    backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+                    backgroundColor: colors.cardBg,
                     borderWidth: 1,
-                    borderColor: DIAGNOSTIC_COLORS.cardBorder,
+                    borderColor: colors.cardBorder,
                     borderRadius: 12,
                     borderCurve: 'continuous',
                     maxHeight: 200,
@@ -666,16 +660,14 @@ function ManualBikeForm() {
                           paddingHorizontal: 16,
                           paddingVertical: 12,
                           borderBottomWidth: 1,
-                          borderBottomColor: DIAGNOSTIC_COLORS.cardBorder,
-                          backgroundColor: pressed
-                            ? DIAGNOSTIC_COLORS.cardBgSelected
-                            : 'transparent',
+                          borderBottomColor: colors.cardBorder,
+                          backgroundColor: pressed ? colors.cardBgSelected : 'transparent',
                         })}
                       >
                         <Text
                           style={{
                             fontSize: 15,
-                            color: DIAGNOSTIC_COLORS.textPrimary,
+                            color: colors.textPrimary,
                           }}
                         >
                           {model.modelName}
@@ -692,7 +684,7 @@ function ManualBikeForm() {
                   <Text
                     style={{
                       fontSize: 14,
-                      color: DIAGNOSTIC_COLORS.textMuted,
+                      color: colors.textMuted,
                     }}
                   >
                     {t('diagnoseV2.noModelsFound')}
@@ -701,7 +693,7 @@ function ManualBikeForm() {
                     <Text
                       style={{
                         fontSize: 13,
-                        color: DIAGNOSTIC_COLORS.accent,
+                        color: colors.accent,
                       }}
                     >
                       {t('diagnoseV2.cantLoadTypeManually')}
@@ -721,7 +713,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -730,7 +722,7 @@ function ManualBikeForm() {
           <TextInput
             style={{ ...inputStyle, marginBottom: 12 }}
             placeholder={t('diagnoseV2.iDontKnow')}
-            placeholderTextColor={DIAGNOSTIC_COLORS.textMuted}
+            placeholderTextColor={colors.textMuted}
             value={manualModelText}
             onChangeText={setManualModelText}
             autoFocus
@@ -748,9 +740,7 @@ function ManualBikeForm() {
               });
             }}
             style={{
-              backgroundColor: manualModelText.trim()
-                ? DIAGNOSTIC_COLORS.accent
-                : 'rgba(255,255,255,0.08)',
+              backgroundColor: manualModelText.trim() ? colors.accent : colors.disabledBg,
               borderRadius: 12,
               paddingVertical: 12,
               alignItems: 'center',
@@ -762,7 +752,7 @@ function ManualBikeForm() {
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: manualModelText.trim() ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+                color: manualModelText.trim() ? '#FFFFFF' : colors.textMuted,
               }}
             >
               {t('diagnoseV2.confirmModel')}
@@ -778,7 +768,7 @@ function ManualBikeForm() {
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               marginBottom: 8,
             }}
           >
@@ -794,9 +784,9 @@ function ManualBikeForm() {
               });
             }}
             style={{
-              backgroundColor: DIAGNOSTIC_COLORS.cardBgSelected,
+              backgroundColor: colors.cardBgSelected,
               borderWidth: 1,
-              borderColor: DIAGNOSTIC_COLORS.accent,
+              borderColor: colors.accent,
               borderRadius: 12,
               borderCurve: 'continuous',
               padding: 14,
@@ -808,7 +798,7 @@ function ManualBikeForm() {
             <Text
               style={{
                 fontSize: 15,
-                color: DIAGNOSTIC_COLORS.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: '600',
               }}
             >
@@ -817,7 +807,7 @@ function ManualBikeForm() {
             <Text
               style={{
                 fontSize: 12,
-                color: DIAGNOSTIC_COLORS.textMuted,
+                color: colors.textMuted,
               }}
             >
               {t('diagnoseV2.tapToChange')}
@@ -831,6 +821,7 @@ function ManualBikeForm() {
 
 export function StepBikeSelection() {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
   const insets = useSafeAreaInsets();
 
   const store = useDiagnosticFlowStore(
@@ -895,7 +886,7 @@ export function StepBikeSelection() {
               fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: 1,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
             }}
           >
             {t('diagnoseV2.stepOf', { current: 1, total: 4 })}
@@ -904,7 +895,7 @@ export function StepBikeSelection() {
             style={{
               fontSize: 24,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textPrimary,
+              color: colors.textPrimary,
               marginTop: 4,
             }}
           >
@@ -913,7 +904,7 @@ export function StepBikeSelection() {
           <Text
             style={{
               fontSize: 14,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
               marginTop: 4,
             }}
           >
@@ -936,12 +927,8 @@ export function StepBikeSelection() {
                   alignItems: 'center',
                   gap: 12,
                   borderWidth: 2,
-                  borderColor: isSelected
-                    ? DIAGNOSTIC_COLORS.cardBorderSelected
-                    : DIAGNOSTIC_COLORS.cardBorder,
-                  backgroundColor: isSelected
-                    ? DIAGNOSTIC_COLORS.cardBgSelected
-                    : DIAGNOSTIC_COLORS.cardBg,
+                  borderColor: isSelected ? colors.cardBorderSelected : colors.cardBorder,
+                  backgroundColor: isSelected ? colors.cardBgSelected : colors.cardBg,
                   borderCurve: 'continuous',
                 }}
                 onPress={() => handleSelectBike(moto.id)}
@@ -961,13 +948,13 @@ export function StepBikeSelection() {
                       width: 56,
                       height: 56,
                       borderRadius: 12,
-                      backgroundColor: 'rgba(255,255,255,0.08)',
+                      backgroundColor: colors.disabledBg,
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderCurve: 'continuous',
                     }}
                   >
-                    <Bike size={24} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
+                    <Bike size={24} color={colors.textMuted} strokeWidth={1.5} />
                   </View>
                 )}
                 <View style={{ flex: 1 }}>
@@ -975,7 +962,7 @@ export function StepBikeSelection() {
                     style={{
                       fontSize: 16,
                       fontWeight: '600',
-                      color: DIAGNOSTIC_COLORS.textPrimary,
+                      color: colors.textPrimary,
                     }}
                   >
                     {moto.nickname || `${moto.make} ${moto.model}`}
@@ -983,7 +970,7 @@ export function StepBikeSelection() {
                   <Text
                     style={{
                       fontSize: 14,
-                      color: DIAGNOSTIC_COLORS.textSecondary,
+                      color: colors.textSecondary,
                     }}
                   >
                     {moto.year} {moto.nickname ? `${moto.make} ${moto.model}` : ''}
@@ -995,7 +982,7 @@ export function StepBikeSelection() {
                       width: 24,
                       height: 24,
                       borderRadius: 12,
-                      backgroundColor: DIAGNOSTIC_COLORS.accent,
+                      backgroundColor: colors.accent,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -1021,12 +1008,8 @@ export function StepBikeSelection() {
               gap: 12,
               borderWidth: 2,
               borderStyle: store.showManualForm ? 'solid' : 'dashed',
-              borderColor: store.showManualForm
-                ? DIAGNOSTIC_COLORS.cardBorderSelected
-                : 'rgba(255,255,255,0.15)',
-              backgroundColor: store.showManualForm
-                ? DIAGNOSTIC_COLORS.cardBgSelected
-                : 'transparent',
+              borderColor: store.showManualForm ? colors.cardBorderSelected : colors.dontKnowBorder,
+              backgroundColor: store.showManualForm ? colors.cardBgSelected : 'transparent',
               borderCurve: 'continuous',
             }}
             onPress={() => {
@@ -1039,19 +1022,19 @@ export function StepBikeSelection() {
                 width: 56,
                 height: 56,
                 borderRadius: 12,
-                backgroundColor: 'rgba(255,255,255,0.08)',
+                backgroundColor: colors.disabledBg,
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderCurve: 'continuous',
               }}
             >
-              <Plus size={24} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
+              <Plus size={24} color={colors.textMuted} strokeWidth={1.5} />
             </View>
             <Text
               style={{
                 fontSize: 16,
                 fontWeight: '500',
-                color: DIAGNOSTIC_COLORS.textSecondary,
+                color: colors.textSecondary,
               }}
             >
               {t('diagnoseV2.differentBike')}
@@ -1070,9 +1053,9 @@ export function StepBikeSelection() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: DIAGNOSTIC_COLORS.background,
+          backgroundColor: colors.background,
           borderTopWidth: 1,
-          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
           paddingBottom: insets.bottom + 12,
           paddingTop: 12,
@@ -1083,7 +1066,7 @@ export function StepBikeSelection() {
             borderRadius: 16,
             paddingVertical: 16,
             alignItems: 'center',
-            backgroundColor: canProceed ? DIAGNOSTIC_COLORS.accent : 'rgba(255,255,255,0.08)',
+            backgroundColor: canProceed ? colors.accent : colors.disabledBg,
             borderCurve: 'continuous',
           }}
           onPress={() => store.goNext()}
@@ -1093,7 +1076,7 @@ export function StepBikeSelection() {
             style={{
               fontWeight: '600',
               fontSize: 16,
-              color: canProceed ? '#FFFFFF' : DIAGNOSTIC_COLORS.textMuted,
+              color: canProceed ? '#FFFFFF' : colors.textMuted,
             }}
           >
             {t('diagnoseV2.next')}

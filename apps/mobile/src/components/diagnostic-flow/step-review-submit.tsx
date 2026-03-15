@@ -17,7 +17,7 @@ import {
   PREDEFINED_TIMING,
   useDiagnosticFlowStore,
 } from '../../stores/diagnostic-flow.store';
-import { DIAGNOSTIC_COLORS } from './diagnostic-colors';
+import { useDiagnosticColors } from './diagnostic-colors';
 
 const ALL_PREDEFINED = new Set<string>([
   ...PREDEFINED_SYMPTOMS,
@@ -41,6 +41,7 @@ function ReviewCard({
   delay?: number;
 }) {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
   return (
     <Animated.View
       entering={FadeInUp.delay(delay).duration(300)}
@@ -48,11 +49,11 @@ function ReviewCard({
     >
       <View
         style={{
-          backgroundColor: DIAGNOSTIC_COLORS.cardBg,
+          backgroundColor: colors.cardBg,
           borderRadius: 16,
           padding: 16,
           borderWidth: 1,
-          borderColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderColor: colors.cardBorder,
           borderCurve: 'continuous',
         }}
       >
@@ -68,7 +69,7 @@ function ReviewCard({
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
               textTransform: 'uppercase',
               letterSpacing: 0.5,
             }}
@@ -86,8 +87,8 @@ function ReviewCard({
             onPress={onEdit}
             hitSlop={8}
           >
-            <Pencil size={14} color={DIAGNOSTIC_COLORS.accent} strokeWidth={2} />
-            <Text style={{ fontSize: 12, fontWeight: '500', color: DIAGNOSTIC_COLORS.accent }}>
+            <Pencil size={14} color={colors.accent} strokeWidth={2} />
+            <Text style={{ fontSize: 12, fontWeight: '500', color: colors.accent }}>
               {t('diagnoseV2.edit')}
             </Text>
           </Pressable>
@@ -100,6 +101,7 @@ function ReviewCard({
 
 export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
   const { t } = useTranslation();
+  const colors = useDiagnosticColors();
   const insets = useSafeAreaInsets();
 
   const store = useDiagnosticFlowStore(
@@ -157,7 +159,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               fontWeight: '600',
               textTransform: 'uppercase',
               letterSpacing: 1,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
             }}
           >
             {t('diagnoseV2.stepOf', { current: 4, total: 4 })}
@@ -166,13 +168,13 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             style={{
               fontSize: 24,
               fontWeight: '600',
-              color: DIAGNOSTIC_COLORS.textPrimary,
+              color: colors.textPrimary,
               marginTop: 4,
             }}
           >
             {t('diagnoseV2.review')}
           </Text>
-          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted, marginTop: 4 }}>
+          <Text style={{ fontSize: 14, color: colors.textMuted, marginTop: 4 }}>
             {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key from diagnose v2 */}
             {t('diagnoseV2.reviewHint' as any)}
           </Text>
@@ -192,19 +194,19 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                   width: 40,
                   height: 40,
                   borderRadius: 8,
-                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: colors.disabledBg,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderCurve: 'continuous',
                 }}
               >
-                <Bike size={18} color={DIAGNOSTIC_COLORS.textMuted} strokeWidth={1.5} />
+                <Bike size={18} color={colors.textMuted} strokeWidth={1.5} />
               </View>
             )}
             <Text
               style={{
                 fontSize: 16,
-                color: DIAGNOSTIC_COLORS.textPrimary,
+                color: colors.textPrimary,
                 fontWeight: '500',
               }}
             >
@@ -226,7 +228,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                   <View
                     key={tag}
                     style={{
-                      backgroundColor: DIAGNOSTIC_COLORS.accentBg,
+                      backgroundColor: colors.accentBg,
                       borderRadius: 8,
                       paddingHorizontal: 12,
                       paddingVertical: 4,
@@ -237,7 +239,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                       style={{
                         fontSize: 12,
                         fontWeight: '500',
-                        color: DIAGNOSTIC_COLORS.accent,
+                        color: colors.accent,
                       }}
                     >
                       {tag}
@@ -246,15 +248,12 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
                 ))}
               </View>
             ) : (
-              <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+              <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 {t('diagnoseV2.notSureTag')}
               </Text>
             )
           ) : (
-            <Text
-              style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}
-              numberOfLines={3}
-            >
+            <Text style={{ fontSize: 14, color: colors.textSecondary }} numberOfLines={3}>
               {store.freeTextDescription || '\u2014'}
             </Text>
           )}
@@ -269,7 +268,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               resizeMode="cover"
             />
           ) : (
-            <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textMuted }}>
+            <Text style={{ fontSize: 14, color: colors.textMuted }}>
               {t('diagnoseV2.reviewNoPhoto')}
             </Text>
           )}
@@ -278,10 +277,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
         {/* Notes */}
         {store.additionalNotes.trim() && (
           <ReviewCard title={t('diagnoseV2.reviewDetails')} onEdit={() => editStep(3)} delay={150}>
-            <Text
-              style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}
-              numberOfLines={2}
-            >
+            <Text style={{ fontSize: 14, color: colors.textSecondary }} numberOfLines={2}>
               {store.additionalNotes}
             </Text>
           </ReviewCard>
@@ -289,7 +285,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
         {/* Urgency */}
         <ReviewCard title={t('diagnoseV2.reviewUrgency')} onEdit={() => editStep(3)} delay={200}>
-          <Text style={{ fontSize: 14, color: DIAGNOSTIC_COLORS.textSecondary }}>
+          <Text style={{ fontSize: 14, color: colors.textSecondary }}>
             {store.urgency ? urgencyLabels[store.urgency] : t('diagnoseV2.reviewNoUrgency')}
           </Text>
         </ReviewCard>
@@ -308,7 +304,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           <Text
             style={{
               fontSize: 14,
-              color: DIAGNOSTIC_COLORS.textSecondary,
+              color: colors.textSecondary,
               flex: 1,
               marginRight: 12,
             }}
@@ -318,7 +314,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           <Switch
             value={store.dataSharingOptedIn}
             onValueChange={store.setDataSharingOptedIn}
-            trackColor={{ false: 'rgba(255,255,255,0.1)', true: DIAGNOSTIC_COLORS.accent }}
+            trackColor={{ false: colors.switchTrackFalse, true: colors.accent }}
           />
         </Animated.View>
 
@@ -330,7 +326,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           <Text
             style={{
               fontSize: 12,
-              color: DIAGNOSTIC_COLORS.textMuted,
+              color: colors.textMuted,
               textAlign: 'center',
               lineHeight: 16,
             }}
@@ -342,7 +338,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
       {/* Gradient fade overlay */}
       <LinearGradient
-        colors={['rgba(15,23,42,0)', 'rgba(15,23,42,1)']}
+        colors={[colors.gradientStart, colors.gradientEnd]}
         style={{
           position: 'absolute',
           bottom: insets.bottom + 12 + 56 + 12,
@@ -361,11 +357,11 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           left: 0,
           right: 0,
           borderTopWidth: 1,
-          borderTopColor: DIAGNOSTIC_COLORS.cardBorder,
+          borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
           paddingBottom: insets.bottom + 12,
           paddingTop: 12,
-          backgroundColor: DIAGNOSTIC_COLORS.background,
+          backgroundColor: colors.background,
         }}
       >
         {store.submitError && (
@@ -388,9 +384,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
             flexDirection: 'row',
             justifyContent: 'center',
             gap: 8,
-            backgroundColor: store.isSubmitting
-              ? 'rgba(129,140,248,0.7)'
-              : DIAGNOSTIC_COLORS.accent,
+            backgroundColor: store.isSubmitting ? colors.submittingBg : colors.accent,
             borderCurve: 'continuous',
           }}
           onPress={onSubmit}

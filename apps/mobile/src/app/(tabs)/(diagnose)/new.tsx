@@ -1,4 +1,3 @@
-import { palette } from '@motovault/design-system';
 import { SubmitDiagnosticDocument } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system';
@@ -18,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
+import { useDiagnosticColors } from '../../../components/diagnostic-flow/diagnostic-colors';
 import { DiagnosticProgressBar } from '../../../components/diagnostic-flow/progress-bar';
 import { StepBikeSelection } from '../../../components/diagnostic-flow/step-bike-selection';
 import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo-details';
@@ -35,6 +35,7 @@ export default function NewDiagnosticScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const prefersReducedMotion = useReducedMotion();
+  const colors = useDiagnosticColors();
 
   const { currentStep, navigationDirection, reset, goBack, hasAnyData } = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -91,6 +92,14 @@ export default function NewDiagnosticScreen() {
     }
   };
 
+  const navigateBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(diagnose)/' as `/${string}`);
+    }
+  };
+
   const handleClose = () => {
     if (useDiagnosticFlowStore.getState().isSubmitting) return;
     if (hasAnyData()) {
@@ -101,12 +110,12 @@ export default function NewDiagnosticScreen() {
           style: 'destructive',
           onPress: () => {
             reset();
-            router.back();
+            navigateBack();
           },
         },
       ]);
     } else {
-      router.back();
+      navigateBack();
     }
   };
 
@@ -160,7 +169,7 @@ export default function NewDiagnosticScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('diagnoseV2.back')}
           >
-            <ArrowLeft size={22} color={palette.neutral600} strokeWidth={2} />
+            <ArrowLeft size={22} color={colors.textSecondary} strokeWidth={2} />
           </Pressable>
         ) : (
           <View className="w-10" />
@@ -178,7 +187,7 @@ export default function NewDiagnosticScreen() {
           // biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key
           accessibilityLabel={t('diagnoseV2.close' as any)}
         >
-          <X size={22} color={palette.neutral600} strokeWidth={2} />
+          <X size={22} color={colors.textSecondary} strokeWidth={2} />
         </Pressable>
       </View>
 
