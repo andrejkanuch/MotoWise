@@ -34,12 +34,12 @@ type Documents = {
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": typeof types.MarkArticleReadDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
-    "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
+    "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n  }\n}": typeof types.UpdateMotorcycleDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n  }\n}": typeof types.UpdateUserDocument,
     "query AllMaintenanceTasks {\n  allMaintenanceTasks {\n    id\n    motorcycleId\n    title\n    dueDate\n    targetMileage\n    priority\n    status\n    completedAt\n  }\n}": typeof types.AllMaintenanceTasksDocument,
     "query ArticleBySlugFull($slug: String!) {\n  articleBySlugFull(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    contentJson\n    readTime\n    generatedAt\n    updatedAt\n  }\n}": typeof types.ArticleBySlugFullDocument,
-    "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.DiagnosticByIdDocument,
+    "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.DiagnosticByIdDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": typeof types.ExpensesByMotorcycleDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": typeof types.GetArticleBySlugDocument,
     "query GetQuizByArticle($articleId: String!) {\n  quizByArticle(articleId: $articleId) {\n    id\n    articleId\n    questions {\n      question\n      options\n      explanation\n    }\n    generatedAt\n  }\n}": typeof types.GetQuizByArticleDocument,
@@ -55,6 +55,7 @@ type Documents = {
     "query MyShareLinks($motorcycleId: ID!) {\n  myShareLinks(motorcycleId: $motorcycleId) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": typeof types.MyShareLinksDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": typeof types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": typeof types.SpendingSummaryDocument,
+    "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
 };
 const documents: Documents = {
     "mutation AddTaskPhoto($input: AddTaskPhotoInput!) {\n  addTaskPhoto(input: $input) {\n    id\n    taskId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddTaskPhotoDocument,
@@ -77,12 +78,12 @@ const documents: Documents = {
     "mutation MarkArticleRead($articleId: String!) {\n  markArticleRead(articleId: $articleId) {\n    id\n    userId\n    articleId\n    articleRead\n    quizCompleted\n    quizBestScore\n    firstReadAt\n    lastReadAt\n  }\n}": types.MarkArticleReadDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
-    "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
+    "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n  }\n}": types.UpdateMotorcycleDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n  }\n}": types.UpdateUserDocument,
     "query AllMaintenanceTasks {\n  allMaintenanceTasks {\n    id\n    motorcycleId\n    title\n    dueDate\n    targetMileage\n    priority\n    status\n    completedAt\n  }\n}": types.AllMaintenanceTasksDocument,
     "query ArticleBySlugFull($slug: String!) {\n  articleBySlugFull(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    contentJson\n    readTime\n    generatedAt\n    updatedAt\n  }\n}": types.ArticleBySlugFullDocument,
-    "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.DiagnosticByIdDocument,
+    "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.DiagnosticByIdDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": types.ExpensesByMotorcycleDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": types.GetArticleBySlugDocument,
     "query GetQuizByArticle($articleId: String!) {\n  quizByArticle(articleId: $articleId) {\n    id\n    articleId\n    questions {\n      question\n      options\n      explanation\n    }\n    generatedAt\n  }\n}": types.GetQuizByArticleDocument,
@@ -98,6 +99,7 @@ const documents: Documents = {
     "query MyShareLinks($motorcycleId: ID!) {\n  myShareLinks(motorcycleId: $motorcycleId) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": types.MyShareLinksDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": types.SpendingSummaryDocument,
+    "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
 };
 
 /**
@@ -197,7 +199,7 @@ export function graphql(source: "mutation RevokeShareLink($linkId: ID!) {\n  rev
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}"): (typeof documents)["mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    createdAt\n  }\n}"];
+export function graphql(source: "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}"): (typeof documents)["mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -217,7 +219,7 @@ export function graphql(source: "query ArticleBySlugFull($slug: String!) {\n  ar
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"): (typeof documents)["query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"];
+export function graphql(source: "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"): (typeof documents)["query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -278,6 +280,10 @@ export function graphql(source: "query SearchArticles($input: SearchArticlesInpu
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}"): (typeof documents)["query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"): (typeof documents)["mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

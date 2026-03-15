@@ -373,7 +373,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
               marginBottom: 8,
             }}
           >
-            {t('diagnoseV2.submitError')}
+            {store.submitError}
           </Text>
         )}
         <Pressable

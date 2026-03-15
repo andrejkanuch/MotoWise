@@ -9,7 +9,8 @@
       "Bash(grep -l \"backgroundColor\\\\|color:\" /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/components/*.tsx | while read f; do if ! grep -q \"isDark\" \"$f\"; then echo \"$f\"; fi; done)",
       "Bash(ls /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/app/\\\\\\(onboarding\\\\\\)/)",
       "Read(//Users/andrejmacm5/.claude/**)",
-      "Bash(which npx:*)"
+      "Bash(which npx:*)",
+      "Bash(pnpm:*)"
     ]
   }
 }

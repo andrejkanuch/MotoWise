@@ -12,7 +12,7 @@ const getAppName = () => {
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
-  slug: 'motovault',
+  slug: 'motowise',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
@@ -88,7 +88,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           compileSdkVersion: 35,
           targetSdkVersion: 35,
           minSdkVersion: 24,
-          kotlinVersion: '1.9.0',
+          kotlinVersion: '2.1.20',
         },
         ios: {
           deploymentTarget: '16.0',

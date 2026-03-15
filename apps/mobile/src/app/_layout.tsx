@@ -1,13 +1,23 @@
 import '../global.css';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
+
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useNavigationContainerRef, useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import i18n from '../i18n';
-import { identifyUser, initPostHog, initSentry, resetUser } from '../lib/analytics';
+import {
+  identifyUser,
+  initPostHog,
+  initSentry,
+  resetUser,
+  sentryNavigationIntegration,
+} from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
   cancelAllNotifications,
@@ -116,6 +126,13 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const { setSession, setLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (navigationRef) {
+      sentryNavigationIntegration.registerNavigationContainer(navigationRef);
+    }
+  }, [navigationRef]);
 
   useEffect(() => {
     supabase.auth

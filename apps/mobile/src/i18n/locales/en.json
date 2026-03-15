@@ -119,8 +119,8 @@
     "articlePrefix": "Article: {{slug}}",
     "quizPrefix": "Quiz: {{id}}",
     "noResults": "No articles found",
-    "generateArticle": "Generate with AI",
-    "generating": "AI is writing your article...",
+    "generateArticle": "Surprise Me with an Article",
+    "generating": "Writing something cool...",
     "searchResults": "Search Results"
   },
   "article": {
