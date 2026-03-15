@@ -1,4 +1,4 @@
-import { SubmitDiagnosticDocument } from '@motovault/graphql';
+import { type MotorcycleType, SubmitDiagnosticDocument, type Urgency } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
 import * as FileSystem from 'expo-file-system';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -144,10 +144,12 @@ export default function NewDiagnosticScreen() {
         input: {
           motorcycleId: state.selectedMotorcycleId || undefined,
           photoBase64: photoBase64 || undefined,
-          manualBikeInfo: state.manualBikeInfo || undefined,
+          manualBikeInfo: state.manualBikeInfo
+            ? { ...state.manualBikeInfo, type: state.manualBikeInfo.type as MotorcycleType }
+            : undefined,
           freeTextDescription: state.freeTextDescription?.trim() || undefined,
           additionalNotes: state.additionalNotes?.trim() || undefined,
-          urgency: state.urgency || undefined,
+          urgency: (state.urgency as Urgency) || undefined,
           wizardAnswers: hasWizardAnswers
             ? {
                 symptoms: symptoms || undefined,
