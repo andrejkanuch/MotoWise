@@ -326,7 +326,37 @@
     "issue5": "Chain & drivetrain condition",
     "issue6": "Tire wear & pressure issues",
     "issue7": "Fluid leaks & levels",
-    "issue8": "Corrosion & body damage"
+    "issue8": "Corrosion & body damage",
+    "faq": [
+      {
+        "question": "How does AI motorcycle diagnostics work without OBD?",
+        "answer": "MotoVault uses advanced photo-based diagnosis powered by AI. Simply take a photo of the issue or describe your symptoms, and our AI analyzes the image to identify components, detect wear patterns, spot fluid leaks, and assess damage severity. Unlike OBD scanners that read error codes through a port, MotoVault uses visual recognition — meaning it works on every motorcycle regardless of age or make, with no adapters or cables required."
+      },
+      {
+        "question": "What motorcycle problems can MotoVault diagnose?",
+        "answer": "MotoVault can diagnose a wide range of issues including engine problems (overheating, oil leaks, unusual noises), electrical system faults (dead batteries, faulty wiring, blown fuses), brake wear and pad thickness, tire condition and tread depth, suspension leaks and sag, chain tension and sprocket wear, fluid leaks and contamination, corrosion and body damage, and dashboard warning lights. Each diagnosis includes a severity rating so you know what needs immediate attention."
+      },
+      {
+        "question": "Is AI motorcycle diagnostics accurate?",
+        "answer": "MotoVault's AI provides highly accurate initial assessments based on visual analysis and cross-referencing thousands of known issues. Each diagnosis comes with a confidence score indicating the AI's certainty level. For critical safety issues like brake failure or structural damage, we always recommend confirming with a qualified mechanic. Think of MotoVault as a knowledgeable riding companion that helps you understand problems — not a replacement for professional service when it matters most."
+      },
+      {
+        "question": "Do I need special equipment for AI diagnostics?",
+        "answer": "No special equipment is needed — just your smartphone camera. MotoVault is designed to work with the camera already in your pocket. Take a clear, well-lit photo of the part or issue, and the AI handles the rest. No OBD adapters, no Bluetooth dongles, no proprietary tools. This makes MotoVault accessible to every rider regardless of technical experience or budget."
+      },
+      {
+        "question": "How is MotoVault different from OBD2 scanners?",
+        "answer": "Traditional OBD2 scanners only work on bikes with an OBD port (mostly newer models), require a physical adapter, and can only read stored error codes. MotoVault works on any motorcycle — vintage, modern, carbureted, or fuel-injected — because it uses visual AI analysis instead of electronic port reading. It can identify problems that OBD scanners miss entirely, such as physical wear, corrosion, fluid leaks, and tire condition. Plus, MotoVault provides plain-language explanations instead of cryptic error codes."
+      }
+    ],
+    "longFormTitle": "How AI Motorcycle Diagnostics Works: A Complete Guide",
+    "longFormIntro": "Motorcycle diagnostics has traditionally been the domain of experienced mechanics with specialized tools. MotoVault changes that by putting AI-powered diagnostic capabilities directly in your pocket. Whether you are a seasoned rider who has been wrenching for decades or a new rider who just bought their first bike, MotoVault's AI diagnostics helps you understand what is happening with your motorcycle — quickly, accurately, and without expensive equipment.",
+    "longFormHowTitle": "From Photo to Diagnosis in Seconds",
+    "longFormHow": "The process is straightforward. Open MotoVault, point your camera at the part or issue you want analyzed, and snap a photo. You can also describe symptoms you have noticed — unusual sounds, vibrations, or changes in performance. Our AI engine processes the image using advanced computer vision, identifying components, detecting wear patterns, and cross-referencing known issues for your specific motorcycle make, model, and year. Within seconds, you receive a detailed diagnosis that includes what the issue is, how severe it is on a scale from minor to critical, recommended next steps, and estimated repair costs. The AI draws from a vast database of motorcycle-specific knowledge covering over 18,000 bike models.",
+    "longFormExamplesTitle": "Real-World Diagnostic Examples",
+    "longFormExamples": "Riders use MotoVault diagnostics in countless real-world scenarios. A rider notices a puddle under their parked bike — they snap a photo and MotoVault identifies it as a coolant leak from the water pump seal, rated as moderate severity with a recommendation to replace the seal before the next long ride. Another rider sees a dashboard warning light they do not recognize — a quick photo identifies it as a lean fuel mixture indicator, likely caused by a dirty air filter. A new rider inspecting their used purchase photographs the chain — MotoVault detects excessive stretch and worn sprocket teeth, recommending a full chain and sprocket replacement. These are the kinds of everyday situations where having an AI mechanic in your pocket saves time, money, and prevents breakdowns.",
+    "longFormComparisonTitle": "AI Diagnostics vs. Traditional Tools",
+    "longFormComparison": "Traditional motorcycle diagnostics relies on OBD2 scanners (limited to newer bikes with compatible ports), multimeters for electrical testing, and the trained eye of an experienced mechanic. MotoVault does not replace these tools entirely — instead, it complements them by providing an accessible first line of diagnosis. Where an OBD scanner reads stored error codes, MotoVault visually identifies problems that have no error code: worn brake pads, corroded terminals, leaking fork seals, or a chain that needs adjustment. Where a mechanic uses years of experience to spot issues, MotoVault uses AI trained on thousands of motorcycle problems to give you a similar level of insight. The result is faster, more informed decisions about your motorcycle's health — whether you fix it yourself or take it to a shop with a clear understanding of the problem."
   },
   "FeaturesLearning": {
     "title": "Motorcycle Learning Paths & Quizzes",
@@ -343,7 +373,37 @@
     "course4Title": "Routine Maintenance",
     "course4Desc": "Oil changes, chain care, brake inspection, tire pressure — everything for regular upkeep.",
     "quizTitle": "Test Your Knowledge",
-    "quizDesc": "Interactive quizzes after every lesson. Track your scores, earn badges, and build real expertise."
+    "quizDesc": "Interactive quizzes after every lesson. Track your scores, earn badges, and build real expertise.",
+    "faq": [
+      {
+        "question": "What topics are covered in the learning paths?",
+        "answer": "MotoVault's learning paths cover a comprehensive range of motorcycle maintenance topics including oil changes and fluid management, brake pad inspection and replacement, chain cleaning, lubrication, and adjustment, tire care and pressure monitoring, electrical system basics and battery maintenance, seasonal preparation and storage, suspension setup and tuning, and engine fundamentals. New courses are added regularly based on rider feedback and emerging topics."
+      },
+      {
+        "question": "Is this suitable for beginners with no mechanical experience?",
+        "answer": "Absolutely. MotoVault's learning paths are designed with a structured progression that starts with the fundamentals. You do not need any prior mechanical experience. Each course begins with basic concepts — what the parts are, why they matter, and how they work — before progressing to hands-on maintenance tasks. Visual guides, step-by-step instructions, and AI-powered explanations ensure you always understand the 'why' behind each procedure."
+      },
+      {
+        "question": "How long does each lesson take?",
+        "answer": "Most lessons are designed to take between 5 and 15 minutes, making them easy to fit into a busy schedule. Shorter lessons cover single concepts or quick tips, while longer lessons include more detailed walkthroughs and hands-on exercises. You can pause and resume at any time — your progress is saved automatically."
+      },
+      {
+        "question": "Are there practical exercises included?",
+        "answer": "Yes. Many lessons include guided hands-on tasks that walk you through real maintenance procedures on your own motorcycle. These practical exercises include step-by-step photo guides, safety checklists, tool lists, and expected outcomes so you know exactly what to do and what to look for. Completing practical exercises earns bonus progress points and achievement badges."
+      },
+      {
+        "question": "Can I track my learning progress?",
+        "answer": "Yes. MotoVault includes a full progress tracking system with skill trees that visualize your learning journey, completion percentages for each course and module, quiz scores and performance history, achievement badges for milestones, and learning streaks to keep you motivated. You can see exactly where you stand and what topics to focus on next."
+      }
+    ],
+    "longFormTitle": "Structured Motorcycle Learning: From Beginner to Expert",
+    "longFormIntro": "Learning motorcycle maintenance should not feel overwhelming. MotoVault's learning paths break down complex mechanical knowledge into digestible, structured courses that take you from complete beginner to confident home mechanic. Whether you want to perform basic maintenance like oil changes and chain adjustments, or dive deeper into engine internals and suspension tuning, there is a path designed for your skill level.",
+    "longFormCurriculumTitle": "Curriculum Overview",
+    "longFormCurriculum": "The MotoVault curriculum is organized into progressive learning modules. Routine Maintenance covers the essentials every rider should know: oil and filter changes, chain cleaning and adjustment, brake pad inspection, coolant checks, and tire pressure monitoring. Engine Internals goes deeper into how your motorcycle's powerplant works — combustion cycles, valve timing, cooling systems, and how to recognize early signs of engine trouble. Electrical Systems demystifies batteries, charging systems, fuses, starter motors, and basic wiring — the area where most riders feel least confident. Suspension Tuning teaches you to set up preload, rebound, and compression for your weight and riding style, transforming how your bike handles. Each module builds on previous knowledge, creating a connected learning experience rather than isolated tips.",
+    "longFormProgressionTitle": "Skill Progression System",
+    "longFormProgression": "MotoVault uses a skill tree system that maps your learning journey visually. As you complete lessons, pass quizzes, and finish hands-on exercises, you unlock new branches of knowledge. The system identifies your strengths and suggests areas where you can improve. Beginners start with foundational knowledge — understanding what each part of their motorcycle does and why maintenance matters. Intermediate learners tackle hands-on procedures with guided step-by-step instructions. Advanced content covers diagnostics, tuning, and the kind of knowledge that saves you from expensive shop visits. This progression ensures you are never thrown into content that is too advanced, and you are never bored reviewing material you have already mastered.",
+    "longFormLessonTitle": "Lesson Format and Learning Experience",
+    "longFormLesson": "Each lesson follows a proven format designed for retention and practical application. Lessons begin with a clear learning objective — what you will understand or be able to do after completing it. Visual explanations with diagrams and annotated photos make complex systems easy to understand. Key concepts are highlighted and reinforced through interactive quizzes that test comprehension in real time. Many lessons conclude with a practical exercise: a guided, step-by-step task you perform on your own motorcycle, complete with safety reminders and tool requirements. This combination of theory and practice means you do not just memorize facts — you build real skills you can use in your garage. The AI adapts explanations to your specific bike when possible, making the content directly relevant to the motorcycle you ride."
   },
   "FeaturesGarage": {
     "title": "Motorcycle Garage Management",
@@ -357,7 +417,37 @@
     "historyTitle": "Complete Maintenance History",
     "historyDesc": "Log every oil change, tire swap, and service visit. Never forget when you last maintained a critical component.",
     "remindersTitle": "Smart Service Reminders",
-    "remindersDesc": "Set mileage-based or time-based reminders. Get notified before maintenance is overdue."
+    "remindersDesc": "Set mileage-based or time-based reminders. Get notified before maintenance is overdue.",
+    "faq": [
+      {
+        "question": "How many motorcycles can I track in my garage?",
+        "answer": "With MotoVault Pro, you can add unlimited motorcycles to your digital garage. The free tier includes one bike. Each motorcycle gets its own dedicated maintenance timeline, service history, and reminder schedule — whether you have a daily commuter, a weekend track bike, and a vintage restoration project, they are all organized in one place."
+      },
+      {
+        "question": "What maintenance records can I log?",
+        "answer": "MotoVault supports logging a comprehensive range of maintenance tasks including oil and filter changes, tire replacements and rotations, brake pad and fluid service, chain cleaning, lubrication, and replacement, coolant and hydraulic fluid changes, valve adjustments, spark plug replacements, battery replacements, and fully customizable tasks for any service specific to your bike. Each record includes the date, mileage, cost, notes, and optional photos."
+      },
+      {
+        "question": "Does MotoVault remind me about upcoming maintenance?",
+        "answer": "Yes. MotoVault includes a smart reminder system that notifies you based on either mileage intervals or time intervals — or both. For example, you can set an oil change reminder every 5,000 miles or every 6 months, whichever comes first. Reminders are customizable per bike and per task, so your sport bike and touring bike can have different schedules."
+      },
+      {
+        "question": "Can I track maintenance expenses?",
+        "answer": "Yes. Every maintenance record can include cost information, and MotoVault provides expense tracking with categories and summaries. You can see total spending per bike, cost breakdowns by maintenance type, monthly and yearly expense trends, and cost-per-mile calculations. This data is invaluable for budgeting and for documenting your investment when it comes time to sell."
+      },
+      {
+        "question": "Is my garage data backed up and synced?",
+        "answer": "Yes. All your garage data is securely stored in the cloud and synced across your devices automatically. Your maintenance history, bike details, reminders, and expense records are backed up with enterprise-grade encryption. If you switch phones or reinstall the app, simply log in and everything is restored instantly."
+      }
+    ],
+    "longFormTitle": "Complete Motorcycle Garage Management: Keep Every Bike on Track",
+    "longFormIntro": "Owning a motorcycle means staying on top of maintenance — and if you own more than one, keeping track of service schedules, part replacements, and expenses becomes a real challenge. MotoVault's digital garage gives you a single, organized hub for every bike you own, with complete maintenance histories, smart reminders, and expense tracking that helps you ride with confidence.",
+    "longFormMultiBikeTitle": "Multi-Bike Support for Every Rider",
+    "longFormMultiBike": "Whether you ride a single daily commuter or manage a collection of motorcycles, MotoVault's garage scales to fit your needs. Each bike in your garage is stored with its full specifications — make, model, year, VIN, and current mileage — sourced automatically from the NHTSA database covering over 18,000 motorcycle models. Every bike gets its own dedicated maintenance timeline, so you can instantly see the complete service history at a glance. Compare maintenance costs across bikes, identify which motorcycle needs attention next, and keep your entire fleet in peak condition. Riders with multiple bikes particularly appreciate having all their records in one place instead of scattered across notebooks, spreadsheets, and shoe boxes of receipts.",
+    "longFormSchedulingTitle": "Maintenance Scheduling That Works",
+    "longFormScheduling": "MotoVault's reminder system is built around how real riders maintain their bikes. Set reminders by mileage interval, time interval, or both — and MotoVault notifies you when service is coming due. Oil changes every 5,000 miles or 6 months. Chain lubrication every 500 miles. Tire inspection every spring. Coolant flush every 2 years. Each reminder is customizable per bike, because your sportbike and your touring bike have different needs. When you complete a maintenance task, simply log it and the next reminder is automatically scheduled. No more guessing when you last changed the oil or whether the brake fluid is overdue.",
+    "longFormResaleTitle": "Documentation That Protects Your Investment",
+    "longFormResale": "A complete, documented maintenance history is one of the most valuable things you can show a potential buyer. MotoVault's garage creates a professional, verifiable record of every service performed on your motorcycle — dates, mileage, costs, parts used, and notes. When it comes time to sell, you can export a comprehensive maintenance report that demonstrates responsible ownership and justifies your asking price. Buyers pay more for bikes with documented service histories, and MotoVault makes maintaining that documentation effortless. Even if you never plan to sell, having a complete record helps you spot patterns, plan ahead for major services, and ensure nothing falls through the cracks."
   },
   "FeaturesProgress": {
     "title": "Track Your Motorcycle Knowledge",
@@ -369,6 +459,32 @@
     "streaksTitle": "Build Learning Streaks",
     "streaksDesc": "Learn something new every day. Build streaks to stay consistent and build lasting motorcycle knowledge.",
     "scoresTitle": "Track Quiz Scores",
-    "scoresDesc": "See your performance across all modules. Identify weak areas and focus your learning where it matters most."
+    "scoresDesc": "See your performance across all modules. Identify weak areas and focus your learning where it matters most.",
+    "faq": [
+      {
+        "question": "What metrics does the progress tracker show?",
+        "answer": "MotoVault's progress tracker gives you a comprehensive view of your motorcycle knowledge journey. Key metrics include maintenance task completion rates, upcoming service schedules across all your bikes, expense trends with monthly and yearly breakdowns, learning progress through skill trees and course completion percentages, quiz scores and performance history across all modules, achievement badges earned, and learning streak length. Everything is presented in a clean dashboard so you can see your status at a glance."
+      },
+      {
+        "question": "Can I set custom maintenance reminders?",
+        "answer": "Yes. MotoVault lets you set fully customizable reminders based on mileage intervals, time intervals, or both. Common reminders include oil changes, chain lubrication, tire checks, and brake inspections, but you can create custom reminders for any task. Each reminder is configurable per bike, so different motorcycles can have different schedules tailored to their specific needs."
+      },
+      {
+        "question": "Does progress tracking work with multiple bikes?",
+        "answer": "Yes. MotoVault provides per-bike dashboards so you can see the maintenance status, upcoming tasks, and expense history for each motorcycle individually. You can also view an aggregate overview across all your bikes to see which one needs attention next and how your total maintenance spending breaks down."
+      },
+      {
+        "question": "Can I export my maintenance data?",
+        "answer": "Yes. MotoVault lets you export comprehensive maintenance reports for any bike in your garage. These reports include the complete service history with dates, mileage, costs, and notes — perfect for documenting your motorcycle's condition for potential buyers, insurance claims, or your own records. A documented maintenance history can significantly increase your motorcycle's resale value."
+      }
+    ],
+    "longFormTitle": "Motorcycle Progress Tracking: Stay Motivated, Stay on Top",
+    "longFormIntro": "Maintaining a motorcycle and building mechanical knowledge are long-term commitments. Without a way to track your progress, it is easy to lose momentum — skipping maintenance tasks, forgetting where you left off in a course, or letting service intervals slip. MotoVault's progress tracking system keeps everything visible and organized, combining gamified learning metrics with practical maintenance dashboards that keep you motivated and your bikes in top shape.",
+    "longFormDashboardTitle": "Your Personal Motorcycle Dashboard",
+    "longFormDashboard": "MotoVault's dashboard brings together everything you need to see in one place. At a glance, you can check which bikes need maintenance soon, what your next learning lesson is, how your quiz scores are trending, and where your spending stands for the month. The dashboard is personalized to your garage — if you own three bikes, you see the status of all three with color-coded indicators showing what is on track, what is coming due, and what is overdue. This bird's-eye view eliminates the guesswork from motorcycle ownership and helps you prioritize your time and budget effectively.",
+    "longFormRemindersTitle": "Smart Reminders That Keep You Riding",
+    "longFormReminders": "The reminder system is the backbone of MotoVault's maintenance tracking. Set reminders based on mileage, time, or both, and MotoVault handles the rest. You will receive notifications when service is approaching — not after it is already overdue. Popular reminder configurations include oil changes every 3,000 to 6,000 miles, chain lubrication every 300 to 500 miles, tire pressure checks monthly, brake fluid replacement every two years, and coolant changes per your manufacturer's schedule. Every reminder is configurable per bike, because a high-performance sportbike and a low-mileage cruiser have very different maintenance demands. When you log a completed task, the next reminder automatically resets.",
+    "longFormAnalyticsTitle": "Analytics and Reports for Smarter Ownership",
+    "longFormAnalytics": "MotoVault goes beyond simple tracking by providing analytics that help you make smarter decisions about your motorcycles. Expense analytics show total spending by bike, by category, and over time — so you can see whether a particular motorcycle is costing you more than expected or whether your maintenance spending is trending up. Maintenance analytics highlight which tasks you complete on time versus which ones tend to slip, helping you identify habits to improve. Learning analytics show your quiz performance across modules, revealing areas where you are strong and topics where you could benefit from review. All of this data can be exported into clean reports — perfect for insurance documentation, resale preparation, or simply understanding the true cost of motorcycle ownership."
   }
 }

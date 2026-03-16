@@ -1,3 +1,4 @@
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
@@ -38,10 +39,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
       <head>
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="MotoVault Blog"
+          href="/blog/feed.xml"
+        />
+        <meta name="apple-itunes-app" content="app-id=6745417382" />
       </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         {children}
         <Analytics />
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );

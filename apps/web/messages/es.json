@@ -326,7 +326,37 @@
     "issue5": "Estado de la cadena y transmisión",
     "issue6": "Desgaste y presión de neumáticos",
     "issue7": "Fugas y niveles de fluidos",
-    "issue8": "Corrosión y daños en la carrocería"
+    "issue8": "Corrosión y daños en la carrocería",
+    "faq": [
+      {
+        "question": "¿Cómo funciona el diagnóstico de motos con IA sin OBD?",
+        "answer": "MotoVault utiliza diagnóstico basado en fotos impulsado por IA. Simplemente toma una foto del problema o describe tus síntomas, y nuestra IA analiza la imagen para identificar componentes, detectar patrones de desgaste, detectar fugas de fluidos y evaluar la gravedad del daño. A diferencia de los escáneres OBD que leen códigos de error a través de un puerto, MotoVault usa reconocimiento visual — lo que significa que funciona en cualquier moto sin importar la antigüedad o marca, sin adaptadores ni cables."
+      },
+      {
+        "question": "¿Qué problemas de moto puede diagnosticar MotoVault?",
+        "answer": "MotoVault puede diagnosticar una amplia gama de problemas incluyendo problemas del motor (sobrecalentamiento, fugas de aceite, ruidos inusuales), fallos del sistema eléctrico (baterías descargadas, cableado defectuoso, fusibles quemados), desgaste de frenos y grosor de pastillas, estado de neumáticos y profundidad del dibujo, fugas y hundimiento de la suspensión, tensión de la cadena y desgaste de piñones, fugas y contaminación de fluidos, corrosión y daños en la carrocería, y luces de advertencia del tablero."
+      },
+      {
+        "question": "¿Es preciso el diagnóstico de motos con IA?",
+        "answer": "La IA de MotoVault proporciona evaluaciones iniciales altamente precisas basadas en análisis visual y cruce con miles de problemas conocidos. Cada diagnóstico incluye una puntuación de confianza que indica el nivel de certeza de la IA. Para problemas críticos de seguridad como fallo de frenos o daño estructural, siempre recomendamos confirmar con un mecánico cualificado. Piensa en MotoVault como un compañero de viaje con conocimientos que te ayuda a entender los problemas."
+      },
+      {
+        "question": "¿Necesito equipo especial para el diagnóstico con IA?",
+        "answer": "No se necesita equipo especial — solo la cámara de tu smartphone. MotoVault está diseñado para funcionar con la cámara que ya tienes en tu bolsillo. Toma una foto clara y bien iluminada de la pieza o problema, y la IA se encarga del resto. Sin adaptadores OBD, sin dongles Bluetooth, sin herramientas propietarias."
+      },
+      {
+        "question": "¿En qué se diferencia MotoVault de los escáneres OBD2?",
+        "answer": "Los escáneres OBD2 tradicionales solo funcionan en motos con puerto OBD (principalmente modelos nuevos), requieren un adaptador físico y solo pueden leer códigos de error almacenados. MotoVault funciona en cualquier moto — vintage, moderna, carburada o con inyección — porque usa análisis visual de IA. Puede identificar problemas que los escáneres OBD no detectan, como desgaste físico, corrosión, fugas de fluidos y estado de los neumáticos."
+      }
+    ],
+    "longFormTitle": "Cómo Funciona el Diagnóstico de Motos con IA: Guía Completa",
+    "longFormIntro": "El diagnóstico de motos ha sido tradicionalmente dominio de mecánicos experimentados con herramientas especializadas. MotoVault cambia eso poniendo capacidades de diagnóstico impulsadas por IA directamente en tu bolsillo. Ya seas un piloto experimentado o un novato que acaba de comprar su primera moto, el diagnóstico con IA de MotoVault te ayuda a entender qué pasa con tu moto — rápida, precisa y sin equipos costosos.",
+    "longFormHowTitle": "De Foto a Diagnóstico en Segundos",
+    "longFormHow": "El proceso es sencillo. Abre MotoVault, apunta tu cámara a la pieza o problema que quieres analizar y toma una foto. También puedes describir los síntomas que has notado. Nuestro motor de IA procesa la imagen usando visión por computadora avanzada, identificando componentes, detectando patrones de desgaste y cruzando problemas conocidos para tu marca, modelo y año específicos. En segundos, recibes un diagnóstico detallado que incluye qué es el problema, qué tan grave es, los próximos pasos recomendados y los costos estimados de reparación.",
+    "longFormExamplesTitle": "Ejemplos de Diagnóstico del Mundo Real",
+    "longFormExamples": "Los pilotos usan el diagnóstico de MotoVault en innumerables escenarios reales. Un piloto nota un charco debajo de su moto estacionada — toma una foto y MotoVault identifica una fuga de refrigerante de la junta de la bomba de agua. Otro piloto ve una luz de advertencia que no reconoce — una foto rápida la identifica como un indicador de mezcla pobre de combustible. Un nuevo piloto fotografía la cadena de su compra usada — MotoVault detecta estiramiento excesivo y dientes de piñón desgastados.",
+    "longFormComparisonTitle": "Diagnóstico IA vs. Herramientas Tradicionales",
+    "longFormComparison": "El diagnóstico tradicional de motos depende de escáneres OBD2 (limitados a motos nuevas con puertos compatibles), multímetros para pruebas eléctricas y el ojo entrenado de un mecánico experimentado. MotoVault no reemplaza estas herramientas por completo — las complementa proporcionando una primera línea de diagnóstico accesible. Donde un escáner OBD lee códigos de error, MotoVault identifica visualmente problemas que no tienen código de error: pastillas de freno desgastadas, terminales corroídos, sellos de horquilla con fugas o una cadena que necesita ajuste."
   },
   "FeaturesLearning": {
     "title": "Rutas de Aprendizaje y Cuestionarios de Motos",
@@ -343,7 +373,37 @@
     "course4Title": "Mantenimiento de Rutina",
     "course4Desc": "Cambios de aceite, cuidado de la cadena, inspección de frenos, presión de neumáticos — todo para el mantenimiento regular.",
     "quizTitle": "Pon a Prueba Tu Conocimiento",
-    "quizDesc": "Cuestionarios interactivos después de cada lección. Rastrea tus puntuaciones, gana insignias y construye experiencia real."
+    "quizDesc": "Cuestionarios interactivos después de cada lección. Rastrea tus puntuaciones, gana insignias y construye experiencia real.",
+    "faq": [
+      {
+        "question": "¿Qué temas cubren las rutas de aprendizaje?",
+        "answer": "Las rutas de aprendizaje de MotoVault cubren una amplia gama de temas de mantenimiento de motos incluyendo cambios de aceite y gestión de fluidos, inspección y reemplazo de pastillas de freno, limpieza, lubricación y ajuste de cadena, cuidado de neumáticos y monitoreo de presión, conceptos básicos del sistema eléctrico y mantenimiento de batería, preparación estacional y almacenamiento, configuración y ajuste de suspensión, y fundamentos del motor."
+      },
+      {
+        "question": "¿Es adecuado para principiantes sin experiencia mecánica?",
+        "answer": "Absolutamente. Las rutas de aprendizaje de MotoVault están diseñadas con una progresión estructurada que comienza con los fundamentos. No necesitas experiencia mecánica previa. Cada curso comienza con conceptos básicos — qué son las piezas, por qué importan y cómo funcionan — antes de progresar a tareas de mantenimiento prácticas."
+      },
+      {
+        "question": "¿Cuánto dura cada lección?",
+        "answer": "La mayoría de las lecciones están diseñadas para durar entre 5 y 15 minutos, lo que las hace fáciles de encajar en una agenda ocupada. Las lecciones más cortas cubren conceptos individuales o consejos rápidos, mientras que las más largas incluyen tutoriales más detallados y ejercicios prácticos. Puedes pausar y reanudar en cualquier momento."
+      },
+      {
+        "question": "¿Incluye ejercicios prácticos?",
+        "answer": "Sí. Muchas lecciones incluyen tareas prácticas guiadas que te guían a través de procedimientos de mantenimiento reales en tu propia moto. Estos ejercicios incluyen guías fotográficas paso a paso, listas de verificación de seguridad, listas de herramientas y resultados esperados."
+      },
+      {
+        "question": "¿Puedo seguir mi progreso de aprendizaje?",
+        "answer": "Sí. MotoVault incluye un sistema completo de seguimiento de progreso con árboles de habilidades que visualizan tu recorrido de aprendizaje, porcentajes de finalización para cada curso y módulo, puntuaciones de cuestionarios e historial de rendimiento, insignias de logros por hitos y rachas de aprendizaje para mantenerte motivado."
+      }
+    ],
+    "longFormTitle": "Aprendizaje Estructurado de Motos: De Principiante a Experto",
+    "longFormIntro": "Aprender mantenimiento de motos no debería sentirse abrumador. Las rutas de aprendizaje de MotoVault descomponen el conocimiento mecánico complejo en cursos estructurados y digeribles que te llevan de principiante completo a mecánico casero seguro.",
+    "longFormCurriculumTitle": "Visión General del Currículum",
+    "longFormCurriculum": "El currículum de MotoVault está organizado en módulos de aprendizaje progresivos. Mantenimiento de Rutina cubre lo esencial que todo piloto debe saber: cambios de aceite y filtro, limpieza y ajuste de cadena, inspección de pastillas de freno, verificaciones de refrigerante y monitoreo de presión de neumáticos. Componentes del Motor profundiza en cómo funciona el motor de tu moto. Sistemas Eléctricos desmitifica baterías, sistemas de carga, fusibles y motores de arranque. Ajuste de Suspensión te enseña a configurar la precarga, el rebote y la compresión para tu peso y estilo de conducción.",
+    "longFormProgressionTitle": "Sistema de Progresión de Habilidades",
+    "longFormProgression": "MotoVault usa un sistema de árbol de habilidades que mapea visualmente tu recorrido de aprendizaje. A medida que completas lecciones, apruebas cuestionarios y terminas ejercicios prácticos, desbloqueas nuevas ramas de conocimiento. El sistema identifica tus fortalezas y sugiere áreas donde puedes mejorar.",
+    "longFormLessonTitle": "Formato de Lección y Experiencia de Aprendizaje",
+    "longFormLesson": "Cada lección sigue un formato probado diseñado para la retención y aplicación práctica. Las lecciones comienzan con un objetivo de aprendizaje claro. Las explicaciones visuales con diagramas y fotos anotadas hacen que los sistemas complejos sean fáciles de entender. Los conceptos clave se refuerzan mediante cuestionarios interactivos. Muchas lecciones concluyen con un ejercicio práctico guiado en tu propia moto."
   },
   "FeaturesGarage": {
     "title": "Gestión del Garaje de Motos",
@@ -357,7 +417,37 @@
     "historyTitle": "Historial Completo de Mantenimiento",
     "historyDesc": "Registra cada cambio de aceite, cambio de neumáticos y visita de servicio. Nunca olvides cuándo mantuviste un componente crítico.",
     "remindersTitle": "Recordatorios Inteligentes de Servicio",
-    "remindersDesc": "Configura recordatorios por kilometraje o por tiempo. Recibe notificaciones antes de que el mantenimiento se atrase."
+    "remindersDesc": "Configura recordatorios por kilometraje o por tiempo. Recibe notificaciones antes de que el mantenimiento se atrase.",
+    "faq": [
+      {
+        "question": "¿Cuántas motos puedo rastrear en mi garaje?",
+        "answer": "Con MotoVault Pro, puedes agregar motos ilimitadas a tu garaje digital. El nivel gratuito incluye una moto. Cada moto obtiene su propia línea de tiempo de mantenimiento, historial de servicio y programa de recordatorios."
+      },
+      {
+        "question": "¿Qué registros de mantenimiento puedo guardar?",
+        "answer": "MotoVault soporta el registro de una amplia gama de tareas de mantenimiento incluyendo cambios de aceite y filtro, reemplazos de neumáticos, servicio de pastillas y líquido de frenos, limpieza y reemplazo de cadena, cambios de refrigerante y fluido hidráulico, ajustes de válvulas, reemplazos de bujías, reemplazos de batería y tareas personalizables."
+      },
+      {
+        "question": "¿MotoVault me recuerda sobre el mantenimiento pendiente?",
+        "answer": "Sí. MotoVault incluye un sistema de recordatorios inteligentes que te notifica basándose en intervalos de kilometraje o intervalos de tiempo — o ambos. Por ejemplo, puedes configurar un recordatorio de cambio de aceite cada 5.000 km o cada 6 meses, lo que ocurra primero."
+      },
+      {
+        "question": "¿Puedo rastrear gastos de mantenimiento?",
+        "answer": "Sí. Cada registro de mantenimiento puede incluir información de costos, y MotoVault proporciona seguimiento de gastos con categorías y resúmenes. Puedes ver el gasto total por moto, desgloses por tipo de mantenimiento, tendencias mensuales y anuales, y cálculos de costo por kilómetro."
+      },
+      {
+        "question": "¿Mis datos del garaje están respaldados y sincronizados?",
+        "answer": "Sí. Todos tus datos del garaje se almacenan de forma segura en la nube y se sincronizan entre tus dispositivos automáticamente. Tu historial de mantenimiento, detalles de motos, recordatorios y registros de gastos están respaldados con cifrado de nivel empresarial."
+      }
+    ],
+    "longFormTitle": "Gestión Completa del Garaje de Motos: Mantén Cada Moto en Forma",
+    "longFormIntro": "Tener una moto significa estar al día con el mantenimiento — y si tienes más de una, seguir los calendarios de servicio, reemplazos de piezas y gastos se convierte en un verdadero desafío. El garaje digital de MotoVault te da un centro organizado para cada moto que posees.",
+    "longFormMultiBikeTitle": "Soporte Multi-Moto para Cada Piloto",
+    "longFormMultiBike": "Ya sea que montes un solo vehículo diario o gestiones una colección de motos, el garaje de MotoVault se adapta a tus necesidades. Cada moto se almacena con sus especificaciones completas — marca, modelo, año, VIN y kilometraje actual — obtenidas automáticamente de la base de datos NHTSA que cubre más de 18.000 modelos.",
+    "longFormSchedulingTitle": "Programación de Mantenimiento que Funciona",
+    "longFormScheduling": "El sistema de recordatorios de MotoVault está diseñado alrededor de cómo los pilotos reales mantienen sus motos. Configura recordatorios por intervalo de kilometraje, intervalo de tiempo, o ambos — y MotoVault te notifica cuando el servicio se acerca. Cada recordatorio es personalizable por moto.",
+    "longFormResaleTitle": "Documentación que Protege Tu Inversión",
+    "longFormResale": "Un historial de mantenimiento completo y documentado es una de las cosas más valiosas que puedes mostrar a un comprador potencial. El garaje de MotoVault crea un registro profesional y verificable de cada servicio realizado en tu moto — fechas, kilometraje, costos, piezas usadas y notas."
   },
   "FeaturesProgress": {
     "title": "Rastrea Tu Conocimiento de Motos",
@@ -369,6 +459,32 @@
     "streaksTitle": "Construye Rachas de Aprendizaje",
     "streaksDesc": "Aprende algo nuevo cada día. Construye rachas para mantenerte constante y construir conocimiento duradero de motos.",
     "scoresTitle": "Rastrea Puntuaciones de Cuestionarios",
-    "scoresDesc": "Ve tu rendimiento en todos los módulos. Identifica áreas débiles y enfoca tu aprendizaje donde más importa."
+    "scoresDesc": "Ve tu rendimiento en todos los módulos. Identifica áreas débiles y enfoca tu aprendizaje donde más importa.",
+    "faq": [
+      {
+        "question": "¿Qué métricas muestra el rastreador de progreso?",
+        "answer": "El rastreador de progreso de MotoVault te da una vista completa de tu recorrido de conocimiento de motos. Las métricas clave incluyen tasas de finalización de tareas de mantenimiento, calendarios de servicio próximos, tendencias de gastos, progreso de aprendizaje a través de árboles de habilidades, puntuaciones de cuestionarios, insignias ganadas y longitud de rachas de aprendizaje."
+      },
+      {
+        "question": "¿Puedo configurar recordatorios de mantenimiento personalizados?",
+        "answer": "Sí. MotoVault te permite configurar recordatorios totalmente personalizables basados en intervalos de kilometraje, intervalos de tiempo, o ambos. Los recordatorios comunes incluyen cambios de aceite, lubricación de cadena, revisiones de neumáticos e inspecciones de frenos, pero puedes crear recordatorios personalizados para cualquier tarea."
+      },
+      {
+        "question": "¿Funciona el seguimiento de progreso con múltiples motos?",
+        "answer": "Sí. MotoVault proporciona paneles por moto para que puedas ver el estado de mantenimiento, tareas próximas e historial de gastos de cada moto individualmente. También puedes ver una vista general agregada de todas tus motos."
+      },
+      {
+        "question": "¿Puedo exportar mis datos de mantenimiento?",
+        "answer": "Sí. MotoVault te permite exportar informes completos de mantenimiento para cualquier moto en tu garaje. Estos informes incluyen el historial de servicio completo con fechas, kilometraje, costos y notas — perfecto para documentar la condición de tu moto para compradores potenciales o reclamaciones de seguros."
+      }
+    ],
+    "longFormTitle": "Seguimiento de Progreso de Motos: Mantente Motivado, Mantente al Día",
+    "longFormIntro": "Mantener una moto y construir conocimiento mecánico son compromisos a largo plazo. Sin una forma de rastrear tu progreso, es fácil perder impulso. El sistema de seguimiento de progreso de MotoVault mantiene todo visible y organizado, combinando métricas de aprendizaje gamificado con paneles prácticos de mantenimiento.",
+    "longFormDashboardTitle": "Tu Panel Personal de Motos",
+    "longFormDashboard": "El panel de MotoVault reúne todo lo que necesitas ver en un solo lugar. De un vistazo, puedes verificar qué motos necesitan mantenimiento pronto, cuál es tu próxima lección, cómo están evolucionando tus puntuaciones de cuestionarios y dónde está tu gasto del mes.",
+    "longFormRemindersTitle": "Recordatorios Inteligentes que Te Mantienen Rodando",
+    "longFormReminders": "El sistema de recordatorios es la columna vertebral del seguimiento de mantenimiento de MotoVault. Configura recordatorios basados en kilometraje, tiempo, o ambos, y MotoVault se encarga del resto. Recibirás notificaciones cuando el servicio se acerque — no después de que ya sea tarde.",
+    "longFormAnalyticsTitle": "Análisis e Informes para una Propiedad más Inteligente",
+    "longFormAnalytics": "MotoVault va más allá del simple seguimiento al proporcionar análisis que te ayudan a tomar decisiones más inteligentes sobre tus motos. Los análisis de gastos muestran el gasto total por moto, por categoría y a lo largo del tiempo. Los análisis de mantenimiento destacan qué tareas completas a tiempo versus cuáles tienden a retrasarse. Todos los datos se pueden exportar en informes limpios."
   }
 }

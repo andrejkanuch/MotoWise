@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 
-export async function generateMetadata(): Promise<Metadata> {
+interface BlogPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('Blog');
   return {
     title: t('title'),
@@ -23,21 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function JsonLd({ data }: { data: Record<string, unknown> }) {
-  return (
-    <script
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
-      }}
-    />
-  );
-}
-
-export default async function BlogPage() {
+export default async function BlogPage({ params }: BlogPageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('Blog');
-  const articles = getArticles('en');
+  const articles = getArticles(locale);
 
   const blogSchema = {
     '@context': 'https://schema.org',
