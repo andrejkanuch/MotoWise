@@ -1,6 +1,7 @@
 {
   "name": "@motovault/design-system",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     "./tokens.css": "./src/tokens.css",
     "./semantic.css": "./src/semantic.css",
