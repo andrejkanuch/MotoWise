@@ -1,7 +1,7 @@
 ---
 title: "feat: Full SEO Implementation — CSP, GA4, MDX Blog, Content, Tools & Localization"
 type: feat
-status: active
+status: completed
 date: 2026-03-16
 deepened: 2026-03-16
 ---
