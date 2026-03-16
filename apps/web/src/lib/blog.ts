@@ -19,11 +19,13 @@ export interface Article {
 }
 
 const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
+const ALLOWED_LOCALES = ['en', 'es', 'de', 'fr', 'it'] as const;
 
 const articlesCache = new Map<string, { articles: Article[]; timestamp: number }>();
 const CACHE_TTL = process.env.NODE_ENV === 'production' ? 300_000 : 5_000;
 
 function readArticlesFromDisk(locale: string): Article[] {
+  if (!ALLOWED_LOCALES.includes(locale as (typeof ALLOWED_LOCALES)[number])) return [];
   const localeDir = path.join(CONTENT_DIR, locale);
   if (!fs.existsSync(localeDir)) return [];
 

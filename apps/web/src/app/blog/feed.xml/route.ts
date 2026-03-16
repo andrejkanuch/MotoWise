@@ -26,8 +26,8 @@ export async function GET() {
       .map(
         (a) => `<item>
       <title>${escapeXml(a.title)}</title>
-      <link>${BASE_URL}/blog/${a.slug}</link>
-      <guid isPermaLink="true">${BASE_URL}/blog/${a.slug}</guid>
+      <link>${BASE_URL}/blog/${escapeXml(a.slug)}</link>
+      <guid isPermaLink="true">${BASE_URL}/blog/${escapeXml(a.slug)}</guid>
       <pubDate>${new Date(a.date).toUTCString()}</pubDate>
       <description>${escapeXml(a.excerpt)}</description>
     </item>`,
