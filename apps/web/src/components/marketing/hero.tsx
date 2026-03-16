@@ -46,7 +46,9 @@ export function Hero() {
       <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-32">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
-          <h1 className="sr-only">{t('seoTitle')}</h1>
+          <h1 className="mb-4 text-sm font-semibold uppercase tracking-widest text-warm-400">
+            {t('seoTitle')}
+          </h1>
           <p
             className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50"
             aria-hidden="true"

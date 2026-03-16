@@ -1,10 +1,17 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
+import { Link } from '@/i18n/navigation';
 import { BASE_URL } from '@/lib/constants';
 
-export async function generateMetadata(): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('FeaturesDiagnostics');
   return {
     title: t('title'),
@@ -23,7 +30,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AiDiagnosticsPage() {
+export default async function AiDiagnosticsPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('FeaturesDiagnostics');
 
   const breadcrumbSchema = {
@@ -72,6 +81,24 @@ export default async function AiDiagnosticsPage() {
     ],
   };
 
+  const faqItems = [0, 1, 2, 3, 4].map((i) => ({
+    question: t(`faq.${i}.question`),
+    answer: t(`faq.${i}.answer`),
+  }));
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map(({ question, answer }) => ({
+      '@type': 'Question',
+      name: question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: answer,
+      },
+    })),
+  };
+
   const issues = [
     'issue1',
     'issue2',
@@ -87,6 +114,7 @@ export default async function AiDiagnosticsPage() {
     <>
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={howToSchema} />
+      <JsonLd data={faqSchema} />
 
       {/* Hero */}
       <section className="px-4 pb-16 pt-24 md:pt-32">
@@ -137,6 +165,52 @@ export default async function AiDiagnosticsPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Long-form Content */}
+      <section className="px-4 py-16">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="reveal-on-scroll text-3xl font-extrabold tracking-tight text-neutral-50">
+            {t('longFormTitle')}
+          </h2>
+          <p className="mt-6 text-lg leading-relaxed text-neutral-400">{t('longFormIntro')}</p>
+
+          <h3 className="mt-12 text-2xl font-bold text-neutral-50">{t('longFormHowTitle')}</h3>
+          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormHow')}</p>
+
+          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
+            {t('longFormExamplesTitle')}
+          </h3>
+          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormExamples')}</p>
+
+          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
+            {t('longFormComparisonTitle')}
+          </h3>
+          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormComparison')}</p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-4 py-16">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
+            Frequently Asked Questions
+          </h2>
+          <div className="mt-12 space-y-8">
+            {faqItems.map(({ question, answer }) => (
+              <div key={question} className="reveal-on-scroll">
+                <h3 className="text-lg font-bold text-neutral-50">{question}</h3>
+                <p className="mt-2 leading-relaxed text-neutral-400">{answer}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-12 text-center text-neutral-500">
+            Have more questions?{' '}
+            <Link href="/support" className="text-warm-400 underline underline-offset-4">
+              Visit our support page
+            </Link>
+          </p>
         </div>
       </section>
 

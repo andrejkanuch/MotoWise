@@ -326,7 +326,37 @@
     "issue5": "Ketten- und Antriebszustand",
     "issue6": "Reifenverschleiß und Druckprobleme",
     "issue7": "Flüssigkeitslecks und -stände",
-    "issue8": "Korrosion und Karosserieschäden"
+    "issue8": "Korrosion und Karosserieschäden",
+    "faq": [
+      {
+        "question": "Wie funktioniert die KI-Motorraddiagnose ohne OBD?",
+        "answer": "MotoVault verwendet fotobasierte Diagnose, die von KI angetrieben wird. Mach einfach ein Foto des Problems oder beschreibe deine Symptome, und unsere KI analysiert das Bild, um Komponenten zu identifizieren, Verschleißmuster zu erkennen, Flüssigkeitslecks zu entdecken und die Schadenschwere zu bewerten. Im Gegensatz zu OBD-Scannern, die Fehlercodes über einen Port lesen, verwendet MotoVault visuelle Erkennung — das bedeutet, es funktioniert bei jedem Motorrad unabhängig von Alter oder Marke, ohne Adapter oder Kabel."
+      },
+      {
+        "question": "Welche Motorradprobleme kann MotoVault diagnostizieren?",
+        "answer": "MotoVault kann eine breite Palette von Problemen diagnostizieren, darunter Motorprobleme (Überhitzung, Öllecks, ungewöhnliche Geräusche), Fehler im elektrischen System (leere Batterien, defekte Verkabelung, durchgebrannte Sicherungen), Bremsenverschleiß und Belagdicke, Reifenzustand und Profiltiefe, Fahrwerkslecks und Durchhängen, Kettenspannung und Ritzelabnutzung, Flüssigkeitslecks und -verunreinigungen, Korrosion und Karosserieschäden sowie Armaturenbrett-Warnleuchten."
+      },
+      {
+        "question": "Ist die KI-Motorraddiagnose genau?",
+        "answer": "Die KI von MotoVault liefert hochgenaue Erstbewertungen basierend auf visueller Analyse und dem Abgleich mit Tausenden bekannter Probleme. Jede Diagnose enthält einen Konfidenzwert, der das Sicherheitsniveau der KI angibt. Bei kritischen Sicherheitsproblemen wie Bremsversagen oder Strukturschäden empfehlen wir immer die Bestätigung durch einen qualifizierten Mechaniker."
+      },
+      {
+        "question": "Brauche ich spezielle Ausrüstung für die KI-Diagnose?",
+        "answer": "Keine spezielle Ausrüstung nötig — nur deine Smartphone-Kamera. MotoVault ist so konzipiert, dass es mit der Kamera funktioniert, die du bereits in der Tasche hast. Mach ein klares, gut beleuchtetes Foto des Teils oder Problems, und die KI erledigt den Rest. Keine OBD-Adapter, keine Bluetooth-Dongles, keine proprietären Werkzeuge."
+      },
+      {
+        "question": "Wie unterscheidet sich MotoVault von OBD2-Scannern?",
+        "answer": "Herkömmliche OBD2-Scanner funktionieren nur bei Bikes mit OBD-Port (hauptsächlich neuere Modelle), erfordern einen physischen Adapter und können nur gespeicherte Fehlercodes lesen. MotoVault funktioniert bei jedem Motorrad — Vintage, modern, vergast oder mit Einspritzung — weil es visuelle KI-Analyse anstelle elektronischer Portablesung verwendet. Es kann Probleme identifizieren, die OBD-Scanner komplett übersehen, wie physischen Verschleiß, Korrosion, Flüssigkeitslecks und Reifenzustand."
+      }
+    ],
+    "longFormTitle": "Wie KI-Motorraddiagnose funktioniert: Ein vollständiger Leitfaden",
+    "longFormIntro": "Motorraddiagnose war traditionell die Domäne erfahrener Mechaniker mit spezialisierten Werkzeugen. MotoVault ändert das, indem es KI-gestützte Diagnosefähigkeiten direkt in deine Tasche bringt. Egal ob du ein erfahrener Fahrer bist oder ein Anfänger, der gerade sein erstes Bike gekauft hat — die KI-Diagnose von MotoVault hilft dir zu verstehen, was mit deinem Motorrad los ist.",
+    "longFormHowTitle": "Vom Foto zur Diagnose in Sekunden",
+    "longFormHow": "Der Prozess ist unkompliziert. Öffne MotoVault, richte deine Kamera auf das Teil oder Problem, das du analysieren möchtest, und mach ein Foto. Du kannst auch Symptome beschreiben, die dir aufgefallen sind. Unsere KI verarbeitet das Bild mit fortschrittlicher Computer Vision, identifiziert Komponenten, erkennt Verschleißmuster und gleicht bekannte Probleme für deine spezifische Marke, Modell und Baujahr ab. Innerhalb von Sekunden erhältst du eine detaillierte Diagnose.",
+    "longFormExamplesTitle": "Praxisbeispiele für Diagnosen",
+    "longFormExamples": "Fahrer nutzen die MotoVault-Diagnose in unzähligen realen Szenarien. Ein Fahrer bemerkt eine Pfütze unter seinem geparkten Bike — er macht ein Foto und MotoVault identifiziert es als Kühlmittelleck von der Wasserpumpendichtung. Ein anderer Fahrer sieht eine Warnleuchte, die er nicht erkennt — ein schnelles Foto identifiziert sie als Anzeige für ein mageres Kraftstoffgemisch. Ein neuer Fahrer fotografiert die Kette seines Gebrauchtkaufs — MotoVault erkennt übermäßige Dehnung und abgenutzte Ritzelzähne.",
+    "longFormComparisonTitle": "KI-Diagnose vs. Traditionelle Werkzeuge",
+    "longFormComparison": "Traditionelle Motorraddiagnose stützt sich auf OBD2-Scanner (begrenzt auf neuere Bikes mit kompatiblen Ports), Multimeter für elektrische Tests und das geschulte Auge eines erfahrenen Mechanikers. MotoVault ersetzt diese Werkzeuge nicht vollständig — es ergänzt sie, indem es eine zugängliche erste Diagnosestufe bietet. Wo ein OBD-Scanner gespeicherte Fehlercodes liest, identifiziert MotoVault visuell Probleme, die keinen Fehlercode haben: abgenutzte Bremsbeläge, korrodierte Klemmen, undichte Gabeldichtungen oder eine Kette, die justiert werden muss."
   },
   "FeaturesLearning": {
     "title": "Motorrad-Lernpfade und Quizze",
@@ -343,7 +373,37 @@
     "course4Title": "Routinewartung",
     "course4Desc": "Ölwechsel, Kettenpflege, Bremseninspektion, Reifendruck — alles für die regelmäßige Wartung.",
     "quizTitle": "Teste Dein Wissen",
-    "quizDesc": "Interaktive Quizze nach jeder Lektion. Verfolge deine Punkte, verdiene Abzeichen und baue echtes Fachwissen auf."
+    "quizDesc": "Interaktive Quizze nach jeder Lektion. Verfolge deine Punkte, verdiene Abzeichen und baue echtes Fachwissen auf.",
+    "faq": [
+      {
+        "question": "Welche Themen werden in den Lernpfaden behandelt?",
+        "answer": "Die Lernpfade von MotoVault decken ein umfassendes Spektrum an Motorradwartungsthemen ab, darunter Ölwechsel und Flüssigkeitsmanagement, Bremsbelaginspektion und -austausch, Kettenreinigung, Schmierung und Einstellung, Reifenpflege und Drucküberwachung, Grundlagen des elektrischen Systems und Batteriepflege, Saisonvorbereitung und Einlagerung, Fahrwerkseinstellung und -abstimmung sowie Motorgrundlagen."
+      },
+      {
+        "question": "Ist das für Anfänger ohne mechanische Erfahrung geeignet?",
+        "answer": "Absolut. Die Lernpfade von MotoVault sind mit einer strukturierten Progression konzipiert, die mit den Grundlagen beginnt. Du brauchst keine vorherige mechanische Erfahrung. Jeder Kurs beginnt mit grundlegenden Konzepten — was die Teile sind, warum sie wichtig sind und wie sie funktionieren — bevor es zu praktischen Wartungsaufgaben übergeht."
+      },
+      {
+        "question": "Wie lange dauert jede Lektion?",
+        "answer": "Die meisten Lektionen sind auf 5 bis 15 Minuten ausgelegt, sodass sie leicht in einen vollen Terminkalender passen. Kürzere Lektionen behandeln einzelne Konzepte oder schnelle Tipps, während längere detailliertere Anleitungen und praktische Übungen beinhalten. Du kannst jederzeit pausieren und fortsetzen."
+      },
+      {
+        "question": "Sind praktische Übungen enthalten?",
+        "answer": "Ja. Viele Lektionen beinhalten geführte praktische Aufgaben, die dich durch echte Wartungsprozeduren an deinem eigenen Motorrad führen. Diese Übungen umfassen schrittweise Fotoanleitungen, Sicherheitschecklisten, Werkzeuglisten und erwartete Ergebnisse."
+      },
+      {
+        "question": "Kann ich meinen Lernfortschritt verfolgen?",
+        "answer": "Ja. MotoVault beinhaltet ein vollständiges Fortschrittsverfolgungssystem mit Fähigkeitsbäumen, die deinen Lernweg visualisieren, Abschlussquoten für jeden Kurs und jedes Modul, Quizpunkte und Leistungsverlauf, Leistungsabzeichen für Meilensteine und Lernsträhnen, um dich motiviert zu halten."
+      }
+    ],
+    "longFormTitle": "Strukturiertes Motorrad-Lernen: Vom Anfänger zum Experten",
+    "longFormIntro": "Motorradwartung zu lernen sollte sich nicht überwältigend anfühlen. Die Lernpfade von MotoVault zerlegen komplexes mechanisches Wissen in verdauliche, strukturierte Kurse, die dich vom kompletten Anfänger zum selbstsicheren Hobbymechaniker führen.",
+    "longFormCurriculumTitle": "Übersicht über den Lehrplan",
+    "longFormCurriculum": "Der MotoVault-Lehrplan ist in progressive Lernmodule gegliedert. Routinewartung deckt das Wesentliche ab, das jeder Fahrer wissen sollte: Öl- und Filterwechsel, Kettenreinigung und -einstellung, Bremsbelaginspektion, Kühlmittelprüfungen und Reifendrucküberwachung. Motorinterna geht tiefer in die Funktionsweise des Motors deines Motorrads. Elektrik entmystifiziert Batterien, Ladesysteme, Sicherungen und Anlasser. Fahrwerkseinstellung lehrt dich, Vorspannung, Zugstufe und Druckstufe für dein Gewicht und deinen Fahrstil einzustellen.",
+    "longFormProgressionTitle": "Fähigkeitsprogression",
+    "longFormProgression": "MotoVault verwendet ein Fähigkeitsbaumsystem, das deinen Lernweg visuell abbildet. Wenn du Lektionen abschließt, Quizze bestehst und praktische Übungen beendest, schaltest du neue Wissenszweige frei. Das System erkennt deine Stärken und schlägt Bereiche vor, in denen du dich verbessern kannst.",
+    "longFormLessonTitle": "Lektionsformat und Lernerfahrung",
+    "longFormLesson": "Jede Lektion folgt einem bewährten Format, das auf Beibehaltung und praktische Anwendung ausgelegt ist. Lektionen beginnen mit einem klaren Lernziel. Visuelle Erklärungen mit Diagrammen und kommentierten Fotos machen komplexe Systeme leicht verständlich. Schlüsselkonzepte werden durch interaktive Quizze verstärkt. Viele Lektionen enden mit einer geführten praktischen Übung an deinem eigenen Motorrad."
   },
   "FeaturesGarage": {
     "title": "Motorrad-Garagenverwaltung",
@@ -357,7 +417,37 @@
     "historyTitle": "Vollständige Wartungshistorie",
     "historyDesc": "Protokolliere jeden Ölwechsel, Reifenwechsel und Servicebesuch. Vergiss nie, wann du eine kritische Komponente zuletzt gewartet hast.",
     "remindersTitle": "Intelligente Serviceerinnerungen",
-    "remindersDesc": "Stelle kilometer- oder zeitbasierte Erinnerungen ein. Werde benachrichtigt, bevor die Wartung überfällig ist."
+    "remindersDesc": "Stelle kilometer- oder zeitbasierte Erinnerungen ein. Werde benachrichtigt, bevor die Wartung überfällig ist.",
+    "faq": [
+      {
+        "question": "Wie viele Motorräder kann ich in meiner Garage verfolgen?",
+        "answer": "Mit MotoVault Pro kannst du unbegrenzt Motorräder zu deiner digitalen Garage hinzufügen. Die kostenlose Version beinhaltet ein Bike. Jedes Motorrad bekommt seine eigene Wartungszeitlinie, Servicehistorie und Erinnerungsplan."
+      },
+      {
+        "question": "Welche Wartungsaufzeichnungen kann ich führen?",
+        "answer": "MotoVault unterstützt die Protokollierung einer umfassenden Palette von Wartungsaufgaben, darunter Öl- und Filterwechsel, Reifenwechsel, Bremsbelag- und Bremsflüssigkeitsservice, Kettenreinigung und -austausch, Kühlmittel- und Hydraulikflüssigkeitswechsel, Ventileinstellungen, Zündkerzenwechsel, Batteriewechsel und vollständig anpassbare Aufgaben."
+      },
+      {
+        "question": "Erinnert mich MotoVault an anstehende Wartung?",
+        "answer": "Ja. MotoVault enthält ein intelligentes Erinnerungssystem, das dich basierend auf Kilometerstand oder Zeitintervallen benachrichtigt — oder beidem. Zum Beispiel kannst du eine Ölwechselerinnerung alle 5.000 km oder alle 6 Monate einstellen, je nachdem was zuerst eintritt."
+      },
+      {
+        "question": "Kann ich Wartungsausgaben verfolgen?",
+        "answer": "Ja. Jede Wartungsaufzeichnung kann Kosteninformationen enthalten, und MotoVault bietet Ausgabenverfolgung mit Kategorien und Zusammenfassungen. Du kannst Gesamtausgaben pro Bike, Aufschlüsselungen nach Wartungsart, monatliche und jährliche Ausgabentrends und Kosten-pro-Kilometer-Berechnungen sehen."
+      },
+      {
+        "question": "Sind meine Garagendaten gesichert und synchronisiert?",
+        "answer": "Ja. Alle deine Garagendaten werden sicher in der Cloud gespeichert und automatisch zwischen deinen Geräten synchronisiert. Deine Wartungshistorie, Bike-Details, Erinnerungen und Ausgabenaufzeichnungen sind mit Verschlüsselung auf Unternehmensebene gesichert."
+      }
+    ],
+    "longFormTitle": "Komplette Motorrad-Garagenverwaltung: Jedes Bike im Blick",
+    "longFormIntro": "Ein Motorrad zu besitzen bedeutet, bei der Wartung auf dem Laufenden zu bleiben — und wenn du mehr als eines besitzt, wird das Verfolgen von Serviceplänen, Teilewechseln und Ausgaben zu einer echten Herausforderung. Die digitale Garage von MotoVault gibt dir einen einzigen, organisierten Hub für jedes Bike, das du besitzt.",
+    "longFormMultiBikeTitle": "Multi-Bike-Unterstützung für jeden Fahrer",
+    "longFormMultiBike": "Egal ob du einen einzelnen Pendler fährst oder eine Sammlung von Motorrädern verwaltest, die Garage von MotoVault passt sich deinen Bedürfnissen an. Jedes Bike wird mit seinen vollständigen Spezifikationen gespeichert — Marke, Modell, Baujahr, VIN und aktueller Kilometerstand — automatisch aus der NHTSA-Datenbank mit über 18.000 Motorradmodellen bezogen.",
+    "longFormSchedulingTitle": "Wartungsplanung, die funktioniert",
+    "longFormScheduling": "Das Erinnerungssystem von MotoVault ist darauf ausgelegt, wie echte Fahrer ihre Bikes warten. Stelle Erinnerungen nach Kilometerstand, Zeitintervall oder beidem ein — und MotoVault benachrichtigt dich, wenn der Service fällig wird. Jede Erinnerung ist pro Bike anpassbar.",
+    "longFormResaleTitle": "Dokumentation, die deine Investition schützt",
+    "longFormResale": "Eine vollständige, dokumentierte Wartungshistorie ist eines der wertvollsten Dinge, die du einem potenziellen Käufer zeigen kannst. Die Garage von MotoVault erstellt einen professionellen, überprüfbaren Nachweis jedes durchgeführten Services — Daten, Kilometerstand, Kosten, verwendete Teile und Notizen."
   },
   "FeaturesProgress": {
     "title": "Verfolge Dein Motorradwissen",
@@ -369,6 +459,32 @@
     "streaksTitle": "Baue Lernsträhnen Auf",
     "streaksDesc": "Lerne jeden Tag etwas Neues. Baue Strähnen auf, um konsistent zu bleiben und dauerhaftes Motorradwissen aufzubauen.",
     "scoresTitle": "Verfolge Quizpunkte",
-    "scoresDesc": "Sieh deine Leistung über alle Module hinweg. Identifiziere schwache Bereiche und fokussiere dein Lernen dort, wo es am meisten zählt."
+    "scoresDesc": "Sieh deine Leistung über alle Module hinweg. Identifiziere schwache Bereiche und fokussiere dein Lernen dort, wo es am meisten zählt.",
+    "faq": [
+      {
+        "question": "Welche Metriken zeigt der Fortschrittstracker?",
+        "answer": "Der Fortschrittstracker von MotoVault gibt dir einen umfassenden Überblick über deine Motorrad-Wissensreise. Zu den wichtigsten Metriken gehören Abschlussraten von Wartungsaufgaben, anstehende Servicepläne, Ausgabentrends, Lernfortschritt durch Fähigkeitsbäume, Quizpunkte, verdiente Abzeichen und Lernsträhnen."
+      },
+      {
+        "question": "Kann ich benutzerdefinierte Wartungserinnerungen einstellen?",
+        "answer": "Ja. MotoVault ermöglicht vollständig anpassbare Erinnerungen basierend auf Kilometerstand, Zeitintervallen oder beidem. Gängige Erinnerungen umfassen Ölwechsel, Kettenschmierung, Reifenkontrollen und Bremsinspektionen, aber du kannst benutzerdefinierte Erinnerungen für jede Aufgabe erstellen."
+      },
+      {
+        "question": "Funktioniert die Fortschrittsverfolgung mit mehreren Bikes?",
+        "answer": "Ja. MotoVault bietet Dashboards pro Bike, sodass du den Wartungsstatus, anstehende Aufgaben und Ausgabenverlauf für jedes Motorrad einzeln sehen kannst. Du kannst auch eine aggregierte Übersicht über alle deine Bikes anzeigen."
+      },
+      {
+        "question": "Kann ich meine Wartungsdaten exportieren?",
+        "answer": "Ja. MotoVault ermöglicht den Export umfassender Wartungsberichte für jedes Bike in deiner Garage. Diese Berichte enthalten die vollständige Servicehistorie mit Daten, Kilometerstand, Kosten und Notizen — perfekt für die Dokumentation beim Verkauf oder für Versicherungsansprüche."
+      }
+    ],
+    "longFormTitle": "Motorrad-Fortschrittsverfolgung: Motiviert und auf Kurs bleiben",
+    "longFormIntro": "Ein Motorrad zu warten und mechanisches Wissen aufzubauen sind langfristige Verpflichtungen. Ohne eine Möglichkeit, deinen Fortschritt zu verfolgen, verliert man leicht den Schwung. Das Fortschrittsverfolgungssystem von MotoVault hält alles sichtbar und organisiert.",
+    "longFormDashboardTitle": "Dein persönliches Motorrad-Dashboard",
+    "longFormDashboard": "Das Dashboard von MotoVault bringt alles zusammen, was du sehen musst, an einem Ort. Auf einen Blick kannst du prüfen, welche Bikes bald Wartung brauchen, was deine nächste Lektion ist, wie sich deine Quizpunkte entwickeln und wo deine monatlichen Ausgaben stehen.",
+    "longFormRemindersTitle": "Intelligente Erinnerungen, die dich am Fahren halten",
+    "longFormReminders": "Das Erinnerungssystem ist das Rückgrat der Wartungsverfolgung von MotoVault. Stelle Erinnerungen basierend auf Kilometerstand, Zeit oder beidem ein, und MotoVault kümmert sich um den Rest. Du erhältst Benachrichtigungen, wenn der Service ansteht — nicht erst, wenn er bereits überfällig ist.",
+    "longFormAnalyticsTitle": "Analysen und Berichte für intelligentere Besitzer",
+    "longFormAnalytics": "MotoVault geht über einfaches Tracking hinaus und bietet Analysen, die dir helfen, klügere Entscheidungen über deine Motorräder zu treffen. Ausgabenanalysen zeigen Gesamtausgaben pro Bike, nach Kategorie und über die Zeit. Wartungsanalysen zeigen, welche Aufgaben du pünktlich erledigst und welche tendenziell ausrutschen. Alle Daten können in saubere Berichte exportiert werden."
   }
 }
