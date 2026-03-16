@@ -179,9 +179,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           <h3 className="mt-12 text-2xl font-bold text-neutral-50">{t('longFormHowTitle')}</h3>
           <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormHow')}</p>
 
-          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
-            {t('longFormExamplesTitle')}
-          </h3>
+          <h3 className="mt-12 text-2xl font-bold text-neutral-50">{t('longFormExamplesTitle')}</h3>
           <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormExamples')}</p>
 
           <h3 className="mt-12 text-2xl font-bold text-neutral-50">

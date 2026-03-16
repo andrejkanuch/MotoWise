@@ -66,11 +66,7 @@ const CATEGORIES = [
     id: 'stands',
     letter: 'S',
     name: 'Stands',
-    items: [
-      'Side stand retracts fully',
-      'Center stand (if equipped)',
-      'Stand switch works',
-    ],
+    items: ['Side stand retracts fully', 'Center stand (if equipped)', 'Stand switch works'],
   },
 ] as const;
 
@@ -246,6 +242,8 @@ export function TclocsChecklist() {
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                                 strokeWidth={3}
+                                aria-label="Checked"
+                                role="img"
                               >
                                 <path
                                   strokeLinecap="round"
@@ -287,12 +285,10 @@ export function TclocsChecklist() {
 
         {/* CTA */}
         <div className="mt-8 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center print:hidden">
-          <h2 className="text-xl font-bold text-neutral-50">
-            Get Automated Pre-Ride Reminders
-          </h2>
+          <h2 className="text-xl font-bold text-neutral-50">Get Automated Pre-Ride Reminders</h2>
           <p className="mt-3 text-neutral-400">
-            MotoVault sends smart reminders before your rides and tracks maintenance
-            history so you never miss a critical check.
+            MotoVault sends smart reminders before your rides and tracks maintenance history so you
+            never miss a critical check.
           </p>
           <Link
             href="/"

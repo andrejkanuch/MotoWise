@@ -1,11 +1,10 @@
 import type { Metadata } from 'next';
-import { setRequestLocale } from 'next-intl/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
-import { JsonLd } from '@/components/marketing/json-ld';
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>;

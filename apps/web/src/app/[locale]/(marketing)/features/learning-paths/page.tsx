@@ -150,9 +150,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
           </h3>
           <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormProgression')}</p>
 
-          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
-            {t('longFormLessonTitle')}
-          </h3>
+          <h3 className="mt-12 text-2xl font-bold text-neutral-50">{t('longFormLessonTitle')}</h3>
           <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormLesson')}</p>
         </div>
       </section>

@@ -87,8 +87,6 @@ export function getRelatedArticles(
   const articles = getArticles(locale);
   if (!category) return articles.filter((a) => a.slug !== currentSlug).slice(0, limit);
   const sameCategory = articles.filter((a) => a.slug !== currentSlug && a.category === category);
-  const others = articles.filter(
-    (a) => a.slug !== currentSlug && a.category !== category,
-  );
+  const others = articles.filter((a) => a.slug !== currentSlug && a.category !== category);
   return [...sameCategory, ...others].slice(0, limit);
 }

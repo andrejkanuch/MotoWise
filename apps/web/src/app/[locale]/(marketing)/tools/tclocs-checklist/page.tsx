@@ -115,9 +115,12 @@ export default function TclocsChecklistPage() {
             <span className="text-warm-400">TCLOCS</span> Pre-Ride Checklist
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
-            The Motorcycle Safety Foundation recommends the TCLOCS inspection before
-            every ride. Tap each item to check it off &mdash;{' '}
-            <strong className="text-neutral-300">Tires, Controls, Lights, Oil, Chassis, Stands</strong>.
+            The Motorcycle Safety Foundation recommends the TCLOCS inspection before every ride. Tap
+            each item to check it off &mdash;{' '}
+            <strong className="text-neutral-300">
+              Tires, Controls, Lights, Oil, Chassis, Stands
+            </strong>
+            .
           </p>
         </div>
       </section>
@@ -131,19 +134,21 @@ export default function TclocsChecklistPage() {
           <h2 className="text-2xl font-bold text-neutral-50">What is TCLOCS?</h2>
           <div className="mt-6 space-y-4 text-neutral-400">
             <p>
-              TCLOCS is a pre-ride inspection acronym developed by the Motorcycle Safety
-              Foundation (MSF). It stands for <strong className="text-neutral-300">Tires, Controls,
-              Lights, Oil, Chassis, and Stands</strong> &mdash; the six critical areas to
-              check before every motorcycle ride.
+              TCLOCS is a pre-ride inspection acronym developed by the Motorcycle Safety Foundation
+              (MSF). It stands for{' '}
+              <strong className="text-neutral-300">
+                Tires, Controls, Lights, Oil, Chassis, and Stands
+              </strong>{' '}
+              &mdash; the six critical areas to check before every motorcycle ride.
             </p>
             <p>
-              A thorough pre-ride inspection takes about 5-10 minutes and can prevent
-              mechanical failures, accidents, and costly breakdowns. Professional riders
-              and safety instructors consider it an essential habit for every motorcyclist.
+              A thorough pre-ride inspection takes about 5-10 minutes and can prevent mechanical
+              failures, accidents, and costly breakdowns. Professional riders and safety instructors
+              consider it an essential habit for every motorcyclist.
             </p>
             <p>
-              This interactive checklist lets you track your inspection progress. You can
-              also print it to keep in your garage or tank bag for quick reference.
+              This interactive checklist lets you track your inspection progress. You can also print
+              it to keep in your garage or tank bag for quick reference.
             </p>
           </div>
         </div>

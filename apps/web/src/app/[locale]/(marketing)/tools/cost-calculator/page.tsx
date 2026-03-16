@@ -85,13 +85,12 @@ export default function CostCalculatorPage() {
       <section className="px-4 pb-8 pt-24 md:pt-32">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
-            Motorcycle Cost of Ownership{' '}
-            <span className="text-warm-400">Calculator</span>
+            Motorcycle Cost of Ownership <span className="text-warm-400">Calculator</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
-            Find out the true cost of owning your motorcycle. Estimate annual expenses
-            including fuel, insurance, maintenance, and more &mdash; then see your cost
-            per mile and 5-year projection.
+            Find out the true cost of owning your motorcycle. Estimate annual expenses including
+            fuel, insurance, maintenance, and more &mdash; then see your cost per mile and 5-year
+            projection.
           </p>
         </div>
       </section>
@@ -107,20 +106,20 @@ export default function CostCalculatorPage() {
           </h2>
           <div className="mt-6 space-y-4 text-neutral-400">
             <p>
-              The purchase price is only the beginning. Annual motorcycle ownership costs
-              typically range from $1,500 to $5,000+ depending on your riding habits,
-              bike type, and maintenance preferences. Understanding these costs helps you
-              budget effectively and avoid surprises.
+              The purchase price is only the beginning. Annual motorcycle ownership costs typically
+              range from $1,500 to $5,000+ depending on your riding habits, bike type, and
+              maintenance preferences. Understanding these costs helps you budget effectively and
+              avoid surprises.
             </p>
             <p>
-              Fuel costs vary significantly by motorcycle type. Touring bikes average
-              around 38 MPG while adventure bikes can achieve 50+ MPG. Your annual
-              mileage is the biggest factor in fuel expenses.
+              Fuel costs vary significantly by motorcycle type. Touring bikes average around 38 MPG
+              while adventure bikes can achieve 50+ MPG. Your annual mileage is the biggest factor
+              in fuel expenses.
             </p>
             <p>
-              Regular maintenance is essential for safety and longevity. Basic maintenance
-              (oil changes, chain lube) costs around $300/year, while premium care
-              including dealer servicing can exceed $1,200 annually.
+              Regular maintenance is essential for safety and longevity. Basic maintenance (oil
+              changes, chain lube) costs around $300/year, while premium care including dealer
+              servicing can exceed $1,200 annually.
             </p>
           </div>
 
@@ -128,9 +127,9 @@ export default function CostCalculatorPage() {
             Track Your Actual Costs with MotoVault
           </h2>
           <p className="mt-4 text-neutral-400">
-            This calculator provides estimates, but real costs vary. MotoVault tracks
-            your actual maintenance expenses, fuel fill-ups, and service history &mdash;
-            giving you precise cost-per-mile data for every bike in your garage.
+            This calculator provides estimates, but real costs vary. MotoVault tracks your actual
+            maintenance expenses, fuel fill-ups, and service history &mdash; giving you precise
+            cost-per-mile data for every bike in your garage.
           </p>
         </div>
       </section>

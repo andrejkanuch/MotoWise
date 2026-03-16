@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import { Link } from '@/i18n/navigation';
 
@@ -16,7 +16,11 @@ type BikeType = keyof typeof BIKE_TYPES;
 
 const MAINTENANCE_TIERS = {
   basic: { label: 'Basic', cost: 300, description: 'Oil changes, chain lube, basic upkeep' },
-  moderate: { label: 'Moderate', cost: 600, description: 'Basic + brake pads, filters, valve checks' },
+  moderate: {
+    label: 'Moderate',
+    cost: 600,
+    description: 'Basic + brake pads, filters, valve checks',
+  },
   premium: { label: 'Premium', cost: 1200, description: 'Full dealer servicing, all consumables' },
 } as const;
 
@@ -101,7 +105,10 @@ export function CostCalculator() {
 
             {/* Bike Type */}
             <div className="mb-6">
-              <label htmlFor="bike-type" className="mb-2 block text-sm font-medium text-neutral-300">
+              <label
+                htmlFor="bike-type"
+                className="mb-2 block text-sm font-medium text-neutral-300"
+              >
                 Bike Type
               </label>
               <select
@@ -137,7 +144,10 @@ export function CostCalculator() {
 
             {/* Fuel Price */}
             <div className="mb-6">
-              <label htmlFor="fuel-price" className="mb-2 block text-sm font-medium text-neutral-300">
+              <label
+                htmlFor="fuel-price"
+                className="mb-2 block text-sm font-medium text-neutral-300"
+              >
                 Fuel Price per Gallon ($)
               </label>
               <input
@@ -154,7 +164,10 @@ export function CostCalculator() {
 
             {/* Insurance */}
             <div className="mb-6">
-              <label htmlFor="insurance" className="mb-2 block text-sm font-medium text-neutral-300">
+              <label
+                htmlFor="insurance"
+                className="mb-2 block text-sm font-medium text-neutral-300"
+              >
                 Annual Insurance Cost ($)
               </label>
               <input
@@ -212,9 +225,17 @@ export function CostCalculator() {
               <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8">
                 <h2 className="mb-6 text-xl font-bold text-neutral-50">Annual Cost Breakdown</h2>
                 <div className="space-y-4">
-                  <CostRow label="Fuel" sublabel={`${BIKE_TYPES[bikeType]?.mpg ?? 45} MPG avg`} amount={results.fuelCost} />
+                  <CostRow
+                    label="Fuel"
+                    sublabel={`${BIKE_TYPES[bikeType]?.mpg ?? 45} MPG avg`}
+                    amount={results.fuelCost}
+                  />
                   <CostRow label="Insurance" amount={results.insurance} />
-                  <CostRow label="Maintenance" sublabel={MAINTENANCE_TIERS[maintenance]?.label ?? 'Moderate'} amount={results.maintenanceCost} />
+                  <CostRow
+                    label="Maintenance"
+                    sublabel={MAINTENANCE_TIERS[maintenance]?.label ?? 'Moderate'}
+                    amount={results.maintenanceCost}
+                  />
                   <CostRow label="Tires" amount={results.tires} />
                   <CostRow label="Registration & Fees" amount={results.registration} />
 

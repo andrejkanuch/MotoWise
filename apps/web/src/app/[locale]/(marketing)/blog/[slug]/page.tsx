@@ -1,16 +1,15 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
-import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
+import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticleBySlug, getArticleSlugs, getArticleUrl, getRelatedArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
-import { JsonLd } from '@/components/marketing/json-ld';
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -237,7 +236,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             Ready to take control of your motorcycle maintenance?
           </h2>
           <p className="mb-6 text-neutral-400">
-            MotoVault combines AI diagnostics, structured learning, and garage management in one app.
+            MotoVault combines AI diagnostics, structured learning, and garage management in one
+            app.
           </p>
           <Link
             href="/"
