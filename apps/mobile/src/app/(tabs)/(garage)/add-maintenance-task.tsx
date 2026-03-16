@@ -291,12 +291,19 @@ export default function AddMaintenanceTaskScreen() {
               <DateTimePicker
                 value={dueDate}
                 mode="date"
-                display="inline"
+                display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
                 minimumDate={new Date()}
-                onChange={(_, selectedDate) => {
-                  if (selectedDate) setDueDate(selectedDate);
+                onChange={(event, selectedDate) => {
+                  // On Android, the native dialog fires onChange on both "OK" and "Cancel"
+                  // and must be dismissed by hiding the picker immediately
+                  if (process.env.EXPO_OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+                  if (event.type === 'set' && selectedDate) {
+                    setDueDate(selectedDate);
+                  }
                 }}
-                style={{ height: 320 }}
+                style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
               />
               <View
                 style={{

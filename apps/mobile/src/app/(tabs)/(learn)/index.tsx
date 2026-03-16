@@ -20,9 +20,17 @@ import {
   X,
   Zap,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  type LayoutChangeEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
@@ -78,6 +86,9 @@ export default function LearnScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const generateGuardRef = useRef(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const searchInputRef = useRef<TextInput>(null);
+  const modulesOffsetY = useRef(0);
 
   // Sync q param to search — intentionally only trigger on q changes, not searchQuery
   // biome-ignore lint/correctness/useExhaustiveDependencies: only sync when URL param changes
@@ -179,9 +190,23 @@ export default function LearnScreen() {
     router.setParams({ q: undefined });
   };
 
+  const handleBrowseModules = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ y: modulesOffsetY.current, animated: true });
+  }, []);
+
+  const handleGenerateFromBanner = useCallback(() => {
+    if (!requirePro('unlimited_articles')) return;
+    searchInputRef.current?.focus();
+  }, [requirePro]);
+
+  const onModulesLayout = useCallback((e: LayoutChangeEvent) => {
+    modulesOffsetY.current = e.nativeEvent.layout.y;
+  }, []);
+
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
       <ScrollView
+        ref={scrollViewRef}
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
@@ -201,6 +226,7 @@ export default function LearnScreen() {
           >
             <Search size={18} color={palette.neutral400} strokeWidth={2} />
             <TextInput
+              ref={searchInputRef}
               className="flex-1 text-base text-neutral-950 dark:text-neutral-50"
               placeholder={t('learn.searchPlaceholder')}
               placeholderTextColor={palette.neutral400}
@@ -332,16 +358,8 @@ export default function LearnScreen() {
           <>
             {/* Onboarding Card */}
             <LearnOnboardingCard
-              onBrowse={() => {
-                // Scroll down to modules - no-op, they're visible below
-              }}
-              onGenerate={() => {
-                if (!requirePro('unlimited_articles')) return;
-                setSearchQuery('');
-                setDebouncedQuery('');
-                // Navigate to generate flow by setting a default topic
-                generateMutation.mutate('motorcycle basics');
-              }}
+              onBrowse={handleBrowseModules}
+              onGenerate={handleGenerateFromBanner}
             />
 
             {/* Progress Card */}
@@ -381,7 +399,11 @@ export default function LearnScreen() {
             </Animated.View>
 
             {/* Module Grid */}
-            <Animated.View entering={FadeInUp.delay(300).duration(400)} className="px-5 mt-5">
+            <Animated.View
+              entering={FadeInUp.delay(300).duration(400)}
+              className="px-5 mt-5"
+              onLayout={onModulesLayout}
+            >
               <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
                 {t('learn.modules')}
               </Text>

@@ -22,12 +22,46 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
-async function compressImage(uri: string): Promise<string> {
-  const compressed = await manipulateAsync(uri, [{ resize: { width: 600 } }], {
+/** Crop to 4:3 center and compress */
+async function cropAndCompress(uri: string): Promise<string> {
+  // First get the image dimensions by loading a resize-only pass
+  const {
+    width,
+    height,
+    uri: resizedUri,
+  } = await manipulateAsync(uri, [], {
+    compress: 1,
+    format: SaveFormat.JPEG,
+  });
+
+  const targetAspect = 4 / 3;
+  const currentAspect = width / height;
+
+  let cropAction:
+    | { crop: { originX: number; originY: number; width: number; height: number } }
+    | undefined;
+  if (currentAspect > targetAspect) {
+    // Wider than 4:3 — crop sides
+    const cropWidth = height * targetAspect;
+    cropAction = {
+      crop: { originX: (width - cropWidth) / 2, originY: 0, width: cropWidth, height },
+    };
+  } else if (currentAspect < targetAspect) {
+    // Taller than 4:3 — crop top/bottom
+    const cropHeight = width / targetAspect;
+    cropAction = {
+      crop: { originX: 0, originY: (height - cropHeight) / 2, width, height: cropHeight },
+    };
+  }
+
+  const actions = cropAction
+    ? [cropAction, { resize: { width: 600 } as const }]
+    : [{ resize: { width: 600 } as const }];
+  const result = await manipulateAsync(resizedUri, actions, {
     compress: 0.8,
     format: SaveFormat.JPEG,
   });
-  return compressed.uri;
+  return result.uri;
 }
 
 export default function BikePhotoScreen() {
@@ -65,16 +99,14 @@ export default function BikePhotoScreen() {
         const result = await launcher({
           mediaTypes: 'images',
           quality: 0.8,
-          allowsEditing: true,
-          aspect: [4, 3],
         });
 
         if (!result.canceled && result.assets[0]) {
           let uri = result.assets[0].uri;
           try {
-            uri = await compressImage(uri);
-          } catch (compressionError) {
-            console.warn('Image compression failed, using original image:', compressionError);
+            uri = await cropAndCompress(uri);
+          } catch (processingError) {
+            console.warn('Image processing failed, using original image:', processingError);
           }
           setPhotoUri(uri);
         }

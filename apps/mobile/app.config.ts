@@ -12,7 +12,7 @@ const getAppName = () => {
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
-  slug: 'motovault',
+  slug: 'motowise',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',

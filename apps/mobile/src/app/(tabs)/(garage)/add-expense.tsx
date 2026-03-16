@@ -302,12 +302,17 @@ export default function AddExpenseScreen() {
               <DateTimePicker
                 value={date}
                 mode="date"
-                display="inline"
+                display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
                 maximumDate={new Date()}
-                onChange={(_, selectedDate) => {
-                  if (selectedDate) setDate(selectedDate);
+                onChange={(event, selectedDate) => {
+                  if (process.env.EXPO_OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+                  if (event.type === 'set' && selectedDate) {
+                    setDate(selectedDate);
+                  }
                 }}
-                style={{ height: 320 }}
+                style={process.env.EXPO_OS === 'ios' ? { height: 320 } : undefined}
               />
               <View
                 style={{

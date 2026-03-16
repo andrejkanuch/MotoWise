@@ -30,6 +30,7 @@ export function OnboardingCard<T extends string>({
   return (
     <Pressable
       onPress={handlePress}
+      android_ripple={null}
       accessibilityRole="button"
       accessibilityLabel={subtitle ? `${label}, ${subtitle}` : label}
       accessibilityState={{ selected }}
@@ -45,21 +46,21 @@ export function OnboardingCard<T extends string>({
         gap: 12,
         width: '100%',
         transform: [{ scale: pressed ? 0.97 : 1 }],
-        ...(selected
-          ? {
-              shadowColor: color,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.2,
-              shadowRadius: 10,
-              ...(Platform.OS === 'android' ? { elevation: 4 } : {}),
-            }
-          : {
-              shadowColor: '#000000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.2,
-              shadowRadius: 3,
-              ...(Platform.OS === 'android' ? { elevation: 2 } : {}),
-            }),
+        ...(Platform.OS === 'ios'
+          ? selected
+            ? {
+                shadowColor: color,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.2,
+                shadowRadius: 10,
+              }
+            : {
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.2,
+                shadowRadius: 3,
+              }
+          : {}),
       })}
     >
       <View
