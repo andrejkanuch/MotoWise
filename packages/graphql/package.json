@@ -1,6 +1,7 @@
 {
   "name": "@motovault/graphql",
   "private": true,
+  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
