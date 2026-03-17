@@ -711,7 +711,12 @@ export default function BikeDetailScreen() {
 
         {/* 5. Expenses Section */}
         <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ marginTop: 24 }}>
-          <ExpensesSection motorcycleId={id} isDark={isDark} />
+          <ExpensesSection
+            motorcycleId={id}
+            isDark={isDark}
+            currentMileage={bike.currentMileage ?? undefined}
+            mileageUnit={bike.mileageUnit ?? 'mi'}
+          />
         </Animated.View>
 
         {/* 6. Details section (collapsible) */}

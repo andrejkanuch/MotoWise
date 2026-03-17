@@ -8,6 +8,11 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
+import type {
+  CategoryTotal,
+  ExpenseDashboardSummary,
+  MonthlyBucket,
+} from './models/expense-dashboard.model';
 import type { ExpenseCategory, ExpenseSummary } from './models/expense-summary.model';
 
 /** Mirrors the selected columns from the expenses table (not yet in generated database.types.ts). */
@@ -37,6 +42,10 @@ export class ExpensesService {
     this.logger.debug(
       `findByMotorcycle: userId=${userId}, motorcycleId=${motorcycleId}, year=${year}`,
     );
+
+    if (year !== undefined && (year < 2000 || year > 2100)) {
+      throw new BadRequestException('Year must be between 2000 and 2100');
+    }
 
     let query = this.supabase
       .from('expenses')
@@ -175,6 +184,95 @@ export class ExpensesService {
     }
 
     return data ? this.mapRow(data) : null;
+  }
+
+  async getDashboard(userId: string, motorcycleId: string): Promise<ExpenseDashboardSummary> {
+    this.logger.debug(`getDashboard: userId=${userId}, motorcycleId=${motorcycleId}`);
+
+    const { data, error } = await this.supabase
+      .from('expenses')
+      .select('amount, category, date')
+      .eq('user_id', userId)
+      .eq('motorcycle_id', motorcycleId)
+      .is('deleted_at', null)
+      .limit(5000);
+
+    if (error) {
+      this.logger.error(`getDashboard failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch expense dashboard');
+    }
+
+    const rows = data ?? [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const previousYear = currentYear - 1;
+
+    let currentYearTotal = 0;
+    let previousYearTotal = 0;
+    let allTimeTotal = 0;
+
+    // month key → category → amount
+    const bucketMap = new Map<string, Record<string, number>>();
+    const categoryTotalMap = new Map<string, number>();
+
+    for (const row of rows) {
+      const amount = Math.round(Number(row.amount) * 100) / 100;
+      const [yearStr, monthStr] = (row.date as string).split('-');
+      const year = Number(yearStr);
+      const month = Number(monthStr);
+
+      allTimeTotal += amount;
+      if (year === currentYear) currentYearTotal += amount;
+      if (year === previousYear) previousYearTotal += amount;
+
+      // Monthly bucket
+      const bucketKey = `${year}-${month}`;
+      if (!bucketMap.has(bucketKey)) {
+        bucketMap.set(bucketKey, {});
+      }
+      const bucket = bucketMap.get(bucketKey);
+      if (bucket) {
+        bucket[row.category] = (bucket[row.category] ?? 0) + amount;
+      }
+
+      // Category total
+      categoryTotalMap.set(row.category, (categoryTotalMap.get(row.category) ?? 0) + amount);
+    }
+
+    // Build monthly buckets sorted by year desc, month desc
+    const monthlyBuckets: MonthlyBucket[] = [];
+    for (const [key, categories] of bucketMap) {
+      const [yearStr, monthStr] = key.split('-');
+      monthlyBuckets.push({
+        year: Number(yearStr),
+        month: Number(monthStr),
+        fuel: Math.round((categories.fuel ?? 0) * 100) / 100,
+        maintenance: Math.round((categories.maintenance ?? 0) * 100) / 100,
+        parts: Math.round((categories.parts ?? 0) * 100) / 100,
+        gear: Math.round((categories.gear ?? 0) * 100) / 100,
+        total: Math.round(Object.values(categories).reduce((sum, v) => sum + v, 0) * 100) / 100,
+      });
+    }
+    monthlyBuckets.sort((a, b) => b.year - a.year || b.month - a.month);
+
+    // Build category totals
+    const categoryTotals: CategoryTotal[] = [];
+    for (const [category, total] of categoryTotalMap) {
+      categoryTotals.push({
+        category,
+        total: Math.round(total * 100) / 100,
+      });
+    }
+    categoryTotals.sort((a, b) => b.total - a.total);
+
+    return {
+      currentYearTotal: Math.round(currentYearTotal * 100) / 100,
+      previousYearTotal: Math.round(previousYearTotal * 100) / 100,
+      allTimeTotal: Math.round(allTimeTotal * 100) / 100,
+      expenseCount: rows.length,
+      monthlyBuckets,
+      categoryTotals,
+    };
   }
 
   private mapRow(row: ExpenseRow): Expense {

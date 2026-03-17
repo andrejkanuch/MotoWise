@@ -9,6 +9,7 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { LogExpenseInput } from './dto/log-expense.input';
 import { ExpensesService } from './expenses.service';
 import { Expense } from './models/expense.model';
+import { ExpenseDashboardSummary } from './models/expense-dashboard.model';
 import { ExpenseSummary } from './models/expense-summary.model';
 
 @Resolver(() => Expense)
@@ -23,6 +24,15 @@ export class ExpensesResolver {
     @Args('year', { type: () => Int, nullable: true }) year?: number,
   ): Promise<ExpenseSummary> {
     return this.expensesService.findByMotorcycle(user.id, motorcycleId, year);
+  }
+
+  @Query(() => ExpenseDashboardSummary)
+  @UseGuards(GqlAuthGuard)
+  async expenseDashboard(
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<ExpenseDashboardSummary> {
+    return this.expensesService.getDashboard(user.id, motorcycleId);
   }
 
   @Mutation(() => Expense)

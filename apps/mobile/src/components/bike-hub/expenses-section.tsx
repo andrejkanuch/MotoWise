@@ -3,208 +3,29 @@ import { DeleteExpenseDocument, ExpensesByMotorcycleDocument } from '@motovault/
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { ChevronDown, Plus, Receipt, Trash2 } from 'lucide-react-native';
+import { BarChart3, ChevronDown, Plus, Receipt } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  FadeInUp,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
+import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-
-const CATEGORY_COLORS: Record<string, string> = {
-  fuel: palette.warning500,
-  maintenance: palette.primary500,
-  parts: palette.success500,
-  gear: palette.danger500,
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  fuel: 'Fuel',
-  maintenance: 'Maintenance',
-  parts: 'Parts',
-  gear: 'Gear',
-};
+import { SwipeableExpense } from '../shared/swipeable-expense';
 
 interface ExpensesSectionProps {
   motorcycleId: string;
   isDark: boolean;
+  currentMileage?: number;
+  mileageUnit?: string;
 }
 
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 2,
-});
-
-function formatCurrency(amount: number) {
-  return currencyFormatter.format(amount);
-}
-
-function formatExpenseDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-interface SwipeableExpenseProps {
-  expense: {
-    id: string;
-    amount: number;
-    category: string;
-    description?: string | null;
-    date: string;
-  };
-  isDark: boolean;
-  onDelete: (id: string) => void;
-  index: number;
-}
-
-function SwipeableExpense({ expense, isDark, onDelete, index }: SwipeableExpenseProps) {
-  const { t } = useTranslation();
-  const translateX = useSharedValue(0);
-  const deleteThreshold = -80;
-
-  const confirmDelete = useCallback(() => {
-    Alert.alert(
-      t('expenses.deleteTitle', { defaultValue: 'Delete Expense' }),
-      t('expenses.deleteMessage', {
-        defaultValue: 'Are you sure you want to delete this expense?',
-      }),
-      [
-        {
-          text: t('common.cancel', { defaultValue: 'Cancel' }),
-          style: 'cancel',
-          onPress: () => {
-            translateX.value = withSpring(0);
-          },
-        },
-        {
-          text: t('common.delete', { defaultValue: 'Delete' }),
-          style: 'destructive',
-          onPress: () => {
-            translateX.value = withTiming(0);
-            onDelete(expense.id);
-          },
-        },
-      ],
-    );
-  }, [expense.id, onDelete, t, translateX]);
-
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-5, 5])
-    .onUpdate((event) => {
-      if (event.translationX < 0) {
-        translateX.value = Math.max(event.translationX, -100);
-      }
-    })
-    .onEnd(() => {
-      if (translateX.value < deleteThreshold) {
-        runOnJS(confirmDelete)();
-      } else {
-        translateX.value = withSpring(0);
-      }
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const deleteButtonStyle = useAnimatedStyle(() => ({
-    opacity:
-      translateX.value < -20 ? withTiming(1, { duration: 150 }) : withTiming(0, { duration: 150 }),
-  }));
-
-  const catColor = CATEGORY_COLORS[expense.category] ?? palette.neutral500;
-
-  return (
-    <Animated.View entering={FadeInUp.delay(Math.min(index, 5) * 50).duration(250)}>
-      <View style={{ position: 'relative' }}>
-        {/* Delete background */}
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 80,
-              backgroundColor: palette.danger500,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              justifyContent: 'center',
-            },
-            deleteButtonStyle,
-          ]}
-        >
-          <Trash2 size={18} color={palette.white} strokeWidth={2} />
-        </Animated.View>
-
-        {/* Expense row */}
-        <GestureDetector gesture={panGesture}>
-          <Animated.View
-            style={[
-              {
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 12,
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-                gap: 10,
-              },
-              animatedStyle,
-            ]}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor: catColor,
-              }}
-            />
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
-                }}
-                numberOfLines={1}
-              >
-                {expense.description || CATEGORY_LABELS[expense.category] || expense.category}
-              </Text>
-              <Text style={{ fontSize: 12, color: palette.neutral500, marginTop: 1 }}>
-                {formatExpenseDate(expense.date)}
-              </Text>
-            </View>
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: '700',
-                color: isDark ? palette.neutral50 : palette.neutral950,
-              }}
-            >
-              {formatCurrency(expense.amount)}
-            </Text>
-          </Animated.View>
-        </GestureDetector>
-      </View>
-    </Animated.View>
-  );
-}
-
-export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) {
+export function ExpensesSection({
+  motorcycleId,
+  isDark,
+  currentMileage,
+  mileageUnit,
+}: ExpensesSectionProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const currentYear = new Date().getFullYear();
@@ -330,6 +151,34 @@ export function ExpensesSection({ motorcycleId, isDark }: ExpensesSectionProps) 
                 : String(currentYear)}
             </Text>
             <ChevronDown size={12} color={palette.neutral400} strokeWidth={2} />
+          </Pressable>
+
+          {/* Insights button */}
+          <Pressable
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+              router.push({
+                pathname: '/(tabs)/(garage)/expense-dashboard',
+                params: {
+                  motorcycleId,
+                  currentMileage: currentMileage ? String(currentMileage) : '',
+                  mileageUnit: mileageUnit ?? 'mi',
+                },
+              });
+            }}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <BarChart3 size={14} color={palette.primary400} strokeWidth={2.5} />
           </Pressable>
 
           {/* Add button */}

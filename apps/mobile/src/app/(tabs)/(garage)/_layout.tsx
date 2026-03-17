@@ -79,6 +79,15 @@ export default function GarageLayout() {
         }}
       />
       <Stack.Screen
+        name="expense-dashboard"
+        options={{
+          title: t('expenses.dashboard', { defaultValue: 'Expense Insights' }),
+          presentation: 'card',
+          headerLargeTitle: false,
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
+      <Stack.Screen
         name="bike-tasks"
         options={{
           title: t('bikeHub.allTasks', { defaultValue: 'All Tasks' }),

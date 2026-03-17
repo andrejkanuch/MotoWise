@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -56,6 +52,11 @@ enum ArticleDifficulty {
 type ArticleEdge {
   cursor: String!
   node: Article!
+}
+
+type CategoryTotal {
+  category: String!
+  total: Float!
 }
 
 input CompleteMaintenanceTaskInput {
@@ -190,6 +191,15 @@ type ExpenseCategory {
   total: Float!
 }
 
+type ExpenseDashboardSummary {
+  allTimeTotal: Float!
+  categoryTotals: [CategoryTotal!]!
+  currentYearTotal: Float!
+  expenseCount: Int!
+  monthlyBuckets: [MonthlyBucket!]!
+  previousYearTotal: Float!
+}
+
 type ExpenseSummary {
   categories: [ExpenseCategory!]!
   ytdTotal: Float!
@@ -304,6 +314,16 @@ input ManualBikeInfoInput {
   year: Int
 }
 
+type MonthlyBucket {
+  fuel: Float!
+  gear: Float!
+  maintenance: Float!
+  month: Int!
+  parts: Float!
+  total: Float!
+  year: Int!
+}
+
 type Motorcycle {
   createdAt: String!
   currentMileage: Int
@@ -413,6 +433,7 @@ type Query {
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic
+  expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
