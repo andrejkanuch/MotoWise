@@ -15,6 +15,7 @@ interface MonthlyBucket {
 
 interface MonthlyTrendProps {
   buckets: MonthlyBucket[];
+  isDark: boolean;
 }
 
 const MONTH_LABELS = [
@@ -32,7 +33,7 @@ const MONTH_LABELS = [
   'Dec',
 ];
 
-export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrendProps) {
+export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: MonthlyTrendProps) {
   const { stackData, maxValue, allZero } = useMemo(() => {
     const isEmpty = buckets.length === 0 || buckets.every((b) => b.total === 0);
     if (isEmpty) return { stackData: [], maxValue: 400, allZero: true };
@@ -60,10 +61,16 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
 
   if (allZero) return null;
 
+  const cardBg = isDark ? palette.neutral800 : palette.neutral100;
+  const titleColor = isDark ? palette.white : palette.neutral950;
+  const axisLabelColor = isDark ? palette.neutral500 : palette.neutral400;
+  const axisColor = isDark ? palette.neutral700 : palette.neutral200;
+  const legendColor = isDark ? palette.neutral400 : palette.neutral500;
+
   return (
     <View
       style={{
-        backgroundColor: palette.neutral800,
+        backgroundColor: cardBg,
         borderRadius: 14,
         borderCurve: 'continuous',
         padding: 16,
@@ -74,7 +81,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
           fontFamily: 'PlusJakartaSans-SemiBold',
           fontSize: 14,
           fontWeight: '600',
-          color: palette.white,
+          color: titleColor,
           marginBottom: 16,
         }}
       >
@@ -88,19 +95,19 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
         noOfSections={4}
         maxValue={maxValue}
         hideRules={false}
-        rulesColor={palette.neutral700}
+        rulesColor={axisColor}
         xAxisLabelTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
           fontSize: 10,
-          color: palette.neutral500,
+          color: axisLabelColor,
         }}
         yAxisTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
           fontSize: 10,
-          color: palette.neutral500,
+          color: axisLabelColor,
         }}
-        yAxisColor={palette.neutral700}
-        xAxisColor={palette.neutral700}
+        yAxisColor={axisColor}
+        xAxisColor={axisColor}
         isAnimated
         animationDuration={300}
       />
@@ -133,7 +140,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrend
               style={{
                 fontFamily: 'PlusJakartaSans-Regular',
                 fontSize: 11,
-                color: palette.neutral400,
+                color: legendColor,
               }}
             >
               {item.label}

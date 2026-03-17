@@ -13,6 +13,7 @@ interface SummaryCardsProps {
   currentMileage: number | null;
   mileageUnit: string | null;
   motorcycleId: string;
+  isDark: boolean;
 }
 
 export const SummaryCards = memo(function SummaryCards({
@@ -23,6 +24,7 @@ export const SummaryCards = memo(function SummaryCards({
   currentMileage,
   mileageUnit,
   motorcycleId,
+  isDark,
 }: SummaryCardsProps) {
   const router = useRouter();
 
@@ -32,6 +34,10 @@ export const SummaryCards = memo(function SummaryCards({
   const costPerMile = currentMileage && currentMileage > 0 ? allTimeTotal / currentMileage : null;
 
   const unitLabel = mileageUnit === 'km' ? 'Cost/km' : 'Cost/mi';
+
+  const cardBg = isDark ? palette.neutral800 : palette.neutral100;
+  const labelColor = isDark ? palette.neutral400 : palette.neutral500;
+  const valueColor = isDark ? palette.white : palette.neutral950;
 
   const cards: Array<{
     label: string;
@@ -94,7 +100,7 @@ export const SummaryCards = memo(function SummaryCards({
         >
           <View
             style={{
-              backgroundColor: palette.neutral800,
+              backgroundColor: cardBg,
               borderRadius: 14,
               borderCurve: 'continuous',
               padding: 14,
@@ -106,7 +112,7 @@ export const SummaryCards = memo(function SummaryCards({
               style={{
                 fontFamily: 'PlusJakartaSans-Medium',
                 fontSize: 12,
-                color: palette.neutral400,
+                color: labelColor,
                 marginBottom: 6,
               }}
             >
@@ -119,7 +125,7 @@ export const SummaryCards = memo(function SummaryCards({
                   fontFamily: 'PlusJakartaSans-Bold',
                   fontSize: 20,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: valueColor,
                 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -131,8 +137,12 @@ export const SummaryCards = memo(function SummaryCards({
                 <View
                   style={{
                     backgroundColor: card.badge.positive
-                      ? palette.successBgDark
-                      : palette.dangerBgDark,
+                      ? isDark
+                        ? palette.successBgDark
+                        : palette.successBgLight
+                      : isDark
+                        ? palette.dangerBgDark
+                        : palette.dangerBgLight,
                     borderRadius: 6,
                     borderCurve: 'continuous',
                     paddingHorizontal: 6,

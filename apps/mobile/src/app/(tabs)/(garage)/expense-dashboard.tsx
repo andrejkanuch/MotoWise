@@ -91,10 +91,28 @@ export default function ExpenseDashboardScreen() {
     setPeriod(newPeriod);
   };
 
+  // Theme-aware colors
+  const bgColor = isDark ? palette.neutral900 : palette.neutral50;
+  const cardBg = isDark ? palette.neutral800 : palette.white;
+  const textColor = isDark ? palette.white : palette.neutral950;
+  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
+  const pillBg = isDark ? palette.neutral800 : palette.neutral200;
+  const pillActiveBg = isDark ? palette.neutral700 : palette.white;
+  const pillActiveText = isDark ? palette.white : palette.neutral950;
+  const pillInactiveText = isDark ? palette.neutral400 : palette.neutral500;
+  const legendAmountColor = isDark ? palette.neutral300 : palette.neutral600;
+
   // Loading state
   if (isPending) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: bgColor,
+        }}
+      >
         <ActivityIndicator size="large" color={palette.primary500} />
       </View>
     );
@@ -103,12 +121,20 @@ export default function ExpenseDashboardScreen() {
   // Error state
   if (isError) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 40,
+          backgroundColor: bgColor,
+        }}
+      >
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-SemiBold',
             fontSize: 16,
-            color: palette.neutral400,
+            color: subtextColor,
             textAlign: 'center',
             marginBottom: 16,
           }}
@@ -142,13 +168,21 @@ export default function ExpenseDashboardScreen() {
   // Empty state
   if (!dashboard || dashboard.expenseCount === 0) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-        <BarChart3 size={48} color={palette.neutral600} />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 40,
+          backgroundColor: bgColor,
+        }}
+      >
+        <BarChart3 size={48} color={subtextColor} />
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Bold',
             fontSize: 18,
-            color: palette.white,
+            color: textColor,
             marginTop: 16,
             textAlign: 'center',
           }}
@@ -159,7 +193,7 @@ export default function ExpenseDashboardScreen() {
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
             fontSize: 14,
-            color: palette.neutral400,
+            color: subtextColor,
             marginTop: 8,
             textAlign: 'center',
           }}
@@ -200,16 +234,17 @@ export default function ExpenseDashboardScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 100 }}
+      style={{ flex: 1, backgroundColor: bgColor }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+      contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
       {/* Period Selector */}
-      <Animated.View entering={FadeInUp.duration(300)}>
+      <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>
         <View
           style={{
             flexDirection: 'row',
-            backgroundColor: palette.neutral800,
+            backgroundColor: pillBg,
             borderRadius: 10,
             borderCurve: 'continuous',
             padding: 3,
@@ -225,8 +260,16 @@ export default function ExpenseDashboardScreen() {
                 paddingVertical: 8,
                 borderRadius: 8,
                 borderCurve: 'continuous',
-                backgroundColor: period === option ? palette.neutral700 : 'transparent',
+                backgroundColor: period === option ? pillActiveBg : 'transparent',
                 alignItems: 'center',
+                ...(period === option && !isDark
+                  ? {
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 2,
+                    }
+                  : {}),
               }}
             >
               <Text
@@ -234,7 +277,7 @@ export default function ExpenseDashboardScreen() {
                   fontFamily:
                     period === option ? 'PlusJakartaSans-SemiBold' : 'PlusJakartaSans-Medium',
                   fontSize: 13,
-                  color: period === option ? palette.white : palette.neutral400,
+                  color: period === option ? pillActiveText : pillInactiveText,
                 }}
               >
                 {PERIOD_LABELS[option]}
@@ -254,6 +297,7 @@ export default function ExpenseDashboardScreen() {
           currentMileage={mileageNum}
           mileageUnit={mileageUnit ?? null}
           motorcycleId={motorcycleId}
+          isDark={isDark}
         />
       </Animated.View>
 
@@ -261,7 +305,7 @@ export default function ExpenseDashboardScreen() {
       <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 20 }}>
         <View
           style={{
-            backgroundColor: palette.neutral800,
+            backgroundColor: cardBg,
             borderRadius: 14,
             borderCurve: 'continuous',
             padding: 16,
@@ -272,13 +316,17 @@ export default function ExpenseDashboardScreen() {
               fontFamily: 'PlusJakartaSans-SemiBold',
               fontSize: 14,
               fontWeight: '600',
-              color: palette.white,
+              color: textColor,
               marginBottom: 12,
             }}
           >
             Spending by Category
           </Text>
-          <CategoryDonut categoryTotals={categoryTotals} totalAmount={periodTotal} />
+          <CategoryDonut
+            categoryTotals={categoryTotals}
+            totalAmount={periodTotal}
+            isDark={isDark}
+          />
 
           {/* Category legend */}
           <View
@@ -309,7 +357,7 @@ export default function ExpenseDashboardScreen() {
                   style={{
                     fontFamily: 'PlusJakartaSans-Regular',
                     fontSize: 11,
-                    color: palette.neutral400,
+                    color: subtextColor,
                     textTransform: 'capitalize',
                   }}
                 >
@@ -319,7 +367,7 @@ export default function ExpenseDashboardScreen() {
                   style={{
                     fontFamily: 'PlusJakartaSans-SemiBold',
                     fontSize: 11,
-                    color: palette.neutral300,
+                    color: legendAmountColor,
                   }}
                 >
                   {formatCurrency(cat.total)}
@@ -332,7 +380,7 @@ export default function ExpenseDashboardScreen() {
 
       {/* Monthly Trend */}
       <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 16 }}>
-        <MonthlyTrend buckets={filteredBuckets} />
+        <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>
 
       {/* Recent Expenses */}
@@ -350,7 +398,7 @@ export default function ExpenseDashboardScreen() {
               fontFamily: 'PlusJakartaSans-SemiBold',
               fontSize: 14,
               fontWeight: '600',
-              color: palette.white,
+              color: textColor,
             }}
           >
             Recent Expenses
@@ -382,7 +430,7 @@ export default function ExpenseDashboardScreen() {
             style={{
               fontFamily: 'PlusJakartaSans-Regular',
               fontSize: 13,
-              color: palette.neutral500,
+              color: subtextColor,
               textAlign: 'center',
               padding: 20,
             }}

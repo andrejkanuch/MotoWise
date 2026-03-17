@@ -7,11 +7,13 @@ import { CATEGORY_COLORS, formatCurrency } from '../../lib/expense-constants';
 interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
+  isDark: boolean;
 }
 
 export const CategoryDonut = memo(function CategoryDonut({
   categoryTotals,
   totalAmount,
+  isDark,
 }: CategoryDonutProps) {
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
@@ -34,6 +36,10 @@ export const CategoryDonut = memo(function CategoryDonut({
   const focusedCategory =
     focusedIndex !== null ? categoryTotals.filter((c) => c.total > 0)[focusedIndex] : null;
 
+  const textColor = isDark ? palette.white : palette.neutral950;
+  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
+  const innerColor = isDark ? palette.neutral800 : palette.neutral100;
+
   const centerLabel = () => {
     if (focusedCategory && totalAmount > 0) {
       const pct = ((focusedCategory.total / totalAmount) * 100).toFixed(0);
@@ -44,7 +50,7 @@ export const CategoryDonut = memo(function CategoryDonut({
               fontFamily: 'PlusJakartaSans-SemiBold',
               fontSize: 14,
               fontWeight: '600',
-              color: palette.white,
+              color: textColor,
             }}
           >
             {formatCurrency(focusedCategory.total)}
@@ -54,7 +60,7 @@ export const CategoryDonut = memo(function CategoryDonut({
               fontFamily: 'PlusJakartaSans-SemiBold',
               fontSize: 11,
               fontWeight: '600',
-              color: palette.neutral400,
+              color: subtextColor,
               marginTop: 2,
             }}
           >
@@ -71,7 +77,7 @@ export const CategoryDonut = memo(function CategoryDonut({
             fontFamily: 'PlusJakartaSans-SemiBold',
             fontSize: 16,
             fontWeight: '600',
-            color: palette.white,
+            color: textColor,
           }}
         >
           {formatCurrency(totalAmount)}
@@ -81,7 +87,7 @@ export const CategoryDonut = memo(function CategoryDonut({
             fontFamily: 'PlusJakartaSans-SemiBold',
             fontSize: 10,
             fontWeight: '600',
-            color: palette.neutral500,
+            color: subtextColor,
             marginTop: 2,
           }}
         >
@@ -102,7 +108,7 @@ export const CategoryDonut = memo(function CategoryDonut({
         focusOnPress
         isAnimated
         animationDuration={300}
-        innerCircleColor={palette.neutral800}
+        innerCircleColor={innerColor}
       />
     </View>
   );
