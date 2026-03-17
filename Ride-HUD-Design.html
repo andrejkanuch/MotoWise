@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoVault — Ride HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Geist+Mono:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  :root {
+    --bg: #0a0a0a;
+    --bg-elevated: #111111;
+    --surface: rgba(255,255,255,0.04);
+    --surface-border: rgba(255,255,255,0.06);
+    --surface-hover: rgba(255,255,255,0.07);
+    --primary: #3366e6;
+    --primary-glow: rgba(51,102,230,0.25);
+    --accent: #2d9e78;
+    --signature: #D4622E;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #22c55e;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-tertiary: #737373;
+    --text-muted: #808080;
+    --text-dim: #525252;
+    --system-ok: #2dd4bf;
+    --maint-warn: #e8913a;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
+    --info: #7da3ff;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
+    --radius-pill: 9999px;
+  }
+
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .device-frame {
+    width: 390px;
+    min-height: 844px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 80px rgba(0,0,0,0.8);
+  }
+
+  /* ── STATE SCREENS ── */
+  .state-screen {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.35s;
+    transform: translateY(8px) scale(0.985);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .state-screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+  .state-screen::-webkit-scrollbar { display: none; }
+
+  /* Focus states */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  button:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* ── FLOATING NAV ── */
+  .state-nav {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    background: rgba(20,20,20,0.85);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 40px;
+    padding: 6px 8px;
+    z-index: 1000;
+  }
+  .state-nav button {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .state-nav button:hover { color: var(--text-secondary); }
+  .state-nav button.active {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes pulse-ring {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.18); opacity: 0; }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { r: 18; opacity: 0.5; }
+    50% { r: 28; opacity: 0.15; }
+  }
+  @keyframes float-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pause-settle {
+    0% { opacity: 0.4; transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes border-flash {
+    0% { opacity: 0; }
+    40% { opacity: 1; }
+    100% { opacity: 0.85; }
+  }
+  @keyframes fade-scale {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* ── DELIGHT: Engine ignition flash (Idle → Tracking) ── */
+  @keyframes ignition-flash {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    40% { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+  .ignition-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(51,102,230,0.3) 0%, rgba(51,102,230,0.08) 40%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 200;
+  }
+  .ignition-overlay.firing {
+    animation: ignition-flash 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* ── DELIGHT: Ride Complete celebration ── */
+  @keyframes checkmark-draw {
+    0% { stroke-dashoffset: 24; }
+    100% { stroke-dashoffset: 0; }
+  }
+  @keyframes badge-celebrate {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes stat-reveal {
+    0% { opacity: 0; transform: translateY(12px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes glow-ring-expand {
+    0% { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+  .summary-screen.active .summary-badge {
+    animation: badge-celebrate 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+  }
+  .summary-screen.active .summary-badge-dot svg {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: checkmark-draw 0.4s ease 0.4s forwards;
+  }
+  .summary-screen.active .summary-title {
+    animation: stat-reveal 0.5s ease 0.25s both;
+  }
+  .summary-screen.active .summary-subtitle {
+    animation: stat-reveal 0.4s ease 0.35s both;
+  }
+  .summary-screen.active .summary-map {
+    animation: stat-reveal 0.5s ease 0.4s both;
+  }
+  .summary-screen.active .stat-card {
+    animation: stat-reveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .summary-screen.active .stat-card:nth-child(1) { animation-delay: 0.5s; }
+  .summary-screen.active .stat-card:nth-child(2) { animation-delay: 0.57s; }
+  .summary-screen.active .stat-card:nth-child(3) { animation-delay: 0.64s; }
+  .summary-screen.active .stat-card:nth-child(4) { animation-delay: 0.71s; }
+  .summary-screen.active .odo-prompt {
+    animation: stat-reveal 0.5s ease 0.8s both;
+  }
+
+  /* ── DELIGHT: Save Ride checkmark morph ── */
+  @keyframes save-success {
+    0% { transform: scale(1); }
+    20% { transform: scale(0.95); }
+    50% { transform: scale(1); background: linear-gradient(145deg, #22c55e, #16a34a); }
+    100% { transform: scale(1); background: linear-gradient(145deg, #22c55e, #16a34a); }
+  }
+  .save-btn.saved {
+    animation: save-success 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+  }
+
+  /* ── DELIGHT: Last Ride route trace ── */
+  @keyframes route-trace {
+    from { stroke-dashoffset: 200; }
+    to { stroke-dashoffset: 0; }
+  }
+  .last-ride-route {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+  }
+  .idle-screen.active .last-ride-route {
+    animation: route-trace 1.8s cubic-bezier(0.4, 0, 0.2, 1) 0.8s forwards;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    padding: 14px 24px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.4px;
+  }
+  .status-bar .signal {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-bar .signal-bars {
+    display: flex;
+    gap: 1.5px;
+    align-items: flex-end;
+  }
+  .status-bar .signal-bar {
+    width: 3px;
+    background: var(--text-muted);
+    border-radius: 1px;
+  }
+
+  /* ═════════════════════════════════════════════
+     IDLE STATE
+     ═════════════════════════════════════════════ */
+  .idle-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 844px;
+    padding: 0 20px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(51,102,230,0.04) 0%, transparent 70%),
+                linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%);
+  }
+
+  .bike-selector {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 56px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    animation: float-in 0.6s ease both;
+  }
+  .bike-selector:hover {
+    background: var(--surface-hover);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .bike-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .bike-info { flex: 1; min-width: 0; }
+  .bike-name { color: var(--text-primary); font-weight: 700; font-size: 16px; line-height: 1.2; letter-spacing: -0.2px; }
+  .bike-meta { color: var(--text-tertiary); font-size: 12px; margin-top: 3px; font-weight: 500; }
+  .bike-chevron { flex-shrink: 0; color: var(--text-dim); }
+
+  .start-btn-wrap {
+    position: relative;
+    animation: fade-scale 0.8s ease 0.2s both;
+  }
+  .start-pulse-ring {
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 2px solid rgba(51,102,230,0.25);
+    animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .start-pulse-ring:nth-child(2) {
+    animation-delay: 1.25s;
+  }
+  .start-btn {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #3d75f0, #2952c4);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow:
+      0 0 0 1px rgba(51,102,230,0.3),
+      0 4px 24px rgba(51,102,230,0.25),
+      0 12px 48px rgba(51,102,230,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 1;
+  }
+  .start-btn:hover {
+    transform: scale(1.06);
+    box-shadow:
+      0 0 0 1px rgba(51,102,230,0.4),
+      0 8px 32px rgba(51,102,230,0.35),
+      0 20px 64px rgba(51,102,230,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .start-btn:active { transform: scale(0.97); }
+  .start-btn svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+  .start-label {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.95;
+  }
+
+  .idle-hint {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 48px;
+    text-align: center;
+    max-width: 280px;
+    line-height: 1.55;
+    font-weight: 400;
+    letter-spacing: 0.1px;
+    animation: float-in 0.6s ease 0.4s both;
+  }
+
+  /* ═════════════════════════════════════════════
+     RECORDING STATE
+     ═════════════════════════════════════════════ */
+  .recording-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 844px;
+    background: var(--bg);
+  }
+
+  /* Top bar */
+  .hud-topbar {
+    padding: 50px 20px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: relative;
+    z-index: 10;
+  }
+  .ride-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    line-height: 1;
+  }
+  .ride-status.recording { color: var(--success); }
+  .ride-status.paused { color: var(--warning); }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.recording {
+    background: var(--success);
+    box-shadow: 0 0 8px rgba(34,197,94,0.5);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  .status-dot.paused {
+    background: var(--warning);
+    box-shadow: 0 0 8px rgba(245,158,11,0.5);
+  }
+  .hud-bike-name {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .hud-timer {
+    text-align: right;
+  }
+  .timer-value {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 1;
+  }
+  .timer-value.recording { color: var(--text-primary); }
+  .timer-value.paused { color: var(--warning); }
+  .timer-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
+  /* Map area */
+  .map-zone {
+    flex: 0 0 32%;
+    position: relative;
+    padding: 0 20px;
+  }
+  .map-container {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: rgba(255,255,255,0.015);
+    border: 1px solid rgba(255,255,255,0.04);
+    position: relative;
+  }
+  .map-container svg { width: 100%; height: 100%; }
+
+  .map-badge {
+    position: absolute;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius-sm);
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .gps-badge { top: 12px; right: 12px; }
+  .gps-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--system-ok);
+    box-shadow: 0 0 6px rgba(45,212,191,0.5);
+  }
+  .gps-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.8px;
+  }
+  /* Paused overlay */
+  .pause-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-xl);
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .pause-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .pause-overlay-text {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--warning);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(245,158,11,0.4);
+  }
+
+  /* Paused screen border indicator */
+  .paused-border-glow {
+    position: absolute;
+    inset: 0;
+    border: 3px solid rgba(245,158,11,0.35);
+    border-radius: 0;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: inset 0 0 40px rgba(245,158,11,0.06);
+  }
+  .paused-resume-banner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 101;
+    background: rgba(245,158,11,0.12);
+    border-bottom: 1px solid rgba(245,158,11,0.25);
+    padding: 42px 20px 10px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--warning);
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Center gauges */
+  .gauges-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 16px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .gauge-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .gauge-value {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
+  .gauge-unit {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .gauge-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+  }
+
+  /* Speed — hero element */
+  .speed-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .speed-value {
+    font-family: var(--font-mono);
+    font-size: 88px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 0.9;
+    letter-spacing: -1px;
+    text-shadow: 0 0 60px rgba(255,255,255,0.06);
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    min-width: 3ch;
+    text-align: center;
+  }
+  .speed-unit {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 8px;
+  }
+
+  /* Lean gauge */
+  .lean-gauge-wrap {
+    position: relative;
+    width: 110px;
+    height: 58px;
+  }
+
+  /* Altitude */
+  .alt-value { font-size: 22px; color: var(--info); }
+  .alt-unit { color: var(--text-muted); }
+
+  /* Stats pills */
+  .stats-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+    justify-content: center;
+  }
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 10px 8px;
+    min-width: 0;
+    flex: 1;
+    border: 1px solid var(--surface-border);
+    transition: background 0.2s ease;
+  }
+  .stat-pill:hover { background: var(--surface-hover); }
+  .stat-pill-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+  .stat-pill-value {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+  .stat-pill-unit {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Controls */
+  .controls-row {
+    padding: 12px 20px 56px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+  .pause-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .pause-btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.14);
+  }
+  .pause-btn:active { transform: scale(0.94); }
+  .pause-btn.amber {
+    background: rgba(245,158,11,0.12);
+    border-color: rgba(245,158,11,0.25);
+  }
+  .pause-btn.amber:hover {
+    background: rgba(245,158,11,0.18);
+    border-color: rgba(245,158,11,0.35);
+  }
+
+  .end-btn {
+    height: 56px;
+    padding: 0 32px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, #f05252, #d32f2f);
+    border: none;
+    color: white;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(239,68,68,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+    transition: all 0.2s ease;
+  }
+  .end-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 28px rgba(239,68,68,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .end-btn:active { transform: scale(0.97); }
+
+  /* ── HARDENING: Hold-to-End protection ── */
+  .end-btn { position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .end-btn .hold-progress {
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.18);
+    transform: scaleX(0); transform-origin: left;
+    transition: none; pointer-events: none; border-radius: 28px;
+  }
+  .end-btn.holding .hold-progress {
+    transform: scaleX(1); transition: transform 1.5s linear;
+  }
+  .end-btn .end-btn-text { position: relative; z-index: 1; display: flex; align-items: center; gap: 9px; }
+  .end-btn .hold-hint {
+    position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    white-space: nowrap; letter-spacing: 0.5px; text-transform: none;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .end-btn:hover .hold-hint, .end-btn:active .hold-hint { opacity: 1; }
+
+  /* ── HARDENING: GPS signal states ── */
+  .gps-dot.signal-weak {
+    background: var(--warning); box-shadow: 0 0 6px rgba(245,158,11,0.5);
+    animation: blink 1s ease-in-out infinite;
+  }
+  .gps-dot.signal-lost {
+    background: var(--danger); box-shadow: 0 0 6px rgba(239,68,68,0.5);
+    animation: blink 0.6s ease-in-out infinite;
+  }
+  .gps-warning-banner {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 50;
+    background: rgba(239,68,68,0.15); border-bottom: 1px solid rgba(239,68,68,0.3);
+    padding: 42px 20px 10px; text-align: center;
+    font-size: 12px; font-weight: 700; color: var(--danger);
+    letter-spacing: 0.5px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: none;
+  }
+  .gps-warning-banner.visible { display: block; }
+  .speed-value.gps-lost { color: var(--text-muted) !important; font-size: 52px; letter-spacing: 4px; }
+
+  /* ── HARDENING: Screen lock overlay ── */
+  .screen-lock-overlay {
+    position: absolute; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.01); display: none; touch-action: none;
+  }
+  .screen-lock-overlay.active { display: block; }
+  .lock-indicator {
+    position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
+    align-items: center; gap: 8px;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-pill);
+    padding: 8px 16px; z-index: 201; display: none;
+  }
+  .lock-indicator.visible { display: flex; }
+  .lock-indicator-text { font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.5px; }
+  .lock-unlock-zone {
+    position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+    width: 220px; height: 56px; border-radius: 28px;
+    background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.1);
+    display: none; align-items: center; font-size: 12px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: 0.5px; overflow: hidden;
+  }
+  .screen-lock-overlay.active .lock-unlock-zone { display: flex; }
+  .lock-unlock-zone .unlock-track-text {
+    position: absolute; width: 100%; text-align: center; pointer-events: none;
+  }
+  .lock-unlock-zone .unlock-slider {
+    position: absolute; left: 4px; width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    cursor: grab; touch-action: none; transition: left 0.15s ease;
+  }
+  .lock-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; flex-shrink: 0;
+  }
+  .lock-btn:hover { background: rgba(255,255,255,0.08); }
+  .lock-btn.locked { background: rgba(51,102,230,0.12); border-color: rgba(51,102,230,0.25); }
+
+  /* ── HARDENING: Battery warning ── */
+  .battery-warning {
+    position: absolute; top: 48px; right: 20px;
+    display: none; align-items: center; gap: 6px;
+    background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: var(--radius-pill); padding: 5px 12px 5px 8px;
+    z-index: 50; animation: float-in 0.4s ease both;
+  }
+  .battery-warning.visible { display: flex; }
+  .battery-warning.critical { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.25); }
+  .battery-warning-text { font-size: 11px; font-weight: 700; color: var(--warning); letter-spacing: 0.3px; }
+  .battery-warning.critical .battery-warning-text { color: var(--danger); }
+
+  /* ── HARDENING: Speed 3-digit sizing ── */
+  .speed-value { transition: font-size 0.2s ease; }
+  .speed-value.three-digit { font-size: 62px; letter-spacing: -2px; }
+
+  /* ── HARDENING: Timer overflow for 10h+ rides ── */
+  .timer-value { white-space: nowrap; overflow: hidden; }
+  .timer-value.long-ride { font-size: 18px; letter-spacing: -1px; }
+
+  /* ── HARDENING: Text overflow protection ── */
+  .bike-name, .hud-bike-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
+
+  /* ═════════════════════════════════════════════
+     SUMMARY STATE
+     ═════════════════════════════════════════════ */
+  .summary-screen {
+    padding: 56px 20px 100px;
+    background: linear-gradient(180deg, #0a0a0a 0%, #0f0f0f 40%, #0a0a0a 100%);
+  }
+
+  .summary-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .summary-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--success);
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    margin-bottom: 12px;
+    line-height: 1;
+  }
+  .summary-badge-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .summary-title {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.05;
+    color: var(--text-primary);
+  }
+  .summary-subtitle {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  .summary-map {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--surface-border);
+    height: 200px;
+  }
+  .summary-map svg { width: 100%; height: 100%; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 16px 14px;
+    border: 1px solid var(--surface-border);
+    text-align: center;
+    transition: background 0.2s ease;
+  }
+  .stat-card:hover { background: var(--surface-hover); }
+  .stat-card-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .stat-card-value {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .stat-card-unit {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  .odo-prompt {
+    background: rgba(51,102,230,0.06);
+    border: 1px solid rgba(51,102,230,0.15);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .odo-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+  .odo-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.45;
+  }
+  .odo-highlight {
+    color: var(--primary);
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+  .odo-buttons {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-accept {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: white;
+    border: none;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 12px rgba(51,102,230,0.2);
+  }
+  .btn-accept:hover { filter: brightness(1.1); }
+  .btn-edit {
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.05);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-edit:hover { background: rgba(255,255,255,0.08); }
+  .btn-skip {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .btn-skip:hover { color: var(--text-tertiary); }
+
+  .maint-alert {
+    background: rgba(232,145,58,0.06);
+    border: 1px solid rgba(232,145,58,0.15);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .maint-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: rgba(232,145,58,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .maint-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--maint-warn);
+    margin-bottom: 2px;
+  }
+  .maint-desc {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  .fuel-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+  .fuel-btn:hover {
+    background: var(--surface-hover);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .fuel-btn:active { transform: scale(0.98); }
+  .btn-accept:active, .btn-edit:active { transform: scale(0.97); }
+  .state-nav button:active { transform: scale(0.95); }
+
+  .save-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(145deg, #28c760, #1ea34e);
+    border: none;
+    color: white;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.12);
+    transition: all 0.2s;
+  }
+  .save-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .save-btn:active { transform: translateY(0); }
+
+  /* Lean gauge colors */
+  /* Paused settle animation */
+  #screen-paused .gauges-row,
+  #screen-paused .stats-row,
+  #screen-paused .controls-row {
+    animation: pause-settle 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .paused-border-glow {
+    animation: border-flash 0.6s ease both;
+  }
+
+  /* Summary stagger entrance */
+  #screen-summary .summary-header { animation: float-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
+  #screen-summary .summary-map { animation: float-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
+  #screen-summary .stat-card:nth-child(1) { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+  #screen-summary .stat-card:nth-child(2) { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.37s both; }
+  #screen-summary .stat-card:nth-child(3) { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.44s both; }
+  #screen-summary .stat-card:nth-child(4) { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.51s both; }
+  #screen-summary .odo-prompt { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both; }
+  #screen-summary .maint-alert { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both; }
+  #screen-summary .save-btn { animation: float-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both; }
+
+  /* Text overflow protection */
+  .bike-name, .hud-bike-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+  }
+
+  .lean-green { color: var(--success); }
+
+  /* ── ADAPTIVE: Responsive device frame ── */
+  @media (max-width: 430px) {
+    .device-frame { width: 100vw; min-height: 100dvh; }
+    .idle-screen, .recording-screen { min-height: 100dvh; }
+  }
+  @media (max-width: 375px) {
+    .speed-value { font-size: 64px; }
+    .gauges-row { padding: 16px 16px 12px; }
+    .lean-gauge-wrap { width: 90px; height: 50px; }
+  }
+
+  /* ── ADAPTIVE: Safe areas ── */
+  @supports (padding: env(safe-area-inset-top)) {
+    .state-nav { bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); }
+    .controls-row { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+  }
+
+  /* ── ADAPTIVE: Landscape lock ── */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .device-frame::after {
+      content: "Rotate to portrait for the best riding experience";
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--bg); color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-sans); font-size: 16px; font-weight: 600;
+      text-align: center; padding: 40px;
+    }
+  }
+
+  /* Force dark color scheme */
+  :root { color-scheme: dark; }
+
+  /* ── OVERDRIVE: Speed-reactive edge glow ── */
+  .speed-edge-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    box-shadow:
+      inset 0 0 60px rgba(51,102,230,0.08),
+      inset 0 0 120px rgba(51,102,230,0.04);
+  }
+  .speed-edge-glow.active {
+    opacity: var(--speed-glow-intensity, 0);
+  }
+  .speed-edge-glow::before,
+  .speed-edge-glow::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 80px;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  .speed-edge-glow::before {
+    top: 0;
+    background: linear-gradient(180deg,
+      rgba(51,102,230, calc(var(--speed-glow-intensity, 0) * 0.15)) 0%,
+      transparent 100%
+    );
+  }
+  .speed-edge-glow::after {
+    bottom: 0;
+    background: linear-gradient(0deg,
+      rgba(51,102,230, calc(var(--speed-glow-intensity, 0) * 0.15)) 0%,
+      transparent 100%
+    );
+  }
+  .speed-edge-glow.high-speed {
+    box-shadow:
+      inset 0 0 80px rgba(51,140,255,0.12),
+      inset 0 0 160px rgba(51,140,255,0.06);
+  }
+</style>
+</head>
+<body>
+
+<div class="device-frame" id="app">
+  <!-- Ignition flash overlay -->
+  <div class="ignition-overlay" id="ignition-overlay"></div>
+  <!-- OVERDRIVE: Speed-reactive edge glow -->
+  <div class="speed-edge-glow active" id="speed-edge-glow" style="--speed-glow-intensity:0.65"></div>
+
+  <!-- ═══════════════════════════════════════
+       IDLE STATE
+       ═══════════════════════════════════════ -->
+  <div class="state-screen idle-screen active" id="screen-idle">
+    <div class="status-bar" style="position:absolute;top:0;left:0;right:0">
+      <span style="font-weight:700;letter-spacing:0.6px">MotoVault</span>
+      <div class="signal">
+        <div class="signal-bars">
+          <div class="signal-bar" style="height:4px"></div>
+          <div class="signal-bar" style="height:7px"></div>
+          <div class="signal-bar" style="height:10px"></div>
+          <div class="signal-bar" style="height:13px"></div>
+        </div>
+        <span>LTE</span>
+      </div>
+    </div>
+
+    <div class="bike-selector" role="button" tabindex="0" aria-label="Select motorcycle: 2023 Ducati Monster">
+      <div class="bike-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/>
+          <path d="M15 6h2l3 5.5M6.5 17.5L11 6h3l1.5 5"/><path d="M11 11h4"/>
+        </svg>
+      </div>
+      <div class="bike-info">
+        <div class="bike-name">2023 Ducati Monster</div>
+        <div class="bike-meta">4,823 mi · Primary</div>
+      </div>
+      <svg class="bike-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div class="start-btn-wrap">
+      <div class="start-pulse-ring"></div>
+      <div class="start-pulse-ring"></div>
+      <button class="start-btn" onclick="switchState('recording')">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+          <polygon points="6,3 20,12 6,21" fill="white"/>
+        </svg>
+        <span class="start-label">Start Ride</span>
+      </button>
+    </div>
+
+    <p class="idle-hint">Tracks speed, lean, altitude, and route via GPS</p>
+
+    <!-- Last ride context -->
+    <div style="margin-top:36px;background:var(--surface);border:1px solid var(--surface-border);border-radius:var(--radius-md);padding:14px 18px;width:100%;max-width:340px;animation:float-in 0.6s ease 0.6s both;position:relative;overflow:hidden">
+      <div style="font-size:10px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Last Ride · 2 days ago</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <span style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--text-secondary)">24.3 mi</span>
+          <span style="font-size:12px;color:var(--text-dim);margin-left:6px">along Pacific Coast Hwy</span>
+        </div>
+        <span style="font-size:12px;color:var(--text-dim);font-family:var(--font-mono)">01:12:30</span>
+      </div>
+      <!-- Mini route trace -->
+      <svg viewBox="0 0 300 30" style="position:absolute;bottom:0;left:0;right:0;width:100%;height:30px;opacity:0.12">
+        <path class="last-ride-route" d="M0,25 C30,25 40,8 80,12 C120,16 140,5 180,10 C220,15 250,4 300,8" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       RECORDING STATE
+       ═══════════════════════════════════════ -->
+  <div class="state-screen recording-screen" id="screen-recording">
+    <!-- HARDENING: GPS signal loss banner -->
+    <div class="gps-warning-banner" id="gps-warning-recording">GPS Signal Lost &mdash; Speed data may be inaccurate</div>
+
+    <!-- HARDENING: Battery low warning -->
+    <div class="battery-warning" id="battery-warning-recording">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warning)">
+        <rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/>
+        <line x1="7" y1="10" x2="7" y2="14"/><line x1="11" y1="10" x2="11" y2="14"/>
+      </svg>
+      <span class="battery-warning-text" id="battery-text-recording">15%</span>
+    </div>
+
+    <!-- HARDENING: Screen lock overlay -->
+    <div class="screen-lock-overlay" id="lock-overlay-recording">
+      <div class="lock-unlock-zone" id="unlock-zone-recording">
+        <span class="unlock-track-text">Slide to unlock</span>
+        <div class="unlock-slider" id="unlock-slider-recording">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="lock-indicator" id="lock-indicator-recording">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      <span class="lock-indicator-text">Screen Locked</span>
+    </div>
+
+    <!-- Top bar -->
+    <div class="hud-topbar">
+      <div>
+        <div class="ride-status recording">
+          <span class="status-dot recording"></span>
+          Tracking
+        </div>
+        <div class="hud-bike-name">2023 Ducati Monster</div>
+      </div>
+      <div class="hud-timer">
+        <div class="timer-value recording">00:23:45</div>
+        <div class="timer-label">Duration</div>
+      </div>
+    </div>
+
+    <!-- Map zone -->
+    <div class="map-zone">
+      <div class="map-container" id="map-recording">
+        <svg viewBox="0 0 360 280" id="svg-map-recording"></svg>
+        <div class="map-badge gps-badge">
+          <span class="gps-dot"></span>
+          <span class="gps-label">GPS</span>
+        </div>
+        <div class="pause-overlay" id="pause-overlay-recording">
+          <span class="pause-overlay-text">Paused</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speed + gauges -->
+    <div class="gauges-row">
+      <!-- Lean gauge -->
+      <div class="gauge-section">
+        <div class="lean-gauge-wrap">
+          <svg viewBox="0 0 110 62" width="110" height="62">
+            <defs>
+              <linearGradient id="lean-arc" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6"/>
+                <stop offset="30%" stop-color="#f59e0b" stop-opacity="0.4"/>
+                <stop offset="50%" stop-color="#22c55e" stop-opacity="0.25"/>
+                <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.6"/>
+              </linearGradient>
+              <filter id="needle-glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Track -->
+            <path d="M 10 56 A 45 45 0 0 1 100 56" fill="none" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>
+            <!-- Color zone -->
+            <path d="M 10 56 A 45 45 0 0 1 100 56" fill="none" stroke="url(#lean-arc)" stroke-width="4" stroke-linecap="round"/>
+            <!-- Tick marks -->
+            <line x1="10" y1="56" x2="15" y2="52" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="21" y1="30" x2="26" y2="33" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="55" y1="11" x2="55" y2="17" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="89" y1="30" x2="84" y2="33" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="100" y1="56" x2="95" y2="52" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Tapered needle -->
+            <polygon points="53,56 57,56 56,22 54,22" fill="#22c55e" filter="url(#needle-glow)" opacity="0.9">
+              <animateTransform attributeName="transform" type="rotate" values="18,55,56;20,55,56;18,55,56" dur="3s" repeatCount="indefinite"/>
+            </polygon>
+            <!-- Center pivot -->
+            <circle cx="55" cy="56" r="6" fill="#111"/>
+            <circle cx="55" cy="56" r="4.5" fill="#1a1a1a" stroke="#22c55e" stroke-width="1.5"/>
+            <circle cx="55" cy="56" r="1.5" fill="#22c55e"/>
+          </svg>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:3px;margin-top:2px">
+          <span class="gauge-value lean-green" style="font-size:22px">18°</span>
+          <span style="font-size:11px;font-weight:600;color:var(--text-tertiary)">R</span>
+        </div>
+        <span class="gauge-label">Lean Angle</span>
+      </div>
+
+      <!-- Speed (HERO) -->
+      <div class="speed-section">
+        <div class="speed-value" id="speed-display">55</div>
+        <div class="speed-unit">mph</div>
+      </div>
+
+      <!-- Altitude -->
+      <div class="gauge-section">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7da3ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3L4 21h16L12 3z" fill="rgba(125,163,255,0.08)"/>
+          <path d="M8 17l4-8 4 8"/>
+        </svg>
+        <div style="display:flex;align-items:baseline;gap:2px;margin-top:4px">
+          <span class="gauge-value alt-value" style="font-size:22px">256</span>
+          <span class="gauge-unit">ft</span>
+        </div>
+        <span class="gauge-label">Altitude</span>
+      </div>
+    </div>
+
+    <!-- Stats pills -->
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="stat-pill-label">Dist</span>
+        <span class="stat-pill-value">8.4</span>
+        <span class="stat-pill-unit">mi</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Avg Spd</span>
+        <span class="stat-pill-value">22</span>
+        <span class="stat-pill-unit">mph</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Top Spd</span>
+        <span class="stat-pill-value">55</span>
+        <span class="stat-pill-unit">mph</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Elev Gain</span>
+        <span class="stat-pill-value">+256</span>
+        <span class="stat-pill-unit">ft</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-row">
+      <!-- HARDENING: Lock screen toggle -->
+      <button class="lock-btn" id="lock-btn-recording" onclick="toggleScreenLock()" aria-label="Lock screen">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </button>
+      <button class="pause-btn" id="pause-resume-btn" onclick="togglePause()" aria-label="Pause ride">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#d4d4d4" id="pause-icon">
+          <rect x="5" y="4" width="5" height="16" rx="1.5"/>
+          <rect x="14" y="4" width="5" height="16" rx="1.5"/>
+        </svg>
+      </button>
+      <!-- HARDENING: Hold-to-End (1.5s hold required) -->
+      <button class="end-btn" id="end-btn-recording" aria-label="Hold to end ride">
+        <div class="hold-progress"></div>
+        <span class="end-btn-text">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
+            <rect x="4" y="4" width="16" height="16" rx="2.5"/>
+          </svg>
+          End Ride
+        </span>
+        <span class="hold-hint">Hold 1.5s to end</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PAUSED STATE (shared with recording)
+       ═══════════════════════════════════════ -->
+  <div class="state-screen recording-screen" id="screen-paused">
+    <!-- Amber border glow for paused state -->
+    <div class="paused-border-glow"></div>
+    <!-- Resume banner -->
+    <div class="paused-resume-banner">Paused · Tap ▶ to resume</div>
+    <!-- Top bar -->
+    <div class="hud-topbar" style="padding-top:62px">
+      <div>
+        <div class="ride-status paused">
+          <span class="status-dot paused"></span>
+          Paused
+        </div>
+        <div class="hud-bike-name">2023 Ducati Monster</div>
+      </div>
+      <div class="hud-timer">
+        <div class="timer-value paused">00:23:45</div>
+        <div class="timer-label">Duration</div>
+      </div>
+    </div>
+
+    <!-- Map zone -->
+    <div class="map-zone">
+      <div class="map-container">
+        <svg viewBox="0 0 360 280" id="svg-map-paused"></svg>
+        <div class="map-badge gps-badge">
+          <span class="gps-dot"></span>
+          <span class="gps-label">GPS</span>
+        </div>
+        <div class="pause-overlay visible">
+          <span class="pause-overlay-text">Paused</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speed + gauges (dimmed slightly for paused) -->
+    <div class="gauges-row" style="opacity:0.7">
+      <!-- Lean gauge -->
+      <div class="gauge-section">
+        <div class="lean-gauge-wrap">
+          <svg viewBox="0 0 110 62" width="110" height="62">
+            <defs>
+              <linearGradient id="lean-arc-p" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.4"/>
+                <stop offset="30%" stop-color="#f59e0b" stop-opacity="0.3"/>
+                <stop offset="50%" stop-color="#22c55e" stop-opacity="0.15"/>
+                <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.4"/>
+              </linearGradient>
+            </defs>
+            <path d="M 10 56 A 45 45 0 0 1 100 56" fill="none" stroke="#1a1a1a" stroke-width="6" stroke-linecap="round"/>
+            <path d="M 10 56 A 45 45 0 0 1 100 56" fill="none" stroke="url(#lean-arc-p)" stroke-width="4" stroke-linecap="round"/>
+            <line x1="10" y1="56" x2="15" y2="52" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="21" y1="30" x2="26" y2="33" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="55" y1="11" x2="55" y2="17" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="89" y1="30" x2="84" y2="33" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="100" y1="56" x2="95" y2="52" stroke="#444" stroke-width="1.2" stroke-linecap="round"/>
+            <polygon points="53,56 57,56 56,22 54,22" fill="#f59e0b" opacity="0.9"/>
+            <circle cx="55" cy="56" r="6" fill="#111"/>
+            <circle cx="55" cy="56" r="4.5" fill="#1a1a1a" stroke="#f59e0b" stroke-width="1.5"/>
+            <circle cx="55" cy="56" r="1.5" fill="#f59e0b"/>
+          </svg>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:3px;margin-top:2px">
+          <span class="gauge-value" style="font-size:22px;color:var(--warning)">18°</span>
+          <span style="font-size:11px;font-weight:600;color:var(--text-tertiary)">R</span>
+        </div>
+        <span class="gauge-label">Lean Angle</span>
+      </div>
+
+      <!-- Speed (HARDENING: show 0 when paused, not stale speed) -->
+      <div class="speed-section">
+        <div class="speed-value" style="color:rgba(255,255,255,0.4)">0</div>
+        <div class="speed-unit" style="color:var(--text-dim)">paused</div>
+      </div>
+
+      <!-- Altitude -->
+      <div class="gauge-section">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7da3ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6">
+          <path d="M12 3L4 21h16L12 3z" fill="rgba(125,163,255,0.08)"/>
+          <path d="M8 17l4-8 4 8"/>
+        </svg>
+        <div style="display:flex;align-items:baseline;gap:2px;margin-top:4px">
+          <span class="gauge-value" style="font-size:22px;color:rgba(125,163,255,0.6)">256</span>
+          <span class="gauge-unit">ft</span>
+        </div>
+        <span class="gauge-label">Altitude</span>
+      </div>
+    </div>
+
+    <!-- Stats pills (dimmed) -->
+    <div class="stats-row" style="opacity:0.6">
+      <div class="stat-pill">
+        <span class="stat-pill-label">Dist</span>
+        <span class="stat-pill-value">8.4</span>
+        <span class="stat-pill-unit">mi</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Avg Spd</span>
+        <span class="stat-pill-value">22</span>
+        <span class="stat-pill-unit">mph</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Top Spd</span>
+        <span class="stat-pill-value">55</span>
+        <span class="stat-pill-unit">mph</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-pill-label">Elev Gain</span>
+        <span class="stat-pill-value">+256</span>
+        <span class="stat-pill-unit">ft</span>
+      </div>
+    </div>
+
+    <!-- Controls (paused state) -->
+    <div class="controls-row">
+      <button class="pause-btn amber" onclick="switchState('recording')" aria-label="Resume ride">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#f59e0b">
+          <polygon points="6,3 20,12 6,21"/>
+        </svg>
+      </button>
+      <!-- HARDENING: Hold-to-End (1.5s hold required) -->
+      <button class="end-btn" id="end-btn-paused" aria-label="Hold to end ride">
+        <div class="hold-progress"></div>
+        <span class="end-btn-text">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
+            <rect x="4" y="4" width="16" height="16" rx="2.5"/>
+          </svg>
+          End Ride
+        </span>
+        <span class="hold-hint">Hold 1.5s to end</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       SUMMARY STATE
+       ═══════════════════════════════════════ -->
+  <div class="state-screen summary-screen" id="screen-summary">
+    <div class="summary-header">
+      <div class="summary-badge">
+        <span class="summary-badge-dot">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,8.5 6.5,13 14,3"/>
+          </svg>
+        </span>
+        Ride Complete
+      </div>
+      <!-- Celebration glow ring -->
+      <div id="celebrate-ring" style="position:absolute;top:30px;left:50%;width:40px;height:40px;margin-left:-20px;border-radius:50%;border:2px solid rgba(34,197,94,0.4);opacity:0;pointer-events:none"></div>
+      <div class="summary-title">Ride Summary</div>
+      <div class="summary-subtitle">2023 Ducati Monster</div>
+    </div>
+
+    <!-- Route map -->
+    <div class="summary-map">
+      <svg viewBox="0 0 360 200" id="svg-map-summary"></svg>
+    </div>
+
+    <!-- Hero stats (Distance + Duration) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="stat-card" style="padding:20px 14px;border-left:3px solid var(--primary)">
+        <div class="stat-card-label">Distance</div>
+        <div class="stat-card-value" style="color:var(--primary);font-size:34px">8.4</div>
+        <div class="stat-card-unit">mi</div>
+      </div>
+      <div class="stat-card" style="padding:20px 14px;border-left:3px solid var(--accent)">
+        <div class="stat-card-label">Duration</div>
+        <div class="stat-card-value" style="color:var(--accent);font-size:24px">00:23:45</div>
+        <div class="stat-card-unit" style="visibility:hidden">—</div>
+      </div>
+    </div>
+    <!-- Secondary stats grid (neutral colors — calm data table) -->
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-bottom:24px">
+      <div class="stat-card" style="padding:14px 8px">
+        <div class="stat-card-label" style="font-size:9px">Avg Spd</div>
+        <div class="stat-card-value" style="color:var(--text-primary);font-size:22px">22</div>
+        <div class="stat-card-unit">mph</div>
+      </div>
+      <div class="stat-card" style="padding:14px 8px">
+        <div class="stat-card-label" style="font-size:9px">Top Speed</div>
+        <div class="stat-card-value" style="color:var(--text-primary);font-size:22px">55</div>
+        <div class="stat-card-unit">mph</div>
+      </div>
+      <div class="stat-card" style="padding:14px 8px">
+        <div class="stat-card-label" style="font-size:9px">Peak Elev</div>
+        <div class="stat-card-value" style="color:var(--text-primary);font-size:22px">689</div>
+        <div class="stat-card-unit">ft</div>
+      </div>
+      <div class="stat-card" style="padding:14px 8px">
+        <div class="stat-card-label" style="font-size:9px">Max Lean</div>
+        <div class="stat-card-value" style="color:var(--text-primary);font-size:22px">25°</div>
+        <div class="stat-card-unit" style="visibility:hidden">—</div>
+      </div>
+    </div>
+
+    <!-- Odometer prompt -->
+    <div class="odo-prompt">
+      <div class="odo-title">Update Odometer?</div>
+      <div class="odo-desc">
+        Your ride added 8 mi. Update your bike's odometer?<br>
+        <span style="margin-top:4px;display:inline-block">4,823 mi → <span class="odo-highlight">4,831 mi</span></span>
+      </div>
+      <div class="odo-buttons">
+        <button class="btn-accept">Confirm</button>
+        <button class="btn-edit">Edit</button>
+        <button class="btn-skip">Skip</button>
+      </div>
+    </div>
+
+    <!-- Maintenance alert -->
+    <div class="maint-alert">
+      <div class="maint-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div>
+        <div class="maint-title">Oil Change Due</div>
+        <div class="maint-desc">Odometer passed 5,000 mi service interval</div>
+      </div>
+    </div>
+
+    <!-- Fuel log -->
+    <button class="fuel-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 22V6a2 2 0 012-2h8a2 2 0 012 2v16"/><path d="M3 22h12"/>
+        <path d="M15 10h1a2 2 0 012 2v2a2 2 0 002 2h0"/><rect x="6" y="8" width="6" height="5" rx="1"/>
+      </svg>
+      Log fuel for this ride
+    </button>
+
+    <!-- Save -->
+    <button class="save-btn" onclick="saveRide(this)">Save Ride</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FLOATING STATE NAVIGATOR
+     ═══════════════════════════════════════ -->
+<nav class="state-nav" id="state-nav" aria-label="Design state navigation">
+  <button class="active" onclick="switchState('idle')">Idle</button>
+  <button onclick="switchState('recording')">Recording</button>
+  <button onclick="switchState('paused')">Paused</button>
+  <button onclick="switchState('summary')">Summary</button>
+</nav>
+
+<script>
+// ── Route data for SVG maps ──
+const ROUTE = [
+  {lat:37.7749,lng:-122.4194},{lat:37.7735,lng:-122.4215},{lat:37.7701,lng:-122.4283},
+  {lat:37.7654,lng:-122.4401},{lat:37.7589,lng:-122.4498},{lat:37.7512,lng:-122.4567},
+  {lat:37.7445,lng:-122.4623},{lat:37.7356,lng:-122.4689},{lat:37.7278,lng:-122.4745},
+  {lat:37.7198,lng:-122.4812},{lat:37.7112,lng:-122.4878},{lat:37.7045,lng:-122.4934},
+  {lat:37.6967,lng:-122.4989},{lat:37.6889,lng:-122.5034},{lat:37.6812,lng:-122.5089}
+];
+
+function renderMap(svgId, currentIdx, showGlow) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  const vb = svg.getAttribute('viewBox').split(' ').map(Number);
+  const W = vb[2], H = vb[3];
+  const pad = 35;
+
+  const lats = ROUTE.map(p => p.lat);
+  const lngs = ROUTE.map(p => p.lng);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const rLat = maxLat - minLat || 0.01;
+  const rLng = maxLng - minLng || 0.01;
+
+  const toX = lng => pad + ((lng - minLng) / rLng) * (W - 2*pad);
+  const toY = lat => H - pad - ((lat - minLat) / rLat) * (H - 2*pad);
+
+  let html = `
+    <defs>
+      <radialGradient id="glow-${svgId}" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#3366e6" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="#3366e6" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="route-grad-${svgId}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3366e6"/>
+        <stop offset="100%" stop-color="#2d9e78"/>
+      </linearGradient>
+    </defs>
+  `;
+
+  // Future route (dashed)
+  if (currentIdx < ROUTE.length - 1) {
+    const future = ROUTE.slice(currentIdx).map((p,i) =>
+      `${i===0?'M':'L'}${toX(p.lng).toFixed(1)},${toY(p.lat).toFixed(1)}`
+    ).join(' ');
+    html += `<path d="${future}" fill="none" stroke="#2a2a2a" stroke-width="2" stroke-dasharray="5 4" opacity="0.5"/>`;
+  }
+
+  // Active route
+  const active = ROUTE.slice(0, currentIdx + 1).map((p,i) =>
+    `${i===0?'M':'L'}${toX(p.lng).toFixed(1)},${toY(p.lat).toFixed(1)}`
+  ).join(' ');
+  html += `<path d="${active}" fill="none" stroke="url(#route-grad-${svgId})" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // Start marker
+  const s = ROUTE[0];
+  html += `<circle cx="${toX(s.lng).toFixed(1)}" cy="${toY(s.lat).toFixed(1)}" r="5.5" fill="#111" stroke="#22c55e" stroke-width="2.5"/>`;
+
+  // End marker (if summary)
+  if (currentIdx === ROUTE.length - 1) {
+    const e = ROUTE[ROUTE.length - 1];
+    html += `<circle cx="${toX(e.lng).toFixed(1)}" cy="${toY(e.lat).toFixed(1)}" r="5.5" fill="#111" stroke="#ef4444" stroke-width="2.5"/>`;
+  }
+
+  // Current position
+  const c = ROUTE[currentIdx];
+  const cx = toX(c.lng).toFixed(1);
+  const cy = toY(c.lat).toFixed(1);
+
+  if (showGlow) {
+    html += `<circle cx="${cx}" cy="${cy}" r="20" fill="url(#glow-${svgId})">
+      <animate attributeName="r" values="16;26;16" dur="2.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0.15;0.6" dur="2.2s" repeatCount="indefinite"/>
+    </circle>`;
+  }
+  html += `<circle cx="${cx}" cy="${cy}" r="6" fill="#3366e6" stroke="#fff" stroke-width="2.5"/>`;
+
+  svg.innerHTML = html;
+}
+
+// ── State management ──
+let currentState = 'idle';
+const states = ['idle', 'recording', 'paused', 'summary'];
+
+function switchState(state) {
+  const prevState = currentState;
+  currentState = state;
+
+  // Hide all screens
+  document.querySelectorAll('.state-screen').forEach(s => s.classList.remove('active'));
+
+  // Show target
+  const screen = document.getElementById('screen-' + state);
+  if (screen) screen.classList.add('active');
+
+  // Update nav
+  const navBtns = document.querySelectorAll('.state-nav button');
+  navBtns.forEach((btn, i) => {
+    btn.classList.toggle('active', states[i] === state);
+  });
+
+  // Render maps
+  if (state === 'recording') {
+    renderMap('svg-map-recording', 11, true);
+  } else if (state === 'paused') {
+    renderMap('svg-map-paused', 11, false);
+  } else if (state === 'summary') {
+    renderMap('svg-map-summary', ROUTE.length - 1, false);
+    animateSummaryRoute();
+    animateOdometer(4823, 4831, 1200);
+    fireCelebrationRing();
+  }
+
+  // DELIGHT: Engine ignition flash when starting a ride
+  if (prevState === 'idle' && state === 'recording') {
+    fireIgnition();
+  }
+
+  // Reset save button when leaving summary
+  if (state !== 'summary') {
+    const saveBtn = document.querySelector('.save-btn');
+    if (saveBtn) {
+      saveBtn.classList.remove('saved');
+      saveBtn.innerHTML = 'Save Ride';
+    }
+  }
+}
+
+// ── DELIGHT: Ignition flash effect ──
+function fireIgnition() {
+  const overlay = document.getElementById('ignition-overlay');
+  overlay.classList.remove('firing');
+  void overlay.offsetWidth; // force reflow
+  overlay.classList.add('firing');
+  setTimeout(() => overlay.classList.remove('firing'), 700);
+}
+
+// ── DELIGHT: Summary route draws itself ──
+function animateSummaryRoute() {
+  const svg = document.getElementById('svg-map-summary');
+  if (!svg) return;
+  // Wait for renderMap to finish, then animate the route path
+  requestAnimationFrame(() => {
+    const routePath = svg.querySelector('path[stroke*="route-grad"]');
+    if (!routePath) return;
+    const length = routePath.getTotalLength();
+    routePath.style.strokeDasharray = length;
+    routePath.style.strokeDashoffset = length;
+    routePath.style.transition = 'none';
+    requestAnimationFrame(() => {
+      routePath.style.transition = 'stroke-dashoffset 1.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      routePath.style.strokeDashoffset = '0';
+    });
+  });
+}
+
+// ── DELIGHT: Odometer count-up ──
+function animateOdometer(from, to, duration) {
+  const odoHighlight = document.querySelector('.odo-highlight');
+  if (!odoHighlight) return;
+  const start = performance.now();
+  const range = to - from;
+  function tick(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(from + range * eased);
+    odoHighlight.textContent = current.toLocaleString() + ' mi';
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  // Start from the "from" value and count up
+  odoHighlight.textContent = from.toLocaleString() + ' mi';
+  setTimeout(() => requestAnimationFrame(tick), 900);
+}
+
+// ── DELIGHT: Celebration glow ring ──
+function fireCelebrationRing() {
+  const ring = document.getElementById('celebrate-ring');
+  if (!ring) return;
+  ring.style.opacity = '0';
+  ring.style.transform = 'scale(0.8)';
+  ring.style.transition = 'none';
+  setTimeout(() => {
+    ring.style.transition = 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease';
+    ring.style.opacity = '0.6';
+    ring.style.transform = 'scale(2.5)';
+    setTimeout(() => { ring.style.opacity = '0'; }, 300);
+  }, 350);
+}
+
+function togglePause() {
+  switchState(currentState === 'paused' ? 'recording' : 'paused');
+}
+
+// ── DELIGHT: Save Ride checkmark morph ──
+function saveRide(btn) {
+  if (btn.classList.contains('saved')) return;
+  btn.classList.add('saved');
+  btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><polyline points="4,12 10,18 20,6" style="stroke-dasharray:30;stroke-dashoffset:30;animation:checkmark-draw 0.4s ease 0.15s forwards"/></svg> Saved';
+  setTimeout(() => switchState('idle'), 1400);
+}
+
+// ═══════════════════════════════════════════════
+// HARDENING: Hold-to-End Ride protection
+// ═══════════════════════════════════════════════
+const HOLD_DURATION = 1500; // 1.5 seconds
+let holdTimer = null;
+
+function setupHoldToEnd(btnId) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+
+  function startHold(e) {
+    e.preventDefault();
+    btn.classList.add('holding');
+    holdTimer = setTimeout(() => {
+      btn.classList.remove('holding');
+      // Haptic feedback would fire here in real app
+      switchState('summary');
+    }, HOLD_DURATION);
+  }
+
+  function cancelHold() {
+    btn.classList.remove('holding');
+    if (holdTimer) {
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    }
+  }
+
+  // Mouse events
+  btn.addEventListener('mousedown', startHold);
+  btn.addEventListener('mouseup', cancelHold);
+  btn.addEventListener('mouseleave', cancelHold);
+  // Touch events
+  btn.addEventListener('touchstart', startHold, { passive: false });
+  btn.addEventListener('touchend', cancelHold);
+  btn.addEventListener('touchcancel', cancelHold);
+  // Prevent default click
+  btn.addEventListener('click', (e) => e.preventDefault());
+}
+
+setupHoldToEnd('end-btn-recording');
+setupHoldToEnd('end-btn-paused');
+
+// ═══════════════════════════════════════════════
+// HARDENING: GPS signal loss handling
+// ═══════════════════════════════════════════════
+let gpsState = 'strong'; // 'strong' | 'weak' | 'lost'
+
+function setGpsState(state) {
+  gpsState = state;
+  const dots = document.querySelectorAll('.gps-dot');
+  const labels = document.querySelectorAll('.gps-label');
+  const banner = document.getElementById('gps-warning-recording');
+  const speedEl = document.getElementById('speed-display');
+
+  dots.forEach(dot => {
+    dot.classList.remove('signal-weak', 'signal-lost');
+    if (state === 'weak') dot.classList.add('signal-weak');
+    if (state === 'lost') dot.classList.add('signal-lost');
+  });
+
+  labels.forEach(label => {
+    if (state === 'strong') label.textContent = 'GPS';
+    if (state === 'weak') label.textContent = 'WEAK';
+    if (state === 'lost') label.textContent = 'LOST';
+  });
+
+  if (banner) {
+    banner.classList.toggle('visible', state === 'lost');
+  }
+
+  if (speedEl && state === 'lost') {
+    speedEl.textContent = '--';
+    speedEl.classList.add('gps-lost');
+  } else if (speedEl && state !== 'lost') {
+    speedEl.textContent = '55';
+    speedEl.classList.remove('gps-lost');
+  }
+}
+
+// Demo: cycle GPS states via keyboard (G key)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'g' || e.key === 'G') {
+    const cycle = { strong: 'weak', weak: 'lost', lost: 'strong' };
+    setGpsState(cycle[gpsState]);
+  }
+});
+
+// ═══════════════════════════════════════════════
+// HARDENING: Screen lock mode
+// ═══════════════════════════════════════════════
+let screenLocked = false;
+
+function toggleScreenLock() {
+  screenLocked = !screenLocked;
+  const overlay = document.getElementById('lock-overlay-recording');
+  const indicator = document.getElementById('lock-indicator-recording');
+  const lockBtn = document.getElementById('lock-btn-recording');
+
+  if (screenLocked) {
+    overlay.classList.add('active');
+    indicator.classList.add('visible');
+    lockBtn.classList.add('locked');
+  } else {
+    overlay.classList.remove('active');
+    indicator.classList.remove('visible');
+    lockBtn.classList.remove('locked');
+  }
+}
+
+// Slide-to-unlock logic
+(function setupSlideUnlock() {
+  const slider = document.getElementById('unlock-slider-recording');
+  const zone = document.getElementById('unlock-zone-recording');
+  if (!slider || !zone) return;
+
+  let dragging = false;
+  let startX = 0;
+  const maxSlide = 168; // 220 - 48 - 4 padding
+
+  function onStart(e) {
+    dragging = true;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX);
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!dragging) return;
+    const currentX = (e.touches ? e.touches[0].clientX : e.clientX);
+    const dx = Math.max(0, Math.min(currentX - startX, maxSlide));
+    slider.style.left = (4 + dx) + 'px';
+    slider.style.transition = 'none';
+
+    if (dx >= maxSlide * 0.9) {
+      dragging = false;
+      slider.style.transition = 'left 0.15s ease';
+      slider.style.left = '4px';
+      toggleScreenLock(); // unlock
+    }
+  }
+
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    slider.style.transition = 'left 0.2s ease';
+    slider.style.left = '4px';
+  }
+
+  slider.addEventListener('mousedown', onStart);
+  slider.addEventListener('touchstart', onStart, { passive: false });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+})();
+
+// ═══════════════════════════════════════════════
+// HARDENING: Battery warning system
+// ═══════════════════════════════════════════════
+function setBatteryWarning(percent) {
+  const warning = document.getElementById('battery-warning-recording');
+  const text = document.getElementById('battery-text-recording');
+  if (!warning || !text) return;
+
+  if (percent <= 10) {
+    warning.classList.add('visible', 'critical');
+    text.textContent = percent + '%';
+  } else if (percent <= 20) {
+    warning.classList.add('visible');
+    warning.classList.remove('critical');
+    text.textContent = percent + '%';
+  } else {
+    warning.classList.remove('visible', 'critical');
+  }
+}
+
+// Demo: press B to cycle battery levels
+let demoBattery = 25;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'b' || e.key === 'B') {
+    demoBattery = demoBattery <= 5 ? 25 : demoBattery - 5;
+    setBatteryWarning(demoBattery);
+  }
+});
+
+// ═══════════════════════════════════════════════
+// HARDENING: Speed display edge cases
+// ═══════════════════════════════════════════════
+function updateSpeedDisplay(speed) {
+  const el = document.getElementById('speed-display');
+  if (!el) return;
+
+  if (gpsState === 'lost') {
+    el.textContent = '--';
+    el.classList.add('gps-lost');
+    el.classList.remove('three-digit');
+    return;
+  }
+
+  el.classList.remove('gps-lost');
+  el.textContent = Math.round(speed);
+
+  // Handle 3-digit speeds
+  if (speed >= 100) {
+    el.classList.add('three-digit');
+  } else {
+    el.classList.remove('three-digit');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HARDENING: Timer overflow for 10h+ rides
+// ═══════════════════════════════════════════════
+function formatDuration(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const pad = n => String(n).padStart(2, '0');
+
+  if (h >= 10) {
+    // Compact format for very long rides
+    return `${h}:${pad(m)}:${pad(s)}`;
+  }
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function updateTimerDisplay(totalSeconds) {
+  const timers = document.querySelectorAll('.timer-value');
+  const formatted = formatDuration(totalSeconds);
+  timers.forEach(t => {
+    t.textContent = formatted;
+    t.classList.toggle('long-ride', totalSeconds >= 36000); // 10+ hours
+  });
+}
+
+// ── OVERDRIVE: Speed-reactive edge glow ──
+function updateSpeedGlow(speed) {
+  const glow = document.getElementById('speed-edge-glow');
+  if (!glow) return;
+  if (currentState !== 'recording') {
+    glow.classList.remove('active', 'high-speed');
+    return;
+  }
+  const intensity = Math.min(1, Math.max(0, (speed - 15) / 65));
+  glow.style.setProperty('--speed-glow-intensity', intensity.toFixed(2));
+  glow.classList.toggle('active', intensity > 0.05);
+  glow.classList.toggle('high-speed', speed >= 90);
+}
+// Update glow on state change
+const _origSwitch = switchState;
+switchState = function(state) {
+  _origSwitch(state);
+  if (state === 'recording') updateSpeedGlow(55);
+  else updateSpeedGlow(0);
+};
+
+// Initialize
+renderMap('svg-map-recording', 11, true);
+renderMap('svg-map-paused', 11, false);
+renderMap('svg-map-summary', ROUTE.length - 1, false);
+</script>
+</body>
+</html>
