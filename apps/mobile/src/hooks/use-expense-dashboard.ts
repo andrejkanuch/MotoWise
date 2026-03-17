@@ -70,10 +70,10 @@ export function useDashboardData(
 
     const totals: Record<string, number> = {};
     for (const bucket of filteredBuckets) {
-      totals.fuel = (totals.fuel || 0) + bucket.fuel;
-      totals.maintenance = (totals.maintenance || 0) + bucket.maintenance;
-      totals.parts = (totals.parts || 0) + bucket.parts;
-      totals.gear = (totals.gear || 0) + bucket.gear;
+      totals.fuel = (totals.fuel ?? 0) + bucket.fuel;
+      totals.maintenance = (totals.maintenance ?? 0) + bucket.maintenance;
+      totals.parts = (totals.parts ?? 0) + bucket.parts;
+      totals.gear = (totals.gear ?? 0) + bucket.gear;
     }
 
     return Object.entries(totals)

@@ -43,7 +43,8 @@ export class ExpensesService {
       `findByMotorcycle: userId=${userId}, motorcycleId=${motorcycleId}, year=${year}`,
     );
 
-    if (year !== undefined && (year < 2000 || year > 2100)) {
+    // year=0 means "all time" (no year filter), so only validate positive years
+    if (year !== undefined && year !== 0 && (year < 2000 || year > 2100)) {
       throw new BadRequestException('Year must be between 2000 and 2100');
     }
 

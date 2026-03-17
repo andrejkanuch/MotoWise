@@ -1,7 +1,9 @@
 import { palette } from '@motovault/design-system';
 import { useRouter } from 'expo-router';
+import { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { formatCurrency } from '../../lib/expense-constants';
 
 interface SummaryCardsProps {
   ytdTotal: number;
@@ -13,16 +15,7 @@ interface SummaryCardsProps {
   motorcycleId: string;
 }
 
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
-
-function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
-}
-
-export function SummaryCards({
+export const SummaryCards = memo(function SummaryCards({
   ytdTotal,
   allTimeTotal,
   previousYearTotal,
@@ -179,4 +172,4 @@ export function SummaryCards({
       ))}
     </View>
   );
-}
+});

@@ -2,26 +2,11 @@ import { palette } from '@motovault/design-system';
 import { memo, useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
+import { CATEGORY_COLORS, formatCurrency } from '../../lib/expense-constants';
 
 interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
-}
-
-const CATEGORY_COLORS: Record<string, string> = {
-  fuel: palette.warning500,
-  maintenance: palette.primary500,
-  parts: palette.success500,
-  gear: palette.danger500,
-};
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
-
-function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
 }
 
 export const CategoryDonut = memo(function CategoryDonut({

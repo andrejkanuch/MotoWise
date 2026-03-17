@@ -1,9 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  DeleteExpenseDocument,
-  ExpensesByMotorcycleDocument,
-  type ExpensesByMotorcycleQuery,
-} from '@motovault/graphql';
+import { DeleteExpenseDocument, ExpensesByMotorcycleDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -38,10 +34,6 @@ const PERIOD_LABELS: Record<Period, string> = {
   lastYear: 'Last Year',
   allTime: 'All Time',
 };
-
-type Expense = NonNullable<
-  ExpensesByMotorcycleQuery['expenses']['categories'][number]['expenses'][number]
->;
 
 export default function ExpenseDashboardScreen() {
   const { motorcycleId, currentMileage, mileageUnit } = useLocalSearchParams<{
@@ -87,15 +79,9 @@ export default function ExpenseDashboardScreen() {
     },
   });
 
-  const handleDelete = (expense: Expense) => {
-    Alert.alert('Delete Expense', `Delete this ${expense.category} expense?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => deleteMutation.mutate(expense.id),
-      },
-    ]);
+  // SwipeableExpense already shows a confirmation dialog, so just call mutate directly
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
   };
 
   const handlePeriodChange = (newPeriod: Period) => {
@@ -414,7 +400,7 @@ export default function ExpenseDashboardScreen() {
                   expense={expense}
                   isDark={isDark}
                   index={index}
-                  onDelete={() => handleDelete(expense)}
+                  onDelete={handleDelete}
                 />
               </Animated.View>
             ))}
