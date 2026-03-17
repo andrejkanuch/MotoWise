@@ -1,7 +1,7 @@
 ---
 title: "feat: Expense Intelligence Dashboard"
 type: feat
-status: active
+status: completed
 date: 2026-03-17
 deepened: 2026-03-17
 ---
