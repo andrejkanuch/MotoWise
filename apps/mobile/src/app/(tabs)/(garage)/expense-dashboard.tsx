@@ -25,7 +25,7 @@ import {
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
-import { CATEGORY_COLORS, formatCurrency } from '../../../lib/expense-constants';
+import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -33,6 +33,12 @@ const PERIOD_LABELS: Record<Period, string> = {
   thisYear: 'This Year',
   lastYear: 'Last Year',
   allTime: 'All Time',
+};
+
+const PERIOD_CONTEXT_LABELS: Record<Period, string> = {
+  thisYear: 'Total spent this year',
+  lastYear: 'Total spent last year',
+  allTime: 'Total spent all time',
 };
 
 export default function ExpenseDashboardScreen() {
@@ -49,7 +55,6 @@ export default function ExpenseDashboardScreen() {
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
 
-  // Fetch recent expenses for the list (reuse existing query with year=0 for all)
   const { data: expensesData } = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 0],
     queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
@@ -61,8 +66,10 @@ export default function ExpenseDashboardScreen() {
     return expensesData.expenses.categories
       .flatMap((cat) => cat.expenses)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10);
+      .slice(0, 3);
   }, [expensesData]);
+
+  const periodExpenseCount = dashboard?.expenseCount ?? 0;
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => gqlFetcher(DeleteExpenseDocument, { id }),
@@ -79,7 +86,6 @@ export default function ExpenseDashboardScreen() {
     },
   });
 
-  // SwipeableExpense already shows a confirmation dialog, so just call mutate directly
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
   };
@@ -91,16 +97,16 @@ export default function ExpenseDashboardScreen() {
     setPeriod(newPeriod);
   };
 
-  // Theme-aware colors
+  // Theme colors
   const bgColor = isDark ? palette.neutral900 : palette.neutral50;
-  const cardBg = isDark ? palette.neutral800 : palette.white;
   const textColor = isDark ? palette.white : palette.neutral950;
   const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
+  const tertiaryColor = palette.neutral500;
   const pillBg = isDark ? palette.neutral800 : palette.neutral200;
   const pillActiveBg = isDark ? palette.neutral700 : palette.white;
   const pillActiveText = isDark ? palette.white : palette.neutral950;
   const pillInactiveText = isDark ? palette.neutral400 : palette.neutral500;
-  const legendAmountColor = isDark ? palette.neutral300 : palette.neutral600;
+  const copperColor = isDark ? '#D4622E' : '#E8723A';
 
   // Loading state
   if (isPending) {
@@ -180,25 +186,26 @@ export default function ExpenseDashboardScreen() {
         <BarChart3 size={48} color={subtextColor} />
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-Bold',
-            fontSize: 18,
+            fontFamily: 'PlusJakartaSans-SemiBold',
+            fontSize: 22,
             color: textColor,
             marginTop: 16,
             textAlign: 'center',
           }}
         >
-          No Expenses Yet
+          No expenses yet
         </Text>
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
-            fontSize: 14,
+            fontSize: 15,
             color: subtextColor,
             marginTop: 8,
             textAlign: 'center',
+            maxWidth: 280,
           }}
         >
-          Log your first expense to unlock spending insights, trends, and cost-per-mile tracking.
+          Track fuel, maintenance, parts, and gear costs.
         </Text>
         <Pressable
           onPress={() =>
@@ -208,29 +215,68 @@ export default function ExpenseDashboardScreen() {
             })
           }
           style={{
-            backgroundColor: palette.primary500,
-            paddingHorizontal: 24,
-            paddingVertical: 12,
-            borderRadius: 10,
+            backgroundColor: copperColor,
+            paddingHorizontal: 32,
+            height: 50,
+            borderRadius: 25,
             borderCurve: 'continuous',
-            marginTop: 20,
+            marginTop: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 14,
+              fontSize: 16,
               color: palette.white,
             }}
           >
-            Log Your First Expense
+            Add First Expense
           </Text>
         </Pressable>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-Regular',
+            fontSize: 13,
+            color: palette.neutral500,
+            fontStyle: 'italic',
+            marginTop: 12,
+          }}
+        >
+          Tip: Start with your last fill-up
+        </Text>
       </View>
     );
   }
 
   const mileageNum = currentMileage ? Number(currentMileage) : null;
+
+  // Compute months in period for avg/mo
+  const monthsInPeriod = (() => {
+    if (filteredBuckets.length === 0) return 1;
+    const nonZero = filteredBuckets.filter((b) => b.total > 0);
+    return Math.max(nonZero.length, 1);
+  })();
+
+  const avgPerMonth = periodTotal / monthsInPeriod;
+
+  // Top category
+  const topCategory =
+    categoryTotals.length > 0
+      ? categoryTotals.reduce((a, b) => (b.total > a.total ? b : a), categoryTotals[0])
+      : null;
+
+  const topCategoryPct =
+    topCategory && periodTotal > 0 ? ((topCategory.total / periodTotal) * 100).toFixed(0) : null;
+
+  // YoY comparison
+  const previousYearTotal = dashboard.previousYearTotal;
+  const yoyChange =
+    previousYearTotal > 0 ? ((periodTotal - previousYearTotal) / previousYearTotal) * 100 : null;
+
+  const costPerUnit = mileageNum && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
+  const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
   return (
     <ScrollView
@@ -239,7 +285,7 @@ export default function ExpenseDashboardScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      {/* Period Selector */}
+      {/* Act 1: Period Selector */}
       <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>
         <View
           style={{
@@ -248,7 +294,6 @@ export default function ExpenseDashboardScreen() {
             borderRadius: 10,
             borderCurve: 'continuous',
             padding: 3,
-            marginBottom: 20,
           }}
         >
           {PERIOD_OPTIONS.map((option) => (
@@ -287,104 +332,148 @@ export default function ExpenseDashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* Summary Cards */}
-      <Animated.View entering={FadeInUp.delay(60).duration(300)}>
+      {/* Act 1: Hero Area — no card wrapper */}
+      <Animated.View entering={FadeInUp.delay(60).duration(300)} style={{ marginTop: 24 }}>
+        {/* Contextual label */}
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-Regular',
+            fontSize: 14,
+            color: subtextColor,
+          }}
+        >
+          {PERIOD_CONTEXT_LABELS[period]}
+        </Text>
+
+        {/* Hero amount */}
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-Bold',
+            fontSize: 44,
+            color: textColor,
+            letterSpacing: -1.5,
+            marginTop: 4,
+          }}
+        >
+          {formatCurrency(periodTotal)}
+        </Text>
+
+        {/* YoY comparison — only for thisYear when previous year has data */}
+        {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
+          <Text
+            style={{
+              fontFamily: 'PlusJakartaSans-Medium',
+              fontSize: 14,
+              color: yoyChange <= 0 ? palette.success500 : palette.warning500,
+              marginTop: 4,
+            }}
+          >
+            {yoyChange <= 0 ? '\u2193' : '\u2191'} {Math.abs(yoyChange).toFixed(0)}% vs last year
+          </Text>
+        )}
+
+        {/* Top category capsule */}
+        {topCategory && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              alignSelf: 'flex-start',
+              marginTop: 20,
+            }}
+          >
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: CATEGORY_COLORS[topCategory.category] ?? palette.neutral400,
+              }}
+            />
+            <Text
+              style={{
+                fontFamily: 'PlusJakartaSans-Medium',
+                fontSize: 13,
+                color: subtextColor,
+                marginLeft: 4,
+              }}
+            >
+              {CATEGORY_LABELS[topCategory.category] ?? topCategory.category}
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'PlusJakartaSans-SemiBold',
+                fontSize: 13,
+                color: textColor,
+                marginLeft: 4,
+              }}
+            >
+              {formatCurrency(topCategory.total)}
+            </Text>
+            {topCategoryPct && (
+              <Text
+                style={{
+                  fontFamily: 'PlusJakartaSans-Regular',
+                  fontSize: 13,
+                  color: tertiaryColor,
+                  marginLeft: 4,
+                }}
+              >
+                {topCategoryPct}%
+              </Text>
+            )}
+          </View>
+        )}
+      </Animated.View>
+
+      {/* Act 1: Summary Metric Pills */}
+      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
         <SummaryCards
-          ytdTotal={dashboard.currentYearTotal}
-          allTimeTotal={dashboard.allTimeTotal}
-          previousYearTotal={dashboard.previousYearTotal}
-          expenseCount={dashboard.expenseCount}
-          currentMileage={mileageNum}
-          mileageUnit={mileageUnit ?? null}
-          motorcycleId={motorcycleId}
+          avgPerMonth={avgPerMonth}
+          expenseCount={periodExpenseCount}
+          costPerUnit={costPerUnit}
+          unitLabel={unitLabel}
           isDark={isDark}
         />
       </Animated.View>
 
-      {/* Category Donut */}
-      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 20 }}>
-        <View
+      {/* Act 2: Category Breakdown */}
+      <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 32 }}>
+        <Text
           style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 16,
+            fontFamily: 'PlusJakartaSans-SemiBold',
+            fontSize: 18,
+            color: textColor,
+            marginBottom: 16,
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 14,
-              fontWeight: '600',
-              color: textColor,
-              marginBottom: 12,
-            }}
-          >
-            Spending by Category
-          </Text>
-          <CategoryDonut
-            categoryTotals={categoryTotals}
-            totalAmount={periodTotal}
-            isDark={isDark}
-          />
-
-          {/* Category legend */}
-          <View
-            style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 12,
-              marginTop: 14,
-              justifyContent: 'center',
-            }}
-          >
-            {categoryTotals.map((cat) => (
-              <View
-                key={cat.category}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-              >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor:
-                      CATEGORY_COLORS[cat.category as keyof typeof CATEGORY_COLORS] ??
-                      palette.neutral400,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontFamily: 'PlusJakartaSans-Regular',
-                    fontSize: 11,
-                    color: subtextColor,
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {cat.category}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: 'PlusJakartaSans-SemiBold',
-                    fontSize: 11,
-                    color: legendAmountColor,
-                  }}
-                >
-                  {formatCurrency(cat.total)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
+          By Category
+        </Text>
+        <CategoryDonut categoryTotals={categoryTotals} totalAmount={periodTotal} isDark={isDark} />
       </Animated.View>
 
-      {/* Monthly Trend */}
-      <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 16 }}>
+      {/* Act 3: Monthly Trend */}
+      <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 32 }}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-SemiBold',
+            fontSize: 18,
+            color: textColor,
+            marginBottom: 16,
+          }}
+        >
+          Monthly Trend
+        </Text>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>
 
-      {/* Recent Expenses */}
-      <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 20 }}>
+      {/* Act 3: Recent Expenses */}
+      <Animated.View entering={FadeInUp.delay(300).duration(300)} style={{ marginTop: 24 }}>
         <View
           style={{
             flexDirection: 'row',
@@ -396,12 +485,11 @@ export default function ExpenseDashboardScreen() {
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 14,
-              fontWeight: '600',
+              fontSize: 18,
               color: textColor,
             }}
           >
-            Recent Expenses
+            Recent
           </Text>
           {recentExpenses.length > 0 && (
             <Pressable
@@ -415,8 +503,8 @@ export default function ExpenseDashboardScreen() {
               <Text
                 style={{
                   fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontSize: 12,
-                  color: palette.primary400,
+                  fontSize: 14,
+                  color: copperColor,
                 }}
               >
                 See All
@@ -442,7 +530,7 @@ export default function ExpenseDashboardScreen() {
             {recentExpenses.map((expense, index) => (
               <Animated.View
                 key={expense.id}
-                entering={FadeInUp.delay(240 + index * 50).duration(250)}
+                entering={FadeInUp.delay(300 + index * 50).duration(250)}
               >
                 <SwipeableExpense
                   expense={expense}

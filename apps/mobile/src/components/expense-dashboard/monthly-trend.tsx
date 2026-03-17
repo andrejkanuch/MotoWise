@@ -61,10 +61,9 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
 
   if (allZero) return null;
 
-  const cardBg = isDark ? palette.neutral800 : palette.neutral100;
-  const titleColor = isDark ? palette.white : palette.neutral950;
+  const cardBg = isDark ? palette.neutral800 : palette.white;
   const axisLabelColor = isDark ? palette.neutral500 : palette.neutral400;
-  const axisColor = isDark ? palette.neutral700 : palette.neutral200;
+  const rulesColor = isDark ? palette.neutral700 : palette.neutral200;
   const legendColor = isDark ? palette.neutral400 : palette.neutral500;
 
   return (
@@ -74,49 +73,47 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
         borderRadius: 14,
         borderCurve: 'continuous',
         padding: 16,
+        ...(!isDark
+          ? {
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.04,
+              shadowRadius: 8,
+            }
+          : {}),
       }}
     >
-      <Text
-        style={{
-          fontFamily: 'PlusJakartaSans-SemiBold',
-          fontSize: 14,
-          fontWeight: '600',
-          color: titleColor,
-          marginBottom: 16,
-        }}
-      >
-        Monthly Breakdown
-      </Text>
-
       <BarChart
         stackData={stackData}
-        barWidth={20}
-        spacing={8}
+        barWidth={24}
+        spacing={12}
         noOfSections={4}
         maxValue={maxValue}
         hideRules={false}
-        rulesColor={axisColor}
+        rulesType="dashed"
+        dashWidth={4}
+        dashGap={4}
+        rulesColor={rulesColor}
+        yAxisColor="transparent"
+        xAxisColor="transparent"
         xAxisLabelTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 10,
+          fontSize: 11,
           color: axisLabelColor,
         }}
         yAxisTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 10,
+          fontSize: 11,
           color: axisLabelColor,
         }}
-        yAxisColor={axisColor}
-        xAxisColor={axisColor}
         isAnimated
         animationDuration={300}
       />
 
-      {/* Legend */}
+      {/* Legend — single row, only legend on the page */}
       <View
         style={{
           flexDirection: 'row',
-          flexWrap: 'wrap',
           gap: 12,
           marginTop: 14,
         }}
