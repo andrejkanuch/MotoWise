@@ -4,7 +4,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3 } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
@@ -21,6 +27,126 @@ const PERIOD_LABELS: Record<Period, string> = {
   lastYear: 'Last Year',
   allTime: 'All Time',
 };
+
+function EmptyState({
+  bgColor,
+  textColor,
+  subtextColor,
+  copperColor,
+  motorcycleId,
+}: {
+  bgColor: string;
+  textColor: string;
+  subtextColor: string;
+  copperColor: string;
+  motorcycleId: string;
+}) {
+  const ctaScale = useSharedValue(1);
+  const ctaAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ctaScale.value }],
+  }));
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        backgroundColor: bgColor,
+      }}
+    >
+      <Animated.View entering={FadeIn.delay(100).duration(400)}>
+        <BarChart3 size={48} color={subtextColor} />
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-SemiBold',
+            fontWeight: '600',
+            fontSize: 20,
+            color: textColor,
+            marginTop: 16,
+            textAlign: 'center',
+          }}
+        >
+          No expenses yet
+        </Text>
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(280).duration(300)}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-Regular',
+            fontWeight: '400',
+            fontSize: 14,
+            color: subtextColor,
+            marginTop: 8,
+            textAlign: 'center',
+            maxWidth: 280,
+          }}
+        >
+          Track fuel, maintenance, parts, and gear costs.
+        </Text>
+      </Animated.View>
+      <Animated.View entering={FadeInUp.delay(360).duration(300)} style={ctaAnimatedStyle}>
+        <Pressable
+          onPressIn={() => {
+            ctaScale.value = withSpring(0.95, { damping: 15, stiffness: 150 });
+          }}
+          onPressOut={() => {
+            ctaScale.value = withSpring(1, { damping: 15, stiffness: 150 });
+          }}
+          onPress={() => {
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            router.push({
+              pathname: '/(tabs)/(garage)/add-expense',
+              params: { motorcycleId },
+            });
+          }}
+          accessibilityLabel="Add your first expense"
+          accessibilityRole="button"
+          style={{
+            backgroundColor: copperColor,
+            paddingHorizontal: 32,
+            height: 48,
+            borderRadius: 24,
+            borderCurve: 'continuous',
+            marginTop: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontWeight: '600',
+              fontSize: 16,
+              color: palette.white,
+            }}
+          >
+            Add First Expense
+          </Text>
+        </Pressable>
+      </Animated.View>
+      <Animated.View entering={FadeIn.delay(500).duration(300)}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans-Regular',
+            fontWeight: '400',
+            fontSize: 12,
+            color: palette.neutral500,
+            fontStyle: 'italic',
+            marginTop: 12,
+          }}
+        >
+          Tip: Start with your last fill-up
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
 
 export default function ExpenseDashboardScreen() {
   const { motorcycleId, currentMileage, mileageUnit } = useLocalSearchParams<{
@@ -121,85 +247,13 @@ export default function ExpenseDashboardScreen() {
   // Empty state
   if (!dashboard || dashboard.expenseCount === 0) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 40,
-          backgroundColor: bgColor,
-        }}
-      >
-        <BarChart3 size={48} color={subtextColor} />
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 20,
-            color: textColor,
-            marginTop: 16,
-            textAlign: 'center',
-          }}
-        >
-          No expenses yet
-        </Text>
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontWeight: '400',
-            fontSize: 14,
-            color: subtextColor,
-            marginTop: 8,
-            textAlign: 'center',
-            maxWidth: 280,
-          }}
-        >
-          Track fuel, maintenance, parts, and gear costs.
-        </Text>
-        <Pressable
-          onPress={() =>
-            router.push({
-              pathname: '/(tabs)/(garage)/add-expense',
-              params: { motorcycleId },
-            })
-          }
-          accessibilityLabel="Add your first expense"
-          accessibilityRole="button"
-          style={{
-            backgroundColor: copperColor,
-            paddingHorizontal: 32,
-            height: 48,
-            borderRadius: 24,
-            borderCurve: 'continuous',
-            marginTop: 24,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontWeight: '600',
-              fontSize: 16,
-              color: palette.white,
-            }}
-          >
-            Add First Expense
-          </Text>
-        </Pressable>
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontWeight: '400',
-            fontSize: 12,
-            color: palette.neutral500,
-            fontStyle: 'italic',
-            marginTop: 12,
-          }}
-        >
-          Tip: Start with your last fill-up
-        </Text>
-      </View>
+      <EmptyState
+        bgColor={bgColor}
+        textColor={textColor}
+        subtextColor={subtextColor}
+        copperColor={copperColor}
+        motorcycleId={motorcycleId}
+      />
     );
   }
 
