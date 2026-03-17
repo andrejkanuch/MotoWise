@@ -41,3 +41,6 @@ supabase/.branches/
 *.mobileprovision
 *.orig.*
 web-build/
+
+# Prototype files
+Ride-HUD-Prototype.jsx
