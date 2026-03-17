@@ -44,3 +44,18 @@ web-build/
 
 # Prototype files
 Ride-HUD-Prototype.jsx
+
+# Build artifacts
+apps/mobile/build-*.aab
+
+# Office lock files
+.~lock.*
+
+# Local docs/prototypes
+Financial_Analysis.html
+MotoVault-*.html
+MotoVault-*.md
+PRD-*.html
+PRD-*.jsx
+Personal_Finance_Overview.xlsx
+Ride-*.jsx
