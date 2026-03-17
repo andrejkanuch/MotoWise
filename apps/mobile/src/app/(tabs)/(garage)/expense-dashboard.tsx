@@ -1,24 +1,13 @@
 import { palette } from '@motovault/design-system';
-import { DeleteExpenseDocument, ExpensesByMotorcycleDocument } from '@motovault/graphql';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
-import { SwipeableExpense } from '../../../components/shared/swipeable-expense';
 import {
   PERIOD_OPTIONS,
   type Period,
@@ -26,19 +15,11 @@ import {
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
-import { gqlFetcher } from '../../../lib/graphql-client';
-import { queryKeys } from '../../../lib/query-keys';
 
 const PERIOD_LABELS: Record<Period, string> = {
   thisYear: 'This Year',
   lastYear: 'Last Year',
   allTime: 'All Time',
-};
-
-const PERIOD_CONTEXT_LABELS: Record<Period, string> = {
-  thisYear: 'Total spent this year',
-  lastYear: 'Total spent last year',
-  allTime: 'Total spent all time',
 };
 
 export default function ExpenseDashboardScreen() {
@@ -49,46 +30,10 @@ export default function ExpenseDashboardScreen() {
   }>();
 
   const [period, setPeriod] = useState<Period>('thisYear');
-  const queryClient = useQueryClient();
   const isDark = useColorScheme() === 'dark';
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
-
-  const { data: expensesData } = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 0],
-    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const recentExpenses = useMemo(() => {
-    if (!expensesData?.expenses?.categories) return [];
-    return expensesData.expenses.categories
-      .flatMap((cat) => cat.expenses)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 3);
-  }, [expensesData]);
-
-  const periodExpenseCount = dashboard?.expenseCount ?? 0;
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => gqlFetcher(DeleteExpenseDocument, { id }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
-      });
-    },
-    onError: () => {
-      Alert.alert('Error', 'Failed to delete expense.');
-    },
-  });
-
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
-  };
 
   const handlePeriodChange = (newPeriod: Period) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -108,7 +53,6 @@ export default function ExpenseDashboardScreen() {
   const pillInactiveText = isDark ? palette.neutral400 : palette.neutral500;
   const copperColor = isDark ? palette.signature500 : palette.signature400;
 
-  // Loading state
   if (isPending) {
     return (
       <View
@@ -124,7 +68,6 @@ export default function ExpenseDashboardScreen() {
     );
   }
 
-  // Error state
   if (isError) {
     return (
       <View
@@ -262,25 +205,20 @@ export default function ExpenseDashboardScreen() {
 
   const mileageNum = currentMileage ? Number(currentMileage) : null;
 
-  // Compute months in period for avg/mo — guard against 0-division
   const monthsInPeriod = (() => {
     if (filteredBuckets.length === 0) return 1;
     const nonZero = filteredBuckets.filter((b) => b.total > 0);
     return Math.max(nonZero.length, 1);
   })();
-
   const avgPerMonth = monthsInPeriod > 0 ? periodTotal / monthsInPeriod : 0;
 
-  // Top category
   const topCategory =
     categoryTotals.length > 0
       ? categoryTotals.reduce((a, b) => (b.total > a.total ? b : a), categoryTotals[0])
       : null;
-
   const topCategoryPct =
     topCategory && periodTotal > 0 ? ((topCategory.total / periodTotal) * 100).toFixed(0) : null;
 
-  // YoY comparison
   const previousYearTotal = dashboard.previousYearTotal;
   const yoyChange =
     previousYearTotal > 0 ? ((periodTotal - previousYearTotal) / previousYearTotal) * 100 : null;
@@ -289,6 +227,13 @@ export default function ExpenseDashboardScreen() {
     mileageNum != null && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
   const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
+  const periodContextLabel =
+    period === 'thisYear'
+      ? 'Total spent this year'
+      : period === 'lastYear'
+        ? 'Total spent last year'
+        : 'Total spent all time';
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: bgColor }}
@@ -296,7 +241,7 @@ export default function ExpenseDashboardScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
-      {/* Act 1: Period Selector */}
+      {/* Period Selector */}
       <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>
         <View
           accessibilityRole="tablist"
@@ -349,9 +294,8 @@ export default function ExpenseDashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* Act 1: Hero Area */}
+      {/* Hero Area */}
       <Animated.View entering={FadeInUp.delay(60).duration(300)} style={{ marginTop: 24 }}>
-        {/* Contextual label */}
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
@@ -360,10 +304,9 @@ export default function ExpenseDashboardScreen() {
             color: subtextColor,
           }}
         >
-          {PERIOD_CONTEXT_LABELS[period]}
+          {periodContextLabel}
         </Text>
 
-        {/* Hero amount */}
         <Text
           adjustsFontSizeToFit
           numberOfLines={1}
@@ -380,7 +323,6 @@ export default function ExpenseDashboardScreen() {
           {formatCurrency(periodTotal)}
         </Text>
 
-        {/* YoY comparison — only for thisYear when previous year has data */}
         {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
           <Text
             accessibilityLabel={`${yoyChange <= 0 ? 'Down' : 'Up'} ${Math.abs(yoyChange).toFixed(0)} percent versus last year`}
@@ -396,7 +338,6 @@ export default function ExpenseDashboardScreen() {
           </Text>
         )}
 
-        {/* Top category capsule */}
         {topCategory && topCategory.total > 0 && (
           <View
             accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatCurrency(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
@@ -461,18 +402,18 @@ export default function ExpenseDashboardScreen() {
         )}
       </Animated.View>
 
-      {/* Act 1: Summary Metric Pills */}
+      {/* Summary Metric Pills */}
       <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
         <SummaryCards
           avgPerMonth={avgPerMonth}
-          expenseCount={periodExpenseCount}
+          expenseCount={dashboard.expenseCount}
           costPerUnit={costPerUnit}
           unitLabel={unitLabel}
           isDark={isDark}
         />
       </Animated.View>
 
-      {/* Act 2: Category Breakdown */}
+      {/* Category Breakdown */}
       <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 32 }}>
         <Text
           style={{
@@ -488,7 +429,7 @@ export default function ExpenseDashboardScreen() {
         <CategoryDonut categoryTotals={categoryTotals} totalAmount={periodTotal} isDark={isDark} />
       </Animated.View>
 
-      {/* Act 3: Monthly Trend */}
+      {/* Monthly Trend */}
       <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 32 }}>
         <Text
           style={{
@@ -502,83 +443,6 @@ export default function ExpenseDashboardScreen() {
           Monthly Trend
         </Text>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
-      </Animated.View>
-
-      {/* Act 3: Recent Expenses */}
-      <Animated.View entering={FadeInUp.delay(300).duration(300)} style={{ marginTop: 24 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 12,
-          }}
-        >
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontWeight: '600',
-              fontSize: 20,
-              color: textColor,
-            }}
-          >
-            Recent
-          </Text>
-          {recentExpenses.length > 0 && (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: '/(tabs)/(garage)/bike/[id]',
-                  params: { id: motorcycleId },
-                })
-              }
-              accessibilityLabel="See all expenses"
-              accessibilityRole="button"
-            >
-              <Text
-                style={{
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontWeight: '600',
-                  fontSize: 14,
-                  color: copperColor,
-                }}
-              >
-                See All
-              </Text>
-            </Pressable>
-          )}
-        </View>
-
-        {recentExpenses.length === 0 ? (
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans-Regular',
-              fontWeight: '400',
-              fontSize: 12,
-              color: subtextColor,
-              textAlign: 'center',
-              padding: 20,
-            }}
-          >
-            No recent expenses
-          </Text>
-        ) : (
-          <View style={{ gap: 8 }}>
-            {recentExpenses.map((expense, index) => (
-              <Animated.View
-                key={expense.id}
-                entering={FadeInUp.delay(300 + index * 50).duration(250)}
-              >
-                <SwipeableExpense
-                  expense={expense}
-                  isDark={isDark}
-                  index={index}
-                  onDelete={handleDelete}
-                />
-              </Animated.View>
-            ))}
-          </View>
-        )}
       </Animated.View>
     </ScrollView>
   );

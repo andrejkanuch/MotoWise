@@ -1,11 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
-import { Dimensions, ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { formatCurrency } from '../../lib/expense-constants';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const PILL_MIN_WIDTH = 100;
-const PILL_WIDTH = Math.max((SCREEN_WIDTH - 52) / 3, PILL_MIN_WIDTH);
 
 interface SummaryCardsProps {
   avgPerMonth: number;
@@ -45,18 +41,13 @@ export const SummaryCards = memo(function SummaryCards({
   ];
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: 8 }}
-      accessibilityLabel="Expense summary metrics"
-    >
+    <View accessibilityLabel="Expense summary metrics" style={{ flexDirection: 'row', gap: 8 }}>
       {pills.map((pill) => (
         <View
           key={pill.label}
           accessibilityLabel={`${pill.label}: ${pill.value}`}
           style={{
-            width: PILL_WIDTH,
+            flex: 1,
             backgroundColor: pillBg,
             borderRadius: 12,
             borderCurve: 'continuous',
@@ -92,6 +83,6 @@ export const SummaryCards = memo(function SummaryCards({
           </Text>
         </View>
       ))}
-    </ScrollView>
+    </View>
   );
 });
