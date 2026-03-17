@@ -97,8 +97,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
             // Pop to top when tapping already-focused tab (guard against in-flight mutations)
             const routeState = route.state;
             if (
-              routeState &&
-              routeState.index &&
+              routeState?.index &&
               routeState.index > 0 &&
               queryClient.isMutating() === 0
             ) {
