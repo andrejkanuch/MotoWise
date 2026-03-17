@@ -84,6 +84,17 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
           : {}),
       }}
     >
+      <Text
+        style={{
+          fontFamily: 'PlusJakartaSans-SemiBold',
+          fontWeight: '600',
+          fontSize: 16,
+          color: isDark ? palette.white : palette.neutral950,
+          marginBottom: 16,
+        }}
+      >
+        Monthly Trend
+      </Text>
       <BarChart
         stackData={stackData}
         barWidth={24}

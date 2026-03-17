@@ -403,7 +403,7 @@ export default function ExpenseDashboardScreen() {
       </Animated.View>
 
       {/* Summary Metric Pills */}
-      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
+      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 16 }}>
         <SummaryCards
           avgPerMonth={avgPerMonth}
           expenseCount={dashboard.expenseCount}
@@ -413,35 +413,45 @@ export default function ExpenseDashboardScreen() {
         />
       </Animated.View>
 
-      {/* Category Breakdown */}
+      {/* Category Breakdown — card treatment for visual separation from hero */}
       <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 32 }}>
-        <Text
+        <View
           style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 20,
-            color: textColor,
-            marginBottom: 16,
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 12,
+            borderCurve: 'continuous',
+            padding: 16,
+            ...(!isDark
+              ? {
+                  shadowColor: palette.black,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.04,
+                  shadowRadius: 8,
+                }
+              : {}),
           }}
         >
-          By Category
-        </Text>
-        <CategoryDonut categoryTotals={categoryTotals} totalAmount={periodTotal} isDark={isDark} />
+          <Text
+            style={{
+              fontFamily: 'PlusJakartaSans-SemiBold',
+              fontWeight: '600',
+              fontSize: 16,
+              color: textColor,
+              marginBottom: 16,
+            }}
+          >
+            By Category
+          </Text>
+          <CategoryDonut
+            categoryTotals={categoryTotals}
+            totalAmount={periodTotal}
+            isDark={isDark}
+          />
+        </View>
       </Animated.View>
 
       {/* Monthly Trend */}
-      <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 32 }}>
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 20,
-            color: textColor,
-            marginBottom: 16,
-          }}
-        >
-          Monthly Trend
-        </Text>
+      <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 16 }}>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>
     </ScrollView>
