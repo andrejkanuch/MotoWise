@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoVault — Product Opportunity Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #1a1a2e;
+    background: #f8f9fc;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: white;
+    padding: 80px 40px 60px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 2.8rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; }
+  .hero .subtitle { font-size: 1.15rem; opacity: 0.85; font-weight: 300; max-width: 650px; margin: 0 auto 30px; }
+  .hero .meta { font-size: 0.85rem; opacity: 0.55; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  .toc {
+    background: white;
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin: -30px auto 40px;
+    max-width: 960px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    position: relative;
+    z-index: 2;
+  }
+  .toc h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 16px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 8px; }
+  .toc a { color: #302b63; text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+
+  section {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #0f0c29;
+    border-bottom: 3px solid #302b63;
+    padding-bottom: 10px;
+  }
+  h3 { font-size: 1.15rem; font-weight: 600; margin: 24px 0 10px; color: #302b63; }
+
+  p { margin-bottom: 14px; }
+
+  .current-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .feature-card {
+    background: #f4f3ff;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #302b63;
+  }
+  .feature-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; color: #0f0c29; }
+  .feature-card p { font-size: 0.85rem; margin-bottom: 0; color: #555; }
+
+  .opp-card {
+    border: 2px solid #e8e6ff;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 24px;
+    transition: border-color 0.2s;
+  }
+  .opp-card:hover { border-color: #302b63; }
+  .opp-card .opp-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .opp-card .opp-number {
+    background: linear-gradient(135deg, #302b63, #24243e);
+    color: white;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .opp-card .opp-title { font-size: 1.2rem; font-weight: 700; color: #0f0c29; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag.revenue { background: #e8f5e9; color: #2e7d32; }
+  .tag.retention { background: #e3f2fd; color: #1565c0; }
+  .tag.moat { background: #fce4ec; color: #c62828; }
+  .tag.effort-low { background: #fff8e1; color: #f57f17; }
+  .tag.effort-med { background: #fff3e0; color: #e65100; }
+  .tag.effort-high { background: #fbe9e7; color: #bf360c; }
+
+  .metric-row { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .metric-pill {
+    background: #f8f9fc;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+  }
+  .metric-pill strong { color: #302b63; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.88rem;
+  }
+  th {
+    background: #302b63;
+    color: white;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+  tr:hover td { background: #fafafe; }
+
+  .priority-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .priority-col h4 {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .priority-col.now h4 { background: #e8f5e9; color: #2e7d32; }
+  .priority-col.next h4 { background: #e3f2fd; color: #1565c0; }
+  .priority-col.later h4 { background: #f3e5f5; color: #6a1b9a; }
+  .priority-item {
+    background: #f8f9fc;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    border-left: 3px solid #ccc;
+  }
+  .priority-col.now .priority-item { border-left-color: #4caf50; }
+  .priority-col.next .priority-item { border-left-color: #2196f3; }
+  .priority-col.later .priority-item { border-left-color: #9c27b0; }
+
+  .user-story {
+    background: #fafafe;
+    border-left: 3px solid #302b63;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-size: 0.9rem;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .footer-note {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 700px) {
+    .current-features, .priority-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2rem; }
+    section { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>MotoVault Product Opportunity Analysis</h1>
+  <p class="subtitle">Where we are, what the market wants, and the features that will make MotoVault the indispensable app for every motorcycle owner.</p>
+  <p class="meta">Prepared March 17, 2026 &middot; Senior PM Assessment &middot; Andrej Kanuch</p>
+</div>
+
+<div class="toc container">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#current">Current Feature Audit</a></li>
+    <li><a href="#market">Market & Competitive Landscape</a></li>
+    <li><a href="#gaps">Identified Gaps & User Pain Points</a></li>
+    <li><a href="#opportunities">Top 8 Product Opportunities</a></li>
+    <li><a href="#adjustments">Adjustments to Existing Features</a></li>
+    <li><a href="#roadmap">Prioritized Roadmap (Now / Next / Later)</a></li>
+    <li><a href="#metrics">Success Metrics Framework</a></li>
+  </ol>
+</div>
+
+<div class="container">
+
+<!-- SECTION 1: CURRENT FEATURE AUDIT -->
+<section id="current">
+  <h2>1. Current Feature Audit</h2>
+  <p>After a deep review of the codebase — 46 database migrations, 20 NestJS modules, 24 GraphQL mutations, 30+ queries, and the full mobile + web surface — here is what MotoVault ships today:</p>
+
+  <div class="current-features">
+    <div class="feature-card">
+      <h4>Garage / Bike Management</h4>
+      <p>Multi-bike CRUD, NHTSA make/model lookup, mileage tracking, photo upload, soft-delete, primary bike selection.</p>
+    </div>
+    <div class="feature-card">
+      <h4>AI Diagnostics (v2)</h4>
+      <p>Step-by-step wizard (symptoms → location → timing → urgency → photo). GPT-4 Vision analysis with severity, confidence, parts/tools, next steps. Manual bike info for non-garage bikes.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Maintenance Tracking</h4>
+      <p>User-created + OEM-seeded tasks. Status workflow, recurring intervals, cost/parts tracking, photo attachments, auto-create next occurrence.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Expense Tracking</h4>
+      <p>Fuel, maintenance, parts, gear categories. Per-bike, per-year queries. Auto-creation from completed maintenance tasks.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Learning Hub</h4>
+      <p>50+ AI-generated articles with full-text search. Quizzes per article, progress tracking, difficulty levels (beginner → advanced), best-score retention.</p>
+    </div>
+    <div class="feature-card">
+      <h4>OEM Schedules</h4>
+      <p>Factory maintenance data with 3-level fallback (model+year → make → generic). Auto-populates tasks when a bike is added.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Public Share Links</h4>
+      <p>Expiring tokens (30-day default) to share bike maintenance history and expenses with buyers, mechanics, or friends — no auth required.</p>
+    </div>
+    <div class="feature-card">
+      <h4>Subscription & Monetization</h4>
+      <p>Free/Pro tiers via RevenueCat. Rate-limited AI (3/month free, unlimited pro). Global AI budget with circuit breaker.</p>
+    </div>
+  </div>
+
+  <h3>What's Working Well</h3>
+  <p>The vertical integration is strong: NHTSA data feeds bike creation → OEM schedules auto-populate tasks → completed tasks auto-log expenses → share links bundle it all for resale or mechanic visits. The AI diagnostic wizard is differentiated — no competitor offers photo-based diagnosis with structured severity/confidence output tailored to rider experience level. The learning hub creates ongoing engagement beyond maintenance events.</p>
+
+  <h3>What's Missing</h3>
+  <p>The app is currently a <strong>single-rider utility tool</strong>. There is no social layer, no ride tracking, no marketplace, no real-time data integration (OBD-II/Bluetooth), no resale valuation, and no community. The expense tracking lacks visualization and insights. The learning content is AI-generated but not curated or community-validated. The diagnostic AI has no feedback loop to improve over time.</p>
+</section>
+
+<!-- SECTION 2: MARKET LANDSCAPE -->
+<section id="market">
+  <h2>2. Market & Competitive Landscape</h2>
+
+  <h3>Rider Demographics (2025–2026)</h3>
+  <p>The U.S. motorcycle market sold 486,468 units in 2025 (down 7.6% YoY). The median rider age is ~50, with under-35 riders making up less than 25%. Over 75% ride recreationally. More than half change their own oil, and 70% reference the owner's manual for maintenance guidance. This is an audience that values self-reliance, cares about their bike's health, and is increasingly digital-savvy but underserved by fragmented tools.</p>
+
+  <h3>Competitor Map</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>App</th>
+        <th>Primary Focus</th>
+        <th>MotoVault Advantage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>MotorManage</strong></td>
+        <td>Service history, parts tracking, mileage reminders. Offline-first. 600+ brands.</td>
+        <td>No AI diagnostics, no learning content, no OEM schedule auto-population</td>
+      </tr>
+      <tr>
+        <td><strong>REVER</strong></td>
+        <td>Ride GPS tracking, route planning, social community, safety features (live location sharing)</td>
+        <td>No maintenance/expense tracking, no diagnostics, pure ride-focused</td>
+      </tr>
+      <tr>
+        <td><strong>Calimoto</strong></td>
+        <td>Curvy-road route optimization, lean angle analytics, navigation</td>
+        <td>No garage management, no learning, no diagnostics</td>
+      </tr>
+      <tr>
+        <td><strong>Simply Auto / Drivvo</strong></td>
+        <td>Generic vehicle maintenance & fuel logging (car-first, moto-second)</td>
+        <td>Not motorcycle-specific, no OEM data, no AI, no learning</td>
+      </tr>
+      <tr>
+        <td><strong>KBB / NADAguides</strong></td>
+        <td>Resale valuation only</td>
+        <td>Static valuations, no link to actual maintenance records</td>
+      </tr>
+      <tr>
+        <td><strong>OEM Apps (BMW, HD)</strong></td>
+        <td>Connected bike data, brand-locked ecosystem</td>
+        <td>Single-brand only. MotoVault is brand-agnostic and AI-powered.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Key insight:</strong> No single competitor combines maintenance + diagnostics + learning + expense tracking in one motorcycle-specific app. The market is fragmented into single-purpose tools. MotoVault's integrated approach is its moat — the opportunity is to widen that moat by adding the features riders currently piece together from 3–4 different apps.</p>
+</section>
+
+<!-- SECTION 3: GAPS -->
+<section id="gaps">
+  <h2>3. Identified Gaps & User Pain Points</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Pain Point</th>
+        <th>Evidence</th>
+        <th>Current MotoVault Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"I don't know what my bike is worth with its maintenance history"</td>
+        <td>KBB/NADA give generic values. No tool links documented service history to resale price.</td>
+        <td>Share links exist but no valuation integration</td>
+      </tr>
+      <tr>
+        <td>"I spend too much and don't know where my money goes"</td>
+        <td>70%+ riders do their own oil changes — they track costs mentally, not systematically</td>
+        <td>Expense logging exists but no charts, trends, or cost-per-mile insights</td>
+      </tr>
+      <tr>
+        <td>"I want to know if this sound/vibration is normal"</td>
+        <td>Forums are the #1 resource for symptom diagnosis — slow, inconsistent, anecdotal</td>
+        <td>AI diagnostic exists — but no audio input, no community validation, no feedback loop</td>
+      </tr>
+      <tr>
+        <td>"I ride alone and nobody knows where I am"</td>
+        <td>REVER's top feature is safety contact + live location. Riders worry about solo crashes.</td>
+        <td>Zero ride/safety features</td>
+      </tr>
+      <tr>
+        <td>"I want to remember my rides and share the good ones"</td>
+        <td>REVER + Calimoto each have millions of downloads for ride tracking alone</td>
+        <td>Zero ride tracking</td>
+      </tr>
+      <tr>
+        <td>"My bike sits in winter and I forget what it needs in spring"</td>
+        <td>Seasonal riders (majority in northern climates) need winterization/spring checklists</td>
+        <td>OEM schedules exist but no seasonal intelligence</td>
+      </tr>
+      <tr>
+        <td>"I want to find a good mechanic near me"</td>
+        <td>Google reviews are unreliable for niche motorcycle shops</td>
+        <td>No mechanic directory or referral feature</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SECTION 4: OPPORTUNITIES -->
+<section id="opportunities">
+  <h2>4. Top 8 Product Opportunities</h2>
+  <p>Ranked by a combination of revenue potential, retention impact, competitive moat, and effort-to-value ratio. Each opportunity includes user stories, requirements, and how it integrates with existing MotoVault infrastructure.</p>
+
+  <!-- OPP 1 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">1</div>
+      <div class="opp-title">Expense Intelligence Dashboard</div>
+    </div>
+    <div class="tags">
+      <span class="tag revenue">Revenue: Pro Upsell</span>
+      <span class="tag retention">High Retention</span>
+      <span class="tag effort-low">Effort: Low</span>
+    </div>
+    <p><strong>Problem:</strong> You already capture expenses (fuel, parts, gear, maintenance) per bike per year — but users see a flat list. There are no charts, no cost-per-mile, no month-over-month trends, no category breakdowns. The data is rich; the presentation is poor. This is the lowest-hanging fruit in the entire product.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>multi-bike owner</strong>, I want to see total cost of ownership per bike so that I can decide which bike is worth keeping.</div>
+    <div class="user-story">As a <strong>budget-conscious rider</strong>, I want to see my cost-per-mile and monthly spend trends so that I can plan my riding budget.</div>
+    <div class="user-story">As a <strong>seller preparing to list a bike</strong>, I want a clean expense summary PDF I can share with buyers to prove the bike's maintenance history and total investment.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Visual expense dashboard: pie chart (by category), bar chart (monthly trend), total spend YTD, cost-per-mile calculation</td></tr>
+      <tr><td>P0</td><td>Multi-bike comparison view: side-by-side cost of ownership</td></tr>
+      <tr><td>P1</td><td>Exportable expense report (PDF) for resale or insurance</td></tr>
+      <tr><td>P1</td><td>Smart alerts: "You're spending 40% more on fuel this quarter" or "This bike costs $0.32/mile vs $0.18 for your other one"</td></tr>
+      <tr><td>P2</td><td>AI-powered spending forecast: predict annual costs based on riding patterns and maintenance schedule</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 60% of active users view dashboard within 30 days</div>
+      <div class="metric-pill"><strong>Pro conversion:</strong> +8% from PDF export gating</div>
+    </div>
+
+    <p><strong>Why now:</strong> This requires no new data — just a new UI layer over existing <code>expenses</code> and <code>maintenance_tasks</code> tables. You already have <code>motorcycle.mileage_km</code> for cost-per-mile. Ship in 2–3 weeks.</p>
+  </div>
+
+  <!-- OPP 2 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">2</div>
+      <div class="opp-title">Resale Value Tracker & Bike Passport</div>
+    </div>
+    <div class="tags">
+      <span class="tag revenue">Revenue: Premium Feature</span>
+      <span class="tag moat">Competitive Moat</span>
+      <span class="tag effort-med">Effort: Medium</span>
+    </div>
+    <p><strong>Problem:</strong> KBB and NADAguides give generic resale estimates disconnected from actual maintenance records. A bike with a perfect documented service history is worth 15–25% more than one without — but there's no tool that links the two. MotoVault already has maintenance history + expenses + share links. The "Bike Passport" is one integration away from being a killer feature for private sales.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>rider considering selling</strong>, I want to see my bike's estimated resale value alongside its documented service history so that I can price it competitively.</div>
+    <div class="user-story">As a <strong>used bike buyer</strong>, I want to scan a QR code on a listing and see a verified maintenance history so that I can trust what I'm buying.</div>
+    <div class="user-story">As a <strong>collector or enthusiast</strong>, I want to track my bike's value appreciation over time so that I know when to sell or hold.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Bike Passport: branded, shareable page (enhance existing share link) showing full maintenance timeline, expenses, mileage, photos, and OEM schedule compliance</td></tr>
+      <tr><td>P0</td><td>QR code generation per bike — scannable in-person at dealerships or private sales</td></tr>
+      <tr><td>P1</td><td>Resale value estimate integration (KBB/NADA API or web scraping) with "MotoVault Verified" badge for bikes with >80% OEM schedule compliance</td></tr>
+      <tr><td>P1</td><td>Value trend chart: estimated value over time based on mileage, age, and market data</td></tr>
+      <tr><td>P2</td><td>"Best time to sell" AI recommendation based on seasonal demand and depreciation curves</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 30% of users generate a Bike Passport within 90 days</div>
+      <div class="metric-pill"><strong>Share rate:</strong> 15% of Passports shared externally</div>
+    </div>
+
+    <p><strong>Why this matters:</strong> This transforms MotoVault from a "maintenance tracker" into a "bike ownership platform." The Bike Passport becomes the reason sellers stay on the app for years — every logged expense increases their bike's provable value. It's a self-reinforcing retention loop.</p>
+  </div>
+
+  <!-- OPP 3 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">3</div>
+      <div class="opp-title">Diagnostic AI v3: Audio Analysis + Community Feedback Loop</div>
+    </div>
+    <div class="tags">
+      <span class="tag moat">Competitive Moat</span>
+      <span class="tag retention">High Retention</span>
+      <span class="tag effort-med">Effort: Medium</span>
+    </div>
+    <p><strong>Problem:</strong> Your diagnostic v2 is the strongest feature in the app, but it has two blind spots. First, riders describe problems by sound ("clicking when I turn," "grinding under braking") — the AI interprets text descriptions, but audio clips would dramatically improve accuracy. Second, there's no feedback mechanism. When the AI says "likely a worn chain tensioner," there's no way for the user to confirm or deny after fixing the issue. Without that loop, the product never gets smarter.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>rider hearing an unusual sound</strong>, I want to record a 10-second audio clip so the AI can analyze the frequency and pattern to narrow down the issue.</div>
+    <div class="user-story">As a <strong>rider who fixed the issue</strong>, I want to mark what the actual problem was so that MotoVault learns from real-world outcomes.</div>
+    <div class="user-story">As a <strong>beginner rider</strong>, I want to see "Similar diagnoses on this make/model" so I know I'm not alone and can learn from others' fixes.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Audio recording in diagnostic wizard (10s max, compressed upload to Supabase Storage)</td></tr>
+      <tr><td>P0</td><td>Post-diagnosis feedback: "Was this helpful? What was the actual issue?" — stored as diagnostic outcome</td></tr>
+      <tr><td>P1</td><td>Audio spectrogram analysis via Whisper + GPT-4 Audio (describe the sound, correlate with known patterns)</td></tr>
+      <tr><td>P1</td><td>"Common issues for [Make] [Model] [Year]" section — aggregated from anonymized diagnostic data</td></tr>
+      <tr><td>P2</td><td>Mechanic verification badge: let shops confirm diagnoses to build a ground-truth dataset</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 25% of diagnostics include audio within 60 days</div>
+      <div class="metric-pill"><strong>Feedback rate:</strong> 40% of users submit outcome data</div>
+    </div>
+  </div>
+
+  <!-- OPP 4 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">4</div>
+      <div class="opp-title">Ride Logging with Safety Contact</div>
+    </div>
+    <div class="tags">
+      <span class="tag retention">High Retention</span>
+      <span class="tag revenue">Revenue: Pro Feature</span>
+      <span class="tag effort-high">Effort: High</span>
+    </div>
+    <p><strong>Problem:</strong> REVER has millions of downloads for ride tracking alone. Riders want to log their rides, track distance/duration, and — critically — share live location with a safety contact. This is the #1 feature request in motorcycle communities. MotoVault's advantage: ride mileage can auto-update the bike's odometer, triggering maintenance reminders at the right time. No ride-tracking app does this.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>solo rider</strong>, I want to set a safety contact who gets notified when I start and finish a ride, with live GPS if I don't check in.</div>
+    <div class="user-story">As a <strong>touring rider</strong>, I want my ride distance to automatically update my bike's mileage so maintenance schedules stay accurate.</div>
+    <div class="user-story">As a <strong>recreational rider</strong>, I want to save my favorite routes and see stats (distance, duration, elevation) for each ride.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Basic ride recording: start/stop, GPS track, distance, duration, max/avg speed</td></tr>
+      <tr><td>P0</td><td>Safety contact: SMS/push notification on ride start, auto-alert if no activity for configurable timeout</td></tr>
+      <tr><td>P0</td><td>Auto-mileage sync: ride distance added to motorcycle's odometer reading, triggering OEM schedule recalculation</td></tr>
+      <tr><td>P1</td><td>Ride history with map view, searchable by date/bike/distance</td></tr>
+      <tr><td>P1</td><td>Ride-linked expense logging: "Log fuel for this ride" prompt after completing a ride</td></tr>
+      <tr><td>P2</td><td>Route sharing and discovery (community routes by region)</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 35% weekly active ride loggers within 90 days</div>
+      <div class="metric-pill"><strong>Mileage accuracy:</strong> 85% of rides result in odometer update acceptance</div>
+    </div>
+
+    <p><strong>Strategic value:</strong> Ride logging transforms MotoVault from "open it when something breaks" into "open it every time you ride." This is the single biggest lever for DAU/WAU metrics.</p>
+  </div>
+
+  <!-- OPP 5 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">5</div>
+      <div class="opp-title">Seasonal Intelligence & Smart Reminders</div>
+    </div>
+    <div class="tags">
+      <span class="tag retention">High Retention</span>
+      <span class="tag effort-low">Effort: Low</span>
+    </div>
+    <p><strong>Problem:</strong> In northern climates, bikes sit for 3–5 months. Riders forget winterization steps (fuel stabilizer, battery tender, tire pressure) and spring prep (fluid check, chain lube, brake inspection). Your OEM schedules are mileage-based — they don't account for time-based degradation or seasonal transitions. Seasonal push notifications are the easiest way to re-engage dormant winter users.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>seasonal rider</strong>, I want a winterization checklist pushed to me in October and a spring-prep checklist in March, customized for my bike type and climate.</div>
+    <div class="user-story">As a <strong>rider storing my bike</strong>, I want time-based reminders (e.g., "check battery tender connection" every 30 days during storage) even when I'm not riding.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>User location/climate zone setting (or auto-detect from device)</td></tr>
+      <tr><td>P0</td><td>Seasonal maintenance checklists: winterization + spring prep, generated per motorcycle type</td></tr>
+      <tr><td>P0</td><td>Push notification schedule tied to seasonal transitions</td></tr>
+      <tr><td>P1</td><td>AI-personalized seasonal tips based on bike type, riding frequency, and experience level</td></tr>
+      <tr><td>P2</td><td>Weather-aware reminders: "Rain expected this week — check tire tread depth"</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 50% winter retention (vs. current assumed ~20%)</div>
+      <div class="metric-pill"><strong>Checklist completion:</strong> 60% of seasonal checklists started</div>
+    </div>
+
+    <p><strong>Why now:</strong> You already have push notification preferences in the mobile app, OEM schedules, and the AI insights system. This is mostly content + scheduling logic — 1–2 weeks of work with outsized retention impact during the deadest months of the year.</p>
+  </div>
+
+  <!-- OPP 6 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">6</div>
+      <div class="opp-title">Mechanic Finder & Shop Integration</div>
+    </div>
+    <div class="tags">
+      <span class="tag revenue">Revenue: B2B Channel</span>
+      <span class="tag moat">Competitive Moat</span>
+      <span class="tag effort-med">Effort: Medium</span>
+    </div>
+    <p><strong>Problem:</strong> Finding a trustworthy motorcycle mechanic is one of the top frustrations for riders. Google Reviews don't differentiate between car and motorcycle work quality. Riders ask in forums, Facebook groups, and Reddit — always the same question: "Who's a good shop near [city]?" MotoVault can own this by connecting its maintenance data to local shops.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>rider needing professional service</strong>, I want to find motorcycle-specialized shops near me, rated by other MotoVault users, so I don't waste time with car-focused garages.</div>
+    <div class="user-story">As a <strong>shop owner</strong>, I want riders to share their MotoVault maintenance history with me before an appointment so I can prepare and diagnose faster.</div>
+    <div class="user-story">As a <strong>rider who just got a diagnostic result</strong>, I want to see "Shops near you that can fix this" with the ability to share my diagnostic report directly.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Curated motorcycle shop directory with location, specialties (sportbike, Harley, vintage, etc.), and user ratings</td></tr>
+      <tr><td>P0</td><td>"Share with mechanic" button on diagnostic results and maintenance history (extends existing share link)</td></tr>
+      <tr><td>P1</td><td>In-app booking request (send maintenance context + preferred time to shop)</td></tr>
+      <tr><td>P2</td><td>Shop dashboard (web): mechanics can view shared bike histories, mark tasks complete, and push updates back to the rider's app</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>B2B target:</strong> 200 listed shops in top 20 metro areas within 6 months</div>
+      <div class="metric-pill"><strong>Share-to-shop rate:</strong> 20% of diagnostics result in shop share</div>
+    </div>
+
+    <p><strong>Revenue angle:</strong> This opens a B2B revenue stream. Shops pay for premium listings, booking integration, and access to MotoVault's rider base. This is how you build a two-sided marketplace without building a marketplace.</p>
+  </div>
+
+  <!-- OPP 7 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">7</div>
+      <div class="opp-title">Gamified Learning & Rider Progression</div>
+    </div>
+    <div class="tags">
+      <span class="tag retention">High Retention</span>
+      <span class="tag effort-low">Effort: Low</span>
+    </div>
+    <p><strong>Problem:</strong> Your learning hub has 50+ articles, quizzes, and progress tracking — but there's no sense of progression, achievement, or motivation to keep learning. The data model already supports it (<code>learning_progress</code> tracks reads, completions, and scores). You're one UI layer away from turning passive readers into engaged learners.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>beginner rider</strong>, I want a structured learning path ("Beginner → Intermediate → Advanced") so I know what to learn next instead of browsing randomly.</div>
+    <div class="user-story">As a <strong>competitive learner</strong>, I want badges and streaks for completing articles and quizzes so I feel rewarded for investing time in motorcycle knowledge.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>Learning paths: curated sequences of articles by topic (e.g., "Engine Fundamentals," "Brake Mastery," "Electrical 101") with progress bar</td></tr>
+      <tr><td>P0</td><td>Achievement badges: "First Article Read," "Quiz Ace (100%)," "5-Day Streak," "Engine Expert (all engine articles)"</td></tr>
+      <tr><td>P1</td><td>Weekly learning goal: configurable target (e.g., 2 articles/week) with streak tracking and push reminders</td></tr>
+      <tr><td>P1</td><td>Skill radar chart: visual representation of knowledge across categories (engine, brakes, electrical, etc.)</td></tr>
+      <tr><td>P2</td><td>Community challenges: "This week: Complete the Tire Safety path" with leaderboard</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 2x article reads per user per week</div>
+      <div class="metric-pill"><strong>Streak retention:</strong> 30% of users maintain 7-day streak</div>
+    </div>
+  </div>
+
+  <!-- OPP 8 -->
+  <div class="opp-card">
+    <div class="opp-header">
+      <div class="opp-number">8</div>
+      <div class="opp-title">Pre-Ride Checklist (T-CLOCS Integration)</div>
+    </div>
+    <div class="tags">
+      <span class="tag retention">Retention: Daily Habit</span>
+      <span class="tag effort-low">Effort: Very Low</span>
+    </div>
+    <p><strong>Problem:</strong> You already have a T-CLOCS checklist on the marketing website (<code>/tools/tclocs-checklist</code>) — but it's not in the mobile app where riders actually need it. The MSF (Motorcycle Safety Foundation) T-CLOCS inspection is the gold standard for pre-ride safety checks. Making this a quick, tappable checklist linked to the rider's bike creates a daily habit touchpoint.</p>
+
+    <h3>User Stories</h3>
+    <div class="user-story">As a <strong>safety-conscious rider</strong>, I want a quick pre-ride checklist on my phone so I can do a T-CLOCS inspection in under 2 minutes before every ride.</div>
+    <div class="user-story">As a <strong>new rider</strong>, I want the checklist to explain each item (with photos or diagrams) so I know what I'm looking for.</div>
+
+    <h3>Requirements</h3>
+    <table>
+      <tr><th>Priority</th><th>Requirement</th></tr>
+      <tr><td>P0</td><td>T-CLOCS checklist in mobile app: Tires, Controls, Lights, Oil, Chassis, Stands — tappable items with checkmarks</td></tr>
+      <tr><td>P0</td><td>Quick-launch from home screen (one tap to start checklist)</td></tr>
+      <tr><td>P1</td><td>Customizable checklist per bike type (add/remove items)</td></tr>
+      <tr><td>P1</td><td>Issue flagging: if a checklist item fails, prompt to create a maintenance task or start a diagnostic</td></tr>
+      <tr><td>P2</td><td>Checklist history: "Last 10 pre-ride checks" with completion % trend</td></tr>
+    </table>
+
+    <div class="metric-row">
+      <div class="metric-pill"><strong>Target:</strong> 20% of riders use checklist weekly within 60 days</div>
+      <div class="metric-pill"><strong>Diagnostic funnel:</strong> 10% of failed checklist items lead to diagnostic submission</div>
+    </div>
+
+    <p><strong>Why now:</strong> This is a 1-week build that creates a daily engagement touchpoint and funnels users into your existing diagnostic and maintenance flows. It also reinforces MotoVault's brand positioning as a safety-first platform.</p>
+  </div>
+
+</section>
+
+<!-- SECTION 5: ADJUSTMENTS -->
+<section id="adjustments">
+  <h2>5. Adjustments to Existing Features</h2>
+  <p>Beyond new features, there are high-impact improvements to what you already ship:</p>
+
+  <h3>Expense Tracking</h3>
+  <p><strong>Current limitation:</strong> Flat list of expenses filtered by bike and year. No visualization, no aggregation, no insights.</p>
+  <p><strong>Adjustment:</strong> Add expense categories for insurance and registration (two of the biggest annual costs riders track). Add a "recurring expense" type for monthly payments (loan, insurance). Integrate expense data into the Bike Passport for total cost of ownership visibility.</p>
+
+  <h3>AI Diagnostics</h3>
+  <p><strong>Current limitation:</strong> One-shot diagnosis with no follow-up. No way to track if the issue was resolved, what the actual fix was, or how much it cost.</p>
+  <p><strong>Adjustment:</strong> Add a "resolution" field to diagnostics — when a user completes a related maintenance task, prompt them to link it to a past diagnostic. This closes the loop and builds a ground-truth dataset. Also consider adding a "severity escalation" notification: if a user diagnosed something as "medium" 30 days ago and hasn't acted on it, send a reminder.</p>
+
+  <h3>OEM Schedules</h3>
+  <p><strong>Current limitation:</strong> Mileage-interval only. Many critical services are time-based (brake fluid every 2 years, coolant every 3 years).</p>
+  <p><strong>Adjustment:</strong> Add time-based intervals alongside mileage. Trigger whichever comes first. This is especially important for low-mileage riders and seasonal riders whose bikes age faster by calendar than by odometer.</p>
+
+  <h3>Share Links</h3>
+  <p><strong>Current limitation:</strong> Functional but visually basic. Shows raw data without context.</p>
+  <p><strong>Adjustment:</strong> Transform into the "Bike Passport" (Opportunity #2). Add a MotoVault branding layer, OEM compliance percentage, total investment figure, and QR code. This turns a utility feature into a marketing asset — every shared Passport is a MotoVault advertisement.</p>
+
+  <h3>Onboarding</h3>
+  <p><strong>Current limitation:</strong> 17 screens is long. Onboarding asks about learning preferences, maintenance style, and spending — but the app doesn't visibly act on most of these signals beyond initial insights.</p>
+  <p><strong>Adjustment:</strong> Reduce onboarding to 8–10 screens (bike details + experience level + goals). Move everything else to progressive disclosure — ask about maintenance style when they first visit the garage, learning preferences when they first visit the learn tab. Use the data you collect to personalize the home dashboard ("Your bike needs attention" vs. "Ready to ride" states).</p>
+</section>
+
+<!-- SECTION 6: ROADMAP -->
+<section id="roadmap">
+  <h2>6. Prioritized Roadmap</h2>
+  <p>Based on effort-to-impact ratio, existing infrastructure leverage, and competitive urgency:</p>
+
+  <div class="priority-grid">
+    <div class="priority-col now">
+      <h4>Now (0–6 weeks)</h4>
+      <div class="priority-item"><strong>Expense Intelligence Dashboard</strong><br>Pure UI work over existing data. Biggest quick win.</div>
+      <div class="priority-item"><strong>Pre-Ride T-CLOCS Checklist</strong><br>1-week build. Daily engagement touchpoint. Funnels into diagnostics.</div>
+      <div class="priority-item"><strong>Seasonal Intelligence</strong><br>Content + push scheduling. Saves winter churn.</div>
+      <div class="priority-item"><strong>Diagnostic Feedback Loop</strong><br>Add resolution tracking to existing diagnostic model. Small schema change, big data value.</div>
+      <div class="priority-item"><strong>OEM Time-Based Intervals</strong><br>Schema extension. Critical for accuracy.</div>
+    </div>
+    <div class="priority-col next">
+      <h4>Next (6–14 weeks)</h4>
+      <div class="priority-item"><strong>Bike Passport & QR Codes</strong><br>Enhances existing share links. Strong retention loop.</div>
+      <div class="priority-item"><strong>Gamified Learning Paths</strong><br>UI layer over existing learning_progress. Badges, streaks, structured paths.</div>
+      <div class="priority-item"><strong>Diagnostic Audio Analysis</strong><br>New input modality. Requires GPT-4 Audio integration + storage.</div>
+      <div class="priority-item"><strong>Onboarding Streamlining</strong><br>Reduce to 8–10 screens. Progressive disclosure for the rest.</div>
+    </div>
+    <div class="priority-col later">
+      <h4>Later (14–26 weeks)</h4>
+      <div class="priority-item"><strong>Ride Logging + Safety Contact</strong><br>Biggest engagement lever but requires GPS, background tracking, SMS integration.</div>
+      <div class="priority-item"><strong>Mechanic Finder & Shop Integration</strong><br>Two-sided marketplace dynamics. Requires supply-side onboarding.</div>
+      <div class="priority-item"><strong>Resale Value Integration</strong><br>KBB/NADA API or scraping. Regulatory and data licensing considerations.</div>
+      <div class="priority-item"><strong>Community Features</strong><br>Route sharing, common issues by model, leaderboards. Network effects take time.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7: METRICS -->
+<section id="metrics">
+  <h2>7. Success Metrics Framework</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Current (Estimated)</th>
+        <th>Target (6 months)</th>
+        <th>Driven By</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>DAU / MAU ratio</td>
+        <td>~10% (utility usage pattern)</td>
+        <td>25%+ (daily habit)</td>
+        <td>Pre-ride checklist, ride logging, learning streaks</td>
+      </tr>
+      <tr>
+        <td>Free → Pro conversion</td>
+        <td>~3–5%</td>
+        <td>10%+</td>
+        <td>Expense PDF export, Bike Passport, unlimited diagnostics</td>
+      </tr>
+      <tr>
+        <td>Winter retention (Nov–Feb)</td>
+        <td>~20% MAU</td>
+        <td>50% MAU</td>
+        <td>Seasonal intelligence, learning paths, storage reminders</td>
+      </tr>
+      <tr>
+        <td>Diagnostic completions/month</td>
+        <td>Baseline TBD</td>
+        <td>+40%</td>
+        <td>Audio input, pre-ride funnel, severity reminders</td>
+      </tr>
+      <tr>
+        <td>Share link generation rate</td>
+        <td>Low (feature awareness)</td>
+        <td>30% of users create at least one Bike Passport</td>
+        <td>Bike Passport redesign, QR codes, resale positioning</td>
+      </tr>
+      <tr>
+        <td>Avg. revenue per user (ARPU)</td>
+        <td>~$2/month</td>
+        <td>$5+/month</td>
+        <td>Pro upsell features, B2B shop listings (later)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>North Star Metric</h3>
+  <p><strong>"Bikes with complete service history"</strong> — defined as motorcycles in MotoVault with ≥80% of OEM-recommended tasks logged and current. This single metric captures user engagement (they're logging), data quality (records are complete), and future value (Bike Passport, resale, shop sharing all depend on rich data). Every feature in this roadmap drives this number up.</p>
+</section>
+
+<div class="footer-note">
+  MotoVault Product Opportunity Analysis &middot; March 2026 &middot; Confidential
+</div>
+
+</div>
+</body>
+</html>

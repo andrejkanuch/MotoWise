@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD — Expense Intelligence Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    color: #1a1a2e;
+    background: #f8f9fc;
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: white;
+    padding: 60px 40px 50px;
+  }
+  .header-inner { max-width: 900px; margin: 0 auto; }
+  .header h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.05rem; opacity: 0.8; font-weight: 300; margin-bottom: 24px; }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .meta-item { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; }
+  .meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-bottom: 4px; }
+  .meta-value { font-size: 0.95rem; font-weight: 600; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  section {
+    background: white;
+    border-radius: 14px;
+    padding: 36px 40px;
+    margin: 24px auto;
+    max-width: 900px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f0c29;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8e6ff;
+  }
+  h3 { font-size: 1.05rem; font-weight: 600; color: #302b63; margin: 20px 0 8px; }
+  h4 { font-size: 0.92rem; font-weight: 600; color: #555; margin: 16px 0 6px; }
+
+  p { margin-bottom: 12px; }
+
+  .goal-list { list-style: none; padding: 0; }
+  .goal-list li {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+  }
+  .goal-list li.user { background: #e8f5e9; border-left: 4px solid #4caf50; }
+  .goal-list li.biz { background: #e3f2fd; border-left: 4px solid #2196f3; }
+  .goal-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .goal-list li.user .goal-label { color: #2e7d32; }
+  .goal-list li.biz .goal-label { color: #1565c0; }
+
+  .nonggoal {
+    background: #fafafa;
+    border-left: 3px solid #ccc;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+  }
+  .nonggoal strong { color: #333; }
+  .nonggoal .reason { color: #888; font-size: 0.82rem; font-style: italic; }
+
+  .story {
+    background: #f4f3ff;
+    border-left: 4px solid #302b63;
+    padding: 14px 18px;
+    margin: 10px 0;
+    border-radius: 0 10px 10px 0;
+  }
+  .story .persona { font-weight: 700; color: #302b63; }
+  .story .edge { font-size: 0.82rem; color: #888; margin-top: 6px; font-style: italic; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.88rem;
+  }
+  th {
+    background: #302b63;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #fafafe; }
+
+  .priority-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .p0 { background: #ffebee; color: #c62828; }
+  .p1 { background: #fff3e0; color: #e65100; }
+  .p2 { background: #f3e5f5; color: #6a1b9a; }
+
+  .ac { background: #f8f9fc; border-radius: 8px; padding: 14px 18px; margin: 8px 0; font-size: 0.88rem; }
+  .ac-header { font-weight: 600; color: #302b63; margin-bottom: 6px; }
+  .gwt { color: #555; margin: 2px 0; }
+  .gwt strong { color: #302b63; }
+
+  .tech-note {
+    background: #fffde7;
+    border: 1px solid #fff9c4;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    font-size: 0.85rem;
+  }
+  .tech-note::before { content: "Technical Note: "; font-weight: 700; color: #f57f17; }
+
+  .question {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    font-size: 0.88rem;
+  }
+  .question .owner {
+    display: inline-block;
+    background: #e8e6ff;
+    color: #302b63;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+  }
+  .question .blocking {
+    display: inline-block;
+    background: #ffebee;
+    color: #c62828;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .question .nonblocking {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .metric-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0;
+  }
+  .metric {
+    background: #f8f9fc;
+    border: 1px solid #e8e6ff;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .metric .label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric .value { font-size: 1.3rem; font-weight: 700; color: #302b63; margin: 4px 0; }
+  .metric .detail { font-size: 0.8rem; color: #666; }
+
+  .timeline {
+    display: flex;
+    gap: 16px;
+    margin: 14px 0;
+  }
+  .phase {
+    flex: 1;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 0.88rem;
+  }
+  .phase.one { background: #e8f5e9; border-top: 4px solid #4caf50; }
+  .phase.two { background: #e3f2fd; border-top: 4px solid #2196f3; }
+  .phase.three { background: #f3e5f5; border-top: 4px solid #9c27b0; }
+  .phase h4 { margin-top: 0; color: inherit; }
+  .phase ul { padding-left: 16px; margin: 8px 0 0; }
+  .phase li { margin-bottom: 4px; }
+
+  code {
+    background: #f0eeff;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    color: #302b63;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 32px 20px;
+    color: #aaa;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 700px) {
+    .meta-grid { grid-template-columns: 1fr 1fr; }
+    .metric-card { grid-template-columns: 1fr; }
+    .timeline { flex-direction: column; }
+    section { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <h1>Expense Intelligence Dashboard</h1>
+    <p class="subtitle">Transform flat expense lists into actionable financial insights for every motorcycle owner.</p>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Document Type</div>
+        <div class="meta-value">Product Requirements Document</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Author</div>
+        <div class="meta-value">Andrej Kanuch</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Date</div>
+        <div class="meta-value">March 17, 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Status</div>
+        <div class="meta-value">Draft — Ready for Review</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- 1. PROBLEM STATEMENT -->
+<section>
+  <h2>1. Problem Statement</h2>
+  <p>MotoVault captures detailed expense data across four categories (fuel, maintenance, parts, gear) per motorcycle, per date — including auto-generated expenses from completed maintenance tasks with cost breakdowns (parts, labor, total). Yet the mobile app presents this as a flat, chronological list filtered by bike and year, via a single <code>expenses(motorcycleId, year)</code> query that returns <code>ytdTotal</code> and <code>categories[{category, total, expenses[]}]</code>. There are no charts, no trends, no cost-per-mile calculations, no multi-bike comparison, and no exportable summaries.</p>
+
+  <p><strong>Who experiences this:</strong> Every MotoVault user who logs expenses or completes maintenance tasks with costs — estimated at 60–70% of active users. Multi-bike owners (20–30% of the user base) are disproportionately affected because they have no way to compare cost of ownership across bikes.</p>
+
+  <p><strong>Cost of not solving it:</strong> Users who can't visualize their spending don't see ongoing value from expense tracking, leading to logging fatigue and eventual churn. Competitors like MotorManage (600+ brands, offline-first) position documented service history as a resale value driver — without visual intelligence, MotoVault's expense data feels like bookkeeping rather than a strategic asset. Additionally, the existing Share Link feature (<code>share_links</code> table, 30-day expiring tokens) lacks a cost summary, reducing its effectiveness for private sales.</p>
+</section>
+
+<!-- 2. GOALS -->
+<section>
+  <h2>2. Goals</h2>
+  <ul class="goal-list">
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Understand spending patterns at a glance.</strong> Within 5 seconds of opening the dashboard, a user can see their total spend YTD, top expense category, and cost-per-mile for their selected motorcycle. Measured by: time-to-first-interaction analytics on the dashboard screen.
+    </li>
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Compare cost of ownership across bikes.</strong> Multi-bike owners can view a side-by-side comparison of total cost, cost-per-mile, and category breakdown for all their motorcycles. Measured by: % of multi-bike users who view the comparison screen within 30 days.
+    </li>
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Share financial proof when selling.</strong> Sellers can generate and share a clean, branded expense summary (via enhanced Share Link or PDF export) that proves maintenance investment to prospective buyers. Measured by: share/export actions per month.
+    </li>
+    <li class="biz">
+      <div class="goal-label">Business Goal</div>
+      <strong>Increase Pro conversion by 8% via PDF export gating.</strong> The core dashboard is free; PDF export and smart alerts are Pro-only. Measured by: Free-to-Pro conversion rate delta within 60 days of launch.
+    </li>
+    <li class="biz">
+      <div class="goal-label">Business Goal</div>
+      <strong>Increase expense logging frequency by 30%.</strong> Visual feedback loops ("you've logged X this month") motivate continued data entry. Measured by: average expenses logged per user per month, pre vs. post launch.
+    </li>
+  </ul>
+</section>
+
+<!-- 3. NON-GOALS -->
+<section>
+  <h2>3. Non-Goals</h2>
+
+  <div class="nonggoal">
+    <strong>Multi-currency support or currency conversion.</strong>
+    <div class="reason">The <code>maintenance_tasks</code> table has a <code>currency</code> field (VARCHAR(3), default 'USD'), but <code>expenses</code> does not track currency independently. Adding conversion rates and multi-currency aggregation is a separate data model change. All v1 visuals assume a single currency per user.</div>
+  </div>
+
+  <div class="nonggoal">
+    <strong>AI-powered spending forecasts.</strong>
+    <div class="reason">Predicting future costs based on riding patterns and maintenance schedules requires historical baselines and model training. This is a P2 future consideration — we design the data layer to support it, but don't build the prediction engine in v1.</div>
+  </div>
+
+  <div class="nonggoal">
+    <strong>Receipt scanning or OCR.</strong>
+    <div class="reason">Autosist and similar apps offer receipt scanning. This requires camera integration, OCR processing, and field extraction — a separate feature initiative. Expenses continue to be logged manually or auto-created from maintenance task completion.</div>
+  </div>
+
+  <div class="nonggoal">
+    <strong>Budget setting or spending limits.</strong>
+    <div class="reason">While natural for a financial dashboard, budget management adds significant UI complexity (setting budgets per category, per bike, per period) and notification logic. Better as a v2 follow-up once we validate that users engage with the base dashboard.</div>
+  </div>
+
+  <div class="nonggoal">
+    <strong>Integration with bank accounts or financial apps.</strong>
+    <div class="reason">Plaid/bank integration is a separate compliance and security initiative. Out of scope for an expense visualization feature.</div>
+  </div>
+</section>
+
+<!-- 4. USER STORIES -->
+<section>
+  <h2>4. User Stories</h2>
+
+  <h3>Primary Persona: Single-Bike Owner</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">budget-conscious rider</span>, I want to see a visual breakdown of my spending by category (fuel, maintenance, parts, gear) so that I know where my money is going.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">daily commuter</span>, I want to see my cost-per-mile (or cost-per-km) based on my total spend and current mileage so that I can compare my motorcycle's running cost to alternatives.</p>
+    <p class="edge">Edge case: If <code>currentMileage</code> is null or 0, display "Log your mileage to see cost-per-mile" with a link to edit the bike's mileage.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">seasonal rider</span>, I want to see monthly spend trends over the past 12 months so that I can understand how my costs fluctuate across riding season vs. winter storage.</p>
+    <p class="edge">Edge case: Months with $0 spending should show as zero-height bars, not be omitted from the chart.</p>
+  </div>
+
+  <h3>Primary Persona: Multi-Bike Owner</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">multi-bike owner</span>, I want to compare total cost of ownership across all my motorcycles in a single view so that I can make informed decisions about which bikes to keep, sell, or ride more.</p>
+    <p class="edge">Edge case: Deleted (soft-deleted) bikes should not appear. Bikes with zero expenses should show as $0, not be hidden.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">multi-bike owner</span>, I want to switch between per-bike dashboard and all-bikes comparison without losing my selected time period so that I can drill down naturally.</p>
+  </div>
+
+  <h3>Primary Persona: Seller / Buyer</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">rider preparing to sell</span>, I want to generate a clean PDF expense report for my motorcycle — showing total investment, category breakdown, and maintenance timeline — so that I can share it with prospective buyers as proof of care.</p>
+    <p class="edge">Edge case: If the bike has zero expenses, the export should still generate with "No expenses recorded" rather than failing.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">buyer viewing a shared link</span>, I want to see an expense summary on the public share page so that I can evaluate the seller's investment in the bike without needing a MotoVault account.</p>
+  </div>
+
+  <h3>Edge Cases & Empty States</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">new user with no expenses logged</span>, I want to see an encouraging empty state on the dashboard that explains what insights I'll unlock by logging my first expense, with a clear CTA to "Log Your First Expense."</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">user who only has auto-generated maintenance expenses</span>, I want the dashboard to still render correctly and suggest logging fuel and gear expenses for a complete picture.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">Pro subscriber</span>, I want to receive smart alerts when my spending patterns change significantly (e.g., "Fuel costs up 40% this quarter" or "This bike costs $0.32/mi vs $0.18/mi for your other one") so that I take action without manually monitoring numbers.</p>
+    <p class="edge">Alerts should only fire when there are at least 3 months of data to establish a baseline. Never alert on the first month.</p>
+  </div>
+</section>
+
+<!-- 5. REQUIREMENTS -->
+<section>
+  <h2>5. Requirements</h2>
+
+  <!-- P0: MUST HAVE -->
+  <h3><span class="priority-badge p0">P0</span> Must-Have — Core Dashboard</h3>
+
+  <table>
+    <thead>
+      <tr><th style="width:30%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:30%">Acceptance Criteria</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>R1: Summary Cards</strong></td>
+        <td>Display at top of dashboard: Total Spend YTD, Total Spend All-Time, Cost-per-Mile, and Expense Count. Each card shows the value with appropriate formatting ($X,XXX.XX) and a comparison label vs. previous year (e.g., "+12% vs 2025").</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user with expenses on motorcycle X for 2026</div>
+            <div class="gwt"><strong>When</strong> they open the Expense Dashboard for motorcycle X</div>
+            <div class="gwt"><strong>Then</strong> they see: Total Spend YTD (sum of all 2026 expenses), All-Time (sum of all expenses regardless of year), Cost/Mile (all-time spend ÷ <code>currentMileage</code>), Count of expense records</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> <code>currentMileage</code> is null or 0</div>
+            <div class="gwt"><strong>Then</strong> Cost-per-Mile card shows "—" with "Update mileage" link navigating to edit-bike screen</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R2: Category Breakdown Chart</strong></td>
+        <td>Donut/pie chart showing spend distribution across fuel, maintenance, parts, gear. Tappable segments show the exact amount and percentage. Matches the 4 categories from the <code>expense.category</code> CHECK constraint.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user with expenses in multiple categories</div>
+            <div class="gwt"><strong>When</strong> they view the category chart</div>
+            <div class="gwt"><strong>Then</strong> each segment's percentage = (category total ÷ grand total) × 100, and tapping a segment shows "$X,XXX (XX%)" in a tooltip or label</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user with expenses in only one category</div>
+            <div class="gwt"><strong>Then</strong> the chart shows a full circle in that category's color</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R3: Monthly Trend Bar Chart</strong></td>
+        <td>Vertical bar chart showing monthly spend for the last 12 months. Bars are stacked by category (fuel, maintenance, parts, gear). X-axis: month labels. Y-axis: dollar amounts. Tappable bars show month total and category breakdown.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> expenses spanning Jan–Dec</div>
+            <div class="gwt"><strong>When</strong> the chart renders</div>
+            <div class="gwt"><strong>Then</strong> all 12 months appear (including $0 months as empty space), bars are stacked by category with consistent colors, and the Y-axis auto-scales to the max monthly spend</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R4: Time Period Selector</strong></td>
+        <td>Toggle between: "This Year," "Last Year," "All Time," or custom year selector. Changing the period updates all cards and charts. Persists during the session but resets to "This Year" on next app open.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user selects "Last Year"</div>
+            <div class="gwt"><strong>Then</strong> summary cards, category chart, and trend chart all update to reflect only expenses with <code>date</code> in that calendar year</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R5: Recent Expense List</strong></td>
+        <td>Below the charts, show the 10 most recent expenses with: category icon, description (or category name if no description), amount, and date. "See All" link navigates to the existing full expense list. Swipe-to-delete on each row.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user has 25 expenses</div>
+            <div class="gwt"><strong>Then</strong> the dashboard shows the 10 most recent (ordered by <code>date</code> DESC), with a "See All" button at the bottom</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tech-note">
+    All P0 data is available from the existing <code>expenses(motorcycleId, year)</code> query which returns <code>ytdTotal</code> and <code>categories[{category, total, expenses[]}]</code>. Cost-per-mile requires combining this with <code>motorcycle.currentMileage</code> and <code>motorcycle.mileageUnit</code>. No new backend endpoints are needed for v1 — the mobile app can compute chart data client-side from the existing response. However, consider a new <code>expenseDashboard</code> query that returns pre-aggregated monthly totals for performance at scale.
+  </div>
+
+  <h3><span class="priority-badge p0">P0</span> Must-Have — Multi-Bike Comparison</h3>
+
+  <table>
+    <thead>
+      <tr><th style="width:30%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:30%">Acceptance Criteria</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>R6: Comparison View</strong></td>
+        <td>Accessible from the dashboard header or a tab toggle. Shows all user's motorcycles (from <code>myMotorcycles</code> query, excluding soft-deleted) side by side with: bike name/photo, total spend (selected period), cost-per-mile, top expense category, and a mini bar chart of category distribution. Ordered by total spend descending.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user with 3 motorcycles</div>
+            <div class="gwt"><strong>When</strong> they open the comparison view</div>
+            <div class="gwt"><strong>Then</strong> they see 3 cards, each with bike photo/name, total spend, cost/mile, and a mini horizontal bar chart showing category proportions</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user with 1 motorcycle</div>
+            <div class="gwt"><strong>Then</strong> the comparison view shows a single card with a message: "Add another bike to compare costs"</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tech-note">
+    This requires fetching expenses for ALL user motorcycles in one operation. Currently, <code>expenses(motorcycleId, year)</code> is per-bike. Options: (a) call it N times client-side (acceptable for ≤5 bikes), (b) add a new <code>expensesSummaryAll(year)</code> resolver that returns aggregated totals per motorcycle. Recommend option (b) for clean architecture and future scalability.
+  </div>
+
+  <!-- P1: NICE TO HAVE -->
+  <h3><span class="priority-badge p1">P1</span> Nice-to-Have — Pro Features</h3>
+
+  <table>
+    <thead>
+      <tr><th style="width:30%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:30%">Acceptance Criteria</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>R7: PDF Expense Report</strong><br><em>(Pro-only)</em></td>
+        <td>Generate a branded PDF report for a selected motorcycle and time period. Includes: MotoVault header, bike name/year/make/model, summary cards, category breakdown chart, monthly trend chart, and a complete expense table (date, category, description, amount). Shareable via native share sheet. Free users see a locked preview with "Upgrade to Pro" CTA.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a Pro user taps "Export PDF"</div>
+            <div class="gwt"><strong>Then</strong> a PDF is generated within 3 seconds, saved to device, and the share sheet opens</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a Free user taps "Export PDF"</div>
+            <div class="gwt"><strong>Then</strong> a modal appears showing a blurred PDF preview with "Upgrade to Pro to export" CTA navigating to the upgrade screen</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R8: Smart Spending Alerts</strong><br><em>(Pro-only)</em></td>
+        <td>Push notifications when spending patterns change significantly. Types: (a) "Fuel costs up X% vs. last quarter" — triggers when quarterly fuel spend exceeds previous quarter by ≥25%. (b) "Bike A costs $X/mi vs $Y/mi for Bike B" — triggers monthly for multi-bike owners with ≥3 months of data. Alerts are opt-in via notification preferences (existing <code>/profile/notifications</code> screen).</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a Pro user has ≥3 months of expense data and alerts enabled</div>
+            <div class="gwt"><strong>When</strong> their Q2 fuel spend is ≥25% higher than Q1</div>
+            <div class="gwt"><strong>Then</strong> they receive a push notification with the specific percentage and dollar amount</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a user has &lt;3 months of data</div>
+            <div class="gwt"><strong>Then</strong> no alerts are triggered (insufficient baseline)</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R9: Enhanced Share Link</strong></td>
+        <td>The existing public share page (<code>/share/[token]</code>) is enhanced to include an expense summary section: total investment, category breakdown (donut chart), and a timeline of expenses. This data is already accessible via the <code>sharedBikeHistory</code> query — it needs a new UI section in the web app's share page.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a buyer opens a share link</div>
+            <div class="gwt"><strong>Then</strong> the page shows maintenance tasks AND a new "Investment Summary" section with total spend and category chart</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- P2: FUTURE -->
+  <h3><span class="priority-badge p2">P2</span> Future Considerations</h3>
+
+  <table>
+    <thead>
+      <tr><th style="width:30%">Feature</th><th style="width:70%">Design Consideration for v1</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>AI Spending Forecast</strong></td>
+        <td>Predict annual costs based on riding patterns, OEM schedule, and historical data. For v1: ensure the new <code>expenseDashboard</code> query returns monthly aggregates with enough granularity (per-category, per-month) to feed a future ML model. Store aggregated snapshots if needed for trend analysis.</td>
+      </tr>
+      <tr>
+        <td><strong>Budget Setting & Alerts</strong></td>
+        <td>Allow users to set monthly/annual budgets per category or per bike. For v1: the summary cards already show total spend — a future "budget bar" can overlay on top without restructuring the UI. No schema changes needed now.</td>
+      </tr>
+      <tr>
+        <td><strong>Insurance/Registration Categories</strong></td>
+        <td>The current category CHECK constraint is <code>('fuel', 'maintenance', 'parts', 'gear')</code>. Riders also track insurance, registration, loan payments, and parking. For v1: do NOT expand categories yet — validate demand first. The DB migration to add enum values is trivial when needed.</td>
+      </tr>
+      <tr>
+        <td><strong>Depreciation Tracking</strong></td>
+        <td>Track bike purchase price and compare against estimated current value. For v1: the <code>motorcycles</code> table does not have a <code>purchase_price</code> column — consider adding it as a nullable DECIMAL in a future migration. The Bike Passport (separate PRD) is the better home for this feature.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 6. SUCCESS METRICS -->
+<section>
+  <h2>6. Success Metrics</h2>
+
+  <h3>Leading Indicators (1–4 weeks post-launch)</h3>
+  <div class="metric-card">
+    <div class="metric">
+      <div class="label">Dashboard Adoption Rate</div>
+      <div class="value">60%</div>
+      <div class="detail">% of active users who view the dashboard within 30 days. Stretch: 75%. Measure: screen_view event for expense-dashboard route.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Comparison View Usage</div>
+      <div class="value">40%</div>
+      <div class="detail">% of multi-bike users who view the comparison at least once. Stretch: 55%. Measure: screen_view for comparison tab, filtered to users with ≥2 motorcycles.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Time-to-First-Insight</div>
+      <div class="value">&lt; 5 sec</div>
+      <div class="detail">Time from dashboard open to first chart render. Measure: performance trace from navigation start to last chart animation complete. Target: p95 &lt; 5s.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Expense Logging Frequency</div>
+      <div class="value">+30%</div>
+      <div class="detail">Average expenses logged per user per month, compared to 30-day pre-launch baseline. Measure: COUNT(expenses) / COUNT(DISTINCT user_id) per month.</div>
+    </div>
+  </div>
+
+  <h3>Lagging Indicators (1–3 months post-launch)</h3>
+  <div class="metric-card">
+    <div class="metric">
+      <div class="label">Free → Pro Conversion</div>
+      <div class="value">+8%</div>
+      <div class="detail">Incremental conversion rate from PDF export gate. Measure: RevenueCat PURCHASE events attributed to users who tapped "Export PDF" → "Upgrade" flow. Evaluate at 60 days.</div>
+    </div>
+    <div class="metric">
+      <div class="label">30-Day Retention</div>
+      <div class="value">+5pp</div>
+      <div class="detail">Improvement in 30-day retention for users who viewed the dashboard vs. those who didn't (cohort analysis). Evaluate at 90 days.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Share Link Generation</div>
+      <div class="value">+20%</div>
+      <div class="detail">Increase in share link creation rate, driven by enhanced share page with expense summary. Measure: COUNT(share_links created) per month.</div>
+    </div>
+    <div class="metric">
+      <div class="label">NPS Impact</div>
+      <div class="value">+3 pts</div>
+      <div class="detail">In-app NPS survey score improvement for users who engaged with the dashboard. Evaluate at 90 days.</div>
+    </div>
+  </div>
+
+  <h3>Measurement Plan</h3>
+  <p>All metrics will be evaluated at three checkpoints: 1 week (sanity check — are charts rendering, are users finding the feature?), 30 days (leading indicators), and 90 days (lagging indicators + decision on P1 investment). Dashboard adoption below 40% at 30 days triggers a UX review and discoverability investigation before proceeding with P1 features.</p>
+</section>
+
+<!-- 7. OPEN QUESTIONS -->
+<section>
+  <h2>7. Open Questions</h2>
+
+  <div class="question">
+    <span class="owner">Engineering</span> <span class="blocking">Blocking</span>
+    <p><strong>Client-side vs. server-side aggregation for charts.</strong> The current <code>expenses(motorcycleId, year)</code> query returns individual expense records grouped by category. For a 12-month trend chart, should we compute monthly buckets client-side (simpler, works now) or add a new <code>expenseDashboard</code> resolver with pre-aggregated monthly totals (better performance, cleaner API)? Recommendation: start with client-side; add server aggregation if p95 load time exceeds 3s for users with 100+ expenses.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Engineering</span> <span class="blocking">Blocking</span>
+    <p><strong>Charting library for React Native.</strong> Options: (a) <code>react-native-chart-kit</code> (simple but limited customization), (b) <code>victory-native</code> (powerful but heavier), (c) <code>react-native-skia</code> + custom drawing (maximum control, most effort). Which aligns with existing dependencies and the design system?</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Design</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Dashboard entry point.</strong> Where does the Expense Dashboard live in the navigation? Options: (a) new tab within the Garage bike detail screen, (b) dedicated screen accessible from home dashboard quick actions, (c) floating action button on the existing expense list. Recommendation: (a) tab within bike detail — aligns with the per-bike mental model.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Design</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Multi-bike comparison entry point.</strong> Should comparison be: (a) a separate screen accessible from the Garage tab header, (b) a toggle within the per-bike dashboard ("Switch to All Bikes"), or (c) a widget on the Home tab? Recommendation: (b) toggle within the dashboard for discoverability.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Product</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Should maintenance task costs appear separately on the dashboard?</strong> Currently, completing a task with cost auto-creates an expense (category: 'maintenance'). The dashboard would show this as a maintenance expense. Should we also show a separate "Maintenance Cost" view that breaks down parts_cost vs. labor_cost from the <code>maintenance_tasks</code> table, or is the expense-level view sufficient?</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Product</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Mileage unit handling.</strong> <code>motorcycle.mileageUnit</code> can be 'mi' or 'km'. Cost-per-mile should respect the user's preference. Confirm: should we display as "Cost/mi" or "Cost/km" based on the bike's mileageUnit, or should there be a global user preference?</p>
+  </div>
+</section>
+
+<!-- 8. TIMELINE -->
+<section>
+  <h2>8. Timeline & Phasing</h2>
+
+  <div class="timeline">
+    <div class="phase one">
+      <h4>Phase 1: Core Dashboard (Weeks 1–2)</h4>
+      <ul>
+        <li>Summary cards (R1)</li>
+        <li>Category donut chart (R2)</li>
+        <li>Monthly trend bar chart (R3)</li>
+        <li>Time period selector (R4)</li>
+        <li>Recent expense list (R5)</li>
+        <li>Empty states</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#2e7d32;"><strong>Ship & measure.</strong> Validate adoption before investing in P1.</p>
+    </div>
+    <div class="phase two">
+      <h4>Phase 2: Comparison + Export (Weeks 3–4)</h4>
+      <ul>
+        <li>Multi-bike comparison (R6)</li>
+        <li>PDF export — Pro gate (R7)</li>
+        <li>Enhanced share link (R9)</li>
+        <li>New <code>expensesSummaryAll</code> resolver</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#1565c0;"><strong>Ship if Phase 1 adoption &gt; 40%.</strong></p>
+    </div>
+    <div class="phase three">
+      <h4>Phase 3: Intelligence (Weeks 5–6)</h4>
+      <ul>
+        <li>Smart spending alerts (R8)</li>
+        <li>Notification preference integration</li>
+        <li>Alert scheduling logic (cron)</li>
+        <li>Year-over-year comparisons on cards</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#6a1b9a;"><strong>Ship if Pro conversion lifts from Phase 2.</strong></p>
+    </div>
+  </div>
+
+  <h3>Dependencies</h3>
+  <p><strong>No hard blockers.</strong> All data exists in the current schema. The <code>expenses</code> table, <code>maintenance_tasks</code> table, and <code>motorcycles</code> table have all required fields. The only new backend work is the optional <code>expensesSummaryAll</code> resolver (Phase 2) and alert scheduling (Phase 3). Phase 1 is entirely a mobile UI effort over the existing GraphQL API.</p>
+
+  <h3>Effort Estimate</h3>
+  <table>
+    <thead>
+      <tr><th>Phase</th><th>Engineering (Mobile)</th><th>Engineering (API)</th><th>Design</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Phase 1</td><td>5–7 days</td><td>0 days (existing API)</td><td>2–3 days</td><td>~1.5 weeks</td></tr>
+      <tr><td>Phase 2</td><td>4–5 days</td><td>2 days (new resolver + PDF)</td><td>1–2 days</td><td>~1.5 weeks</td></tr>
+      <tr><td>Phase 3</td><td>2–3 days</td><td>3–4 days (cron + alerts)</td><td>1 day</td><td>~1 week</td></tr>
+      <tr><td colspan="4" style="text-align:right; font-weight:600;">Total</td><td><strong>4–5 weeks</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- APPENDIX -->
+<section>
+  <h2>Appendix: Data Model Reference</h2>
+  <p>Key tables and fields the dashboard will query:</p>
+
+  <h3>expenses</h3>
+  <table>
+    <thead><tr><th>Column</th><th>Type</th><th>Dashboard Usage</th></tr></thead>
+    <tbody>
+      <tr><td><code>amount</code></td><td>DECIMAL(10,2)</td><td>Aggregation: sum per category, per month, per year</td></tr>
+      <tr><td><code>category</code></td><td>TEXT ('fuel','maintenance','parts','gear')</td><td>Grouping: pie chart segments, stacked bar segments</td></tr>
+      <tr><td><code>date</code></td><td>DATE</td><td>Grouping: monthly buckets, year filtering</td></tr>
+      <tr><td><code>motorcycle_id</code></td><td>UUID</td><td>Filtering: per-bike view, comparison across bikes</td></tr>
+      <tr><td><code>description</code></td><td>TEXT (max 200)</td><td>Display: recent expense list labels</td></tr>
+      <tr><td><code>deleted_at</code></td><td>TIMESTAMPTZ</td><td>Filtering: exclude soft-deleted (handled by RLS)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>motorcycles (relevant fields)</h3>
+  <table>
+    <thead><tr><th>Column</th><th>Type</th><th>Dashboard Usage</th></tr></thead>
+    <tbody>
+      <tr><td><code>current_mileage</code></td><td>INT</td><td>Cost-per-mile = total_spend ÷ current_mileage</td></tr>
+      <tr><td><code>mileage_unit</code></td><td>VARCHAR(2) ('mi','km')</td><td>Label: "Cost/mi" or "Cost/km"</td></tr>
+      <tr><td><code>make</code>, <code>model</code>, <code>year</code></td><td>TEXT, TEXT, INT</td><td>Display: bike identification in comparison view</td></tr>
+      <tr><td><code>primary_photo_url</code></td><td>TEXT</td><td>Display: bike thumbnail in comparison cards</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Existing GraphQL Query</h3>
+  <p><code>expenses(motorcycleId: String!, year: Int) → ExpenseSummary { ytdTotal, categories[{ category, total, expenses[{ id, amount, category, description, date, createdAt }] }] }</code></p>
+  <p>This returns all data needed for Phase 1. Phase 2 requires a new <code>expensesSummaryAll(year: Int) → [{ motorcycleId, motorcycleName, totalSpend, categories[{ category, total }] }]</code> resolver.</p>
+</section>
+
+<div class="footer">
+  MotoVault &middot; PRD: Expense Intelligence Dashboard &middot; March 2026 &middot; Confidential
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRD — Ride Logging & Live Ride HUD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #1a1a2e; background: #f8f9fc; line-height: 1.75; font-size: 15px; }
+
+  .header { background: linear-gradient(135deg, #1b4332, #2d6a4f, #40916c); color: white; padding: 60px 40px 50px; }
+  .header-inner { max-width: 920px; margin: 0 auto; }
+  .header h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 8px; }
+  .header .subtitle { font-size: 1.05rem; opacity: 0.85; font-weight: 300; margin-bottom: 24px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; }
+  .meta-item { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 14px 16px; }
+  .meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.6; margin-bottom: 4px; }
+  .meta-value { font-size: 0.95rem; font-weight: 600; }
+
+  .container { max-width: 920px; margin: 0 auto; padding: 0 24px; }
+
+  section { background: white; border-radius: 14px; padding: 36px 40px; margin: 24px auto; max-width: 920px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+
+  h2 { font-size: 1.35rem; font-weight: 700; color: #1b4332; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #d8f3dc; }
+  h3 { font-size: 1.05rem; font-weight: 600; color: #2d6a4f; margin: 22px 0 8px; }
+  h4 { font-size: 0.92rem; font-weight: 600; color: #555; margin: 16px 0 6px; }
+  p { margin-bottom: 12px; }
+
+  .goal-list { list-style: none; padding: 0; }
+  .goal-list li { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; font-size: 0.92rem; }
+  .goal-list li.user { background: #d8f3dc; border-left: 4px solid #2d6a4f; }
+  .goal-list li.biz { background: #e3f2fd; border-left: 4px solid #1565c0; }
+  .goal-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: inline-block; margin-bottom: 4px; }
+  .goal-list li.user .goal-label { color: #1b4332; }
+  .goal-list li.biz .goal-label { color: #1565c0; }
+
+  .nongoal { background: #fafafa; border-left: 3px solid #ccc; padding: 10px 16px; margin-bottom: 8px; border-radius: 0 8px 8px 0; font-size: 0.9rem; }
+  .nongoal strong { color: #333; }
+  .nongoal .reason { color: #888; font-size: 0.82rem; font-style: italic; }
+
+  .story { background: #edf6f0; border-left: 4px solid #2d6a4f; padding: 14px 18px; margin: 10px 0; border-radius: 0 10px 10px 0; }
+  .story .persona { font-weight: 700; color: #1b4332; }
+  .story .edge { font-size: 0.82rem; color: #888; margin-top: 6px; font-style: italic; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.88rem; }
+  th { background: #2d6a4f; color: white; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 0.82rem; }
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:hover td { background: #fafffe; }
+
+  .pb { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+  .p0 { background: #ffebee; color: #c62828; }
+  .p1 { background: #fff3e0; color: #e65100; }
+  .p2 { background: #f3e5f5; color: #6a1b9a; }
+
+  .ac { background: #f8faf8; border-radius: 8px; padding: 14px 18px; margin: 8px 0; font-size: 0.88rem; }
+  .gwt { color: #555; margin: 2px 0; }
+  .gwt strong { color: #1b4332; }
+
+  .tech { background: #fffde7; border: 1px solid #fff9c4; border-radius: 8px; padding: 12px 16px; margin: 10px 0; font-size: 0.85rem; }
+  .tech::before { content: "Technical Note: "; font-weight: 700; color: #f57f17; }
+
+  .warn { background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 12px 16px; margin: 10px 0; font-size: 0.85rem; }
+  .warn::before { content: "Platform Constraint: "; font-weight: 700; color: #e65100; }
+
+  .arch { background: #e8eaf6; border: 1px solid #c5cae9; border-radius: 8px; padding: 16px; margin: 12px 0; font-size: 0.88rem; }
+  .arch h4 { color: #283593; margin-top: 0; }
+
+  .question { border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px 16px; margin: 8px 0; font-size: 0.88rem; }
+  .question .owner { display: inline-block; background: #d8f3dc; color: #1b4332; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
+  .question .blocking { display: inline-block; background: #ffebee; color: #c62828; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+  .question .nonblocking { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+
+  .mc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .metric { background: #f0faf3; border: 1px solid #d8f3dc; border-radius: 10px; padding: 16px; }
+  .metric .label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+  .metric .value { font-size: 1.3rem; font-weight: 700; color: #1b4332; margin: 4px 0; }
+  .metric .detail { font-size: 0.8rem; color: #666; }
+
+  .timeline { display: flex; gap: 16px; margin: 14px 0; }
+  .phase { flex: 1; border-radius: 10px; padding: 16px; font-size: 0.88rem; }
+  .phase.one { background: #d8f3dc; border-top: 4px solid #2d6a4f; }
+  .phase.two { background: #e3f2fd; border-top: 4px solid #1565c0; }
+  .phase.three { background: #f3e5f5; border-top: 4px solid #7b1fa2; }
+  .phase.four { background: #fff3e0; border-top: 4px solid #e65100; }
+  .phase h4 { margin-top: 0; }
+  .phase ul { padding-left: 16px; margin: 8px 0 0; }
+  .phase li { margin-bottom: 4px; }
+
+  .schema-block { background: #f5f5f5; border-radius: 8px; padding: 16px 20px; margin: 12px 0; font-family: 'Menlo', 'Consolas', monospace; font-size: 0.82rem; line-height: 1.6; overflow-x: auto; white-space: pre; }
+
+  code { background: #edf6f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; color: #1b4332; }
+
+  .dep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0; }
+  .dep-card { background: #fafafa; border-radius: 8px; padding: 14px; border: 1px solid #e0e0e0; }
+  .dep-card h4 { margin: 0 0 6px; font-size: 0.88rem; }
+  .dep-card .status { font-size: 0.78rem; font-weight: 600; }
+  .dep-card .status.have { color: #2e7d32; }
+  .dep-card .status.need { color: #c62828; }
+
+  .footer { text-align: center; padding: 32px 20px; color: #aaa; font-size: 0.78rem; }
+
+  @media (max-width: 700px) {
+    .meta-grid, .mc, .dep-grid { grid-template-columns: 1fr; }
+    .timeline { flex-direction: column; }
+    section { padding: 24px; }
+    .header h1 { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>Ride Logging & Live Ride HUD</h1>
+    <p class="subtitle">Transform MotoVault from "open when something breaks" into "open every time you ride" — with a real-time dashboard showing speed, lean angle, altitude, and route on a live map.</p>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Document Type</div>
+        <div class="meta-value">Product Requirements Document</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Author</div>
+        <div class="meta-value">Andrej Kanuch</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Date</div>
+        <div class="meta-value">March 17, 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Effort Rating</div>
+        <div class="meta-value">Medium-High (6–8 weeks)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- 1. PROBLEM STATEMENT -->
+<section>
+  <h2>1. Problem Statement</h2>
+  <p>Motorcycle riders use REVER (millions of downloads), Calimoto, and Scenic as daily ride-tracking companions — apps they open <em>every time they ride</em>. MotoVault, by contrast, is opened only when something needs attention: a diagnostic, a maintenance task, or an expense to log. The current DAU/MAU ratio is estimated at ~10%, a pattern typical of utility-only apps. Without a daily engagement touchpoint, MotoVault cannot build the habitual usage necessary for long-term retention or sustainable subscription revenue.</p>
+
+  <p><strong>Who experiences this:</strong> Every active MotoVault user who rides regularly (estimated 70%+ of user base, riding 2–5 times per week in season). These riders currently have no reason to open MotoVault on a ride day — only when something needs logging or fixing.</p>
+
+  <p><strong>Cost of not solving it:</strong></p>
+  <p>From a competitive standpoint, REVER and Calimoto own the "daily ride" moment. Every ride logged in REVER is a ride NOT logged in MotoVault — and when a rider needs diagnostics or maintenance tracking, they'll consider the app they already have open. From a data accuracy perspective, MotoVault's maintenance schedules depend on accurate mileage, but <code>motorcycle.current_mileage</code> is only updated when users manually edit their bike. Ride logging would auto-increment mileage, making OEM task thresholds and cost-per-mile calculations significantly more accurate. From a revenue perspective, ride logging is the highest-frequency Pro feature possible — gating ride history and detailed analytics behind Pro creates a daily reminder of the subscription's value.</p>
+
+  <p><strong>MotoVault's unique advantage:</strong> No ride-tracking app auto-updates a bike's service mileage or triggers maintenance reminders based on ride distance. REVER tracks rides. MotoVault can track rides AND tell you "you're 200 miles from your next oil change" when you finish. The live Ride HUD — showing speed, lean angle, altitude, and route on a real-time map — makes MotoVault the app riders WANT to have running, not just the one they open after the fact.</p>
+</section>
+
+<!-- 2. GOALS -->
+<section>
+  <h2>2. Goals</h2>
+  <ul class="goal-list">
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Record every ride with zero friction.</strong> Starting a ride takes one tap from the home screen. Ending a ride presents instant stats (distance, duration, avg speed) and a mileage update prompt. Target: ride start-to-recording in under 3 seconds. Measured by: time from "Start Ride" tap to first GPS fix recorded.
+    </li>
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Experience a rich, real-time Ride HUD.</strong> While riding, the user sees a live map with their route, current speed (large, glanceable), lean angle gauge, altitude, and ride stats — all on a dark, high-contrast screen optimized for outdoor visibility. Measured by: % of rides where the HUD screen is visible for >50% of ride duration (indicates active engagement vs. pocket-riding).
+    </li>
+    <li class="user">
+      <div class="goal-label">User Goal</div>
+      <strong>Keep maintenance schedules accurate without manual effort.</strong> Ride distance is added to the bike's odometer after each ride. Maintenance tasks with <code>target_mileage</code> are automatically rechecked. Measured by: % of rides that result in accepted mileage updates (target: 85%).
+    </li>
+    <li class="biz">
+      <div class="goal-label">Business Goal</div>
+      <strong>Increase DAU/MAU from ~10% to 25%+.</strong> Ride logging creates a reason to open MotoVault on every ride. Measured by: DAU/MAU ratio, 90 days post-launch.
+    </li>
+    <li class="biz">
+      <div class="goal-label">Business Goal</div>
+      <strong>Grow Pro subscriptions through high-frequency feature gating.</strong> Free tier: 5 rides/month with basic stats. Pro: unlimited rides, full history, lean angle analytics, route maps. Measured by: incremental Free→Pro conversion attributed to ride-related upgrade prompts.
+    </li>
+  </ul>
+</section>
+
+<!-- 3. NON-GOALS -->
+<section>
+  <h2>3. Non-Goals</h2>
+
+  <div class="nongoal">
+    <strong>Turn-by-turn navigation.</strong>
+    <div class="reason">Navigation is Calimoto's and REVER Pro's core offering, requiring deep map engine integration, voice guidance, and offline routing. This is a separate product initiative. MotoVault records rides — it doesn't plan them.</div>
+  </div>
+
+  <div class="nongoal">
+    <strong>Community route discovery or social feed.</strong>
+    <div class="reason">Sharing and discovering routes requires a community layer, moderation, and network effects that take months to build. P2 consideration: design the rides table to support public visibility flags for future sharing, but don't build the community UI in v1.</div>
+  </div>
+
+  <div class="nongoal">
+    <strong>Crash detection and automatic emergency calls.</strong>
+    <div class="reason">Automatic crash detection requires accelerometer analysis, false-positive handling, and potentially emergency service integration (911 calling). This carries legal liability and needs dedicated safety engineering. Out of scope for v1.</div>
+  </div>
+
+  <div class="nongoal">
+    <strong>Safety contact / emergency SMS notifications.</strong>
+    <div class="reason">Live location sharing with a safety contact requires backend SMS infrastructure (Twilio/SNS), ongoing per-message costs, and legal liability considerations. Descoped from v1 — may revisit as a future Pro feature once ride logging adoption is validated.</div>
+  </div>
+
+  <div class="nongoal">
+    <strong>Group ride coordination or multi-rider tracking.</strong>
+    <div class="reason">Real-time multi-user location sharing requires a fundamentally different backend (presence channels, conflict resolution, privacy controls). Out of scope for v1.</div>
+  </div>
+</section>
+
+<!-- 4. USER STORIES -->
+<section>
+  <h2>4. User Stories</h2>
+
+  <h3>Core: Ride Recording</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">recreational rider</span>, I want to tap one button to start recording my ride so that I can track distance and duration without fiddling with settings.</p>
+    <p class="edge">Edge: If no motorcycle is selected (no bikes in garage), prompt to add a bike or select "Quick Ride" without a bike association.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">rider mid-ride</span>, I want the app to continue recording my GPS track even when the screen is off or I switch to another app so that I get a complete route without keeping MotoVault in the foreground.</p>
+    <p class="edge">Edge: Battery saver mode may throttle GPS. Show a warning if low-power mode is detected: "Location accuracy may be reduced."</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">rider finishing a ride</span>, I want to see an instant summary (distance, duration, avg speed, max speed, elevation gain) and be prompted to update my bike's mileage so that my maintenance schedule stays accurate.</p>
+    <p class="edge">Edge: If GPS accuracy was poor (>50% of waypoints with accuracy >100m), show a warning: "GPS quality was low — distance may be inaccurate. Adjust mileage manually if needed." Present the suggested mileage as editable, not auto-committed.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">touring rider on a multi-day trip</span>, I want to pause and resume a ride (e.g., at a fuel stop or overnight) so that rest periods don't count toward ride duration and I can keep one continuous trip log.</p>
+    <p class="edge">Edge: If the app is force-killed during a paused ride, the ride should be recoverable on next app open. Store ride state in <code>expo-secure-store</code>.</p>
+  </div>
+
+  <h3>Core: Live Ride HUD</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">rider with a phone mounted on handlebars</span>, I want to see a dark, high-contrast Ride HUD with my current speed displayed large enough to read at a glance so that I can monitor my pace without taking my eyes off the road for more than a split second.</p>
+    <p class="edge">Edge: Speed must be readable in direct sunlight. Use maximum brightness prompt when ride starts. White-on-black text, minimum 72px font size for the speed number.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">sport/canyon rider</span>, I want to see my current lean angle displayed as a gauge so that I can track how aggressively I'm cornering and improve my riding technique over time.</p>
+    <p class="edge">Edge: Lean angle is derived from the device gyroscope and requires the phone to be mounted rigidly. Show a one-time calibration prompt: "Mount your phone and tap Calibrate to set the zero position." If no gyroscope is available, hide the lean gauge and show altitude instead.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">touring rider</span>, I want to see my route drawn on a live map in real time so that I can see where I've been and orient myself geographically.</p>
+    <p class="edge">Edge: Map should auto-pan to keep the current position centered. Show a gradient polyline (start → current) with the route color transitioning from blue to green. If GPS signal is lost for >30 seconds, show a "GPS signal lost" indicator on the map.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">mountain/ADV rider</span>, I want to see my current altitude and elevation changes so that I can track how much climbing I've done on a ride.</p>
+    <p class="edge">Edge: GPS altitude can be inaccurate (±30m). Display altitude as an integer (no decimals) and use barometric altitude from the device if available for better accuracy.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">rider reviewing stats mid-ride</span>, I want to see secondary stats (distance, avg speed, max speed, elevation gain) in a compact row below the primary metrics so that I get a complete picture without scrolling.</p>
+  </div>
+
+  <h3>Core: Mileage Sync</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">maintenance-conscious rider</span>, I want my ride distance to be automatically suggested as a mileage update for my motorcycle so that my OEM maintenance schedules stay accurate without manual editing.</p>
+    <p class="edge">Edge: Display as "Add X mi to odometer? (Current: Y mi → New: Z mi)" — never auto-commit. Rider can accept, edit, or skip. If skipped, ride still saves but mileage doesn't update.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">rider who just hit a maintenance milestone</span>, I want to see a notification after my ride saying "Oil change due — you've passed 6,000 miles" so that I act on maintenance tasks at the right time.</p>
+    <p class="edge">Edge: Only show for tasks with <code>target_mileage</code> that the new odometer reading exceeds. Don't show for tasks already completed or skipped.</p>
+  </div>
+
+  <h3>Edge Cases & Empty States</h3>
+
+  <div class="story">
+    <p>As a <span class="persona">new user who hasn't added a bike yet</span>, I want to be able to start a "Quick Ride" (unassociated with a motorcycle) so that I can try ride logging immediately and associate the ride with a bike later.</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">rider in an area with poor cell service</span>, I want ride recording to work fully offline (GPS only, no network required) and sync data when connectivity returns so that backcountry rides are fully tracked.</p>
+    <p class="edge">Edge: Safety contact notifications require network. If offline when safety timeout triggers, queue the alert and send immediately when network is restored. Show rider a warning: "No network — safety alert will send when connected."</p>
+  </div>
+
+  <div class="story">
+    <p>As a <span class="persona">Free tier user</span>, I want to see how many of my 5 monthly rides I've used, and when I hit the limit, a clear upgrade prompt rather than a silent failure.</p>
+  </div>
+</section>
+
+<!-- 5. REQUIREMENTS -->
+<section>
+  <h2>5. Requirements</h2>
+
+  <!-- P0 -->
+  <h3><span class="pb p0">P0</span> Must-Have — Core Ride Recording</h3>
+
+  <table>
+    <thead><tr><th style="width:25%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:35%">Acceptance Criteria</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>R1: Start/Stop Ride</strong></td>
+        <td>One-tap "Start Ride" from home screen quick action or a new Rides tab. User selects a motorcycle (defaults to primary bike). Tapping "Start" begins GPS recording and shows a live ride HUD with elapsed time, distance, and current speed. "Stop Ride" ends recording and shows the ride summary screen.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user has at least one motorcycle and location permission granted</div>
+            <div class="gwt"><strong>When</strong> they tap "Start Ride" and select a bike</div>
+            <div class="gwt"><strong>Then</strong> GPS recording begins within 3 seconds, the HUD appears with live stats, and a persistent notification shows "Recording ride…"</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a ride is in progress</div>
+            <div class="gwt"><strong>When</strong> the user taps "End Ride"</div>
+            <div class="gwt"><strong>Then</strong> recording stops, the ride summary screen shows: total distance, duration, avg speed, max speed, and a map of the route</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R2: Background GPS Tracking</strong></td>
+        <td>GPS continues recording when the app is backgrounded, the screen is locked, or the user switches to another app. Uses <code>expo-location</code> with <code>startLocationUpdatesAsync</code> and <code>expo-task-manager</code> for the background task. GPS settings: <code>Accuracy.Balanced</code>, <code>timeInterval: 5000ms</code>, <code>distanceInterval: 20m</code>. A persistent system notification displays ride status while recording.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user starts a ride and locks their phone</div>
+            <div class="gwt"><strong>When</strong> they ride for 30 minutes and then open the app</div>
+            <div class="gwt"><strong>Then</strong> the ride HUD shows accurate elapsed time and distance with continuous GPS track (no gaps)</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the device is in battery saver mode</div>
+            <div class="gwt"><strong>Then</strong> a warning banner appears: "Battery saver may reduce GPS accuracy"</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R3: Ride Summary & Stats</strong></td>
+        <td>After stopping a ride, display: total distance (in user's mileage unit from <code>motorcycle.mileage_unit</code>), ride duration (HH:MM:SS), average speed, max speed, elevation gain/loss (if available from GPS altitude), and a simplified route polyline on a static map. Minimum ride length: 0.1 mi / 0.2 km (anything shorter shows "Ride too short to save" and is discarded).</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user completes a ride of 25 miles in 45 minutes</div>
+            <div class="gwt"><strong>When</strong> they view the ride summary</div>
+            <div class="gwt"><strong>Then</strong> they see: 25.0 mi, 0:45:00, ~33 mph avg, max speed, and a map thumbnail of the route</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> GPS had poor accuracy (&gt;50% of points with horizontal accuracy &gt;100m)</div>
+            <div class="gwt"><strong>Then</strong> a warning is shown: "GPS quality was low — distance may be approximate"</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R4: Pause/Resume</strong></td>
+        <td>During a ride, the user can tap "Pause" to stop GPS recording and time tracking. Tapping "Resume" continues. Paused time is excluded from ride duration and avg speed calculations. Ride state persists across app restarts (stored in <code>expo-secure-store</code>). If the app is killed and reopened with an active ride, prompt: "You have an unfinished ride. Resume or End?"</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user pauses for 20 minutes during a 1-hour ride</div>
+            <div class="gwt"><strong>Then</strong> the ride summary shows 40 minutes duration, not 60</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the app is force-closed during a paused ride</div>
+            <div class="gwt"><strong>When</strong> the user reopens the app</div>
+            <div class="gwt"><strong>Then</strong> they see "Unfinished ride detected" with Resume and End Ride options</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warn">iOS 18+ and Android 15 aggressively throttle background location. The app MUST use a foreground service notification (Android) and Background Modes → Location updates (iOS) to maintain accurate tracking. Using <code>Accuracy.Balanced</code> with <code>distanceInterval: 20m</code> reduces battery impact by ~70% vs. <code>Accuracy.Highest</code>. Test extensively on both platforms with battery saver enabled.</div>
+
+  <h3><span class="pb p0">P0</span> Must-Have — Live Ride HUD Screen</h3>
+
+  <p><strong>See interactive prototype:</strong> <code>Ride-HUD-Prototype.jsx</code> — a fully working React component demonstrating all three states (idle → recording → summary).</p>
+
+  <table>
+    <thead><tr><th style="width:25%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:35%">Acceptance Criteria</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>R5: HUD Layout — Map Zone (Top 35%)</strong></td>
+        <td>The top portion of the screen shows a live map with the rider's route drawn as a gradient polyline (blue → green). The current position is a pulsing blue dot. A GPS quality indicator (green/yellow/red dot + "GPS" label) sits in the top-right corner. A compass indicator sits in the top-left. The map auto-pans to keep the current position centered. When paused, a translucent overlay with "PAUSED" text covers the map.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a ride is recording</div>
+            <div class="gwt"><strong>When</strong> the rider moves</div>
+            <div class="gwt"><strong>Then</strong> the route polyline extends in real time, the blue dot moves, and the map pans to follow</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> GPS horizontal accuracy is &gt;100m</div>
+            <div class="gwt"><strong>Then</strong> the GPS indicator changes from green to yellow; at &gt;200m it turns red</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R6: HUD Layout — Speed Gauge (Center Hero)</strong></td>
+        <td>Current speed displayed as the dominant metric: 72px monospace font, white on black, with the unit label ("mph" or "km/h") below in smaller muted text. This is the single most glanceable element on the screen — must be readable at arm's length in sunlight. Speed updates every 1 second from GPS. Unit respects <code>motorcycle.mileage_unit</code> ('mi' → mph, 'km' → km/h).</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the rider is moving at 45 mph</div>
+            <div class="gwt"><strong>When</strong> they glance at the HUD</div>
+            <div class="gwt"><strong>Then</strong> "45" is displayed in 72px white monospace font with "mph" below it</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the bike's <code>mileage_unit</code> is 'km'</div>
+            <div class="gwt"><strong>Then</strong> speed displays in km/h (GPS m/s × 3.6)</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R7: HUD Layout — Lean Angle Gauge (Left of Speed)</strong></td>
+        <td>A semicircular gauge showing the device's lean angle from -45° to +45°. A needle points to the current angle. Color-coded: green (0–15°), yellow (15–25°), red (25°+). The current angle value is displayed numerically below the gauge with "L" or "R" direction indicator. Requires a one-time calibration step on first use: user mounts phone and taps "Calibrate" to set the zero reference. Uses device gyroscope (<code>expo-sensors</code> DeviceMotion). If gyroscope is unavailable, hide this gauge and expand the altitude display.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the phone is mounted and calibrated</div>
+            <div class="gwt"><strong>When</strong> the rider leans the bike 20° to the right</div>
+            <div class="gwt"><strong>Then</strong> the gauge needle points to 20°R, displayed in yellow</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the device has no gyroscope</div>
+            <div class="gwt"><strong>Then</strong> the lean angle gauge is replaced by an expanded altitude display</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R8: HUD Layout — Altitude Display (Right of Speed)</strong></td>
+        <td>Current altitude displayed with a mountain icon, the numeric value in blue-accent monospace, and "ft" or "m" unit below. Uses GPS altitude, preferring barometric altitude from <code>DeviceMotion</code> if available (more accurate). Displayed as an integer, no decimals.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the rider is at 690 ft altitude</div>
+            <div class="gwt"><strong>Then</strong> the display shows "690" with "ft" label</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R9: HUD Layout — Stats Row (Below Center)</strong></td>
+        <td>A horizontal row of 4 compact stat pills showing secondary metrics: Distance (mi/km), Avg Speed (mph/km/h), Max Speed (mph/km/h), and Elevation Gain (ft/m). Each pill has a label, value in monospace, and unit. Background: subtle translucent cards (rgba white 5%). These update in real time.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a ride is 12.4 mi with avg 33 mph, max 65 mph, +450 ft elevation</div>
+            <div class="gwt"><strong>Then</strong> four pills display: "12.4 mi", "33 mph", "65 mph", "+450 ft"</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R10: HUD Layout — Top Bar</strong></td>
+        <td>Top bar shows: recording status indicator (pulsing green dot + "RECORDING" or amber "PAUSED"), bike name (e.g., "2023 Ducati Monster"), and elapsed ride time in HH:MM:SS monospace format. The elapsed time excludes paused intervals.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a ride has been active for 45 min with 10 min paused</div>
+            <div class="gwt"><strong>Then</strong> the timer shows "00:35:00"</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R11: HUD Layout — Control Buttons (Bottom)</strong></td>
+        <td>Two buttons at the bottom: a circular Pause/Resume toggle (left) and a prominent red "END RIDE" pill button (right). Pause shows pause icon; when paused, shows play icon in amber. End Ride has a stop-square icon and red gradient background with subtle glow. Both have haptic feedback on press. The End Ride button transitions to the Ride Summary screen.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the ride is recording</div>
+            <div class="gwt"><strong>When</strong> the user taps the pause button</div>
+            <div class="gwt"><strong>Then</strong> GPS recording stops, timer pauses, map shows "PAUSED" overlay, button changes to play icon</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R12: Screen Behavior</strong></td>
+        <td>During a ride, the screen uses a fully dark theme (#0a0a0a background) for outdoor visibility and OLED battery savings. Screen brightness is set to maximum when ride starts (with user consent prompt). The screen should NOT auto-lock while a ride is recording — use <code>expo-keep-awake</code> to prevent sleep. If the user manually locks or backgrounds the app, GPS continues via background task (R2).</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a ride is started</div>
+            <div class="gwt"><strong>Then</strong> the screen does not auto-lock, brightness is set to max, and a persistent notification shows ride status</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tech">The lean angle gauge requires <code>expo-sensors</code> (DeviceMotion API) — already available in the Expo SDK, no native dependency to install. Sample at 60Hz, apply a low-pass filter to smooth jitter, and downsample to 10Hz for display. Calibration stores the "zero" quaternion reference in <code>expo-secure-store</code>. Maximum lean display is clamped to ±45° regardless of actual sensor reading.</div>
+
+  <h3><span class="pb p0">P0</span> Must-Have — Mileage Sync</h3>
+
+  <table>
+    <thead><tr><th style="width:25%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:35%">Acceptance Criteria</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>R10: Post-Ride Mileage Prompt</strong></td>
+        <td>After ending a ride, the summary screen shows: "Update odometer? Current: <em>[X]</em> mi → New: <em>[X + ride distance]</em> mi" with Accept, Edit, and Skip buttons. Accept calls <code>updateMotorcycle({ currentMileage: newValue })</code>. Edit allows manual adjustment. Skip saves the ride without updating mileage.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a bike has <code>currentMileage: 5000</code> and the ride was 47 miles</div>
+            <div class="gwt"><strong>When</strong> the user accepts the mileage update</div>
+            <div class="gwt"><strong>Then</strong> <code>motorcycle.current_mileage</code> is updated to 5047 and <code>mileage_updated_at</code> is auto-set by the DB trigger</div>
+          </div>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the bike has no <code>currentMileage</code> (null)</div>
+            <div class="gwt"><strong>Then</strong> the prompt says "Set your starting odometer" instead of "Update odometer"</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R11: Maintenance Milestone Alert</strong></td>
+        <td>After a mileage update, check all pending/in-progress maintenance tasks for the motorcycle where <code>target_mileage</code> is not null. If the new <code>current_mileage >= target_mileage</code> for any task, show an in-app alert: "Maintenance due: <em>[task title]</em> — you've passed <em>[target_mileage]</em> mi." Tapping navigates to the task detail.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a task "Oil Change" has <code>target_mileage: 6000</code> and the mileage is updated to 6047</div>
+            <div class="gwt"><strong>Then</strong> an alert card appears on the ride summary: "Oil Change is now due"</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- P1 -->
+  <h3><span class="pb p1">P1</span> Nice-to-Have — Ride History & Expense Linking</h3>
+
+  <table>
+    <thead><tr><th style="width:25%">Requirement</th><th style="width:40%">Expected Behavior</th><th style="width:35%">Acceptance Criteria</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>R12: Ride History</strong></td>
+        <td>A "Rides" section accessible from the Garage bike detail or a dedicated tab. Shows a chronological list of rides with: date, distance, duration, and a mini route thumbnail. Filterable by bike (for multi-bike owners) and sortable by date, distance, or duration. Tapping a ride shows the full summary with map.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user has logged 15 rides</div>
+            <div class="gwt"><strong>When</strong> they open ride history</div>
+            <div class="gwt"><strong>Then</strong> rides are listed newest-first with distance, duration, and route thumbnail per item</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R13: Post-Ride Expense Prompt</strong></td>
+        <td>After ending a ride, below the mileage prompt, show: "Log fuel for this ride?" Tapping opens the existing add-expense screen pre-filled with: <code>category: 'fuel'</code>, <code>date: today</code>, and <code>motorcycleId: ride's bike</code>. The expense is linked to the ride via a new <code>ride_id</code> foreign key on the <code>expenses</code> table.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> the user finishes a ride</div>
+            <div class="gwt"><strong>When</strong> they tap "Log fuel for this ride"</div>
+            <div class="gwt"><strong>Then</strong> the add-expense screen opens with fuel category, today's date, and the bike pre-selected</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>R14: Ride Stats on Bike Detail</strong></td>
+        <td>On the Garage bike detail screen, add a "Riding" summary card showing: total rides, total distance, total ride time (all-time), and last ride date. This aggregates from the <code>rides</code> table for that motorcycle.</td>
+        <td>
+          <div class="ac">
+            <div class="gwt"><strong>Given</strong> a bike has 20 rides totaling 1,200 miles over 40 hours</div>
+            <div class="gwt"><strong>Then</strong> the bike detail shows: "20 rides · 1,200 mi · 40h total · Last ride: Mar 15"</div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- P2 -->
+  <h3><span class="pb p2">P2</span> Future Considerations</h3>
+
+  <table>
+    <thead><tr><th style="width:30%">Feature</th><th style="width:70%">Design Consideration for v1</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Route Sharing & Discovery</strong></td>
+        <td>Add <code>is_public BOOLEAN DEFAULT false</code> and <code>region TEXT</code> to the <code>rides</code> table. Do not build the sharing UI, but design the schema to support it. Users could eventually browse public rides by region.</td>
+      </tr>
+      <tr>
+        <td><strong>Ride-Linked Weather Data</strong></td>
+        <td>Store <code>weather_snapshot JSONB</code> on the rides table for start/end conditions. Enables future analytics ("Your average speed drops 10% in rain"). Don't fetch weather data in v1, but reserve the column.</td>
+      </tr>
+      <tr>
+        <td><strong>Safety Contact & Emergency SMS</strong></td>
+        <td>Designate a safety contact who receives SMS on ride start/end and inactivity alerts. Requires Twilio/SNS backend, per-message costs, and liability review. Descoped from v1 — revisit once ride logging adoption is validated. Design the <code>rides</code> table to include <code>safety_enabled BOOLEAN</code> for future activation.</td>
+      </tr>
+      <tr>
+        <td><strong>Live Location Sharing Link</strong></td>
+        <td>Extend the share link system to support real-time ride tracking (a live URL a contact can open to see the rider's position updating). Requires WebSocket or Supabase Realtime. Out of scope for v1.</td>
+      </tr>
+      <tr>
+        <td><strong>Ride Insights (AI)</strong></td>
+        <td>"You ride 30% faster on weekends" or "Your most common route is Home→Highway 9→Skyline." Needs 10+ rides of data. Reserve <code>insights JSONB</code> on user profile for future AI-generated ride patterns.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- DATA MODEL -->
+<section>
+  <h2>6. Proposed Data Model</h2>
+  <p>New tables required for this feature. Follows existing conventions: snake_case columns, UUID PKs, RLS policies, soft deletes, auto-updating <code>updated_at</code>.</p>
+
+  <div class="arch">
+    <h4>rides</h4>
+<div class="schema-block">CREATE TABLE public.rides (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  motorcycle_id   UUID REFERENCES public.motorcycles(id) ON DELETE SET NULL,
+  status          TEXT NOT NULL DEFAULT 'recording'
+                    CHECK (status IN ('recording','paused','completed','discarded')),
+  started_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ended_at        TIMESTAMPTZ,
+  paused_duration INTERVAL DEFAULT '0'::INTERVAL,
+  distance_m      INT,                     -- total distance in meters
+  max_speed_mps   REAL,                    -- max speed in m/s
+  avg_speed_mps   REAL,                    -- avg speed in m/s (excludes paused)
+  elevation_gain  REAL,                    -- meters gained
+  elevation_loss  REAL,                    -- meters lost
+  route_polyline  TEXT,                    -- encoded polyline for map display
+  gps_quality     REAL,                    -- % of waypoints with accuracy &lt; 50m
+  mileage_applied BOOLEAN DEFAULT false,   -- whether odometer was updated
+  safety_enabled  BOOLEAN DEFAULT false,
+  is_public       BOOLEAN DEFAULT false,   -- P2: for route sharing
+  region          TEXT,                    -- P2: geo region for discovery
+  weather_snapshot JSONB,                  -- P2: start/end weather
+  metadata        JSONB DEFAULT '{}',      -- extensibility
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at      TIMESTAMPTZ              -- soft delete
+);
+
+CREATE INDEX idx_rides_user ON rides(user_id);
+CREATE INDEX idx_rides_motorcycle ON rides(motorcycle_id);
+CREATE INDEX idx_rides_status ON rides(status);
+CREATE INDEX idx_rides_started ON rides(started_at DESC);</div>
+  </div>
+
+  <div class="arch">
+    <h4>ride_waypoints</h4>
+<div class="schema-block">CREATE TABLE public.ride_waypoints (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ride_id     UUID NOT NULL REFERENCES public.rides(id) ON DELETE CASCADE,
+  latitude    DOUBLE PRECISION NOT NULL,
+  longitude   DOUBLE PRECISION NOT NULL,
+  altitude    REAL,                       -- meters above sea level
+  speed_mps   REAL,                       -- instantaneous speed in m/s
+  accuracy    REAL,                       -- horizontal accuracy in meters
+  recorded_at TIMESTAMPTZ NOT NULL        -- GPS timestamp
+);
+
+CREATE INDEX idx_waypoints_ride ON ride_waypoints(ride_id);
+CREATE INDEX idx_waypoints_time ON ride_waypoints(ride_id, recorded_at);</div>
+    <p style="margin-top:10px; font-size:0.85rem; color:#283593;">Waypoints are uploaded in batches (every 50 points or on ride end). For a 1-hour ride at 5s intervals, this generates ~720 rows. At 60 bytes/row, a 1-hour ride stores ~43KB of waypoint data.</p>
+  </div>
+
+  <p style="font-size:0.85rem; color:#525252; margin-top:16px;"><em>Note: <code>safety_contacts</code> and <code>safety_events</code> tables have been descoped from v1. The <code>rides.safety_enabled</code> column is reserved for future use.</em></p>
+</section>
+
+<!-- DEPENDENCIES -->
+<section>
+  <h2>7. Dependency Inventory</h2>
+
+  <h3>New Mobile Dependencies</h3>
+  <div class="dep-grid">
+    <div class="dep-card">
+      <h4>expo-location</h4>
+      <div class="status need">NEEDS INSTALL</div>
+      <p style="font-size:0.82rem; margin-top:6px;">Foreground + background location tracking. Requires <code>expo-task-manager</code> for background tasks. Config plugin for iOS Background Modes and Android foreground service.</p>
+    </div>
+    <div class="dep-card">
+      <h4>expo-task-manager</h4>
+      <div class="status need">NEEDS INSTALL</div>
+      <p style="font-size:0.82rem; margin-top:6px;">Registers and runs background tasks (location updates). Required by <code>expo-location</code>'s <code>startLocationUpdatesAsync</code>.</p>
+    </div>
+    <div class="dep-card">
+      <h4>react-native-maps</h4>
+      <div class="status need">NEEDS INSTALL</div>
+      <p style="font-size:0.82rem; margin-top:6px;">Map display for ride routes. Alternative: <code>expo-maps</code> (newer, less mature). <code>react-native-maps</code> is more battle-tested for polyline rendering.</p>
+    </div>
+    <div class="dep-card">
+      <h4>@mapbox/polyline</h4>
+      <div class="status need">NEEDS INSTALL</div>
+      <p style="font-size:0.82rem; margin-top:6px;">Lightweight encoder/decoder for route polylines. Compresses waypoints into a compact string for storage and map rendering.</p>
+    </div>
+  </div>
+
+  <h3>New Mobile Dependencies (Additional)</h3>
+  <div class="dep-grid">
+    <div class="dep-card">
+      <h4>expo-sensors</h4>
+      <div class="status have">INCLUDED IN EXPO SDK</div>
+      <p style="font-size:0.82rem; margin-top:6px;">DeviceMotion API for lean angle tracking. Gyroscope + accelerometer sensor fusion. No install needed — part of Expo SDK. Use at 60Hz with low-pass filter.</p>
+    </div>
+    <div class="dep-card">
+      <h4>expo-keep-awake</h4>
+      <div class="status have">INCLUDED IN EXPO SDK</div>
+      <p style="font-size:0.82rem; margin-top:6px;">Prevents screen auto-lock during active rides. Activate on ride start, deactivate on ride end/pause.</p>
+    </div>
+  </div>
+
+  <h3>Existing Dependencies (No Changes Needed)</h3>
+  <div class="dep-grid">
+    <div class="dep-card">
+      <h4>Existing: expo-notifications</h4>
+      <div class="status have">ALREADY INSTALLED</div>
+      <p style="font-size:0.82rem; margin-top:6px;">v0.32.16. Used for maintenance reminders. Extend with new channel "rides" for check-in prompts and milestone alerts.</p>
+    </div>
+    <div class="dep-card">
+      <h4>Existing: expo-secure-store</h4>
+      <div class="status have">ALREADY INSTALLED</div>
+      <p style="font-size:0.82rem; margin-top:6px;">v15.0.0. Used for JWT storage. Extend to persist active ride state for crash recovery.</p>
+    </div>
+    <div class="dep-card">
+      <h4>Existing: GraphQL + TanStack Query</h4>
+      <div class="status have">ALREADY INSTALLED</div>
+      <p style="font-size:0.82rem; margin-top:6px;">All ride CRUD operations follow existing mutation/query patterns. No architectural change needed.</p>
+    </div>
+  </div>
+
+  <h3>App Configuration Changes</h3>
+  <div class="tech">
+    <strong>app.config.ts</strong> must add: <code>expo-location</code> plugin with <code>locationAlwaysAndWhenInUsePermission</code> string, <code>expo-task-manager</code> plugin, iOS <code>UIBackgroundModes: ["location"]</code>, Android permissions: <code>ACCESS_FINE_LOCATION</code>, <code>ACCESS_COARSE_LOCATION</code>, <code>ACCESS_BACKGROUND_LOCATION</code>, <code>FOREGROUND_SERVICE</code>. This requires a new EAS build (cannot be done via OTA update).
+  </div>
+</section>
+
+<!-- SUCCESS METRICS -->
+<section>
+  <h2>8. Success Metrics</h2>
+
+  <h3>Leading Indicators (1–4 weeks post-launch)</h3>
+  <div class="mc">
+    <div class="metric">
+      <div class="label">Ride Adoption Rate</div>
+      <div class="value">40%</div>
+      <div class="detail">% of active users who log at least one ride within 30 days. Stretch: 55%. Measure: COUNT(DISTINCT user_id) from rides WHERE status='completed' / total MAU.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Weekly Active Ride Loggers</div>
+      <div class="value">35%</div>
+      <div class="detail">% of WAU who log ≥1 ride per week, measured at 90 days. This is the north star leading metric. Stretch: 45%.</div>
+    </div>
+    <div class="metric">
+      <div class="label">HUD Engagement Rate</div>
+      <div class="value">60%</div>
+      <div class="detail">% of rides where the Ride HUD screen is visible for >50% of ride duration (mounted phone use). Stretch: 70%. Measures if riders are actively using the HUD vs. pocket-riding.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Mileage Update Acceptance</div>
+      <div class="value">85%</div>
+      <div class="detail">% of completed rides where the user accepts the post-ride mileage update (accepted / (accepted + skipped)). Below 70% indicates GPS accuracy issues.</div>
+    </div>
+  </div>
+
+  <h3>Lagging Indicators (1–3 months post-launch)</h3>
+  <div class="mc">
+    <div class="metric">
+      <div class="label">DAU/MAU Ratio</div>
+      <div class="value">25%+</div>
+      <div class="detail">Up from estimated ~10%. The single most important business metric. Measured at 90 days. Below 18% triggers re-evaluation of ride UX friction.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Free→Pro Conversion Lift</div>
+      <div class="value">+12%</div>
+      <div class="detail">Incremental conversion from ride-gated features (unlimited rides, safety contact, full history). Measured via RevenueCat attribution at 60 days.</div>
+    </div>
+    <div class="metric">
+      <div class="label">Maintenance Task Accuracy</div>
+      <div class="value">+40%</div>
+      <div class="detail">Increase in maintenance tasks triggered by mileage threshold (tasks where actual mileage exceeded target_mileage and user was notified). Measures the mileage sync flywheel.</div>
+    </div>
+    <div class="metric">
+      <div class="label">7-Day Retention</div>
+      <div class="value">+10pp</div>
+      <div class="detail">Improvement in D7 retention for users who logged ≥1 ride vs. non-riders (cohort comparison). Validates the "daily habit" hypothesis.</div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN QUESTIONS -->
+<section>
+  <h2>9. Open Questions</h2>
+
+  <div class="question">
+    <span class="owner">Engineering</span> <span class="blocking">Blocking</span>
+    <p><strong>expo-location vs. react-native-background-geolocation.</strong> <code>expo-location</code> is simpler but may have reliability issues on Android 15 with aggressive battery optimization. <code>react-native-background-geolocation</code> by Transistor Software ($299/year license) uses motion-detection APIs and is battle-tested for ride/fitness apps. Recommend a 2-day spike to test both on physical devices (Android + iOS) with screen locked for 60+ minutes.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Engineering</span> <span class="blocking">Blocking</span>
+    <p><strong>Waypoint storage strategy.</strong> Storing every GPS point (720/hour at 5s intervals) works for individual rides but may become expensive at scale. Options: (a) Store all waypoints, query with pagination. (b) Store raw on device, upload only the encoded polyline + aggregate stats to the server. (c) Store all initially, add a background job to compress to polyline after 30 days. Recommendation: (b) for v1 — upload stats + polyline only, keep raw waypoints on device for detail view.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Engineering</span> <span class="blocking">Blocking</span>
+    <p><strong>Lean angle sensor reliability across devices.</strong> DeviceMotion gyroscope quality varies significantly between phone models. Some budget Android phones lack a gyroscope entirely. Recommend a 2-day spike to test lean angle accuracy on 5+ devices (iPhone 14+, Pixel 7+, Samsung S23+, budget Android). Define the minimum gyroscope sampling rate (target: 60Hz) and fallback behavior (hide gauge if unavailable).</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Product</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Free tier ride limit.</strong> Proposed: 5 rides/month free, unlimited Pro. Alternative: unlimited rides free, gate safety contact + history + maps behind Pro. The second approach maximizes adoption but reduces the Pro conversion lever. Recommendation: unlimited rides free (maximizes DAU), gate safety contact + full history + route maps + ride export behind Pro.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Design</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Navigation placement.</strong> Options: (a) New 6th tab "Rides" — but 6 tabs is crowded on mobile. (b) Replace the current Home tab with a "Ride + Home" combined screen where the ride CTA is prominent. (c) Add ride logging inside the existing Garage tab. Recommendation: (b) — the home dashboard becomes ride-centric with "Start Ride" as the hero action, maintenance alerts and quick actions below.</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Design</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Ride HUD information density vs. glanceability.</strong> The prototype shows speed (hero), lean angle (left), altitude (right), and a stats row of 4 pills. For riders who don't mount their phone (phone in pocket), this HUD is invisible — the value is in post-ride stats only. Should we offer a "minimal HUD" mode (speed + duration only) for mounted riders, and a "pocket mode" (no HUD, just GPS + audio announcements) for unmounted riders?</p>
+  </div>
+
+  <div class="question">
+    <span class="owner">Product</span> <span class="nonblocking">Non-blocking</span>
+    <p><strong>Unit conversion strategy.</strong> GPS data is in meters/m/s. The app stores distance_m and speed_mps internally. Display conversion happens at the UI layer using <code>motorcycle.mileage_unit</code> ('mi' or 'km'). For "Quick Ride" (no bike associated), default to the user's locale or last-used unit. Confirm this approach.</p>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section>
+  <h2>10. Timeline & Phasing</h2>
+
+  <div class="timeline">
+    <div class="phase one">
+      <h4>Phase 1: Core Recording + HUD (Weeks 1–4)</h4>
+      <ul>
+        <li>New dependencies + EAS build (expo-location, expo-task-manager, react-native-maps)</li>
+        <li>rides + ride_waypoints tables + RLS</li>
+        <li>NestJS rides module (CRUD)</li>
+        <li>Start/Stop/Pause/Resume (R1–R4)</li>
+        <li>Background GPS tracking (R2)</li>
+        <li><strong>Live Ride HUD (R5–R12)</strong>: map zone, speed gauge, lean angle gauge, altitude, stats row, control buttons</li>
+        <li>Lean angle calibration + gyroscope integration</li>
+        <li>Home screen "Start Ride" action + pre-ride bike selector</li>
+        <li>Screen keep-awake + brightness management</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#2e7d32;"><strong>Ship & validate.</strong> Can users record rides reliably? Is the HUD usable while riding?</p>
+    </div>
+    <div class="phase two">
+      <h4>Phase 2: Mileage Sync + Summary (Weeks 5–6)</h4>
+      <ul>
+        <li>Ride Summary screen with full stats + route map</li>
+        <li>Post-ride mileage prompt (R13)</li>
+        <li>Maintenance milestone alerts (R14)</li>
+        <li>Integration with updateMotorcycle mutation</li>
+        <li>Task target_mileage threshold checking</li>
+      </ul>
+      <p style="margin-top:10px; font-size:0.82rem; color:#2e7d32;"><strong>The key differentiator.</strong> This is what REVER can't do.</p>
+    </div>
+    <div class="phase three">
+      <h4>Phase 3: History & Polish (Weeks 7–8)</h4>
+      <ul>
+        <li>Ride history list with route thumbnails (R15)</li>
+        <li>Post-ride fuel expense prompt (R16)</li>
+        <li>Bike detail ride stats card (R17)</li>
+        <li>Free tier limit logic (5 rides/month)</li>
+        <li>Pro upgrade prompts</li>
+        <li>Performance optimization + battery testing</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Effort Estimate</h3>
+  <table>
+    <thead><tr><th>Phase</th><th>Mobile</th><th>API</th><th>Design</th><th>QA</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>Phase 1: Core Recording + HUD</td><td>12–14 days</td><td>3–4 days</td><td>3–4 days</td><td>3 days</td><td>~4 weeks</td></tr>
+      <tr><td>Phase 2: Mileage Sync + Summary</td><td>4–5 days</td><td>2–3 days</td><td>1–2 days</td><td>2 days</td><td>~2 weeks</td></tr>
+      <tr><td>Phase 3: History & Polish</td><td>5–6 days</td><td>2 days</td><td>2 days</td><td>2 days</td><td>~2 weeks</td></tr>
+      <tr><td colspan="5" style="text-align:right; font-weight:600;">Total</td><td><strong>6–8 weeks</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    Phase 1 requires a new EAS build (native dependency changes: expo-location, expo-task-manager, react-native-maps). This cannot be shipped via OTA. Plan for App Store / Play Store review cycles (1–3 days each). Schedule the first build submission at the end of Week 3 to parallelize review with final testing.
+  </div>
+</section>
+
+<!-- ARCHITECTURE NOTE -->
+<section>
+  <h2>11. Architecture Notes</h2>
+
+  <h3>NestJS Module Structure</h3>
+  <p>Following existing conventions in the codebase:</p>
+
+  <div class="arch">
+<div class="schema-block">apps/api/src/modules/
+├── rides/
+│   ├── rides.module.ts
+│   ├── rides.service.ts          # CRUD, stats aggregation, polyline encoding
+│   ├── rides.resolver.ts         # startRide, endRide, pauseRide, resumeRide, myRides, rideStats
+│   ├── models/
+│   │   ├── ride.model.ts         # @ObjectType() — mirrors rides table
+│   │   ├── ride-summary.model.ts # Aggregated stats for bike detail card
+│   │   └── ride-hud-data.model.ts # Live HUD response (if server-side aggregation needed)
+│   └── dto/
+│       ├── start-ride.input.ts   # motorcycleId (optional for Quick Ride)
+│       ├── end-ride.input.ts     # distance_m, polyline, stats, max_lean_angle
+│       └── upload-waypoints.input.ts # Batch waypoint upload
+</div>
+  </div>
+
+  <h3>Mobile Ride State Machine</h3>
+
+  <div class="arch">
+<div class="schema-block">IDLE → [Start Ride] → RECORDING → [Pause] → PAUSED → [Resume] → RECORDING
+                                    ↓                                    ↓
+                              [End Ride]                           [End Ride]
+                                    ↓                                    ↓
+                              SUMMARY ← ← ← ← ← ← ← ← ← ← ← ← SUMMARY
+                                    ↓
+                    [Accept Mileage / Skip] → SAVED → IDLE
+
+State persisted in expo-secure-store:
+  { rideId, motorcycleId, status, startedAt, pausedAt, waypointBuffer[] }</div>
+  </div>
+
+  <h3>Waypoint Upload Strategy</h3>
+  <p>To minimize battery and network usage:</p>
+  <p>GPS points are buffered in memory (and periodically flushed to secure-store for crash recovery). Every 50 points or every 5 minutes (whichever comes first), the buffer is uploaded to the API as a batch mutation. On ride end, remaining points are flushed. The API computes the encoded polyline server-side from all waypoints and stores it on the <code>rides.route_polyline</code> column. This means the map can render from the compact polyline without re-fetching waypoints.</p>
+
+  <h3>Mileage Unit Conversion</h3>
+  <p>All internal storage is metric (meters, m/s). Conversion to user's preference (<code>motorcycle.mileage_unit</code>) happens at the GraphQL model layer via computed fields, or in the mobile UI layer. The <code>distance_m</code> column stores raw GPS distance. The summary screen converts: <code>distance_m / 1609.344</code> for miles, <code>distance_m / 1000</code> for km.</p>
+</section>
+
+<div class="footer">
+  MotoVault · PRD: Ride Logging & Live Ride HUD · March 2026 · Confidential
+</div>
+
+</div>
+</body>
+</html>

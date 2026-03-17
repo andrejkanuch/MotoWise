@@ -9,7 +9,15 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
@@ -44,6 +52,7 @@ export default function ExpenseDashboardScreen() {
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const queryClient = useQueryClient();
+  const isDark = useColorScheme() === 'dark';
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
@@ -401,7 +410,12 @@ export default function ExpenseDashboardScreen() {
                 key={expense.id}
                 entering={FadeInUp.delay(240 + index * 50).duration(250)}
               >
-                <SwipeableExpense expense={expense} onDelete={() => handleDelete(expense)} />
+                <SwipeableExpense
+                  expense={expense}
+                  isDark={isDark}
+                  index={index}
+                  onDelete={() => handleDelete(expense)}
+                />
               </Animated.View>
             ))}
           </View>

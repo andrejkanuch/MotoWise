@@ -88,7 +88,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           compileSdkVersion: 35,
           targetSdkVersion: 35,
           minSdkVersion: 24,
-          kotlinVersion: '1.9.0',
         },
         ios: {
           deploymentTarget: '16.0',
