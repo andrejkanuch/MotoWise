@@ -106,7 +106,7 @@ export default function ExpenseDashboardScreen() {
   const pillActiveBg = isDark ? palette.neutral700 : palette.white;
   const pillActiveText = isDark ? palette.white : palette.neutral950;
   const pillInactiveText = isDark ? palette.neutral400 : palette.neutral500;
-  const copperColor = isDark ? '#D4622E' : '#E8723A';
+  const copperColor = isDark ? palette.signature500 : palette.signature400;
 
   // Loading state
   if (isPending) {
@@ -139,6 +139,7 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-SemiBold',
+            fontWeight: '600',
             fontSize: 16,
             color: subtextColor,
             textAlign: 'center',
@@ -149,17 +150,20 @@ export default function ExpenseDashboardScreen() {
         </Text>
         <Pressable
           onPress={() => refetch()}
+          accessibilityLabel="Retry loading expense data"
+          accessibilityRole="button"
           style={{
             backgroundColor: palette.primary500,
             paddingHorizontal: 24,
             paddingVertical: 12,
-            borderRadius: 10,
+            borderRadius: 12,
             borderCurve: 'continuous',
           }}
         >
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-SemiBold',
+              fontWeight: '600',
               fontSize: 14,
               color: palette.white,
             }}
@@ -187,7 +191,8 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-SemiBold',
-            fontSize: 22,
+            fontWeight: '600',
+            fontSize: 20,
             color: textColor,
             marginTop: 16,
             textAlign: 'center',
@@ -198,7 +203,8 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
-            fontSize: 15,
+            fontWeight: '400',
+            fontSize: 14,
             color: subtextColor,
             marginTop: 8,
             textAlign: 'center',
@@ -214,11 +220,13 @@ export default function ExpenseDashboardScreen() {
               params: { motorcycleId },
             })
           }
+          accessibilityLabel="Add your first expense"
+          accessibilityRole="button"
           style={{
             backgroundColor: copperColor,
             paddingHorizontal: 32,
-            height: 50,
-            borderRadius: 25,
+            height: 48,
+            borderRadius: 24,
             borderCurve: 'continuous',
             marginTop: 24,
             justifyContent: 'center',
@@ -228,6 +236,7 @@ export default function ExpenseDashboardScreen() {
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-SemiBold',
+              fontWeight: '600',
               fontSize: 16,
               color: palette.white,
             }}
@@ -238,7 +247,8 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
-            fontSize: 13,
+            fontWeight: '400',
+            fontSize: 12,
             color: palette.neutral500,
             fontStyle: 'italic',
             marginTop: 12,
@@ -252,14 +262,14 @@ export default function ExpenseDashboardScreen() {
 
   const mileageNum = currentMileage ? Number(currentMileage) : null;
 
-  // Compute months in period for avg/mo
+  // Compute months in period for avg/mo — guard against 0-division
   const monthsInPeriod = (() => {
     if (filteredBuckets.length === 0) return 1;
     const nonZero = filteredBuckets.filter((b) => b.total > 0);
     return Math.max(nonZero.length, 1);
   })();
 
-  const avgPerMonth = periodTotal / monthsInPeriod;
+  const avgPerMonth = monthsInPeriod > 0 ? periodTotal / monthsInPeriod : 0;
 
   // Top category
   const topCategory =
@@ -275,7 +285,8 @@ export default function ExpenseDashboardScreen() {
   const yoyChange =
     previousYearTotal > 0 ? ((periodTotal - previousYearTotal) / previousYearTotal) * 100 : null;
 
-  const costPerUnit = mileageNum && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
+  const costPerUnit =
+    mileageNum != null && mileageNum > 0 ? dashboard.allTimeTotal / mileageNum : null;
   const unitLabel = mileageUnit === 'km' ? 'COST/KM' : 'COST/MI';
 
   return (
@@ -288,18 +299,23 @@ export default function ExpenseDashboardScreen() {
       {/* Act 1: Period Selector */}
       <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>
         <View
+          accessibilityRole="tablist"
+          accessibilityLabel="Expense period selector"
           style={{
             flexDirection: 'row',
             backgroundColor: pillBg,
-            borderRadius: 10,
+            borderRadius: 12,
             borderCurve: 'continuous',
-            padding: 3,
+            padding: 4,
           }}
         >
           {PERIOD_OPTIONS.map((option) => (
             <Pressable
               key={option}
               onPress={() => handlePeriodChange(option)}
+              accessibilityLabel={`Show ${PERIOD_LABELS[option]} expenses`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: period === option }}
               style={{
                 flex: 1,
                 paddingVertical: 8,
@@ -309,7 +325,7 @@ export default function ExpenseDashboardScreen() {
                 alignItems: 'center',
                 ...(period === option && !isDark
                   ? {
-                      shadowColor: '#000',
+                      shadowColor: palette.black,
                       shadowOffset: { width: 0, height: 1 },
                       shadowOpacity: 0.08,
                       shadowRadius: 2,
@@ -321,7 +337,8 @@ export default function ExpenseDashboardScreen() {
                 style={{
                   fontFamily:
                     period === option ? 'PlusJakartaSans-SemiBold' : 'PlusJakartaSans-Medium',
-                  fontSize: 13,
+                  fontWeight: period === option ? '600' : '500',
+                  fontSize: 14,
                   color: period === option ? pillActiveText : pillInactiveText,
                 }}
               >
@@ -332,12 +349,13 @@ export default function ExpenseDashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* Act 1: Hero Area — no card wrapper */}
+      {/* Act 1: Hero Area */}
       <Animated.View entering={FadeInUp.delay(60).duration(300)} style={{ marginTop: 24 }}>
         {/* Contextual label */}
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-Regular',
+            fontWeight: '400',
             fontSize: 14,
             color: subtextColor,
           }}
@@ -347,8 +365,12 @@ export default function ExpenseDashboardScreen() {
 
         {/* Hero amount */}
         <Text
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          accessibilityLabel={`Total: ${formatCurrency(periodTotal)}`}
           style={{
             fontFamily: 'PlusJakartaSans-Bold',
+            fontWeight: '700',
             fontSize: 44,
             color: textColor,
             letterSpacing: -1.5,
@@ -361,8 +383,10 @@ export default function ExpenseDashboardScreen() {
         {/* YoY comparison — only for thisYear when previous year has data */}
         {period === 'thisYear' && yoyChange !== null && previousYearTotal > 0 && (
           <Text
+            accessibilityLabel={`${yoyChange <= 0 ? 'Down' : 'Up'} ${Math.abs(yoyChange).toFixed(0)} percent versus last year`}
             style={{
               fontFamily: 'PlusJakartaSans-Medium',
+              fontWeight: '500',
               fontSize: 14,
               color: yoyChange <= 0 ? palette.success500 : palette.warning500,
               marginTop: 4,
@@ -373,8 +397,9 @@ export default function ExpenseDashboardScreen() {
         )}
 
         {/* Top category capsule */}
-        {topCategory && (
+        {topCategory && topCategory.total > 0 && (
           <View
+            accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatCurrency(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -396,11 +421,14 @@ export default function ExpenseDashboardScreen() {
               }}
             />
             <Text
+              numberOfLines={1}
               style={{
                 fontFamily: 'PlusJakartaSans-Medium',
-                fontSize: 13,
+                fontWeight: '500',
+                fontSize: 12,
                 color: subtextColor,
                 marginLeft: 4,
+                flexShrink: 1,
               }}
             >
               {CATEGORY_LABELS[topCategory.category] ?? topCategory.category}
@@ -408,7 +436,8 @@ export default function ExpenseDashboardScreen() {
             <Text
               style={{
                 fontFamily: 'PlusJakartaSans-SemiBold',
-                fontSize: 13,
+                fontWeight: '600',
+                fontSize: 12,
                 color: textColor,
                 marginLeft: 4,
               }}
@@ -419,7 +448,8 @@ export default function ExpenseDashboardScreen() {
               <Text
                 style={{
                   fontFamily: 'PlusJakartaSans-Regular',
-                  fontSize: 13,
+                  fontWeight: '400',
+                  fontSize: 12,
                   color: tertiaryColor,
                   marginLeft: 4,
                 }}
@@ -447,7 +477,8 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-SemiBold',
-            fontSize: 18,
+            fontWeight: '600',
+            fontSize: 20,
             color: textColor,
             marginBottom: 16,
           }}
@@ -462,7 +493,8 @@ export default function ExpenseDashboardScreen() {
         <Text
           style={{
             fontFamily: 'PlusJakartaSans-SemiBold',
-            fontSize: 18,
+            fontWeight: '600',
+            fontSize: 20,
             color: textColor,
             marginBottom: 16,
           }}
@@ -485,7 +517,8 @@ export default function ExpenseDashboardScreen() {
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-SemiBold',
-              fontSize: 18,
+              fontWeight: '600',
+              fontSize: 20,
               color: textColor,
             }}
           >
@@ -499,10 +532,13 @@ export default function ExpenseDashboardScreen() {
                   params: { id: motorcycleId },
                 })
               }
+              accessibilityLabel="See all expenses"
+              accessibilityRole="button"
             >
               <Text
                 style={{
                   fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontWeight: '600',
                   fontSize: 14,
                   color: copperColor,
                 }}
@@ -517,7 +553,8 @@ export default function ExpenseDashboardScreen() {
           <Text
             style={{
               fontFamily: 'PlusJakartaSans-Regular',
-              fontSize: 13,
+              fontWeight: '400',
+              fontSize: 12,
               color: subtextColor,
               textAlign: 'center',
               padding: 20,

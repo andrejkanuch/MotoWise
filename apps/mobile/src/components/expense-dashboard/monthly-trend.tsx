@@ -68,14 +68,15 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
 
   return (
     <View
+      accessibilityLabel="Monthly expense trend chart"
       style={{
         backgroundColor: cardBg,
-        borderRadius: 14,
+        borderRadius: 12,
         borderCurve: 'continuous',
         padding: 16,
         ...(!isDark
           ? {
-              shadowColor: '#000',
+              shadowColor: palette.black,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.04,
               shadowRadius: 8,
@@ -98,24 +99,25 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
         xAxisColor="transparent"
         xAxisLabelTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 11,
+          fontSize: 12,
           color: axisLabelColor,
         }}
         yAxisTextStyle={{
           fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 11,
+          fontSize: 12,
           color: axisLabelColor,
         }}
         isAnimated
         animationDuration={300}
       />
 
-      {/* Legend — single row, only legend on the page */}
+      {/* Legend */}
       <View
+        accessibilityLabel="Chart legend: Fuel, Maintenance, Parts, Gear"
         style={{
           flexDirection: 'row',
           gap: 12,
-          marginTop: 14,
+          marginTop: 16,
         }}
       >
         {[
@@ -136,7 +138,8 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
             <Text
               style={{
                 fontFamily: 'PlusJakartaSans-Regular',
-                fontSize: 11,
+                fontWeight: '400',
+                fontSize: 12,
                 color: legendColor,
               }}
             >

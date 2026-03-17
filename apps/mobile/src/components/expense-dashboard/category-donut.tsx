@@ -3,6 +3,8 @@ import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../lib/expense-constants';
 
+const MIN_SEGMENT_FLEX = 2;
+
 interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
@@ -24,21 +26,31 @@ export const CategoryDonut = memo(function CategoryDonut({
     [categoryTotals],
   );
 
-  if (sorted.length === 0 || totalAmount === 0) return null;
+  if (sorted.length === 0 || totalAmount <= 0) return null;
 
-  // Compute percentages for bar segments
-  const segments = sorted.map((cat) => ({
-    category: cat.category,
-    total: cat.total,
-    pct: (cat.total / totalAmount) * 100,
-    color: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
-  }));
+  // Compute percentages for bar segments — enforce minimum flex for visibility
+  const segments = sorted.map((cat) => {
+    const rawPct = (cat.total / totalAmount) * 100;
+    return {
+      category: cat.category,
+      total: cat.total,
+      pct: rawPct,
+      flex: Math.max(rawPct, MIN_SEGMENT_FLEX),
+      color: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
+    };
+  });
 
-  // Count expenses per category — we only have totals, so show amount-based info
+  // Build accessibility description for the proportional bar
+  const barDescription = segments
+    .map((seg) => `${CATEGORY_LABELS[seg.category] ?? seg.category}: ${seg.pct.toFixed(0)}%`)
+    .join(', ');
+
   return (
     <View>
       {/* Proportional bar */}
       <View
+        accessibilityLabel={`Expense breakdown: ${barDescription}`}
+        accessibilityRole="summary"
         style={{
           flexDirection: 'row',
           height: 8,
@@ -53,7 +65,7 @@ export const CategoryDonut = memo(function CategoryDonut({
           <View
             key={seg.category}
             style={{
-              flex: seg.pct,
+              flex: seg.flex,
               backgroundColor: seg.color,
               borderRadius: 4,
               borderCurve: 'continuous',
@@ -72,6 +84,8 @@ export const CategoryDonut = memo(function CategoryDonut({
           return (
             <View key={cat.category}>
               <View
+                accessibilityLabel={`${label}: ${formatCurrency(cat.total)}, ${pct} percent`}
+                accessibilityRole="text"
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -92,9 +106,12 @@ export const CategoryDonut = memo(function CategoryDonut({
                 {/* Category info */}
                 <View style={{ flex: 1, marginLeft: 16 }}>
                   <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                     style={{
                       fontFamily: 'PlusJakartaSans-Medium',
-                      fontSize: 15,
+                      fontWeight: '500',
+                      fontSize: 16,
                       color: textColor,
                     }}
                   >
@@ -103,10 +120,11 @@ export const CategoryDonut = memo(function CategoryDonut({
                 </View>
 
                 {/* Amount + percentage */}
-                <View style={{ alignItems: 'flex-end' }}>
+                <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
                   <Text
                     style={{
                       fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontWeight: '600',
                       fontSize: 16,
                       color: textColor,
                     }}
@@ -116,9 +134,10 @@ export const CategoryDonut = memo(function CategoryDonut({
                   <Text
                     style={{
                       fontFamily: 'PlusJakartaSans-Regular',
-                      fontSize: 13,
+                      fontWeight: '400',
+                      fontSize: 12,
                       color: palette.neutral500,
-                      marginTop: 1,
+                      marginTop: 2,
                     }}
                   >
                     {pct}%
