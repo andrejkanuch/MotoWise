@@ -42,4 +42,7 @@ export class SubmitDiagnosticInput {
 
   @Field({ defaultValue: false })
   dataSharingOptedIn: boolean;
+
+  @Field({ defaultValue: false })
+  includeMaintenanceHistory: boolean;
 }

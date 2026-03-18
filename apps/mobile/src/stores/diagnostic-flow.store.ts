@@ -176,7 +176,8 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
     set({ currentStep: 4, navigationDirection: 'forward', editingFromReview: false }),
 
   setSelectedMotorcycleId: (id) => set({ selectedMotorcycleId: id, manualBikeInfo: null }),
-  setManualBikeInfo: (info) => set({ manualBikeInfo: info, selectedMotorcycleId: null, includeMaintenanceHistory: false }),
+  setManualBikeInfo: (info) =>
+    set({ manualBikeInfo: info, selectedMotorcycleId: null, includeMaintenanceHistory: false }),
   setShowManualForm: (show) => set({ showManualForm: show }),
   setInputMode: (mode) => set({ inputMode: mode }),
   setWizardAnswers: (answers) => set({ wizardAnswers: answers }),

@@ -72,6 +72,7 @@ export const SubmitDiagnosticSchema = z
       })
       .optional(),
     dataSharingOptedIn: z.boolean().default(false),
+    includeMaintenanceHistory: z.boolean().default(false),
   })
   .refine((data) => data.motorcycleId || data.manualBikeInfo?.type, {
     message: 'Either motorcycleId or manualBikeInfo.type is required',

@@ -150,7 +150,8 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                           color: palette.neutral500,
                         }}
                       >
-                        {days === 1 ? 'day' : 'days'}{/* TODO: i18n */}
+                        {days === 1 ? 'day' : 'days'}
+                        {/* TODO: i18n */}
                       </Text>
                     </View>
                   </View>
@@ -183,7 +184,8 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                       color: palette.neutral500,
                     }}
                   >
-                    Due {formatDate(task.dueDate)}{/* TODO: i18n */}
+                    Due {formatDate(task.dueDate)}
+                    {/* TODO: i18n */}
                   </Text>
                 </>
               );

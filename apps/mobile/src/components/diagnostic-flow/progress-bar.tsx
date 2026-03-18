@@ -25,7 +25,14 @@ export function DiagnosticProgressBar({ currentStep, totalSteps }: DiagnosticPro
       accessibilityValue={{ min: 1, max: totalSteps, now: currentStep }}
     >
       {/* Step label */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 6,
+        }}
+      >
         <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
           {STEP_LABELS[currentStep - 1] ?? ''}
         </Text>

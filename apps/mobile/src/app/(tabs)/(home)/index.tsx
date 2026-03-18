@@ -42,7 +42,6 @@ export default function HomeScreen() {
     singleBikeName,
     priorityAction,
     motorcycles,
-    primaryBike,
     nextService,
     sortedTasks,
     bikeNames,

@@ -14,12 +14,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { computeHealthScore, getRelativeDueDate } from '../../lib/health-score';
 import { queryKeys } from '../../lib/query-keys';
 import { getContextualSubtitleKey, getGreeting } from './home-helpers';
-import type {
-  FleetHealth,
-  PriorityAction,
-  TaskItem,
-  TaskWithRelative,
-} from './home-types';
+import type { FleetHealth, PriorityAction, TaskItem, TaskWithRelative } from './home-types';
 
 export function useHomeData() {
   const { t } = useTranslation();
@@ -209,9 +204,10 @@ export function useHomeData() {
       icon: CheckCircle2,
       onPress: () => router.navigate('/(tabs)/(garage)'),
     };
-  }, [hasMotorcycles, sortedTasks, bikeNames, articles, t, router]);
+  }, [hasMotorcycles, sortedTasks, bikeNames, t, router]);
 
-  const primaryBike = motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) ?? motorcycles[0] ?? null;
+  const primaryBike =
+    motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) ?? motorcycles[0] ?? null;
 
   const nextService = useMemo(() => {
     const upcoming = sortedTasks.find((t) => !t.relative.isOverdue);

@@ -528,6 +528,7 @@ input SubmitDiagnosticInput {
   additionalNotes: String
   dataSharingOptedIn: Boolean! = false
   freeTextDescription: String
+  includeMaintenanceHistory: Boolean! = false
   manualBikeInfo: ManualBikeInfoInput
   motorcycleId: String
   photoBase64: String

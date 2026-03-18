@@ -183,7 +183,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {formatMileage(motorcycles[0].currentMileage!)}
+                {formatMileage(motorcycles[0].currentMileage ?? 0)}
               </Text>
               <Text
                 style={{
@@ -204,7 +204,8 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                   marginTop: 4,
                 }}
               >
-                Updated {getRelativeTime(motorcycles[0].mileageUpdatedAt)}{/* TODO: i18n */}
+                Updated {getRelativeTime(motorcycles[0].mileageUpdatedAt)}
+                {/* TODO: i18n */}
               </Text>
             )}
           </Pressable>

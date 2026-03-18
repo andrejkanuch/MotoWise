@@ -86,7 +86,11 @@ function BikeExpenseCard({
   bike,
   isDark,
   onPress,
-}: { bike: Motorcycle; isDark: boolean; onPress: () => void }) {
+}: {
+  bike: Motorcycle;
+  isDark: boolean;
+  onPress: () => void;
+}) {
   const { dashboard, isPending } = useExpenseDashboard(bike.id);
 
   const currentMonth = new Date().getMonth() + 1;
@@ -232,11 +236,10 @@ function SingleBikeExpenseContent({
   const currentMonthBucket = dashboard.monthlyBuckets.find(
     (b) => b.month === currentMonth && b.year === currentYear,
   );
-  const previousMonthBucket = dashboard.monthlyBuckets.find(
-    (b) =>
-      currentMonth === 1
-        ? b.month === 12 && b.year === currentYear - 1
-        : b.month === currentMonth - 1 && b.year === currentYear,
+  const previousMonthBucket = dashboard.monthlyBuckets.find((b) =>
+    currentMonth === 1
+      ? b.month === 12 && b.year === currentYear - 1
+      : b.month === currentMonth - 1 && b.year === currentYear,
   );
 
   const monthlyTotal = currentMonthBucket?.total ?? 0;
@@ -296,7 +299,9 @@ function SingleBikeExpenseContent({
           <View style={{ gap: 8, marginBottom: 12 }}>
             {topCategories.map((cat) => (
               <View key={cat.category}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}
+                >
                   <Text
                     style={{
                       fontSize: 12,
@@ -342,9 +347,12 @@ function SingleBikeExpenseContent({
           </View>
         )}
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
-            YTD: {formatCurrency(periodTotal)}{/* TODO: i18n */}
+            YTD: {formatCurrency(periodTotal)}
+            {/* TODO: i18n */}
           </Text>
           <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
             View Details{/* TODO: i18n */}

@@ -217,7 +217,11 @@ export function StepPhotoDetails() {
                 {t('diagnoseV2.chooseFromGallery')}
               </Text>
             </Pressable>
-            <Pressable style={{ paddingVertical: 14, alignItems: 'center', minHeight: 44 }} onPress={handleNext} accessibilityRole="button">
+            <Pressable
+              style={{ paddingVertical: 14, alignItems: 'center', minHeight: 44 }}
+              onPress={handleNext}
+              accessibilityRole="button"
+            >
               <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 {t('diagnoseV2.skipPhoto')}
               </Text>

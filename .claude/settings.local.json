@@ -9,7 +9,19 @@
       "Bash(grep -l \"backgroundColor\\\\|color:\" /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/components/*.tsx | while read f; do if ! grep -q \"isDark\" \"$f\"; then echo \"$f\"; fi; done)",
       "Bash(ls /Users/andrejmacm5/personal/MotoWise/apps/mobile/src/app/\\\\\\(onboarding\\\\\\)/)",
       "Read(//Users/andrejmacm5/.claude/**)",
-      "Bash(which npx:*)"
+      "Bash(which npx:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''mcpServers'''',{}\\), indent=2\\)\\)\")",
+      "Bash(claude mcp:*)",
+      "mcp__XcodeBuildMCP__session_show_defaults",
+      "mcp__XcodeBuildMCP__discover_projs",
+      "mcp__XcodeBuildMCP__list_sims",
+      "mcp__XcodeBuildMCP__list_schemes",
+      "mcp__XcodeBuildMCP__session_set_defaults",
+      "mcp__XcodeBuildMCP__build_run_sim",
+      "mcp__XcodeBuildMCP__screenshot",
+      "Bash(xcrun simctl:*)",
+      "mcp__XcodeBuildMCP__snapshot_ui",
+      "Bash(grep -r diagnostic /Users/andrejmacm5/personal/MotoWise/apps/mobile/src --include=*.ts --include=*.tsx -l)"
     ]
   }
 }

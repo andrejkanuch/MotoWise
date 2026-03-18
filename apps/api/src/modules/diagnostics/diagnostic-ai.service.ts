@@ -42,6 +42,7 @@ interface AnalyzeContext {
   mileageUnit?: string;
   engineCc?: number;
   hasPhoto?: boolean;
+  maintenanceHistory?: string;
 }
 
 @Injectable()
@@ -95,6 +96,12 @@ export class DiagnosticAiService {
 
     if (context.ridingFrequency) {
       parts.push(`Riding frequency: ${context.ridingFrequency}.`);
+    }
+
+    if (context.maintenanceHistory) {
+      parts.push(
+        `\nThe owner has shared their maintenance history for this motorcycle. Use it to provide more accurate diagnostics — note recent services, pending tasks, and time since last maintenance:\n<maintenance_history>\n${context.maintenanceHistory}\n</maintenance_history>`,
+      );
     }
 
     return parts.join('\n');

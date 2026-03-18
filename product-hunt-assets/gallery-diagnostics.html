@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1270, height=760">
+<title>MotoVault - AI Diagnostics</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1270px;
+    height: 760px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .glow {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.25;
+  }
+  .glow-1 { background: #f97316; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 80px;
+    gap: 60px;
+  }
+
+  .left {
+    flex: 1;
+  }
+
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(249,115,22,0.2);
+    color: #f97316;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .section-label {
+    color: #f97316;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    color: #fff;
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+
+  .desc {
+    color: rgba(255,255,255,0.55);
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 450px;
+    margin-bottom: 40px;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .step-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .step-content h4 {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .step-content p {
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* Phone mockup */
+  .right {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .phone {
+    width: 280px;
+    height: 560px;
+    background: #1c1c1e;
+    border-radius: 40px;
+    border: 3px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 25px 60px rgba(0,0,0,0.5),
+      0 0 80px rgba(249,115,22,0.15);
+    position: relative;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+    background: #000;
+    border-radius: 0 0 20px 20px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #111 0%, #1a1a1a 100%);
+    padding: 50px 18px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .diag-header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .diag-header h3 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .diag-header p {
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+  }
+
+  .photo-area {
+    width: 100%;
+    height: 140px;
+    background: rgba(255,255,255,0.04);
+    border: 2px dashed rgba(249,115,22,0.3);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .photo-area .cam {
+    font-size: 32px;
+    margin-bottom: 6px;
+  }
+  .photo-area .text {
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+  }
+
+  .ai-response {
+    background: rgba(249,115,22,0.08);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 16px;
+    padding: 14px;
+    flex: 1;
+  }
+  .ai-response .ai-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .ai-response .ai-label .spark {
+    font-size: 14px;
+  }
+  .ai-response .ai-label span {
+    color: #f97316;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ai-response .ai-text {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .ai-response .ai-text strong {
+    color: #fff;
+  }
+
+  .severity {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(234,179,8,0.15);
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-top: 10px;
+  }
+  .severity span {
+    color: #eab308;
+    font-size: 11px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="glow glow-1"></div>
+
+  <div class="container">
+    <div class="left">
+      <div class="section-label">AI Diagnostics</div>
+      <h2>Snap a photo.<br>Get a diagnosis.</h2>
+      <p class="desc">
+        Photograph any issue on your motorcycle. Our AI analyzes it instantly,
+        adapting its response to your experience level and urgency.
+      </p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-icon">📸</div>
+          <div class="step-content">
+            <h4>1. Capture the issue</h4>
+            <p>Take a photo or describe the problem in your own words</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🧠</div>
+          <div class="step-content">
+            <h4>2. AI analyzes with full context</h4>
+            <p>Your bike specs, mileage, experience level & urgency inform the diagnosis</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-icon">🔧</div>
+          <div class="step-content">
+            <h4>3. Get actionable guidance</h4>
+            <p>Step-by-step repair instructions or safety warnings if needed</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="diag-header">
+            <h3>AI Diagnosis</h3>
+            <p>Honda CB500F · 12,340 km</p>
+          </div>
+
+          <div class="photo-area">
+            <div class="cam">📷</div>
+            <div class="text">Photo of chain slack</div>
+          </div>
+
+          <div class="ai-response">
+            <div class="ai-label">
+              <span class="spark">✨</span>
+              <span>AI Analysis</span>
+            </div>
+            <div class="ai-text">
+              <strong>Chain Slack Detected</strong><br><br>
+              Your chain appears to have excessive slack (~40mm). The recommended range for your CB500F is 25-35mm.<br><br>
+              <strong>Fix:</strong> Loosen the axle nut, adjust both tensioner bolts equally, then re-torque to 59 N·m.
+            </div>
+            <div class="severity">
+              <span>⚠️ Moderate — Fix before next ride</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
