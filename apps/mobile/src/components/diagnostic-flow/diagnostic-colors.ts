@@ -11,7 +11,7 @@ const darkColors = {
   accentBg: palette.indigoBg, // rgba(99,102,241,0.15)
   textPrimary: '#FFFFFF',
   textSecondary: 'rgba(255,255,255,0.7)',
-  textMuted: 'rgba(255,255,255,0.45)',
+  textMuted: 'rgba(255,255,255,0.60)',
   disabledBg: 'rgba(255,255,255,0.08)',
   switchTrackFalse: 'rgba(255,255,255,0.1)',
   dontKnowBorderSelected: 'rgba(255,255,255,0.3)',

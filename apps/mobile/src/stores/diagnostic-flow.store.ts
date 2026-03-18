@@ -92,6 +92,7 @@ interface DiagnosticFlowState {
   urgency: Urgency | null;
 
   dataSharingOptedIn: boolean;
+  includeMaintenanceHistory: boolean;
   isSubmitting: boolean;
   submitError: string | null;
 
@@ -111,6 +112,7 @@ interface DiagnosticFlowState {
   setAdditionalNotes: (notes: string) => void;
   setUrgency: (urgency: Urgency | null) => void;
   setDataSharingOptedIn: (opted: boolean) => void;
+  setIncludeMaintenanceHistory: (include: boolean) => void;
   setIsSubmitting: (submitting: boolean) => void;
   setSubmitError: (error: string | null) => void;
   setIsTransitioning: (transitioning: boolean) => void;
@@ -138,6 +140,7 @@ const initialState = {
   additionalNotes: '',
   urgency: null as Urgency | null,
   dataSharingOptedIn: false,
+  includeMaintenanceHistory: false,
   isSubmitting: false,
   submitError: null as string | null,
 };
@@ -173,7 +176,7 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
     set({ currentStep: 4, navigationDirection: 'forward', editingFromReview: false }),
 
   setSelectedMotorcycleId: (id) => set({ selectedMotorcycleId: id, manualBikeInfo: null }),
-  setManualBikeInfo: (info) => set({ manualBikeInfo: info, selectedMotorcycleId: null }),
+  setManualBikeInfo: (info) => set({ manualBikeInfo: info, selectedMotorcycleId: null, includeMaintenanceHistory: false }),
   setShowManualForm: (show) => set({ showManualForm: show }),
   setInputMode: (mode) => set({ inputMode: mode }),
   setWizardAnswers: (answers) => set({ wizardAnswers: answers }),
@@ -183,6 +186,7 @@ export const useDiagnosticFlowStore = create<DiagnosticFlowState>()((set, get) =
   setAdditionalNotes: (notes) => set({ additionalNotes: notes }),
   setUrgency: (urgency) => set({ urgency: urgency }),
   setDataSharingOptedIn: (opted) => set({ dataSharingOptedIn: opted }),
+  setIncludeMaintenanceHistory: (include) => set({ includeMaintenanceHistory: include }),
   setIsSubmitting: (submitting) => set({ isSubmitting: submitting }),
   setSubmitError: (error) => set({ submitError: error }),
   setIsTransitioning: (transitioning) => set({ isTransitioning: transitioning }),

@@ -105,14 +105,14 @@ function ManualBikeForm() {
   }, [store.manualBikeInfo?.model, store.manualBikeInfo?.make]);
 
   const handleTypeSelect = (type: string) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     store.setManualBikeInfo({ ...store.manualBikeInfo, type } as {
       type: string;
     });
   };
 
   const handleYearConfirm = () => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const year = yearInput ? Number.parseInt(yearInput, 10) : undefined;
     store.setManualBikeInfo({
       ...store.manualBikeInfo,
@@ -123,7 +123,7 @@ function ManualBikeForm() {
   };
 
   const handleMakeSelect = (make: { makeId: number; makeName: string }) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedMakeForSearch(make);
     setMakeSearch('');
     setDebouncedMakeSearch('');
@@ -136,7 +136,7 @@ function ManualBikeForm() {
   };
 
   const handleModelSelect = (model: { modelId: number; modelName: string }) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const detectedType = detectTypeFromModel(model.modelName);
     store.setManualBikeInfo({
       ...store.manualBikeInfo,
@@ -148,7 +148,7 @@ function ManualBikeForm() {
   };
 
   const handleStepBack = () => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (manualStep === 'model') {
       setManualStep('make');
       setSelectedMakeForSearch(null);
@@ -857,7 +857,7 @@ export function StepBikeSelection() {
   }, [motorcycles]);
 
   const handleSelectBike = (id: string) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     store.setSelectedMotorcycleId(id);
     store.setShowManualForm(false);
   };
@@ -918,6 +918,9 @@ export function StepBikeSelection() {
           return (
             <Animated.View key={moto.id} entering={FadeInUp.delay(index * 50).duration(300)}>
               <Pressable
+                accessibilityRole="radio"
+                accessibilityState={{ checked: isSelected }}
+                accessibilityLabel={moto.nickname || `${moto.make} ${moto.model}`}
                 style={{
                   marginHorizontal: 20,
                   marginBottom: 12,
@@ -1062,6 +1065,9 @@ export function StepBikeSelection() {
         }}
       >
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('diagnoseV2.next')}
+          accessibilityState={{ disabled: !canProceed }}
           style={{
             borderRadius: 16,
             paddingVertical: 16,

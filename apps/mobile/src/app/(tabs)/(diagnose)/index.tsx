@@ -1,12 +1,34 @@
-import { palette } from '@motovault/design-system';
-import { MyDiagnosticsDocument } from '@motovault/graphql';
+import { palette, spacing } from '@motovault/design-system';
+import { MyDiagnosticsDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Camera, ChevronRight, Clock, Crown, ScanLine } from 'lucide-react-native';
-import { useMemo } from 'react';
+import {
+  AlertTriangle,
+  Camera,
+  ChevronRight,
+  Clock,
+  Crown,
+  Disc,
+  Droplets,
+  ScanLine,
+  ShieldAlert,
+  Wrench,
+  Zap,
+} from 'lucide-react-native';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
@@ -14,21 +36,34 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
 const SEVERITY_COLORS = {
-  critical: { bg: palette.dangerBgLight, icon: palette.danger500 },
-  warning: { bg: palette.warningBgLight, icon: palette.warning500 },
-  default: { bg: palette.successBgLight, icon: palette.success500 },
+  critical: { bg: palette.dangerBgLight, bgDark: palette.dangerBgDark, icon: palette.danger500, iconDark: '#fca5a5', label: 'Critical' },
+  high: { bg: palette.signatureBgLight, bgDark: palette.signatureBgDark, icon: palette.signature500, iconDark: palette.signature400, label: 'High' },
+  warning: { bg: palette.warningBgLight, bgDark: palette.warningBgDark, icon: palette.warning500, iconDark: '#fbbf24', label: 'Warning' },
+  medium: { bg: palette.warningBgLight, bgDark: palette.warningBgDark, icon: palette.warning500, iconDark: '#fbbf24', label: 'Medium' },
+  low: { bg: palette.successBgLight, bgDark: palette.successBgDark, icon: palette.success500, iconDark: '#4ade80', label: 'OK' },
+  default: { bg: palette.successBgLight, bgDark: palette.successBgDark, icon: palette.success500, iconDark: '#4ade80', label: 'OK' },
 } as const;
 
-function getSeverityColors(severity: string) {
-  if (severity === 'critical') return SEVERITY_COLORS.critical;
-  if (severity === 'warning') return SEVERITY_COLORS.warning;
-  return SEVERITY_COLORS.default;
+function getSeverityColors(severity: string, isDark: boolean) {
+  const config = SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ?? SEVERITY_COLORS.default;
+  return { bg: isDark ? config.bgDark : config.bg, icon: isDark ? config.iconDark : config.icon, label: config.label };
 }
+
+const CAPABILITIES = [
+  { icon: Wrench, labelKey: 'diagnose.capEngine' },
+  { icon: Zap, labelKey: 'diagnose.capElectrical' },
+  { icon: Disc, labelKey: 'diagnose.capBrakes' },
+  { icon: Droplets, labelKey: 'diagnose.capFluids' },
+  { icon: AlertTriangle, labelKey: 'diagnose.capWarnings' },
+  { icon: ShieldAlert, labelKey: 'diagnose.capTires' },
+] as const;
 
 export default function DiagnoseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
 
   const { data } = useQuery({
@@ -37,118 +72,311 @@ export default function DiagnoseScreen() {
   });
   const diagnostics = data?.myDiagnostics ?? [];
 
-  // Count diagnostics created this month for the free tier limit
+  const { data: motorcyclesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const motorcycles = motorcyclesData?.myMotorcycles ?? [];
+
   const monthlyDiagCount = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     return diagnostics.filter((d) => new Date(d.createdAt) >= startOfMonth).length;
   }, [diagnostics]);
 
+  // CTA glow pulse animation
+  const glowOpacity = useSharedValue(0.3);
+  useEffect(() => {
+    glowOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.6, { duration: 1500 }),
+        withTiming(0.3, { duration: 1500 }),
+      ),
+      -1,
+    );
+  }, [glowOpacity]);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowOpacity: glowOpacity.value,
+  }));
+
+  // Press scale animation
+  const ctaScale = useSharedValue(1);
+  const ctaAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ctaScale.value }],
+  }));
+
   const handleNewDiagnostic = () => {
     if (!requireAccess('MAX_AI_DIAGNOSTICS_PER_MONTH', monthlyDiagCount)) return;
     router.push('/(diagnose)/new');
   };
 
+  const remaining = Math.max(0, 3 - monthlyDiagCount);
+
   return (
-    <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
+    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 80, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(300)} className="px-5 pt-3 pb-1">
-          <Text className="text-2xl font-bold text-neutral-950 dark:text-neutral-50">
+        <Animated.View entering={FadeIn.duration(300)} style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
+          <Text style={{ fontSize: 28, fontWeight: '800', letterSpacing: -0.5, color: isDark ? palette.neutral50 : palette.neutral950 }}>
             {t('tabs.diagnose')}
           </Text>
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          <Text style={{ fontSize: 14, color: isDark ? palette.neutral400 : palette.neutral500, marginTop: 4 }}>
             {t('diagnose.subtitle')}
           </Text>
         </Animated.View>
 
-        {/* Scan CTA */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} className="px-5 mt-5">
-          <Pressable
-            className="bg-primary-950 dark:bg-primary-700 rounded-2xl p-6 items-center"
-            style={{ borderCurve: 'continuous' }}
-            onPress={handleNewDiagnostic}
-          >
-            <View className="w-16 h-16 rounded-2xl bg-white/15 items-center justify-center mb-4">
-              <Camera size={32} color={palette.white} strokeWidth={1.5} />
-            </View>
-            <Text className="text-white text-lg font-bold">{t('diagnose.startNew')}</Text>
-            <Text className="text-white/60 text-sm mt-1 text-center">
-              {t('diagnose.scanDescription')}
-            </Text>
-            {!isPro && (
-              <View className="flex-row items-center gap-1 mt-2">
-                <Crown size={12} color={palette.signature500} strokeWidth={2} />
-                <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-                  {t('proGate.diagnosticsRemaining', {
-                    remaining: Math.max(0, 3 - monthlyDiagCount),
-                    defaultValue: `${Math.max(0, 3 - monthlyDiagCount)} remaining this month`,
-                  })}
-                </Text>
-              </View>
-            )}
-          </Pressable>
+        {/* Hero CTA with gradient */}
+        <Animated.View entering={FadeInUp.delay(100).duration(400)} style={{ paddingHorizontal: 20, marginTop: 16 }}>
+          <Animated.View style={[glowStyle, {
+            shadowColor: palette.signature500,
+            shadowOffset: { width: 0, height: 8 },
+            shadowRadius: 24,
+            elevation: 12,
+          }]}>
+            <Pressable
+              onPress={handleNewDiagnostic}
+              onPressIn={() => { ctaScale.value = withSpring(0.97, { damping: 15 }); }}
+              onPressOut={() => { ctaScale.value = withSpring(1, { damping: 15 }); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('diagnose.startNew')}
+            >
+              <Animated.View style={ctaAnimatedStyle}>
+                <LinearGradient
+                  colors={isDark
+                    ? [palette.gradientHeroStart, palette.gradientHeroMid, palette.gradientHeroEnd]
+                    : [palette.gradientHeroStart, palette.gradientHeroMid, '#1d4ed8']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    borderRadius: 20,
+                    padding: 24,
+                    alignItems: 'center',
+                    borderCurve: 'continuous',
+                  }}
+                >
+                  {/* Frosted icon */}
+                  <View style={{
+                    width: 64, height: 64, borderRadius: 20,
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+                    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+                    borderCurve: 'continuous',
+                  }}>
+                    <Camera size={28} color={palette.white} strokeWidth={1.5} />
+                  </View>
+
+                  <Text style={{ color: palette.white, fontSize: 18, fontWeight: '700' }}>
+                    {t('diagnose.startNew')}
+                  </Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginTop: 4, textAlign: 'center' }}>
+                    {t('diagnose.scanDescription')}
+                  </Text>
+
+                  {/* Pro gate badge */}
+                  {!isPro && (
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12,
+                      backgroundColor: remaining <= 1 ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.12)',
+                      borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6,
+                      borderCurve: 'continuous',
+                    }}>
+                      <Crown size={14} color={remaining <= 1 ? '#fbbf24' : palette.signature400} strokeWidth={2} />
+                      <Text style={{
+                        fontSize: 13, fontWeight: '600',
+                        color: remaining <= 1 ? '#fbbf24' : 'rgba(255,255,255,0.7)',
+                      }}>
+                        {t('proGate.diagnosticsRemaining', { remaining, defaultValue: `${remaining} remaining this month` })}
+                      </Text>
+                    </View>
+                  )}
+                </LinearGradient>
+              </Animated.View>
+            </Pressable>
+          </Animated.View>
         </Animated.View>
 
-        {/* Recent Diagnostics */}
-        <Animated.View entering={FadeInUp.delay(200).duration(400)} className="px-5 mt-6">
-          <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
-            {t('diagnose.recent')}
-          </Text>
-
-          {diagnostics.length === 0 ? (
-            <View
-              className="bg-white dark:bg-neutral-800 rounded-2xl p-6 items-center"
-              style={{ borderCurve: 'continuous' }}
-            >
-              <ScanLine size={36} color={palette.neutral300} strokeWidth={1.5} />
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 text-center">
-                {t('diagnose.noDiagnostics')}
+        {/* Recent Diagnostics OR Empty State + Capabilities */}
+        {diagnostics.length === 0 ? (
+          <>
+            {/* Empty state — inspiring, not sad */}
+            <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ paddingHorizontal: 20, marginTop: 24, alignItems: 'center' }}>
+              <View style={{
+                width: 72, height: 72, borderRadius: 36,
+                backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <ScanLine size={32} color={isDark ? '#818CF8' : '#6366F1'} strokeWidth={1.5} />
+              </View>
+              <Text style={{
+                fontSize: 17, fontWeight: '600', marginTop: 16,
+                color: isDark ? palette.neutral50 : palette.neutral950,
+              }}>
+                {t('diagnose.emptyTitle')}
               </Text>
-            </View>
-          ) : (
-            <View className="gap-3">
-              {diagnostics.slice(0, 5).map((diag, index) => {
-                const sevColors = getSeverityColors(diag.severity ?? 'default');
-                return (
+              <Text style={{
+                fontSize: 14, color: isDark ? palette.neutral400 : palette.neutral500,
+                marginTop: 6, textAlign: 'center', maxWidth: 260,
+              }}>
+                {t('diagnose.emptyBody')}
+              </Text>
+            </Animated.View>
+
+            {/* What can AI diagnose? */}
+            <Animated.View entering={FadeInUp.delay(300).duration(400)} style={{ paddingHorizontal: 20, marginTop: 32 }}>
+              <Text style={{
+                fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5,
+                color: isDark ? palette.neutral500 : palette.neutral400, marginBottom: 16,
+              }}>
+                {t('diagnose.capTitle')}
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                {CAPABILITIES.map(({ icon: Icon, labelKey }, index) => (
                   <Animated.View
-                    key={diag.id}
-                    entering={FadeInUp.delay(250 + index * 60).duration(400)}
+                    key={labelKey}
+                    entering={FadeInUp.delay(350 + index * 40).duration(300)}
+                    style={{
+                      width: '47%',
+                      flexDirection: 'row', alignItems: 'center', gap: 10,
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
+                      borderRadius: 12, padding: 14,
+                      borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                      borderCurve: 'continuous',
+                    }}
                   >
+                    <Icon size={16} color={isDark ? palette.neutral400 : palette.neutral500} strokeWidth={1.5} />
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: isDark ? palette.neutral300 : palette.neutral700, flex: 1 }}>
+                      {t(labelKey)}
+                    </Text>
+                  </Animated.View>
+                ))}
+              </View>
+            </Animated.View>
+
+            {/* Tips for better results */}
+            <Animated.View entering={FadeInUp.delay(500).duration(400)} style={{ paddingHorizontal: 20, marginTop: 28 }}>
+              <Text style={{
+                fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5,
+                color: isDark ? palette.neutral500 : palette.neutral400, marginBottom: 12,
+              }}>
+                {t('diagnose.tipsTitle')}
+              </Text>
+              <View style={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
+                borderRadius: 16, padding: 16, gap: 12,
+                borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                borderCurve: 'continuous',
+              }}>
+                {(['diagnose.tip1', 'diagnose.tip2', 'diagnose.tip3'] as const).map((key, i) => (
+                  <View key={key} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+                    <View style={{
+                      width: 20, height: 20, borderRadius: 10,
+                      backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)',
+                      alignItems: 'center', justifyContent: 'center', marginTop: 1,
+                    }}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#818CF8' : '#6366F1' }}>
+                        {i + 1}
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 14, color: isDark ? palette.neutral300 : palette.neutral600, flex: 1, lineHeight: 20 }}>
+                      {/* biome-ignore lint/suspicious/noExplicitAny: dynamic i18n key */}
+                      {t(key as any)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Animated.View>
+          </>
+        ) : (
+          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ paddingHorizontal: 20, marginTop: 24 }}>
+            <Text style={{
+              fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5,
+              color: isDark ? palette.neutral500 : palette.neutral400, marginBottom: 12,
+            }}>
+              {t('diagnose.recent')}
+            </Text>
+
+            <View style={{ gap: 10 }}>
+              {diagnostics.slice(0, 5).map((diag, index) => {
+                const sevColors = getSeverityColors(diag.severity ?? 'default', isDark);
+                const bike = motorcycles.find((m) => m.id === diag.motorcycleId);
+                // resultJson is only in the detail query, use status for the list
+                const displayTitle = diag.status === 'completed' ? (diag.severity ?? 'Completed') : diag.status;
+
+                return (
+                  <Animated.View key={diag.id} entering={FadeInUp.delay(250 + index * 60).duration(400)}>
                     <Pressable
-                      className="bg-white dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center"
-                      style={{ borderCurve: 'continuous' }}
+                      style={{
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : palette.white,
+                        borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'center',
+                        borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                        borderCurve: 'continuous',
+                      }}
                       onPress={() => router.push(`/(diagnose)/${diag.id}`)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${displayTitle}, ${sevColors.label} severity, ${bike ? `${bike.make} ${bike.model}` : ''}`}
                     >
-                      <View
-                        className="w-10 h-10 rounded-xl items-center justify-center mr-3"
-                        style={{ backgroundColor: sevColors.bg }}
-                      >
-                        <ScanLine size={18} color={sevColors.icon} strokeWidth={2} />
+                      {/* Severity indicator bar */}
+                      <View style={{
+                        width: 3, height: 36, borderRadius: 2,
+                        backgroundColor: sevColors.icon, marginRight: 12,
+                      }} />
+
+                      <View style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        backgroundColor: sevColors.bg,
+                        alignItems: 'center', justifyContent: 'center', marginRight: 12,
+                        borderCurve: 'continuous',
+                      }}>
+                        <ScanLine size={16} color={sevColors.icon} strokeWidth={2} />
                       </View>
-                      <View className="flex-1">
-                        <Text className="text-sm font-semibold text-neutral-950 dark:text-neutral-50 capitalize">
-                          {diag.status}
+
+                      <View style={{ flex: 1 }}>
+                        <Text style={{
+                          fontSize: 15, fontWeight: '600',
+                          color: isDark ? palette.neutral50 : palette.neutral950,
+                        }} numberOfLines={1}>
+                          {displayTitle}
                         </Text>
-                        <View className="flex-row items-center gap-1 mt-0.5">
-                          <Clock size={12} color={palette.neutral400} strokeWidth={2} />
-                          <Text className="text-xs text-neutral-500">
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                          {bike && (
+                            <Text style={{ fontSize: 12, color: isDark ? palette.neutral400 : palette.neutral500 }} numberOfLines={1}>
+                              {bike.make} {bike.model}
+                            </Text>
+                          )}
+                          <Text style={{ fontSize: 3, color: isDark ? palette.neutral600 : palette.neutral300 }}>
+                            {'\u25CF'}
+                          </Text>
+                          <Clock size={10} color={isDark ? palette.neutral500 : palette.neutral400} strokeWidth={2} />
+                          <Text style={{ fontSize: 12, color: isDark ? palette.neutral500 : palette.neutral400 }}>
                             {new Date(diag.createdAt).toLocaleDateString()}
                           </Text>
                         </View>
                       </View>
-                      <ChevronRight size={18} color={palette.neutral400} strokeWidth={2} />
+
+                      {/* Severity badge */}
+                      <View style={{
+                        backgroundColor: sevColors.bg,
+                        borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+                        borderCurve: 'continuous', marginLeft: 8,
+                      }}>
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: sevColors.icon, textTransform: 'capitalize' }}>
+                          {diag.severity ?? 'ok'}
+                        </Text>
+                      </View>
+
+                      <ChevronRight size={16} color={isDark ? palette.neutral600 : palette.neutral400} strokeWidth={2} style={{ marginLeft: 4 }} />
                     </Pressable>
                   </Animated.View>
                 );
               })}
             </View>
-          )}
-        </Animated.View>
+          </Animated.View>
+        )}
       </ScrollView>
       <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>

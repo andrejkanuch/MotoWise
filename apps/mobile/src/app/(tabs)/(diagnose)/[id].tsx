@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -66,11 +67,16 @@ export default function DiagnosticResultScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: queryKeys.diagnostics.detail(id ?? ''),
     queryFn: () => gqlFetcher(DiagnosticByIdDocument, { id: id ?? '' }),
     enabled: !!id,
+    refetchInterval: (query) => {
+      const status = query.state.data?.diagnosticById?.status;
+      return status === 'processing' ? 3000 : false;
+    },
   });
 
   const diagnostic = data?.diagnosticById;
@@ -218,7 +224,7 @@ export default function DiagnosticResultScreen() {
     <View style={{ flex: 1, backgroundColor: bg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 100, gap: spacing[3] }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24, gap: spacing[3] }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >

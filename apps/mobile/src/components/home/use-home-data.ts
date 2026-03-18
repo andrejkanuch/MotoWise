@@ -7,16 +7,7 @@ import {
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import {
-  AlertTriangle,
-  BookOpen,
-  BookOpen as BookOpenIcon,
-  Camera,
-  CheckCircle2,
-  Gauge,
-  Plus,
-  Wrench,
-} from 'lucide-react-native';
+import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -26,7 +17,6 @@ import { getContextualSubtitleKey, getGreeting } from './home-helpers';
 import type {
   FleetHealth,
   PriorityAction,
-  QuickAction,
   TaskItem,
   TaskWithRelative,
 } from './home-types';
@@ -209,18 +199,7 @@ export function useHomeData() {
       };
     }
 
-    if (articles.length > 0) {
-      return {
-        type: 'learning',
-        title: t('home.priorityLearnTitle'),
-        subtitle: t('home.priorityLearnSubtitle'),
-        ctaLabel: t('home.priorityExplore'),
-        accentColor: palette.primary500,
-        icon: BookOpenIcon,
-        onPress: () => router.push('/(tabs)/(learn)'),
-      };
-    }
-
+    // Skip learning CTA — Learn tab is accessible from bottom navigation
     return {
       type: 'allClear',
       title: t('home.priorityAllClearTitle'),
@@ -232,78 +211,12 @@ export function useHomeData() {
     };
   }, [hasMotorcycles, sortedTasks, bikeNames, articles, t, router]);
 
-  const quickActions: QuickAction[] = useMemo(() => {
-    if (!hasMotorcycles || showSetupCta) {
-      return [
-        {
-          key: 'addBike',
-          icon: Plus,
-          titleKey: 'home.actionAddBike',
-          route: '/(tabs)/(garage)/add-bike',
-          color: palette.primary500,
-          bgLight: palette.primary100,
-          bgDark: palette.primary900,
-        },
-        {
-          key: 'explore',
-          icon: BookOpen,
-          titleKey: 'home.actionExploreLearning',
-          route: '/(tabs)/(learn)',
-          color: palette.moduleSuspension,
-          bgLight: palette.primary100,
-          bgDark: palette.primary900,
-        },
-        {
-          key: 'diagnose',
-          icon: Camera,
-          titleKey: 'home.actionDiagnose',
-          route: '/(tabs)/(diagnose)',
-          color: palette.moduleEngine,
-          bgLight: palette.dangerBgLight,
-          bgDark: palette.dangerBgDark,
-        },
-      ];
-    }
+  const primaryBike = motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) ?? motorcycles[0] ?? null;
 
-    return [
-      {
-        key: 'mileage',
-        icon: Gauge,
-        titleKey: 'home.actionUpdateMileage',
-        route: '/(tabs)/(garage)',
-        color: palette.moduleSuspension,
-        bgLight: palette.primary100,
-        bgDark: palette.primary900,
-      },
-      {
-        key: 'addTask',
-        icon: Plus,
-        titleKey: 'home.actionAddTask',
-        route: '/(tabs)/(garage)',
-        color: palette.moduleMaintenance,
-        bgLight: palette.successBgLight,
-        bgDark: palette.successBgDark,
-      },
-      {
-        key: 'diagnose',
-        icon: Camera,
-        titleKey: 'home.actionDiagnose',
-        route: '/(tabs)/(diagnose)',
-        color: palette.moduleEngine,
-        bgLight: palette.dangerBgLight,
-        bgDark: palette.dangerBgDark,
-      },
-      {
-        key: 'learn',
-        icon: BookOpen,
-        titleKey: 'home.actionLearn',
-        route: '/(tabs)/(learn)',
-        color: palette.moduleElectrical,
-        bgLight: palette.warningBgLight,
-        bgDark: palette.warningBgDark,
-      },
-    ];
-  }, [hasMotorcycles, showSetupCta]);
+  const nextService = useMemo(() => {
+    const upcoming = sortedTasks.find((t) => !t.relative.isOverdue);
+    return upcoming ?? null;
+  }, [sortedTasks]);
 
   const subtitleInfo = getContextualSubtitleKey(
     greeting.subtitleKey,
@@ -330,7 +243,9 @@ export function useHomeData() {
     fleetHealth,
     singleBikeName: motorcycles.length === 1 ? bikeNames[motorcycles[0].id] : undefined,
     priorityAction,
-    quickActions,
+    motorcycles,
+    primaryBike,
+    nextService,
     sortedTasks,
     bikeNames,
     articles,

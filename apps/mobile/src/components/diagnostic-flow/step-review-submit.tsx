@@ -115,10 +115,12 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
       additionalNotes: s.additionalNotes,
       urgency: s.urgency,
       dataSharingOptedIn: s.dataSharingOptedIn,
+      includeMaintenanceHistory: s.includeMaintenanceHistory,
       isSubmitting: s.isSubmitting,
       submitError: s.submitError,
       goToStepFromReview: s.goToStepFromReview,
       setDataSharingOptedIn: s.setDataSharingOptedIn,
+      setIncludeMaintenanceHistory: s.setIncludeMaintenanceHistory,
     })),
   );
 
@@ -290,9 +292,60 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           </Text>
         </ReviewCard>
 
+        {/* Maintenance history toggle — only for garage bikes */}
+        {store.selectedMotorcycleId && (
+          <Animated.View
+            entering={FadeInUp.delay(240).duration(300)}
+            style={{
+              marginHorizontal: 20,
+              marginTop: 8,
+              backgroundColor: colors.cardBg,
+              borderRadius: 16,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: colors.cardBorder,
+              borderCurve: 'continuous',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '500',
+                    color: colors.textPrimary,
+                  }}
+                >
+                  {t('diagnoseV2.includeMaintenanceLabel')}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: colors.textMuted,
+                    marginTop: 2,
+                  }}
+                >
+                  {t('diagnoseV2.includeMaintenanceHint')}
+                </Text>
+              </View>
+              <Switch
+                value={store.includeMaintenanceHistory}
+                onValueChange={store.setIncludeMaintenanceHistory}
+                trackColor={{ false: colors.switchTrackFalse, true: colors.accent }}
+              />
+            </View>
+          </Animated.View>
+        )}
+
         {/* Data sharing toggle */}
         <Animated.View
-          entering={FadeInUp.delay(250).duration(300)}
+          entering={FadeInUp.delay(260).duration(300)}
           style={{
             marginHorizontal: 20,
             marginTop: 8,
@@ -320,7 +373,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
 
         {/* Disclaimer */}
         <Animated.View
-          entering={FadeInUp.delay(300).duration(300)}
+          entering={FadeInUp.delay(310).duration(300)}
           style={{ marginHorizontal: 20, marginTop: 16 }}
         >
           <Text

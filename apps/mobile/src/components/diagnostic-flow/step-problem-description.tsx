@@ -260,7 +260,7 @@ export function StepProblemDescription() {
   };
 
   const handleModeSwitch = (mode: 'wizard' | 'freetext') => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setInputMode(mode);
   };
 

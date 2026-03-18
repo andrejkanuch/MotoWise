@@ -12,11 +12,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArticleCarousel } from '../../../components/home/article-carousel';
 import { EmptyState } from '../../../components/home/empty-state';
+import { ExpenseSummaryWidget } from '../../../components/home/expense-summary-widget';
 import { FleetHealthHero } from '../../../components/home/fleet-health-hero';
 import { GreetingHeader } from '../../../components/home/greeting-header';
 import { MaintenanceSummary } from '../../../components/home/maintenance-summary';
+import { MileageOverview } from '../../../components/home/mileage-overview';
+import { NextServiceDue } from '../../../components/home/next-service-due';
 import { PriorityActionCard } from '../../../components/home/priority-action-card';
-import { QuickActionsGrid } from '../../../components/home/quick-actions-grid';
 import { SetupCtaBanner } from '../../../components/home/setup-cta-banner';
 import { useHomeData } from '../../../components/home/use-home-data';
 
@@ -39,7 +41,9 @@ export default function HomeScreen() {
     fleetHealth,
     singleBikeName,
     priorityAction,
-    quickActions,
+    motorcycles,
+    primaryBike,
+    nextService,
     sortedTasks,
     bikeNames,
     articles,
@@ -133,13 +137,66 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-          <QuickActionsGrid
-            actions={quickActions}
-            isDark={isDark}
-            onActionPress={(route) => router.push(route as never)}
-          />
-        </View>
+        {hasMotorcycles && (
+          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+            <MileageOverview
+              motorcycles={motorcycles}
+              isDark={isDark}
+              onBikePress={(bikeId) =>
+                router.navigate({
+                  pathname: '/(tabs)/(garage)/bike/[id]',
+                  params: { id: bikeId, _ts: Date.now().toString() },
+                })
+              }
+            />
+          </View>
+        )}
+
+        {hasMotorcycles && (
+          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+            <ExpenseSummaryWidget
+              isDark={isDark}
+              motorcycles={motorcycles}
+              onViewDetails={(motorcycleId) =>
+                router.navigate({
+                  pathname: '/(tabs)/(garage)/expense-dashboard',
+                  params: { motorcycleId },
+                })
+              }
+            />
+          </View>
+        )}
+
+        {hasMotorcycles && (
+          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+            <NextServiceDue
+              task={
+                nextService
+                  ? {
+                      id: nextService.id,
+                      motorcycleId: nextService.motorcycleId,
+                      title: nextService.title,
+                      dueDate: nextService.dueDate as string,
+                    }
+                  : null
+              }
+              bikeName={nextService ? (bikeNames[nextService.motorcycleId] ?? '') : ''}
+              isDark={isDark}
+              onPress={() => {
+                if (nextService) {
+                  router.navigate({
+                    pathname: '/(tabs)/(garage)/bike/[id]',
+                    params: {
+                      id: nextService.motorcycleId,
+                      highlightTask: nextService.id,
+                      _ts: Date.now().toString(),
+                    },
+                  });
+                }
+              }}
+            />
+          </View>
+        )}
 
         {hasMotorcycles && (
           <View style={{ paddingHorizontal: 20, marginTop: 20 }}>

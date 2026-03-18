@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
-import { HelpCircle, X } from 'lucide-react-native';
+import { Check, HelpCircle, X } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useDiagnosticColors } from './diagnostic-colors';
 
 type ChipVariant = 'default' | 'dont-know' | 'custom';
@@ -28,9 +29,7 @@ export function WizardOptionChip({
   const colors = useDiagnosticColors();
 
   const handlePress = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress();
   };
 
@@ -71,13 +70,15 @@ export function WizardOptionChip({
   return (
     <Pressable
       style={{
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 2,
+        borderRadius: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderWidth: 1.5,
         borderStyle: isDontKnow && !selected ? 'dashed' : 'solid',
         borderColor,
         backgroundColor: bgColor,
         borderCurve: 'continuous',
+        minHeight: 44,
       }}
       onPress={handlePress}
       accessibilityRole="checkbox"
@@ -86,9 +87,9 @@ export function WizardOptionChip({
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         {isDontKnow ? (
-          <HelpCircle size={18} color={iconColor} strokeWidth={1.5} />
+          <HelpCircle size={16} color={iconColor} strokeWidth={1.5} />
         ) : IconComponent ? (
-          <IconComponent size={16} color={iconColor} strokeWidth={1.5} />
+          <IconComponent size={15} color={iconColor} strokeWidth={1.5} />
         ) : null}
         <Text
           style={{
@@ -101,21 +102,28 @@ export function WizardOptionChip({
         >
           {label}
         </Text>
+        {selected && variant === 'default' && (
+          <Animated.View entering={FadeIn.duration(150)}>
+            <Check size={14} color={colors.accent} strokeWidth={2.5} />
+          </Animated.View>
+        )}
         {variant === 'custom' && onRemove && (
           <Pressable
             onPress={(e) => {
               e.stopPropagation?.();
               onRemove();
             }}
-            hitSlop={8}
-            style={{ padding: 2 }}
+            hitSlop={12}
+            style={{ padding: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${label}`}
           >
             <X size={14} color={colors.textMuted} strokeWidth={2} />
           </Pressable>
         )}
       </View>
       {subtitle && (
-        <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 4 }}>{subtitle}</Text>
+        <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 3 }}>{subtitle}</Text>
       )}
     </Pressable>
   );

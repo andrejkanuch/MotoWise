@@ -89,7 +89,7 @@ export function StepPhotoDetails() {
   };
 
   const handleUrgencyPress = (value: Urgency) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setUrgency(urgency === value ? null : value);
   };
 
@@ -157,11 +157,11 @@ export function StepPhotoDetails() {
               <Pressable
                 style={{
                   position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
+                  top: 8,
+                  right: 8,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
                   backgroundColor: 'rgba(0,0,0,0.5)',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -217,7 +217,7 @@ export function StepPhotoDetails() {
                 {t('diagnoseV2.chooseFromGallery')}
               </Text>
             </Pressable>
-            <Pressable style={{ paddingVertical: 8, alignItems: 'center' }} onPress={handleNext}>
+            <Pressable style={{ paddingVertical: 14, alignItems: 'center', minHeight: 44 }} onPress={handleNext} accessibilityRole="button">
               <Text style={{ fontSize: 14, color: colors.textMuted }}>
                 {t('diagnoseV2.skipPhoto')}
               </Text>
@@ -295,6 +295,8 @@ export function StepPhotoDetails() {
               return (
                 <Pressable
                   key={value}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
                   style={{
                     borderRadius: 12,
                     padding: 16,

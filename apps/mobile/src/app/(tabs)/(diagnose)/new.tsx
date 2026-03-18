@@ -5,7 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { ArrowLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Alert, Pressable, View } from 'react-native';
+import { AccessibilityInfo, Alert, BackHandler, Pressable, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInLeft,
@@ -81,6 +81,15 @@ export default function NewDiagnosticScreen() {
     : navigationDirection === 'forward'
       ? FadeOutLeft.duration(200)
       : FadeOutRight.duration(200);
+
+  // Android hardware back button
+  useEffect(() => {
+    const handler = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleClose();
+      return true;
+    });
+    return () => handler.remove();
+  });
 
   const handleBack = () => {
     if (useDiagnosticFlowStore.getState().isSubmitting) return;
@@ -158,6 +167,7 @@ export default function NewDiagnosticScreen() {
               }
             : undefined,
           dataSharingOptedIn: state.dataSharingOptedIn,
+          includeMaintenanceHistory: state.includeMaintenanceHistory,
         },
       });
 
