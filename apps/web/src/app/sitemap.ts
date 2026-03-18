@@ -34,14 +34,22 @@ function getLocalizedUrl(locale: string, path: string): string {
   return locale === 'en' ? `${host}${cleanPath}` : `${host}/${locale}${cleanPath}`;
 }
 
-function getPagePriority(path: string): number {
-  if (path === '/') return 1;
-  if (path === '/blog' || path.startsWith('/features/')) return 0.8;
-  if (path.startsWith('/tools/')) return 0.7;
-  if (path === '/press') return 0.5;
-  if (path === '/support') return 0.5;
-  return 0.3;
-}
+/** Approximate last-edit dates for static pages (avoids misleading crawlers with build timestamps). */
+const PAGE_LAST_EDITED: Record<string, string> = {
+  '/': '2026-03-18',
+  '/privacy': '2026-03-14',
+  '/terms': '2026-03-14',
+  '/support': '2026-03-01',
+  '/account-deletion': '2026-03-01',
+  '/features/ai-diagnostics': '2026-03-10',
+  '/features/learning-paths': '2026-03-10',
+  '/features/garage-management': '2026-03-10',
+  '/features/progress-tracking': '2026-03-10',
+  '/blog': '2026-03-16',
+  '/tools/cost-calculator': '2026-03-01',
+  '/tools/tclocs-checklist': '2026-03-01',
+  '/press': '2026-03-01',
+};
 
 function getPageImages(path: string): string[] {
   if (path === '/') return [`${host}/og-image.png`];
@@ -52,9 +60,7 @@ function getPageImages(path: string): string[] {
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries = pages.map((path) => ({
     url: getLocalizedUrl('en', path),
-    lastModified: new Date(),
-    changeFrequency: path === '/' ? ('weekly' as const) : ('monthly' as const),
-    priority: getPagePriority(path),
+    lastModified: new Date(PAGE_LAST_EDITED[path] || '2026-03-01'),
     images: getPageImages(path),
     alternates: {
       languages: Object.fromEntries([
@@ -68,8 +74,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogEntries = articles.map((article) => ({
     url: getLocalizedUrl('en', `/blog/${article.slug}`),
     lastModified: new Date(article.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
     images: article.heroImage ? [`${host}${article.heroImage}`] : [`${host}/og-image.png`],
     alternates: {
       languages: Object.fromEntries([

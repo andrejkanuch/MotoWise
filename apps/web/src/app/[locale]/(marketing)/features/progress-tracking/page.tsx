@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: `${BASE_URL}/features/progress-tracking`,
+      canonical: getCanonicalUrl(locale, '/features/progress-tracking'),
       languages: {
         en: `${BASE_URL}/features/progress-tracking`,
         es: `${BASE_URL}/es/features/progress-tracking`,

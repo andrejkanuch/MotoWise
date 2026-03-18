@@ -1,9 +1,16 @@
 import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { TclocsChecklist } from './tclocs-checklist';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return {
     title: 'TCLOCS Motorcycle Pre-Ride Checklist | MotoVault',
     description:
@@ -17,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'TCLOCS',
     ],
     alternates: {
-      canonical: `${BASE_URL}/tools/tclocs-checklist`,
+      canonical: getCanonicalUrl(locale, '/tools/tclocs-checklist'),
       languages: {
         en: `${BASE_URL}/tools/tclocs-checklist`,
         es: `${BASE_URL}/es/tools/tclocs-checklist`,
@@ -56,57 +63,9 @@ export default function TclocsChecklistPage() {
     ],
   };
 
-  const howToSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: 'TCLOCS Motorcycle Pre-Ride Inspection',
-    description:
-      'A comprehensive pre-ride safety inspection following the TCLOCS method recommended by the Motorcycle Safety Foundation.',
-    totalTime: 'PT10M',
-    step: [
-      {
-        '@type': 'HowToStep',
-        position: 1,
-        name: 'Tires',
-        text: 'Check tire pressure, inspect tread depth (minimum 2mm), look for cracks or damage, check valve stems, and verify wheel bearings.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 2,
-        name: 'Controls',
-        text: 'Test front brake lever, test rear brake pedal, check clutch free play, verify throttle snap-back, and test horn.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 3,
-        name: 'Lights',
-        text: 'Check headlight on low and high beam, tail light, brake light from both levers, all 4 turn signals, and dashboard warning lights.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 4,
-        name: 'Oil',
-        text: 'Check oil level, look for leaks, verify oil color is not black or gritty, and check coolant level if liquid-cooled.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 5,
-        name: 'Chassis',
-        text: 'Inspect frame for cracks, check suspension for leaks and smooth operation, verify fasteners are tight, and check chain tension and lubrication.',
-      },
-      {
-        '@type': 'HowToStep',
-        position: 6,
-        name: 'Stands',
-        text: 'Verify side stand retracts fully, check center stand if equipped, and test that the stand switch works (engine should cut when stand is down in gear).',
-      },
-    ],
-  };
-
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={howToSchema} />
 
       {/* Hero */}
       <section className="px-4 pb-8 pt-24 md:pt-32">

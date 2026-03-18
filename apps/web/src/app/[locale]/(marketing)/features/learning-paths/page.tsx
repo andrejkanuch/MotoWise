@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { LearningFaq } from './faq';
 
 interface PageProps {
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: `${BASE_URL}/features/learning-paths`,
+      canonical: getCanonicalUrl(locale, '/features/learning-paths'),
       languages: {
         en: `${BASE_URL}/features/learning-paths`,
         es: `${BASE_URL}/es/features/learning-paths`,
@@ -71,6 +71,17 @@ export default async function LearningPathsPage({ params }: PageProps) {
       '@type': 'Organization',
       name: 'MotoVault',
       url: BASE_URL,
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'Online',
+      courseWorkload: 'PT20H',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      },
     },
   };
 

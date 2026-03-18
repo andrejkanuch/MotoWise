@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { DiagnosticsFaq } from './diagnostics-faq';
 
 interface PageProps {
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: `${BASE_URL}/features/ai-diagnostics`,
+      canonical: getCanonicalUrl(locale, '/features/ai-diagnostics'),
       languages: {
         en: `${BASE_URL}/features/ai-diagnostics`,
         es: `${BASE_URL}/es/features/ai-diagnostics`,
@@ -55,33 +55,6 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
     ],
   };
 
-  const howToSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: t('heroTitle'),
-    description: t('description'),
-    step: [
-      {
-        '@type': 'HowToStep',
-        position: 1,
-        name: t('step1Title'),
-        text: t('step1Desc'),
-      },
-      {
-        '@type': 'HowToStep',
-        position: 2,
-        name: t('step2Title'),
-        text: t('step2Desc'),
-      },
-      {
-        '@type': 'HowToStep',
-        position: 3,
-        name: t('step3Title'),
-        text: t('step3Desc'),
-      },
-    ],
-  };
-
   const faqItems = [0, 1, 2, 3, 4].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
@@ -114,7 +87,6 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={howToSchema} />
       <JsonLd data={faqSchema} />
 
       {/* Breadcrumb nav */}

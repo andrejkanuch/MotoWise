@@ -1,14 +1,20 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { BASE_URL } from '@/lib/constants';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getCanonicalUrl } from '@/lib/constants';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations('Terms');
   return {
     title: t('title'),
     description: t('acceptance'),
     alternates: {
-      canonical: `${BASE_URL}/terms`,
+      canonical: getCanonicalUrl(locale, '/terms'),
       languages: {
         en: `${BASE_URL}/terms`,
         es: `${BASE_URL}/es/terms`,

@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@motovault/types', '@motovault/graphql', '@motovault/design-system'],
   headers: async () => [
     {
+      source: '/images/:path*',
+      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+    },
+    {
       source: '/(.*)',
       headers: [
         { key: 'X-Frame-Options', value: 'DENY' },

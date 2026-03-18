@@ -66,16 +66,16 @@ export function Hero() {
       <div className="relative z-10 mx-auto flex max-w-7xl items-center px-6 pb-16 pt-32 md:pb-24 md:pt-40">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
-          <h1 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             {t('seoTitle')}
-          </h1>
-          <p className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50">
+          </p>
+          <h1 className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50">
             {t('line1')}
             <br />
             <span>
               <span className="text-warm-400">{t('line2')}</span> {t('line3')}
             </span>
-          </p>
+          </h1>
 
           {/* Gradient accent line */}
           <div className="accent-line-enter mt-4 h-1 w-32 rounded-full bg-signature-500" />

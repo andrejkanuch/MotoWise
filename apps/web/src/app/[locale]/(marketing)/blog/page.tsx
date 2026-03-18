@@ -4,7 +4,7 @@ import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticles } from '@/lib/blog';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface BlogPageProps {
   params: Promise<{ locale: string }>;
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: BlogPageProps): Promise<Metad
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: `${BASE_URL}/blog`,
+      canonical: getCanonicalUrl(locale, '/blog'),
       languages: Object.fromEntries([
         ...routing.locales.map((l) => [
           l,

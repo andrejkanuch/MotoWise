@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     keywords: article.keywords,
     authors: [{ name: article.author }],
     alternates: {
-      canonical: getArticleUrl(slug, 'en'),
+      canonical: getArticleUrl(slug, locale),
       languages: Object.fromEntries([
         ...routing.locales.map((l) => [l, getArticleUrl(slug, l)]),
         ['x-default', getArticleUrl(slug, 'en')],
@@ -122,6 +122,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     headline: article.title,
     description: article.excerpt,
     datePublished: article.date,
+    dateModified: article.date,
     image: article.heroImage ? `${BASE_URL}${article.heroImage}` : `${BASE_URL}/og-image.png`,
     author: {
       '@type': 'Organization',

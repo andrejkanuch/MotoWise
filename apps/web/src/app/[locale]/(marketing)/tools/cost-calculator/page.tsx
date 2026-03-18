@@ -1,9 +1,16 @@
 import type { Metadata } from 'next';
+import { setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
-import { BASE_URL } from '@/lib/constants';
+import { getCanonicalUrl } from '@/lib/constants';
 import { CostCalculator } from './cost-calculator';
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   return {
     title: 'Motorcycle Cost of Ownership Calculator | MotoVault',
     description:
@@ -16,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
       'motorcycle cost per mile',
     ],
     alternates: {
-      canonical: `${BASE_URL}/tools/cost-calculator`,
+      canonical: getCanonicalUrl(locale, '/tools/cost-calculator'),
       languages: {
         en: `${BASE_URL}/tools/cost-calculator`,
         es: `${BASE_URL}/es/tools/cost-calculator`,

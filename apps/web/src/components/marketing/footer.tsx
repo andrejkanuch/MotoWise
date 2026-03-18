@@ -49,6 +49,11 @@ export async function Footer() {
     },
   ];
 
+  const toolLinks = [
+    { label: 'Cost Calculator', href: '/tools/cost-calculator' },
+    { label: 'TCLOCS Checklist', href: '/tools/tclocs-checklist' },
+  ];
+
   const companyLinks = [
     { label: t('privacy'), href: '/privacy' },
     { label: t('terms'), href: '/terms' },
@@ -59,8 +64,9 @@ export async function Footer() {
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-neutral-950">
       <div className="mx-auto max-w-7xl px-6 pt-16 pb-[max(4rem,env(safe-area-inset-bottom))]">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
           <FooterColumn title={t('product')} links={productLinks} />
+          <FooterColumn title="Tools" links={toolLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
         </div>
 

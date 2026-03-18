@@ -48,6 +48,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         Skip to content
       </a>
       <div className="scroll-progress" aria-hidden="true" />
+      <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />

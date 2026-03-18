@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { GarageManagementFaq } from './faq';
 
 interface PageProps {
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: `${BASE_URL}/features/garage-management`,
+      canonical: getCanonicalUrl(locale, '/features/garage-management'),
       languages: {
         en: `${BASE_URL}/features/garage-management`,
         es: `${BASE_URL}/es/features/garage-management`,

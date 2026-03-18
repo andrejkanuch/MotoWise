@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
 
 type FeatureKey = 'diag' | 'learn' | 'garage' | 'progress' | 'community';
 
@@ -16,6 +17,13 @@ const ICON_HOVER: Record<FeatureKey, string> = {
   garage: 'icon-spin-hover', // wrench turns
   progress: 'icon-rev-hover', // chart pops
   community: '', // subtle default
+};
+
+const FEATURE_LINKS: Partial<Record<FeatureKey, string>> = {
+  diag: '/features/ai-diagnostics',
+  learn: '/features/learning-paths',
+  garage: '/features/garage-management',
+  progress: '/features/progress-tracking',
 };
 
 const FEATURES = [
@@ -145,50 +153,57 @@ export async function FeaturesGrid() {
 
         {/* Bento grid */}
         <div className="features-bento grid auto-rows-[minmax(220px,auto)] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature, index) => (
-            <article
-              key={feature.key}
-              className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              {/* Radial glow — intensifies on hover */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  background: `radial-gradient(ellipse at 50% 0%, ${feature.glowColor}, transparent 70%)`,
-                }}
-              />
+          {FEATURES.map((feature, index) => {
+            const href = FEATURE_LINKS[feature.key];
+            const Wrapper = href ? Link : 'div';
+            const wrapperProps = href ? { href } : {};
 
-              {/* Bottom accent on hover */}
-              <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
+            return (
+              <Wrapper
+                key={feature.key}
+                {...(wrapperProps as Record<string, string>)}
+                className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {/* Radial glow — intensifies on hover */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: `radial-gradient(ellipse at 50% 0%, ${feature.glowColor}, transparent 70%)`,
+                  }}
+                />
 
-              {/* Content */}
-              <div className="relative z-10 flex h-full min-w-0 flex-col">
-                <div className="flex items-start justify-between">
-                  <div
-                    className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 ${ICON_HOVER[feature.key]} ${feature.accentClass}`}
-                  >
-                    {feature.icon}
+                {/* Bottom accent on hover */}
+                <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
+
+                {/* Content */}
+                <div className="relative z-10 flex h-full min-w-0 flex-col">
+                  <div className="flex items-start justify-between">
+                    <div
+                      className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 ${ICON_HOVER[feature.key]} ${feature.accentClass}`}
+                    >
+                      {feature.icon}
+                    </div>
+
+                    {/* Metric badge */}
+                    <span className="rounded-full border border-warm-500/30 bg-warm-500/10 px-3 py-1 text-xs font-medium text-warm-400">
+                      {t(`${feature.key}.badge`)}
+                    </span>
                   </div>
 
-                  {/* Metric badge */}
-                  <span className="rounded-full border border-warm-500/30 bg-warm-500/10 px-3 py-1 text-xs font-medium text-warm-400">
-                    {t(`${feature.key}.badge`)}
-                  </span>
+                  <h3 className="text-lg font-semibold text-neutral-50">
+                    {t(`${feature.key}.title`)}
+                  </h3>
+                  <p className={`mt-1 text-sm font-medium ${feature.accentClass}`}>
+                    {t(`${feature.key}.tagline`)}
+                  </p>
+                  <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-300">
+                    {t(`${feature.key}.description`)}
+                  </p>
                 </div>
-
-                <h3 className="text-lg font-semibold text-neutral-50">
-                  {t(`${feature.key}.title`)}
-                </h3>
-                <p className={`mt-1 text-sm font-medium ${feature.accentClass}`}>
-                  {t(`${feature.key}.tagline`)}
-                </p>
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-300">
-                  {t(`${feature.key}.description`)}
-                </p>
-              </div>
-            </article>
-          ))}
+              </Wrapper>
+            );
+          })}
         </div>
       </div>
     </section>
