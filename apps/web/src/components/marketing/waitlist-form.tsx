@@ -56,19 +56,18 @@ export function WaitlistForm() {
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
-          <p className="text-sm font-medium text-accent-300">
-            {t('successMessage')}
-          </p>
+          <p className="text-sm font-medium text-accent-300">{t('successMessage')}</p>
         </div>
-        <p className="text-xs text-neutral-500 italic">
-          {t('successTagline')}
-        </p>
+        <p className="text-xs text-neutral-500 italic">{t('successTagline')}</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative flex w-full max-w-md flex-col gap-3 sm:flex-row">
+    <form
+      onSubmit={handleSubmit}
+      className="relative flex w-full max-w-md flex-col gap-3 sm:flex-row"
+    >
       <input
         type="email"
         required
@@ -88,9 +87,7 @@ export function WaitlistForm() {
         {status === 'loading' ? t('submitting') : t('submitButton')}
       </button>
       {status === 'error' && (
-        <p className="text-xs text-danger-500 sm:absolute sm:bottom-[-20px]">
-          {t('errorMessage')}
-        </p>
+        <p className="text-xs text-danger-500 sm:absolute sm:bottom-[-20px]">{t('errorMessage')}</p>
       )}
     </form>
   );

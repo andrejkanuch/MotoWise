@@ -53,9 +53,8 @@ export function GarageManagementFaq({ items }: { items: FaqItem[] }) {
             </button>
 
             {/* Accordion body with grid-rows animation */}
-            <div
+            <section
               id={`garage-faq-answer-${index}`}
-              role="region"
               aria-labelledby={`garage-faq-question-${index}`}
               className="grid transition-[grid-template-rows] duration-300 ease-out"
               style={{
@@ -74,7 +73,7 @@ export function GarageManagementFaq({ items }: { items: FaqItem[] }) {
                   {answer}
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         );
       })}

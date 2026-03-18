@@ -14,7 +14,8 @@ function FooterColumn({
       <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-50">{title}</h3>
       <ul className="mt-4 space-y-3">
         {links.map((link) => {
-          const cls = 'text-sm text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded';
+          const cls =
+            'text-sm text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded';
           return (
             <li key={link.label}>
               {link.external ? (
@@ -41,7 +42,11 @@ export async function Footer() {
     { label: t('features'), href: '/features/ai-diagnostics' },
     { label: t('learning'), href: '/features/learning-paths' },
     { label: t('garage'), href: '/features/garage-management' },
-    { label: t('download'), href: 'https://play.google.com/store/apps/details?id=com.motovault.app', external: true },
+    {
+      label: t('download'),
+      href: 'https://play.google.com/store/apps/details?id=com.motovault.app',
+      external: true,
+    },
   ];
 
   const companyLinks = [

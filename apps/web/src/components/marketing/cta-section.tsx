@@ -23,10 +23,7 @@ export async function CtaSection() {
   const t = await getTranslations('Cta');
 
   return (
-    <section
-      id="cta"
-      className="relative overflow-hidden px-6 py-24 md:py-32"
-    >
+    <section id="cta" className="relative overflow-hidden px-6 py-24 md:py-32">
       {/* Warm radial glow background */}
       <div
         className="pointer-events-none absolute inset-0"
@@ -60,10 +57,7 @@ export async function CtaSection() {
         {/* Trust badges */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
           {(['trustFree', 'trustNoCard'] as const).map((key) => (
-            <div
-              key={key}
-              className="flex items-center gap-2 text-sm font-medium text-neutral-400"
-            >
+            <div key={key} className="flex items-center gap-2 text-sm font-medium text-neutral-400">
               <CheckIcon />
               <span>{t(key)}</span>
             </div>
@@ -73,9 +67,7 @@ export async function CtaSection() {
         <p className="mt-6 text-center text-sm text-neutral-500">{t('disclaimer')}</p>
 
         {/* Personality line — surfacing the console easter egg */}
-        <p className="mt-8 text-center text-sm italic text-neutral-600">
-          {t('personality')}
-        </p>
+        <p className="mt-8 text-center text-sm italic text-neutral-600">{t('personality')}</p>
       </div>
     </section>
   );

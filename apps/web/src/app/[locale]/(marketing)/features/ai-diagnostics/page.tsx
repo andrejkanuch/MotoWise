@@ -118,10 +118,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       <JsonLd data={faqSchema} />
 
       {/* Breadcrumb nav */}
-      <nav
-        aria-label="Breadcrumb"
-        className="px-6 pt-20 md:pt-24"
-      >
+      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
         <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
           <li>
             <Link href="/" className="transition-colors hover:text-neutral-300">
@@ -129,7 +126,18 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
             </Link>
           </li>
           <li aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-600">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-neutral-600"
+              aria-hidden="true"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </li>
@@ -205,7 +213,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 {/* Card */}
                 <div className="card-lift w-full rounded-xl bg-neutral-900/30 p-8 shadow-[0_1px_0_0_oklch(1_0_0/0.04)]">
                   <h3 className="text-lg font-semibold text-neutral-50">{t(`${step}Title`)}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-300">{t(`${step}Desc`)}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-300">
+                    {t(`${step}Desc`)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -214,7 +224,10 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       </section>
 
       {/* Decorative rule */}
-      <div className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
 
       {/* Supported Issues */}
       <section className="reveal-on-scroll px-6 py-24">
@@ -244,7 +257,10 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       </section>
 
       {/* Decorative rule */}
-      <div className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
 
       {/* Long-form Content */}
       <section className="reveal-on-scroll px-6 py-24">
@@ -258,29 +274,39 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           <p className="mt-6 text-lg text-neutral-300 leading-relaxed">{t('longFormIntro')}</p>
 
           {/* Visual break */}
-          <div className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent" aria-hidden="true" />
+          <div
+            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
+            aria-hidden="true"
+          />
 
           <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormHowTitle')}</h3>
           <p className="mt-4 text-neutral-300 leading-relaxed">{t('longFormHow')}</p>
 
           {/* Visual break */}
-          <div className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent" aria-hidden="true" />
+          <div
+            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
+            aria-hidden="true"
+          />
 
           <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormExamplesTitle')}</h3>
           <p className="mt-4 text-neutral-300 leading-relaxed">{t('longFormExamples')}</p>
 
           {/* Visual break */}
-          <div className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent" aria-hidden="true" />
+          <div
+            className="my-12 h-px w-full bg-gradient-to-r from-transparent via-neutral-700/50 to-transparent"
+            aria-hidden="true"
+          />
 
-          <h3 className="text-2xl font-semibold text-neutral-50">
-            {t('longFormComparisonTitle')}
-          </h3>
+          <h3 className="text-2xl font-semibold text-neutral-50">{t('longFormComparisonTitle')}</h3>
           <p className="mt-4 text-neutral-300 leading-relaxed">{t('longFormComparison')}</p>
         </div>
       </section>
 
       {/* Decorative rule */}
-      <div className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
 
       {/* FAQ */}
       <section className="reveal-on-scroll px-6 py-24">
@@ -299,7 +325,10 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
             items={faqItems}
             supportLabel="Have more questions?"
             supportLink={
-              <Link href="/support" className="text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300">
+              <Link
+                href="/support"
+                className="text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
+              >
                 Visit our support page
               </Link>
             }

@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ride Logging & Live Ride HUD — Engineering Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f1419;
+      color: #e4e6eb;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 60px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid #2a3f5f;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #b0b6c1;
+      margin-bottom: 20px;
+      max-width: 800px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 0.95rem;
+      color: #8a8f99;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .meta-label {
+      font-weight: 600;
+      color: #a0a6b0;
+    }
+
+    section {
+      margin-bottom: 80px;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+
+    .section-number {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      background-color: #3366e6;
+      color: white;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-right: 12px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+    }
+
+    .section-desc {
+      color: #8a8f99;
+      margin-top: 12px;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #e4e6eb;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      padding-top: 8px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #d0d4de;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: #b0b6c1;
+    }
+
+    pre {
+      background-color: #1a212f;
+      border: 1px solid #2a3f5f;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    code {
+      color: #58d9f9;
+      font-family: 'Courier New', monospace;
+    }
+
+    pre code {
+      color: #b0b6c1;
+    }
+
+    .comment {
+      color: #6a7680;
+    }
+
+    .string {
+      color: #79c292;
+    }
+
+    .keyword {
+      color: #e8723a;
+    }
+
+    .type {
+      color: #3366e6;
+    }
+
+    .function {
+      color: #58d9f9;
+    }
+
+    details {
+      background-color: #1a212f;
+      border: 1px solid #2a3f5f;
+      border-radius: 8px;
+      padding: 0;
+      margin-bottom: 16px;
+    }
+
+    summary {
+      padding: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #3366e6;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    summary:hover {
+      background-color: #222a3a;
+    }
+
+    summary::marker {
+      color: #3366e6;
+    }
+
+    details[open] summary {
+      border-bottom: 1px solid #2a3f5f;
+      margin-bottom: 0;
+      padding-bottom: 12px;
+    }
+
+    details[open] > pre {
+      margin: 16px;
+      margin-top: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      border: 1px solid #2a3f5f;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    thead {
+      background-color: #1a212f;
+    }
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #3366e6;
+      border-bottom: 2px solid #2a3f5f;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #2a3f5f;
+      color: #b0b6c1;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: #15191f;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #0f1419;
+    }
+
+    tbody tr:hover {
+      background-color: #1a212f;
+    }
+
+    .highlight {
+      background-color: #2d9e78;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+
+    .warning {
+      background-color: #e8723a;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 500;
+    }
+
+    .note {
+      background-color: #223a5f;
+      border-left: 4px solid #3366e6;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+
+    .note-label {
+      font-weight: 600;
+      color: #3366e6;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .note p {
+      margin-bottom: 0;
+    }
+
+    ul, ol {
+      margin-bottom: 16px;
+      margin-left: 20px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      color: #b0b6c1;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+      }
+    }
+
+    footer {
+      margin-top: 100px;
+      padding-top: 40px;
+      border-top: 1px solid #2a3f5f;
+      text-align: center;
+      color: #6a7680;
+      font-size: 0.9rem;
+    }
+
+    .section-toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .toc-item {
+      background-color: #1a212f;
+      border: 1px solid #2a3f5f;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #3366e6;
+      text-decoration: none;
+    }
+
+    .toc-item:hover {
+      background-color: #223a5f;
+    }
+
+    .ascii-diagram {
+      background-color: #0a0f15;
+      border: 1px solid #1a3a5f;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Ride Logging & Live Ride HUD</h1>
+      <p class="subtitle">Full-stack system design: from device sensors through background GPS, real-time HUD rendering, to server persistence and mileage sync</p>
+      <div class="meta">
+        <div class="meta-item">
+          <span class="meta-label">Author:</span>
+          <span>Andrej Kanuch</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Date:</span>
+          <span>March 17, 2026</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Complexity:</span>
+          <span>High</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Est. Duration:</span>
+          <span>6–8 weeks</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: SYSTEM OVERVIEW -->
+    <section id="section-1">
+      <h2><span class="section-number">1</span>System Overview</h2>
+      <p class="section-desc">High-level architecture showing the three layers: mobile client, API server, and persistent database.</p>
+
+      <h3>Three-Layer Architecture</h3>
+      <p>The Ride Logging + Live Ride HUD spans three discrete layers:</p>
+
+      <ul>
+        <li><strong>Mobile Client</strong> (Expo 55 / React Native 0.83): GPS via expo-location + expo-task-manager, sensors via expo-sensors DeviceMotion, maps via react-native-maps, state via Zustand + TanStack Query</li>
+        <li><strong>API Layer</strong> (NestJS 11 / Apollo GraphQL): New rides module, code-first schema, JWT auth via GqlAuthGuard</li>
+        <li><strong>Persistence</strong> (Supabase PostgreSQL): rides + ride_waypoints tables, RLS policies, triggers</li>
+      </ul>
+
+      <h3>Architecture Diagram</h3>
+      <pre class="ascii-diagram">┌─────────────────────────────────────────────────────────┐
+│                    MOBILE CLIENT                         │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐             │
+│  │ GPS      │  │ Sensors  │  │ Maps      │             │
+│  │ expo-    │  │ expo-    │  │ react-    │             │
+│  │ location │  │ sensors  │  │ native-   │             │
+│  │          │  │ Device   │  │ maps      │             │
+│  │ Background│  │ Motion  │  │           │             │
+│  │ Task Mgr │  │ 60Hz    │  │ Polyline  │             │
+│  └────┬─────┘  └────┬─────┘  └─────┬─────┘             │
+│       │              │              │                    │
+│  ┌────▼──────────────▼──────────────▼─────┐             │
+│  │         Ride State Machine              │             │
+│  │  Zustand Store + expo-secure-store      │             │
+│  │  IDLE → RECORDING → PAUSED → SUMMARY   │             │
+│  └────────────────┬───────────────────────┘             │
+│                   │                                      │
+│  ┌────────────────▼───────────────────────┐             │
+│  │         Waypoint Buffer                 │             │
+│  │  In-memory ring buffer (500 points)     │             │
+│  │  Flush: every 50 pts OR on ride end     │             │
+│  └────────────────┬───────────────────────┘             │
+└───────────────────┼─────────────────────────────────────┘
+                    │ GraphQL over HTTPS
+┌───────────────────▼─────────────────────────────────────┐
+│                    API LAYER (NestJS 11)                │
+│  ┌─────────────────────────────────────────┐             │
+│  │  rides.module.ts                         │             │
+│  │  ├── rides.resolver.ts (GraphQL entry)   │             │
+│  │  ├── rides.service.ts (business logic)   │             │
+│  │  ├── models/ (Ride, RideSummary, Stats)  │             │
+│  │  └── dto/ (StartRide, EndRide, Upload)   │             │
+│  └─────────────────┬───────────────────────┘             │
+│                    │ Supabase Client (RLS)                │
+└────────────────────┼────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│                SUPABASE POSTGRESQL                       │
+│  ┌──────────────┐  ┌──────────────────┐                 │
+│  │ rides        │  │ ride_waypoints   │                 │
+│  │ (per-ride    │  │ (GPS points,     │                 │
+│  │  aggregates) │  │  720/hour)       │                 │
+│  └──────┬───────┘  └──────────────────┘                 │
+│         │                                                │
+│  ┌──────▼───────┐  ┌──────────────────┐                 │
+│  │ motorcycles  │  │ maintenance_     │                 │
+│  │ (mileage     │  │ tasks            │                 │
+│  │  update)     │  │ (threshold check)│                 │
+│  └──────────────┘  └──────────────────┘                 │
+└──────────────────────────────────────────────────────────┘</pre>
+
+      <h3>Data Flow Summary</h3>
+      <ol>
+        <li><strong>Start Ride:</strong> Mobile creates local ride state, starts background GPS + DeviceMotion listeners</li>
+        <li><strong>GPS Updates:</strong> Background task fires every 5–20 meters, buffers waypoint data locally</li>
+        <li><strong>Sensor Fusion:</strong> DeviceMotion (60Hz) feeds lean angle, smoothed and downsampled for HUD display</li>
+        <li><strong>Aggregates:</strong> Client computes distance, speed, elevation incrementally on each GPS callback</li>
+        <li><strong>Periodic Flush:</strong> Every 50 waypoints, background sync uploads them to server</li>
+        <li><strong>End Ride:</strong> Client finalizes aggregates, encodes polyline, calls endRide mutation</li>
+        <li><strong>Mileage Sync:</strong> Post-ride prompt for user to accept/edit/skip mileage update</li>
+        <li><strong>Maintenance Check:</strong> After mileage update, check if maintenance tasks are due</li>
+      </ol>
+    </section>
+
+    <!-- SECTION 2: DATABASE SCHEMA DESIGN -->
+    <section id="section-2">
+      <h2><span class="section-number">2</span>Database Schema Design</h2>
+      <p class="section-desc">Complete SQL schema for rides and ride_waypoints tables with RLS policies, indexes, and triggers.</p>
+
+      <h3>Rides Table</h3>
+      <details>
+        <summary>📋 CREATE TABLE rides</summary>
+        <pre><code class="language-sql"><span class="keyword">CREATE TABLE</span> <span class="type">public.rides</span> (
+  id              <span class="type">UUID PRIMARY KEY</span> <span class="keyword">DEFAULT</span> gen_random_uuid(),
+  user_id         <span class="type">UUID NOT NULL</span> <span class="keyword">REFERENCES</span> <span class="type">public.users</span>(id) <span class="keyword">ON DELETE CASCADE</span>,
+  motorcycle_id   <span class="type">UUID</span> <span class="keyword">REFERENCES</span> <span class="type">public.motorcycles</span>(id) <span class="keyword">ON DELETE SET NULL</span>,
+  status          <span class="type">TEXT NOT NULL DEFAULT</span> <span class="string">'recording'</span>
+                    <span class="keyword">CHECK</span> (status <span class="keyword">IN</span> (<span class="string">'recording'</span>,<span class="string">'paused'</span>,<span class="string">'completed'</span>,<span class="string">'discarded'</span>)),
+  started_at      <span class="type">TIMESTAMPTZ NOT NULL DEFAULT</span> NOW(),
+  ended_at        <span class="type">TIMESTAMPTZ</span>,
+  paused_duration <span class="type">INTERVAL DEFAULT</span> <span class="string">'0'</span>::<span class="type">INTERVAL</span>,
+  distance_m      <span class="type">INT</span>,
+  max_speed_mps   <span class="type">REAL</span>,
+  avg_speed_mps   <span class="type">REAL</span>,
+  max_lean_angle  <span class="type">REAL</span>,
+  elevation_gain  <span class="type">REAL</span>,
+  elevation_loss  <span class="type">REAL</span>,
+  route_polyline  <span class="type">TEXT</span>,
+  gps_quality     <span class="type">REAL</span>,
+  mileage_applied <span class="type">BOOLEAN DEFAULT FALSE</span>,
+  safety_enabled  <span class="type">BOOLEAN DEFAULT FALSE</span>,
+  is_public       <span class="type">BOOLEAN DEFAULT FALSE</span>,
+  region          <span class="type">TEXT</span>,
+  weather_snapshot <span class="type">JSONB</span>,
+  metadata        <span class="type">JSONB DEFAULT</span> <span class="string">'{}'</span>,
+  created_at      <span class="type">TIMESTAMPTZ NOT NULL DEFAULT</span> NOW(),
+  updated_at      <span class="type">TIMESTAMPTZ NOT NULL DEFAULT</span> NOW(),
+  deleted_at      <span class="type">TIMESTAMPTZ</span>
+);
+
+<span class="keyword">CREATE INDEX</span> rides_user_id_motorcycle_id_started_at_idx
+  <span class="keyword">ON</span> <span class="type">public.rides</span> (user_id, motorcycle_id, started_at <span class="keyword">DESC</span>)
+  <span class="keyword">WHERE</span> deleted_at <span class="keyword">IS NULL</span>;
+
+<span class="keyword">CREATE INDEX</span> rides_status_idx
+  <span class="keyword">ON</span> <span class="type">public.rides</span> (status)
+  <span class="keyword">WHERE</span> status <span class="keyword">IN</span> (<span class="string">'recording'</span>, <span class="string">'paused'</span>);
+
+<span class="keyword">CREATE TRIGGER</span> set_rides_updated_at
+  <span class="keyword">BEFORE UPDATE ON</span> <span class="type">public.rides</span>
+  <span class="keyword">FOR EACH ROW</span>
+  <span class="keyword">EXECUTE FUNCTION</span> moat.set_updated_at();</code></pre>
+      </details>
+
+      <h3>Ride Waypoints Table</h3>
+      <details>
+        <summary>📍 CREATE TABLE ride_waypoints</summary>
+        <pre><code class="language-sql"><span class="keyword">CREATE TABLE</span> <span class="type">public.ride_waypoints</span> (
+  id          <span class="type">UUID PRIMARY KEY</span> <span class="keyword">DEFAULT</span> gen_random_uuid(),
+  ride_id     <span class="type">UUID NOT NULL</span> <span class="keyword">REFERENCES</span> <span class="type">public.rides</span>(id) <span class="keyword">ON DELETE CASCADE</span>,
+  latitude    <span class="type">DOUBLE PRECISION NOT NULL</span>,
+  longitude   <span class="type">DOUBLE PRECISION NOT NULL</span>,
+  altitude    <span class="type">REAL</span>,
+  speed_mps   <span class="type">REAL</span>,
+  heading     <span class="type">REAL</span>,
+  lean_angle  <span class="type">REAL</span>,
+  accuracy    <span class="type">REAL</span>,
+  recorded_at <span class="type">TIMESTAMPTZ NOT NULL</span>
+);
+
+<span class="keyword">CREATE INDEX</span> ride_waypoints_ride_id_recorded_at_idx
+  <span class="keyword">ON</span> <span class="type">public.ride_waypoints</span> (ride_id, recorded_at);</code></pre>
+      </details>
+
+      <h3>RLS Policies</h3>
+      <p>Row-level security ensures users only access their own rides. Apply the following policies to both tables:</p>
+      <details>
+        <summary>🔐 Rides RLS Policies</summary>
+        <pre><code class="language-sql"><span class="comment">-- Policy 1: Users can read their own rides + admins can read all</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"Enable read access for ride owner or admin"</span>
+  <span class="keyword">ON</span> <span class="type">public.rides</span>
+  <span class="keyword">FOR SELECT</span>
+  <span class="keyword">USING</span> (
+    user_id = auth.uid()
+    <span class="keyword">OR</span> (
+      <span class="keyword">SELECT</span> role <span class="keyword">FROM</span> <span class="type">public.users</span>
+      <span class="keyword">WHERE</span> id = auth.uid()
+    ) = <span class="string">'admin'</span>
+  );
+
+<span class="comment">-- Policy 2: Users can insert their own rides</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"Enable insert for authenticated users"</span>
+  <span class="keyword">ON</span> <span class="type">public.rides</span>
+  <span class="keyword">FOR INSERT</span>
+  <span class="keyword">WITH CHECK</span> (user_id = auth.uid());
+
+<span class="comment">-- Policy 3: Users can update their own rides</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"Enable update for ride owner"</span>
+  <span class="keyword">ON</span> <span class="type">public.rides</span>
+  <span class="keyword">FOR UPDATE</span>
+  <span class="keyword">USING</span> (user_id = auth.uid())
+  <span class="keyword">WITH CHECK</span> (user_id = auth.uid());
+
+<span class="comment">-- Policy 4: Users can delete (soft) their own rides</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"Enable delete for ride owner"</span>
+  <span class="keyword">ON</span> <span class="type">public.rides</span>
+  <span class="keyword">FOR DELETE</span>
+  <span class="keyword">USING</span> (user_id = auth.uid());</code></pre>
+      </details>
+
+      <h3>Storage Estimation</h3>
+      <p>Typical ride generates 720 waypoints per hour (one every 5 seconds). Each waypoint row is approximately 60 bytes:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Ride Duration</th>
+            <th>Waypoint Count</th>
+            <th>Raw JSON</th>
+            <th>Stored (PostgreSQL)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>30 minutes</td>
+            <td>360</td>
+            <td>~25 KB</td>
+            <td>~22 KB</td>
+          </tr>
+          <tr>
+            <td>1 hour</td>
+            <td>720</td>
+            <td>~50 KB</td>
+            <td>~43 KB</td>
+          </tr>
+          <tr>
+            <td>4 hours</td>
+            <td>2,880</td>
+            <td>~200 KB</td>
+            <td>~172 KB</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <span class="note-label">💡 Storage Optimization</span>
+        <p>For free tier, store only the encoded polyline in the rides table. Upload full waypoint history asynchronously for Pro users. This reduces storage footprint by 95% for free rides while preserving detailed route data for paying subscribers.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3: NESTJS API MODULE DESIGN -->
+    <section id="section-3">
+      <h2><span class="section-number">3</span>NestJS API Module Design</h2>
+      <p class="section-desc">Code-first GraphQL schema, resolver mutations/queries, and service layer implementation.</p>
+
+      <h3>Module Structure</h3>
+      <pre><code>apps/api/src/modules/rides/
+├── rides.module.ts
+├── rides.service.ts
+├── rides.resolver.ts
+├── models/
+│   ├── ride.model.ts
+│   ├── ride-summary.model.ts
+│   └── ride-stats.model.ts
+└── dto/
+    ├── start-ride.input.ts
+    ├── end-ride.input.ts
+    └── ride-waypoints.input.ts</code></pre>
+
+      <h3>GraphQL Schema (Code-First)</h3>
+
+      <h4>Ride ObjectType</h4>
+      <details>
+        <summary>🏍️ Ride Object Definition</summary>
+        <pre><code class="language-typescript"><span class="keyword">import</span> { ObjectType, Field, ID, Int, Float } <span class="keyword">from</span> <span class="string">'@nestjs/graphql'</span>;
+
+<span class="keyword">@ObjectType</span>()
+<span class="keyword">export class</span> <span class="type">Ride</span> {
+  <span class="keyword">@Field</span>(() => <span class="type">ID</span>)
+  id: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>()
+  userId: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>({ <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  motorcycleId?: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>()
+  status: <span class="type">string</span>; <span class="comment">// 'recording' | 'paused' | 'completed' | 'discarded'</span>
+
+  <span class="keyword">@Field</span>()
+  startedAt: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>({ <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  endedAt?: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>({ <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  pausedDurationSeconds?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Int</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  distanceM?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  maxSpeedMps?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  avgSpeedMps?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  maxLeanAngle?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  elevationGain?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  elevationLoss?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>({ <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  routePolyline?: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  gpsQuality?: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>()
+  mileageApplied: <span class="type">boolean</span>;
+
+  <span class="keyword">@Field</span>()
+  createdAt: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>()
+  updatedAt: <span class="type">string</span>;
+}</code></pre>
+      </details>
+
+      <h4>RideSummary ObjectType</h4>
+      <details>
+        <summary>📊 RideSummary Object (for bike detail cards)</summary>
+        <pre><code class="language-typescript"><span class="keyword">@ObjectType</span>()
+<span class="keyword">export class</span> <span class="type">RideSummary</span> {
+  <span class="keyword">@Field</span>(() => <span class="type">Int</span>)
+  totalRides: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Int</span>)
+  totalDistanceM: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Int</span>)
+  totalDurationSeconds: <span class="type">number</span>;
+
+  <span class="keyword">@Field</span>({ <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  lastRideDate?: <span class="type">string</span>;
+
+  <span class="keyword">@Field</span>(() => <span class="type">Float</span>, { <span class="keyword">nullable:</span> <span class="keyword">true</span> })
+  avgDistanceM?: <span class="type">number</span>;
+}</code></pre>
+      </details>
+
+      <h3>GraphQL Mutations & Queries</h3>
+      <details>
+        <summary>⚡ GraphQL Operations</summary>
+        <pre><code class="language-graphql"><span class="keyword">type</span> <span class="type">Query</span> {
+  <span class="comment"># Paginated ride history, filtered by bike, ordered by started_at DESC</span>
+  myRides(
+    motorcycleId: <span class="type">String</span>
+    limit: <span class="type">Int</span> = <span class="string">20</span>
+    offset: <span class="type">Int</span> = <span class="string">0</span>
+  ): [<span class="type">Ride</span>!]!
+
+  <span class="comment"># Single ride with full data including polyline</span>
+  rideDetail(rideId: <span class="type">String</span>!): <span class="type">Ride</span>!
+
+  <span class="comment"># Aggregated stats for bike detail card</span>
+  rideSummary(motorcycleId: <span class="type">String</span>!): <span class="type">RideSummary</span>!
+
+  <span class="comment"># All waypoints for route detail view (Pro feature)</span>
+  rideWaypoints(rideId: <span class="type">String</span>!): [<span class="type">RideWaypoint</span>!]!
+}
+
+<span class="keyword">type</span> <span class="type">Mutation</span> {
+  <span class="comment"># Creates ride row with status='recording', started_at=NOW()</span>
+  <span class="comment"># Input: { motorcycleId?: String }  (optional for Quick Ride)</span>
+  <span class="comment"># Uses SUPABASE_USER (RLS enforced)</span>
+  startRide(input: <span class="type">StartRideInput</span>!): <span class="type">Ride</span>!
+
+  <span class="comment"># Updates ride: status='completed', ended_at=NOW(), distance_m, avg/max speed,</span>
+  <span class="comment"># elevation, route_polyline, gps_quality, max_lean_angle</span>
+  endRide(input: <span class="type">EndRideInput</span>!): <span class="type">Ride</span>!
+
+  <span class="comment"># Sets status='paused', stores pause timestamp in metadata</span>
+  pauseRide(rideId: <span class="type">String</span>!): <span class="type">Ride</span>!
+
+  <span class="comment"># Sets status='recording', adds pause duration to paused_duration</span>
+  resumeRide(rideId: <span class="type">String</span>!): <span class="type">Ride</span>!
+
+  <span class="comment"># Sets status='discarded', soft-deletes</span>
+  discardRide(rideId: <span class="type">String</span>!): <span class="type">Boolean</span>!
+
+  <span class="comment"># Batch insert waypoints (up to 100 per call)</span>
+  <span class="comment"># Input: { rideId, waypoints: [{ lat, lng, alt?, speedMps?, heading?, leanAngle?, accuracy?, recordedAt }] }</span>
+  uploadWaypoints(input: <span class="type">UploadWaypointsInput</span>!): <span class="type">Boolean</span>!
+}</code></pre>
+      </details>
+
+      <h3>Zod Validators (packages/types)</h3>
+      <details>
+        <summary>✅ Input Validation Schemas</summary>
+        <pre><code class="language-typescript"><span class="keyword">import</span> { z } <span class="keyword">from</span> <span class="string">'zod'</span>;
+
+<span class="keyword">export const</span> <span class="type">StartRideSchema</span> = z.object({
+  motorcycleId: z.string().uuid().optional(),
+});
+
+<span class="keyword">export type</span> <span class="type">StartRideInput</span> = z.infer<<span class="keyword">typeof</span> <span class="type">StartRideSchema</span>>;
+
+<span class="keyword">export const</span> <span class="type">EndRideSchema</span> = z.object({
+  rideId: z.string().uuid(),
+  distanceM: z.number().int().min(0).max(10000000),
+  maxSpeedMps: z.number().min(0).max(200),
+  avgSpeedMps: z.number().min(0).max(200),
+  elevationGain: z.number().min(0).max(50000).optional(),
+  elevationLoss: z.number().min(0).max(50000).optional(),
+  routePolyline: z.string().max(500000).optional(),
+  gpsQuality: z.number().min(0).max(1).optional(),
+  maxLeanAngle: z.number().min(0).max(90).optional(),
+  waypointCount: z.number().int().min(0).optional(),
+});
+
+<span class="keyword">export type</span> <span class="type">EndRideInput</span> = z.infer<<span class="keyword">typeof</span> <span class="type">EndRideSchema</span>>;
+
+<span class="keyword">export const</span> <span class="type">UploadWaypointsSchema</span> = z.object({
+  rideId: z.string().uuid(),
+  waypoints: z.array(z.object({
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    altitude: z.number().min(-500).max(20000).optional(),
+    speedMps: z.number().min(0).max(200).optional(),
+    heading: z.number().min(0).max(360).optional(),
+    leanAngle: z.number().min(-90).max(90).optional(),
+    accuracy: z.number().min(0).max(1000).optional(),
+    recordedAt: z.string().datetime(),
+  })).min(1).max(100),
+});
+
+<span class="keyword">export type</span> <span class="type">UploadWaypointsInput</span> = z.infer<<span class="keyword">typeof</span> <span class="type">UploadWaypointsSchema</span>>;</code></pre>
+      </details>
+
+      <h3>Service Implementation Patterns</h3>
+      <ul>
+        <li>Uses <code>@Inject(SUPABASE_USER)</code> for all user-scoped queries (RLS enforced)</li>
+        <li>Maps DB snake_case to camelCase at service layer only</li>
+        <li><code>endRide()</code> verifies ride belongs to user AND status is 'recording' or 'paused'</li>
+        <li><code>uploadWaypoints()</code> uses batch insert for performance (PostgreSQL multi-row insert)</li>
+        <li>Cross-module: imports MotorcyclesModule for mileage updates, MaintenanceTasksModule for threshold checks</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 4: MOBILE STATE MACHINE -->
+    <section id="section-4">
+      <h2><span class="section-number">4</span>Mobile Architecture — Ride State Machine</h2>
+      <p class="section-desc">Zustand store design, state machine flow, and crash recovery mechanism.</p>
+
+      <h3>Zustand Store Design</h3>
+      <details>
+        <summary>🎛️ ride.store.ts Interface</summary>
+        <pre><code class="language-typescript"><span class="keyword">interface</span> <span class="type">RideState</span> {
+  <span class="comment">// Core state</span>
+  status: <span class="string">'idle'</span> | <span class="string">'recording'</span> | <span class="string">'paused'</span> | <span class="string">'summary'</span>;
+  rideId: <span class="type">string</span> | <span class="keyword">null</span>;
+  motorcycleId: <span class="type">string</span> | <span class="keyword">null</span>;
+  motorcycleName: <span class="type">string</span> | <span class="keyword">null</span>;
+
+  <span class="comment">// Timing</span>
+  startedAt: <span class="type">number</span> | <span class="keyword">null</span>;      <span class="comment">// Unix ms</span>
+  pausedAt: <span class="type">number</span> | <span class="keyword">null</span>;       <span class="comment">// Unix ms (when current pause started)</span>
+  totalPausedMs: <span class="type">number</span>;         <span class="comment">// Accumulated pause duration</span>
+
+  <span class="comment">// Live metrics (updated by GPS/sensor callbacks)</span>
+  currentSpeed: <span class="type">number</span>;          <span class="comment">// m/s</span>
+  currentAltitude: <span class="type">number</span>;       <span class="comment">// meters</span>
+  currentLeanAngle: <span class="type">number</span>;      <span class="comment">// degrees, negative=left, positive=right</span>
+  currentHeading: <span class="type">number</span>;        <span class="comment">// degrees from north</span>
+  currentAccuracy: <span class="type">number</span>;       <span class="comment">// meters</span>
+
+  <span class="comment">// Aggregates (computed incrementally)</span>
+  distanceM: <span class="type">number</span>;
+  maxSpeedMps: <span class="type">number</span>;
+  elevationGain: <span class="type">number</span>;
+  elevationLoss: <span class="type">number</span>;
+  waypointCount: <span class="type">number</span>;
+
+  <span class="comment">// Waypoint buffer</span>
+  waypoints: <span class="type">Waypoint</span>[];         <span class="comment">// In-memory buffer, flushed every 50 points</span>
+  routeCoordinates: <span class="type">LatLng</span>[];    <span class="comment">// For map polyline rendering (lightweight)</span>
+
+  <span class="comment">// GPS quality tracking</span>
+  totalPoints: <span class="type">number</span>;
+  accuratePoints: <span class="type">number</span>;        <span class="comment">// accuracy < 50m</span>
+
+  <span class="comment">// Actions</span>
+  startRide: (motorcycleId?: <span class="type">string</span>, name?: <span class="type">string</span>) => <span class="keyword">Promise</span><<span class="keyword">void</span>>;
+  pauseRide: () => <span class="keyword">void</span>;
+  resumeRide: () => <span class="keyword">void</span>;
+  endRide: () => <span class="keyword">Promise</span><<span class="type">RideSummaryData</span>>;
+  discardRide: () => <span class="keyword">void</span>;
+  addWaypoint: (location: <span class="type">LocationObject</span>) => <span class="keyword">void</span>;
+  updateLeanAngle: (angle: <span class="type">number</span>) => <span class="keyword">void</span>;
+
+  <span class="comment">// Persistence</span>
+  persistState: () => <span class="keyword">Promise</span><<span class="keyword">void</span>>;   <span class="comment">// Save to expo-secure-store</span>
+  restoreState: () => <span class="keyword">Promise</span><<span class="type">boolean</span>>; <span class="comment">// Restore on app open</span>
+  clearPersistedState: () => <span class="keyword">Promise</span><<span class="keyword">void</span>>;
+}</code></pre>
+      </details>
+
+      <h3>State Machine Diagram</h3>
+      <pre class="ascii-diagram">                    ┌─────────┐
+                    │  IDLE   │
+                    └────┬────┘
+                         │ startRide()
+                         │ → Create ride via GraphQL
+                         │ → Start GPS background task
+                         │ → Start DeviceMotion listener
+                         │ → Activate keep-awake
+                         │ → Set max brightness
+                         ▼
+                    ┌─────────────┐
+              ┌────▶│  RECORDING  │◀────┐
+              │     └──┬──────┬───┘     │
+              │        │      │         │
+              │ resume │      │ pause   │
+              │ Ride() │      │ Ride()  │
+              │        │      │         │
+              │     ┌──▼──────▼───┐     │
+              └─────│   PAUSED    │─────┘
+                    └──────┬──────┘
+                           │ endRide() (from RECORDING or PAUSED)
+                           │ → Stop GPS background task
+                           │ → Stop DeviceMotion listener
+                           │ → Flush remaining waypoints
+                           │ → Compute final aggregates
+                           │ → Encode route polyline
+                           │ → Call endRide mutation
+                           ▼
+                    ┌─────────────┐
+                    │   SUMMARY   │
+                    │ (mileage    │
+                    │  prompt,    │
+                    │  stats)     │
+                    └──────┬──────┘
+                           │ Accept/Skip mileage
+                           │ → updateMotorcycle if accepted
+                           │ → Check maintenance thresholds
+                           │ → Clear persisted state
+                           ▼
+                    ┌─────────┐
+                    │  IDLE   │
+                    └─────────┘</pre>
+
+      <h3>Crash Recovery Flow</h3>
+      <pre><code><span class="keyword">App opens</span> → restoreState() from expo-secure-store
+  ├── No persisted state → Normal IDLE
+  └── Found persisted state with status 'recording' or 'paused'
+      → Show modal: <span class="string">"Unfinished ride detected"</span>
+      → <span class="string">"Resume"</span> → Restart GPS task, restore waypoints, continue
+      → <span class="string">"End Ride"</span> → Compute stats from buffered waypoints, show summary
+      → <span class="string">"Discard"</span> → Call discardRide mutation, clear state</code></pre>
+    </section>
+
+    <!-- SECTION 5: BACKGROUND GPS ARCHITECTURE -->
+    <section id="section-5">
+      <h2><span class="section-number">5</span>Background GPS Architecture</h2>
+      <p class="section-desc">expo-location + expo-task-manager setup, permissions, and battery optimization.</p>
+
+      <h3>Background Location Task Definition</h3>
+      <details>
+        <summary>📡 Task Setup</summary>
+        <pre><code class="language-typescript"><span class="keyword">import</span> * <span class="keyword">as</span> <span class="type">TaskManager</span> <span class="keyword">from</span> <span class="string">'expo-task-manager'</span>;
+<span class="keyword">import</span> * <span class="keyword">as</span> <span class="type">Location</span> <span class="keyword">from</span> <span class="string">'expo-location'</span>;
+
+<span class="keyword">const</span> <span class="type">BACKGROUND_LOCATION_TASK</span> = <span class="string">'MOTOVAULT_RIDE_TRACKING'</span>;
+
+<span class="type">TaskManager</span>.<span class="function">defineTask</span>(<span class="type">BACKGROUND_LOCATION_TASK</span>, ({ data, error }) => {
+  <span class="keyword">if</span> (error) { <span class="keyword">console</span>.<span class="function">error</span>(error); <span class="keyword">return</span>; }
+  <span class="keyword">const</span> { locations } = data <span class="keyword">as</span> { locations: <span class="type">Location.LocationObject</span>[] };
+  <span class="keyword">for</span> (<span class="keyword">const</span> location <span class="keyword">of</span> locations) {
+    <span class="type">useRideStore</span>.<span class="function">getState</span>().<span class="function">addWaypoint</span>(location);
+  }
+});
+
+<span class="keyword">async function</span> <span class="function">startBackgroundTracking</span>() {
+  <span class="keyword">const</span> { status: fg } = <span class="keyword">await</span> <span class="type">Location</span>.<span class="function">requestForegroundPermissionsAsync</span>();
+  <span class="keyword">if</span> (fg !== <span class="string">'granted'</span>) <span class="keyword">throw new</span> <span class="type">Error</span>(<span class="string">'Foreground location denied'</span>);
+
+  <span class="keyword">const</span> { status: bg } = <span class="keyword">await</span> <span class="type">Location</span>.<span class="function">requestBackgroundPermissionsAsync</span>();
+  <span class="keyword">if</span> (bg !== <span class="string">'granted'</span>) {
+    <span class="function">showWarning</span>(<span class="string">'Background location denied — tracking stops when app is minimized'</span>);
+  }
+
+  <span class="keyword">await</span> <span class="type">Location</span>.<span class="function">startLocationUpdatesAsync</span>(<span class="type">BACKGROUND_LOCATION_TASK</span>, {
+    accuracy: <span class="type">Location</span>.<span class="type">Accuracy</span>.Balanced,    <span class="comment">// ~100m accuracy, good battery</span>
+    timeInterval: <span class="keyword">5000</span>,                       <span class="comment">// Every 5 seconds</span>
+    distanceFilter: <span class="keyword">20</span>,                       <span class="comment">// OR every 20 meters</span>
+    foregroundService: {                       <span class="comment">// Android foreground service</span>
+      notificationTitle: <span class="string">'MotoVault — Recording Ride'</span>,
+      notificationBody: <span class="string">'Tap to return to your ride'</span>,
+      notificationColor: <span class="string">'#3366e6'</span>,
+    },
+    activityType: <span class="type">Location</span>.<span class="type">ActivityType</span>.AutomotiveNavigation, <span class="comment">// iOS hint</span>
+    showsBackgroundLocationIndicator: <span class="keyword">true</span>,   <span class="comment">// iOS blue bar</span>
+    pausesUpdatesAutomatically: <span class="keyword">false</span>,        <span class="comment">// Never auto-pause</span>
+  });
+}</code></pre>
+      </details>
+
+      <h3>app.config.ts Configuration</h3>
+      <details>
+        <summary>⚙️ Expo App Config</summary>
+        <pre><code class="language-typescript"><span class="keyword">plugins:</span> [
+  <span class="comment">// ... existing plugins</span>
+  [<span class="string">'expo-location'</span>, {
+    locationAlwaysAndWhenInUsePermission:
+      <span class="string">'MotoVault needs location access to track your rides, even when the app is in the background.'</span>,
+    locationWhenInUsePermission:
+      <span class="string">'MotoVault needs location access to track your rides.'</span>,
+    isIosBackgroundLocationEnabled: <span class="keyword">true</span>,
+    isAndroidBackgroundLocationEnabled: <span class="keyword">true</span>,
+    isAndroidForegroundServiceEnabled: <span class="keyword">true</span>,
+  }],
+  <span class="string">'expo-task-manager'</span>,
+],
+ios: {
+  <span class="comment">// ... existing</span>
+  infoPlist: {
+    <span class="comment">// ... existing</span>
+    UIBackgroundModes: [<span class="string">'location'</span>],
+    NSLocationAlwaysAndWhenInUseUsageDescription: <span class="string">'MotoVault tracks your location during rides to record your route, speed, and distance.'</span>,
+    NSLocationWhenInUseUsageDescription: <span class="string">'MotoVault needs your location to show your position on the ride map.'</span>,
+  },
+},
+android: {
+  <span class="comment">// ... existing</span>
+  permissions: [
+    <span class="comment">// ... existing</span>
+    <span class="string">'ACCESS_FINE_LOCATION'</span>,
+    <span class="string">'ACCESS_COARSE_LOCATION'</span>,
+    <span class="string">'ACCESS_BACKGROUND_LOCATION'</span>,
+    <span class="string">'FOREGROUND_SERVICE'</span>,
+    <span class="string">'FOREGROUND_SERVICE_LOCATION'</span>,
+  ],
+},</code></pre>
+      </details>
+
+      <h3>Battery Impact Analysis</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Setting</th>
+            <th>Battery/Hour</th>
+            <th>Accuracy</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Accuracy.Highest + 1s</td>
+            <td>~15%</td>
+            <td>±5m</td>
+            <td>Too aggressive</td>
+          </tr>
+          <tr>
+            <td>Accuracy.High + 3s</td>
+            <td>~8%</td>
+            <td>±10m</td>
+            <td>Good for short rides</td>
+          </tr>
+          <tr>
+            <td>Accuracy.Balanced + 5s + 20m filter</td>
+            <td>~4%</td>
+            <td>±30m</td>
+            <td><span class="highlight">Recommended for v1</span></td>
+          </tr>
+          <tr>
+            <td>Accuracy.Low + 10s</td>
+            <td>~2%</td>
+            <td>±100m</td>
+            <td>Too inaccurate</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 6: SENSOR FUSION -->
+    <section id="section-6">
+      <h2><span class="section-number">6</span>Sensor Fusion — Lean Angle Tracking</h2>
+      <p class="section-desc">DeviceMotion integration, low-pass filtering, calibration flow, and 60Hz to 10Hz downsampling.</p>
+
+      <h3>Lean Angle Service Implementation</h3>
+      <details>
+        <summary>⚖️ LeanAngleService</summary>
+        <pre><code class="language-typescript"><span class="keyword">import</span> { <span class="type">DeviceMotion</span> } <span class="keyword">from</span> <span class="string">'expo-sensors'</span>;
+
+<span class="keyword">class</span> <span class="type">LeanAngleService</span> {
+  <span class="keyword">private</span> calibrationQuaternion: <span class="type">Quaternion</span> | <span class="keyword">null</span> = <span class="keyword">null</span>;
+  <span class="keyword">private</span> lowPassAlpha = <span class="keyword">0.15</span>; <span class="comment">// Smoothing factor</span>
+  <span class="keyword">private</span> lastFilteredAngle = <span class="keyword">0</span>;
+
+  <span class="keyword">async</span> <span class="function">startTracking</span>(onUpdate: (angle: <span class="type">number</span>) => <span class="keyword">void</span>) {
+    <span class="keyword">const</span> available = <span class="keyword">await</span> <span class="type">DeviceMotion</span>.<span class="function">isAvailableAsync</span>();
+    <span class="keyword">if</span> (!available) <span class="keyword">return</span> <span class="keyword">false</span>;
+
+    <span class="type">DeviceMotion</span>.<span class="function">setUpdateInterval</span>(<span class="keyword">16</span>); <span class="comment">// ~60Hz</span>
+
+    <span class="keyword">this</span>.subscription = <span class="type">DeviceMotion</span>.<span class="function">addListener</span>((data) => {
+      <span class="keyword">if</span> (!data.rotation) <span class="keyword">return</span>;
+
+      <span class="keyword">const</span> rawAngle = <span class="keyword">this</span>.<span class="function">computeLeanAngle</span>(data.rotation);
+      <span class="keyword">const</span> calibrated = <span class="keyword">this</span>.<span class="function">applyCalibration</span>(rawAngle);
+      <span class="keyword">const</span> filtered = <span class="keyword">this</span>.<span class="function">lowPassFilter</span>(calibrated);
+      <span class="keyword">const</span> clamped = <span class="type">Math</span>.<span class="function">max</span>(-<span class="keyword">45</span>, <span class="type">Math</span>.<span class="function">min</span>(<span class="keyword">45</span>, filtered));
+
+      onUpdate(clamped);
+    });
+
+    <span class="keyword">return</span> <span class="keyword">true</span>;
+  }
+
+  <span class="keyword">private</span> <span class="function">computeLeanAngle</span>(rotation: { alpha, beta, gamma }): <span class="type">number</span> {
+    <span class="comment">// gamma = rotation around the front-to-back axis (lean)</span>
+    <span class="comment">// Convert from radians to degrees</span>
+    <span class="keyword">return</span> (rotation.gamma * <span class="keyword">180</span>) / <span class="type">Math</span>.PI;
+  }
+
+  <span class="keyword">private</span> <span class="function">applyCalibration</span>(rawAngle: <span class="type">number</span>): <span class="type">number</span> {
+    <span class="keyword">if</span> (!<span class="keyword">this</span>.calibrationQuaternion) <span class="keyword">return</span> rawAngle;
+    <span class="keyword">return</span> rawAngle - <span class="keyword">this</span>.calibrationQuaternion.gammaOffset;
+  }
+
+  <span class="keyword">private</span> <span class="function">lowPassFilter</span>(value: <span class="type">number</span>): <span class="type">number</span> {
+    <span class="keyword">this</span>.lastFilteredAngle =
+      <span class="keyword">this</span>.lowPassAlpha * value + (<span class="keyword">1</span> - <span class="keyword">this</span>.lowPassAlpha) * <span class="keyword">this</span>.lastFilteredAngle;
+    <span class="keyword">return</span> <span class="keyword">this</span>.lastFilteredAngle;
+  }
+
+  <span class="keyword">async</span> <span class="function">calibrate</span>(): <span class="keyword">Promise</span><<span class="keyword">void</span>> {
+    <span class="comment">// Sample 30 readings over 500ms, average them as zero reference</span>
+    <span class="keyword">const</span> samples: <span class="type">number</span>[] = [];
+    <span class="keyword">return new</span> <span class="type">Promise</span>((resolve) => {
+      <span class="keyword">const</span> sub = <span class="type">DeviceMotion</span>.<span class="function">addListener</span>((data) => {
+        <span class="keyword">if</span> (data.rotation) {
+          samples.<span class="function">push</span>((data.rotation.gamma * <span class="keyword">180</span>) / <span class="type">Math</span>.PI);
+          <span class="keyword">if</span> (samples.<span class="type">length</span> >= <span class="keyword">30</span>) {
+            sub.<span class="function">remove</span>();
+            <span class="keyword">const</span> avg = samples.<span class="function">reduce</span>((a, b) => a + b) / samples.<span class="type">length</span>;
+            <span class="keyword">this</span>.calibrationQuaternion = { gammaOffset: avg };
+            <span class="function">persistToSecureStore</span>(<span class="keyword">this</span>.calibrationQuaternion);
+            resolve();
+          }
+        }
+      });
+    });
+  }
+}</code></pre>
+      </details>
+
+      <h3>Performance Optimization: 60Hz → 10Hz Downsampling</h3>
+      <ul>
+        <li>Sensor reads at 60Hz (16ms intervals) for smooth filtering and accurate low-pass output</li>
+        <li>Low-pass filter (α=0.15) applied at each reading to reduce noise and jitter</li>
+        <li>Only emit to React state every 6th reading (~10Hz / 100ms) to reduce re-render frequency</li>
+        <li>Reduces React re-renders from 60/sec to 10/sec, lowering CPU usage during HUD display</li>
+        <li>Waypoint lean_angle stored at GPS frequency (every ~5 seconds) — take the max absolute lean in the interval</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-label">💡 Calibration Flow</span>
+        <ol>
+          <li>First ride → detect no calibration stored → show modal</li>
+          <li>"Mount your phone on the handlebars, hold bike upright, tap Calibrate"</li>
+          <li>500ms sampling → average → store zero reference in expo-secure-store</li>
+          <li>Re-calibrate accessible from settings anytime</li>
+          <li>Fallback: if DeviceMotion unavailable → hide lean gauge, expand altitude display</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- SECTION 7: WAYPOINT BUFFER & UPLOAD STRATEGY -->
+    <section id="section-7">
+      <h2><span class="section-number">7</span>Waypoint Buffer & Upload Strategy</h2>
+      <p class="section-desc">Client-side buffering, polyline encoding, and v1 strategy (stats-only upload with async waypoint sync).</p>
+
+      <h3>Buffering Flow</h3>
+      <pre><code><span class="keyword">GPS callback (every 5s/20m)</span>
+  │
+  ▼
+addWaypoint()
+  ├── Push to in-memory waypoints[] array
+  ├── Push {lat,lng} to routeCoordinates[] (for map polyline)
+  ├── Update running aggregates (distance, max speed, elevation)
+  ├── Update GPS quality counters
+  │
+  ├── waypoints.length >= 50?
+  │     YES → flushWaypoints()
+  │     │     ├── Clone buffer, clear array
+  │     │     ├── Call uploadWaypoints mutation (fire-and-forget)
+  │     │     └── On failure: re-add to buffer, retry on next flush
+  │     NO → continue
+  │
+  └── persistState() every 10 waypoints (crash recovery)</code></pre>
+
+      <h3>v1 Strategy: Upload Polyline + Stats Only</h3>
+      <p>To minimize payload size and enable fast ride completion, the v1 implementation follows this strategy:</p>
+      <ul>
+        <li><span class="highlight">Client computes ALL aggregates locally</span> (distance, avg/max speed, elevation gain/loss)</li>
+        <li><span class="highlight">Client encodes route as Google Encoded Polyline</span> using @mapbox/polyline</li>
+        <li><span class="highlight">On ride end:</span> upload ONLY the polyline + aggregate stats via endRide mutation</li>
+        <li><span class="highlight">Waypoints uploaded in background</span> as a secondary operation (for Pro ride detail view)</li>
+        <li>This means endRide is fast (single mutation, <1KB payload) even on slow connections</li>
+      </ul>
+
+      <h3>Polyline Encoding Savings</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Ride Duration</th>
+            <th>Raw Waypoints</th>
+            <th>Waypoint JSON</th>
+            <th>Encoded Polyline</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>30 min</td>
+            <td>360 points</td>
+            <td>~25 KB</td>
+            <td>~3 KB</td>
+          </tr>
+          <tr>
+            <td>1 hour</td>
+            <td>720 points</td>
+            <td>~50 KB</td>
+            <td>~6 KB</td>
+          </tr>
+          <tr>
+            <td>4 hours</td>
+            <td>2,880 points</td>
+            <td>~200 KB</td>
+            <td>~22 KB</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 8: REAL-TIME HUD DATA FLOW -->
+    <section id="section-8">
+      <h2><span class="section-number">8</span>Real-Time HUD Data Flow</h2>
+      <p class="section-desc">Live data sources, update frequencies, and performance optimizations for the HUD screen.</p>
+
+      <h3>HUD Screen Data Flow</h3>
+      <pre><code>┌─────────────────────────────────────────────────┐
+│                HUD SCREEN                        │
+│                                                  │
+│  ┌─────────────────────────────────────────┐    │
+│  │ MAP ZONE (react-native-maps)            │    │
+│  │ ← routeCoordinates[] from store         │    │
+│  │ ← currentPosition from GPS              │    │
+│  │ Updates: on every GPS callback           │    │
+│  └─────────────────────────────────────────┘    │
+│                                                  │
+│  ┌──────┐  ┌──────────────┐  ┌──────────┐      │
+│  │ LEAN │  │    SPEED     │  │ ALTITUDE │      │
+│  │ from │  │  from GPS    │  │ from GPS │      │
+│  │sensor│  │  location    │  │ altitude │      │
+│  │ 10Hz │  │  .speed      │  │ field    │      │
+│  └──────┘  │  1Hz update  │  └──────────┘      │
+│            └──────────────┘                      │
+│  ┌─────────────────────────────────────────┐    │
+│  │ STATS ROW                               │    │
+│  │ Distance | Avg Speed | Max Speed | Elev │    │
+│  │ ← computed from running aggregates      │    │
+│  │ Updates: on every GPS callback           │    │
+│  └─────────────────────────────────────────┘    │
+│                                                  │
+│  ┌──────────┐  ┌───────────────────────┐        │
+│  │ PAUSE ⏸  │  │     END RIDE 🔴       │        │
+│  └──────────┘  └───────────────────────┘        │
+└─────────────────────────────────────────────────┘
+
+Data Sources:
+  GPS (expo-location)   ──→ speed, position, altitude, accuracy
+  Sensors (expo-sensors) ──→ lean angle (DeviceMotion)
+  Timer (setInterval 1s) ──→ elapsed time display
+  Store (Zustand)        ──→ all aggregates, waypoints, route coords</code></pre>
+
+      <h3>Performance Considerations</h3>
+      <ul>
+        <li><strong>Map re-renders:</strong> use React.memo on MapView, only update region on significant position change (>50m)</li>
+        <li><strong>Speed display:</strong> update at 1Hz (throttle GPS speed to 1s intervals for stable reading)</li>
+        <li><strong>Lean angle:</strong> update at 10Hz via Reanimated shared values (bypass React render cycle)</li>
+        <li><strong>Stats row:</strong> update on GPS callback (~every 5s), not every frame</li>
+        <li><strong>Animation:</strong> use <code>useSharedValue</code> from react-native-reanimated for lean angle needle (runs on UI thread)</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-label">🎬 Reanimated Integration</span>
+        <p>The lean angle gauge should use Reanimated v4's <code>useSharedValue</code> + <code>useAnimatedStyle</code> to animate the needle without triggering React re-renders. This keeps the gauge smooth at 60fps even when the ride state updates at lower frequencies.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 9: MILEAGE SYNC INTEGRATION -->
+    <section id="section-9">
+      <h2><span class="section-number">9</span>Mileage Sync Integration</h2>
+      <p class="section-desc">Post-ride summary, mileage prompt, maintenance threshold checking, and expense integration.</p>
+
+      <h3>Post-Ride Flow</h3>
+      <pre><code><span class="keyword">endRide() completes</span>
+  │
+  ▼
+Show Ride Summary Screen
+  │
+  ├── Display stats: distance, duration, avg speed, max speed, elevation
+  ├── Display route on static map (from polyline)
+  │
+  ▼
+Mileage Prompt (if motorcycle_id is set)
+  │
+  ├── Current: motorcycle.current_mileage (e.g., 5000 mi)
+  ├── Ride distance: distanceM converted to user's unit (e.g., 47 mi)
+  ├── Suggested: 5000 + 47 = 5047 mi
+  │
+  ├── [Accept] → updateMotorcycle({ currentMileage: 5047 })
+  │     │         → DB trigger sets mileage_updated_at = NOW()
+  │     │         → Update ride: mileage_applied = true
+  │     │
+  │     ▼
+  │   Check Maintenance Thresholds
+  │     │ Query: SELECT * FROM maintenance_tasks
+  │     │ WHERE motorcycle_id = X
+  │     │   AND status IN ('pending', 'in_progress')
+  │     │   AND target_mileage IS NOT NULL
+  │     │   AND target_mileage <= 5047
+  │     │
+  │     ├── Found tasks → Show alert cards: <span class="string">"Oil Change is now due"</span>
+  │     │                  → Tap navigates to task detail
+  │     └── No tasks due → Continue
+  │
+  ├── [Edit] → Allow manual mileage entry → same flow as Accept
+  │
+  └── [Skip] → Save ride without mileage update
+        → mileage_applied stays false
+
+  │
+  ▼
+Fuel Expense Prompt (P1)
+  ├── <span class="string">"Log fuel for this ride?"</span>
+  ├── [Yes] → Navigate to add-expense with prefilled: category='fuel', date=today, motorcycleId
+  └── [No] → Done → Return to IDLE</code></pre>
+
+      <h3>Integration with Existing Modules</h3>
+      <p>The mileage sync feature integrates seamlessly with existing MotoVault modules. No new APIs are needed:</p>
+      <ul>
+        <li><strong>updateMotorcycle</strong> mutation already exists — just call it with new mileage</li>
+        <li><strong>maintenance_tasks</strong> query already exists — filter by target_mileage threshold</li>
+        <li><strong>logExpense</strong> mutation already exists — prefill from ride context</li>
+        <li>The DB trigger <code>set_mileage_updated_at()</code> handles timestamp automatically</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 10: OFFLINE-FIRST ARCHITECTURE -->
+    <section id="section-10">
+      <h2><span class="section-number">10</span>Offline-First Architecture</h2>
+      <p class="section-desc">Design principle: rides work 100% offline. Network is only needed for sync.</p>
+
+      <h3>Offline Workflow</h3>
+      <pre><code><span class="keyword">OFFLINE FLOW:</span>
+<span class="keyword">1. Start ride</span> → Create ride in local state only (no GraphQL call needed)
+   - Generate UUID client-side for rideId
+   - Store in Zustand + expo-secure-store
+
+<span class="keyword">2. During ride</span> → All GPS + sensor data stays local
+   - Waypoints buffered in memory
+   - Periodic persist to expo-secure-store (every 10 waypoints)
+
+<span class="keyword">3. End ride</span> → Compute all stats locally
+   - Distance, speed, elevation — all from local waypoints
+   - Encode polyline locally
+   - Show summary screen immediately (no network needed)
+
+<span class="keyword">4. Sync when online</span> → Background sync queue
+   - startRide mutation (creates server-side ride record)
+   - endRide mutation (uploads stats + polyline)
+   - uploadWaypoints mutation (background, chunked)
+   - updateMotorcycle mutation (if mileage accepted)
+
+   If sync fails → Queue in AsyncStorage, retry on next app open
+   Show indicator: <span class="string">"Ride saved locally — will sync when connected"</span></code></pre>
+
+      <h3>Sync Queue Implementation</h3>
+      <details>
+        <summary>📤 Sync Queue Pattern</summary>
+        <pre><code class="language-typescript"><span class="keyword">interface</span> <span class="type">SyncItem</span> {
+  id: <span class="type">string</span>;
+  type: <span class="string">'startRide'</span> | <span class="string">'endRide'</span> | <span class="string">'uploadWaypoints'</span> | <span class="string">'updateMileage'</span>;
+  payload: <span class="type">any</span>;
+  retries: <span class="type">number</span>;
+  createdAt: <span class="type">number</span>;
+}
+
+<span class="comment">// On app foreground + network available:</span>
+<span class="comment">// Process queue in order, with exponential backoff on failure</span>
+<span class="comment">// Max 3 retries per item, then flag for manual resolution</span></code></pre>
+      </details>
+
+      <div class="note">
+        <span class="note-label">✅ Crash Recovery Benefit</span>
+        <p>Because all ride data is persisted locally, even if the app crashes or the device loses power during a ride, the user can resume on next app open. The persisted state includes all waypoints up to the last flush, allowing accurate ride completion even if the final upload fails.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 11: TRADE-OFF ANALYSIS -->
+    <section id="section-11">
+      <h2><span class="section-number">11</span>Trade-off Analysis</h2>
+      <p class="section-desc">Key architectural decisions with detailed comparison tables.</p>
+
+      <h3>Decision 1: expo-location vs react-native-background-geolocation</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>expo-location</th>
+            <th>rn-background-geolocation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cost</td>
+            <td>Free (MIT)</td>
+            <td>$299/year license</td>
+          </tr>
+          <tr>
+            <td>Expo compatibility</td>
+            <td>Native (Expo plugin)</td>
+            <td>Requires config plugin</td>
+          </tr>
+          <tr>
+            <td>Background reliability</td>
+            <td>Good (iOS), Variable (Android)</td>
+            <td>Excellent (both)</td>
+          </tr>
+          <tr>
+            <td>Motion detection</td>
+            <td>No</td>
+            <td>Yes (auto-pause when stationary)</td>
+          </tr>
+          <tr>
+            <td>Battery optimization</td>
+            <td>Manual tuning</td>
+            <td>Built-in intelligent tracking</td>
+          </tr>
+          <tr>
+            <td>Geofencing</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Community</td>
+            <td>Large (Expo ecosystem)</td>
+            <td>Smaller but dedicated</td>
+          </tr>
+          <tr>
+            <td><strong>Recommendation</strong></td>
+            <td><span class="highlight">v1: Start here</span></td>
+            <td>v2: Migrate if Android issues</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Decision 2: Client-side vs Server-side Aggregation</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>Client-side (recommended)</th>
+            <th>Server-side</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Offline support</td>
+            <td>Full (all stats computed locally)</td>
+            <td>Requires network</td>
+          </tr>
+          <tr>
+            <td>API payload</td>
+            <td>Small (stats + polyline, <10KB)</td>
+            <td>Large (all waypoints, 50KB+/hour)</td>
+          </tr>
+          <tr>
+            <td>Battery</td>
+            <td>Lower (no network during ride)</td>
+            <td>Higher (periodic uploads)</td>
+          </tr>
+          <tr>
+            <td>Accuracy</td>
+            <td>Good (all data available)</td>
+            <td>Same</td>
+          </tr>
+          <tr>
+            <td>Complexity</td>
+            <td>Higher on mobile</td>
+            <td>Higher on server</td>
+          </tr>
+          <tr>
+            <td><strong>Recommendation</strong></td>
+            <td><span class="highlight">Yes — offline-first</span></td>
+            <td>No</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Decision 3: Waypoint Storage Strategy</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Storage Cost</th>
+            <th>Query Performance</th>
+            <th>Detail Level</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>All waypoints always</td>
+            <td>High (43KB/hr/ride)</td>
+            <td>Slower (many rows)</td>
+            <td>Full</td>
+          </tr>
+          <tr>
+            <td>Polyline only</td>
+            <td>Low (3–6KB/hr)</td>
+            <td>Fast</td>
+            <td>Route shape only</td>
+          </tr>
+          <tr>
+            <td><span class="highlight">Hybrid (recommended)</span></td>
+            <td><span class="highlight">Medium</span></td>
+            <td><span class="highlight">Fast for list, detail on demand</span></td>
+            <td><span class="highlight">Full when needed</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 12px; font-size: 0.95rem; color: #8a8f99;">Hybrid = polyline in rides table + waypoints uploaded async for Pro detail view</p>
+
+      <h3>Decision 4: Map Library</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Factor</th>
+            <th>react-native-maps</th>
+            <th>expo-maps (new)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Maturity</td>
+            <td>Battle-tested, 10K+ stars</td>
+            <td>New, limited adoption</td>
+          </tr>
+          <tr>
+            <td>Polyline support</td>
+            <td>Excellent</td>
+            <td>Basic</td>
+          </tr>
+          <tr>
+            <td>Custom markers</td>
+            <td>Full control</td>
+            <td>Limited</td>
+          </tr>
+          <tr>
+            <td>Expo compatibility</td>
+            <td>Config plugin needed</td>
+            <td>Native</td>
+          </tr>
+          <tr>
+            <td><strong>Recommendation</strong></td>
+            <td><span class="highlight">v1: Use this</span></td>
+            <td>Watch for v2</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 12: SECURITY CONSIDERATIONS -->
+    <section id="section-12">
+      <h2><span class="section-number">12</span>Security Considerations</h2>
+      <p class="section-desc">Privacy, data protection, and security best practices.</p>
+
+      <ul>
+        <li><strong>RLS policies</strong> on rides/ride_waypoints ensure users only access own data</li>
+        <li><strong>Location data is sensitive PII</strong> — encrypt at rest (Supabase default), in transit (HTTPS)</li>
+        <li><strong>Waypoint data never sent to third parties</strong> — stored only in Supabase</li>
+        <li><strong>Background location permission rationale must be clear</strong> (App Store review requirement)</li>
+        <li><strong>Rate limiting on uploadWaypoints:</strong> 100 waypoints/call, max 10 calls/minute per user</li>
+        <li><strong>Validate all waypoint coordinates server-side</strong> (lat -90..90, lng -180..180)</li>
+        <li><strong>JWT auth via GqlAuthGuard</strong> on all mutations (no anonymous ride logging)</li>
+        <li><strong>Soft delete rides</strong> (set deleted_at timestamp) rather than hard delete to preserve audit trail</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-label">🔒 App Store Compliance</span>
+        <p>Apple requires clear explanation of why background location is needed. The permission request should explain "MotoVault tracks your location during rides to record your route, speed, and distance, even if the app is in the background." Include a screenshot of the ride HUD in your App Store submission.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 13: IMPLEMENTATION CHECKLIST -->
+    <section id="section-13">
+      <h2><span class="section-number">13</span>Implementation Checklist (Phased)</span></h2>
+      <p class="section-desc">Week-by-week breakdown for 6–8 week delivery timeline.</p>
+
+      <h3>Phase 1 — Core Recording + HUD (Weeks 1–4)</h3>
+
+      <h4>Week 1: Setup & Database</h4>
+      <ul>
+        <li>[ ] Install expo-location, expo-task-manager, react-native-maps, @mapbox/polyline</li>
+        <li>[ ] Update app.config.ts with location permissions and background modes</li>
+        <li>[ ] Create EAS development build (submit for internal testing)</li>
+        <li>[ ] Create Supabase migration: rides + ride_waypoints tables + RLS + indexes + triggers</li>
+        <li>[ ] Create Zod validators in packages/types</li>
+      </ul>
+
+      <h4>Week 2: API & Schema</h4>
+      <ul>
+        <li>[ ] Build NestJS rides module (module, service, resolver, models, DTOs)</li>
+        <li>[ ] Generate GraphQL types (pnpm generate)</li>
+        <li>[ ] Create mobile GraphQL operations (.graphql files)</li>
+        <li>[ ] Build Zustand ride store with state machine</li>
+        <li>[ ] Wire up @CurrentUser() to rides resolver</li>
+      </ul>
+
+      <h4>Week 3: GPS + Sensors + HUD</h4>
+      <ul>
+        <li>[ ] Implement background GPS task definition and tracking</li>
+        <li>[ ] Test on iOS and Android devices with background location</li>
+        <li>[ ] Build LeanAngleService with calibration flow</li>
+        <li>[ ] Build HUD screen (map, speed, lean, altitude, stats row, controls)</li>
+        <li>[ ] Implement waypoint buffering and polyline encoding</li>
+      </ul>
+
+      <h4>Week 4: State Machine + Polish</h4>
+      <ul>
+        <li>[ ] Ride start flow (bike selector, permission checks, analytics logging)</li>
+        <li>[ ] Pause/Resume logic with proper duration tracking</li>
+        <li>[ ] Crash recovery (persist/restore from expo-secure-store)</li>
+        <li>[ ] Screen keep-awake (react-native-keep-awake) + max brightness during ride</li>
+        <li>[ ] Submit EAS build for App Store / Play Store review</li>
+      </ul>
+
+      <h3>Phase 2 — Mileage Sync + Summary (Weeks 5–6)</h3>
+      <ul>
+        <li>[ ] Ride Summary screen with full stats + route map</li>
+        <li>[ ] Post-ride mileage prompt (accept/edit/skip)</li>
+        <li>[ ] Maintenance threshold checking after mileage update</li>
+        <li>[ ] endRide mutation integration with full validation</li>
+        <li>[ ] Offline sync queue with retry logic</li>
+        <li>[ ] Bike detail ride stats card (totalRides, totalDistance, lastRideDate)</li>
+      </ul>
+
+      <h3>Phase 3 — History & Polish (Weeks 7–8)</h3>
+      <ul>
+        <li>[ ] Ride history list with route thumbnails</li>
+        <li>[ ] Post-ride fuel expense prompt (link to add-expense)</li>
+        <li>[ ] Free tier ride counting + Pro upgrade prompts</li>
+        <li>[ ] Battery optimization testing (profile with DevTools)</li>
+        <li>[ ] Performance profiling (HUD frame rate target: 60fps, polyline simplification)</li>
+        <li>[ ] Visual polish: animations, haptics feedback, dark mode tweaks</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 14: RISK REGISTER -->
+    <section id="section-14">
+      <h2><span class="section-number">14</span>Risk Register</h2>
+      <p class="section-desc">Known risks and mitigation strategies.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Severity</th>
+            <th>Likelihood</th>
+            <th>Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Android 15 kills background GPS</td>
+            <td><span class="warning">High</span></td>
+            <td>Medium</td>
+            <td>Test on 5+ Android devices, fallback to foreground-only with warning</td>
+          </tr>
+          <tr>
+            <td>App Store rejects background location</td>
+            <td><span class="warning">High</span></td>
+            <td>Low</td>
+            <td>Clear permission rationale, demonstrate ride-tracking use case, reference Guidelines 5.1.1</td>
+          </tr>
+          <tr>
+            <td>Lean angle inaccurate on budget phones</td>
+            <td>Medium</td>
+            <td><span class="warning">High</span></td>
+            <td>Feature-detect gyroscope, hide gauge if unavailable, fallback UI</td>
+          </tr>
+          <tr>
+            <td>Battery drain complaints</td>
+            <td><span class="warning">High</span></td>
+            <td>Medium</td>
+            <td>Accuracy.Balanced default, battery monitoring, auto-pause if <10%, user education in onboarding</td>
+          </tr>
+          <tr>
+            <td>Large polylines cause slow rendering</td>
+            <td>Medium</td>
+            <td>Low</td>
+            <td>Simplify polyline (Douglas-Peucker algorithm) for map display only</td>
+          </tr>
+          <tr>
+            <td>Waypoint upload fails on poor connection</td>
+            <td>Low</td>
+            <td><span class="warning">High</span></td>
+            <td>Offline-first design, sync queue with exponential backoff, user notification</td>
+          </tr>
+          <tr>
+            <td>GPS quality too low on urban rides</td>
+            <td>Medium</td>
+            <td>Medium</td>
+            <td>Calculate gps_quality metric (accurate points / total), display warning, educate user</td>
+          </tr>
+          <tr>
+            <td>Drift in elevation profile</td>
+            <td>Low</td>
+            <td>Low</td>
+            <td>Store elevation_gain + elevation_loss, validate with max reasonable climb rate (10m/s)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>MotoVault Engineering · Architecture Document · March 2026</p>
+    </footer>
+  </div>
+</body>
+</html>

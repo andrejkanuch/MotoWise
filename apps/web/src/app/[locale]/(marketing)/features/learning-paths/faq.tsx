@@ -19,7 +19,7 @@ export function LearningFaq({ items }: { items: FaqItem[] }) {
       {items.map(({ question, answer }, index) => {
         const isOpen = openIndex === index;
         return (
-          <div key={index} className="border-b border-neutral-800/50">
+          <div key={question} className="border-b border-neutral-800/50">
             <button
               type="button"
               id={`learning-faq-question-${index}`}
@@ -53,9 +53,8 @@ export function LearningFaq({ items }: { items: FaqItem[] }) {
             </button>
 
             {/* Accordion body with grid-rows animation */}
-            <div
+            <section
               id={`learning-faq-answer-${index}`}
-              role="region"
               aria-labelledby={`learning-faq-question-${index}`}
               className="grid transition-[grid-template-rows] duration-300 ease-out"
               style={{
@@ -74,7 +73,7 @@ export function LearningFaq({ items }: { items: FaqItem[] }) {
                   {answer}
                 </div>
               </div>
-            </div>
+            </section>
           </div>
         );
       })}

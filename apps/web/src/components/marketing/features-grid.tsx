@@ -11,11 +11,11 @@ const GRID_CLASSES: Record<FeatureKey, string> = {
 };
 
 const ICON_HOVER: Record<FeatureKey, string> = {
-  diag: 'icon-rev-hover',       // scanner pulses
-  learn: 'icon-flip-hover',     // book flips open
-  garage: 'icon-spin-hover',    // wrench turns
-  progress: 'icon-rev-hover',   // chart pops
-  community: '',                // subtle default
+  diag: 'icon-rev-hover', // scanner pulses
+  learn: 'icon-flip-hover', // book flips open
+  garage: 'icon-spin-hover', // wrench turns
+  progress: 'icon-rev-hover', // chart pops
+  community: '', // subtle default
 };
 
 const FEATURES = [

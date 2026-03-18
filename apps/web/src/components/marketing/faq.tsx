@@ -17,7 +17,10 @@ export function Faq() {
     <section id="faq" className="px-6 py-24 lg:py-28">
       <div className="mx-auto max-w-4xl">
         {/* Decorative rule */}
-        <div className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+        <div
+          className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+          aria-hidden="true"
+        />
 
         {/* Section header */}
         <div className="reveal-on-scroll mb-16 text-center">
@@ -68,9 +71,8 @@ export function Faq() {
                 </button>
 
                 {/* Accordion body with grid-rows animation */}
-                <div
+                <section
                   id={`faq-answer-${index}`}
-                  role="region"
                   aria-labelledby={`faq-question-${index}`}
                   className="grid transition-[grid-template-rows] duration-300 ease-out"
                   style={{
@@ -89,7 +91,7 @@ export function Faq() {
                       {t(`items.${index}.answer`)}
                     </div>
                   </div>
-                </div>
+                </section>
               </div>
             );
           })}

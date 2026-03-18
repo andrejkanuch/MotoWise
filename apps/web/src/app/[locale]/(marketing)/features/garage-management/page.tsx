@@ -286,9 +286,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
           />
 
           <div className="reveal-on-scroll">
-            <h3 className="text-xl font-semibold text-neutral-50">
-              {t('longFormMultiBikeTitle')}
-            </h3>
+            <h3 className="text-xl font-semibold text-neutral-50">{t('longFormMultiBikeTitle')}</h3>
             <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormMultiBike')}</p>
           </div>
 

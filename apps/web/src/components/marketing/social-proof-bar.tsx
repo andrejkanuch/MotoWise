@@ -15,8 +15,7 @@ export async function SocialProofBar() {
       <div
         className="absolute inset-x-0 top-0 mx-auto h-px max-w-5xl"
         style={{
-          background:
-            'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
+          background: 'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
         }}
         aria-hidden="true"
       />
@@ -47,8 +46,7 @@ export async function SocialProofBar() {
       <div
         className="absolute inset-x-0 bottom-0 mx-auto h-px max-w-5xl"
         style={{
-          background:
-            'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
+          background: 'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
         }}
         aria-hidden="true"
       />

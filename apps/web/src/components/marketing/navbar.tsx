@@ -98,14 +98,18 @@ export function Navbar() {
     >
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="logo-glow logo-needle text-xl font-extrabold tracking-tight text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded">
+        <Link
+          href="/"
+          className="logo-glow logo-needle text-xl font-extrabold tracking-tight text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded"
+        >
           MotoVault
         </Link>
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-6 lg:gap-8 md:flex">
           {NAV_LINKS.map((link) => {
-            const cls = "text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded";
+            const cls =
+              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded';
             return link.href.startsWith('#') ? (
               <a key={link.href} href={link.href} className={cls}>
                 {t(link.key)}
@@ -172,7 +176,8 @@ export function Navbar() {
         >
           <div className="flex flex-1 flex-col items-center justify-center gap-6">
             {NAV_LINKS.map((link, i) => {
-              const cls = "text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline";
+              const cls =
+                'text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline';
               return link.href.startsWith('#') ? (
                 <a
                   key={link.href}
@@ -196,7 +201,6 @@ export function Navbar() {
               );
             })}
             <LanguageSwitcher />
-            {/* biome-ignore lint/a11y/useValidAnchor: anchor with onClick closes mobile menu before navigating */}
             <a
               href="https://play.google.com/store/apps/details?id=com.motovault.app"
               onClick={closeMobile}

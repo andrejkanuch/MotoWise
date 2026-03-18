@@ -69,9 +69,7 @@ export function Hero() {
           <h1 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             {t('seoTitle')}
           </h1>
-          <p
-            className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50"
-          >
+          <p className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50">
             {t('line1')}
             <br />
             <span>
@@ -117,7 +115,7 @@ export function Hero() {
 
       {/* Tachometer sweep — motorcycle signature moment */}
       <div className="tach-sweep pointer-events-none hidden md:block" aria-hidden="true">
-        <svg viewBox="0 0 200 200" fill="none">
+        <svg viewBox="0 0 200 200" fill="none" aria-hidden="true">
           <defs>
             <linearGradient id="tach-sweep-grad" x1="0" y1="100" x2="200" y2="100">
               <stop offset="0%" stopColor="oklch(0.76 0.13 70)" />
@@ -125,11 +123,31 @@ export function Hero() {
               <stop offset="100%" stopColor="oklch(0.55 0.25 30)" />
             </linearGradient>
           </defs>
-          <path d="M30 170 A90 90 0 0 1 170 170" stroke="oklch(1 0 0 / 0.06)" strokeWidth="2" fill="none" />
+          <path
+            d="M30 170 A90 90 0 0 1 170 170"
+            stroke="oklch(1 0 0 / 0.06)"
+            strokeWidth="2"
+            fill="none"
+          />
           <path d="M30 170 A90 90 0 0 1 170 170" className="tach-sweep-arc" />
-          <line x1="100" y1="100" x2="100" y2="25" stroke="oklch(0.76 0.13 70)" strokeWidth="2" strokeLinecap="round" className="tach-needle" />
+          <line
+            x1="100"
+            y1="100"
+            x2="100"
+            y2="25"
+            stroke="oklch(0.76 0.13 70)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            className="tach-needle"
+          />
           <circle cx="100" cy="100" r="4" fill="oklch(0.76 0.13 70)" />
-          <path d="M150 40 A90 90 0 0 1 170 170" stroke="oklch(0.55 0.25 30)" strokeWidth="4" fill="none" className="tach-redline" />
+          <path
+            d="M150 40 A90 90 0 0 1 170 170"
+            stroke="oklch(0.55 0.25 30)"
+            strokeWidth="4"
+            fill="none"
+            className="tach-redline"
+          />
         </svg>
       </div>
 

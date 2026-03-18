@@ -33,11 +33,9 @@ export async function Testimonials() {
       </div>
 
       {/* Horizontal scroll */}
-      <div
+      <section
         aria-label={t('sectionTitle')}
-        tabIndex={0}
-        role="region"
-        className="reveal-on-scroll snap-x snap-mandatory overflow-x-auto rounded-lg pb-4 [scrollbar-color:theme(colors.neutral.700)_transparent] [scrollbar-width:thin] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+        className="reveal-on-scroll snap-x snap-mandatory overflow-x-auto rounded-lg pb-4 [scrollbar-color:theme(colors.neutral.700)_transparent] [scrollbar-width:thin]"
       >
         <div className="flex gap-5 px-4 md:px-[max(1rem,calc((100vw-80rem)/2+1rem))]">
           {TESTIMONIAL_KEYS.map((index) => (
@@ -72,7 +70,9 @@ export async function Testimonials() {
                 {/* Author */}
                 <div className="mt-4 border-t border-neutral-800 pt-4">
                   <div className="flex items-center gap-2 min-w-0">
-                    <p className="truncate text-sm font-bold text-neutral-50">{t(`items.${index}.name`)}</p>
+                    <p className="truncate text-sm font-bold text-neutral-50">
+                      {t(`items.${index}.name`)}
+                    </p>
                     <span className="shrink-0 rounded-full border border-warm-500/30 bg-warm-500/10 px-2 py-0.5 text-xs font-medium text-warm-400">
                       {t('badge')}
                     </span>
@@ -83,7 +83,7 @@ export async function Testimonials() {
             </article>
           ))}
         </div>
-      </div>
+      </section>
     </section>
   );
 }

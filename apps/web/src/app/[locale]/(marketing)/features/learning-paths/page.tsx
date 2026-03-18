@@ -180,10 +180,15 @@ export default async function LearningPathsPage({ params }: PageProps) {
               {t('longFormTitle')}
             </h2>
           </div>
-          <p className="reveal-on-scroll text-lg leading-relaxed text-neutral-300">{t('longFormIntro')}</p>
+          <p className="reveal-on-scroll text-lg leading-relaxed text-neutral-300">
+            {t('longFormIntro')}
+          </p>
 
           {/* Decorative rule */}
-          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+          <div
+            className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+            aria-hidden="true"
+          />
 
           <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
             {t('longFormCurriculumTitle')}
@@ -191,7 +196,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
           <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormCurriculum')}</p>
 
           {/* Decorative rule */}
-          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+          <div
+            className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+            aria-hidden="true"
+          />
 
           <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
             {t('longFormProgressionTitle')}
@@ -199,7 +207,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
           <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormProgression')}</p>
 
           {/* Decorative rule */}
-          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+          <div
+            className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+            aria-hidden="true"
+          />
 
           <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
             {t('longFormLessonTitle')}
@@ -212,7 +223,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
       <section className="px-6 py-24">
         <div className="mx-auto max-w-4xl">
           {/* Decorative rule */}
-          <div className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+          <div
+            className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+            aria-hidden="true"
+          />
 
           <div className="reveal-on-scroll mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">

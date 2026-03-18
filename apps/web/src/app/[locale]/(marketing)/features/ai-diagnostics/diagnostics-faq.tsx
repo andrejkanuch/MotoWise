@@ -60,9 +60,8 @@ export function DiagnosticsFaq({ items, supportLabel, supportLink }: Diagnostics
               </button>
 
               {/* Accordion body with grid-rows animation */}
-              <div
+              <section
                 id={`diag-faq-answer-${index}`}
-                role="region"
                 aria-labelledby={`diag-faq-question-${index}`}
                 className="grid transition-[grid-template-rows] duration-300 ease-out"
                 style={{
@@ -81,7 +80,7 @@ export function DiagnosticsFaq({ items, supportLabel, supportLink }: Diagnostics
                     {answer}
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
           );
         })}
