@@ -6,6 +6,15 @@ import i18n from '../i18n';
 import de from '../i18n/locales/de.json';
 import en from '../i18n/locales/en.json';
 import es from '../i18n/locales/es.json';
+import fr from '../i18n/locales/fr.json';
+import hi from '../i18n/locales/hi.json';
+import id from '../i18n/locales/id.json';
+import itLocale from '../i18n/locales/it.json';
+import ja from '../i18n/locales/ja.json';
+import pl from '../i18n/locales/pl.json';
+import ptBR from '../i18n/locales/pt-BR.json';
+import th from '../i18n/locales/th.json';
+import tr from '../i18n/locales/tr.json';
 
 function getKeys(obj: Record<string, unknown>, prefix = ''): string[] {
   return Object.entries(obj).flatMap(([key, value]) => {
@@ -17,29 +26,39 @@ function getKeys(obj: Record<string, unknown>, prefix = ''): string[] {
   });
 }
 
+const LOCALE_MAP: Record<string, Record<string, unknown>> = {
+  es,
+  de,
+  fr,
+  it: itLocale,
+  'pt-BR': ptBR,
+  ja,
+  hi,
+  th,
+  id,
+  tr,
+  pl,
+};
+
 describe('i18n', () => {
   afterEach(async () => {
     await i18n.changeLanguage('en');
   });
 
   it('initializes with English as fallback', () => {
-    const validLocales = ['en', 'es', 'de'];
-    expect(validLocales).toContain(i18n.language);
+    expect(i18n.language).toBe('en');
   });
 
-  it('all translation keys exist in Spanish', () => {
-    const enKeys = getKeys(en);
-    const esKeys = getKeys(es);
-    const missingKeys = enKeys.filter((key) => !esKeys.includes(key));
-    expect(missingKeys).toEqual([]);
-  });
+  // Test all locales have the same keys as English
+  const enKeys = getKeys(en as unknown as Record<string, unknown>);
 
-  it('all translation keys exist in German', () => {
-    const enKeys = getKeys(en);
-    const deKeys = getKeys(de);
-    const missingKeys = enKeys.filter((key) => !deKeys.includes(key));
-    expect(missingKeys).toEqual([]);
-  });
+  for (const [locale, translations] of Object.entries(LOCALE_MAP)) {
+    it(`all translation keys exist in ${locale}`, () => {
+      const localeKeys = getKeys(translations as Record<string, unknown>);
+      const missingKeys = enKeys.filter((key) => !localeKeys.includes(key));
+      expect(missingKeys).toEqual([]);
+    });
+  }
 
   it('can switch language to Spanish', async () => {
     await i18n.changeLanguage('es');
@@ -54,7 +73,6 @@ describe('i18n', () => {
   it('falls back to English for missing keys', async () => {
     const originalEs = i18n.getResourceBundle('es', 'translation');
     const modifiedEs = JSON.parse(JSON.stringify(originalEs));
-    // Remove a key to simulate a missing translation
     delete modifiedEs.auth.signIn;
     i18n.removeResourceBundle('es', 'translation');
     i18n.addResourceBundle('es', 'translation', modifiedEs);
@@ -62,7 +80,6 @@ describe('i18n', () => {
     await i18n.changeLanguage('es');
     expect(i18n.t('auth.signIn')).toBe('Sign In');
 
-    // Restore original resource bundle
     i18n.removeResourceBundle('es', 'translation');
     i18n.addResourceBundle('es', 'translation', originalEs);
   });

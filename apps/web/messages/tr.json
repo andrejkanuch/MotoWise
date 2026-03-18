@@ -1,0 +1,503 @@
+{
+  "Metadata": {
+    "title": "MotoVault — Yapay Zeka Destekli Motosiklet Teshis ve Ogrenme Uygulamasi",
+    "titleTemplate": "%s | MotoVault",
+    "description": "Motosiklet bakiminda ustalasin, bir fotoyla sorunlari teshis et ve motorunun sagligini takip et. Yakin zamanda basliyor — iOS ve Android'de ucretsiz.",
+    "ogDescription": "Motosiklet bakiminda ustalasin, bir fotoyla sorunlari teshis et ve motorunun sagligini takip et. Yakin zamanda basliyor — iOS ve Android'de ucretsiz."
+  },
+  "Navbar": {
+    "features": "Ozellikler",
+    "diagnostics": "Yapay Zeka Teshisi",
+    "learning": "Ogrenme",
+    "garage": "Garaj",
+    "faq": "SSS",
+    "download": "Uygulamayi Indir",
+    "login": "Giris Yap",
+    "openMenu": "Navigasyon menusunu ac",
+    "closeMenu": "Navigasyon menusunu kapat"
+  },
+  "Hero": {
+    "line1": "MOTORUNU OGREN.",
+    "line2": "TAMIR",
+    "line3": "ET.",
+    "subtitle": "Yapay zeka destekli motosiklet teshisi ve ogrenme — yakin zamanda basliyor.",
+    "downloadCta": "Uygulamayi Indir",
+    "exploreFeatures": "Ozellikleri Kesfet",
+    "scrollDown": "Asagi kaydir",
+    "seoTitle": "Yapay Zeka Destekli Motosiklet Teshis ve Ogrenme Uygulamasi"
+  },
+  "Features": {
+    "sectionLabel": "Ozellikler",
+    "sectionTitle": "Motorunun Ihtiyaci Olan Her Sey",
+    "sectionSubtitle": "Ogren, bakim yap ve motosikletinde ustalasin — hepsi tek uygulamada.",
+    "diag": {
+      "title": "Yapay Zeka Teshisi",
+      "tagline": "Foto cek. Cevap al.",
+      "description": "Kamerani herhangi bir parcaya, uyari isigina veya soruna dogrul. Yapay zekamiz parcalari tanir, sorunlari teshis eder ve cozumler onerir — saniyeler icinde.",
+      "badge": "< 5 sn"
+    },
+    "learn": {
+      "title": "Tamirci Becerileri",
+      "tagline": "Yag degisiminden motor revizyonuna.",
+      "description": "Motorunun, sushansiyonunun ve elektrik sisteminin nasil calistigini ogren — kisa dersler, testler ve gercek garaj gorevleriyle.",
+      "badge": "50+ ders"
+    },
+    "garage": {
+      "title": "Garaj Yonetimi",
+      "tagline": "Motorlarini takip et.",
+      "description": "Her motoru marka, model ve yila gore kaydet. Bakim kaydet, servis hatirlatmalari kur ve eksiksiz bir gecmis tut.",
+      "badge": "Sinirsiz motor"
+    },
+    "progress": {
+      "title": "Beceri Takibi",
+      "tagline": "Ne kadar ilerledigin gor.",
+      "description": "Ogrendikce seviye atla. Rozetler kazan, test puanlarini takip et ve gelisimini gor — ilk yag degisiminden tam bir motorcu olmaya.",
+      "badge": "Seviye atla"
+    },
+    "community": {
+      "title": "Topluluk",
+      "tagline": "Diger suruculere katil.",
+      "description": "Garajini paylas, ilerlemeni karsilastir ve her seviyedeki suruculerle birlikte ogren. Motosiklet bilgisi birlikte daha iyidir.",
+      "badge": "Yakin zamanda"
+    }
+  },
+  "SocialProof": {
+    "riders": "Bekleme Listesinde",
+    "ridersCount": "12.000+",
+    "diagnostics": "Motor Parcasi",
+    "diagnosticsCount": "500+",
+    "bikes": "Veritabanindaki Motor",
+    "bikesCount": "18.000+"
+  },
+  "HowItWorks": {
+    "sectionLabel": "Nasil Calisir",
+    "sectionTitle": "Nasil Calisir",
+    "sectionSubtitle": "Uc adim. Hepsi bu.",
+    "step1Title": "Motorunu Ekle",
+    "step1Desc": "Marka, model ve yila gore ara. Motor bilgilerin resmi veritabanindan otomatik olarak yuklenir.",
+    "step2Title": "Yapay Zeka Analizleri Al",
+    "step2Desc": "Herhangi bir parca veya sorunun fotografini cek. Yapay zekamiz parcalari tanir, sorunlari teshis eder ve cozumler onerir.",
+    "step3Title": "Daha Akilli Sur",
+    "step3Desc": "Akilli hatirlatmalarla bakimi takip et ve rehberli derslerle gercek beceriler kazan."
+  },
+  "Testimonials": {
+    "sectionLabel": "Kullanici Yorumlari",
+    "sectionTitle": "Motosiklet Suruculeri Ne Diyor",
+    "badge": "Erken Erisim",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "quote": "MotoVault, gormezden geldigim bir zincir gerilim sorununu teshis etti. Uzun bir suruste bozulmaktan kurtardi.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "quote": "Ogrenme yollari tamirate yeni baslayan biri icin mukemmel. MotoVault sayesinde kendi fren balatalarimi degistirdim.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "quote": "Tum bakim gecmisimi tek bir yerde tutmak oyunun kurallarini degistirdi. Artik son yag degisiminin ne zaman oldugunu tahmin etmek yok.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "quote": "Yapay zeka teshisi beni sasirtti. Kamerami bir uyari isigina yonelttim ve sorun saniyeler icinde aciklandi.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "quote": "Sonunda motosiklet bakimini ciddiye alan bir uygulama. Garaj ozelligi tek basina deger.",
+        "stars": 4
+      }
+    ]
+  },
+  "Cta": {
+    "socialProof": "Bekleme listesindeki binlerce surucuye katil",
+    "headline": "Motorunu Icinden Dis Tani",
+    "subtitle": "iOS ve Android'de lansman yaptigimizda ilk siraya gec.",
+    "trustFree": "Ucretsiz basla",
+    "trustNoCard": "Asla spam yok",
+    "disclaimer": "Yakin zamanda iOS ve Android'de.",
+    "emailPlaceholder": "senin@email.com",
+    "submitButton": "Bekleme Listesine Katil",
+    "submitting": "Yerin kaydediliyor...",
+    "successMessage": "Listedesin! Surme zamani geldiginde sana haber verecegiz.",
+    "successTagline": "Motorun bir elektronik tablodan daha fazlasini hak ediyor.",
+    "errorMessage": "Bir seyler yanlis gitti. Lutfen tekrar dene.",
+    "personality": "Motorun bir elektronik tablodan daha fazlasini hak ediyor."
+  },
+  "Faq": {
+    "sectionLabel": "SSS",
+    "sectionTitle": "Sikca Sorulan Sorular",
+    "items": [
+      {
+        "question": "MotoVault nedir?",
+        "answer": "MotoVault, motosiklet suruculeri icin olusturulmus yapay zeka destekli bir platformdur. Bakim ogrenmenize, foto cekerek sorunlari teshis etmenize, motorlarinizi dijital garajda takip etmenize ve dersler ile testlerle gercek mekanik beceriler kazanmaniza yardimci olur."
+      },
+      {
+        "question": "MotoVault ucretsiz mi?",
+        "answer": "Evet! MotoVault, temel ogrenme icerigi, garajinizda bir motor ve sinirli yapay zeka teshisi iceren ucretsiz bir katman sunar. Sinirsiz teshis, tum ogrenme icerigi ve sinirsiz motor icin uygulama icinden MotoVault Pro'ya yukseltebilirsiniz."
+      },
+      {
+        "question": "Hangi motosikletler destekleniyor?",
+        "answer": "MotoVault tum motosiklet marka ve modellerini destekler. Veritabanimiz resmi NHTSA arac verilerini kullanarak tum yillardaki binlerce marka ve modeli kapsar. Garajiniza eklerken motorunuzu aramaniz yeterlidir."
+      },
+      {
+        "question": "Yapay zeka teshisi nasil calisir?",
+        "answer": "Motosikletinizin herhangi bir parcasinin fotografini cekin ve sorunu aciklayin. Yapay zekamiz goruntuyu analiz eder ve ciddiyet derecelendirmesiyle — acil mudahale gerektiren kritik sorunlardan kucuk bakim onerilerine — bir teshis degerlendirmesi sunar."
+      },
+      {
+        "question": "Verilerim guvenli mi?",
+        "answer": "Verileriniz sifrelenir ve guvenli bir sekilde saklanir. Cihazinizda platform yerel guvenligini kullaniriz ve tum iletisim sifrelenir. Kisisel bilgilerinizi veya motor verilerinizi kimseyle paylasmayiz."
+      },
+      {
+        "question": "MotoVault Pro'ya neler dahil?",
+        "answer": "MotoVault Pro sinirsiz yapay zeka teshisi, tum ders ve kurslara erisim, garajinizda sinirsiz motor, oncelikli destek ve ozel icerik sunar. Uygulama icinden aylik veya yillik abone olabilirsiniz."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Urun",
+    "company": "Sirket",
+    "tagline": "Motorunu ogren. Motorunu tamir et.",
+    "copyright": "© 2026 MotoVault. Tum haklari saklidir.",
+    "features": "Ozellikler",
+    "learning": "Ogrenme Yollari",
+    "garage": "Garaj",
+    "download": "Uygulamayi Indir",
+    "faq": "SSS",
+    "support": "Destek",
+    "privacy": "Gizlilik",
+    "terms": "Kosullar",
+    "accountDeletion": "Hesap Silme",
+    "builtWithAi": "Yapay Zeka Destekli"
+  },
+  "Privacy": {
+    "title": "Gizlilik Politikasi",
+    "lastUpdated": "Son guncelleme: 14 Mart 2026",
+    "infoCollectTitle": "Topladigimiz Bilgiler",
+    "infoCollect": "MotoVault asagidaki bilgi turlerini toplar: (1) Kimlik Dogrulama Verileri — Supabase Auth (Google, Apple veya e-posta ile giris) araciligiyla e-posta adresi ve ad; (2) Motosiklet Verileri — garajiniza eklediginiz marka, model, yil, bakim gecmisi ve servis kayitlari; (3) Teshis Gorselleri — yapay zeka analizi icin yuklediginiz fotograflar; bunlar gercek zamanli islenip analiz sonrasi silinir; (4) Kullanim Analitikleri — hizmetleri iyilestirmek icin PostHog araciligiyla izlenen uygulama etkilesimleri ve ozellik kullanimi; (5) Cokme Raporlari — sorunlari teshis etmek ve duzeltemk icin Sentry tarafindan toplanan teknik hata verileri; (6) Cihaz Bilgileri — kimlik dogrulama ve uygulama islevi icin temel cihaz tanimlayicilari.",
+    "howWeUseTitle": "Bilgilerinizi Nasil Kullaniriz",
+    "howWeUse": "Bilgileriniz su amaclarla kullanilir: (1) Temel hizmetleri saglamak — hesap yonetimi, garaj islevi, yapay zeka teshisi ve ogrenme modulleri; (2) Urunleri iyilestirmek — ozellikleri ve kullanici deneyimini gelistirmek icin kullanim kaliplarini analiz etmek; (3) Dolandiricilik ve guvenlik tehditlerini onlemek — yetkisiz erisim ve supeli aktiviteyi tespit etmek; (4) Yasal yukumluluklere uymak — yasal taleplere yanit vermek ve kosullarimizi uygulamak; (5) Hizmet guncellemeleri gondermek — hesap degisiklikleri, yeni ozellikler ve onemli politika guncellemeleri hakkinda bildirimler. Kisisel bilgilerinizi pazarlama amaciyla ucuncu taraflara satmaz, kiralamaz veya paylasmayiz.",
+    "thirdPartyTitle": "Ucuncu Taraf Hizmetleri",
+    "thirdParty": "MotoVault asagidaki guvenilir hizmetlere dayanir: (1) Supabase — kurumsal sifreleme ile kimlik dogrulama, veritabani ve kullanici yonetimi; (2) Anthropic Claude AI — teshis gorsellerini isler ve analiz olusturur (gorseller saklanmaz); (3) Sentry — kararlilik iyilestirmek icin uygulama hatalarini ve cokmeleri izler; (4) PostHog — kullanici deneyimini optimize etmek icin ozellik kullanimi ve etkilesimi izler; (5) NHTSA — motosiklet marka/model/yil verileri saglar (kisisel veri paylasilmaz). Her hizmet saglayici siki veri koruma uygulamalari surdurur ve gecerli gizlilik yasalarina uyar.",
+    "dataRetentionTitle": "Veri Saklama",
+    "dataRetention": "Verilerinizi yalnizca gerekli oldugu surece saklariz: (1) Hesap verileri — hesabiniz aktifken ve silme sonrasi 90 gun boyunca saklanir; (2) Teshis gorselleri — yukleme sonrasi saatler icinde islenir ve silinir; gorselleri kalici olarak saklamayiz; (3) Kullanim analitikleri — egilimileri belirlemek icin 6 ay saklanir; (4) Cokme raporlari — sorunlari teshis etmek ve duzeltmek icin 30 gun saklanir; (5) Yedek kopyalar — felaket kurtarma icin 30 gun tutulur. Hesabinizin ve iliskili verilerinizin kalici olarak silinmesini istediginiz zaman talep edebilirsiniz.",
+    "securityTitle": "Veri Guvenligi",
+    "security": "MotoVault kurumsal duzeyde guvenlik onlemleri uygular: (1) Aktarim sirasinda sifreleme — tum veriler HTTPS/TLS uzerinden iletilir; (2) Durgunlukta sifreleme — hassas veriler veritabanlarinda sifrelenir; (3) Kimlik dogrulama — guvenli JWT tokenlari ag maruziyeti olmadan yerel olarak dogrulanir; (4) Guvenli depolama — kimlik dogrulama tokenlari mobilde platform yerel guvenli depolamada saklanir, asla AsyncStorage'da degil; (5) Erisim kontrolleri — personel icin siki rol tabanli erisim politikalari; (6) Duzeli denetimler — guvenlik uygulamalari duzeli olarak gozden gecirilir ve guncellenir. Guclu korumalar kullansak da hicbir sistem %100 guvenli degildir; uygun sigorta ve olay mudahale prosedurlerini surduruyoruz.",
+    "yourRightsTitle": "Haklariniz",
+    "yourRights": "GDPR (AB sakini) ve CCPA (Kaliforniya sakini) kapsaminda asagidaki haklara sahipsiniz: (1) Erisim Hakki — kisisel verilerinizin bir kopyasini talep etme; (2) Duzeltme Hakki — yanlis bilgileri duzeltme; (3) Silme Hakki — verilerinizin silinmesini talep etme (unutulma hakki); (4) Isleme Kisitlama Hakki — verilerinizin nasil kullanildigini sinirlandirma; (5) Veri Tasinabilirligi Hakki — verilerinizi yapilandirilmis, tasinabilir bir formatta alma; (6) Itiraz Hakki — pazarlama ve analitik dahil belirli islemeleri reddetme; (7) Onay Geri Cekme Hakki — belirli veri kullanimlari icin onceki onayi iptal etme. Kaliforniya sakinleri ayrica verilerinin satilip satilmadigini ogrenem ve toplanan verilerin silinmesini talep etme hakkina sahiptir. Bu haklardan herhangi birini kullanmak icin talebinizin ayrintilari ve kimlik dogrulamasi ile privacy@motovault.app adresine ulasin.",
+    "childrenPrivacyTitle": "Cocuk Gizliligi",
+    "childrenPrivacy": "MotoVault 13 yasindan kucuk kullanicilar icin tasarlanmamistir. 13 yasindan kucuk cocuklardan bilerek kisisel bilgi toplamayiz. Boyle bir bilgi topladigimizi ogrenirsek, derhal sileriz ve daha fazla toplama onlemek icin adimlar atariz. Veri topladigimiza inanan ebeveynler veya vasiler derhal privacy@motovault.app adresinden bizimle iletisime gecmelidir.",
+    "internationalTransfersTitle": "Uluslararasi Veri Transferleri",
+    "internationalTransfers": "MotoVault kuresel olarak faaliyet gosterir. Verileriniz, ikamet ulkeniz disindaki ulkelere, ABD dahil, aktarilabilir, saklanabilir ve islenebilir. Bu ulkeler, kendi ulkenizle ayni duzeyde veri korumasi saglamayabilir. MotoVault'u kullanarak, bu politikada aciklanan amaclarla bilgilerinizin ikamet ulkeniz disindaki ulkelere aktarilmasina izin verirsiniz. Uluslararasi veri transferleri icin yeterli korumayi saglamak amaciyla standart sozlesmeli maddeler ve diger mekanizmalar uyguluyoruz.",
+    "accountDeletionTitle": "Hesap Silme",
+    "accountDeletion": "Hesabinizi silebilir ve kisisel verilerinizin kalici olarak kaldirilmasini istediginiz zaman talep edebilirsiniz. Bunu yapmak icin: (1) MotoVault hesabiniza giris yapin; (2) Ayarlar > Gizlilik ve Veri'ye gidin; (3) 'Hesabimi Sil' secenegini secin; (4) Silmeyi onaylayin (bu islem geri alinamaz). E-postaniz, kisisel bilgileriniz ve garaj verileriniz 90 gun icinde sistemlerimizden kalici olarak silinecektir. Bazi veriler yasal gereklilikler veya anonimlestionrilmis/toplastirilmis bicimde analitik amaciyla daha uzun sure saklanabilir.",
+    "changesTitle": "Bu Politikadaki Degisiklikler",
+    "changes": "MotoVault, yeni ozellikleri, hizmetleri veya yasal gereklilikleri yansitmak icin bu Gizlilik Politikasini guncelleyebilir. Onemli degisiklikler hakkinda sizi e-posta veya web sitemizde belirgin bir bildirim gostererek bilgilendireceqiz. Degisiklikler yururluge girdikten sonra MotoVault'u kullanmaya devam etmeniz, guncellenmis politikanin kabulunu olusturur. Bilgilerinizi nasil korudugumuzu ogrenmeniz icin bu politikayi duzeli olarak incelemenizi oneririz.",
+    "contactTitle": "Bize Ulasin",
+    "contact": "Gizliliginiiz, veri eriisiminiz veya GDPR/CCPA kapsamindaki haklarinizi kullanmakla ilgili sorulariniz, endiseleriniz veya talepleriniz icin lutfen iletisime gecin: MotoVault Gizlilik Ekibi, E-posta: privacy@motovault.app. Gecerli yasa geregi gecerli taleplere 30 gun icinde yanit verecegiz. AB veya Kaliforniya sakini iseniz ve gizlilik haklarinizin ihlal edildigine inaniyorsaniz, yerel veri koruma otoritenize veya Kaliforniya Basbakana sikayet etme hakkiniz da vardir."
+  },
+  "Terms": {
+    "title": "Kullanim Kosullari",
+    "lastUpdated": "Son guncelleme: 14 Mart 2026",
+    "acceptanceTitle": "1. Kosullarin Kabulu",
+    "acceptance": "MotoVault'a eriserek veya kullanarak, bu Kullanim Kosullarina ve tum gecerli yasalara ve duzenlemelere bagli olmayi kabul edersiniz. Bu kosullardan herhangi birine uymamyi kabul etmezseniz, bu hizmeti kullanmaniz veya erismeniz yasaklanmistir.",
+    "serviceDescriptionTitle": "2. Hizmet Tanimi",
+    "serviceDescription": "MotoVault, motosiklet meraklilari icin tasarlanmis yapay zeka destekli bir motosiklet ogrenme ve teshis platformudur. Hizmet egitim icerigi, yapilandirilmis ogrenme yollari, yapay zeka destekli foto teshis, garaj yonetim araclari, ilerleme takibi ve topluluk ozelliklerini icerir. MotoVault Pro, aylik ve yillik faturalandirma secenekleriyle bir abonelik hizmeti olarak sunulmaktadir.",
+    "accountsTitle": "3. Kullanici Hesaplari",
+    "accounts": "Hesap kimlik bilgilerinizin gizliligini korumaktan ve hesabiniz altinda gerceklesen tum faaliyetlerden siz sorumlusunuz. Hesabinizi olustururken dogru, eksiksiz ve guncel bilgiler saglamayi ve gerektiginde bilgilerinizi guncellemeyi kabul edersiniz. Hesabinizin yetkisiz kullanimini veya herhangi bir guvenlik ihlalini derhal bize bildirmelisiniz.",
+    "subscriptionsTitle": "4. Abonelikler ve Uygulama Ici Satin Almalar",
+    "subscriptions": "MotoVault Pro abonelikleri iOS ve Android'de uygulama ici satin almalar araciligiyla sunulmaktadir. Tum abonelikler, mevcut faturalandirma donemi sona ermeden iptal edilmedikce otomatik yenilemeye tabidir. Iptalin uygulama uzerinden degil, App Store (Apple) veya Google Play (Android) uzerinden tamamlanmasi gerektigini anliyorsunuz. Fiyatlandirma, faturalandirma donemleri ve yenileme kosullari satin alma oncesinde uygulamada gosterilir. Iadeler ilgili uygulama magazasinin politikalarina tabidir. Abonelik satin alarak, uygulama magazasinin odeme yonteeminize tekrarlayan bazda ucret kesmesine izin verirsiniz.",
+    "aiDisclaimerTitle": "5. Yapay Zeka Icerigi Feragatnamesi",
+    "aiDisclaimer": "MotoVault, egitim icerigi, teshis degerlendirmeleri ve ogrenme materyalleri olusturmak icin yapay zeka (Anthropic tarafindan Claude) kullanmaktadir. Tum yapay zeka tarafindan olusturulan icerik yalnizca egitim ve bilgilendirme amaciyla saglanmakta olup profesyonel mekanik, teknik veya muhendislik tavsiyesi teskil etmez. Yapay zeka teshis sonuclari, modelin kesinlik derecesini gosteren bir guven puani icerir — sonuclar bu puan baglaminda yorumlanmalidir. MotoVault, yapay zeka tarafindan olusturulan icerik veya teshis degerlendirmelerinin dogrulugunu, eksiksizligini veya guvenilirligini garanti etmez. Herhangi bir onarim yapmadan once, guvenlik acisindani kritik konularda ve yapay zeka tarafindan olusturulan herhangi bir rehberligi dogrulamak icin her zaman nitelikli bir motosiklet tamircisine danismaniz gerekir. MotoVault'un yapay zeka ozelliklerini kullanarak bu sinirlamalari kabul edersiniz.",
+    "ipTitle": "6. Fikri Mulkiyet",
+    "ip": "MotoVault'un tum icerigi, ozellikleri, grafikleri, tasarimlari ve islevi MotoVault'a veya icerik saglayicilarina aittir ve telif hakki, ticari marka ve diger fikri mulkiyet yasalariyla korunmaktadir. Ogrenme icerigi, kurslar, testler ve egitim materyalleri MotoVault'tan onceden yazili izin alinmadan herhangi bir bicimde cogaltilamaz, dagitilmaz veya iletilemez.",
+    "userContentTitle": "7. Kullanici Icerigi",
+    "userContent": "Teshis amaciyla MotoVault'a fotograf veya diger icerik yuklediginizde, MotoVault'a hizmeti saglamak icin bu icerigi kullanma, isleme ve analiz etme konusunda muanhasir olmayan bir lisans verirsiniz. Yuklenen fotograflar yapay zeka analizi icin islenir ve izniniz olmadan kalici olarak saklanmaz. Yuklediginiz herhangi bir icerigin sahibi oldugunuzdan veya kullanma hakkiniz oldugundan ve yuklemelerinizin herhangi bir ucuncu taraf hakkini, yasayi veya duzenlemeleri ihlal etmediginden emin olmaktan siz sorumlusunuz.",
+    "prohibitedUsesTitle": "8. Yasakli Kullanimlar",
+    "prohibitedUses": "MotoVault'u herhangi bir yasa disi amac icin veya bu Kullanim Kosullarini ihlal eden herhangi bir sekilde kullanmamayi kabul edersiniz. Yasakli kullanimlar sunlardir: tersine muhendislik, yetkisiz erisim elde etmeye calisma, izinimiz olmadan hizmeti ticari amacla kullanma, zararli yazilim veya zararli icerik yukleme, diger kullanicilari taciz etme veya istismar etme, baska birinin kimligine burunme veya gecerli yasa veya duzenlemeleri ihlal etme.",
+    "terminationTitle": "9. Fesih",
+    "termination": "MotoVault, bu Kullanim Kosullarini ihlal ettiginize, yasakli davranislarda bulundugunuza veya tamamen kendi takdirimize bagli herhangi bir nedenle, sebepli veya sebepsiz, bildirmili veya bildirimisiz olarak hesabinizi ve hizmete erisinminizi askiya alma veya feshetme hakkini sakli tutar. Fesih uzerine, hizmeti kullanma hakkiniz derhal sona erer.",
+    "liabilityTitle": "10. Sorumluluk Sinirlamasi",
+    "liability": "MotoVault, acik veya zimni herhangi bir garanti olmaksizin \"oldugu gibi\" ve \"mevcut oldugu sekliyle\" saglanmaktadir. MotoVault, hizmetin kesintisiz, hatasiz veya virus veya diger zararli bilesenlerden arinmis olacagini garanti etmez. Yasalarin izin verdigi azami olcude, MotoVault, hizmeti kullanmanizdan veya kullanamamanizdan kaynaklanan dolayli, arizi, ozel, sonuc olarak ortaya cikan veya cezai tazminatlardan, MotoVault bu tur zararlarin olasiligi konusunda bilgilendirilmis olsa bile, sorumlu olmayacaktir.",
+    "indemnificationTitle": "11. Tazminat",
+    "indemnification": "Hizmeti kullanmanizdan, bu Kullanim Kosullarini ihlal etmenizden veya herhangi bir ucuncu taraf hakkini ihlal etmenizden kaynaklanan tum taleplerden, zararlardan, kayiplardan, yukumluluklerden ve masraflardan MotoVault'u ve yetkililerini, yoneticilerini, calisanlarini ve temsilcilerini zararsiz tutmak icin tazmin etmeyi, savunmayi ve korumayai kabul edersiniz. Bu, yuklediginiz icerikle veya yapay zeka tarafindan olusturulan teshislere guvenmenizle ilgili talepleri icerir.",
+    "governingLawTitle": "12. Gecerli Hukuk ve Yargi Yetkisi",
+    "governingLaw": "Bu Kullanim Kosullari, kanun ihtilafi ilkeleri dikkate alinmaksizin, Slovak Cumhuriyeti (Slovakya), Avrupa Birligi yasalarina gore yonetilir ve yorumlanir. Bu Kullanim Kosullarindan veya MotoVault kullaniminizdan kaynaklanan herhangi bir anlasmmaazligin cozumu icin Slovakya'daki mahkemelerin munhasir yargi yetkisine tabi olmayi kabul edersiniz.",
+    "disputeResolutionTitle": "13. Uyusmazlik Cozumu",
+    "disputeResolution": "Herhangi bir hukuki islem baslatmadan once, konunun yazili bir aciklamasiyla support@motovault.app adresine basvurarak herhangi bir anlasmmazligi cozmeye calismayi kabul edersiniz. Anlasmmazlik otuz (30) gun icinde cozulemezse, taraflardan herhangi biri yukaridaki Gecerli Hukuk bolumune uygun olarak yasal yollara basvurabilir.",
+    "modificationsTitle": "14. Kosullardaki Degisiklikler",
+    "modifications": "MotoVault, bu Kullanim Kosullarini herhangi bir zamanda degistirme hakkini sakli tutar. Degisiklikler hizmette yayinlanmasiyla yururluge girecektir ve herhangi bir degisiklikten sonra MotoVault'u kullanmaya devam etmeniz, guncellenmis kosullarin kabulunu olusturur. Onemli degisiklikleri e-posta veya hizmet araciligiyla size bildirecegia.",
+    "contactTitle": "15. Bize Ulasin",
+    "contact": "Bu Kullanim Kosullari hakkinda herhangi bir sorunuz varsa, lutfen support@motovault.app adresinden bize ulasin. MotoVault, Slovakya, Avrupa Birligi merkezlidir."
+  },
+  "Support": {
+    "title": "Yardim ve Destek",
+    "subtitle": "MotoVault'tan en iyi sekilde yararlanmaniza yardimci olmak icin buradayiz.",
+    "contactTitle": "Bize Ulasin",
+    "contactDescription": "Bir sorunuz mu var veya yardima mi ihtiyaciniz var? Destek ekibimiz size yardimci olmaya hazir.",
+    "emailLabel": "E-posta",
+    "responseTimeLabel": "Yanit suresi",
+    "responseTime": "Is gunlerinde 24 saat icinde",
+    "faqTitle": "Sikca Sorulan Sorular",
+    "faq1Question": "Garajima motosiklet nasil eklerim?",
+    "faq1Answer": "Garaj sekmesine gidin, + dügmesine dokunun ve motosikletinizi marka, model ve yila gore arayin. Motor bilgileriniz resmi veritabanindan otomatik olarak yuklenir.",
+    "faq2Question": "Yapay zeka teshisi nasil calisir?",
+    "faq2Answer": "Motosikletinizin herhangi bir parcasinin fotografini cekin veya belirtilerinizi aciklayin. Yapay zekamiz goruntuyu analiz eder ve ciddiyet derecelendirmesi ile onerilen eylemlerle bir teshis degerlendirmesi saglar.",
+    "faq3Question": "MotoVault ucretsiz mi?",
+    "faq3Answer": "Evet! MotoVault, temel ogrenme icerigi, garajinizda bir motor ve sinirli yapay zeka teshisi iceren ucretsiz bir katman sunar. Tum ozelliklere sinirsiz erisim icin MotoVault Pro'ya yukseltin.",
+    "faq4Question": "Aboneligimi nasil iptal ederim?",
+    "faq4Answer": "MotoVault Pro abonelikleri App Store (iOS) veya Google Play (Android) uzerinden yonetilir. Planininzi iptal etmek veya yonetmek icin cihazinizin abonelik ayarlarina gidin.",
+    "faq5Question": "Hesabimi silebilir miyim?",
+    "faq5Answer": "Evet. Hesabinizi uygulama icinde Ayarlar > Gizlilik ve Veri > Hesabimi Sil'den silebilir veya daha fazla bilgi icin Hesap Silme sayfamizi ziyaret edebilirsiniz.",
+    "faq6Question": "Hangi motosikletler destekleniyor?",
+    "faq6Answer": "MotoVault, resmi NHTSA arac verilerini kullanarak tum motosiklet marka ve modellerini destekler ve tum yillardaki binlerce marka ve modeli kapsar.",
+    "bugReportTitle": "Hata Bildir",
+    "bugReportDescription": "Duzgun calismiayan bir sey mi buldunuz? Sorunun aciklamasi, cihaz modeliniz ve uygulama surumuyle birlikte support@motovault.app adresine e-posta gonderin. Ekran goruntuleri faydalidir!",
+    "featureRequestTitle": "Ozellik Istekleri",
+    "featureRequestDescription": "MotoVault icin bir fikriniz mi var? Duymak isteriz! Onerilerinizi support@motovault.app adresine gonderin, ekibimiz inceleyecektir."
+  },
+  "AccountDeletion": {
+    "title": "Hesap Silme",
+    "subtitle": "MotoVault hesabinizi ve verilerinizi kalici olarak nasil sileceginiizi ogrennin.",
+    "howToDeleteTitle": "Hesabinizi Nasil Silersiniz",
+    "howToDeleteIntro": "MotoVault hesabinizi dogrudan uygulamadan silebilirsiniz:",
+    "step1": "MotoVault'u acin ve Profil sekmesine gidin.",
+    "step2": "Ayarlar > Gizlilik ve Veri'ye gidin.",
+    "step3": "\"Hesabimi Sil\" secenegine dokunun.",
+    "step4": "Silmeyi onaylayin. Bu islem kalici olup geri alinamaz.",
+    "whatDeletedTitle": "Neler Silinir",
+    "whatDeletedDescription": "Hesabinizi sildiginizde asagidaki veriler kalici olarak kaldirilir:",
+    "deletedItem1": "E-posta adresiniz ve profil bilgileriniz",
+    "deletedItem2": "Garajinizdaki tum motosikletler ve bakim gecmisleri",
+    "deletedItem3": "Ogrenme ilerlemeniz, test puanlariniz ve kazandiginiz rozetler",
+    "deletedItem4": "Yapay zeka teshis gecmisi ve yuklenen fotograflar",
+    "deletedItem5": "Tum tercihler ve ayarlar",
+    "retentionTitle": "Silme Sonrasi Veri Saklama",
+    "retentionDescription": "Verileriniz aktif sistemlerimizden 30 gun icinde kalici olarak silinecektir. Yedek kopyalar 90 gun icinde kaldirilir. Bazi veriler analitik amaciyla anonimlestionrilmis, toplastirilmis bicimde veya yasal gereklilik nedeniyle daha uzun sure saklanabilir.",
+    "alternativeTitle": "Alternatif: E-posta Talebi",
+    "alternativeDescription": "Uygulamaya erisemediyseniz, hesabinizla iliskili e-posta adresinden privacy@motovault.app adresine e-posta gondererek hesap silme talebinde bulunabilirsiniz. Konu satirina \"Hesap Silme Talebi\" yazin. Talebinizi 30 gun icinde isleyecegiz.",
+    "contactTitle": "Sorulariniz mi var?",
+    "contactDescription": "Hesap silme veya veri gizliligi hakkinda herhangi bir sorunuz icin bize ulasin:"
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "Bu sayfa mevcut degil.",
+    "backHome": "Ana Sayfaya Don"
+  },
+  "Error": {
+    "title": "Bir seyler yanlis gitti",
+    "message": "Beklenmeyen bir hatayla karsilastik. Lutfen tekrar deneyin.",
+    "retry": "Tekrar dene"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Dil sec",
+    "en": "English",
+    "es": "Espanol",
+    "de": "Deutsch",
+    "fr": "Francais",
+    "it": "Italiano"
+  },
+  "Blog": {
+    "title": "Motosiklet Bakim Blogu",
+    "description": "Motosiklet bakimi, yapay zeka teshisi ve surus ipuclari hakkinda uzman rehberler. Motorunuzu bir profesyonel gibi bakim yapmayi ve teshis etmeyi ogrenin.",
+    "readMore": "Devamini oku",
+    "readingTime": "dk okuma",
+    "publishedOn": "Yayin tarihi",
+    "backToBlog": "Tum makalelere don",
+    "by": "Yazan",
+    "relatedArticles": "Ilgili Makaleler"
+  },
+  "JsonLd": {
+    "organizationName": "MotoVault",
+    "organizationDescription": "Yapay zeka destekli motosiklet ogrenme ve teshis platformu"
+  },
+  "FeaturesDiagnostics": {
+    "title": "Yapay Zeka Motosiklet Teshisi",
+    "description": "Motosiklet sorunuzun bir fotografini cekin ve saniyeler icinde yapay zeka destekli bir teshis alin. 18.000'den fazla motor modeli desteklenir.",
+    "heroTitle": "Yapay Zeka Destekli Motosiklet Teshisi",
+    "heroSubtitle": "Kameranizi herhangi bir parcaya, uyari isigina veya soruna dogrul. Yapay zekamiz sorunu belirler ve cozumler onerir — saniyeler icinde.",
+    "howItWorksTitle": "Nasil Calisir",
+    "step1Title": "Foto Cek",
+    "step1Desc": "Teshis etmek istediginiz motosiklet parcasinin, uyari isiginin veya sorunun fotografini cekin.",
+    "step2Title": "Yapay Zeka Analiz Eder",
+    "step2Desc": "Yapay zekamiz goruntuyu isler, parcalari tanir ve belirli motor modeliniz icin bilinen sorunlarla carapraz referans yapar.",
+    "step3Title": "Teshisini Al",
+    "step3Desc": "Ciddiyet derecelendirmesi, onerilen eylemler ve tahmini onarim maliyetleriyle detayli bir teshis alin.",
+    "issuesTitle": "Neleri Teshis Edebiliriz",
+    "issue1": "Uyari isiklari ve gosterge paneli sembolleri",
+    "issue2": "Motor ve mekanik sorunlar",
+    "issue3": "Elektrik sistemi problemleri",
+    "issue4": "Fren ve sushansiyon asinmasi",
+    "issue5": "Zincir ve aktarma durumu",
+    "issue6": "Lastik asinmasi ve basinc sorunlari",
+    "issue7": "Sivi sizintilari ve seviyeleri",
+    "issue8": "Korozyon ve govde hasari",
+    "faq": [
+      {
+        "question": "OBD olmadan yapay zeka motosiklet teshisi nasil calisir?",
+        "answer": "MotoVault, yapay zeka ile desteklenen gelismis foto tabanli teshis kullanir. Sorunun fotografini cekin veya belirtilerinizi aciklayin, yapay zekamiz parcalari tanimlamak, asinma kaliplarini tespit etmek, sivi sizintilarini bulmak ve hasar siddetini degerlendirmek icin goruntuyu analiz eder. Bir OBD port uzerinden hata kodlarini okuyan OBD tarayicilarinin aksine, MotoVault gorsel tanim kullaniyor — yani yas veya markadan bagimsiz olarak her motosikleide calisir, adaptore veya kabloya ihtiyac yoktur."
+      },
+      {
+        "question": "MotoVault hangi motosiklet sorunlarini teshis edebilir?",
+        "answer": "MotoVault, motor sorunlari (asinma, yag sizintilari, olagan disi sesler), elektrik sistemi arizalari (bos aku, hatali kablolama, yanmis sigorta), fren asinmasi ve balata kalinligi, lastik durumu ve dis derinligi, sushansiyon sizintilari ve çökmesi, zincir gerilmi ve disli asinmasi, sivi sizintilari ve kontaminasyonu, korozyon ve govde hasari ile gosterge paneli uyari isiklari dahil genis bir yelpazeyi teshis edebilir. Her teshis, neyin acil dikkat gerektirdigini bilmeniz icin bir ciddiyet derecelendirmesi icerir."
+      },
+      {
+        "question": "Yapay zeka motosiklet teshisi dogru mu?",
+        "answer": "MotoVault'un yapay zekasi, gorsel analiz ve binlerce bilinen sorunla carpiraz referans yoluyla yuksek dogrulukta ilk degerlendirmeler saglar. Her teshis, yapay zekanin kesinlik seviyesini gosteren bir guven puaniyla birlikte gelir. Fren arizasi veya yapisal hasar gibi kritik guvenlik sorunlari icin, her zaman nitelikli bir tamirci ile dogrulanmasini oneririz. MotoVault'u sorunlari anlamaniza yardimci olan bilgili bir surus arkadasi olarak dusunun — en onemli anlarda profesyonel servisin yerini almaz."
+      },
+      {
+        "question": "Yapay zeka teshisi icin ozel ekipmana ihtiyacim var mi?",
+        "answer": "Ozel bir ekipmana gerek yok — sadece akilli telefonunuzun kamerasi yeterli. MotoVault, zaten cebinizde olan kamerayla calismak uzere tasarlanmistir. Parca veya sorunun net, iyi aydinlatilmis bir fotografini cekin, gerisini yapay zeka halleder. OBD adaptoru yok, Bluetooth dongle'i yok, tescilli alet yok. Bu, MotoVault'u teknik deneyim veya butceden bagimsiz olarak her surucuye erisilebilir kilar."
+      },
+      {
+        "question": "MotoVault'un OBD2 tarayicilardan farki nedir?",
+        "answer": "Geleneksel OBD2 tarayicilari yalnizca OBD portuna sahip motorlarda (cogunlukla yeni modeller) calisir, fiziksel bir adaptor gerektirir ve yalnizca kayitli hata kodlarini okuyabilir. MotoVault herhangi bir motosiklette — klasik, modern, karburatorlu veya yakit enjeksiyonlu — calisir cunku elektronik port okuma yerine gorsel yapay zeka analizi kullanir. OBD tarayicilarin tamamen kacirdigi fiziksel asinma, korozyon, sivi sizintilari ve lastik durumu gibi sorunlari tanimlayabilir. Ayrica MotoVault, karisik hata kodlari yerine sade dilde aciklamalar saglar."
+      }
+    ],
+    "longFormTitle": "Yapay Zeka Motosiklet Teshisi Nasil Calisir: Kapsamli Rehber",
+    "longFormIntro": "Motosiklet teshisi geleneksel olarak ozel aletlere sahip deneyimli tamircilerin alaniydi. MotoVault, yapay zeka destekli teshis yeteneklerini dogrudan cebinize koyarak bunu degistiriyor. Yillardir anahtar kullanan deneyimli bir surucu olun veya ilk motorunu yeni almis yeni bir surucu olun, MotoVault'un yapay zeka teshisi motosikletinizde neler oldugunu anlamaniza yardimci olur — hizli, dogru ve pahali ekipman olmadan.",
+    "longFormHowTitle": "Fotodan Teshise Saniyeler Icinde",
+    "longFormHow": "Surec basittir. MotoVault'u acin, kameranizi analiz etmek istediginiz parcaya veya soruna dogrul ve bir fotograf cekin. Ayrica fark ettiginiz belirtileri de anlatabilirsiniz — olagan disi sesler, titresimler veya performans degisiklikleri. Yapay zeka motorumuz, gelismis bilgisayar gorusu kullanarak goruntuyu isler, parcalari tanir, asinma kaliplarini tespit eder ve belirli motosiklet markaniz, modeliniz ve yiliniiz icin bilinen sorunlarla carpiraz referans yapar. Saniyeler icinde sorunun ne oldugunu, kucukten kritike bir olcekte ne kadar ciddi oldugunu, onerilen sonraki adimlari ve tahmini onarim maliyetlerini iceren detayli bir teshis alirsiniz. Yapay zeka, 18.000'den fazla motor modelini kapsayan kapsamli bir motosiklete ozgu bilgi veritabanindan yararlanir.",
+    "longFormExamplesTitle": "Gercek Dunya Teshis Ornekleri",
+    "longFormExamples": "Suruculer MotoVault teshisini sayisiz gercek dunya senaryosunda kullaniyor. Bir surucu park halindeki motorunun altinda bir birikinti fark ediyor — bir fotograf cekiyor ve MotoVault bunu su pompasi contasindan kaynaklanan orta ciddiyette bir antifriz sizintisi olarak taniyor ve bir sonraki uzun yoldan once contanin degistirilmesini oneriyor. Baska bir surucu tanimadigi bir gosterge paneli uyari isigi goruyor — hizli bir fotograf, bunu buyuk olasilikla kirli hava filtresinden kaynaklanan zayin yakit karisimi gostergesi olarak belirliyor. Satin aldigi ikinci el motoru inceleyen yeni bir surucu zinciri fotografliyor — MotoVault asiri uzamayi ve asinmis disli dislerini tespit ederek tam bir zincir ve disli degisimi oneriyor. Bunlar, cebinizde bir yapay zeka tamircisi olmanin zaman, para kazandirdigi ve arizalari onledigi gunluk durumlardir.",
+    "longFormComparisonTitle": "Yapay Zeka Teshisi vs. Geleneksel Aletler",
+    "longFormComparison": "Geleneksel motosiklet teshisi OBD2 tarayicilarina (uyumlu portlara sahip yeni motorlarla sinirli), elektrik testi icin multimereler ve deneyimli bir tamircinin egitimli gozune dayanir. MotoVault bu araclarin tamamen yerini almaz — bunun yerine erisilebilir bir ilk teshis hatti saglayarak onlari tamamlar. Bir OBD tarayici kayitli hata kodlarini okurken, MotoVault hata kodu olmayan sorunlari gorsel olarak tanir: asinmis fren balatalari, koroze terminaller, sizinti yapan amartisör kecileri veya ayarlanmasi gereken zincir. Bir tamirci sorunlari tespit etmek icin yillarlik deneyimini kullanirken, MotoVault size benzer duzeyde bakis acisi saglamak icin binlerce motosiklet sorunuyla egitilmis yapay zekayi kullanir. Sonuc, motosikletinizin sagligi hakkinda daha hizli, daha bilinclii kararlardir — ister kendiniz tamir edin ister sorunu net bir sekilde anlayarak servise goturun."
+  },
+  "FeaturesLearning": {
+    "title": "Motosiklet Ogrenme Yollari ve Testler",
+    "description": "Yapilandirilmis kurslar, interaktif testler ve ilerleme takibiyle motosiklet bakiminda ustalasin. Temelden ileriye.",
+    "heroTitle": "Motosiklet Bakimini Ogren",
+    "heroSubtitle": "Yapilandirilmis kurslar, interaktif testler ve uygulamali gorevler — baslangicindan uzmana.",
+    "coursesTitle": "Mevcut Kurslar",
+    "course1Title": "Motor Ic Yapisi",
+    "course1Desc": "Motorunuzun nasil calistigini anlayin — yanma temellerinden supap zamanlamasina ve yaygin ariza noktaalarina.",
+    "course2Title": "Sushansiyon Ayari",
+    "course2Desc": "On yukleme, geri tepme ve sikistirma ayarlarini ogrenin. Sushansiyonunuzu surus tarziniza gore ayarlayin.",
+    "course3Title": "Elektrik Sistemleri",
+    "course3Desc": "Aku bakimi, sigorta teshisi, marsbasi sorun giderme ve kablolama temellerinde ustalasin.",
+    "course4Title": "Rutin Bakim",
+    "course4Desc": "Yag degisimi, zincir bakimi, fren kontrolu, lastik basinci — duzeli bakmin icin her sey.",
+    "quizTitle": "Bilgini Test Et",
+    "quizDesc": "Her dersten sonra interaktif testler. Puanlarini takip et, rozetler kazan ve gercek uzmanlik olustur.",
+    "faq": [
+      {
+        "question": "Ogrenme yollarinda hangi konular islenir?",
+        "answer": "MotoVault'un ogrenme yollari, yag degisimi ve sivi yonetimi, fren balatasi kontrolu ve degisimi, zincir temizligi, yaglama ve ayari, lastik bakimi ve basinc takibi, elektrik sistemi temelleri ve aku bakimi, mevsimlik hazirlik ve depolama, sushansiyon kurulumu ve ayari ve motor temelleri dahil kapsamli bir motosiklet bakim konusu yelpazesini kapsar. Surucu geri bildirimleri ve guncel konulara gore duzeli olarak yeni kurslar eklenir."
+      },
+      {
+        "question": "Bu mekanik deneyimi olmayan yeni baslayanlar icin uygun mu?",
+        "answer": "Kesinlikle. MotoVault'un ogrenme yollari, temelden baslayan yapilandirilmis bir ilerleme ile tasarlanmistir. Onceden herhangi bir mekanik deneyime ihtiyaciniz yoktur. Her kurs temel kavramlarla baslar — parcalarin ne olduğu, neden önemlii oldugu ve nasil calisstigi — ardindan uygulamali bakim gorevlerine ilerler. Gorsel rehberler, adim adim talimatlar ve yapay zeka destekli aciklamalar, her islemin arkasindaki 'neden'i her zaman anlamanizi saglar."
+      },
+      {
+        "question": "Her ders ne kadar surer?",
+        "answer": "Derslerin cogu 5 ila 15 dakika arasinda surecek sekilde tasarlanmistir, bu da yogun bir programda kolayca sığdirmayı saglar. Kisa dersler tek kavramlari veya hizli ipuclarini kapsar, uzun dersler daha detayli rehberler ve uygulamali alistirmalar icerir. Istediginiz zaman duraklatabilir ve devam edebilirsiniz — ilerlemeniz otomatik olarak kaydedilir."
+      },
+      {
+        "question": "Pratik alistirmalar dahil mi?",
+        "answer": "Evet. Bircok ders, kendi motosikletinizde gercek bakim islemlerini adim adim gösteren rehberli uygulamali gorevler icerir. Bu pratik alistirmalar adim adim fotograf rehberlerini, guvenlik kontrol listelerini, alet listelerini ve beklenen sonuclari icerir, boylece ne yapacaginizi ve neye bakacaginizi tam olarak bilirsiniz. Pratik alistirmalari tamamlamak bonus ilerleme puanlari ve basari rozetleri kazandirir."
+      },
+      {
+        "question": "Ogrenme ilerlemeemi takip edebilir miyim?",
+        "answer": "Evet. MotoVault, ogrenme yolculugunuzu gorsellistiren beceri agaclari, her kurs ve modul icin tamamlanma yuzdeleri, test puanlari ve performans gecmisi, kilometre taslari icin basari rozetleri ve motivasyonunuzu korumak icin ogrenme serileri iceren tam bir ilerleme takip sistemi icerir. Tam olarak nerede oldugunuzu ve sırada hangi konulara odaklanmaniz gerektigini gorebilirsiniz."
+      }
+    ],
+    "longFormTitle": "Yapilandirilmis Motosiklet Ogrenmi: Baslangictan Uzmana",
+    "longFormIntro": "Motosiklet bakimi ogrenimek bunaltici hissettirmemeli. MotoVault'un ogrenme yollari, karmasik mekanik bilgiyi, sizi tam bir yeni baslayanidan guevenli bir ev tamircisine goturen sindirilibilir, yapilandirilmis kurslara böler. Yag degisimi ve zincir ayari gibi temel bakimi yapmak veya motor ic yapisi ve sushansiyon ayarina daha derinlemesine dalmak isteyin, beceri seviyeniz icin tasarlanmis bir yol vardir.",
+    "longFormCurriculumTitle": "Mufredat Genel Bakisi",
+    "longFormCurriculum": "MotoVault mufredati ilerici ogrenme modullerine duzenlenmistir. Rutin Bakim, her surucunun bilmesi gereken temelleri kapsar: yag ve filtre degisimi, zincir temizligi ve ayari, fren balatasi kontrolu, antifriz kontrolleri ve lastik basinci takibi. Motor Ic Yapisi, motosikletinizin guc unitesinin nasil calistigina daha derinlemesine gider — yanma donguleri, supap zamanlamasi, sogutma sistemleri ve motor sorunlarinin erken isaaretlerini nasil taniyacaginiz. Elektrik Sistemleri, akuuleri, sarj sistemlerini, sigortalari, marsbasi motorlarini ve temel kablolaamayi — cogu surucunun kendini en az guvenli hissettigi alani — gizemden cikarir. Sushansiyon Ayari, agirliginiz ve surus tarziniz icin on yukleme, geri tepme ve sikistirmayi ayarlamanizi ogreterek motorunuzun surüsünü donusturur. Her modul onceki bilgi uzerinde insa eder ve izole ipuclari yerine baglantili bir ogrenme deneyimi olusturur.",
+    "longFormProgressionTitle": "Beceri Ilerleme Sistemi",
+    "longFormProgression": "MotoVault, ogrenme yolculugunuzu gorsel olarak haritalandiran bir beceri agaci sistemi kullanir. Dersleri tamamladikca, testleri gectikce ve uygulamali alistirmalari bitirdikce yeni bilgi dallarinin kilidini acarsiniiz. Sistem guclu yanlarinizi belirler ve gelistirebileceginiz alanlari onerir. Yeni baslayanlar temel bilgiyle baslar — motosikletlerinin her parcasinin ne yaptigini ve bakimin neden onemli oldugunu anlamak. Orta seviye ogrencineler, rehberli adim adim talimatlarla uygulamali islemlere taaklir. Ileri icerik, teshis, ayar ve sizi pahali servis ziyaretlerinden kurtaran bilgi turlerini kapsar. Bu ilerleme, asla size cok gelismis icerige atilmanizi ve zaten ustalasmis materyali tekrar inceleyerek sikilmanizi saglamaz.",
+    "longFormLessonTitle": "Ders Formati ve Ogrenme Deneyimi",
+    "longFormLesson": "Her ders, kalicilik ve pratik uygulama icin tasarlanmis kanitlanmis bir formati takip eder. Dersler net bir ogrenme hedefiyle baslar — tamamladiktan sonra neyi anlayacaginiz veya yapabileceginiiz. Diyagramlar ve aciklamali fotograflarla gorsel aciklamalar karmasik sistemleri anlasilir kilar. Temel kavramlar vurgulanir ve gercek zamanli kavramisyi test eden interaktif testlerle pekistirilir. Bircok ders, guvenlik hatirlatmalari ve alet gereksinimleri dahil kendi motosikletinizde gerceklestirdiginiz rehberli, adim adim bir gorevle sona erer. Bu teori ve pratik kombinasyonu, sadece gercekleri ezberlemekle kalmayip garajinizda kullanabileceginiz gercek beceriler olusturmaniz anlamina gelir. Yapay zeka, mumkun oldugunda aciklamalari belirli motorunuza uyarlar ve icerigi dogrudan surdugunuz motosikletle ilgili kilar."
+  },
+  "FeaturesGarage": {
+    "title": "Motosiklet Garaj Yonetimi",
+    "description": "Birden fazla motoru takip et, bakim kaydet, servis hatirlatmalari kur. NHTSA veritabani ile 18.000'den fazla model desteklenir.",
+    "heroTitle": "Dijital Motosiklet Garajin",
+    "heroSubtitle": "Sahip oldugun her motoru takip et. Bakim kaydet, hatirlatmalar kur ve eksiksiz bir servis gecmisi tut.",
+    "multiBikeTitle": "Coklu Motor Yonetimi",
+    "multiBikeDesc": "Dijital garajiniza sinirsiz motosiklet ekleyin. Her motor kendi bakim zaman cizelgesine ve servis gecmisine sahip olur.",
+    "nhtsaTitle": "18.000'den Fazla Motor Destegi",
+    "nhtsaDesc": "Marka, model ve yila gore arayin. Veritabanimiz tum buyuk ureticileri kapsayan resmi NHTSA arac verilerini kullanir.",
+    "historyTitle": "Eksiksiz Bakim Gecmisi",
+    "historyDesc": "Her yag degisimi, lastik degisimi ve servis ziyaretini kaydedin. Kritik bir bilesenin en son ne zaman bakimi yapildigini asla unutmayin.",
+    "remindersTitle": "Akilli Servis Hatirlatmalari",
+    "remindersDesc": "Kilometre veya zamana dayali hatirlatmalar kurun. Bakimin gecmesinden once bildirim alin.",
+    "faq": [
+      {
+        "question": "Garajimda kac motosiklet takip edebilirim?",
+        "answer": "MotoVault Pro ile dijital garajiniza sinirsiz motosiklet ekleyebilirsiniz. Ucretsiz katman bir motor icerir. Her motosiklet kendi ozel bakim zaman cizelgesi, servis gecmisi ve hatirlatma programina sahip olur — gunluk ulasim araci, hafta sonu pist motoru ve klasik restorasyon projesi olsun, hepsi tek bir yerde duzenlenir."
+      },
+      {
+        "question": "Hangi bakim kayitlarini tutabilirim?",
+        "answer": "MotoVault, yag ve filtre degisimi, lastik degisimi ve rotasyonlari, fren balatasi ve sivi servisi, zincir temizligi, yaglama ve degisimi, antifriz ve hidrolik sivi degisimleri, supap ayarlari, buji degisimleri, aku degisimleri ve motorunuza ozel herhangi bir servis icin tamamen ozellestirilebilir gorevler dahil kapsamli bir bakim gorevi yelpazesini kaydetmeyi destekler. Her kayit tarih, kilometre, maliyet, notlar ve istege bagli fotograflar icerir."
+      },
+      {
+        "question": "MotoVault yaklasan bakim hakkinda beni uyariyor mu?",
+        "answer": "Evet. MotoVault, kilometre araligina veya zaman araligina — veya her ikisine — gore sizi bilgilendiren akilli bir hatirlatma sistemi icerir. Ornegin, her 8.000 km'de veya 6 ayda bir (hangisi once gelirse) yag degisimi hatirlatmasi ayarlayabilirsiniz. Hatirlatmalar motor ve gorev bazinda ozellestirrlebilir, boylece sport motorunuz ve tur motorunuz farkli programlara sahip olabilir."
+      },
+      {
+        "question": "Bakim harcamalarini takip edebilir miyim?",
+        "answer": "Evet. Her bakim kaydi maliyet bilgisi icerebilir ve MotoVault kategoriler ve ozetlerle harcama takibi saglar. Motor basina toplam harcamayi, bakim turune gore maliyet dokumunu, aylik ve yillik harcama egilimlerini ve kilometre basina maliyet hesaplamalarini gorebilirsiniz. Bu veriler butceleme ve satma zamani geldiginde yatiriminizi belgelemek icin cok degerlidir."
+      },
+      {
+        "question": "Garaj verilerim yedekleniyor ve senkronize ediliyor mu?",
+        "answer": "Evet. Tum garaj verileriniz bulutta guvenli bir sekilde saklanir ve cihazlariniz arasinda otomatik olarak senkronize edilir. Bakim gecmisiniz, motor detaylariniz, hatirlatmalariniz ve harcama kayitlariniz kurumsal duzeyde sifreleme ile yedeklenir. Telefon degistirirseniz veya uygulamayi yeniden yuklerseniz, giris yapin ve her sey aninda geri yuklenir."
+      }
+    ],
+    "longFormTitle": "Eksiksiz Motosiklet Garaj Yonetimi: Her Motoru Takipte Tut",
+    "longFormIntro": "Motosiklet sahibi olmak bakimin ustunde durmak demektir — ve birden fazla motorsikletiniz varsa, servis programlarini, parca degisimlerini ve harcamalari takip etmek gercek bir zorluk olur. MotoVault'un dijital garaji, sahip oldugunuz her motor icin eksiksiz bakim gecmisleri, akilli hatirlatmalar ve harcama takibi ile guven icinde surmenize yardimci olan tek, duzennli bir merkez sunar.",
+    "longFormMultiBikeTitle": "Her Surucu Icin Coklu Motor Destegi",
+    "longFormMultiBike": "Tek bir gunluk ulasim araci surun veya bir motosiklet koleksiyonunu yonetin, MotoVault'un garaji ihtiyaclariniza gore olceklenir. Garajinizdaki her motor tam teknik ozellikleriyle saklanir — marka, model, yil, VIN ve mevcut kilometre — 18.000'den fazla motosiklet modelini kapsayan NHTSA veritabanindan otomatik olarak cekilir. Her motor kendi ozel bakim zaman cizelgesine sahip olur, boylece eksiksiz servis gecmisini bir bakista aninda gorebilirsiniz. Motorlar arasinda bakim maliyetlerini karsilastirin, hangi motosikletin dikkat gerektirdigini belirleyin ve tum filonuzu en iyi durumda tutun. Birden fazla motoru olan suruculer, tum kayitlarini defterler, elektronik tablolar ve fis kutularina dagitmak yerine tek bir yerde tutmayi ozellikle takdir ediyor.",
+    "longFormSchedulingTitle": "Ise Yarayan Bakim Planlama",
+    "longFormScheduling": "MotoVault'un hatirlatma sistemi, gercek suruculerin motorlarini nasil bakim yaptigi etrafinda insa edilmistir. Kilometre araligina, zaman araligina veya her ikisine gore hatirlatmalar kurun — ve servis yaklastiiginda MotoVault sizi bilgilendirir. Her 8.000 km'de veya 6 ayda bir yag degisimi. Her 800 km'de zincir yaglama. Her ilkbaharda lastik kontrolu. Her 2 yilda antifriz degisimi. Her hatirlatma motor bazinda ozellestirrlebilir, cunku sport motorunuz ve tur motorunuz farkli ihtiyaclara sahiptir. Bir bakim gorevi tamamladiginizda, kaydedin ve sonraki hatirlatma otomatik olarak planlanir. Artik yagi en son ne zaman degistirdiginizi veya fren sivisinin gecikip gecikmemedigi tahmin etmek yok.",
+    "longFormResaleTitle": "Yatiriminizi Koruyan Belgeler",
+    "longFormResale": "Eksiksiz, belgelenmmis bir bakim gecmisi, potansiyel bir aliciya gosterebileceginiz en degerli seylerden biridir. MotoVault'un garaji, motosikletinizde yapilan her servisin profesyonel, dogrulanabilir bir kaydini olusturur — tarihler, kilometre, maliyetler, kullanilan parcalar ve notlar. Satma zamani geldiginde, sorumlu sahipligini gosteren ve fiyat talebinizi haklii cikaran kapsamli bir bakim raporu disaa aktarabilirsiniz. Alicilar belgelenmmis servis gecmisine sahip motorlar icin daha fazla oderler ve MotoVault bu belgelemeyi zahmetsiz hale getirir. Satmayi planlamasaniz bile, eksiksiz bir kayit kaliplari tespit etmenize, buyuk servisler icin onceden plan yapmaniza ve hicbir seyin gozden kacmamasini saglar."
+  },
+  "FeaturesProgress": {
+    "title": "Motosiklet Bilgini Takip Et",
+    "description": "Rozetler kazan, test puanlarini takip et, ogrenme serileri olustur. Motivasyonunuzu koruyan oyunlastirilmmis motosiklet egitimi.",
+    "heroTitle": "Ilerlemenni Takip Et",
+    "heroSubtitle": "Motivasyonunuzu koruyan oyunlastirilmmis ogrenme. Rozetler kazan, seriler olustur ve uzmanliginizin buyumesini izleyin.",
+    "badgesTitle": "Basari Rozetleri Kazan",
+    "badgesDesc": "Kurslari tamamlayin, testlerde basarili olun ve kilometre taslarina ulasin ve basari rozetlerinin kilidini acin. Motosiklet bilginizi sergileyin.",
+    "streaksTitle": "Ogrenme Serileri Olustur",
+    "streaksDesc": "Her gun yeni bir sey ogren. Tutarliliginizi korumak ve kalici motosiklet bilgisi olusturmak icin seriler olusturun.",
+    "scoresTitle": "Test Puanlarini Takip Et",
+    "scoresDesc": "Tum modullerdeki performansinizi gorun. Zayif alanlari belirleyin ve ogrenminiizi en onemli yere odaklayin.",
+    "faq": [
+      {
+        "question": "Ilerleme takipcisi hangi metrikleri gosterir?",
+        "answer": "MotoVault'un ilerleme takipcisi motosiklet bilgi yolculugunuzun kapsamli bir gorunumunu sunar. Temel metrikler sunlardir: bakim gorevi tamamlanma oranlari, tum motorlariniz icin yaklasan servis programlari, aylik ve yillik dokumleriyle harcama egilimleri, beceri agaclari ve kurs tamamlanma yuzdeleri araciligiyla ogrenme ilerlemesi, tum modullerdeki test puanlari ve performans gecmisi, kazanilan basari rozetleri ve ogrenme serisi uzunlugu. Her sey temiz bir panelde sunulur, boylece durumunuzu bir bakista gorebilirsiniz."
+      },
+      {
+        "question": "Ozel bakim hatirlatmalari ayarlayabilir miyim?",
+        "answer": "Evet. MotoVault, kilometre aralikarina, zaman aralikklarina veya her ikisine dayali tamamen ozellestirrlebilir hatirlatmalar ayarlamaniza olanak tanir. Yaygin hatirlatmalar arasinda yag degisimi, zincir yaglama, lastik kontrolleri ve fren muayeneleri bulunur, ancak herhangi bir gorev icin ozel hatirlatmalar olusturabilirsiniz. Her hatirlatma motor bazinda yapilandirrlebilir, boylece farkli motosikletler kendi ozel ihtiyaclarina gore uyarlanmis farkli programlara sahip olabilir."
+      },
+      {
+        "question": "Ilerleme takibi birden fazla motorla calisir mi?",
+        "answer": "Evet. MotoVault, her motosiklet icin bakim durumunu, yaklasan gorevleri ve harcama gecmisini ayri ayri gorebiileceginiz motor bazinda panolar saglar. Ayrica hangisinin dikkat gerektirdigini ve toplam bakim harcamanizin nasil dagildigini gormek icin tum motorlariniz genelinde toplastirilmmis bir genel bakis goruntuileyebilirsiniz."
+      },
+      {
+        "question": "Bakim verilerimi disaa aktarabilir miyim?",
+        "answer": "Evet. MotoVault, garajinizdaki herhangi bir motor icin kapsamli bakim raporlari disaa aktarmaniza olanak tanir. Bu raporlar tarihler, kilometre, maliyetler ve notlarla birlikte eksiksiz servis gecmisini icerir — potansiyel alicilar, sigorta talepleri veya kendi kayitlariniz icin motosikletinizin durumunu belgelemek icin mukemmel. Belgelenmmis bir bakim gecmisi motosikletinizin yeniden satis degerini onemli olcude artirabilir."
+      }
+    ],
+    "longFormTitle": "Motosiklet Ilerleme Takibi: Motivasyonunuzu Koruyin, Kontrollde Kalin",
+    "longFormIntro": "Motosiklet bakimi yapmak ve mekanik bilgi olusturmak uzun vadeli taahhutlerdir. Ilerlemenizi takip etmenin bir yolu olmadan, ivme kaybetmek kolaydir — bakim gorevlerini atlamak, bir kursta nerede kaldiginizi unutmak veya servis aralikklarinin kaymasina izin vermek. MotoVault'un ilerleme takip sistemi her seyi gorunuur ve duzeli tutar, oyunlastirilmmis ogrenme metriklerini sizi motive eden ve motorlarinizi en iyi durumda tutan pratik bakim panolariyla birlestirir.",
+    "longFormDashboardTitle": "Kisisel Motosiklet Panonuz",
+    "longFormDashboard": "MotoVault'un panosu gormeniz gereken her seyi tek bir yerde birlestionrir. Bir bakista hangi motorlarin yakinda bakim gerektirdigini, sonraki ogrenme dersinizin ne oldugunu, test puanlarinizin nasil bir egilim gosterdigini ve bu ay harcamanizin nerede oldugunu kontrol edebilirsiniz. Pano garajiniza ozellestirilmisstir — uc motorunuz varsa, ucunun de durumunu yolunda olanin, yaklasanin ve gecikmisin renk kodlu gostergeleriye gorursunuz. Bu kus bakisi gorunumu, motosiklet sahipliginden tahmini ortadan kaldirir ve zamaninizi ve butcenizi etkili bir sekilde onceliklendirmenize yardimci olur.",
+    "longFormRemindersTitle": "Surmeye Devam Etmenizi Saglayan Akilli Hatirlatmalar",
+    "longFormReminders": "Hatirlatma sistemi, MotoVault'un bakim takibinin omurgasidir. Kilometre, zaman veya her ikisine gore hatirlatmalar kurun ve gerisini MotoVault halleder. Servis yaklastiiginda — geciktikten sonra degil — bildirimler alacaksiniz. Populer hatirlatma yapilandirmalari arasinda her 5.000 ila 10.000 km'de yag degisimi, her 500 ila 800 km'de zincir yaglama, aylik lastik basinci kontrolleri, iki yillik fren sivisi degisimi ve uretici programiniza gore antifriz degisimi yer alir. Her hatirlatma motor bazinda yapilandirrlebilir, cunku yuksek performansli bir sportbike ve dusuk kilometreli bir cruiser cok farkli bakim gereksinimlerine sahiptir. Tamamlanmmis bir gorevi kaydettiginizde, sonraki hatirlatma otomatik olarak sifirlanir.",
+    "longFormAnalyticsTitle": "Daha Akilli Sahiplik Icin Analitik ve Raporlar",
+    "longFormAnalytics": "MotoVault, motosikletleriniz hakkinda daha akilli kararlar vermenize yardimci olan analitikler saglayarak basit takibin otesine gecer. Harcama analitikleri motor bazinda, kategori bazinda ve zaman icinde toplam harcamayi gosterir — boylece belirli bir motosikletin bekledigginizden daha pahali olup olmadigini veya bakim harcamanizin artis egiliminde olup olmadigini gorebilirsiniz. Bakim analitikleri hangi gorevleri zamaninda tamamladiginizi ve hangilerinin gecikme egiliminde oldugunu vurgulayarak gelistirilmesi gereken aliskanliklari belirlemenize yardimci olur. Ogrenme analitikleri moduller genelinde test performansinizi gosterir ve guclu oldugunuz alanlari ve tekrar etmenizin faydali olacagi konulari ortaya cikarir. Tum bu veriler temiz raporlara disaa aktarrilabilir — sigorta belgeleri, yeniden satis hazirrligi veya motosiklet sahipliginin gercek maliyetini anlamak icin mukemmeldir."
+  }
+}

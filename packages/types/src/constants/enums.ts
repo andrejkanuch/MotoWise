@@ -173,5 +173,18 @@ export type MaintenanceTaskSource =
 export const URGENCY_VALUES = ['stranded', 'soon', 'preventive'] as const;
 export type Urgency = (typeof URGENCY_VALUES)[number];
 
-export const SUPPORTED_LOCALES = ['en', 'es', 'de'] as const;
+export const SUPPORTED_LOCALES = [
+  'en',
+  'es',
+  'de',
+  'fr',
+  'it',
+  'pt-BR',
+  'ja',
+  'hi',
+  'th',
+  'id',
+  'tr',
+  'pl',
+] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

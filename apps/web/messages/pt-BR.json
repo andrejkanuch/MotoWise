@@ -1,0 +1,503 @@
+{
+  "Metadata": {
+    "title": "MotoVault — Diagnóstico e Aprendizado de Motos com IA",
+    "titleTemplate": "%s | MotoVault",
+    "description": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android.",
+    "ogDescription": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android."
+  },
+  "Navbar": {
+    "features": "Recursos",
+    "diagnostics": "Diagnóstico IA",
+    "learning": "Aprendizado",
+    "garage": "Garagem",
+    "faq": "FAQ",
+    "download": "Baixar o App",
+    "login": "Entrar",
+    "openMenu": "Abrir menu de navegação",
+    "closeMenu": "Fechar menu de navegação"
+  },
+  "Hero": {
+    "line1": "APRENDA SUA MOTO.",
+    "line2": "CONSERTE",
+    "line3": "SUA MOTO.",
+    "subtitle": "Diagnóstico e aprendizado de motos com IA — em breve.",
+    "downloadCta": "Baixar o App",
+    "exploreFeatures": "Explorar Recursos",
+    "scrollDown": "Rolar para baixo",
+    "seoTitle": "App de Diagnóstico e Aprendizado de Motos com IA"
+  },
+  "Features": {
+    "sectionLabel": "Recursos",
+    "sectionTitle": "Tudo que Sua Moto Precisa",
+    "sectionSubtitle": "Aprenda, mantenha e domine sua moto — tudo em um app.",
+    "diag": {
+      "title": "Diagnóstico IA",
+      "tagline": "Tire uma foto. Receba respostas.",
+      "description": "Aponte sua câmera para qualquer peça, luz de aviso ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções — tudo em segundos.",
+      "badge": "< 5 seg"
+    },
+    "learn": {
+      "title": "Habilidades Mecânicas",
+      "tagline": "De troca de óleo a reconstrução de motor.",
+      "description": "Aprenda como seu motor, suspensão e sistema elétrico realmente funcionam — com aulas práticas, quizzes e tarefas de garagem.",
+      "badge": "50+ aulas"
+    },
+    "garage": {
+      "title": "Gerenciamento de Garagem",
+      "tagline": "Acompanhe suas motos.",
+      "description": "Armazene cada moto por marca, modelo e ano. Registre manutenções, defina lembretes de serviço e mantenha um histórico completo para não perder nada.",
+      "badge": "Motos ilimitadas"
+    },
+    "progress": {
+      "title": "Rastreador de Habilidades",
+      "tagline": "Veja o quanto você evoluiu.",
+      "description": "Suba de nível conforme aprende. Ganhe badges, acompanhe suas notas nos quizzes e veja sua evolução — da primeira troca de óleo a expert em motos.",
+      "badge": "Suba de nível"
+    },
+    "community": {
+      "title": "Comunidade",
+      "tagline": "Junte-se a outros pilotos.",
+      "description": "Compartilhe sua garagem, compare progresso e aprenda junto com pilotos de todos os níveis. Conhecimento sobre motos é melhor junto.",
+      "badge": "Em breve"
+    }
+  },
+  "SocialProof": {
+    "riders": "Na Lista de Espera",
+    "ridersCount": "12.000+",
+    "diagnostics": "Componentes de Motos",
+    "diagnosticsCount": "500+",
+    "bikes": "Motos no Banco de Dados",
+    "bikesCount": "18.000+"
+  },
+  "HowItWorks": {
+    "sectionLabel": "Como Funciona",
+    "sectionTitle": "Como Funciona",
+    "sectionSubtitle": "Três passos. Só isso.",
+    "step1Title": "Adicione Sua Moto",
+    "step1Desc": "Busque por marca, modelo e ano. As especificações da sua moto são carregadas automaticamente de bancos de dados oficiais.",
+    "step2Title": "Receba Insights da IA",
+    "step2Desc": "Tire uma foto de qualquer peça ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções.",
+    "step3Title": "Pilote com Mais Inteligência",
+    "step3Desc": "Fique em dia com a manutenção usando lembretes inteligentes e desenvolva habilidades reais com aulas guiadas."
+  },
+  "Testimonials": {
+    "sectionLabel": "Depoimentos",
+    "sectionTitle": "O Que os Motociclistas Dizem",
+    "badge": "Acesso Antecipado",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "quote": "O MotoVault diagnosticou um problema de tensão da corrente que eu estava ignorando. Me salvou de um pane em uma viagem longa.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "quote": "As trilhas de aprendizado são perfeitas para quem está começando a mexer em motos. Troquei minhas próprias pastilhas de freio graças ao MotoVault.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "quote": "Ter todo o histórico de manutenção em um só lugar faz toda a diferença. Sem mais adivinhação sobre quando foi a última troca de óleo.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "quote": "O diagnóstico com IA me impressionou. Apontei a câmera para uma luz de aviso e recebi a explicação exata do problema em segundos.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "quote": "Finalmente um app que leva manutenção de moto a sério. Só o recurso de garagem já vale a pena.",
+        "stars": 4
+      }
+    ]
+  },
+  "Cta": {
+    "socialProof": "Junte-se a milhares de pilotos na lista de espera",
+    "headline": "Conheça Sua Moto Por Dentro",
+    "subtitle": "Seja o primeiro quando lançarmos no iOS e Android.",
+    "trustFree": "Grátis para começar",
+    "trustNoCard": "Sem spam, nunca",
+    "disclaimer": "Lançamento em breve no iOS e Android.",
+    "emailPlaceholder": "seu@email.com",
+    "submitButton": "Entrar na Lista de Espera",
+    "submitting": "Reservando sua vaga...",
+    "successMessage": "Você está na lista! Avisaremos quando for hora de pilotar.",
+    "successTagline": "Sua moto merece mais do que uma planilha.",
+    "errorMessage": "Algo deu errado. Tente novamente.",
+    "personality": "Sua moto merece mais do que uma planilha."
+  },
+  "Faq": {
+    "sectionLabel": "FAQ",
+    "sectionTitle": "Perguntas Frequentes",
+    "items": [
+      {
+        "question": "O que é o MotoVault?",
+        "answer": "MotoVault é uma plataforma com IA feita para motociclistas. Ela ajuda você a aprender manutenção, diagnosticar problemas tirando uma foto, acompanhar suas motos em uma garagem digital e desenvolver habilidades mecânicas reais com aulas e quizzes."
+      },
+      {
+        "question": "O MotoVault é gratuito?",
+        "answer": "Sim! O MotoVault oferece um plano gratuito que inclui conteúdo básico de aprendizado, uma moto na garagem e diagnósticos limitados com IA. Para diagnósticos ilimitados, todo o conteúdo de aprendizado e motos ilimitadas, você pode assinar o MotoVault Pro dentro do app."
+      },
+      {
+        "question": "Quais motos são suportadas?",
+        "answer": "O MotoVault suporta todas as marcas e modelos de motos. Nosso banco de dados usa dados oficiais de veículos do NHTSA, cobrindo milhares de marcas e modelos de todos os anos. Basta buscar sua moto ao adicioná-la à garagem."
+      },
+      {
+        "question": "Como funciona o diagnóstico com IA?",
+        "answer": "Tire uma foto de qualquer parte da sua moto e descreva o problema. Nossa IA analisa a imagem e fornece uma avaliação diagnóstica com classificações de gravidade — de problemas críticos que precisam de atenção imediata a sugestões de manutenção menores."
+      },
+      {
+        "question": "Meus dados estão seguros?",
+        "answer": "Seus dados são criptografados e armazenados com segurança. Usamos segurança nativa da plataforma no seu dispositivo e toda comunicação é criptografada. Nunca compartilhamos suas informações pessoais ou dados da moto com ninguém."
+      },
+      {
+        "question": "O que está incluído no MotoVault Pro?",
+        "answer": "O MotoVault Pro desbloqueia diagnósticos ilimitados com IA, acesso a todas as aulas e cursos, motos ilimitadas na garagem, suporte prioritário e conteúdo exclusivo. Você pode assinar mensalmente ou anualmente dentro do app."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Produto",
+    "company": "Empresa",
+    "tagline": "Aprenda sua moto. Conserte sua moto.",
+    "copyright": "© 2026 MotoVault. Todos os direitos reservados.",
+    "features": "Recursos",
+    "learning": "Trilhas de Aprendizado",
+    "garage": "Garagem",
+    "download": "Baixar o App",
+    "faq": "FAQ",
+    "support": "Suporte",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "accountDeletion": "Exclusão de Conta",
+    "builtWithAi": "Desenvolvido com IA"
+  },
+  "Privacy": {
+    "title": "Política de Privacidade",
+    "lastUpdated": "Última atualização: 14 de março de 2026",
+    "infoCollectTitle": "Informações que Coletamos",
+    "infoCollect": "O MotoVault coleta os seguintes tipos de informação: (1) Dados de Autenticação — endereço de e-mail e nome através do Supabase Auth (Google, Apple ou e-mail); (2) Dados de Motos — marca, modelo, ano, histórico de manutenção e registros de serviço adicionados à garagem; (3) Imagens de Diagnóstico — fotos enviadas para análise por IA; são processadas em tempo real e excluídas após a análise; (4) Analytics de Uso — interações no app e uso de recursos rastreados via PostHog para melhorar serviços; (5) Relatórios de Erros — dados técnicos de erros coletados pelo Sentry para diagnosticar e corrigir problemas; (6) Informações do Dispositivo — identificadores básicos para autenticação e funcionalidade do app.",
+    "howWeUseTitle": "Como Usamos Suas Informações",
+    "howWeUse": "Suas informações são usadas para: (1) Fornecer serviços essenciais — gerenciamento de conta, funcionalidade de garagem, diagnósticos com IA e módulos de aprendizado; (2) Melhorar produtos — analisar padrões de uso para aprimorar recursos e experiência do usuário; (3) Prevenir fraudes e ameaças — detectar acessos não autorizados e atividades suspeitas; (4) Cumprir obrigações legais — responder a solicitações legais e aplicar nossos termos; (5) Enviar atualizações do serviço — notificações sobre mudanças na conta, novos recursos e atualizações de políticas importantes. Nós não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros para fins de marketing.",
+    "thirdPartyTitle": "Serviços de Terceiros",
+    "thirdParty": "O MotoVault utiliza os seguintes serviços confiáveis: (1) Supabase — autenticação, banco de dados e gerenciamento de usuários com criptografia empresarial; (2) Anthropic Claude AI — processa imagens de diagnóstico e gera análises (imagens não são retidas); (3) Sentry — monitora erros e falhas da aplicação para melhorar estabilidade; (4) PostHog — rastreia uso de recursos e engajamento para otimizar a experiência do usuário; (5) NHTSA — fornece dados de marca/modelo/ano de motos (nenhum dado pessoal é compartilhado). Cada provedor de serviço mantém práticas rigorosas de proteção de dados e cumpre com as leis de privacidade aplicáveis.",
+    "dataRetentionTitle": "Retenção de Dados",
+    "dataRetention": "Retemos seus dados apenas pelo tempo necessário: (1) Dados da conta — retidos enquanto a conta estiver ativa e por 90 dias após a exclusão; (2) Imagens de diagnóstico — processadas e excluídas em poucas horas após o envio; não armazenamos imagens permanentemente; (3) Analytics de uso — retidos por 6 meses para identificar tendências; (4) Relatórios de erros — retidos por 30 dias para diagnosticar e corrigir problemas; (5) Cópias de backup — mantidas por 30 dias para recuperação de desastres. Você pode solicitar a exclusão permanente da sua conta e dados associados a qualquer momento.",
+    "securityTitle": "Segurança dos Dados",
+    "security": "O MotoVault implementa medidas de segurança de nível empresarial: (1) Criptografia em trânsito — todos os dados transmitidos por HTTPS/TLS; (2) Criptografia em repouso — dados sensíveis criptografados no banco de dados; (3) Autenticação — tokens JWT seguros validados localmente sem exposição na rede; (4) Armazenamento seguro — tokens de autenticação armazenados em armazenamento seguro nativo no dispositivo móvel, nunca em AsyncStorage; (5) Controles de acesso — políticas rigorosas de acesso baseado em funções; (6) Auditorias regulares — práticas de segurança revisadas e atualizadas regularmente. Embora empreguemos proteções fortes, nenhum sistema é 100% seguro; mantemos seguro adequado e procedimentos de resposta a incidentes.",
+    "yourRightsTitle": "Seus Direitos",
+    "yourRights": "Sob o GDPR (residentes da UE) e CCPA (residentes da Califórnia), você tem os seguintes direitos: (1) Direito de Acesso — solicitar uma cópia dos seus dados pessoais; (2) Direito de Retificação — corrigir informações imprecisas; (3) Direito de Exclusão — solicitar exclusão dos seus dados (direito ao esquecimento); (4) Direito de Restringir Processamento — limitar como seus dados são usados; (5) Direito à Portabilidade — receber seus dados em formato estruturado e portável; (6) Direito de Objeção — optar por não participar de certos processamentos, incluindo marketing e analytics; (7) Direito de Retirar Consentimento — revogar qualquer consentimento prévio para usos específicos. Residentes da Califórnia também têm direito de saber se seus dados são vendidos e solicitar exclusão. Para exercer qualquer um desses direitos, entre em contato com privacy@motovault.app com detalhes específicos e verificação de identidade.",
+    "childrenPrivacyTitle": "Privacidade de Crianças",
+    "childrenPrivacy": "O MotoVault não é destinado a usuários menores de 13 anos. Não coletamos intencionalmente informações pessoais de crianças menores de 13 anos. Se soubermos que coletamos tais informações, as excluiremos imediatamente e tomaremos medidas para prevenir coleta futura. Pais ou responsáveis que acreditem que coletamos dados de uma criança devem nos contatar imediatamente em privacy@motovault.app.",
+    "internationalTransfersTitle": "Transferências Internacionais de Dados",
+    "internationalTransfers": "O MotoVault opera globalmente. Seus dados podem ser transferidos, armazenados e processados em países diferentes do seu país de residência, incluindo os Estados Unidos. Esses países podem não fornecer o mesmo nível de proteção de dados do seu país. Ao usar o MotoVault, você consente com a transferência de suas informações para países fora do seu país de residência para os fins descritos nesta política. Implementamos cláusulas contratuais padrão e outros mecanismos para garantir proteção adequada para transferências internacionais de dados.",
+    "accountDeletionTitle": "Exclusão de Conta",
+    "accountDeletion": "Você pode excluir sua conta e solicitar a remoção permanente dos seus dados pessoais a qualquer momento. Para isso: (1) Faça login na sua conta MotoVault; (2) Navegue para Configurações > Privacidade e Dados; (3) Selecione 'Excluir Minha Conta'; (4) Confirme a exclusão (esta ação é irreversível). Seu e-mail, informações pessoais e dados da garagem serão permanentemente excluídos dos nossos sistemas em até 90 dias. Alguns dados podem ser retidos por mais tempo se exigido por lei ou em forma anonimizada/agregada para analytics.",
+    "changesTitle": "Alterações nesta Política",
+    "changes": "O MotoVault pode atualizar esta Política de Privacidade para refletir novos recursos, serviços ou requisitos legais. Notificaremos você sobre mudanças materiais por e-mail ou exibindo um aviso destacado em nosso site. Seu uso continuado do MotoVault após as mudanças entrarem em vigor constitui aceitação da política atualizada. Encorajamos você a revisar esta política periodicamente para se manter informado sobre como protegemos suas informações.",
+    "contactTitle": "Fale Conosco",
+    "contact": "Para dúvidas, preocupações ou solicitações relacionadas à sua privacidade, acesso a dados ou para exercer seus direitos sob GDPR/CCPA, entre em contato: Equipe de Privacidade do MotoVault, E-mail: privacy@motovault.app. Responderemos a solicitações válidas em 30 dias conforme exigido por lei. Se você é residente da UE ou Califórnia e acredita que violamos seus direitos de privacidade, você também tem o direito de registrar uma reclamação junto à autoridade de proteção de dados local ou ao Procurador-Geral da Califórnia."
+  },
+  "Terms": {
+    "title": "Termos de Serviço",
+    "lastUpdated": "Última atualização: 14 de março de 2026",
+    "acceptanceTitle": "1. Aceitação dos Termos",
+    "acceptance": "Ao acessar ou usar o MotoVault, você concorda em estar vinculado a estes Termos de Serviço e a todas as leis e regulamentos aplicáveis. Se você não concordar com quaisquer destes termos, está proibido de usar ou acessar este serviço.",
+    "serviceDescriptionTitle": "2. Descrição do Serviço",
+    "serviceDescription": "MotoVault é uma plataforma de aprendizado e diagnóstico de motos com IA projetada para entusiastas de motos. O serviço inclui conteúdo educacional, trilhas de aprendizado estruturadas, diagnósticos por foto assistidos por IA, ferramentas de gerenciamento de garagem, rastreamento de progresso e recursos de comunidade. O MotoVault Pro está disponível como um serviço de assinatura com opções de cobrança mensal e anual.",
+    "accountsTitle": "3. Contas de Usuário",
+    "accounts": "Você é responsável por manter a confidencialidade das suas credenciais de conta e por todas as atividades que ocorrem sob sua conta. Você concorda em fornecer informações precisas, completas e atuais ao criar sua conta e em atualizar suas informações conforme necessário. Você deve nos notificar imediatamente sobre qualquer uso não autorizado da sua conta ou qualquer outra violação de segurança.",
+    "subscriptionsTitle": "4. Assinaturas e Compras no App",
+    "subscriptions": "As assinaturas do MotoVault Pro estão disponíveis através de compras no app no iOS e Android. Todas as assinaturas são renovadas automaticamente, a menos que canceladas antes do fim do período de cobrança atual. Você entende que o cancelamento deve ser feito através da App Store (Apple) ou Google Play (Android), não pelo app. Preços, ciclos de cobrança e termos de renovação são exibidos no app antes da compra. Reembolsos estão sujeitos às políticas da respectiva loja de apps. Ao adquirir uma assinatura, você autoriza a loja de apps a cobrar seu método de pagamento de forma recorrente.",
+    "aiDisclaimerTitle": "5. Aviso sobre Conteúdo Gerado por IA",
+    "aiDisclaimer": "O MotoVault usa inteligência artificial (Claude da Anthropic) para gerar conteúdo educacional, avaliações diagnósticas e materiais de aprendizado. Todo conteúdo gerado por IA é fornecido apenas para fins educacionais e informativos e não constitui aconselhamento mecânico, técnico ou de engenharia profissional. Os resultados de diagnóstico da IA incluem uma pontuação de confiança indicando a certeza do modelo — os resultados devem ser interpretados no contexto desta pontuação. O MotoVault não garante a precisão, completude ou confiabilidade do conteúdo gerado por IA ou avaliações diagnósticas. Você deve sempre consultar um mecânico qualificado antes de realizar qualquer reparo, para questões de segurança críticas e para verificar qualquer orientação gerada por IA. Ao usar os recursos de IA do MotoVault, você reconhece e aceita essas limitações.",
+    "ipTitle": "6. Propriedade Intelectual",
+    "ip": "Todo conteúdo, recursos, gráficos, designs e funcionalidades do MotoVault são de propriedade do MotoVault ou de seus fornecedores de conteúdo e são protegidos por direitos autorais, marcas registradas e outras leis de propriedade intelectual. Conteúdo de aprendizado, cursos, quizzes e materiais educacionais não podem ser reproduzidos, distribuídos ou transmitidos sem permissão prévia por escrito do MotoVault.",
+    "userContentTitle": "7. Conteúdo do Usuário",
+    "userContent": "Quando você envia fotos ou outro conteúdo ao MotoVault para fins de diagnóstico, você concede ao MotoVault uma licença não exclusiva para usar, processar e analisar esse conteúdo para fornecer o serviço. As fotos enviadas são processadas para análise por IA e não são armazenadas permanentemente sem seu consentimento. Você é responsável por garantir que possui ou tem o direito de usar qualquer conteúdo enviado e que seus envios não violam direitos de terceiros, leis ou regulamentos.",
+    "prohibitedUsesTitle": "8. Usos Proibidos",
+    "prohibitedUses": "Você concorda em não usar o MotoVault para qualquer finalidade ilegal ou de qualquer forma que viole estes Termos de Serviço. Usos proibidos incluem: engenharia reversa, tentativa de acesso não autorizado, uso do serviço para qualquer finalidade comercial sem nossa permissão, envio de malware ou conteúdo prejudicial, assédio ou abuso de outros usuários, personificação de outra pessoa, ou violação de quaisquer leis ou regulamentos aplicáveis.",
+    "terminationTitle": "9. Rescisão",
+    "termination": "O MotoVault se reserva o direito de suspender ou encerrar sua conta e acesso ao serviço a qualquer momento, com ou sem causa, e com ou sem aviso, se acreditarmos que você violou estes Termos de Serviço, se envolveu em conduta proibida, ou por qualquer motivo a nosso exclusivo critério. Após a rescisão, seu direito de usar o serviço cessa imediatamente.",
+    "liabilityTitle": "10. Limitação de Responsabilidade",
+    "liability": "O MotoVault é fornecido \"como está\" e \"como disponível\" sem garantias de qualquer tipo, expressas ou implícitas. O MotoVault não garante que o serviço será ininterrupto, livre de erros ou livre de vírus ou outros componentes prejudiciais. Na máxima extensão permitida por lei, o MotoVault não será responsável por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos decorrentes do seu uso ou incapacidade de usar o serviço, mesmo que o MotoVault tenha sido informado da possibilidade de tais danos.",
+    "indemnificationTitle": "11. Indenização",
+    "indemnification": "Você concorda em indenizar, defender e isentar o MotoVault e seus diretores, funcionários e agentes de quaisquer reclamações, danos, perdas, responsabilidades e despesas decorrentes do seu uso do serviço, sua violação destes Termos de Serviço ou sua infração de direitos de terceiros. Isso inclui reclamações relacionadas ao seu conteúdo enviado ou sua confiança em diagnósticos gerados por IA.",
+    "governingLawTitle": "12. Lei Aplicável e Jurisdição",
+    "governingLaw": "Estes Termos de Serviço são regidos e interpretados de acordo com as leis da República Eslovaca (Eslováquia), União Europeia, sem considerar seus princípios de conflito de leis. Você concorda em se submeter à jurisdição exclusiva dos tribunais localizados na Eslováquia para a resolução de quaisquer disputas decorrentes destes Termos de Serviço ou do seu uso do MotoVault.",
+    "disputeResolutionTitle": "13. Resolução de Disputas",
+    "disputeResolution": "Antes de iniciar qualquer ação legal, você concorda em tentar resolver qualquer disputa entrando em contato com support@motovault.app com uma descrição escrita do problema. Se a disputa não puder ser resolvida em trinta (30) dias, qualquer das partes pode buscar remédios legais de acordo com a seção de Lei Aplicável acima.",
+    "modificationsTitle": "14. Modificações dos Termos",
+    "modifications": "O MotoVault se reserva o direito de modificar estes Termos de Serviço a qualquer momento. As mudanças entram em vigor após publicação no serviço, e seu uso continuado do MotoVault após quaisquer modificações constitui sua aceitação dos termos atualizados. Notificaremos você sobre mudanças materiais por e-mail ou através do serviço.",
+    "contactTitle": "15. Fale Conosco",
+    "contact": "Se você tiver dúvidas sobre estes Termos de Serviço, entre em contato conosco em support@motovault.app. O MotoVault está sediado na Eslováquia, União Europeia."
+  },
+  "Support": {
+    "title": "Ajuda e Suporte",
+    "subtitle": "Estamos aqui para ajudar você a aproveitar ao máximo o MotoVault.",
+    "contactTitle": "Fale Conosco",
+    "contactDescription": "Tem alguma dúvida ou precisa de ajuda? Nossa equipe de suporte está pronta para ajudar.",
+    "emailLabel": "E-mail",
+    "responseTimeLabel": "Tempo de resposta",
+    "responseTime": "Em até 24 horas nos dias úteis",
+    "faqTitle": "Perguntas Frequentes",
+    "faq1Question": "Como adicionar uma moto à minha garagem?",
+    "faq1Answer": "Vá para a aba Garagem, toque no botão + e busque sua moto por marca, modelo e ano. As especificações da sua moto são carregadas automaticamente de bancos de dados oficiais.",
+    "faq2Question": "Como funciona o diagnóstico com IA?",
+    "faq2Answer": "Tire uma foto de qualquer parte da sua moto ou descreva seus sintomas. Nossa IA analisa a imagem e fornece uma avaliação diagnóstica com classificações de gravidade e ações recomendadas.",
+    "faq3Question": "O MotoVault é gratuito?",
+    "faq3Answer": "Sim! O MotoVault oferece um plano gratuito com conteúdo básico de aprendizado, uma moto na garagem e diagnósticos limitados com IA. Assine o MotoVault Pro para acesso ilimitado a todos os recursos.",
+    "faq4Question": "Como cancelar minha assinatura?",
+    "faq4Answer": "As assinaturas do MotoVault Pro são gerenciadas pela App Store (iOS) ou Google Play (Android). Vá para as configurações de assinatura do seu dispositivo para cancelar ou gerenciar seu plano.",
+    "faq5Question": "Posso excluir minha conta?",
+    "faq5Answer": "Sim. Você pode excluir sua conta em Configurações > Privacidade e Dados > Excluir Minha Conta no app, ou visite nossa página de Exclusão de Conta para mais detalhes.",
+    "faq6Question": "Quais motos são suportadas?",
+    "faq6Answer": "O MotoVault suporta todas as marcas e modelos de motos usando dados oficiais de veículos do NHTSA, cobrindo milhares de marcas e modelos de todos os anos.",
+    "bugReportTitle": "Reportar um Bug",
+    "bugReportDescription": "Encontrou algo que não funciona direito? Envie um e-mail para support@motovault.app com a descrição do problema, modelo do dispositivo e versão do app. Capturas de tela ajudam!",
+    "featureRequestTitle": "Sugestões de Recursos",
+    "featureRequestDescription": "Tem uma ideia para o MotoVault? Adoraríamos ouvir! Envie suas sugestões para support@motovault.app e nossa equipe vai analisar."
+  },
+  "AccountDeletion": {
+    "title": "Exclusão de Conta",
+    "subtitle": "Saiba como excluir permanentemente sua conta e dados do MotoVault.",
+    "howToDeleteTitle": "Como Excluir Sua Conta",
+    "howToDeleteIntro": "Você pode excluir sua conta do MotoVault diretamente pelo app:",
+    "step1": "Abra o MotoVault e vá para a aba Perfil.",
+    "step2": "Navegue para Configurações > Privacidade e Dados.",
+    "step3": "Toque em \"Excluir Minha Conta\".",
+    "step4": "Confirme a exclusão. Esta ação é permanente e não pode ser desfeita.",
+    "whatDeletedTitle": "O Que É Excluído",
+    "whatDeletedDescription": "Quando você exclui sua conta, os seguintes dados são removidos permanentemente:",
+    "deletedItem1": "Seu endereço de e-mail e informações do perfil",
+    "deletedItem2": "Todas as motos na garagem e seu histórico de manutenção",
+    "deletedItem3": "Seu progresso de aprendizado, notas de quizzes e badges conquistados",
+    "deletedItem4": "Histórico de diagnósticos com IA e fotos enviadas",
+    "deletedItem5": "Todas as preferências e configurações",
+    "retentionTitle": "Retenção de Dados Após Exclusão",
+    "retentionDescription": "Seus dados serão permanentemente excluídos dos nossos sistemas ativos em até 30 dias. Cópias de backup são removidas em até 90 dias. Alguns dados podem ser retidos em forma anonimizada/agregada para analytics ou conforme exigido por lei.",
+    "alternativeTitle": "Alternativa: Solicitação por E-mail",
+    "alternativeDescription": "Se você não conseguir acessar o app, pode solicitar a exclusão da conta enviando um e-mail para privacy@motovault.app do endereço de e-mail associado à sua conta. Inclua \"Solicitação de Exclusão de Conta\" no assunto. Processaremos sua solicitação em até 30 dias.",
+    "contactTitle": "Dúvidas?",
+    "contactDescription": "Para dúvidas sobre exclusão de conta ou privacidade de dados, entre em contato conosco em"
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "Esta página não existe.",
+    "backHome": "Voltar ao Início"
+  },
+  "Error": {
+    "title": "Algo deu errado",
+    "message": "Encontramos um erro inesperado. Tente novamente.",
+    "retry": "Tentar novamente"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Selecionar idioma",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano"
+  },
+  "Blog": {
+    "title": "Blog de Manutenção de Motos",
+    "description": "Guias especializados sobre manutenção de motos, diagnósticos com IA e dicas de pilotagem. Aprenda a manter e diagnosticar sua moto como um profissional.",
+    "readMore": "Leia mais",
+    "readingTime": "min de leitura",
+    "publishedOn": "Publicado em",
+    "backToBlog": "Voltar para todos os artigos",
+    "by": "Por",
+    "relatedArticles": "Artigos Relacionados"
+  },
+  "JsonLd": {
+    "organizationName": "MotoVault",
+    "organizationDescription": "Plataforma de aprendizado e diagnóstico de motos com IA"
+  },
+  "FeaturesDiagnostics": {
+    "title": "Diagnóstico de Motos com IA",
+    "description": "Tire uma foto do problema da sua moto e receba um diagnóstico com IA em segundos. Suporta mais de 18.000 modelos.",
+    "heroTitle": "Diagnóstico de Motos com IA",
+    "heroSubtitle": "Aponte sua câmera para qualquer peça, luz de aviso ou problema. Nossa IA identifica o problema e sugere correções — tudo em segundos.",
+    "howItWorksTitle": "Como Funciona",
+    "step1Title": "Tire uma Foto",
+    "step1Desc": "Tire uma foto da peça, luz de aviso ou problema que deseja diagnosticar.",
+    "step2Title": "A IA Analisa",
+    "step2Desc": "Nossa IA processa a imagem, identifica componentes e cruza referências de problemas conhecidos para o modelo específico da sua moto.",
+    "step3Title": "Receba Seu Diagnóstico",
+    "step3Desc": "Receba um diagnóstico detalhado com classificação de gravidade, ações recomendadas e custo estimado de reparo.",
+    "issuesTitle": "O Que Podemos Diagnosticar",
+    "issue1": "Luzes de aviso e símbolos do painel",
+    "issue2": "Problemas de motor e mecânica",
+    "issue3": "Problemas no sistema elétrico",
+    "issue4": "Desgaste de freios e suspensão",
+    "issue5": "Condição de corrente e transmissão",
+    "issue6": "Desgaste e pressão dos pneus",
+    "issue7": "Vazamentos e níveis de fluidos",
+    "issue8": "Corrosão e danos na carenagem",
+    "faq": [
+      {
+        "question": "Como funciona o diagnóstico de motos com IA sem OBD?",
+        "answer": "O MotoVault usa diagnóstico avançado baseado em fotos com IA. Basta tirar uma foto do problema ou descrever seus sintomas, e nossa IA analisa a imagem para identificar componentes, detectar padrões de desgaste, localizar vazamentos e avaliar a gravidade dos danos. Diferente dos scanners OBD que leem códigos de erro através de uma porta, o MotoVault usa reconhecimento visual — funcionando em qualquer moto independente de idade ou marca, sem adaptadores ou cabos."
+      },
+      {
+        "question": "Quais problemas de moto o MotoVault pode diagnosticar?",
+        "answer": "O MotoVault pode diagnosticar uma ampla gama de problemas, incluindo problemas de motor (superaquecimento, vazamentos de óleo, ruídos incomuns), falhas no sistema elétrico (bateria descarregada, fiação com defeito, fusíveis queimados), desgaste de pastilhas de freio, condição e profundidade do pneu, vazamentos e folga da suspensão, tensão da corrente e desgaste da coroa, vazamentos e contaminação de fluidos, corrosão e danos na carenagem, e luzes de aviso do painel. Cada diagnóstico inclui uma classificação de gravidade para você saber o que precisa de atenção imediata."
+      },
+      {
+        "question": "O diagnóstico de motos com IA é preciso?",
+        "answer": "A IA do MotoVault fornece avaliações iniciais altamente precisas baseadas em análise visual e cruzamento de milhares de problemas conhecidos. Cada diagnóstico vem com uma pontuação de confiança indicando o nível de certeza da IA. Para questões críticas de segurança como falha de freios ou danos estruturais, sempre recomendamos confirmar com um mecânico qualificado. Pense no MotoVault como um companheiro de pilotagem que ajuda você a entender problemas — não como substituto do serviço profissional quando necessário."
+      },
+      {
+        "question": "Preciso de equipamento especial para o diagnóstico com IA?",
+        "answer": "Não é necessário nenhum equipamento especial — apenas a câmera do seu smartphone. O MotoVault foi projetado para funcionar com a câmera que já está no seu bolso. Tire uma foto clara e bem iluminada da peça ou problema, e a IA cuida do resto. Sem adaptadores OBD, sem dongles Bluetooth, sem ferramentas proprietárias. Isso torna o MotoVault acessível para qualquer piloto, independente de experiência técnica ou orçamento."
+      },
+      {
+        "question": "Como o MotoVault é diferente dos scanners OBD2?",
+        "answer": "Scanners OBD2 tradicionais só funcionam em motos com porta OBD (geralmente modelos mais novos), exigem um adaptador físico e só conseguem ler códigos de erro armazenados. O MotoVault funciona em qualquer moto — vintage, moderna, carburada ou injetada — porque usa análise visual por IA em vez de leitura por porta eletrônica. Ele pode identificar problemas que os scanners OBD não detectam, como desgaste físico, corrosão, vazamentos de fluidos e condição dos pneus. Além disso, o MotoVault fornece explicações em linguagem clara, em vez de códigos de erro enigmáticos."
+      }
+    ],
+    "longFormTitle": "Como Funciona o Diagnóstico de Motos com IA: Um Guia Completo",
+    "longFormIntro": "O diagnóstico de motos tem sido tradicionalmente domínio de mecânicos experientes com ferramentas especializadas. O MotoVault muda isso colocando capacidades de diagnóstico com IA diretamente no seu bolso. Seja você um piloto experiente que mexe em motos há décadas ou um novato que acabou de comprar sua primeira moto, o diagnóstico com IA do MotoVault ajuda você a entender o que está acontecendo com sua moto — de forma rápida, precisa e sem equipamentos caros.",
+    "longFormHowTitle": "Da Foto ao Diagnóstico em Segundos",
+    "longFormHow": "O processo é simples. Abra o MotoVault, aponte a câmera para a peça ou problema que deseja analisar e tire uma foto. Você também pode descrever sintomas que notou — sons incomuns, vibrações ou mudanças no desempenho. Nosso motor de IA processa a imagem usando visão computacional avançada, identificando componentes, detectando padrões de desgaste e cruzando referências de problemas conhecidos para a marca, modelo e ano específicos da sua moto. Em segundos, você recebe um diagnóstico detalhado que inclui qual é o problema, qual a gravidade em uma escala de menor a crítico, próximos passos recomendados e custos estimados de reparo. A IA se baseia em um vasto banco de dados de conhecimento específico de motos cobrindo mais de 18.000 modelos.",
+    "longFormExamplesTitle": "Exemplos de Diagnóstico no Mundo Real",
+    "longFormExamples": "Pilotos usam o diagnóstico do MotoVault em inúmeros cenários do dia a dia. Um piloto nota uma poça embaixo da moto estacionada — tira uma foto e o MotoVault identifica como um vazamento de líquido de arrefecimento no retentor da bomba d'água, classificado como gravidade moderada, com recomendação de trocar o retentor antes da próxima viagem longa. Outro piloto vê uma luz de aviso no painel que não reconhece — uma foto rápida identifica como indicador de mistura pobre, provavelmente causada por filtro de ar sujo. Um novato inspecionando sua moto usada fotografa a corrente — o MotoVault detecta estiramento excessivo e desgaste nos dentes da coroa, recomendando troca completa de corrente e coroa. Esses são os tipos de situações cotidianas em que ter um mecânico com IA no bolso economiza tempo, dinheiro e previne panes.",
+    "longFormComparisonTitle": "Diagnóstico com IA vs. Ferramentas Tradicionais",
+    "longFormComparison": "O diagnóstico tradicional de motos depende de scanners OBD2 (limitados a motos mais novas com portas compatíveis), multímetros para testes elétricos e o olho treinado de um mecânico experiente. O MotoVault não substitui completamente essas ferramentas — em vez disso, as complementa fornecendo uma linha de diagnóstico acessível. Onde um scanner OBD lê códigos de erro armazenados, o MotoVault identifica visualmente problemas que não têm código de erro: pastilhas de freio gastas, terminais corroídos, retentores de bengala vazando ou uma corrente que precisa de ajuste. Onde um mecânico usa anos de experiência para identificar problemas, o MotoVault usa IA treinada em milhares de problemas de motos para dar um nível semelhante de insight. O resultado são decisões mais rápidas e informadas sobre a saúde da sua moto — seja para consertar você mesmo ou levar a uma oficina com um entendimento claro do problema."
+  },
+  "FeaturesLearning": {
+    "title": "Trilhas de Aprendizado e Quizzes de Motos",
+    "description": "Domine manutenção de motos com cursos estruturados, quizzes interativos e acompanhamento de progresso. Do básico ao avançado.",
+    "heroTitle": "Aprenda Manutenção de Motos",
+    "heroSubtitle": "Cursos estruturados, quizzes interativos e desafios práticos — do iniciante ao especialista.",
+    "coursesTitle": "Cursos Disponíveis",
+    "course1Title": "Internos do Motor",
+    "course1Desc": "Entenda como seu motor funciona, desde a combustão básica até comando de válvulas e pontos comuns de falha.",
+    "course2Title": "Ajuste de Suspensão",
+    "course2Desc": "Aprenda pré-carga, retorno e compressão. Configure sua suspensão para seu estilo de pilotagem.",
+    "course3Title": "Sistemas Elétricos",
+    "course3Desc": "Domine cuidados com bateria, diagnóstico de fusíveis, solução de problemas do motor de partida e noções de fiação.",
+    "course4Title": "Manutenção de Rotina",
+    "course4Desc": "Troca de óleo, cuidados com a corrente, inspeção de freios, pressão dos pneus — tudo para a manutenção regular.",
+    "quizTitle": "Teste Seus Conhecimentos",
+    "quizDesc": "Quizzes interativos após cada aula. Acompanhe suas notas, ganhe badges e desenvolva expertise real.",
+    "faq": [
+      {
+        "question": "Quais tópicos são cobertos nas trilhas de aprendizado?",
+        "answer": "As trilhas de aprendizado do MotoVault cobrem uma ampla gama de tópicos de manutenção, incluindo troca de óleo e gerenciamento de fluidos, inspeção e troca de pastilhas de freio, limpeza, lubrificação e ajuste de corrente, cuidados com pneus e monitoramento de pressão, noções básicas de sistema elétrico e manutenção de bateria, preparação sazonal e armazenamento, ajuste de suspensão, e fundamentos de motor. Novos cursos são adicionados regularmente com base no feedback dos pilotos e tópicos emergentes."
+      },
+      {
+        "question": "Isso é adequado para iniciantes sem experiência mecânica?",
+        "answer": "Com certeza. As trilhas de aprendizado do MotoVault são projetadas com uma progressão estruturada que começa com os fundamentos. Você não precisa de nenhuma experiência mecânica prévia. Cada curso começa com conceitos básicos — o que são as peças, por que são importantes e como funcionam — antes de progredir para tarefas práticas. Guias visuais, instruções passo a passo e explicações com IA garantem que você sempre entenda o 'porquê' de cada procedimento."
+      },
+      {
+        "question": "Quanto tempo dura cada aula?",
+        "answer": "A maioria das aulas é projetada para levar entre 5 e 15 minutos, facilitando o encaixe em uma agenda movimentada. Aulas mais curtas cobrem conceitos únicos ou dicas rápidas, enquanto aulas mais longas incluem explicações mais detalhadas e exercícios práticos. Você pode pausar e retomar a qualquer momento — seu progresso é salvo automaticamente."
+      },
+      {
+        "question": "Há exercícios práticos incluídos?",
+        "answer": "Sim. Muitas aulas incluem tarefas práticas guiadas que te acompanham em procedimentos reais de manutenção na sua própria moto. Esses exercícios práticos incluem guias fotográficos passo a passo, listas de verificação de segurança, listas de ferramentas e resultados esperados para que você saiba exatamente o que fazer e o que procurar. Completar exercícios práticos ganha pontos bônus e badges de conquista."
+      },
+      {
+        "question": "Posso acompanhar meu progresso de aprendizado?",
+        "answer": "Sim. O MotoVault inclui um sistema completo de acompanhamento de progresso com árvores de habilidades que visualizam sua jornada de aprendizado, porcentagens de conclusão para cada curso e módulo, notas de quizzes e histórico de desempenho, badges de conquista por marcos alcançados e sequências de aprendizado para manter a motivação. Você pode ver exatamente onde está e quais tópicos focar a seguir."
+      }
+    ],
+    "longFormTitle": "Aprendizado Estruturado de Motos: Do Iniciante ao Especialista",
+    "longFormIntro": "Aprender manutenção de motos não precisa ser intimidante. As trilhas de aprendizado do MotoVault dividem conhecimento mecânico complexo em cursos estruturados e práticos que levam você de iniciante completo a mecânico caseiro confiante. Seja para realizar manutenção básica como troca de óleo e ajuste de corrente, ou para se aprofundar em internos do motor e ajuste de suspensão, há um caminho projetado para seu nível de habilidade.",
+    "longFormCurriculumTitle": "Visão Geral do Currículo",
+    "longFormCurriculum": "O currículo do MotoVault é organizado em módulos de aprendizado progressivos. Manutenção de Rotina cobre os essenciais que todo piloto deve saber: troca de óleo e filtro, limpeza e ajuste de corrente, inspeção de pastilhas de freio, verificação de líquido de arrefecimento e monitoramento de pressão dos pneus. Internos do Motor aprofunda como o motor da sua moto funciona — ciclos de combustão, comando de válvulas, sistemas de arrefecimento e como reconhecer sinais precoces de problemas. Sistemas Elétricos desmistifica baterias, sistemas de carga, fusíveis, motores de partida e fiação básica — a área onde a maioria dos pilotos se sente menos confiante. Ajuste de Suspensão ensina a configurar pré-carga, retorno e compressão para seu peso e estilo de pilotagem, transformando como sua moto se comporta. Cada módulo se baseia no conhecimento anterior, criando uma experiência de aprendizado conectada em vez de dicas isoladas.",
+    "longFormProgressionTitle": "Sistema de Progressão de Habilidades",
+    "longFormProgression": "O MotoVault usa um sistema de árvore de habilidades que mapeia visualmente sua jornada de aprendizado. Conforme você completa aulas, passa em quizzes e termina exercícios práticos, novas ramificações de conhecimento são desbloqueadas. O sistema identifica seus pontos fortes e sugere áreas de melhoria. Iniciantes começam com conhecimento fundamental — entendendo o que cada parte da moto faz e por que a manutenção importa. Aprendizes intermediários enfrentam procedimentos práticos com instruções passo a passo guiadas. Conteúdo avançado cobre diagnósticos, ajustes e o tipo de conhecimento que economiza em visitas caras à oficina. Essa progressão garante que você nunca seja jogado em conteúdo avançado demais, e nunca fique entediado revisando material que já dominou.",
+    "longFormLessonTitle": "Formato das Aulas e Experiência de Aprendizado",
+    "longFormLesson": "Cada aula segue um formato comprovado projetado para retenção e aplicação prática. As aulas começam com um objetivo claro — o que você vai entender ou ser capaz de fazer após completá-la. Explicações visuais com diagramas e fotos anotadas tornam sistemas complexos fáceis de entender. Conceitos-chave são destacados e reforçados por quizzes interativos que testam a compreensão em tempo real. Muitas aulas terminam com um exercício prático: uma tarefa guiada passo a passo que você realiza na sua própria moto, com lembretes de segurança e requisitos de ferramentas. Essa combinação de teoria e prática significa que você não apenas memoriza fatos — você desenvolve habilidades reais para usar na sua garagem. A IA adapta explicações ao seu modelo específico quando possível, tornando o conteúdo diretamente relevante para a moto que você pilota."
+  },
+  "FeaturesGarage": {
+    "title": "Gerenciamento de Garagem de Motos",
+    "description": "Acompanhe múltiplas motos, registre manutenções, defina lembretes de serviço. Suporta mais de 18.000 modelos via banco de dados NHTSA.",
+    "heroTitle": "Sua Garagem Digital de Motos",
+    "heroSubtitle": "Acompanhe cada moto que você tem. Registre manutenções, defina lembretes e mantenha um histórico completo de serviços.",
+    "multiBikeTitle": "Gerenciamento Multi-Motos",
+    "multiBikeDesc": "Adicione motos ilimitadas à sua garagem digital. Cada moto tem sua própria linha do tempo de manutenção e histórico de serviços.",
+    "nhtsaTitle": "Mais de 18.000 Motos Suportadas",
+    "nhtsaDesc": "Busque por marca, modelo e ano. Nosso banco de dados usa dados oficiais de veículos do NHTSA cobrindo todos os principais fabricantes.",
+    "historyTitle": "Histórico Completo de Manutenção",
+    "historyDesc": "Registre cada troca de óleo, troca de pneus e visita à oficina. Nunca esqueça quando fez a última manutenção de um componente crítico.",
+    "remindersTitle": "Lembretes Inteligentes de Serviço",
+    "remindersDesc": "Defina lembretes por quilometragem ou tempo. Seja notificado antes que a manutenção fique atrasada.",
+    "faq": [
+      {
+        "question": "Quantas motos posso rastrear na minha garagem?",
+        "answer": "Com o MotoVault Pro, você pode adicionar motos ilimitadas à sua garagem digital. O plano gratuito inclui uma moto. Cada moto tem sua própria linha do tempo de manutenção dedicada, histórico de serviços e programação de lembretes — seja uma moto de uso diário, uma de pista para fim de semana e um projeto de restauração vintage, tudo organizado em um só lugar."
+      },
+      {
+        "question": "Quais registros de manutenção posso registrar?",
+        "answer": "O MotoVault suporta o registro de uma ampla gama de tarefas de manutenção, incluindo trocas de óleo e filtro, substituição e rodízio de pneus, serviço de pastilhas e fluido de freio, limpeza, lubrificação e troca de corrente, trocas de líquido de arrefecimento e fluido hidráulico, regulagem de válvulas, troca de velas, substituição de bateria e tarefas totalmente personalizáveis para qualquer serviço específico da sua moto. Cada registro inclui data, quilometragem, custo, observações e fotos opcionais."
+      },
+      {
+        "question": "O MotoVault me lembra de manutenções futuras?",
+        "answer": "Sim. O MotoVault inclui um sistema de lembretes inteligentes que notifica você com base em intervalos de quilometragem ou tempo — ou ambos. Por exemplo, você pode definir um lembrete de troca de óleo a cada 5.000 km ou a cada 6 meses, o que vier primeiro. Os lembretes são personalizáveis por moto e por tarefa, então sua esportiva e sua touring podem ter programações diferentes."
+      },
+      {
+        "question": "Posso rastrear despesas de manutenção?",
+        "answer": "Sim. Cada registro de manutenção pode incluir informações de custo, e o MotoVault fornece rastreamento de despesas com categorias e resumos. Você pode ver gastos totais por moto, detalhamento de custos por tipo de manutenção, tendências mensais e anuais de despesas e cálculos de custo por quilômetro. Esses dados são valiosos para planejamento e para documentar seu investimento quando for vender."
+      },
+      {
+        "question": "Meus dados da garagem são salvos e sincronizados?",
+        "answer": "Sim. Todos os dados da sua garagem são armazenados com segurança na nuvem e sincronizados automaticamente entre seus dispositivos. Seu histórico de manutenção, detalhes das motos, lembretes e registros de despesas são salvos com criptografia de nível empresarial. Se trocar de celular ou reinstalar o app, basta fazer login e tudo é restaurado instantaneamente."
+      }
+    ],
+    "longFormTitle": "Gerenciamento Completo de Garagem de Motos: Mantenha Tudo em Dia",
+    "longFormIntro": "Ter uma moto significa ficar em dia com a manutenção — e se você tem mais de uma, acompanhar programações de serviço, trocas de peças e despesas se torna um verdadeiro desafio. A garagem digital do MotoVault oferece um hub único e organizado para cada moto que você possui, com históricos de manutenção completos, lembretes inteligentes e rastreamento de despesas que ajudam você a pilotar com confiança.",
+    "longFormMultiBikeTitle": "Suporte Multi-Motos para Todo Piloto",
+    "longFormMultiBike": "Seja pilotando uma moto de uso diário ou gerenciando uma coleção, a garagem do MotoVault se adapta às suas necessidades. Cada moto na garagem é armazenada com suas especificações completas — marca, modelo, ano, chassi e quilometragem atual — buscadas automaticamente do banco de dados NHTSA que cobre mais de 18.000 modelos. Cada moto tem sua própria linha do tempo de manutenção dedicada, permitindo ver o histórico completo de serviços de relance. Compare custos de manutenção entre motos, identifique qual precisa de atenção a seguir e mantenha toda a frota em condições ideais. Pilotos com múltiplas motos apreciam especialmente ter todos os registros em um só lugar, em vez de espalhados por cadernos, planilhas e caixas de recibos.",
+    "longFormSchedulingTitle": "Programação de Manutenção que Funciona",
+    "longFormScheduling": "O sistema de lembretes do MotoVault é construído em torno de como pilotos reais mantêm suas motos. Defina lembretes por intervalo de quilometragem, intervalo de tempo ou ambos — e o MotoVault avisa quando o serviço está chegando. Troca de óleo a cada 5.000 km ou 6 meses. Lubrificação da corrente a cada 500 km. Inspeção dos pneus toda primavera. Troca de líquido de arrefecimento a cada 2 anos. Cada lembrete é personalizável por moto, porque sua esportiva e sua touring têm necessidades diferentes. Quando você completa uma tarefa de manutenção, basta registrar e o próximo lembrete é automaticamente programado. Sem mais adivinhar quando trocou o óleo pela última vez ou se o fluido de freio está vencido.",
+    "longFormResaleTitle": "Documentação que Protege Seu Investimento",
+    "longFormResale": "Um histórico de manutenção completo e documentado é uma das coisas mais valiosas que você pode mostrar a um potencial comprador. A garagem do MotoVault cria um registro profissional e verificável de cada serviço realizado na sua moto — datas, quilometragem, custos, peças usadas e observações. Quando for vender, você pode exportar um relatório abrangente de manutenção que demonstra cuidado responsável e justifica seu preço. Compradores pagam mais por motos com histórico documentado, e o MotoVault torna essa documentação fácil. Mesmo que nunca planeje vender, ter um registro completo ajuda a identificar padrões, planejar serviços importantes e garantir que nada seja esquecido."
+  },
+  "FeaturesProgress": {
+    "title": "Acompanhe Seu Conhecimento sobre Motos",
+    "description": "Ganhe badges, acompanhe notas de quizzes, construa sequências de aprendizado. Educação gamificada que mantém a motivação.",
+    "heroTitle": "Acompanhe Seu Progresso",
+    "heroSubtitle": "Aprendizado gamificado que mantém a motivação. Ganhe badges, construa sequências e veja sua expertise crescer.",
+    "badgesTitle": "Ganhe Badges de Conquista",
+    "badgesDesc": "Complete cursos, acerte quizzes e atinja marcos para desbloquear badges. Mostre seu conhecimento sobre motos.",
+    "streaksTitle": "Construa Sequências de Aprendizado",
+    "streaksDesc": "Aprenda algo novo todo dia. Construa sequências para manter a consistência e desenvolver conhecimento duradouro.",
+    "scoresTitle": "Acompanhe Notas de Quizzes",
+    "scoresDesc": "Veja seu desempenho em todos os módulos. Identifique pontos fracos e foque onde mais importa.",
+    "faq": [
+      {
+        "question": "Quais métricas o rastreador de progresso mostra?",
+        "answer": "O rastreador de progresso do MotoVault oferece uma visão abrangente da sua jornada de conhecimento sobre motos. As principais métricas incluem taxas de conclusão de tarefas de manutenção, programações de serviço futuras para todas as motos, tendências de despesas com detalhamentos mensais e anuais, progresso de aprendizado através de árvores de habilidades e percentuais de conclusão de cursos, notas de quizzes e histórico de desempenho em todos os módulos, badges de conquista ganhos e duração de sequências de aprendizado. Tudo é apresentado em um painel limpo para ver seu status de relance."
+      },
+      {
+        "question": "Posso definir lembretes de manutenção personalizados?",
+        "answer": "Sim. O MotoVault permite definir lembretes totalmente personalizáveis baseados em intervalos de quilometragem, intervalos de tempo ou ambos. Lembretes comuns incluem trocas de óleo, lubrificação da corrente, verificação dos pneus e inspeção dos freios, mas você pode criar lembretes personalizados para qualquer tarefa. Cada lembrete é configurável por moto, para que motos diferentes possam ter programações diferentes adaptadas às suas necessidades específicas."
+      },
+      {
+        "question": "O acompanhamento de progresso funciona com múltiplas motos?",
+        "answer": "Sim. O MotoVault fornece painéis por moto para ver o status de manutenção, tarefas futuras e histórico de despesas de cada moto individualmente. Você também pode ver uma visão geral agregada de todas as motos para saber qual precisa de atenção a seguir e como seus gastos totais de manutenção se dividem."
+      },
+      {
+        "question": "Posso exportar meus dados de manutenção?",
+        "answer": "Sim. O MotoVault permite exportar relatórios abrangentes de manutenção para qualquer moto na garagem. Esses relatórios incluem o histórico completo de serviços com datas, quilometragem, custos e observações — perfeito para documentar a condição da moto para potenciais compradores, seguradoras ou seus próprios registros. Um histórico de manutenção documentado pode aumentar significativamente o valor de revenda da sua moto."
+      }
+    ],
+    "longFormTitle": "Acompanhamento de Progresso em Motos: Mantenha-se Motivado e em Dia",
+    "longFormIntro": "Manter uma moto e desenvolver conhecimento mecânico são compromissos de longo prazo. Sem uma forma de acompanhar seu progresso, é fácil perder o ritmo — pulando tarefas de manutenção, esquecendo onde parou em um curso ou deixando intervalos de serviço passarem. O sistema de acompanhamento do MotoVault mantém tudo visível e organizado, combinando métricas gamificadas de aprendizado com painéis práticos de manutenção que mantêm a motivação e suas motos em ótima forma.",
+    "longFormDashboardTitle": "Seu Painel Pessoal de Motos",
+    "longFormDashboard": "O painel do MotoVault reúne tudo que você precisa ver em um só lugar. De relance, você pode verificar quais motos precisam de manutenção em breve, qual é sua próxima aula, como estão suas notas nos quizzes e como estão seus gastos no mês. O painel é personalizado para sua garagem — se você tem três motos, vê o status das três com indicadores coloridos mostrando o que está em dia, o que está chegando e o que está atrasado. Essa visão panorâmica elimina as adivinhações da propriedade de motos e ajuda a priorizar tempo e orçamento de forma eficiente.",
+    "longFormRemindersTitle": "Lembretes Inteligentes que Mantêm Você na Estrada",
+    "longFormReminders": "O sistema de lembretes é a espinha dorsal do acompanhamento de manutenção do MotoVault. Defina lembretes por quilometragem, tempo ou ambos, e o MotoVault cuida do resto. Você receberá notificações quando o serviço estiver se aproximando — não depois de já estar atrasado. Configurações populares incluem troca de óleo a cada 3.000 a 6.000 km, lubrificação da corrente a cada 300 a 500 km, verificação de pressão dos pneus mensalmente, troca de fluido de freio a cada dois anos e trocas de líquido de arrefecimento conforme programação do fabricante. Cada lembrete é configurável por moto, porque uma esportiva de alto desempenho e uma cruiser de baixa quilometragem têm demandas muito diferentes. Quando você registra uma tarefa concluída, o próximo lembrete é resetado automaticamente.",
+    "longFormAnalyticsTitle": "Análises e Relatórios para uma Propriedade Mais Inteligente",
+    "longFormAnalytics": "O MotoVault vai além do simples rastreamento, fornecendo análises que ajudam a tomar decisões mais inteligentes sobre suas motos. Análises de despesas mostram gastos totais por moto, por categoria e ao longo do tempo — para ver se uma moto específica está custando mais do que o esperado ou se seus gastos de manutenção estão aumentando. Análises de manutenção destacam quais tarefas você completa no prazo versus quais tendem a atrasar, ajudando a identificar hábitos a melhorar. Análises de aprendizado mostram seu desempenho nos quizzes por módulo, revelando áreas fortes e tópicos que podem se beneficiar de revisão. Todos esses dados podem ser exportados em relatórios limpos — perfeitos para documentação de seguro, preparação para revenda ou simplesmente para entender o verdadeiro custo de ser dono de uma moto."
+  }
+}

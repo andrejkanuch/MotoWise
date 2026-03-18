@@ -1,0 +1,506 @@
+{
+  "Metadata": {
+    "title": "MotoVault — Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI",
+    "titleTemplate": "%s | MotoVault",
+    "description": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android.",
+    "ogDescription": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android."
+  },
+  "Navbar": {
+    "features": "Fitur",
+    "diagnostics": "Diagnostik AI",
+    "learning": "Pembelajaran",
+    "garage": "Garasi",
+    "faq": "FAQ",
+    "download": "Unduh Aplikasi",
+    "login": "Masuk",
+    "openMenu": "Buka menu navigasi",
+    "closeMenu": "Tutup menu navigasi"
+  },
+  "Hero": {
+    "line1": "PELAJARI MOTORMU.",
+    "line2": "PERBAIKI",
+    "line3": "MOTORMU.",
+    "subtitle": "Diagnostik & pembelajaran motor berbasis AI — segera hadir.",
+    "downloadCta": "Unduh Aplikasi",
+    "exploreFeatures": "Jelajahi Fitur",
+    "scrollDown": "Gulir ke bawah",
+    "seoTitle": "Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI"
+  },
+  "Features": {
+    "sectionLabel": "Fitur",
+    "sectionTitle": "Semua yang Motor Kamu Butuhkan",
+    "sectionSubtitle": "Belajar, rawat, dan kuasai motormu — semua dalam satu aplikasi.",
+    "diag": {
+      "title": "Diagnostik AI",
+      "tagline": "Foto. Dapat jawaban.",
+      "description": "Arahkan kamera ke komponen, lampu peringatan, atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan — semua dalam hitungan detik.",
+      "badge": "< 5 detik"
+    },
+    "learn": {
+      "title": "Keahlian Mekanik",
+      "tagline": "Dari ganti oli hingga rebuild mesin.",
+      "description": "Pelajari cara kerja mesin, suspensi, dan kelistrikan — dengan pelajaran singkat, kuis, dan tugas bengkel nyata.",
+      "badge": "50+ pelajaran"
+    },
+    "garage": {
+      "title": "Manajemen Garasi",
+      "tagline": "Lacak motor kamu.",
+      "description": "Simpan setiap motor berdasarkan merek, model, dan tahun. Catat perawatan, atur pengingat servis, dan simpan riwayat lengkap agar tidak ada yang terlewat.",
+      "badge": "Motor tak terbatas"
+    },
+    "progress": {
+      "title": "Pelacak Keahlian",
+      "tagline": "Lihat sejauh mana kamu sudah maju.",
+      "description": "Naik level saat belajar. Kumpulkan lencana, lacak skor kuis, dan lihat perkembanganmu — dari ganti oli pertama hingga mekanik handal.",
+      "badge": "Naik level"
+    },
+    "community": {
+      "title": "Komunitas",
+      "tagline": "Bergabung dengan sesama pengendara.",
+      "description": "Bagikan garasi, bandingkan kemajuan, dan belajar bersama pengendara di setiap level. Pengetahuan motor lebih baik bersama-sama.",
+      "badge": "Segera hadir"
+    }
+  },
+  "SocialProof": {
+    "riders": "Di Daftar Tunggu",
+    "ridersCount": "12.000+",
+    "diagnostics": "Komponen Motor",
+    "diagnosticsCount": "500+",
+    "bikes": "Motor di Database",
+    "bikesCount": "18.000+"
+  },
+  "HowItWorks": {
+    "sectionLabel": "Cara Kerja",
+    "sectionTitle": "Cara Kerja",
+    "sectionSubtitle": "Tiga langkah. Itu saja.",
+    "step1Title": "Tambahkan Motormu",
+    "step1Desc": "Cari berdasarkan merek, model, dan tahun. Spesifikasi motor dimuat otomatis dari database resmi.",
+    "step2Title": "Dapatkan Insight AI",
+    "step2Desc": "Foto komponen atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan.",
+    "step3Title": "Berkendara Lebih Cerdas",
+    "step3Desc": "Pantau perawatan dengan pengingat pintar dan bangun keahlian nyata dengan pelajaran terpandu."
+  },
+  "Testimonials": {
+    "sectionLabel": "Testimoni",
+    "sectionTitle": "Apa Kata Pengendara Motor",
+    "badge": "Akses Awal",
+    "items": [
+      {
+        "name": "Alex R.",
+        "bike": "2022 Yamaha MT-07",
+        "quote": "MotoVault mendiagnosis masalah tegangan rantai yang selama ini saya abaikan. Menyelamatkan saya dari mogok di perjalanan jauh.",
+        "stars": 5
+      },
+      {
+        "name": "Maria G.",
+        "bike": "2021 Honda CB650R",
+        "quote": "Jalur pembelajaran sempurna untuk yang baru belajar bengkel. Saya berhasil ganti kampas rem sendiri berkat MotoVault.",
+        "stars": 5
+      },
+      {
+        "name": "Jake T.",
+        "bike": "2023 Kawasaki Z900",
+        "quote": "Punya semua riwayat perawatan di satu tempat benar-benar mengubah segalanya. Tidak perlu menebak lagi kapan terakhir ganti oli.",
+        "stars": 4
+      },
+      {
+        "name": "Sarah K.",
+        "bike": "2020 BMW F 750 GS",
+        "quote": "Diagnostik AI benar-benar luar biasa. Arahkan kamera ke lampu peringatan dan langsung dapat penjelasan masalahnya dalam hitungan detik.",
+        "stars": 5
+      },
+      {
+        "name": "Tom W.",
+        "bike": "2019 Ducati Monster 821",
+        "quote": "Akhirnya ada aplikasi yang serius menangani perawatan motor. Fitur garasi saja sudah sangat worth it.",
+        "stars": 4
+      }
+    ]
+  },
+  "Cta": {
+    "socialProof": "Bergabung dengan ribuan pengendara di daftar tunggu",
+    "headline": "Kenali Motormu Luar Dalam",
+    "subtitle": "Jadilah yang pertama saat kami meluncurkan di iOS dan Android.",
+    "trustFree": "Gratis untuk mulai",
+    "trustNoCard": "Tanpa spam, selamanya",
+    "disclaimer": "Segera hadir di iOS dan Android.",
+    "emailPlaceholder": "email@kamu.com",
+    "submitButton": "Gabung Daftar Tunggu",
+    "submitting": "Menyimpan tempatmu...",
+    "successMessage": "Kamu sudah terdaftar! Kami akan beri tahu saat waktunya berkendara.",
+    "successTagline": "Motormu layak mendapat yang lebih baik dari spreadsheet.",
+    "errorMessage": "Terjadi kesalahan. Silakan coba lagi.",
+    "personality": "Motormu layak mendapat yang lebih baik dari spreadsheet."
+  },
+  "Faq": {
+    "sectionLabel": "FAQ",
+    "sectionTitle": "Pertanyaan yang Sering Diajukan",
+    "items": [
+      {
+        "question": "Apa itu MotoVault?",
+        "answer": "MotoVault adalah platform berbasis AI untuk pengendara motor. Membantu kamu belajar perawatan, mendiagnosis masalah dengan foto, melacak motor di garasi digital, dan membangun keahlian mekanik nyata melalui pelajaran dan kuis."
+      },
+      {
+        "question": "Apakah MotoVault gratis?",
+        "answer": "Ya! MotoVault menawarkan paket gratis yang mencakup konten pembelajaran dasar, satu motor di garasi, dan diagnostik AI terbatas. Untuk diagnostik tak terbatas, semua konten pembelajaran, dan motor tak terbatas, upgrade ke MotoVault Pro di dalam aplikasi."
+      },
+      {
+        "question": "Motor apa saja yang didukung?",
+        "answer": "MotoVault mendukung semua merek dan model motor. Database kami menggunakan data kendaraan resmi NHTSA yang mencakup ribuan merek dan model di semua tahun. Cukup cari motor kamu saat menambahkan ke garasi."
+      },
+      {
+        "question": "Bagaimana cara kerja diagnostik AI?",
+        "answer": "Ambil foto komponen motor apa pun dan jelaskan masalahnya. AI kami menganalisis gambar dan memberikan penilaian diagnostik dengan rating keparahan — dari masalah kritis hingga saran perawatan ringan."
+      },
+      {
+        "question": "Apakah data saya aman?",
+        "answer": "Data kamu dienkripsi dan disimpan dengan aman. Kami menggunakan keamanan tingkat platform di perangkatmu, dan semua komunikasi dienkripsi. Kami tidak pernah membagikan informasi pribadi atau data motor kamu kepada siapa pun."
+      },
+      {
+        "question": "Apa saja yang termasuk MotoVault Pro?",
+        "answer": "MotoVault Pro membuka diagnostik AI tak terbatas, akses ke semua pelajaran dan kursus, motor tak terbatas di garasi, dukungan prioritas, dan konten eksklusif. Berlangganan bulanan atau tahunan dari dalam aplikasi."
+      }
+    ]
+  },
+  "Footer": {
+    "product": "Produk",
+    "company": "Perusahaan",
+    "tagline": "Pelajari motormu. Perbaiki motormu.",
+    "copyright": "© 2026 MotoVault. Hak cipta dilindungi.",
+    "features": "Fitur",
+    "learning": "Jalur Pembelajaran",
+    "garage": "Garasi",
+    "download": "Unduh Aplikasi",
+    "faq": "FAQ",
+    "support": "Dukungan",
+    "privacy": "Privasi",
+    "terms": "Ketentuan",
+    "accountDeletion": "Hapus Akun",
+    "builtWithAi": "Didukung oleh AI"
+  },
+  "Privacy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui: 14 Maret 2026",
+    "infoCollectTitle": "Informasi yang Kami Kumpulkan",
+    "infoCollect": "MotoVault mengumpulkan jenis informasi berikut: (1) Data Autentikasi — email dan nama melalui Supabase Auth (Google, Apple, atau email); (2) Data Motor — merek, model, tahun, riwayat perawatan, dan catatan servis yang kamu tambahkan; (3) Gambar Diagnostik — foto yang diunggah untuk analisis AI, diproses secara real-time dan dihapus setelah analisis; (4) Analitik Penggunaan — interaksi aplikasi yang dilacak via PostHog; (5) Laporan Error — data teknis dari Sentry; (6) Informasi Perangkat — pengenal perangkat dasar untuk autentikasi dan fungsionalitas.",
+    "howWeUseTitle": "Cara Kami Menggunakan Informasi",
+    "howWeUse": "Informasi kamu digunakan untuk: (1) Menyediakan layanan inti — manajemen akun, fungsionalitas garasi, diagnostik AI, dan modul pembelajaran; (2) Meningkatkan produk — menganalisis pola penggunaan; (3) Mencegah penipuan dan ancaman keamanan; (4) Mematuhi kewajiban hukum; (5) Mengirim pembaruan layanan. Kami tidak menjual, menyewakan, atau membagikan informasi pribadi kamu kepada pihak ketiga untuk pemasaran.",
+    "thirdPartyTitle": "Layanan Pihak Ketiga",
+    "thirdParty": "MotoVault menggunakan layanan terpercaya: (1) Supabase — autentikasi, database, dan manajemen pengguna; (2) Anthropic Claude AI — memproses gambar diagnostik dan menghasilkan analisis; (3) Sentry — memantau error; (4) PostHog — melacak penggunaan fitur; (5) NHTSA — menyediakan data merek/model/tahun motor.",
+    "dataRetentionTitle": "Penyimpanan Data",
+    "dataRetention": "Kami menyimpan data hanya selama diperlukan: (1) Data akun — disimpan selama akun aktif dan 90 hari setelah penghapusan; (2) Gambar diagnostik — diproses dan dihapus dalam beberapa jam; (3) Analitik penggunaan — disimpan 6 bulan; (4) Laporan error — 30 hari; (5) Salinan cadangan — 30 hari. Kamu bisa meminta penghapusan permanen kapan saja.",
+    "securityTitle": "Keamanan Data",
+    "security": "MotoVault menerapkan keamanan tingkat enterprise: (1) Enkripsi saat transit — HTTPS/TLS; (2) Enkripsi saat disimpan; (3) Autentikasi — JWT token yang aman; (4) Penyimpanan aman — secure storage platform-native di mobile; (5) Kontrol akses — kebijakan berbasis peran; (6) Audit rutin.",
+    "yourRightsTitle": "Hak-Hak Kamu",
+    "yourRights": "Di bawah GDPR (penduduk UE) dan CCPA (penduduk California), kamu memiliki hak: (1) Akses — minta salinan data pribadi; (2) Perbaikan — koreksi informasi tidak akurat; (3) Penghapusan — minta penghapusan data; (4) Pembatasan pemrosesan; (5) Portabilitas data; (6) Keberatan; (7) Penarikan persetujuan. Gunakan hak-hak ini melalui privacy@motovault.app.",
+    "childrenPrivacyTitle": "Privasi Anak",
+    "childrenPrivacy": "MotoVault tidak ditujukan untuk pengguna di bawah 13 tahun. Kami tidak dengan sengaja mengumpulkan informasi pribadi dari anak di bawah 13 tahun. Orang tua yang percaya kami telah mengumpulkan data anak, silakan hubungi privacy@motovault.app segera.",
+    "internationalTransfersTitle": "Transfer Data Internasional",
+    "internationalTransfers": "MotoVault beroperasi secara global. Data kamu mungkin ditransfer ke negara lain termasuk Amerika Serikat. Dengan menggunakan MotoVault, kamu menyetujui transfer ini. Kami menerapkan klausul kontraktual standar untuk perlindungan yang memadai.",
+    "accountDeletionTitle": "Penghapusan Akun",
+    "accountDeletion": "Kamu bisa menghapus akun kapan saja: (1) Masuk ke MotoVault; (2) Buka Settings > Privacy & Data; (3) Pilih 'Delete My Account'; (4) Konfirmasi penghapusan (tidak bisa dibatalkan). Data akan dihapus permanen dalam 90 hari.",
+    "changesTitle": "Perubahan Kebijakan Ini",
+    "changes": "MotoVault mungkin memperbarui kebijakan ini. Kami akan memberi tahu perubahan penting melalui email atau pemberitahuan di website. Penggunaan berlanjut setelah perubahan berarti menerima kebijakan yang diperbarui.",
+    "contactTitle": "Hubungi Kami",
+    "contact": "Untuk pertanyaan tentang privasi, akses data, atau menggunakan hak di bawah GDPR/CCPA: MotoVault Privacy Team, Email: privacy@motovault.app. Kami akan merespons dalam 30 hari sesuai hukum yang berlaku."
+  },
+  "Terms": {
+    "title": "Ketentuan Layanan",
+    "lastUpdated": "Terakhir diperbarui: 14 Maret 2026",
+    "acceptanceTitle": "1. Penerimaan Ketentuan",
+    "acceptance": "Dengan mengakses atau menggunakan MotoVault, kamu setuju terikat oleh Ketentuan Layanan ini dan semua hukum yang berlaku. Jika tidak setuju, kamu dilarang menggunakan layanan ini.",
+    "serviceDescriptionTitle": "2. Deskripsi Layanan",
+    "serviceDescription": "MotoVault adalah platform pembelajaran dan diagnostik motor berbasis AI. Layanan mencakup konten edukasi, jalur pembelajaran terstruktur, diagnostik foto berbasis AI, alat manajemen garasi, pelacakan kemajuan, dan fitur komunitas. MotoVault Pro tersedia sebagai langganan bulanan dan tahunan.",
+    "accountsTitle": "3. Akun Pengguna",
+    "accounts": "Kamu bertanggung jawab menjaga kerahasiaan kredensial akun dan semua aktivitas di akunmu. Kamu setuju memberikan informasi yang akurat, lengkap, dan terkini saat membuat akun.",
+    "subscriptionsTitle": "4. Langganan & Pembelian Dalam Aplikasi",
+    "subscriptions": "Langganan MotoVault Pro melalui pembelian dalam aplikasi di iOS dan Android. Semua langganan diperpanjang otomatis kecuali dibatalkan. Pembatalan harus melalui App Store (Apple) atau Google Play (Android). Pengembalian dana mengikuti kebijakan app store masing-masing.",
+    "aiDisclaimerTitle": "5. Disclaimer Konten AI",
+    "aiDisclaimer": "MotoVault menggunakan AI (Claude oleh Anthropic) untuk menghasilkan konten edukasi dan penilaian diagnostik. Semua konten AI hanya untuk tujuan edukasi dan informasi, bukan nasihat mekanik profesional. MotoVault tidak menjamin akurasi konten AI. Selalu konsultasikan dengan mekanik yang berkualifikasi.",
+    "ipTitle": "6. Kekayaan Intelektual",
+    "ip": "Semua konten, fitur, grafis, desain, dan fungsionalitas MotoVault dimiliki oleh MotoVault dan dilindungi oleh hukum kekayaan intelektual.",
+    "userContentTitle": "7. Konten Pengguna",
+    "userContent": "Saat mengunggah foto untuk diagnostik, kamu memberikan lisensi non-eksklusif kepada MotoVault untuk menggunakan, memproses, dan menganalisis konten tersebut. Foto yang diunggah diproses dan tidak disimpan permanen tanpa persetujuanmu.",
+    "prohibitedUsesTitle": "8. Penggunaan yang Dilarang",
+    "prohibitedUses": "Kamu setuju tidak menggunakan MotoVault untuk tujuan melanggar hukum, termasuk: reverse engineering, akses tidak sah, penggunaan komersial tanpa izin, mengunggah malware, melecehkan pengguna lain, atau melanggar hukum yang berlaku.",
+    "terminationTitle": "9. Pengakhiran",
+    "termination": "MotoVault berhak menangguhkan atau mengakhiri akun dan akses kamu kapan saja jika kami percaya kamu melanggar ketentuan ini.",
+    "liabilityTitle": "10. Pembatasan Tanggung Jawab",
+    "liability": "MotoVault disediakan \"apa adanya\" tanpa jaminan apa pun. MotoVault tidak bertanggung jawab atas kerugian tidak langsung, insidental, khusus, atau konsekuensial sejauh diizinkan hukum.",
+    "indemnificationTitle": "11. Ganti Rugi",
+    "indemnification": "Kamu setuju untuk mengganti rugi MotoVault dari klaim, kerugian, dan biaya yang timbul dari penggunaanmu, pelanggaran ketentuan, atau pelanggaran hak pihak ketiga.",
+    "governingLawTitle": "12. Hukum yang Berlaku",
+    "governingLaw": "Ketentuan ini diatur oleh hukum Republik Slovakia, Uni Eropa. Kamu setuju dengan yurisdiksi eksklusif pengadilan di Slovakia.",
+    "disputeResolutionTitle": "13. Penyelesaian Sengketa",
+    "disputeResolution": "Sebelum mengambil tindakan hukum, kamu setuju mencoba menyelesaikan sengketa dengan menghubungi support@motovault.app. Jika tidak terselesaikan dalam 30 hari, pihak mana pun dapat menempuh jalur hukum.",
+    "modificationsTitle": "14. Perubahan Ketentuan",
+    "modifications": "MotoVault berhak mengubah ketentuan kapan saja. Penggunaan berlanjut setelah perubahan berarti menerima ketentuan yang diperbarui.",
+    "contactTitle": "15. Hubungi Kami",
+    "contact": "Jika ada pertanyaan tentang Ketentuan Layanan ini, hubungi support@motovault.app. MotoVault berbasis di Slovakia, Uni Eropa."
+  },
+  "Support": {
+    "title": "Bantuan & Dukungan",
+    "subtitle": "Kami siap membantu kamu mendapatkan hasil maksimal dari MotoVault.",
+    "contactTitle": "Hubungi Kami",
+    "contactDescription": "Punya pertanyaan atau butuh bantuan? Tim dukungan kami siap membantu.",
+    "emailLabel": "Email",
+    "responseTimeLabel": "Waktu respons",
+    "responseTime": "Dalam 24 jam pada hari kerja",
+    "faqTitle": "Pertanyaan yang Sering Diajukan",
+    "faq1Question": "Bagaimana cara menambahkan motor ke garasi?",
+    "faq1Answer": "Buka tab Garasi, ketuk tombol +, dan cari motor berdasarkan merek, model, dan tahun. Spesifikasi motor dimuat otomatis dari database resmi.",
+    "faq2Question": "Bagaimana cara kerja diagnostik AI?",
+    "faq2Answer": "Ambil foto komponen motor atau jelaskan gejala. AI kami menganalisis gambar dan memberikan penilaian diagnostik dengan rating keparahan dan tindakan yang direkomendasikan.",
+    "faq3Question": "Apakah MotoVault gratis?",
+    "faq3Answer": "Ya! MotoVault menawarkan paket gratis dengan konten pembelajaran dasar, satu motor di garasi, dan diagnostik AI terbatas. Upgrade ke MotoVault Pro untuk akses tak terbatas ke semua fitur.",
+    "faq4Question": "Bagaimana cara membatalkan langganan?",
+    "faq4Answer": "Langganan MotoVault Pro dikelola melalui App Store (iOS) atau Google Play (Android). Buka pengaturan langganan di perangkat untuk membatalkan atau mengelola paket.",
+    "faq5Question": "Bisa hapus akun saya?",
+    "faq5Answer": "Ya. Kamu bisa menghapus akun dari Settings > Privacy & Data > Delete My Account di aplikasi, atau kunjungi halaman Hapus Akun untuk detail lebih lanjut.",
+    "faq6Question": "Motor apa saja yang didukung?",
+    "faq6Answer": "MotoVault mendukung semua merek dan model motor menggunakan data resmi NHTSA, mencakup ribuan merek dan model di semua tahun.",
+    "bugReportTitle": "Laporkan Bug",
+    "bugReportDescription": "Menemukan sesuatu yang tidak berfungsi? Email ke support@motovault.app dengan deskripsi masalah, model perangkat, dan versi aplikasi. Screenshot sangat membantu!",
+    "featureRequestTitle": "Permintaan Fitur",
+    "featureRequestDescription": "Punya ide untuk MotoVault? Kami ingin mendengarnya! Kirim saran ke support@motovault.app dan tim kami akan meninjaunya."
+  },
+  "AccountDeletion": {
+    "title": "Hapus Akun",
+    "subtitle": "Pelajari cara menghapus akun MotoVault dan data kamu secara permanen.",
+    "howToDeleteTitle": "Cara Menghapus Akun",
+    "howToDeleteIntro": "Kamu bisa menghapus akun MotoVault langsung dari aplikasi:",
+    "step1": "Buka MotoVault dan buka tab Profil.",
+    "step2": "Buka Settings > Privacy & Data.",
+    "step3": "Ketuk \"Delete My Account\".",
+    "step4": "Konfirmasi penghapusan. Tindakan ini permanen dan tidak bisa dibatalkan.",
+    "whatDeletedTitle": "Apa yang Dihapus",
+    "whatDeletedDescription": "Saat kamu menghapus akun, data berikut dihapus secara permanen:",
+    "deletedItem1": "Email dan informasi profil kamu",
+    "deletedItem2": "Semua motor di garasi dan riwayat perawatannya",
+    "deletedItem3": "Kemajuan pembelajaran, skor kuis, dan lencana yang diperoleh",
+    "deletedItem4": "Riwayat diagnostik AI dan foto yang diunggah",
+    "deletedItem5": "Semua preferensi dan pengaturan",
+    "retentionTitle": "Penyimpanan Data Setelah Penghapusan",
+    "retentionDescription": "Data akan dihapus permanen dari sistem aktif dalam 30 hari. Salinan cadangan dihapus dalam 90 hari. Beberapa data mungkin disimpan dalam bentuk anonim untuk analitik atau sesuai ketentuan hukum.",
+    "alternativeTitle": "Alternatif: Permintaan via Email",
+    "alternativeDescription": "Jika tidak bisa mengakses aplikasi, kamu bisa meminta penghapusan akun dengan mengirim email dari alamat yang terkait akun ke privacy@motovault.app. Sertakan \"Account Deletion Request\" di subjek. Kami akan memproses dalam 30 hari.",
+    "contactTitle": "Pertanyaan?",
+    "contactDescription": "Untuk pertanyaan tentang penghapusan akun atau privasi data, hubungi kami di"
+  },
+  "NotFound": {
+    "code": "404",
+    "message": "Halaman ini tidak ada.",
+    "backHome": "Kembali ke Beranda"
+  },
+  "Error": {
+    "title": "Terjadi Kesalahan",
+    "message": "Kami mengalami error yang tidak terduga. Silakan coba lagi.",
+    "retry": "Coba lagi"
+  },
+  "LanguageSwitcher": {
+    "selectLanguage": "Pilih bahasa",
+    "en": "English",
+    "es": "Español",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "hi": "हिन्दी",
+    "th": "ไทย",
+    "id": "Bahasa Indonesia"
+  },
+  "Blog": {
+    "title": "Blog Perawatan Motor",
+    "description": "Panduan ahli tentang perawatan motor, diagnostik AI, dan tips berkendara. Belajar merawat dan mendiagnosis motor seperti profesional.",
+    "readMore": "Baca selengkapnya",
+    "readingTime": "menit baca",
+    "publishedOn": "Diterbitkan pada",
+    "backToBlog": "Kembali ke semua artikel",
+    "by": "Oleh",
+    "relatedArticles": "Artikel Terkait"
+  },
+  "JsonLd": {
+    "organizationName": "MotoVault",
+    "organizationDescription": "Platform pembelajaran & diagnostik motor berbasis AI"
+  },
+  "FeaturesDiagnostics": {
+    "title": "Diagnostik Motor Berbasis AI",
+    "description": "Foto masalah motor dan dapatkan diagnosis berbasis AI dalam hitungan detik. Mendukung 18.000+ model.",
+    "heroTitle": "Diagnostik Motor Berbasis AI",
+    "heroSubtitle": "Arahkan kamera ke komponen, lampu peringatan, atau masalah apa pun. AI kami mengidentifikasi masalah dan menyarankan perbaikan — dalam hitungan detik.",
+    "howItWorksTitle": "Cara Kerja",
+    "step1Title": "Ambil Foto",
+    "step1Desc": "Foto komponen motor, lampu peringatan, atau masalah yang ingin didiagnosis.",
+    "step2Title": "AI Menganalisis",
+    "step2Desc": "AI kami memproses gambar, mengidentifikasi komponen, dan memeriksa silang masalah yang diketahui untuk model motor kamu.",
+    "step3Title": "Dapatkan Diagnosis",
+    "step3Desc": "Terima diagnosis detail dengan rating keparahan, tindakan yang direkomendasikan, dan perkiraan biaya perbaikan.",
+    "issuesTitle": "Apa yang Bisa Kami Diagnosis",
+    "issue1": "Lampu peringatan & simbol dashboard",
+    "issue2": "Masalah mesin & mekanis",
+    "issue3": "Masalah sistem kelistrikan",
+    "issue4": "Keausan rem & suspensi",
+    "issue5": "Kondisi rantai & drivetrain",
+    "issue6": "Keausan ban & masalah tekanan",
+    "issue7": "Kebocoran & level cairan",
+    "issue8": "Korosi & kerusakan bodi",
+    "faq": [
+      {
+        "question": "Bagaimana diagnostik motor AI bekerja tanpa OBD?",
+        "answer": "MotoVault menggunakan diagnosis berbasis foto canggih yang ditenagai AI. Cukup foto masalah atau jelaskan gejala, dan AI menganalisis gambar untuk mengidentifikasi komponen, mendeteksi keausan, menemukan kebocoran, dan menilai keparahan. Berbeda dengan OBD scanner yang membaca kode error melalui port, MotoVault menggunakan pengenalan visual — artinya bekerja di setiap motor tanpa adapter."
+      },
+      {
+        "question": "Masalah motor apa yang bisa didiagnosis MotoVault?",
+        "answer": "MotoVault bisa mendiagnosis berbagai masalah termasuk masalah mesin, kelistrikan, keausan rem, kondisi ban, kebocoran suspensi, keausan rantai dan sprocket, kebocoran cairan, korosi, dan lampu peringatan. Setiap diagnosis dilengkapi rating keparahan."
+      },
+      {
+        "question": "Apakah diagnostik AI akurat?",
+        "answer": "AI MotoVault memberikan penilaian awal yang sangat akurat berdasarkan analisis visual dan referensi silang ribuan masalah. Setiap diagnosis dilengkapi skor kepercayaan. Untuk masalah keselamatan kritis, kami selalu merekomendasikan konfirmasi dari mekanik berkualifikasi."
+      },
+      {
+        "question": "Apakah perlu peralatan khusus?",
+        "answer": "Tidak perlu — cukup kamera smartphone. MotoVault dirancang untuk bekerja dengan kamera yang sudah ada di sakumu. Ambil foto yang jelas dan terang, AI akan mengurus sisanya. Tanpa OBD adapter, tanpa Bluetooth dongle, tanpa alat khusus."
+      },
+      {
+        "question": "Apa bedanya MotoVault dengan OBD2 scanner?",
+        "answer": "OBD2 scanner tradisional hanya bekerja di motor dengan port OBD (kebanyakan model baru), memerlukan adapter fisik, dan hanya bisa membaca kode error. MotoVault bekerja di motor apa pun karena menggunakan analisis visual AI. Bisa mengidentifikasi masalah yang OBD scanner lewatkan seperti keausan fisik, korosi, kebocoran, dan kondisi ban. Plus, memberikan penjelasan bahasa sederhana bukan kode error."
+      }
+    ],
+    "longFormTitle": "Cara Kerja Diagnostik Motor AI: Panduan Lengkap",
+    "longFormIntro": "Diagnostik motor secara tradisional adalah domain mekanik berpengalaman dengan alat khusus. MotoVault mengubah ini dengan menempatkan kemampuan diagnostik bertenaga AI langsung di sakumu. Baik kamu pengendara berpengalaman atau baru membeli motor pertama, diagnostik AI MotoVault membantu kamu memahami apa yang terjadi — dengan cepat, akurat, dan tanpa peralatan mahal.",
+    "longFormHowTitle": "Dari Foto ke Diagnosis dalam Hitungan Detik",
+    "longFormHow": "Prosesnya sederhana. Buka MotoVault, arahkan kamera ke komponen atau masalah, dan ambil foto. Kamu juga bisa menjelaskan gejala. AI kami memproses gambar menggunakan computer vision canggih, mengidentifikasi komponen, mendeteksi keausan, dan memeriksa silang masalah untuk merek, model, dan tahun motor kamu. Dalam hitungan detik, kamu mendapat diagnosis detail.",
+    "longFormExamplesTitle": "Contoh Diagnostik Nyata",
+    "longFormExamples": "Pengendara menggunakan diagnostik MotoVault dalam situasi nyata. Seorang pengendara melihat genangan di bawah motor — foto dan MotoVault mengidentifikasi kebocoran coolant dari seal pompa air. Pengendara lain melihat lampu peringatan yang tidak dikenal — foto langsung mengidentifikasinya sebagai indikator campuran bahan bakar kurus, kemungkinan karena filter udara kotor.",
+    "longFormComparisonTitle": "Diagnostik AI vs Alat Tradisional",
+    "longFormComparison": "Diagnostik motor tradisional menggunakan OBD2 scanner (terbatas model baru), multimeter, dan mata terlatih mekanik berpengalaman. MotoVault tidak menggantikan sepenuhnya — melainkan melengkapi dengan memberikan lini pertama diagnosis yang mudah diakses. MotoVault bisa mengidentifikasi masalah yang OBD scanner lewatkan: kampas rem aus, terminal berkarat, seal fork bocor, atau rantai yang perlu disetel."
+  },
+  "FeaturesLearning": {
+    "title": "Jalur Pembelajaran & Kuis Motor",
+    "description": "Kuasai perawatan motor dengan kursus terstruktur, kuis interaktif, dan pelacakan kemajuan. Dari dasar hingga mahir.",
+    "heroTitle": "Belajar Perawatan Motor",
+    "heroSubtitle": "Kursus terstruktur, kuis interaktif, dan tantangan praktis — dari pemula hingga ahli.",
+    "coursesTitle": "Kursus Tersedia",
+    "course1Title": "Mesin Internal",
+    "course1Desc": "Pahami cara kerja mesin, dari dasar pembakaran hingga timing valve dan titik kegagalan umum.",
+    "course2Title": "Tuning Suspensi",
+    "course2Desc": "Pelajari pengaturan preload, rebound, dan kompresi. Sesuaikan suspensi untuk gaya berkendaramu.",
+    "course3Title": "Sistem Kelistrikan",
+    "course3Desc": "Kuasai perawatan baterai, diagnostik fuse, troubleshooting starter, dan dasar wiring.",
+    "course4Title": "Perawatan Rutin",
+    "course4Desc": "Ganti oli, perawatan rantai, inspeksi rem, tekanan ban — semua untuk perawatan rutin.",
+    "quizTitle": "Uji Pengetahuanmu",
+    "quizDesc": "Kuis interaktif setelah setiap pelajaran. Lacak skor, kumpulkan lencana, dan bangun keahlian nyata.",
+    "faq": [
+      {
+        "question": "Topik apa yang dicakup jalur pembelajaran?",
+        "answer": "Jalur pembelajaran MotoVault mencakup ganti oli, inspeksi dan ganti kampas rem, perawatan rantai, perawatan ban, dasar kelistrikan, persiapan musiman, setup suspensi, dan fundamental mesin. Kursus baru ditambahkan secara berkala."
+      },
+      {
+        "question": "Apakah cocok untuk pemula tanpa pengalaman mekanik?",
+        "answer": "Tentu saja. Jalur pembelajaran dirancang dengan progresi terstruktur dari fundamental. Tidak perlu pengalaman sebelumnya. Panduan visual, instruksi langkah demi langkah, dan penjelasan AI memastikan kamu selalu memahami alasan di balik setiap prosedur."
+      },
+      {
+        "question": "Berapa lama setiap pelajaran?",
+        "answer": "Kebanyakan 5 sampai 15 menit, mudah disesuaikan dengan jadwal sibuk. Bisa pause dan lanjutkan kapan saja — kemajuan disimpan otomatis."
+      },
+      {
+        "question": "Apakah ada latihan praktis?",
+        "answer": "Ya. Banyak pelajaran mencakup tugas hands-on yang memandu prosedur perawatan nyata di motor kamu sendiri, lengkap dengan panduan foto, checklist keselamatan, daftar alat, dan hasil yang diharapkan."
+      },
+      {
+        "question": "Bisa melacak kemajuan belajar?",
+        "answer": "Ya. MotoVault punya sistem pelacakan lengkap dengan skill tree, persentase penyelesaian, skor kuis, lencana prestasi, dan learning streak."
+      }
+    ],
+    "longFormTitle": "Pembelajaran Motor Terstruktur: Dari Pemula ke Ahli",
+    "longFormIntro": "Belajar perawatan motor seharusnya tidak terasa berat. MotoVault memecah pengetahuan mekanik kompleks menjadi kursus terstruktur yang mudah dicerna, membawamu dari pemula total menjadi mekanik rumahan yang percaya diri.",
+    "longFormCurriculumTitle": "Gambaran Kurikulum",
+    "longFormCurriculum": "Kurikulum MotoVault diorganisasi dalam modul pembelajaran progresif. Perawatan Rutin mencakup essensial. Mesin Internal mendalami cara kerja. Sistem Kelistrikan menyederhanakan yang kompleks. Tuning Suspensi mengajarkan pengaturan yang tepat.",
+    "longFormProgressionTitle": "Sistem Progresi Keahlian",
+    "longFormProgression": "MotoVault menggunakan sistem skill tree yang memetakan perjalanan belajar secara visual. Saat menyelesaikan pelajaran, lulus kuis, dan menyelesaikan latihan, cabang pengetahuan baru terbuka. Sistem mengidentifikasi kekuatan dan menyarankan area perbaikan.",
+    "longFormLessonTitle": "Format Pelajaran dan Pengalaman Belajar",
+    "longFormLesson": "Setiap pelajaran mengikuti format terbukti untuk retensi dan aplikasi praktis. Penjelasan visual, kuis interaktif, dan latihan praktis disertakan. AI menyesuaikan penjelasan untuk motor spesifik kamu."
+  },
+  "FeaturesGarage": {
+    "title": "Manajemen Garasi Motor",
+    "description": "Lacak beberapa motor, catat perawatan, atur pengingat servis. Mendukung 18.000+ model via database NHTSA.",
+    "heroTitle": "Garasi Motor Digital Kamu",
+    "heroSubtitle": "Lacak setiap motor yang kamu miliki. Catat perawatan, atur pengingat, dan simpan riwayat servis lengkap.",
+    "multiBikeTitle": "Manajemen Multi-Motor",
+    "multiBikeDesc": "Tambahkan motor tak terbatas ke garasi digital. Setiap motor punya timeline perawatan dan riwayat servis sendiri.",
+    "nhtsaTitle": "18.000+ Motor Didukung",
+    "nhtsaDesc": "Cari berdasarkan merek, model, dan tahun. Database menggunakan data resmi NHTSA yang mencakup setiap produsen utama.",
+    "historyTitle": "Riwayat Perawatan Lengkap",
+    "historyDesc": "Catat setiap ganti oli, ganti ban, dan kunjungan servis. Tidak lupa lagi kapan terakhir merawat komponen penting.",
+    "remindersTitle": "Pengingat Servis Pintar",
+    "remindersDesc": "Atur pengingat berbasis jarak tempuh atau waktu. Dapat notifikasi sebelum perawatan terlambat.",
+    "faq": [
+      {
+        "question": "Berapa motor yang bisa dilacak di garasi?",
+        "answer": "Dengan MotoVault Pro, bisa menambahkan tak terbatas. Paket gratis mencakup satu motor. Setiap motor punya timeline perawatan, riwayat servis, dan jadwal pengingat sendiri."
+      },
+      {
+        "question": "Catatan perawatan apa yang bisa dibuat?",
+        "answer": "MotoVault mendukung semua termasuk ganti oli, ganti ban, servis rem, perawatan rantai, ganti coolant, penyetelan valve, ganti busi, ganti baterai, dan tugas kustom. Setiap catatan mencakup tanggal, jarak tempuh, biaya, catatan, dan foto opsional."
+      },
+      {
+        "question": "Apakah MotoVault mengingatkan perawatan mendatang?",
+        "answer": "Ya. Sistem pengingat pintar berdasarkan jarak tempuh atau waktu, atau keduanya. Pengingat bisa dikustomisasi per motor dan per tugas."
+      },
+      {
+        "question": "Bisa melacak pengeluaran perawatan?",
+        "answer": "Ya. Setiap catatan bisa menyertakan informasi biaya. Lihat total pengeluaran per motor, breakdown per jenis, tren bulanan/tahunan, dan biaya per mil."
+      },
+      {
+        "question": "Apakah data garasi di-backup dan disinkronisasi?",
+        "answer": "Ya. Semua data disimpan aman di cloud dan disinkronisasi otomatis. Ganti HP atau install ulang aplikasi, cukup login dan semuanya kembali langsung."
+      }
+    ],
+    "longFormTitle": "Manajemen Garasi Motor Lengkap",
+    "longFormIntro": "Memiliki motor berarti harus memantau perawatan. Garasi digital MotoVault memberikan hub terorganisir untuk setiap motor yang kamu miliki.",
+    "longFormMultiBikeTitle": "Dukungan Multi-Motor untuk Setiap Pengendara",
+    "longFormMultiBike": "Baik punya satu atau koleksi, garasi MotoVault menyesuaikan kebutuhanmu. Spesifikasi dimuat otomatis dari database NHTSA.",
+    "longFormSchedulingTitle": "Penjadwalan Perawatan yang Efektif",
+    "longFormScheduling": "Sistem pengingat dibangun berdasarkan cara pengendara nyata merawat motor. Atur berdasarkan jarak tempuh, waktu, atau keduanya. Kustomisasi per motor.",
+    "longFormResaleTitle": "Dokumentasi yang Melindungi Investasimu",
+    "longFormResale": "Riwayat perawatan lengkap dan terdokumentasi adalah salah satu hal paling berharga yang bisa ditunjukkan ke calon pembeli. MotoVault membuat catatan profesional dan bisa diverifikasi. Pembeli bersedia bayar lebih untuk motor dengan riwayat servis terdokumentasi."
+  },
+  "FeaturesProgress": {
+    "title": "Lacak Pengetahuan Motor Kamu",
+    "description": "Kumpulkan lencana, lacak skor kuis, bangun learning streak. Edukasi motor bergaya game yang menjaga motivasi.",
+    "heroTitle": "Lacak Kemajuanmu",
+    "heroSubtitle": "Pembelajaran bergaya game yang menjaga motivasi. Kumpulkan lencana, bangun streak, dan lihat keahlianmu berkembang.",
+    "badgesTitle": "Kumpulkan Lencana Prestasi",
+    "badgesDesc": "Selesaikan kursus, ace kuis, dan capai milestone untuk membuka lencana. Tunjukkan pengetahuan motormu.",
+    "streaksTitle": "Bangun Learning Streak",
+    "streaksDesc": "Pelajari sesuatu yang baru setiap hari. Bangun streak untuk konsistensi.",
+    "scoresTitle": "Lacak Skor Kuis",
+    "scoresDesc": "Lihat performa di semua modul. Identifikasi area lemah dan fokuskan pembelajaran.",
+    "faq": [
+      {
+        "question": "Metrik apa yang ditampilkan pelacak kemajuan?",
+        "answer": "Menampilkan tingkat penyelesaian tugas perawatan, jadwal servis semua motor, tren pengeluaran, kemajuan skill tree, skor kuis, lencana prestasi, dan learning streak."
+      },
+      {
+        "question": "Bisa atur pengingat perawatan kustom?",
+        "answer": "Ya. Atur berdasarkan jarak tempuh, waktu, atau keduanya. Setiap pengingat bisa dikonfigurasi per motor."
+      },
+      {
+        "question": "Apakah pelacakan kemajuan bekerja dengan beberapa motor?",
+        "answer": "Ya. MotoVault menyediakan dashboard per motor dan gambaran agregat semua motor."
+      },
+      {
+        "question": "Bisa ekspor data perawatan?",
+        "answer": "Ya. Ekspor laporan perawatan lengkap untuk motor mana pun, termasuk riwayat servis lengkap dengan tanggal, jarak tempuh, biaya, dan catatan."
+      }
+    ],
+    "longFormTitle": "Pelacakan Kemajuan Motor: Tetap Termotivasi, Tetap Terdepan",
+    "longFormIntro": "Merawat motor dan membangun pengetahuan mekanik adalah komitmen jangka panjang. Sistem pelacakan MotoVault menjaga semuanya terlihat dan terorganisir.",
+    "longFormDashboardTitle": "Dashboard Motor Personalmu",
+    "longFormDashboard": "Dashboard MotoVault menyatukan semuanya. Lihat status semua motor, pelajaran berikutnya, tren skor, dan pengeluaran dalam sekejap.",
+    "longFormRemindersTitle": "Pengingat Pintar yang Menjaga Kamu Terus Berkendara",
+    "longFormReminders": "Sistem pengingat adalah tulang punggung pelacakan perawatan. Notifikasi sebelum terlambat. Saat mencatat tugas selesai, pengingat berikutnya diatur otomatis.",
+    "longFormAnalyticsTitle": "Analitik dan Laporan untuk Kepemilikan Lebih Cerdas",
+    "longFormAnalytics": "MotoVault melampaui pelacakan sederhana dengan analitik pengeluaran, perawatan, dan pembelajaran. Semuanya bisa diekspor menjadi laporan."
+  }
+}
