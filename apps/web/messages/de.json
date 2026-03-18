@@ -7,8 +7,11 @@
   },
   "Navbar": {
     "features": "Funktionen",
+    "diagnostics": "KI-Diagnose",
+    "learning": "Lernen",
+    "garage": "Garage",
     "faq": "Häufige Fragen",
-    "download": "Early Access",
+    "download": "App holen",
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen"
@@ -18,12 +21,13 @@
     "line2": "REPARIERE",
     "line3": "DEIN BIKE.",
     "subtitle": "KI-gestützte Motorraddiagnose & Lernen — bald verfügbar.",
-    "downloadCta": "Early Access",
+    "downloadCta": "App holen",
     "exploreFeatures": "Funktionen Entdecken",
     "scrollDown": "Nach unten scrollen",
     "seoTitle": "KI-gestützte Motorraddiagnose & Lern-App"
   },
   "Features": {
+    "sectionLabel": "Funktionen",
     "sectionTitle": "Motorraddiagnose- und Wartungsfunktionen",
     "sectionSubtitle": "Alles, was du brauchst, um dein Motorrad zu lernen, zu warten und zu meistern.",
     "diag": {
@@ -66,6 +70,7 @@
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
+    "sectionLabel": "So funktioniert's",
     "sectionTitle": "So funktioniert die KI-Motorraddiagnose",
     "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
     "step1Title": "Füge Dein Bike Hinzu",
@@ -76,6 +81,7 @@
     "step3Desc": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
   },
   "Testimonials": {
+    "sectionLabel": "Erfahrungen",
     "sectionTitle": "Was Motorradfahrer sagen",
     "badge": "Early Access",
     "items": [
@@ -117,10 +123,17 @@
     "subtitle": "Erhalte Early Access, wenn wir auf iOS und Android starten.",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
-    "trustCancel": "Jederzeit kündbar",
-    "disclaimer": "Bald verfügbar auf iOS und Android."
+    "disclaimer": "Bald verfügbar auf iOS und Android.",
+    "emailPlaceholder": "deine@email.de",
+    "submitButton": "Benachrichtige mich",
+    "submitting": "Wird beigetreten...",
+    "successMessage": "Du bist dabei! Wir benachrichtigen dich, wenn MotoVault startet.",
+    "successTagline": "Dein Motorrad verdient mehr als eine Tabelle.",
+    "errorMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "personality": "Dein Motorrad verdient mehr als eine Tabelle."
   },
   "Faq": {
+    "sectionLabel": "FAQ",
     "sectionTitle": "Häufig Gestellte Fragen",
     "items": [
       {
@@ -157,7 +170,7 @@
     "features": "Funktionen",
     "learning": "Lernpfade",
     "garage": "Garage",
-    "download": "Early Access",
+    "download": "App holen",
     "faq": "Häufige Fragen",
     "support": "Support",
     "privacy": "Datenschutz",

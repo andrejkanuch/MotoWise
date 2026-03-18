@@ -3,11 +3,19 @@ import { getTranslations } from 'next-intl/server';
 type FeatureKey = 'diag' | 'learn' | 'garage' | 'progress' | 'community';
 
 const GRID_CLASSES: Record<FeatureKey, string> = {
-  diag: 'md:col-span-2 lg:[grid-area:diag]',
+  diag: 'md:col-span-2 lg:[grid-area:diag] border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40',
   learn: 'lg:row-span-2 lg:[grid-area:learn]',
   garage: 'lg:row-span-2 lg:[grid-area:garage]',
   progress: 'lg:row-span-2 lg:[grid-area:progress]',
   community: 'lg:[grid-area:community]',
+};
+
+const ICON_HOVER: Record<FeatureKey, string> = {
+  diag: 'icon-rev-hover',       // scanner pulses
+  learn: 'icon-flip-hover',     // book flips open
+  garage: 'icon-spin-hover',    // wrench turns
+  progress: 'icon-rev-hover',   // chart pops
+  community: '',                // subtle default
 };
 
 const FEATURES = [
@@ -122,11 +130,14 @@ export async function FeaturesGrid() {
   const t = await getTranslations('Features');
 
   return (
-    <section id="features" className="px-4 py-32">
+    <section id="features" className="px-6 py-36 lg:py-44">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
-        <div className="reveal-on-scroll mb-20 text-center">
-          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
+        <div className="reveal-on-scroll mb-16 text-center">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            {t('sectionLabel')}
+          </p>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {t('sectionTitle')}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
@@ -137,7 +148,7 @@ export async function FeaturesGrid() {
           {FEATURES.map((feature, index) => (
             <article
               key={feature.key}
-              className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-2xl border-2 border-neutral-800 bg-neutral-900/50 p-8 transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
+              className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Radial glow — intensifies on hover */}
@@ -155,7 +166,7 @@ export async function FeaturesGrid() {
               <div className="relative z-10 flex h-full min-w-0 flex-col">
                 <div className="flex items-start justify-between">
                   <div
-                    className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 transition-transform duration-300 group-hover:rotate-[5deg] group-hover:scale-105 ${feature.accentClass}`}
+                    className={`mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 ${ICON_HOVER[feature.key]} ${feature.accentClass}`}
                   >
                     {feature.icon}
                   </div>
@@ -166,13 +177,13 @@ export async function FeaturesGrid() {
                   </span>
                 </div>
 
-                <h3 className="truncate text-lg font-semibold text-neutral-50">
+                <h3 className="text-lg font-semibold text-neutral-50">
                   {t(`${feature.key}.title`)}
                 </h3>
                 <p className={`mt-1 text-sm font-medium ${feature.accentClass}`}>
                   {t(`${feature.key}.tagline`)}
                 </p>
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-400">
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-300">
                   {t(`${feature.key}.description`)}
                 </p>
               </div>

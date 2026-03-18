@@ -9,11 +9,18 @@ const SPEED_LINES = [
   { top: '70%', duration: '2.2s', delay: '0.3s', width: '200px' },
 ] as const;
 
+/** Secondary wind layer — slower, wider, lower opacity for depth */
+const WIND_LINES = [
+  { top: '30%', duration: '5s', delay: '0.8s', width: '320px' },
+  { top: '60%', duration: '6s', delay: '2s', width: '280px' },
+  { top: '80%', duration: '5.5s', delay: '0s', width: '260px' },
+] as const;
+
 export function Hero() {
   const t = useTranslations('Hero');
 
   return (
-    <section className="hero-scroll-root relative min-h-screen w-full overflow-hidden">
+    <section className="hero-scroll-root relative w-full overflow-hidden">
       {/* Background gradient layer */}
       <div className="hero-bg-parallax absolute inset-0" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-neutral-900" />
@@ -26,7 +33,7 @@ export function Hero() {
         />
       </div>
 
-      {/* Speed lines */}
+      {/* Speed lines — primary fast layer */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {SPEED_LINES.map((line) => (
           <div
@@ -40,18 +47,30 @@ export function Hero() {
             }}
           />
         ))}
+        {/* Secondary wind layer — slower, wider streaks for depth */}
+        {WIND_LINES.map((line) => (
+          <div
+            key={`wind-${line.top}`}
+            className="absolute right-0 h-[2px] bg-gradient-to-l from-neutral-500/8 via-neutral-400/5 to-transparent"
+            style={{
+              top: line.top,
+              width: line.width,
+              willChange: 'transform',
+              animation: `speed-line-slow ${line.duration} ease-in-out ${line.delay} infinite`,
+            }}
+          />
+        ))}
       </div>
 
       {/* Main content container */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-32">
+      <div className="relative z-10 mx-auto flex max-w-7xl items-center px-6 pb-16 pt-32 md:pb-24 md:pt-40">
         {/* Left: Text content (~55%) */}
         <div className="hero-text-fade relative z-20 w-full md:w-[55%]">
-          <h1 className="mb-4 text-sm font-semibold uppercase tracking-widest text-warm-400">
+          <h1 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             {t('seoTitle')}
           </h1>
           <p
-            className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-tight tracking-tight text-neutral-50"
-            aria-hidden="true"
+            className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50"
           >
             {t('line1')}
             <br />
@@ -68,8 +87,8 @@ export function Hero() {
           <div className="mt-12 flex flex-wrap items-center gap-4">
             {/* Primary CTA with glow */}
             <a
-              href="#cta"
-              className="cta-primary group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400"
+              href="https://play.google.com/store/apps/details?id=com.motovault.app"
+              className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
               <span className="relative">{t('downloadCta')}</span>
@@ -78,7 +97,7 @@ export function Hero() {
             {/* Secondary CTA with glass effect */}
             <a
               href="#features"
-              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-8 py-3 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100"
+              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               {t('exploreFeatures')}
             </a>
@@ -94,6 +113,24 @@ export function Hero() {
             <HeroCarousel />
           </AppPreview>
         </div>
+      </div>
+
+      {/* Tachometer sweep — motorcycle signature moment */}
+      <div className="tach-sweep pointer-events-none hidden md:block" aria-hidden="true">
+        <svg viewBox="0 0 200 200" fill="none">
+          <defs>
+            <linearGradient id="tach-sweep-grad" x1="0" y1="100" x2="200" y2="100">
+              <stop offset="0%" stopColor="oklch(0.76 0.13 70)" />
+              <stop offset="75%" stopColor="oklch(0.65 0.2 45)" />
+              <stop offset="100%" stopColor="oklch(0.55 0.25 30)" />
+            </linearGradient>
+          </defs>
+          <path d="M30 170 A90 90 0 0 1 170 170" stroke="oklch(1 0 0 / 0.06)" strokeWidth="2" fill="none" />
+          <path d="M30 170 A90 90 0 0 1 170 170" className="tach-sweep-arc" />
+          <line x1="100" y1="100" x2="100" y2="25" stroke="oklch(0.76 0.13 70)" strokeWidth="2" strokeLinecap="round" className="tach-needle" />
+          <circle cx="100" cy="100" r="4" fill="oklch(0.76 0.13 70)" />
+          <path d="M150 40 A90 90 0 0 1 170 170" stroke="oklch(0.55 0.25 30)" strokeWidth="4" fill="none" className="tach-redline" />
+        </svg>
       </div>
 
       {/* Scroll indicator */}

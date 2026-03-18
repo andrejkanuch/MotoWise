@@ -7,6 +7,9 @@ import { LanguageSwitcher } from './language-switcher';
 
 const NAV_LINKS = [
   { key: 'features', href: '#features' },
+  { key: 'diagnostics', href: '/features/ai-diagnostics' },
+  { key: 'learning', href: '/features/learning-paths' },
+  { key: 'garage', href: '/features/garage-management' },
   { key: 'faq', href: '#faq' },
 ] as const;
 
@@ -87,33 +90,36 @@ export function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky top-0 z-50 transition-[background-color,border-color,backdrop-filter,filter] duration-300 ${
         scrolled
           ? 'border-b border-warm-500/20 bg-neutral-950/60 saturate-150 backdrop-blur-xl'
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
         {/* Logo */}
-        <Link href="/" className="logo-glow text-xl font-extrabold tracking-tight text-neutral-50">
+        <Link href="/" className="logo-glow logo-needle text-xl font-extrabold tracking-tight text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded">
           MotoVault
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
-            >
-              {t(link.key)}
-            </a>
-          ))}
+        <div className="hidden items-center gap-6 lg:gap-8 md:flex">
+          {NAV_LINKS.map((link) => {
+            const cls = "text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded";
+            return link.href.startsWith('#') ? (
+              <a key={link.href} href={link.href} className={cls}>
+                {t(link.key)}
+              </a>
+            ) : (
+              <Link key={link.href} href={link.href} className={cls}>
+                {t(link.key)}
+              </Link>
+            );
+          })}
           <LanguageSwitcher />
           <a
-            href="#cta"
-            className="cta-primary rounded-full bg-warm-500 px-5 py-2 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90"
+            href="https://play.google.com/store/apps/details?id=com.motovault.app"
+            className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
           >
             {t('download')}
           </a>
@@ -123,7 +129,7 @@ export function Navbar() {
         <button
           ref={menuButtonRef}
           type="button"
-          className="flex size-10 items-center justify-center rounded-lg text-neutral-300 transition-colors hover:text-neutral-50 md:hidden"
+          className="flex size-11 items-center justify-center rounded-lg text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 md:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
@@ -164,24 +170,37 @@ export function Navbar() {
           aria-label={t('openMenu')}
           className="fixed inset-0 top-[72px] z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl md:hidden"
         >
-          <div className="flex flex-1 flex-col items-center justify-center gap-8">
-            {NAV_LINKS.map((link, i) => (
-              <a
-                key={link.href}
-                ref={i === 0 ? firstLinkRef : undefined}
-                href={link.href}
-                onClick={closeMobile}
-                className="text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
-              >
-                {t(link.key)}
-              </a>
-            ))}
+          <div className="flex flex-1 flex-col items-center justify-center gap-6">
+            {NAV_LINKS.map((link, i) => {
+              const cls = "text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline";
+              return link.href.startsWith('#') ? (
+                <a
+                  key={link.href}
+                  ref={i === 0 ? firstLinkRef : undefined}
+                  href={link.href}
+                  onClick={closeMobile}
+                  className={cls}
+                >
+                  {t(link.key)}
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  ref={i === 0 ? firstLinkRef : undefined}
+                  href={link.href}
+                  onClick={closeMobile}
+                  className={cls}
+                >
+                  {t(link.key)}
+                </Link>
+              );
+            })}
             <LanguageSwitcher />
             {/* biome-ignore lint/a11y/useValidAnchor: anchor with onClick closes mobile menu before navigating */}
             <a
-              href="#cta"
+              href="https://play.google.com/store/apps/details?id=com.motovault.app"
               onClick={closeMobile}
-              className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90"
+              className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               {t('download')}
             </a>

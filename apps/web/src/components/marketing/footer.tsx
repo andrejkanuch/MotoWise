@@ -14,7 +14,7 @@ function FooterColumn({
       <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-50">{title}</h3>
       <ul className="mt-4 space-y-3">
         {links.map((link) => {
-          const cls = 'text-sm text-neutral-400 transition-colors hover:text-neutral-200';
+          const cls = 'text-sm text-neutral-400 transition-colors hover:text-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded';
           return (
             <li key={link.label}>
               {link.external ? (
@@ -41,7 +41,7 @@ export async function Footer() {
     { label: t('features'), href: '/features/ai-diagnostics' },
     { label: t('learning'), href: '/features/learning-paths' },
     { label: t('garage'), href: '/features/garage-management' },
-    { label: t('download'), href: '#cta' },
+    { label: t('download'), href: 'https://play.google.com/store/apps/details?id=com.motovault.app', external: true },
   ];
 
   const companyLinks = [
@@ -52,24 +52,24 @@ export async function Footer() {
   ];
 
   return (
-    <footer className="relative bg-gradient-to-b from-transparent to-black">
-      <div className="mx-auto max-w-7xl px-6 pb-16">
+    <footer className="relative bg-gradient-to-b from-transparent to-neutral-950">
+      <div className="mx-auto max-w-7xl px-6 pt-16 pb-[max(4rem,env(safe-area-inset-bottom))]">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
           <FooterColumn title={t('product')} links={productLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t-2 border-neutral-800 pt-8 md:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 md:flex-row">
           <div>
             <p className="text-lg font-bold text-neutral-50">
               Moto<span className="text-warm-400">Vault</span>
             </p>
-            <p className="mt-1 text-xs text-neutral-500">{t('tagline')}</p>
+            <p className="mt-1 text-xs text-neutral-400">{t('tagline')}</p>
           </div>
 
-          <p className="text-xs text-neutral-600">{t('builtWithAi')}</p>
+          <p className="text-xs text-neutral-400">{t('builtWithAi')}</p>
 
-          <p className="text-xs text-neutral-500">{t('copyright')}</p>
+          <p className="text-xs text-neutral-400">{t('copyright')}</p>
         </div>
       </div>
     </footer>

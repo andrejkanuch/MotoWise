@@ -64,11 +64,14 @@ export async function HowItWorks() {
   const t = await getTranslations('HowItWorks');
 
   return (
-    <section className="px-4 py-32">
+    <section className="px-6 py-28">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
-        <div className="reveal-on-scroll mb-20 text-center">
-          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
+        <div className="reveal-on-scroll mb-16 text-center">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            {t('sectionLabel')}
+          </p>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {t('sectionTitle')}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
@@ -102,7 +105,7 @@ export async function HowItWorks() {
               {/* Numbered circle with icon inside */}
               <div className="step-circle mb-8 flex size-[88px] items-center justify-center rounded-full bg-gradient-to-br from-warm-400 to-signature-600 p-[2px]">
                 <div className="flex size-full flex-col items-center justify-center gap-0.5 rounded-full bg-neutral-950">
-                  <span className="text-xl font-extrabold leading-none text-neutral-50">
+                  <span className="text-xl font-bold leading-none text-neutral-50">
                     {step.number}
                   </span>
                   <div className="text-warm-400">{step.icon}</div>
@@ -110,11 +113,11 @@ export async function HowItWorks() {
               </div>
 
               {/* Card */}
-              <div className="card-lift w-full rounded-2xl border-2 border-neutral-800 bg-neutral-900/70 p-8">
+              <div className="card-lift w-full rounded-xl bg-neutral-900/30 p-8 shadow-[0_1px_0_0_oklch(1_0_0/0.04)]">
                 <h3 className="text-xl font-semibold text-neutral-50">
                   {t(`step${index + 1}Title`)}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+                <p className="mt-2 text-sm leading-relaxed text-neutral-300">
                   {t(`step${index + 1}Desc`)}
                 </p>
               </div>

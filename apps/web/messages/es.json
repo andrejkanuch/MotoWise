@@ -7,8 +7,11 @@
   },
   "Navbar": {
     "features": "Funciones",
+    "diagnostics": "Diagnóstico IA",
+    "learning": "Aprendizaje",
+    "garage": "Garaje",
     "faq": "Preguntas frecuentes",
-    "download": "Acceso Anticipado",
+    "download": "Descargar App",
     "login": "Iniciar Sesión",
     "openMenu": "Abrir menú de navegación",
     "closeMenu": "Cerrar menú de navegación"
@@ -18,12 +21,13 @@
     "line2": "REPARA",
     "line3": "TU MOTO.",
     "subtitle": "Diagnóstico y aprendizaje de motos con IA — próximamente.",
-    "downloadCta": "Acceso Anticipado",
+    "downloadCta": "Descargar App",
     "exploreFeatures": "Explorar Funciones",
     "scrollDown": "Desplazar hacia abajo",
     "seoTitle": "Diagnóstico de Motocicletas con IA y App de Aprendizaje"
   },
   "Features": {
+    "sectionLabel": "Funciones",
     "sectionTitle": "Funciones de Diagnóstico y Mantenimiento de Motos",
     "sectionSubtitle": "Todo lo que necesitas para aprender, mantener y dominar tu motocicleta.",
     "diag": {
@@ -66,6 +70,7 @@
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
+    "sectionLabel": "Cómo funciona",
     "sectionTitle": "Cómo Funciona el Diagnóstico de Motos con IA",
     "sectionSubtitle": "Tres simples pasos para dominar tu moto.",
     "step1Title": "Agrega Tu Moto",
@@ -76,6 +81,7 @@
     "step3Desc": "Sigue calendarios de mantenimiento personalizados y rutas de aprendizaje estructuradas para dominar tu motocicleta."
   },
   "Testimonials": {
+    "sectionLabel": "Testimonios",
     "sectionTitle": "Lo Que Dicen los Motociclistas",
     "badge": "Acceso Anticipado",
     "items": [
@@ -117,10 +123,17 @@
     "subtitle": "Obtén acceso anticipado cuando lancemos en iOS y Android.",
     "trustFree": "Gratis al lanzar",
     "trustNoCard": "Sin tarjeta de crédito",
-    "trustCancel": "Cancela cuando quieras",
-    "disclaimer": "Próximamente en iOS y Android."
+    "disclaimer": "Próximamente en iOS y Android.",
+    "emailPlaceholder": "tu@email.com",
+    "submitButton": "Notifícame",
+    "submitting": "Uniéndose...",
+    "successMessage": "¡Estás dentro! Te avisaremos cuando MotoVault se lance.",
+    "successTagline": "Tu moto merece algo mejor que una hoja de cálculo.",
+    "errorMessage": "Algo salió mal. Por favor, inténtalo de nuevo.",
+    "personality": "Tu moto merece algo mejor que una hoja de cálculo."
   },
   "Faq": {
+    "sectionLabel": "FAQ",
     "sectionTitle": "Preguntas Frecuentes",
     "items": [
       {
@@ -157,7 +170,7 @@
     "features": "Funciones",
     "learning": "Rutas de Aprendizaje",
     "garage": "Garaje",
-    "download": "Acceso Anticipado",
+    "download": "Descargar App",
     "faq": "Preguntas frecuentes",
     "support": "Soporte",
     "privacy": "Privacidad",

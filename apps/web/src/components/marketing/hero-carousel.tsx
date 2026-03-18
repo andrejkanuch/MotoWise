@@ -32,13 +32,18 @@ export function HeroCarousel() {
           key={src}
           src={src}
           alt=""
-          className="block w-full transition-opacity duration-700 ease-in-out"
+          className="block w-full bg-neutral-900 transition-opacity duration-700 ease-in-out"
           style={{
             position: i === 0 ? 'relative' : 'absolute',
             inset: i === 0 ? undefined : 0,
             opacity: i === active ? 1 : 0,
+            minHeight: 200,
           }}
           loading={i === 0 ? 'eager' : 'lazy'}
+          onError={(e) => {
+            const img = e.currentTarget;
+            img.style.display = 'none';
+          }}
         />
       ))}
 

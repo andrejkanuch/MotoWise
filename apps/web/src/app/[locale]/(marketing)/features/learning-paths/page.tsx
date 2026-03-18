@@ -4,6 +4,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL } from '@/lib/constants';
+import { LearningFaq } from './faq';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -29,6 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   };
 }
+
+const COURSE_GLOW_COLORS = [
+  'oklch(0.76 0.13 70 / 0.08)',
+  'oklch(0.65 0.15 160 / 0.08)',
+  'oklch(0.65 0.14 230 / 0.08)',
+  'oklch(0.76 0.1 230 / 0.08)',
+] as const;
 
 export default async function LearningPathsPage({ params }: PageProps) {
   const { locale } = await params;
@@ -93,82 +101,130 @@ export default async function LearningPathsPage({ params }: PageProps) {
       <JsonLd data={faqSchema} />
 
       {/* Hero */}
-      <section className="px-4 pb-16 pt-24 md:pt-32">
+      <section className="px-6 pb-16 pt-24 md:pt-32">
         <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            Learning Paths
+          </p>
+          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {t('heroTitle')}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">{t('heroSubtitle')}</p>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-300 leading-relaxed">
+            {t('heroSubtitle')}
+          </p>
+          <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-signature-500" />
         </div>
       </section>
 
       {/* Courses */}
-      <section className="px-4 py-16">
+      <section className="px-6 py-28">
         <div className="mx-auto max-w-5xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
-            {t('coursesTitle')}
-          </h2>
-          <div className="mt-12 grid gap-8 md:grid-cols-2">
-            {courses.map((course) => (
-              <div
+          <div className="reveal-on-scroll mb-16 text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+              Curriculum
+            </p>
+            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+              {t('coursesTitle')}
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {courses.map((course, index) => (
+              <article
                 key={course}
-                className="reveal-on-scroll rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8"
+                className="card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                <h3 className="text-xl font-bold text-neutral-50">{t(`${course}Title`)}</h3>
-                <p className="mt-3 text-neutral-400">{t(`${course}Desc`)}</p>
-              </div>
+                {/* Radial glow overlay */}
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: `radial-gradient(ellipse at 50% 0%, ${COURSE_GLOW_COLORS[index]}, transparent 70%)`,
+                  }}
+                />
+
+                {/* Bottom accent on hover */}
+                <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
+
+                {/* Content */}
+                <div className="relative z-10">
+                  <h3 className="text-lg font-semibold text-neutral-50">{t(`${course}Title`)}</h3>
+                  <p className="mt-3 text-neutral-300 leading-relaxed">{t(`${course}Desc`)}</p>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
       {/* Quiz Preview */}
-      <section className="px-4 py-16">
-        <div className="reveal-on-scroll mx-auto max-w-3xl rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center md:p-12">
-          <h2 className="text-3xl font-extrabold tracking-tight text-neutral-50">
+      <section className="px-6 py-24">
+        <div className="reveal-on-scroll mx-auto max-w-3xl rounded-xl border border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40 p-8 text-center md:p-12">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            Test Your Knowledge
+          </p>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
             {t('quizTitle')}
           </h2>
-          <p className="mt-4 text-lg text-neutral-400">{t('quizDesc')}</p>
+          <p className="mt-4 text-lg text-neutral-300 leading-relaxed">{t('quizDesc')}</p>
         </div>
       </section>
 
       {/* Long-form Content */}
-      <section className="px-4 py-16">
+      <section className="px-6 py-24">
         <div className="mx-auto max-w-3xl">
-          <h2 className="reveal-on-scroll text-3xl font-extrabold tracking-tight text-neutral-50">
-            {t('longFormTitle')}
-          </h2>
-          <p className="mt-6 text-lg leading-relaxed text-neutral-400">{t('longFormIntro')}</p>
+          <div className="reveal-on-scroll mb-16">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+              Deep Dive
+            </p>
+            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+              {t('longFormTitle')}
+            </h2>
+          </div>
+          <p className="reveal-on-scroll text-lg leading-relaxed text-neutral-300">{t('longFormIntro')}</p>
 
-          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
+          {/* Decorative rule */}
+          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+
+          <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
             {t('longFormCurriculumTitle')}
           </h3>
-          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormCurriculum')}</p>
+          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormCurriculum')}</p>
 
-          <h3 className="mt-12 text-2xl font-bold text-neutral-50">
+          {/* Decorative rule */}
+          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+
+          <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
             {t('longFormProgressionTitle')}
           </h3>
-          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormProgression')}</p>
+          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormProgression')}</p>
 
-          <h3 className="mt-12 text-2xl font-bold text-neutral-50">{t('longFormLessonTitle')}</h3>
-          <p className="mt-4 leading-relaxed text-neutral-400">{t('longFormLesson')}</p>
+          {/* Decorative rule */}
+          <div className="mx-auto my-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+
+          <h3 className="reveal-on-scroll text-xl font-semibold text-neutral-50">
+            {t('longFormLessonTitle')}
+          </h3>
+          <p className="mt-4 leading-relaxed text-neutral-300">{t('longFormLesson')}</p>
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="px-4 py-16">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="reveal-on-scroll text-center text-3xl font-extrabold tracking-tight text-neutral-50">
-            Frequently Asked Questions
-          </h2>
-          <div className="mt-12 space-y-8">
-            {faqItems.map(({ question, answer }) => (
-              <div key={question} className="reveal-on-scroll">
-                <h3 className="text-lg font-bold text-neutral-50">{question}</h3>
-                <p className="mt-2 leading-relaxed text-neutral-400">{answer}</p>
-              </div>
-            ))}
+      <section className="px-6 py-24">
+        <div className="mx-auto max-w-4xl">
+          {/* Decorative rule */}
+          <div className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+
+          <div className="reveal-on-scroll mb-16 text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+              Got Questions?
+            </p>
+            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+              Frequently Asked Questions
+            </h2>
           </div>
+
+          <LearningFaq items={faqItems} />
+
           <p className="mt-12 text-center text-neutral-500">
             Have more questions?{' '}
             <Link href="/support" className="text-warm-400 underline underline-offset-4">

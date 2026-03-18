@@ -23,57 +23,60 @@ export async function CtaSection() {
   const t = await getTranslations('Cta');
 
   return (
-    <>
-      {/* Top gradient transition: dark → warm */}
+    <section
+      id="cta"
+      className="relative overflow-hidden px-6 py-24 md:py-32"
+    >
+      {/* Warm radial glow background */}
       <div
-        className="h-20 w-full"
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
         style={{
-          background: 'linear-gradient(to bottom, var(--color-neutral-950), var(--color-warm-400))',
+          background:
+            'radial-gradient(ellipse 80% 50% at 50% 40%, oklch(0.76 0.13 70 / 0.12), transparent)',
         }}
       />
 
-      <section id="cta" className="bg-warm-400 px-4 py-24 md:py-32">
-        <div className="reveal-on-scroll mx-auto max-w-3xl">
-          {/* Social proof line */}
-          <p className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-primary-600">
-            {t('socialProof')}
-          </p>
+      {/* Decorative accent line */}
+      <div className="mx-auto mb-8 h-px w-24 bg-warm-500" aria-hidden="true" />
 
-          <h2 className="text-center text-5xl font-extrabold tracking-tight text-primary-950 md:text-6xl">
-            {t('headline')}
-          </h2>
+      <div className="reveal-on-scroll relative mx-auto max-w-3xl">
+        {/* Social proof line */}
+        <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+          {t('socialProof')}
+        </p>
 
-          <p className="mt-4 text-center text-lg text-primary-800">{t('subtitle')}</p>
+        <h2 className="text-center text-4xl font-bold leading-[1.1] tracking-tight text-neutral-50 md:text-5xl lg:text-6xl">
+          {t('headline')}
+        </h2>
 
-          {/* Waitlist signup form */}
-          <div className="mt-8 flex justify-center">
-            <WaitlistForm />
-          </div>
+        <p className="mt-4 text-center text-lg text-neutral-300">{t('subtitle')}</p>
 
-          {/* Trust badges */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
-            {(['trustFree', 'trustNoCard', 'trustCancel'] as const).map((key) => (
-              <div
-                key={key}
-                className="flex items-center gap-2 text-sm font-medium text-primary-700"
-              >
-                <CheckIcon />
-                <span>{t(key)}</span>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-6 text-center text-sm text-primary-700">{t('disclaimer')}</p>
+        {/* Waitlist signup form */}
+        <div className="mt-8 flex justify-center">
+          <WaitlistForm />
         </div>
-      </section>
 
-      {/* Bottom gradient transition: warm → dark */}
-      <div
-        className="h-20 w-full"
-        style={{
-          background: 'linear-gradient(to bottom, var(--color-warm-400), var(--color-neutral-950))',
-        }}
-      />
-    </>
+        {/* Trust badges */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
+          {(['trustFree', 'trustNoCard'] as const).map((key) => (
+            <div
+              key={key}
+              className="flex items-center gap-2 text-sm font-medium text-neutral-400"
+            >
+              <CheckIcon />
+              <span>{t(key)}</span>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-sm text-neutral-500">{t('disclaimer')}</p>
+
+        {/* Personality line — surfacing the console easter egg */}
+        <p className="mt-8 text-center text-sm italic text-neutral-600">
+          {t('personality')}
+        </p>
+      </div>
+    </section>
   );
 }

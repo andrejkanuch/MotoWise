@@ -10,7 +10,7 @@ export function AppPreview({ imageSrc, alt = '', className = '', children }: App
     <div className={`phone-float ${className}`}>
       {/* Phone frame */}
       <div
-        className="relative mx-auto w-[340px] rounded-[3rem] border-[6px] border-neutral-700 bg-neutral-900 p-2 shadow-2xl shadow-primary-500/10"
+        className="relative mx-auto w-[340px] rounded-[3rem] border-[8px] border-neutral-800 ring-1 ring-neutral-600/50 bg-neutral-900 p-2 shadow-2xl shadow-primary-500/10"
         style={{
           transform: 'perspective(1000px) rotateY(-5deg) rotateX(2deg)',
         }}

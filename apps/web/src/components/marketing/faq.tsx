@@ -14,25 +14,17 @@ export function Faq() {
   }
 
   return (
-    <section id="faq" className="px-4 py-32">
+    <section id="faq" className="px-6 py-24 lg:py-28">
       <div className="mx-auto max-w-4xl">
-        {/* Section header with icon */}
-        <div className="reveal-on-scroll mb-20 flex items-center justify-center gap-3 text-center">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-10 text-primary-400"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-            <path d="M12 17h.01" />
-          </svg>
-          <h2 className="text-4xl font-extrabold tracking-tight text-neutral-50 md:text-5xl">
+        {/* Decorative rule */}
+        <div className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent" aria-hidden="true" />
+
+        {/* Section header */}
+        <div className="reveal-on-scroll mb-16 text-center">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            {t('sectionLabel')}
+          </p>
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {t('sectionTitle')}
           </h2>
         </div>
@@ -45,8 +37,9 @@ export function Faq() {
               <div key={index} className="border-b border-neutral-800/50">
                 <button
                   type="button"
+                  id={`faq-question-${index}`}
                   onClick={() => toggle(index)}
-                  className={`flex w-full items-center gap-3 py-4 text-left transition-colors ${
+                  className={`flex w-full min-h-[44px] items-center gap-3 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded ${
                     isOpen ? 'text-neutral-50' : 'text-neutral-400 hover:text-neutral-200'
                   }`}
                   aria-expanded={isOpen}
@@ -77,6 +70,8 @@ export function Faq() {
                 {/* Accordion body with grid-rows animation */}
                 <div
                   id={`faq-answer-${index}`}
+                  role="region"
+                  aria-labelledby={`faq-question-${index}`}
                   className="grid transition-[grid-template-rows] duration-300 ease-out"
                   style={{
                     gridTemplateRows: isOpen ? '1fr' : '0fr',
@@ -84,9 +79,8 @@ export function Faq() {
                 >
                   <div className="overflow-hidden">
                     <div
-                      className={`pb-4 text-base leading-7 text-neutral-300 transition-opacity duration-300 lg:max-w-2xl ${
-                        isOpen ? 'border-l-2 border-warm-500 pl-4' : ''
-                      }`}
+                      className="faq-accent-line pb-4 pl-4 text-base leading-7 text-neutral-300 transition-opacity duration-300 lg:max-w-2xl"
+                      data-open={isOpen}
                       style={{
                         opacity: isOpen ? 1 : 0,
                         transitionDelay: isOpen ? '100ms' : '0ms',

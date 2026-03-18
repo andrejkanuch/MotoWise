@@ -2,13 +2,16 @@
   "Metadata": {
     "title": "MotoVault — AI Motorcycle Diagnostics & Learning App",
     "titleTemplate": "%s | MotoVault",
-    "description": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Free on iOS & Android.",
-    "ogDescription": "Master motorcycle maintenance, diagnose issues with AI photos, and track your bike's health. Free on iOS & Android."
+    "description": "Master motorcycle maintenance, diagnose issues with a photo, and track your bike's health. Launching soon — free on iOS & Android.",
+    "ogDescription": "Master motorcycle maintenance, diagnose issues with a photo, and track your bike's health. Launching soon — free on iOS & Android."
   },
   "Navbar": {
     "features": "Features",
+    "diagnostics": "AI Diagnostics",
+    "learning": "Learning",
+    "garage": "Garage",
     "faq": "FAQ",
-    "download": "Get Early Access",
+    "download": "Get the App",
     "login": "Log In",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu"
@@ -18,14 +21,15 @@
     "line2": "FIX",
     "line3": "YOUR BIKE.",
     "subtitle": "AI-powered motorcycle diagnostics & learning — launching soon.",
-    "downloadCta": "Get Early Access",
+    "downloadCta": "Get the App",
     "exploreFeatures": "Explore Features",
     "scrollDown": "Scroll down",
     "seoTitle": "AI-Powered Motorcycle Diagnostics & Learning App"
   },
   "Features": {
-    "sectionTitle": "Motorcycle Diagnostics & Maintenance Features",
-    "sectionSubtitle": "Everything you need to learn, maintain, and master your motorcycle.",
+    "sectionLabel": "Features",
+    "sectionTitle": "Everything Your Bike Needs",
+    "sectionSubtitle": "Learn, maintain, and master your motorcycle — all in one app.",
     "diag": {
       "title": "AI Diagnostics",
       "tagline": "Snap a photo. Get answers.",
@@ -33,9 +37,9 @@
       "badge": "< 5 sec"
     },
     "learn": {
-      "title": "Learning Paths",
-      "tagline": "Structured courses for every skill level.",
-      "description": "Dive into Engine Internals, Suspension Tuning, Electrical Systems, and Routine Maintenance — each with lessons, quizzes, and hands-on challenges.",
+      "title": "Wrench Skills",
+      "tagline": "From oil changes to engine rebuilds.",
+      "description": "Learn how your engine, suspension, and electrics actually work — with bite-sized lessons, quizzes, and real garage tasks.",
       "badge": "50+ lessons"
     },
     "garage": {
@@ -45,10 +49,10 @@
       "badge": "Unlimited bikes"
     },
     "progress": {
-      "title": "Progress Tracking",
-      "tagline": "Master your knowledge.",
-      "description": "Level up as you complete lessons and ace quizzes. Earn badges, track scores across modules, and watch your expertise grow over time.",
-      "badge": "Track progress"
+      "title": "Skill Tracker",
+      "tagline": "See how far you've come.",
+      "description": "Level up as you learn. Earn badges, track your quiz scores, and see your growth — from first oil change to full-on gearhead.",
+      "badge": "Level up"
     },
     "community": {
       "title": "Community",
@@ -58,24 +62,26 @@
     }
   },
   "SocialProof": {
-    "riders": "Early Access Riders",
+    "riders": "On the Waitlist",
     "ridersCount": "12,000+",
-    "diagnostics": "AI Diagnostics",
-    "diagnosticsCount": "85,000+",
-    "bikes": "Bikes Supported",
+    "diagnostics": "Bike Components",
+    "diagnosticsCount": "500+",
+    "bikes": "Bikes in Database",
     "bikesCount": "18,000+"
   },
   "HowItWorks": {
-    "sectionTitle": "How AI Motorcycle Diagnostics Works",
-    "sectionSubtitle": "Three simple steps to motorcycle mastery.",
+    "sectionLabel": "How It Works",
+    "sectionTitle": "How It Works",
+    "sectionSubtitle": "Three steps. That's it.",
     "step1Title": "Add Your Bike",
     "step1Desc": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
     "step2Title": "Get AI Insights",
     "step2Desc": "Snap a photo of any part or issue. Our AI identifies components, diagnoses problems, and suggests fixes.",
-    "step3Title": "Track & Learn",
-    "step3Desc": "Follow personalized maintenance schedules and structured learning paths to master your motorcycle."
+    "step3Title": "Ride Smarter",
+    "step3Desc": "Stay on top of maintenance with smart reminders and build real skills with guided lessons."
   },
   "Testimonials": {
+    "sectionLabel": "Testimonials",
     "sectionTitle": "What Motorcycle Riders Say",
     "badge": "Early Access",
     "items": [
@@ -112,20 +118,27 @@
     ]
   },
   "Cta": {
-    "socialProof": "Trusted by riders in early access",
-    "headline": "Start Learning Motorcycle Maintenance Today",
-    "subtitle": "Get early access when we launch on iOS and Android.",
-    "trustFree": "Free at launch",
-    "trustNoCard": "No credit card",
-    "trustCancel": "Cancel anytime",
-    "disclaimer": "Launching soon on iOS and Android."
+    "socialProof": "Join thousands of riders on the waitlist",
+    "headline": "Know Your Bike Inside Out",
+    "subtitle": "Be first in line when we launch on iOS and Android.",
+    "trustFree": "Free to start",
+    "trustNoCard": "No spam, ever",
+    "disclaimer": "Launching soon on iOS and Android.",
+    "emailPlaceholder": "your@email.com",
+    "submitButton": "Join the Waitlist",
+    "submitting": "Saving your spot...",
+    "successMessage": "You're on the list! We'll let you know when it's time to ride.",
+    "successTagline": "Your bike deserves better than a spreadsheet.",
+    "errorMessage": "Something went wrong. Please try again.",
+    "personality": "Your bike deserves better than a spreadsheet."
   },
   "Faq": {
+    "sectionLabel": "FAQ",
     "sectionTitle": "Frequently Asked Questions",
     "items": [
       {
         "question": "What is MotoVault?",
-        "answer": "MotoVault is an AI-powered platform designed for motorcycle enthusiasts. It helps you learn maintenance, diagnose issues using photo-based AI analysis, track your bikes in a digital garage, and build your knowledge through structured courses and quizzes."
+        "answer": "MotoVault is an AI-powered platform built for motorcycle riders. It helps you learn maintenance, diagnose issues by snapping a photo, track your bikes in a digital garage, and build real mechanical skills through lessons and quizzes."
       },
       {
         "question": "Is MotoVault free?",
@@ -141,11 +154,11 @@
       },
       {
         "question": "Is my data safe?",
-        "answer": "Your data is protected with enterprise-grade encryption and strict access controls. Authentication tokens are stored using platform-native secure storage, and all communication is encrypted in transit. We never share your personal information or bike data with third parties."
+        "answer": "Your data is encrypted and stored securely. We use platform-native security on your device, and all communication is encrypted. We never share your personal info or bike data with anyone."
       },
       {
         "question": "What's included in MotoVault Pro?",
-        "answer": "MotoVault Pro unlocks unlimited AI diagnostics, access to all learning modules and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
+        "answer": "MotoVault Pro unlocks unlimited AI diagnostics, access to all lessons and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
       }
     ]
   },
@@ -157,7 +170,7 @@
     "features": "Features",
     "learning": "Learning Paths",
     "garage": "Garage",
-    "download": "Early Access",
+    "download": "Get the App",
     "faq": "FAQ",
     "support": "Support",
     "privacy": "Privacy",

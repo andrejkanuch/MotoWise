@@ -47,6 +47,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       >
         Skip to content
       </a>
+      <div className="scroll-progress" aria-hidden="true" />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />
