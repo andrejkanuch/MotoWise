@@ -23,6 +23,8 @@ import { StepBikeSelection } from '../../../components/diagnostic-flow/step-bike
 import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo-details';
 import { StepProblemDescription } from '../../../components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
+import { ProGateModal } from '../../../components/ProGateModal';
+import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
@@ -36,6 +38,7 @@ export default function NewDiagnosticScreen() {
   const queryClient = useQueryClient();
   const prefersReducedMotion = useReducedMotion();
   const colors = useDiagnosticColors();
+  const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
 
   const { currentStep, navigationDirection, reset, goBack, hasAnyData } = useDiagnosticFlowStore(
     useShallow((s) => ({
@@ -129,6 +132,9 @@ export default function NewDiagnosticScreen() {
   };
 
   const handleSubmit = async () => {
+    // Gate: free users must subscribe to run AI diagnostics
+    if (!requirePro('full_ai_diagnostics')) return;
+
     const state = store.getState();
     if (state.isSubmitting) return;
     state.setIsSubmitting(true);
@@ -235,6 +241,7 @@ export default function NewDiagnosticScreen() {
           <StepReviewSubmit onSubmit={handleSubmit} />
         </Animated.View>
       )}
+      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

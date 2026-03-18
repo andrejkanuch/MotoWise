@@ -16,7 +16,7 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react-native';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, {
@@ -105,7 +105,7 @@ export default function DiagnoseScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
+  const { showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
 
   const { data } = useQuery({
     queryKey: queryKeys.diagnostics.all,
@@ -119,11 +119,7 @@ export default function DiagnoseScreen() {
   });
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 
-  const monthlyDiagCount = useMemo(() => {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    return diagnostics.filter((d) => new Date(d.createdAt) >= startOfMonth).length;
-  }, [diagnostics]);
+  // monthlyDiagCount removed — diagnostics are now a paid feature, no free tier limit
 
   // CTA glow pulse animation
   const glowOpacity = useSharedValue(0.3);
@@ -145,11 +141,8 @@ export default function DiagnoseScreen() {
   }));
 
   const handleNewDiagnostic = () => {
-    if (!requireAccess('MAX_AI_DIAGNOSTICS_PER_MONTH', monthlyDiagCount)) return;
     router.push('/(diagnose)/new');
   };
-
-  const remaining = Math.max(0, 3 - monthlyDiagCount);
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
@@ -263,7 +256,7 @@ export default function DiagnoseScreen() {
                     {t('diagnose.scanDescription')}
                   </Text>
 
-                  {/* Pro gate badge */}
+                  {/* Pro badge */}
                   {!isPro && (
                     <View
                       style={{
@@ -271,30 +264,18 @@ export default function DiagnoseScreen() {
                         alignItems: 'center',
                         gap: 6,
                         marginTop: 12,
-                        backgroundColor:
-                          remaining <= 1 ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.12)',
+                        backgroundColor: 'rgba(255,255,255,0.12)',
                         borderRadius: 20,
                         paddingHorizontal: 12,
                         paddingVertical: 6,
                         borderCurve: 'continuous',
                       }}
                     >
-                      <Crown
-                        size={14}
-                        color={remaining <= 1 ? '#fbbf24' : palette.signature400}
-                        strokeWidth={2}
-                      />
+                      <Crown size={14} color={palette.signature400} strokeWidth={2} />
                       <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: '600',
-                          color: remaining <= 1 ? '#fbbf24' : 'rgba(255,255,255,0.7)',
-                        }}
+                        style={{ fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.7)' }}
                       >
-                        {t('proGate.diagnosticsRemaining', {
-                          remaining,
-                          defaultValue: `${remaining} remaining this month`,
-                        })}
+                        Pro
                       </Text>
                     </View>
                   )}
