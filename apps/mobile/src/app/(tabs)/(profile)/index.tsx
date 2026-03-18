@@ -37,8 +37,17 @@ import { useAuthStore } from '../../../stores/auth.store';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   en: 'English',
-  es: 'Espanol',
+  es: 'Español',
   de: 'Deutsch',
+  fr: 'Français',
+  it: 'Italiano',
+  'pt-BR': 'Português (BR)',
+  ja: '日本語',
+  hi: 'हिन्दी',
+  th: 'ไทย',
+  id: 'Bahasa Indonesia',
+  tr: 'Türkçe',
+  pl: 'Polski',
 };
 
 const THEME_OPTIONS = ['system', 'light', 'dark'] as const;
