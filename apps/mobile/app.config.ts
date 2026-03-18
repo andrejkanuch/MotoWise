@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
   slug: 'motowise',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
@@ -29,7 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './src/assets/images/MotoVault.png',
     resizeMode: 'contain',
-    backgroundColor: '#0F1B2D',
+    backgroundColor: '#0a0f1a',
   },
   plugins: [
     [
@@ -73,11 +73,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-splash-screen',
       {
         image: './src/assets/images/MotoVault.png',
-        imageWidth: 200,
-        backgroundColor: '#0F1B2D',
+        imageWidth: 160,
+        backgroundColor: '#0a0f1a',
         dark: {
           image: './src/assets/images/MotoVaultDark.png',
-          backgroundColor: '#0F0F10',
+          backgroundColor: '#0a0a0c',
         },
       },
     ],

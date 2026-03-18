@@ -3,9 +3,11 @@ import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql'
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { AnimatedSplash } from '../components/animated-splash';
 import i18n from '../i18n';
 import { identifyUser, initPostHog, initSentry, resetUser } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
@@ -22,6 +24,9 @@ import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
+
+// Keep native splash visible until animated splash is ready
+SplashScreen.preventAutoHideAsync();
 
 // Initialize Sentry and PostHog as early as possible
 initSentry();
@@ -114,8 +119,9 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  const { setSession, setLoading } = useAuthStore();
+  const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
     supabase.auth
@@ -147,6 +153,11 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
+
+  // Mark app as ready once auth state is resolved
+  useEffect(() => {
+    if (!isLoading) setAppReady(true);
+  }, [isLoading]);
 
   useEffect(() => {
     const locale = useAuthStore.getState().locale;
@@ -231,13 +242,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardProvider>
-        <QueryClientProvider client={queryClient}>
-          <NavigationGate>
-            <Stack screenOptions={{ headerShown: false }} />
-          </NavigationGate>
-        </QueryClientProvider>
-      </KeyboardProvider>
+      <AnimatedSplash isReady={appReady}>
+        <KeyboardProvider>
+          <QueryClientProvider client={queryClient}>
+            <NavigationGate>
+              <Stack screenOptions={{ headerShown: false }} />
+            </NavigationGate>
+          </QueryClientProvider>
+        </KeyboardProvider>
+      </AnimatedSplash>
     </GestureHandlerRootView>
   );
 }
