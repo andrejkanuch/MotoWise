@@ -44,7 +44,7 @@ describe('LocaleInterceptor', () => {
   });
 
   it('should fall back to en for invalid locale', () => {
-    mockRequest.headers['accept-language'] = 'fr';
+    mockRequest.headers['accept-language'] = 'xx';
     interceptor.intercept({} as never, mockNext);
     expect(mockRequest.locale).toBe('en');
   });
