@@ -9,9 +9,12 @@ import { router } from 'expo-router';
 import {
   Bell,
   Bike,
+  Check,
+  ChevronDown,
   ChevronRight,
   CreditCard,
   Crown,
+  Globe,
   HelpCircle,
   Lock,
   LogOut,
@@ -23,8 +26,9 @@ import {
   Sun,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProBadge } from '../../../components/ProBadge';
 import { ProGateModal } from '../../../components/ProGateModal';
@@ -156,6 +160,7 @@ export default function ProfileScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { isPro, requireAccess, showPaywall, blockedFeature, dismissPaywall } = useProGate();
+  const [showLangPicker, setShowLangPicker] = useState(false);
 
   const meQuery = useQuery({
     queryKey: queryKeys.user.me,
@@ -598,55 +603,139 @@ export default function ProfileScreen() {
       {/* Language */}
       <Animated.View entering={FadeInUp.delay(320).duration(400)}>
         <SectionHeader label={t('profile.language')} />
-        <View
+        <Pressable
+          onPress={() => {
+            haptic();
+            setShowLangPicker(true);
+          }}
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,
             borderRadius: 16,
             borderCurve: 'continuous',
             flexDirection: 'row',
-            padding: 4,
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 14,
             boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
           }}
         >
-          {SUPPORTED_LOCALES.map((loc) => {
-            const selected = locale === loc;
-            return (
-              <Pressable
-                key={loc}
-                onPress={() => {
-                  haptic();
-                  setLocale(loc);
-                }}
+          <Globe
+            size={20}
+            color={isDark ? palette.neutral400 : palette.neutral500}
+            strokeWidth={1.8}
+          />
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 16,
+              fontWeight: '500',
+              color: isDark ? palette.neutral50 : palette.neutral900,
+              marginLeft: 12,
+            }}
+          >
+            {LOCALE_DISPLAY_NAMES[locale]}
+          </Text>
+          <ChevronDown size={18} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+
+        <Modal
+          visible={showLangPicker}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowLangPicker(false)}
+        >
+          <Pressable
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
+            onPress={() => setShowLangPicker(false)}
+          >
+            <Pressable
+              onPress={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: isDark ? palette.neutral900 : palette.white,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                borderCurve: 'continuous',
+                paddingBottom: 40,
+                maxHeight: '70%',
+              }}
+            >
+              {/* Handle bar */}
+              <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: isDark ? palette.neutral700 : palette.neutral300,
+                  }}
+                />
+              </View>
+
+              <Text
                 style={{
-                  flex: 1,
-                  paddingVertical: 10,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  alignItems: 'center',
-                  backgroundColor: selected
-                    ? isDark
-                      ? palette.primary700
-                      : palette.primary500
-                    : 'transparent',
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral50 : palette.neutral900,
+                  paddingHorizontal: 20,
+                  paddingBottom: 12,
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: selected
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral400
-                        : palette.neutral600,
-                  }}
-                >
-                  {LOCALE_DISPLAY_NAMES[loc]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+                {t('profile.language')}
+              </Text>
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {SUPPORTED_LOCALES.map((loc) => {
+                  const selected = locale === loc;
+                  return (
+                    <Pressable
+                      key={loc}
+                      onPress={() => {
+                        haptic();
+                        setLocale(loc);
+                        setShowLangPicker(false);
+                      }}
+                      style={({ pressed }) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 20,
+                        paddingVertical: 14,
+                        backgroundColor: pressed
+                          ? isDark
+                            ? palette.neutral800
+                            : palette.neutral100
+                          : 'transparent',
+                      })}
+                    >
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontSize: 16,
+                          fontWeight: selected ? '600' : '400',
+                          color: selected
+                            ? isDark
+                              ? palette.primary400
+                              : palette.primary600
+                            : isDark
+                              ? palette.neutral200
+                              : palette.neutral800,
+                        }}
+                      >
+                        {LOCALE_DISPLAY_NAMES[loc]}
+                      </Text>
+                      {selected && (
+                        <Check
+                          size={20}
+                          color={isDark ? palette.primary400 : palette.primary600}
+                          strokeWidth={2.5}
+                        />
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </Animated.View>
 
       {/* Theme */}
