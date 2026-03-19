@@ -1,0 +1,64 @@
+# MotoVault — Full Content Reference
+
+> AI-powered motorcycle learning and diagnostics platform for iOS and Android
+
+## About
+
+MotoVault is a free, AI-powered motorcycle companion app that helps riders maintain their bikes, diagnose issues, and expand their mechanical knowledge. The AI diagnostics engine, powered by Claude AI, can help riders identify and troubleshoot mechanical issues by describing symptoms in plain language.
+
+MotoVault is available in English, Spanish, German, French, and Italian. It is free to use with an optional Pro subscription for advanced AI diagnostics.
+
+## AI Diagnostics
+
+MotoVault's AI diagnostics works without OBD (On-Board Diagnostics), which motorcycles typically lack. Instead, riders describe symptoms — strange noises, electrical issues, performance drops — and the AI provides:
+
+- Probable causes ranked by likelihood
+- Step-by-step diagnostic procedures
+- Estimated difficulty levels (beginner, intermediate, advanced)
+- Safety warnings for dangerous repairs
+- Estimated cost ranges for parts and professional service
+
+Supported issue categories: engine problems, electrical faults, brake issues, suspension problems, fuel system, transmission, exhaust, and chain/drivetrain.
+
+## Learning Paths
+
+Structured motorcycle maintenance education organized into courses:
+
+1. **Motorcycle Basics** — Fundamental knowledge for new riders: parts identification, basic tools, safety gear
+2. **Routine Maintenance** — Oil changes, chain lubrication, tire pressure, fluid checks, filter replacement
+3. **Intermediate Repairs** — Brake pad replacement, chain adjustment, battery maintenance, coolant flush
+4. **Advanced Diagnostics** — Electrical troubleshooting, carburetor tuning, valve adjustment, suspension setup
+
+Each course includes interactive quizzes to test knowledge retention.
+
+## Garage Management
+
+Digital garage for tracking multiple motorcycles:
+
+- Store make, model, year, VIN, and custom notes for each bike
+- Log maintenance history with dates, mileage, costs, and notes
+- Set reminders for upcoming service intervals
+- Track expenses and calculate cost per mile/kilometer
+
+## Blog Topics
+
+The MotoVault blog covers brand-specific maintenance schedules for BMW, Ducati, Harley-Davidson, Honda, Kawasaki, and Yamaha motorcycles. Additional topics include:
+
+- Beginner maintenance guides and tool recommendations
+- Seasonal preparation (winterizing, spring startup)
+- Troubleshooting guides (won't start, strange noises, overheating)
+- Cost of ownership analysis
+- Safety inspection procedures (TCLOCS method)
+
+## Technical Details
+
+- Built with React Native (Expo) for mobile, Next.js for web, NestJS for API
+- AI powered by Anthropic's Claude
+- Motorcycle data sourced from NHTSA vPIC API
+- Available on iOS (App Store) and Android (Google Play)
+
+## Contact
+
+- Website: https://motovault.app
+- Support: support@motovault.app
+- Press: press@motovault.app

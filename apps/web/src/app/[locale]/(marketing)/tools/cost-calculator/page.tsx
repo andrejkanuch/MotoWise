@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
-import { getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import { CostCalculator } from './cost-calculator';
 
 export async function generateMetadata({

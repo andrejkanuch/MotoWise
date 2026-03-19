@@ -6,6 +6,28 @@ import { routing } from './i18n/routing';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+const isDev = process.env.NODE_ENV === 'development';
+
+function buildCspHeader(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com${isDev ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com",
+    "frame-ancestors 'none'",
+  ].join('; ');
+}
+
+function applySecurityHeaders(response: NextResponse, nonce: string) {
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('Content-Security-Policy', buildCspHeader(nonce));
+}
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -67,20 +89,31 @@ async function adminAuth(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
+
+  // Pass nonce to Next.js so it can apply it to inline scripts
+  request.headers.set('x-nonce', nonce);
+
+  let response: NextResponse;
 
   // Admin routes: run auth guard (no locale processing)
   if (pathname.startsWith('/admin')) {
-    return adminAuth(request);
+    response = await adminAuth(request);
+  } else if (pathname.startsWith('/login')) {
+    // Login route: skip locale processing
+    response = NextResponse.next({ request });
+  } else {
+    // All other routes: run next-intl locale detection + routing
+    response = intlMiddleware(request) as NextResponse;
   }
 
-  // Login route: skip locale processing
-  if (pathname.startsWith('/login')) {
-    return NextResponse.next();
+  // Apply nonce-based CSP and security headers to all responses
+  if (!response.headers.has('Location')) {
+    applySecurityHeaders(response, nonce);
   }
 
-  // All other routes: run next-intl locale detection + routing
-  return intlMiddleware(request);
+  return response;
 }
 
 export const config = {

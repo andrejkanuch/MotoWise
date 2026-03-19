@@ -300,10 +300,17 @@
   "LanguageSwitcher": {
     "selectLanguage": "Wybierz jezyk",
     "en": "English",
-    "es": "Espanol",
+    "es": "Español",
     "de": "Deutsch",
-    "fr": "Francais",
-    "it": "Italiano"
+    "fr": "Français",
+    "it": "Italiano",
+    "pt-BR": "Português (Brasil)",
+    "ja": "日本語",
+    "hi": "हिन्दी",
+    "th": "ไทย",
+    "id": "Bahasa Indonesia",
+    "tr": "Türkçe",
+    "pl": "Polski"
   },
   "Blog": {
     "title": "Blog o serwisie motocyklowym",

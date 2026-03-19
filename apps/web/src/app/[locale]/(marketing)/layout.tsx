@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
@@ -38,7 +39,9 @@ export async function generateMetadata() {
   };
 }
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') ?? '';
+
   return (
     <div className="dark grain-overlay min-h-screen bg-neutral-950 text-neutral-50">
       <a
@@ -55,6 +58,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
 
       {/* Console easter egg for curious riders */}
       <script
+        nonce={nonce}
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static console message
         dangerouslySetInnerHTML={{
           __html: `console.log("%c🏍️ MotoVault","font-size:24px;font-weight:900;color:#D4622E;");console.log("%cYour bike deserves better than a spreadsheet.","font-size:14px;color:#a3a3a3;");console.log("%cBuilding something cool? hello@motovault.app","font-size:12px;color:#737373;");`,

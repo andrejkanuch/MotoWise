@@ -1,0 +1,32 @@
+# MotoVault
+
+> AI-powered motorcycle learning and diagnostics platform
+
+MotoVault helps motorcycle riders maintain, diagnose, and learn about their bikes using artificial intelligence. Available on iOS and Android.
+
+## Core Features
+
+- [AI Diagnostics](https://motovault.app/features/ai-diagnostics): Describe symptoms in plain language and get actionable diagnostic guidance powered by Claude AI
+- [Learning Paths](https://motovault.app/features/learning-paths): Structured motorcycle maintenance courses with interactive quizzes
+- [Garage Management](https://motovault.app/features/garage-management): Track multiple motorcycles, service history, and upcoming maintenance
+- [Progress Tracking](https://motovault.app/features/progress-tracking): Monitor your motorcycle knowledge growth and skill development
+
+## Tools
+
+- [Cost Calculator](https://motovault.app/tools/cost-calculator): Calculate true motorcycle cost of ownership
+- [TCLOCS Checklist](https://motovault.app/tools/tclocs-checklist): Interactive pre-ride safety inspection
+
+## Blog
+
+- [Motorcycle Maintenance Blog](https://motovault.app/blog): 27+ articles covering maintenance guides, brand-specific schedules, troubleshooting, and DIY tutorials
+
+## Links
+
+- Website: https://motovault.app
+- Google Play: https://play.google.com/store/apps/details?id=com.motovault.app
+- App Store: https://apps.apple.com/app/id6745417382
+- Support: support@motovault.app
+
+## Optional
+
+- [Full content version](https://motovault.app/llms-full.txt)

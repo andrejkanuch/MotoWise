@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 export async function generateMetadata({
   params,

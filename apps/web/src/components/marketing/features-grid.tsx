@@ -155,16 +155,10 @@ export async function FeaturesGrid() {
         <div className="features-bento grid auto-rows-[minmax(220px,auto)] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, index) => {
             const href = FEATURE_LINKS[feature.key];
-            const Wrapper = href ? Link : 'div';
-            const wrapperProps = href ? { href } : {};
+            const cardClassName = `card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`;
 
-            return (
-              <Wrapper
-                key={feature.key}
-                {...(wrapperProps as Record<string, string>)}
-                className={`card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
+            const cardContent = (
+              <>
                 {/* Radial glow — intensifies on hover */}
                 <div
                   className="pointer-events-none absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-100"
@@ -201,7 +195,26 @@ export async function FeaturesGrid() {
                     {t(`${feature.key}.description`)}
                   </p>
                 </div>
-              </Wrapper>
+              </>
+            );
+
+            return href ? (
+              <Link
+                key={feature.key}
+                href={href}
+                className={cardClassName}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {cardContent}
+              </Link>
+            ) : (
+              <article
+                key={feature.key}
+                className={cardClassName}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {cardContent}
+              </article>
             );
           })}
         </div>
