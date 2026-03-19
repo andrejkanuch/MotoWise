@@ -53,6 +53,7 @@ const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   id: 'Bahasa Indonesia',
   tr: 'Türkçe',
   pl: 'Polski',
+  sk: 'Slovenčina',
 };
 
 const THEME_OPTIONS = ['system', 'light', 'dark'] as const;

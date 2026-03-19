@@ -186,5 +186,6 @@ export const SUPPORTED_LOCALES = [
   'id',
   'tr',
   'pl',
+  'sk',
 ] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];

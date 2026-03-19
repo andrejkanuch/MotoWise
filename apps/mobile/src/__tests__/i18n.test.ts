@@ -13,6 +13,7 @@ import itLocale from '../i18n/locales/it.json';
 import ja from '../i18n/locales/ja.json';
 import pl from '../i18n/locales/pl.json';
 import ptBR from '../i18n/locales/pt-BR.json';
+import sk from '../i18n/locales/sk.json';
 import th from '../i18n/locales/th.json';
 import tr from '../i18n/locales/tr.json';
 
@@ -38,6 +39,7 @@ const LOCALE_MAP: Record<string, Record<string, unknown>> = {
   id,
   tr,
   pl,
+  sk,
 };
 
 describe('i18n', () => {

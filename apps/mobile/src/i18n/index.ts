@@ -13,6 +13,7 @@ import it from './locales/it.json';
 import ja from './locales/ja.json';
 import pl from './locales/pl.json';
 import ptBR from './locales/pt-BR.json';
+import sk from './locales/sk.json';
 import th from './locales/th.json';
 import tr from './locales/tr.json';
 
@@ -37,6 +38,7 @@ i18n
       id: { translation: id },
       tr: { translation: tr },
       pl: { translation: pl },
+      sk: { translation: sk },
     },
     lng: resolvedLang,
     fallbackLng: 'en',
