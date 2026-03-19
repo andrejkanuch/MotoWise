@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { CalendarClock, CheckCircle2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CardWrapper } from './card-wrapper';
@@ -32,18 +33,24 @@ function getProgressColor(days: number): string {
   return palette.success500;
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceDueProps) {
+  const { t, i18n } = useTranslation();
+
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(i18n.language, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   return (
     <Animated.View entering={FadeInUp.delay(300).duration(300)}>
       <SectionHeader
         icon={CalendarClock}
         iconColor={palette.warning500}
-        title="Next Service" // TODO: i18n
+        title={t('home.nextService')}
         isDark={isDark}
       />
 
@@ -66,7 +73,7 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                 textAlign: 'center',
               }}
             >
-              All caught up{/* TODO: i18n */}
+              {t('home.allCaughtUp')}
             </Text>
             <Text
               style={{
@@ -76,7 +83,7 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                 textAlign: 'center',
               }}
             >
-              No upcoming service{/* TODO: i18n */}
+              {t('home.noUpcomingService')}
             </Text>
           </View>
         </CardWrapper>
@@ -150,8 +157,7 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                           color: palette.neutral500,
                         }}
                       >
-                        {days === 1 ? 'day' : 'days'}
-                        {/* TODO: i18n */}
+                        {days === 1 ? t('home.day') : t('home.days')}
                       </Text>
                     </View>
                   </View>
@@ -184,8 +190,7 @@ export function NextServiceDue({ task, bikeName, isDark, onPress }: NextServiceD
                       color: palette.neutral500,
                     }}
                   >
-                    Due {formatDate(task.dueDate)}
-                    {/* TODO: i18n */}
+                    {t('home.dueDate', { date: formatDate(task.dueDate) })}
                   </Text>
                 </>
               );

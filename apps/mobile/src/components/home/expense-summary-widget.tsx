@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { DollarSign } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useDashboardData, useExpenseDashboard } from '../../hooks/use-expense-dashboard';
@@ -44,12 +45,14 @@ export function ExpenseSummaryWidget({
   const primaryBike = motorcycles.find((b) => b.isPrimary) ?? motorcycles[0];
   const isMultiBike = motorcycles.length > 1;
 
+  const { t } = useTranslation();
+
   return (
     <Animated.View entering={FadeInUp.delay(250).duration(300)}>
       <SectionHeader
         icon={DollarSign}
         iconColor={palette.signature400}
-        title="Expenses" // TODO: i18n
+        title={t('home.expenses')}
         isDark={isDark}
       />
 
@@ -91,6 +94,7 @@ function BikeExpenseCard({
   isDark: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const { dashboard, isPending } = useExpenseDashboard(bike.id);
 
   const currentMonth = new Date().getMonth() + 1;
@@ -148,7 +152,7 @@ function BikeExpenseCard({
                 marginTop: 2,
               }}
             >
-              this month{/* TODO: i18n */}
+              {t('home.thisMonth')}
             </Text>
           </>
         ) : (
@@ -159,7 +163,7 @@ function BikeExpenseCard({
               fontWeight: '500',
             }}
           >
-            No expenses{/* TODO: i18n */}
+            {t('home.noExpenses')}
           </Text>
         )}
       </Pressable>
@@ -168,6 +172,7 @@ function BikeExpenseCard({
 }
 
 function EmptyExpenseCard({ isDark }: { isDark: boolean }) {
+  const { t } = useTranslation();
   return (
     <CardWrapper
       tier="subtle"
@@ -187,7 +192,7 @@ function EmptyExpenseCard({ isDark }: { isDark: boolean }) {
             textAlign: 'center',
           }}
         >
-          Track your riding costs{/* TODO: i18n */}
+          {t('home.trackCosts')}
         </Text>
         <Text
           style={{
@@ -197,7 +202,7 @@ function EmptyExpenseCard({ isDark }: { isDark: boolean }) {
             textAlign: 'center',
           }}
         >
-          Log fuel, parts, and maintenance{/* TODO: i18n */}
+          {t('home.logExpenses')}
         </Text>
       </View>
     </CardWrapper>
@@ -214,6 +219,7 @@ function SingleBikeExpenseContent({
   motorcycleId: string;
   onViewDetails: () => void;
 }) {
+  const { t } = useTranslation();
   const { dashboard, isPending } = useExpenseDashboard(motorcycleId);
   const { periodTotal, categoryTotals } = useDashboardData(dashboard, 'thisYear');
 
@@ -277,7 +283,7 @@ function SingleBikeExpenseContent({
             {formatCurrency(monthlyTotal)}
           </Text>
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
-            this month{/* TODO: i18n */}
+            {t('home.thisMonth')}
           </Text>
         </View>
 
@@ -290,8 +296,7 @@ function SingleBikeExpenseContent({
               marginBottom: 12,
             }}
           >
-            {isUp ? '+' : ''}
-            {pctChange.toFixed(0)}% vs last month{/* TODO: i18n */}
+            {t('home.vsLastMonth', { pct: `${isUp ? '+' : ''}${pctChange.toFixed(0)}` })}
           </Text>
         )}
 
@@ -351,11 +356,10 @@ function SingleBikeExpenseContent({
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
-            YTD: {formatCurrency(periodTotal)}
-            {/* TODO: i18n */}
+            {t('home.ytd', { amount: formatCurrency(periodTotal) })}
           </Text>
           <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
-            View Details{/* TODO: i18n */}
+            {t('home.viewDetails')}
           </Text>
         </View>
       </Pressable>

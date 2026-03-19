@@ -1,6 +1,8 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
+import type { TFunction } from 'i18next';
 import { Gauge } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { CardWrapper } from './card-wrapper';
@@ -25,19 +27,19 @@ function formatMileage(value: number): string {
   return value.toLocaleString('en-US');
 }
 
-function getRelativeTime(dateStr: string): string {
+function getRelativeTime(dateStr: string, t: TFunction): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
   const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return 'Just now'; // TODO: i18n
-  if (diffMins < 60) return `${diffMins}m ago`; // TODO: i18n
+  if (diffMins < 1) return t('home.justNow');
+  if (diffMins < 60) return t('home.minutesAgo', { count: diffMins });
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`; // TODO: i18n
+  if (diffHours < 24) return t('home.hoursAgo', { count: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 30) return `${diffDays}d ago`; // TODO: i18n
+  if (diffDays < 30) return t('home.daysAgo', { count: diffDays });
   const diffMonths = Math.floor(diffDays / 30);
-  return `${diffMonths}mo ago`; // TODO: i18n
+  return t('home.monthsAgo', { count: diffMonths });
 }
 
 function getBikeName(bike: { make: string; model: string; nickname?: string | null }): string {
@@ -45,6 +47,7 @@ function getBikeName(bike: { make: string; model: string; nickname?: string | nu
 }
 
 export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOverviewProps) {
+  const { t } = useTranslation();
   const hasMileage = motorcycles.some((m) => m.currentMileage != null);
   const isMultiBike = motorcycles.length > 1;
 
@@ -53,7 +56,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
       <SectionHeader
         icon={Gauge}
         iconColor={palette.primary500}
-        title="Mileage" // TODO: i18n
+        title={t('home.mileage')}
         isDark={isDark}
       />
 
@@ -82,7 +85,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                 textAlign: 'center',
               }}
             >
-              No mileage recorded{/* TODO: i18n */}
+              {t('home.noMileageRecorded')}
             </Text>
             <Text
               style={{
@@ -91,7 +94,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                 fontWeight: '600',
               }}
             >
-              Tap to update{/* TODO: i18n */}
+              {t('home.tapToUpdate')}
             </Text>
           </Pressable>
         </CardWrapper>
@@ -155,7 +158,7 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                       fontWeight: '500',
                     }}
                   >
-                    Not recorded{/* TODO: i18n */}
+                    {t('home.notRecorded')}
                   </Text>
                 )}
               </Pressable>
@@ -204,8 +207,9 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
                   marginTop: 4,
                 }}
               >
-                Updated {getRelativeTime(motorcycles[0].mileageUpdatedAt)}
-                {/* TODO: i18n */}
+                {t('home.updatedAgo', {
+                  time: getRelativeTime(motorcycles[0].mileageUpdatedAt, t),
+                })}
               </Text>
             )}
           </Pressable>
