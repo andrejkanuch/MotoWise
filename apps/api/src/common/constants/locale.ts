@@ -13,4 +13,5 @@ export const LOCALE_TO_REGCONFIG = {
   id: 'simple',
   tr: 'turkish',
   pl: 'simple',
+  sk: 'simple',
 } as const satisfies Record<SupportedLocale, string>;

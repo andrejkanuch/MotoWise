@@ -99,6 +99,7 @@ export enum GqlSupportedLocale {
   id = 'id',
   tr = 'tr',
   pl = 'pl',
+  sk = 'sk',
 }
 
 registerEnumType(GqlSupportedLocale, { name: 'SupportedLocale' });
@@ -117,6 +118,7 @@ const _localeSync: Record<SupportedLocale, GqlSupportedLocale> = {
   id: GqlSupportedLocale.id,
   tr: GqlSupportedLocale.tr,
   pl: GqlSupportedLocale.pl,
+  sk: GqlSupportedLocale.sk,
 };
 
 const _difficultySync: Record<ArticleDifficulty, GqlArticleDifficulty> = {
