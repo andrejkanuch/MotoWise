@@ -9,7 +9,15 @@
     "back": "Volver",
     "retry": "Reintentar",
     "skip": "Omitir",
-    "goBack": "Volver"
+    "goBack": "Volver",
+    "done": "Listo",
+    "optional": "Opcional",
+    "saving": "Guardando...",
+    "actions": "Acciones",
+    "edit": "Editar",
+    "more": "Más",
+    "no": "No",
+    "yes": "Sí"
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -264,7 +272,14 @@
     "useCustomModel": "Usar '{{model}}' como modelo",
     "customEntry": "Personalizado",
     "enterModelManually": "Ingresar nombre del modelo",
-    "customMakeHint": "¿No está en nuestra base de datos? Escríbelo manualmente"
+    "customMakeHint": "¿No está en nuestra base de datos? Escríbelo manualmente",
+    "addExpense": "Agregar gasto",
+    "addPhoto": "Agregar foto",
+    "deleteFailed": "Error al eliminar la moto. Inténtalo de nuevo.",
+    "photoUploadFailed": "Error al subir la foto. Inténtalo de nuevo.",
+    "primary": "Principal",
+    "tab_details": "Detalles",
+    "uploadingPhoto": "Subiendo foto..."
   },
   "profile": {
     "title": "Perfil",
@@ -290,7 +305,10 @@
     "themeDescription": "Elige tu apariencia preferida",
     "themeSystem": "Sistema",
     "themeLight": "Claro",
-    "themeDark": "Oscuro"
+    "themeDark": "Oscuro",
+    "notifications": "Notificaciones",
+    "proActive": "Pro Activo",
+    "proActiveDesc": "Tienes una suscripción Pro activa"
   },
   "onboarding": {
     "welcomeTitle": "Bienvenido a MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "Crítico",
     "priorityHigh": "Alto",
     "priorityMedium": "Medio",
-    "priorityLow": "Bajo"
+    "priorityLow": "Bajo",
+    "addTask": "Agregar tarea",
+    "chooseFromLibrary": "Elegir de la biblioteca",
+    "confirmDeleteTask": "¿Estás seguro de que quieres eliminar esta tarea?",
+    "deleteError": "Error al eliminar la tarea. Inténtalo de nuevo.",
+    "deleteTask": "Eliminar tarea",
+    "exportError": "Error al exportar el PDF. Inténtalo de nuevo.",
+    "exportPdf": "Exportar como PDF",
+    "takePhoto": "Tomar foto"
   },
   "paywall": {
     "title": "Tu experiencia MotoVault esta lista",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "Nuevas funciones y mejoras",
     "promotional": "Promocional",
     "promotionalDesc": "Ofertas especiales y anuncios"
+  },
+  "expenses": {
+    "title": "Gastos",
+    "allTime": "Todo el tiempo",
+    "category": "Categoría",
+    "createFailed": "Error al guardar el gasto. Inténtalo de nuevo.",
+    "date": "Fecha",
+    "description": "Descripción",
+    "descriptionPlaceholder": "¿Para qué fue este gasto?",
+    "empty": "Aún no hay gastos",
+    "emptyHint": "Registra tus gastos de combustible, repuestos y mantenimiento",
+    "save": "Guardar gasto",
+    "saved": "Gasto guardado",
+    "seeAll": "Ver todo",
+    "showLess": "Mostrar menos",
+    "deleteFailed": "Error al eliminar el gasto. Inténtalo de nuevo."
+  },
+  "privacy": {
+    "title": "Privacidad",
+    "dataCollection": "Recopilación de datos",
+    "analytics": "Análisis",
+    "analyticsDesc": "Ayúdanos a mejorar compartiendo datos de uso anónimos",
+    "crashReporting": "Informes de errores",
+    "crashReportingDesc": "Envía automáticamente informes de errores para ayudar a corregir fallos",
+    "yourData": "Your Data",
+    "exportData": "Export My Data",
+    "exportDataDesc": "Download a copy of your information",
+    "exportTitle": "Export Your Data",
+    "exportMessage": "We'll prepare a copy of your data and email it to you within 48 hours.",
+    "export": "Export",
+    "exportSuccessTitle": "Export Requested",
+    "exportSuccessMessage": "You'll receive an email with your data within 48 hours.",
+    "exportErrorTitle": "Export Failed",
+    "exportError": "Something went wrong. Please try again later.",
+    "exportRateLimit": "You can only request a data export once every 24 hours.",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountDesc": "Elimina permanentemente tu cuenta y todos los datos asociados",
+    "deleteTitle": "Delete Account",
+    "deleteWarning": "This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.",
+    "deleteConfirmButton": "Delete My Account",
+    "deleteConfirmTitle": "Are you absolutely sure?",
+    "deleteConfirmMessage": "This cannot be undone. Type DELETE to confirm is not required, but please be certain.",
+    "deleteFinal": "Yes, Delete Everything",
+    "deleteErrorTitle": "Deletion Failed",
+    "deleteError": "Something went wrong.",
+    "deletingAccount": "Deleting..."
+  },
+  "settings": {
+    "title": "Configuración",
+    "fullNameLabel": "Nombre completo",
+    "fullNamePlaceholder": "Ingresa tu nombre completo",
+    "experienceLevelLabel": "Nivel de experiencia",
+    "ridingGoalsLabel": "Objetivos de conducción",
+    "learningFormatsLabel": "Formatos de aprendizaje",
+    "ridingFrequencyLabel": "Frecuencia de conducción",
+    "maintenanceStyleLabel": "Estilo de mantenimiento",
+    "saveChanges": "Guardar cambios",
+    "saved": "Cambios guardados",
+    "saveError": "Error al guardar los cambios. Inténtalo de nuevo."
+  },
+  "support": {
+    "title": "Soporte",
+    "faq": "Preguntas frecuentes",
+    "contact": "Contactarnos",
+    "emailSupport": "Soporte por correo",
+    "version": "Versión {{version}}"
   }
 }

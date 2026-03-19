@@ -9,7 +9,15 @@
     "back": "वापस",
     "retry": "फिर कोशिश करें",
     "skip": "छोड़ें",
-    "goBack": "वापस जाएं"
+    "goBack": "वापस जाएं",
+    "done": "हो गया",
+    "optional": "वैकल्पिक",
+    "saving": "सेव हो रहा है...",
+    "actions": "कार्रवाई",
+    "edit": "संपादित करें",
+    "more": "और",
+    "no": "नहीं",
+    "yes": "हाँ"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -264,7 +272,14 @@
     "useCustomModel": "'{{model}}' को मॉडल के रूप में उपयोग करें",
     "customEntry": "कस्टम",
     "enterModelManually": "मॉडल का नाम लिखें",
-    "customMakeHint": "हमारे डेटाबेस में नहीं? मैन्युअल रूप से टाइप करें"
+    "customMakeHint": "हमारे डेटाबेस में नहीं? मैन्युअल रूप से टाइप करें",
+    "addExpense": "खर्चा जोड़ें",
+    "addPhoto": "फोटो जोड़ें",
+    "deleteFailed": "बाइक हटाने में विफल। कृपया फिर कोशिश करें।",
+    "photoUploadFailed": "फोटो अपलोड विफल। कृपया फिर कोशिश करें।",
+    "primary": "प्राइमरी",
+    "tab_details": "विवरण",
+    "uploadingPhoto": "फोटो अपलोड हो रहा है..."
   },
   "profile": {
     "title": "प्रोफाइल",
@@ -290,7 +305,10 @@
     "themeDescription": "अपना पसंदीदा लुक चुनें",
     "themeSystem": "सिस्टम",
     "themeLight": "लाइट",
-    "themeDark": "डार्क"
+    "themeDark": "डार्क",
+    "notifications": "नोटिफिकेशन",
+    "proActive": "Pro सक्रिय",
+    "proActiveDesc": "आपकी Pro सब्सक्रिप्शन सक्रिय है"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault में आपका स्वागत है",
@@ -501,7 +519,15 @@
     "priorityCritical": "क्रिटिकल",
     "priorityHigh": "हाई",
     "priorityMedium": "मीडियम",
-    "priorityLow": "लो"
+    "priorityLow": "लो",
+    "addTask": "टास्क जोड़ें",
+    "chooseFromLibrary": "लाइब्रेरी से चुनें",
+    "confirmDeleteTask": "क्या आप यह टास्क हटाना चाहते हैं?",
+    "deleteError": "टास्क हटाने में विफल। कृपया फिर कोशिश करें।",
+    "deleteTask": "टास्क हटाएं",
+    "exportError": "PDF एक्सपोर्ट विफल। कृपया फिर कोशिश करें।",
+    "exportPdf": "PDF में एक्सपोर्ट करें",
+    "takePhoto": "फोटो लें"
   },
   "paywall": {
     "title": "आपका MotoVault अनुभव तैयार है",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "नई सुविधाएं और सुधार",
     "promotional": "प्रमोशनल",
     "promotionalDesc": "विशेष ऑफर और घोषणाएं"
+  },
+  "expenses": {
+    "title": "खर्चे",
+    "allTime": "पूरे समय",
+    "category": "श्रेणी",
+    "createFailed": "खर्चा सेव करने में विफल। कृपया फिर कोशिश करें।",
+    "date": "तारीख",
+    "description": "विवरण",
+    "descriptionPlaceholder": "जैसे: ऑयल फिल्टर बदलना",
+    "empty": "अभी कोई खर्चे नहीं",
+    "emptyHint": "अपने मोटरसाइकिल के खर्चे यहां ट्रैक करें",
+    "save": "खर्चा सेव करें",
+    "saved": "खर्चा सेव हो गया",
+    "seeAll": "सभी देखें",
+    "showLess": "कम दिखाएं",
+    "deleteFailed": "खर्चा हटाने में विफल। कृपया फिर कोशिश करें।"
+  },
+  "privacy": {
+    "title": "प्राइवेसी",
+    "dataCollection": "डेटा कलेक्शन",
+    "analytics": "एनालिटिक्स",
+    "analyticsDesc": "यूसेज डेटा से MotoVault को बेहतर बनाने में मदद करें",
+    "crashReporting": "क्रैश रिपोर्टिंग",
+    "crashReportingDesc": "ऐप क्रैश की रिपोर्ट अपने आप भेजें",
+    "yourData": "आपका डेटा",
+    "exportData": "मेरा डेटा एक्सपोर्ट करें",
+    "exportDataDesc": "अपनी जानकारी की कॉपी डाउनलोड करें",
+    "exportTitle": "अपना डेटा एक्सपोर्ट करें",
+    "exportMessage": "हम आपके डेटा की कॉपी तैयार करेंगे और 48 घंटों के भीतर ईमेल करेंगे।",
+    "export": "एक्सपोर्ट",
+    "exportSuccessTitle": "एक्सपोर्ट का अनुरोध किया गया",
+    "exportSuccessMessage": "48 घंटों के भीतर आपको डेटा वाला ईमेल मिलेगा।",
+    "exportErrorTitle": "एक्सपोर्ट विफल",
+    "exportError": "कुछ गलत हो गया। कृपया बाद में फिर कोशिश करें।",
+    "exportRateLimit": "आप हर 24 घंटे में केवल एक बार डेटा एक्सपोर्ट का अनुरोध कर सकते हैं।",
+    "dangerZone": "खतरे का क्षेत्र",
+    "deleteAccount": "अकाउंट हटाएं",
+    "deleteAccountDesc": "अपना अकाउंट और डेटा स्थायी रूप से हटाएं",
+    "deleteTitle": "अकाउंट हटाएं",
+    "deleteWarning": "आपका अकाउंट और सभी संबंधित डेटा स्थायी रूप से हटा दिया जाएगा, जिसमें मोटरसाइकिल, मेंटेनेंस हिस्ट्री, डायग्नोस्टिक्स और लर्निंग प्रोग्रेस शामिल है। सब्सक्रिप्शन कैंसल हो जाएगी। डेटा के स्थायी रूप से हटने से पहले 30 दिन का समय है।",
+    "deleteConfirmButton": "मेरा अकाउंट हटाएं",
+    "deleteConfirmTitle": "क्या आप बिल्कुल पक्के हैं?",
+    "deleteConfirmMessage": "यह वापस नहीं हो सकता। कृपया पूरी तरह पक्का करें।",
+    "deleteFinal": "हां, सब कुछ हटाएं",
+    "deleteErrorTitle": "हटाना विफल",
+    "deleteError": "कुछ गलत हो गया।",
+    "deletingAccount": "हटाया जा रहा है..."
+  },
+  "settings": {
+    "title": "प्रोफाइल सेटिंग्स",
+    "fullNameLabel": "पूरा नाम",
+    "fullNamePlaceholder": "अपना पूरा नाम लिखें",
+    "experienceLevelLabel": "अनुभव स्तर",
+    "ridingGoalsLabel": "राइडिंग गोल्स",
+    "learningFormatsLabel": "लर्निंग फॉर्मेट",
+    "ridingFrequencyLabel": "राइडिंग फ्रीक्वेंसी",
+    "maintenanceStyleLabel": "मेंटेनेंस स्टाइल",
+    "saveChanges": "बदलाव सेव करें",
+    "saved": "सेव हो गया",
+    "saveError": "कुछ गलत हो गया। कृपया फिर कोशिश करें।"
+  },
+  "support": {
+    "title": "हेल्प और सपोर्ट",
+    "faq": "अक्सर पूछे जाने वाले सवाल",
+    "contact": "हमसे संपर्क करें",
+    "emailSupport": "ईमेल सपोर्ट",
+    "version": "वर्शन {{version}}"
   }
 }

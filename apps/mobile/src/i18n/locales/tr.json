@@ -9,7 +9,15 @@
     "back": "Geri",
     "retry": "Tekrar Dene",
     "skip": "Atla",
-    "goBack": "Geri Don"
+    "goBack": "Geri Don",
+    "done": "Tamam",
+    "optional": "Istege bagli",
+    "saving": "Kaydediliyor...",
+    "actions": "Islemler",
+    "edit": "Duzenle",
+    "more": "Daha fazla",
+    "no": "Hayir",
+    "yes": "Evet"
   },
   "auth": {
     "signIn": "Giris Yap",
@@ -264,7 +272,14 @@
     "useCustomModel": "'{{model}}' modelini kullan",
     "customEntry": "Ozel",
     "enterModelManually": "Model adini yaz",
-    "customMakeHint": "Veritabanimizda yok mu? Manuel olarak yaz"
+    "customMakeHint": "Veritabanimizda yok mu? Manuel olarak yaz",
+    "addExpense": "Harcama Ekle",
+    "addPhoto": "Foto Ekle",
+    "deleteFailed": "Motor silinemedi. Lutfen tekrar dene.",
+    "photoUploadFailed": "Foto yuklenemedi. Lutfen tekrar dene.",
+    "primary": "Birincil",
+    "tab_details": "Detaylar",
+    "uploadingPhoto": "Foto yukleniyor..."
   },
   "profile": {
     "title": "Profil",
@@ -290,7 +305,10 @@
     "themeDescription": "Tercih ettigin gorunumu sec",
     "themeSystem": "Sistem",
     "themeLight": "Acik",
-    "themeDark": "Koyu"
+    "themeDark": "Koyu",
+    "notifications": "Bildirimler",
+    "proActive": "Pro Aktif",
+    "proActiveDesc": "Aktif bir Pro aboneligin var"
   },
   "onboarding": {
     "welcomeTitle": "MotoVault'a Hosgeldin",
@@ -501,7 +519,15 @@
     "priorityCritical": "Kritik",
     "priorityHigh": "Yuksek",
     "priorityMedium": "Orta",
-    "priorityLow": "Dusuk"
+    "priorityLow": "Dusuk",
+    "addTask": "Gorev Ekle",
+    "chooseFromLibrary": "Kutuphaneden Sec",
+    "confirmDeleteTask": "Bu gorevi silmek istediginizden emin misiniz?",
+    "deleteError": "Gorev silinemedi. Lutfen tekrar dene.",
+    "deleteTask": "Gorevi Sil",
+    "exportError": "PDF disa aktarilamadi. Lutfen tekrar dene.",
+    "exportPdf": "PDF Olarak Disa Aktar",
+    "takePhoto": "Foto Cek"
   },
   "paywall": {
     "title": "MotoVault deneyimin hazir",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "Yeni ozellikler ve iyilestirmeler",
     "promotional": "Promosyon",
     "promotionalDesc": "Ozel teklifler ve duyurular"
+  },
+  "expenses": {
+    "title": "Harcamalar",
+    "allTime": "Tum Zamanlar",
+    "category": "Kategori",
+    "createFailed": "Harcama kaydedilemedi. Lutfen tekrar dene.",
+    "date": "Tarih",
+    "description": "Aciklama",
+    "descriptionPlaceholder": "Orn. Yag filtresi degisimi",
+    "empty": "Henuz harcama yok",
+    "emptyHint": "Motosiklet masraflarini burada takip et",
+    "save": "Harcamayi Kaydet",
+    "saved": "Harcama kaydedildi",
+    "seeAll": "Tumunu Gor",
+    "showLess": "Daha Az Goster",
+    "deleteFailed": "Harcama silinemedi. Lutfen tekrar dene."
+  },
+  "privacy": {
+    "title": "Gizlilik",
+    "dataCollection": "Veri Toplama",
+    "analytics": "Analitik",
+    "analyticsDesc": "Kullanim verileriyle MotoVault'u iyilestirmemize yardim et",
+    "crashReporting": "Cokme Raporlari",
+    "crashReportingDesc": "Uygulama cokmelerini otomatik olarak raporla",
+    "yourData": "Senin Verilerin",
+    "exportData": "Verilerimi Disa Aktar",
+    "exportDataDesc": "Bilgilerinin bir kopyasini indir",
+    "exportTitle": "Verilerini Disa Aktar",
+    "exportMessage": "Verilerinin bir kopyasini hazirlayip 48 saat icinde e-posta ile gonderecegiz.",
+    "export": "Disa Aktar",
+    "exportSuccessTitle": "Disa Aktarim Istendi",
+    "exportSuccessMessage": "48 saat icinde verilerini iceren bir e-posta alacaksin.",
+    "exportErrorTitle": "Disa Aktarim Basarisiz",
+    "exportError": "Bir seyler yanlis gitti. Lutfen daha sonra tekrar dene.",
+    "exportRateLimit": "Her 24 saatte bir kez veri disa aktarimi isteyebilirsin.",
+    "dangerZone": "Tehlikeli Bolge",
+    "deleteAccount": "Hesabi Sil",
+    "deleteAccountDesc": "Hesabini ve verilerini kalici olarak sil",
+    "deleteTitle": "Hesabi Sil",
+    "deleteWarning": "Hesabin ve motosikletler, bakim gecmisi, teshisler ve ogrenme ilerlemen dahil TUM iliskili veriler kalici olarak silinecek. Aboneligin iptal edilecek. Veriler kalici olarak silinmeden once 30 gunun var.",
+    "deleteConfirmButton": "Hesabimi Sil",
+    "deleteConfirmTitle": "Kesinlikle emin misin?",
+    "deleteConfirmMessage": "Bu islem geri alinamaz. Lutfen emin ol.",
+    "deleteFinal": "Evet, Her Seyi Sil",
+    "deleteErrorTitle": "Silme Basarisiz",
+    "deleteError": "Bir seyler yanlis gitti.",
+    "deletingAccount": "Siliniyor..."
+  },
+  "settings": {
+    "title": "Profil Ayarlari",
+    "fullNameLabel": "Ad Soyad",
+    "fullNamePlaceholder": "Ad soyadini gir",
+    "experienceLevelLabel": "Deneyim Seviyesi",
+    "ridingGoalsLabel": "Surus Hedefleri",
+    "learningFormatsLabel": "Ogrenme Formatlari",
+    "ridingFrequencyLabel": "Surus Sikligi",
+    "maintenanceStyleLabel": "Bakim Tarzi",
+    "saveChanges": "Degisiklikleri Kaydet",
+    "saved": "Kaydedildi",
+    "saveError": "Bir seyler yanlis gitti. Lutfen tekrar dene."
+  },
+  "support": {
+    "title": "Yardim ve Destek",
+    "faq": "Sikca Sorulan Sorular",
+    "contact": "Bize Ulasin",
+    "emailSupport": "E-posta Destegi",
+    "version": "Surum {{version}}"
   }
 }

@@ -9,7 +9,15 @@
     "back": "Kembali",
     "retry": "Coba Lagi",
     "skip": "Lewati",
-    "goBack": "Kembali"
+    "goBack": "Kembali",
+    "done": "Selesai",
+    "optional": "Opsional",
+    "saving": "Menyimpan...",
+    "actions": "Tindakan",
+    "edit": "Edit",
+    "more": "Lainnya",
+    "no": "Tidak",
+    "yes": "Ya"
   },
   "auth": {
     "signIn": "Masuk",
@@ -264,7 +272,14 @@
     "useCustomModel": "Gunakan '{{model}}' sebagai model",
     "customEntry": "Kustom",
     "enterModelManually": "Ketik nama model",
-    "customMakeHint": "Tidak ada di database kami? Ketik secara manual"
+    "customMakeHint": "Tidak ada di database kami? Ketik secara manual",
+    "addExpense": "Tambah Pengeluaran",
+    "addPhoto": "Tambah Foto",
+    "deleteFailed": "Gagal menghapus motor. Silakan coba lagi.",
+    "photoUploadFailed": "Gagal mengunggah foto. Silakan coba lagi.",
+    "primary": "Utama",
+    "tab_details": "Detail",
+    "uploadingPhoto": "Mengunggah foto..."
   },
   "profile": {
     "title": "Profil",
@@ -290,7 +305,10 @@
     "themeDescription": "Pilih tampilan yang kamu inginkan",
     "themeSystem": "Sistem",
     "themeLight": "Terang",
-    "themeDark": "Gelap"
+    "themeDark": "Gelap",
+    "notifications": "Notifikasi",
+    "proActive": "Pro Aktif",
+    "proActiveDesc": "Kamu memiliki langganan Pro yang aktif"
   },
   "onboarding": {
     "welcomeTitle": "Selamat Datang di MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "Kritis",
     "priorityHigh": "Tinggi",
     "priorityMedium": "Sedang",
-    "priorityLow": "Rendah"
+    "priorityLow": "Rendah",
+    "addTask": "Tambah Tugas",
+    "chooseFromLibrary": "Pilih dari Perpustakaan",
+    "confirmDeleteTask": "Yakin ingin menghapus tugas ini?",
+    "deleteError": "Gagal menghapus tugas. Silakan coba lagi.",
+    "deleteTask": "Hapus Tugas",
+    "exportError": "Gagal mengekspor PDF. Silakan coba lagi.",
+    "exportPdf": "Ekspor sebagai PDF",
+    "takePhoto": "Ambil Foto"
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "Fitur baru dan peningkatan",
     "promotional": "Promosi",
     "promotionalDesc": "Penawaran khusus dan pengumuman"
+  },
+  "expenses": {
+    "title": "Pengeluaran",
+    "allTime": "Sepanjang Waktu",
+    "category": "Kategori",
+    "createFailed": "Gagal menyimpan pengeluaran. Silakan coba lagi.",
+    "date": "Tanggal",
+    "description": "Deskripsi",
+    "descriptionPlaceholder": "Mis. Penggantian filter oli",
+    "empty": "Belum ada pengeluaran",
+    "emptyHint": "Lacak biaya motor kamu di sini",
+    "save": "Simpan Pengeluaran",
+    "saved": "Pengeluaran tersimpan",
+    "seeAll": "Lihat Semua",
+    "showLess": "Tampilkan Lebih Sedikit",
+    "deleteFailed": "Gagal menghapus pengeluaran. Silakan coba lagi."
+  },
+  "privacy": {
+    "title": "Privasi",
+    "dataCollection": "Pengumpulan Data",
+    "analytics": "Analitik",
+    "analyticsDesc": "Bantu tingkatkan MotoVault dengan data penggunaan",
+    "crashReporting": "Laporan Error",
+    "crashReportingDesc": "Laporkan error aplikasi secara otomatis",
+    "yourData": "Data Kamu",
+    "exportData": "Ekspor Data Saya",
+    "exportDataDesc": "Unduh salinan informasimu",
+    "exportTitle": "Ekspor Data Kamu",
+    "exportMessage": "Kami akan menyiapkan salinan data kamu dan mengirimkannya via email dalam 48 jam.",
+    "export": "Ekspor",
+    "exportSuccessTitle": "Ekspor Diminta",
+    "exportSuccessMessage": "Kamu akan menerima email berisi datamu dalam 48 jam.",
+    "exportErrorTitle": "Ekspor Gagal",
+    "exportError": "Terjadi kesalahan. Silakan coba lagi nanti.",
+    "exportRateLimit": "Kamu hanya bisa meminta ekspor data sekali setiap 24 jam.",
+    "dangerZone": "Zona Bahaya",
+    "deleteAccount": "Hapus Akun",
+    "deleteAccountDesc": "Hapus akun dan datamu secara permanen",
+    "deleteTitle": "Hapus Akun",
+    "deleteWarning": "Akun dan SEMUA data terkait akan dihapus secara permanen termasuk motor, riwayat perawatan, diagnostik, dan progres belajar. Langgananmu akan dibatalkan. Kamu punya 30 hari untuk berubah pikiran sebelum data dihapus permanen.",
+    "deleteConfirmButton": "Hapus Akun Saya",
+    "deleteConfirmTitle": "Kamu benar-benar yakin?",
+    "deleteConfirmMessage": "Tindakan ini tidak bisa dibatalkan. Pastikan kamu sudah yakin.",
+    "deleteFinal": "Ya, Hapus Semuanya",
+    "deleteErrorTitle": "Penghapusan Gagal",
+    "deleteError": "Terjadi kesalahan.",
+    "deletingAccount": "Menghapus..."
+  },
+  "settings": {
+    "title": "Pengaturan Profil",
+    "fullNameLabel": "Nama Lengkap",
+    "fullNamePlaceholder": "Masukkan nama lengkap kamu",
+    "experienceLevelLabel": "Tingkat Pengalaman",
+    "ridingGoalsLabel": "Tujuan Berkendara",
+    "learningFormatsLabel": "Format Pembelajaran",
+    "ridingFrequencyLabel": "Frekuensi Berkendara",
+    "maintenanceStyleLabel": "Gaya Perawatan",
+    "saveChanges": "Simpan Perubahan",
+    "saved": "Tersimpan",
+    "saveError": "Terjadi kesalahan. Silakan coba lagi."
+  },
+  "support": {
+    "title": "Bantuan & Dukungan",
+    "faq": "Pertanyaan Umum",
+    "contact": "Hubungi Kami",
+    "emailSupport": "Dukungan Email",
+    "version": "Versi {{version}}"
   }
 }

@@ -9,7 +9,15 @@
     "back": "Späť",
     "retry": "Skúsiť znova",
     "skip": "Preskočiť",
-    "goBack": "Ísť späť"
+    "goBack": "Ísť späť",
+    "done": "Hotovo",
+    "optional": "Voliteľné",
+    "saving": "Ukladá sa...",
+    "actions": "Akcie",
+    "edit": "Upraviť",
+    "more": "Viac",
+    "no": "Nie",
+    "yes": "Áno"
   },
   "auth": {
     "signIn": "Prihlásiť sa",
@@ -264,7 +272,14 @@
     "useCustomModel": "Použiť '{{model}}' ako model",
     "customEntry": "Vlastný",
     "enterModelManually": "Zadať názov modelu",
-    "customMakeHint": "Nie je v našej databáze? Zadaj ho ručne"
+    "customMakeHint": "Nie je v našej databáze? Zadaj ho ručne",
+    "addExpense": "Pridať výdavok",
+    "addPhoto": "Pridať fotografiu",
+    "deleteFailed": "Nepodarilo sa vymazať motorku. Skúste to znova.",
+    "photoUploadFailed": "Nepodarilo sa nahrať fotografiu. Skúste to znova.",
+    "primary": "Primárna",
+    "tab_details": "Detaily",
+    "uploadingPhoto": "Nahráva sa fotografia..."
   },
   "profile": {
     "title": "Profil",
@@ -290,7 +305,10 @@
     "themeDescription": "Vyber preferovaný vzhľad",
     "themeSystem": "Systémový",
     "themeLight": "Svetlý",
-    "themeDark": "Tmavý"
+    "themeDark": "Tmavý",
+    "notifications": "Notifikácie",
+    "proActive": "Pro aktívne",
+    "proActiveDesc": "Máš aktívne predplatné Pro"
   },
   "onboarding": {
     "welcomeTitle": "Vitaj v MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "Kritická",
     "priorityHigh": "Vysoká",
     "priorityMedium": "Stredná",
-    "priorityLow": "Nízka"
+    "priorityLow": "Nízka",
+    "addTask": "Pridať úlohu",
+    "chooseFromLibrary": "Vybrať z knižnice",
+    "confirmDeleteTask": "Naozaj chceš vymazať túto úlohu?",
+    "deleteError": "Nepodarilo sa vymazať úlohu. Skúste to znova.",
+    "deleteTask": "Vymazať úlohu",
+    "exportError": "Nepodarilo sa exportovať PDF. Skúste to znova.",
+    "exportPdf": "Exportovať ako PDF",
+    "takePhoto": "Odfotiť"
   },
   "paywall": {
     "title": "Tvoj MotoVault zážitok je pripravený",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "Nové funkcie a vylepšenia",
     "promotional": "Propagačné",
     "promotionalDesc": "Špeciálne ponuky a oznámenia"
+  },
+  "expenses": {
+    "title": "Výdavky",
+    "allTime": "Celkovo",
+    "category": "Kategória",
+    "createFailed": "Nepodarilo sa uložiť výdavok. Skúste to znova.",
+    "date": "Dátum",
+    "description": "Popis",
+    "descriptionPlaceholder": "Napr. Výmena olejového filtra",
+    "empty": "Zatiaľ žiadne výdavky",
+    "emptyHint": "Sleduj náklady na motorku tu",
+    "save": "Uložiť výdavok",
+    "saved": "Výdavok uložený",
+    "seeAll": "Zobraziť všetko",
+    "showLess": "Zobraziť menej",
+    "deleteFailed": "Nepodarilo sa vymazať výdavok. Skúste to znova."
+  },
+  "privacy": {
+    "title": "Súkromie",
+    "dataCollection": "Zber údajov",
+    "analytics": "Analytika",
+    "analyticsDesc": "Pomôž nám zlepšiť MotoVault údajmi o používaní",
+    "crashReporting": "Hlásenie pádov",
+    "crashReportingDesc": "Automaticky hlásiť pády aplikácie",
+    "yourData": "Tvoje údaje",
+    "exportData": "Exportovať moje údaje",
+    "exportDataDesc": "Stiahnuť kópiu tvojich informácií",
+    "exportTitle": "Exportovať tvoje údaje",
+    "exportMessage": "Pripravíme kópiu tvojich údajov a pošleme ti ju e-mailom do 48 hodín.",
+    "export": "Exportovať",
+    "exportSuccessTitle": "Export vyžiadaný",
+    "exportSuccessMessage": "Do 48 hodín dostaneš e-mail s tvojimi údajmi.",
+    "exportErrorTitle": "Export zlyhal",
+    "exportError": "Niečo sa pokazilo. Skúste to neskôr.",
+    "exportRateLimit": "Export údajov môžeš vyžiadať raz za 24 hodín.",
+    "dangerZone": "Nebezpečná zóna",
+    "deleteAccount": "Vymazať účet",
+    "deleteAccountDesc": "Trvalo vymazať účet a údaje",
+    "deleteTitle": "Vymazať účet",
+    "deleteWarning": "Tvoj účet a VŠETKY súvisiace údaje budú trvalo vymazané vrátane motoriek, histórie údržby, diagnostík a pokroku vo vzdelávaní. Predplatné bude zrušené. Máš 30 dní na zmenu rozhodnutia pred trvalým vymazaním údajov.",
+    "deleteConfirmButton": "Vymazať môj účet",
+    "deleteConfirmTitle": "Si si úplne istý?",
+    "deleteConfirmMessage": "Toto sa nedá vrátiť. Uisti sa, že si si istý.",
+    "deleteFinal": "Áno, vymazať všetko",
+    "deleteErrorTitle": "Vymazanie zlyhalo",
+    "deleteError": "Niečo sa pokazilo.",
+    "deletingAccount": "Mazanie..."
+  },
+  "settings": {
+    "title": "Nastavenia profilu",
+    "fullNameLabel": "Celé meno",
+    "fullNamePlaceholder": "Zadaj svoje celé meno",
+    "experienceLevelLabel": "Úroveň skúseností",
+    "ridingGoalsLabel": "Jazdné ciele",
+    "learningFormatsLabel": "Formáty vzdelávania",
+    "ridingFrequencyLabel": "Frekvencia jazdy",
+    "maintenanceStyleLabel": "Štýl údržby",
+    "saveChanges": "Uložiť zmeny",
+    "saved": "Uložené",
+    "saveError": "Niečo sa pokazilo. Skúste to znova."
+  },
+  "support": {
+    "title": "Pomoc a podpora",
+    "faq": "Často kladené otázky",
+    "contact": "Kontaktuj nás",
+    "emailSupport": "E-mailová podpora",
+    "version": "Verzia {{version}}"
   }
 }

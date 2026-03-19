@@ -9,7 +9,15 @@
     "back": "戻る",
     "retry": "再試行",
     "skip": "スキップ",
-    "goBack": "戻る"
+    "goBack": "戻る",
+    "done": "完了",
+    "optional": "任意",
+    "saving": "保存中...",
+    "actions": "アクション",
+    "edit": "編集",
+    "more": "もっと見る",
+    "no": "いいえ",
+    "yes": "はい"
   },
   "auth": {
     "signIn": "サインイン",
@@ -264,7 +272,14 @@
     "useCustomModel": "'{{model}}' をモデルとして使用",
     "customEntry": "カスタム",
     "enterModelManually": "モデル名を入力",
-    "customMakeHint": "データベースにない？手動で入力してください"
+    "customMakeHint": "データベースにない？手動で入力してください",
+    "addExpense": "費用を追加",
+    "addPhoto": "写真を追加",
+    "deleteFailed": "バイクの削除に失敗しました。もう一度お試しください。",
+    "photoUploadFailed": "写真のアップロードに失敗しました。もう一度お試しください。",
+    "primary": "メイン",
+    "tab_details": "詳細",
+    "uploadingPhoto": "写真をアップロード中..."
   },
   "profile": {
     "title": "プロフィール",
@@ -290,7 +305,10 @@
     "themeDescription": "お好みの外観を選択してください",
     "themeSystem": "システム",
     "themeLight": "ライト",
-    "themeDark": "ダーク"
+    "themeDark": "ダーク",
+    "notifications": "通知",
+    "proActive": "Pro 有効",
+    "proActiveDesc": "Proサブスクリプションが有効です"
   },
   "onboarding": {
     "welcomeTitle": "MotoVaultへようこそ",
@@ -501,7 +519,15 @@
     "priorityCritical": "緊急",
     "priorityHigh": "高",
     "priorityMedium": "中",
-    "priorityLow": "低"
+    "priorityLow": "低",
+    "addTask": "タスクを追加",
+    "chooseFromLibrary": "ライブラリから選ぶ",
+    "confirmDeleteTask": "このタスクを削除してよろしいですか？",
+    "deleteError": "タスクの削除に失敗しました。もう一度お試しください。",
+    "deleteTask": "タスクを削除",
+    "exportError": "PDFのエクスポートに失敗しました。もう一度お試しください。",
+    "exportPdf": "PDFとしてエクスポート",
+    "takePhoto": "写真を撮る"
   },
   "paywall": {
     "title": "MotoVault体験の準備ができました",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "新機能と改善",
     "promotional": "プロモーション",
     "promotionalDesc": "特別オファーとお知らせ"
+  },
+  "expenses": {
+    "title": "費用",
+    "allTime": "全期間",
+    "category": "カテゴリー",
+    "createFailed": "費用の保存に失敗しました。もう一度お試しください。",
+    "date": "日付",
+    "description": "説明",
+    "descriptionPlaceholder": "例：オイルフィルター交換",
+    "empty": "まだ費用がありません",
+    "emptyHint": "バイクの費用をここで管理しましょう",
+    "save": "費用を保存",
+    "saved": "費用を保存しました",
+    "seeAll": "すべて見る",
+    "showLess": "少なく表示",
+    "deleteFailed": "費用の削除に失敗しました。もう一度お試しください。"
+  },
+  "privacy": {
+    "title": "プライバシー",
+    "dataCollection": "データ収集",
+    "analytics": "アナリティクス",
+    "analyticsDesc": "利用データでMotoVaultの改善にご協力ください",
+    "crashReporting": "クラッシュレポート",
+    "crashReportingDesc": "アプリのクラッシュを自動的に報告します",
+    "yourData": "あなたのデータ",
+    "exportData": "データをエクスポート",
+    "exportDataDesc": "あなたの情報のコピーをダウンロード",
+    "exportTitle": "データをエクスポート",
+    "exportMessage": "データのコピーを準備し、48時間以内にメールでお届けします。",
+    "export": "エクスポート",
+    "exportSuccessTitle": "エクスポートをリクエストしました",
+    "exportSuccessMessage": "48時間以内にデータが記載されたメールが届きます。",
+    "exportErrorTitle": "エクスポート失敗",
+    "exportError": "問題が発生しました。後ほどもう一度お試しください。",
+    "exportRateLimit": "データエクスポートは24時間に1回のみリクエストできます。",
+    "dangerZone": "危険ゾーン",
+    "deleteAccount": "アカウントを削除",
+    "deleteAccountDesc": "アカウントとデータを完全に削除します",
+    "deleteTitle": "アカウントを削除",
+    "deleteWarning": "アカウントと、バイク、メンテナンス履歴、診断、学習の進捗を含むすべての関連データが完全に削除されます。サブスクリプションはキャンセルされます。データが完全に削除されるまで30日間の猶予があります。",
+    "deleteConfirmButton": "アカウントを削除",
+    "deleteConfirmTitle": "本当によろしいですか？",
+    "deleteConfirmMessage": "この操作は元に戻せません。よくご確認ください。",
+    "deleteFinal": "はい、すべて削除します",
+    "deleteErrorTitle": "削除失敗",
+    "deleteError": "問題が発生しました。",
+    "deletingAccount": "削除中..."
+  },
+  "settings": {
+    "title": "プロフィール設定",
+    "fullNameLabel": "氏名",
+    "fullNamePlaceholder": "氏名を入力してください",
+    "experienceLevelLabel": "経験レベル",
+    "ridingGoalsLabel": "ライディング目標",
+    "learningFormatsLabel": "学習形式",
+    "ridingFrequencyLabel": "ライディング頻度",
+    "maintenanceStyleLabel": "メンテナンススタイル",
+    "saveChanges": "変更を保存",
+    "saved": "保存しました",
+    "saveError": "問題が発生しました。もう一度お試しください。"
+  },
+  "support": {
+    "title": "ヘルプとサポート",
+    "faq": "よくある質問",
+    "contact": "お問い合わせ",
+    "emailSupport": "メールサポート",
+    "version": "バージョン {{version}}"
   }
 }

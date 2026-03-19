@@ -9,7 +9,15 @@
     "back": "Back",
     "retry": "Retry",
     "skip": "Skip",
-    "goBack": "Go Back"
+    "goBack": "Go Back",
+    "done": "Done",
+    "optional": "Optional",
+    "saving": "Saving...",
+    "actions": "Actions",
+    "edit": "Edit",
+    "more": "More",
+    "no": "No",
+    "yes": "Yes"
   },
   "auth": {
     "signIn": "Sign In",
@@ -264,7 +272,14 @@
     "useCustomModel": "Use '{{model}}' as model",
     "customEntry": "Custom",
     "enterModelManually": "Enter model name",
-    "customMakeHint": "Not in our database? Type it manually"
+    "customMakeHint": "Not in our database? Type it manually",
+    "addExpense": "Add Expense",
+    "addPhoto": "Add Photo",
+    "deleteFailed": "Failed to delete bike. Please try again.",
+    "photoUploadFailed": "Failed to upload photo. Please try again.",
+    "primary": "Primary",
+    "tab_details": "Details",
+    "uploadingPhoto": "Uploading photo..."
   },
   "profile": {
     "title": "Profile",
@@ -290,7 +305,10 @@
     "themeDescription": "Choose your preferred appearance",
     "themeSystem": "System",
     "themeLight": "Light",
-    "themeDark": "Dark"
+    "themeDark": "Dark",
+    "notifications": "Notifications",
+    "proActive": "Pro Active",
+    "proActiveDesc": "You have an active Pro subscription"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "Critical",
     "priorityHigh": "High",
     "priorityMedium": "Medium",
-    "priorityLow": "Low"
+    "priorityLow": "Low",
+    "addTask": "Add Task",
+    "chooseFromLibrary": "Choose from Library",
+    "confirmDeleteTask": "Are you sure you want to delete this task?",
+    "deleteError": "Failed to delete task. Please try again.",
+    "deleteTask": "Delete Task",
+    "exportError": "Failed to export PDF. Please try again.",
+    "exportPdf": "Export as PDF",
+    "takePhoto": "Take Photo"
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "New features and improvements",
     "promotional": "Promotional",
     "promotionalDesc": "Special offers and announcements"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "allTime": "All Time",
+    "category": "Category",
+    "createFailed": "Failed to save expense. Please try again.",
+    "date": "Date",
+    "description": "Description",
+    "descriptionPlaceholder": "What was this expense for?",
+    "empty": "No expenses yet",
+    "emptyHint": "Track your fuel, parts, and maintenance costs",
+    "save": "Save Expense",
+    "saved": "Expense saved",
+    "seeAll": "See All",
+    "showLess": "Show Less",
+    "deleteFailed": "Failed to delete expense. Please try again."
+  },
+  "privacy": {
+    "title": "Privacy",
+    "dataCollection": "Data Collection",
+    "analytics": "Analytics",
+    "analyticsDesc": "Help us improve MotoVault with usage data",
+    "crashReporting": "Crash Reporting",
+    "crashReportingDesc": "Automatically report app crashes",
+    "yourData": "Your Data",
+    "exportData": "Export My Data",
+    "exportDataDesc": "Download a copy of your information",
+    "exportTitle": "Export Your Data",
+    "exportMessage": "We'll prepare a copy of your data and email it to you within 48 hours.",
+    "export": "Export",
+    "exportSuccessTitle": "Export Requested",
+    "exportSuccessMessage": "You'll receive an email with your data within 48 hours.",
+    "exportErrorTitle": "Export Failed",
+    "exportError": "Something went wrong. Please try again later.",
+    "exportRateLimit": "You can only request a data export once every 24 hours.",
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account",
+    "deleteAccountDesc": "Permanently remove your account and data",
+    "deleteTitle": "Delete Account",
+    "deleteWarning": "This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.",
+    "deleteConfirmButton": "Delete My Account",
+    "deleteConfirmTitle": "Are you absolutely sure?",
+    "deleteConfirmMessage": "This cannot be undone. Type DELETE to confirm is not required, but please be certain.",
+    "deleteFinal": "Yes, Delete Everything",
+    "deleteErrorTitle": "Deletion Failed",
+    "deleteError": "Something went wrong.",
+    "deletingAccount": "Deleting..."
+  },
+  "settings": {
+    "title": "Settings",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "experienceLevelLabel": "Experience Level",
+    "ridingGoalsLabel": "Riding Goals",
+    "learningFormatsLabel": "Learning Formats",
+    "ridingFrequencyLabel": "Riding Frequency",
+    "maintenanceStyleLabel": "Maintenance Style",
+    "saveChanges": "Save Changes",
+    "saved": "Changes saved",
+    "saveError": "Failed to save changes. Please try again."
+  },
+  "support": {
+    "title": "Support",
+    "faq": "FAQ",
+    "contact": "Contact Us",
+    "emailSupport": "Email Support",
+    "version": "Version {{version}}"
   }
 }

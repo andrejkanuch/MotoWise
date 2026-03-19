@@ -9,7 +9,15 @@
     "back": "ย้อนกลับ",
     "retry": "ลองอีกครั้ง",
     "skip": "ข้าม",
-    "goBack": "กลับไป"
+    "goBack": "กลับไป",
+    "done": "เสร็จสิ้น",
+    "optional": "ไม่บังคับ",
+    "saving": "กำลังบันทึก...",
+    "actions": "การดำเนินการ",
+    "edit": "แก้ไข",
+    "more": "เพิ่มเติม",
+    "no": "ไม่",
+    "yes": "ใช่"
   },
   "auth": {
     "signIn": "เข้าสู่ระบบ",
@@ -264,7 +272,14 @@
     "useCustomModel": "ใช้ '{{model}}' เป็นรุ่น",
     "customEntry": "กำหนดเอง",
     "enterModelManually": "พิมพ์ชื่อรุ่น",
-    "customMakeHint": "ไม่มีในฐานข้อมูล? พิมพ์ด้วยตนเอง"
+    "customMakeHint": "ไม่มีในฐานข้อมูล? พิมพ์ด้วยตนเอง",
+    "addExpense": "เพิ่มค่าใช้จ่าย",
+    "addPhoto": "เพิ่มรูปภาพ",
+    "deleteFailed": "ลบรถไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "photoUploadFailed": "อัปโหลดรูปภาพไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "primary": "รถหลัก",
+    "tab_details": "รายละเอียด",
+    "uploadingPhoto": "กำลังอัปโหลดรูปภาพ..."
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -290,7 +305,10 @@
     "themeDescription": "เลือกรูปแบบที่ต้องการ",
     "themeSystem": "ตามระบบ",
     "themeLight": "สว่าง",
-    "themeDark": "มืด"
+    "themeDark": "มืด",
+    "notifications": "การแจ้งเตือน",
+    "proActive": "Pro ใช้งานอยู่",
+    "proActiveDesc": "คุณมีสมาชิก Pro ที่ใช้งานอยู่"
   },
   "onboarding": {
     "welcomeTitle": "ยินดีต้อนรับสู่ MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "วิกฤต",
     "priorityHigh": "สูง",
     "priorityMedium": "ปานกลาง",
-    "priorityLow": "ต่ำ"
+    "priorityLow": "ต่ำ",
+    "addTask": "เพิ่มงาน",
+    "chooseFromLibrary": "เลือกจากคลัง",
+    "confirmDeleteTask": "คุณแน่ใจหรือว่าต้องการลบงานนี้?",
+    "deleteError": "ลบงานไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "deleteTask": "ลบงาน",
+    "exportError": "ส่งออก PDF ไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "exportPdf": "ส่งออกเป็น PDF",
+    "takePhoto": "ถ่ายรูป"
   },
   "paywall": {
     "title": "ประสบการณ์ MotoVault ของคุณพร้อมแล้ว",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "ฟีเจอร์ใหม่และการปรับปรุง",
     "promotional": "โปรโมชัน",
     "promotionalDesc": "ข้อเสนอพิเศษและประกาศ"
+  },
+  "expenses": {
+    "title": "ค่าใช้จ่าย",
+    "allTime": "ทั้งหมด",
+    "category": "หมวดหมู่",
+    "createFailed": "บันทึกค่าใช้จ่ายไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "date": "วันที่",
+    "description": "รายละเอียด",
+    "descriptionPlaceholder": "เช่น เปลี่ยนไส้กรองน้ำมัน",
+    "empty": "ยังไม่มีค่าใช้จ่าย",
+    "emptyHint": "ติดตามค่าใช้จ่ายมอเตอร์ไซค์ของคุณที่นี่",
+    "save": "บันทึกค่าใช้จ่าย",
+    "saved": "บันทึกค่าใช้จ่ายแล้ว",
+    "seeAll": "ดูทั้งหมด",
+    "showLess": "แสดงน้อยลง",
+    "deleteFailed": "ลบค่าใช้จ่ายไม่สำเร็จ กรุณาลองอีกครั้ง"
+  },
+  "privacy": {
+    "title": "ความเป็นส่วนตัว",
+    "dataCollection": "การเก็บข้อมูล",
+    "analytics": "การวิเคราะห์",
+    "analyticsDesc": "ช่วยปรับปรุง MotoVault ด้วยข้อมูลการใช้งาน",
+    "crashReporting": "รายงานข้อขัดข้อง",
+    "crashReportingDesc": "รายงานข้อขัดข้องของแอปโดยอัตโนมัติ",
+    "yourData": "ข้อมูลของคุณ",
+    "exportData": "ส่งออกข้อมูลของฉัน",
+    "exportDataDesc": "ดาวน์โหลดสำเนาข้อมูลของคุณ",
+    "exportTitle": "ส่งออกข้อมูลของคุณ",
+    "exportMessage": "เราจะเตรียมสำเนาข้อมูลของคุณและส่งทางอีเมลภายใน 48 ชั่วโมง",
+    "export": "ส่งออก",
+    "exportSuccessTitle": "ขอส่งออกแล้ว",
+    "exportSuccessMessage": "คุณจะได้รับอีเมลพร้อมข้อมูลภายใน 48 ชั่วโมง",
+    "exportErrorTitle": "ส่งออกไม่สำเร็จ",
+    "exportError": "เกิดข้อผิดพลาด กรุณาลองอีกครั้งภายหลัง",
+    "exportRateLimit": "คุณสามารถขอส่งออกข้อมูลได้เพียงครั้งเดียวในทุก 24 ชั่วโมง",
+    "dangerZone": "โซนอันตราย",
+    "deleteAccount": "ลบบัญชี",
+    "deleteAccountDesc": "ลบบัญชีและข้อมูลของคุณอย่างถาวร",
+    "deleteTitle": "ลบบัญชี",
+    "deleteWarning": "บัญชีและข้อมูลที่เกี่ยวข้องทั้งหมดจะถูกลบอย่างถาวร รวมถึงรถ, ประวัติการบำรุงรักษา, การวินิจฉัย, และความก้าวหน้าการเรียนรู้ การสมัครสมาชิกจะถูกยกเลิก คุณมีเวลา 30 วันในการเปลี่ยนใจก่อนข้อมูลจะถูกลบถาวร",
+    "deleteConfirmButton": "ลบบัญชีของฉัน",
+    "deleteConfirmTitle": "คุณแน่ใจจริงๆ หรือ?",
+    "deleteConfirmMessage": "การดำเนินการนี้ไม่สามารถย้อนกลับได้ กรุณาตรวจสอบให้แน่ใจ",
+    "deleteFinal": "ใช่ ลบทุกอย่าง",
+    "deleteErrorTitle": "ลบไม่สำเร็จ",
+    "deleteError": "เกิดข้อผิดพลาด",
+    "deletingAccount": "กำลังลบ..."
+  },
+  "settings": {
+    "title": "ตั้งค่าโปรไฟล์",
+    "fullNameLabel": "ชื่อ-นามสกุล",
+    "fullNamePlaceholder": "กรอกชื่อ-นามสกุลของคุณ",
+    "experienceLevelLabel": "ระดับประสบการณ์",
+    "ridingGoalsLabel": "เป้าหมายการขี่",
+    "learningFormatsLabel": "รูปแบบการเรียนรู้",
+    "ridingFrequencyLabel": "ความถี่ในการขี่",
+    "maintenanceStyleLabel": "รูปแบบการบำรุงรักษา",
+    "saveChanges": "บันทึกการเปลี่ยนแปลง",
+    "saved": "บันทึกแล้ว",
+    "saveError": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"
+  },
+  "support": {
+    "title": "ช่วยเหลือและสนับสนุน",
+    "faq": "คำถามที่พบบ่อย",
+    "contact": "ติดต่อเรา",
+    "emailSupport": "อีเมลสนับสนุน",
+    "version": "เวอร์ชัน {{version}}"
   }
 }

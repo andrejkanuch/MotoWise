@@ -9,7 +9,15 @@
     "back": "Wstecz",
     "retry": "Ponow",
     "skip": "Pomin",
-    "goBack": "Wroc"
+    "goBack": "Wroc",
+    "done": "Gotowe",
+    "optional": "Opcjonalne",
+    "saving": "Zapisywanie...",
+    "actions": "Akcje",
+    "edit": "Edytuj",
+    "more": "Wiecej",
+    "no": "Nie",
+    "yes": "Tak"
   },
   "auth": {
     "signIn": "Zaloguj sie",
@@ -264,7 +272,14 @@
     "useCustomModel": "Uzyj '{{model}}' jako modelu",
     "customEntry": "Wlasny",
     "enterModelManually": "Wpisz nazwe modelu",
-    "customMakeHint": "Nie ma w naszej bazie? Wpisz recznie"
+    "customMakeHint": "Nie ma w naszej bazie? Wpisz recznie",
+    "addExpense": "Dodaj wydatek",
+    "addPhoto": "Dodaj zdjecie",
+    "deleteFailed": "Nie udalo sie usunac motocykla. Sprobuj ponownie.",
+    "photoUploadFailed": "Nie udalo sie przeslac zdjecia. Sprobuj ponownie.",
+    "primary": "Glowny",
+    "tab_details": "Szczegoly",
+    "uploadingPhoto": "Przesylanie zdjecia..."
   },
   "profile": {
     "title": "Profil",
@@ -290,7 +305,10 @@
     "themeDescription": "Wybierz preferowany wyglad",
     "themeSystem": "Systemowy",
     "themeLight": "Jasny",
-    "themeDark": "Ciemny"
+    "themeDark": "Ciemny",
+    "notifications": "Powiadomienia",
+    "proActive": "Pro aktywne",
+    "proActiveDesc": "Masz aktywna subskrypcje Pro"
   },
   "onboarding": {
     "welcomeTitle": "Witaj w MotoVault",
@@ -501,7 +519,15 @@
     "priorityCritical": "Krytyczny",
     "priorityHigh": "Wysoki",
     "priorityMedium": "Sredni",
-    "priorityLow": "Niski"
+    "priorityLow": "Niski",
+    "addTask": "Dodaj zadanie",
+    "chooseFromLibrary": "Wybierz z biblioteki",
+    "confirmDeleteTask": "Czy na pewno chcesz usunac to zadanie?",
+    "deleteError": "Nie udalo sie usunac zadania. Sprobuj ponownie.",
+    "deleteTask": "Usun zadanie",
+    "exportError": "Nie udalo sie wyeksportowac PDF. Sprobuj ponownie.",
+    "exportPdf": "Eksportuj jako PDF",
+    "takePhoto": "Zrob zdjecie"
   },
   "paywall": {
     "title": "Twoje doswiadczenie MotoVault jest gotowe",
@@ -751,5 +777,72 @@
     "appUpdatesDesc": "Nowe funkcje i ulepszenia",
     "promotional": "Promocyjne",
     "promotionalDesc": "Oferty specjalne i ogloszenia"
+  },
+  "expenses": {
+    "title": "Wydatki",
+    "allTime": "Od poczatku",
+    "category": "Kategoria",
+    "createFailed": "Nie udalo sie zapisac wydatku. Sprobuj ponownie.",
+    "date": "Data",
+    "description": "Opis",
+    "descriptionPlaceholder": "Np. Wymiana filtra oleju",
+    "empty": "Brak wydatkow",
+    "emptyHint": "Sledz koszty motocykla tutaj",
+    "save": "Zapisz wydatek",
+    "saved": "Wydatek zapisany",
+    "seeAll": "Zobacz wszystko",
+    "showLess": "Pokaz mniej",
+    "deleteFailed": "Nie udalo sie usunac wydatku. Sprobuj ponownie."
+  },
+  "privacy": {
+    "title": "Prywatnosc",
+    "dataCollection": "Zbieranie danych",
+    "analytics": "Analityka",
+    "analyticsDesc": "Pomoz nam ulepszyc MotoVault danymi o uzyciu",
+    "crashReporting": "Raporty bledow",
+    "crashReportingDesc": "Automatycznie raportuj awarie aplikacji",
+    "yourData": "Twoje dane",
+    "exportData": "Eksportuj moje dane",
+    "exportDataDesc": "Pobierz kopie swoich informacji",
+    "exportTitle": "Eksportuj swoje dane",
+    "exportMessage": "Przygotujemy kopie twoich danych i wyslesmy ja e-mailem w ciagu 48 godzin.",
+    "export": "Eksportuj",
+    "exportSuccessTitle": "Eksport zamowiony",
+    "exportSuccessMessage": "Otrzymasz e-mail z danymi w ciagu 48 godzin.",
+    "exportErrorTitle": "Eksport nieudany",
+    "exportError": "Cos poszlo nie tak. Sprobuj ponownie pozniej.",
+    "exportRateLimit": "Mozesz zamowic eksport danych raz na 24 godziny.",
+    "dangerZone": "Strefa zagrożenia",
+    "deleteAccount": "Usun konto",
+    "deleteAccountDesc": "Trwale usun swoje konto i dane",
+    "deleteTitle": "Usun konto",
+    "deleteWarning": "Twoje konto i WSZYSTKIE powiazane dane zostana trwale usuniete, w tym motocykle, historia serwisowa, diagnostyka i postepy w nauce. Twoja subskrypcja zostanie anulowana. Masz 30 dni na zmiane zdania zanim dane zostana trwale usuniete.",
+    "deleteConfirmButton": "Usun moje konto",
+    "deleteConfirmTitle": "Jestes absolutnie pewien?",
+    "deleteConfirmMessage": "Tego nie mozna cofnac. Upewnij sie, ze jestes pewien.",
+    "deleteFinal": "Tak, usun wszystko",
+    "deleteErrorTitle": "Usuwanie nieudane",
+    "deleteError": "Cos poszlo nie tak.",
+    "deletingAccount": "Usuwanie..."
+  },
+  "settings": {
+    "title": "Ustawienia profilu",
+    "fullNameLabel": "Imie i nazwisko",
+    "fullNamePlaceholder": "Wpisz swoje imie i nazwisko",
+    "experienceLevelLabel": "Poziom doswiadczenia",
+    "ridingGoalsLabel": "Cele jazdy",
+    "learningFormatsLabel": "Formaty nauki",
+    "ridingFrequencyLabel": "Czestotliwosc jazdy",
+    "maintenanceStyleLabel": "Styl serwisowania",
+    "saveChanges": "Zapisz zmiany",
+    "saved": "Zapisano",
+    "saveError": "Cos poszlo nie tak. Sprobuj ponownie."
+  },
+  "support": {
+    "title": "Pomoc i wsparcie",
+    "faq": "Najczesciej zadawane pytania",
+    "contact": "Skontaktuj sie z nami",
+    "emailSupport": "Wsparcie e-mail",
+    "version": "Wersja {{version}}"
   }
 }
