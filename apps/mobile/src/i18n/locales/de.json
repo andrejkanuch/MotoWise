@@ -727,5 +727,23 @@
     "tapToChange": "Tippen zum Ändern",
     "confirmModel": "Modell bestätigen",
     "cantLoadTypeManually": "Kann nicht laden? Manuell eingeben"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "learning": "Lernen",
+    "newArticles": "Neue Artikel",
+    "newArticlesDesc": "Wenn neue Lerninhalte verfügbar sind",
+    "quizReminders": "Quiz-Erinnerungen",
+    "quizRemindersDesc": "Erinnerungen zum Abschließen von Quizzen",
+    "diagnostics": "Diagnose",
+    "diagnosticAlerts": "Diagnose-Benachrichtigungen",
+    "diagnosticAlertsDesc": "Updates zu deinen Diagnoseergebnissen",
+    "maintenanceTips": "Wartungstipps",
+    "maintenanceTipsDesc": "Regelmäßige Wartungserinnerungen",
+    "general": "Allgemein",
+    "appUpdates": "App-Updates",
+    "appUpdatesDesc": "Neue Funktionen und Verbesserungen",
+    "promotional": "Werbung",
+    "promotionalDesc": "Sonderangebote und Ankündigungen"
   }
 }

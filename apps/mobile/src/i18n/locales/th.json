@@ -727,5 +727,23 @@
       "scooter": "สกูตเตอร์",
       "other": "อื่นๆ"
     }
+  },
+  "notifications": {
+    "title": "การแจ้งเตือน",
+    "learning": "การเรียนรู้",
+    "newArticles": "บทความใหม่",
+    "newArticlesDesc": "เมื่อมีเนื้อหาการเรียนรู้ใหม่",
+    "quizReminders": "แจ้งเตือนแบบทดสอบ",
+    "quizRemindersDesc": "แจ้งเตือนให้ทำแบบทดสอบ",
+    "diagnostics": "การวินิจฉัย",
+    "diagnosticAlerts": "แจ้งเตือนการวินิจฉัย",
+    "diagnosticAlertsDesc": "อัปเดตผลการวินิจฉัยของคุณ",
+    "maintenanceTips": "เคล็ดลับการบำรุงรักษา",
+    "maintenanceTipsDesc": "แจ้งเตือนการบำรุงรักษาตามกำหนด",
+    "general": "ทั่วไป",
+    "appUpdates": "อัปเดตแอป",
+    "appUpdatesDesc": "ฟีเจอร์ใหม่และการปรับปรุง",
+    "promotional": "โปรโมชัน",
+    "promotionalDesc": "ข้อเสนอพิเศษและประกาศ"
   }
 }

@@ -727,5 +727,23 @@
     "tapToChange": "Toca para cambiar",
     "confirmModel": "Confirmar Modelo",
     "cantLoadTypeManually": "¿No se puede cargar? Escribe manualmente"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "learning": "Aprendizaje",
+    "newArticles": "Nuevos Artículos",
+    "newArticlesDesc": "Cuando hay nuevo contenido de aprendizaje disponible",
+    "quizReminders": "Recordatorios de Cuestionarios",
+    "quizRemindersDesc": "Recordatorios para completar cuestionarios",
+    "diagnostics": "Diagnósticos",
+    "diagnosticAlerts": "Alertas de Diagnóstico",
+    "diagnosticAlertsDesc": "Actualizaciones sobre los resultados de tus diagnósticos",
+    "maintenanceTips": "Consejos de Mantenimiento",
+    "maintenanceTipsDesc": "Recordatorios periódicos de mantenimiento",
+    "general": "General",
+    "appUpdates": "Actualizaciones de la App",
+    "appUpdatesDesc": "Nuevas funciones y mejoras",
+    "promotional": "Promocional",
+    "promotionalDesc": "Ofertas especiales y anuncios"
   }
 }

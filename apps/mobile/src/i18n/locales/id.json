@@ -727,5 +727,23 @@
       "scooter": "Skuter",
       "other": "Lainnya"
     }
+  },
+  "notifications": {
+    "title": "Notifikasi",
+    "learning": "Pembelajaran",
+    "newArticles": "Artikel Baru",
+    "newArticlesDesc": "Saat konten pembelajaran baru tersedia",
+    "quizReminders": "Pengingat Kuis",
+    "quizRemindersDesc": "Pengingat untuk menyelesaikan kuis",
+    "diagnostics": "Diagnostik",
+    "diagnosticAlerts": "Peringatan Diagnostik",
+    "diagnosticAlertsDesc": "Pembaruan hasil diagnostik kamu",
+    "maintenanceTips": "Tips Perawatan",
+    "maintenanceTipsDesc": "Pengingat perawatan berkala",
+    "general": "Umum",
+    "appUpdates": "Pembaruan Aplikasi",
+    "appUpdatesDesc": "Fitur baru dan peningkatan",
+    "promotional": "Promosi",
+    "promotionalDesc": "Penawaran khusus dan pengumuman"
   }
 }

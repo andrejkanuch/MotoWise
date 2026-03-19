@@ -727,5 +727,23 @@
       "scooter": "स्कूटर",
       "other": "अन्य"
     }
+  },
+  "notifications": {
+    "title": "नोटिफिकेशन",
+    "learning": "सीखना",
+    "newArticles": "नए आर्टिकल",
+    "newArticlesDesc": "जब नई सीखने की सामग्री उपलब्ध हो",
+    "quizReminders": "क्विज़ रिमाइंडर",
+    "quizRemindersDesc": "क्विज़ पूरा करने के लिए रिमाइंडर",
+    "diagnostics": "डायग्नोस्टिक्स",
+    "diagnosticAlerts": "डायग्नोस्टिक अलर्ट",
+    "diagnosticAlertsDesc": "आपके डायग्नोस्टिक रिज़ल्ट पर अपडेट",
+    "maintenanceTips": "मेंटेनेंस टिप्स",
+    "maintenanceTipsDesc": "समय-समय पर मेंटेनेंस रिमाइंडर",
+    "general": "सामान्य",
+    "appUpdates": "ऐप अपडेट",
+    "appUpdatesDesc": "नई सुविधाएं और सुधार",
+    "promotional": "प्रमोशनल",
+    "promotionalDesc": "विशेष ऑफर और घोषणाएं"
   }
 }

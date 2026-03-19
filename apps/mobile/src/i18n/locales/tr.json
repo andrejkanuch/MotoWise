@@ -727,5 +727,23 @@
       "scooter": "Scooter",
       "other": "Diger"
     }
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "learning": "Ogrenme",
+    "newArticles": "Yeni Makaleler",
+    "newArticlesDesc": "Yeni ogrenme icerigi mevcut oldugunda",
+    "quizReminders": "Test Hatirlatmalari",
+    "quizRemindersDesc": "Testleri tamamlamak icin hatirlatmalar",
+    "diagnostics": "Teshis",
+    "diagnosticAlerts": "Teshis Uyarilari",
+    "diagnosticAlertsDesc": "Teshis sonuclarin hakkinda guncellemeler",
+    "maintenanceTips": "Bakim Ipuclari",
+    "maintenanceTipsDesc": "Periyodik bakim hatirlatmalari",
+    "general": "Genel",
+    "appUpdates": "Uygulama Guncellemeleri",
+    "appUpdatesDesc": "Yeni ozellikler ve iyilestirmeler",
+    "promotional": "Promosyon",
+    "promotionalDesc": "Ozel teklifler ve duyurular"
   }
 }

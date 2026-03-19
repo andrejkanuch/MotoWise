@@ -727,5 +727,23 @@
       "scooter": "Scooter",
       "other": "Outra"
     }
+  },
+  "notifications": {
+    "title": "Notificações",
+    "learning": "Aprendizado",
+    "newArticles": "Novos Artigos",
+    "newArticlesDesc": "Quando novo conteúdo de aprendizado estiver disponível",
+    "quizReminders": "Lembretes de Quiz",
+    "quizRemindersDesc": "Lembretes para completar quizzes",
+    "diagnostics": "Diagnósticos",
+    "diagnosticAlerts": "Alertas de Diagnóstico",
+    "diagnosticAlertsDesc": "Atualizações sobre os resultados dos seus diagnósticos",
+    "maintenanceTips": "Dicas de Manutenção",
+    "maintenanceTipsDesc": "Lembretes periódicos de manutenção",
+    "general": "Geral",
+    "appUpdates": "Atualizações do App",
+    "appUpdatesDesc": "Novas funcionalidades e melhorias",
+    "promotional": "Promocional",
+    "promotionalDesc": "Ofertas especiais e anúncios"
   }
 }

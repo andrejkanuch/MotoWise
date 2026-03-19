@@ -727,5 +727,23 @@
       "scooter": "スクーター",
       "other": "その他"
     }
+  },
+  "notifications": {
+    "title": "通知",
+    "learning": "学習",
+    "newArticles": "新しい記事",
+    "newArticlesDesc": "新しい学習コンテンツが利用可能になった時",
+    "quizReminders": "クイズリマインダー",
+    "quizRemindersDesc": "クイズを完了するためのリマインダー",
+    "diagnostics": "診断",
+    "diagnosticAlerts": "診断アラート",
+    "diagnosticAlertsDesc": "診断結果に関する更新情報",
+    "maintenanceTips": "メンテナンスのヒント",
+    "maintenanceTipsDesc": "定期的なメンテナンスリマインダー",
+    "general": "一般",
+    "appUpdates": "アプリのアップデート",
+    "appUpdatesDesc": "新機能と改善",
+    "promotional": "プロモーション",
+    "promotionalDesc": "特別オファーとお知らせ"
   }
 }
