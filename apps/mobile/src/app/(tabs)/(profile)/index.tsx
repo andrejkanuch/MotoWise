@@ -178,7 +178,7 @@ export default function ProfileScreen() {
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
     haptic();
-    router.push('/(garage)/add-bike');
+    router.navigate('/(tabs)/(garage)');
   };
 
   const handleLogout = async () => {
@@ -363,7 +363,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() => {
                 haptic();
-                router.push('/(garage)/add-bike');
+                router.navigate('/(tabs)/(garage)');
               }}
               style={{
                 flexDirection: 'row',
