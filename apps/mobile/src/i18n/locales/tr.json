@@ -259,7 +259,12 @@
     "searchModel": "Model ara...",
     "tapToChange": "Degistirmek icin dokun",
     "noMakesFound": "Marka bulunamadi",
-    "noModelsFound": "Bu marka ve yil icin model bulunamadi"
+    "noModelsFound": "Bu marka ve yil icin model bulunamadi",
+    "useCustomMake": "'{{make}}' markasini kullan",
+    "useCustomModel": "'{{model}}' modelini kullan",
+    "customEntry": "Ozel",
+    "enterModelManually": "Model adini yaz",
+    "customMakeHint": "Veritabanimizda yok mu? Manuel olarak yaz"
   },
   "profile": {
     "title": "Profil",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "Motosikletini kim uretiyor?",
     "bikeMakeSubtitle": "Ara veya populer markalardan sec",
     "popularMakes": "Populer Markalar",
+    "useCustomMake": "'{{make}}' markasini kullan",
     "bikeModelTitle": "Modelin ne?",
     "modelsLoadError": "Modeller yuklenemedi. Lutfen tekrar dene.",
     "enterModelManually": "Model adini yaz",

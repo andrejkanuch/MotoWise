@@ -259,7 +259,12 @@
     "searchModel": "モデルを検索...",
     "tapToChange": "タップして変更",
     "noMakesFound": "メーカーが見つかりません",
-    "noModelsFound": "このメーカーと年式のモデルが見つかりません"
+    "noModelsFound": "このメーカーと年式のモデルが見つかりません",
+    "useCustomMake": "'{{make}}' をメーカーとして使用",
+    "useCustomModel": "'{{model}}' をモデルとして使用",
+    "customEntry": "カスタム",
+    "enterModelManually": "モデル名を入力",
+    "customMakeHint": "データベースにない？手動で入力してください"
   },
   "profile": {
     "title": "プロフィール",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "バイクのメーカーは？",
     "bikeMakeSubtitle": "検索するか人気ブランドから選んでください",
     "popularMakes": "人気メーカー",
+    "useCustomMake": "'{{make}}' をメーカーとして使用",
     "bikeModelTitle": "モデルは？",
     "modelsLoadError": "モデルを読み込めませんでした。もう一度お試しください。",
     "enterModelManually": "モデル名を入力",

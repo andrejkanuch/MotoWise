@@ -259,7 +259,12 @@
     "searchModel": "ค้นหารุ่น...",
     "tapToChange": "แตะเพื่อเปลี่ยน",
     "noMakesFound": "ไม่พบยี่ห้อ",
-    "noModelsFound": "ไม่พบรุ่นสำหรับยี่ห้อและปีนี้"
+    "noModelsFound": "ไม่พบรุ่นสำหรับยี่ห้อและปีนี้",
+    "useCustomMake": "ใช้ '{{make}}' เป็นยี่ห้อ",
+    "useCustomModel": "ใช้ '{{model}}' เป็นรุ่น",
+    "customEntry": "กำหนดเอง",
+    "enterModelManually": "พิมพ์ชื่อรุ่น",
+    "customMakeHint": "ไม่มีในฐานข้อมูล? พิมพ์ด้วยตนเอง"
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "มอเตอร์ไซค์ของคุณยี่ห้ออะไร?",
     "bikeMakeSubtitle": "ค้นหาหรือเลือกจากแบรนด์ยอดนิยม",
     "popularMakes": "ยี่ห้อยอดนิยม",
+    "useCustomMake": "ใช้ '{{make}}' เป็นยี่ห้อ",
     "bikeModelTitle": "รุ่นอะไรครับ?",
     "modelsLoadError": "ไม่สามารถโหลดรุ่นได้ กรุณาลองอีกครั้ง",
     "enterModelManually": "พิมพ์ชื่อรุ่น",

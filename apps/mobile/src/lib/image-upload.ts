@@ -45,7 +45,8 @@ export async function uploadBikePhoto(
   const {
     data: { publicUrl },
   } = supabase.storage.from('bike-photos').getPublicUrl(filePath);
-  return { publicUrl };
+  // Append cache-buster so CDN/expo-image shows the new image
+  return { publicUrl: `${publicUrl}?t=${Date.now()}` };
 }
 
 export async function uploadMaintenancePhoto(

@@ -49,6 +49,8 @@ export default function AddBikeScreen() {
   } | null>(null);
   const [makeSearch, setMakeSearch] = useState('');
   const [modelSearch, setModelSearch] = useState('');
+  const [customMake, setCustomMake] = useState('');
+  const [customModel, setCustomModel] = useState('');
   const [nickname, setNickname] = useState('');
 
   const yearNum = Number.parseInt(year, 10);
@@ -74,7 +76,7 @@ export default function AddBikeScreen() {
         makeId: selectedMake?.makeId ?? 0,
         year: yearNum,
       }),
-    enabled: !!selectedMake && validYear,
+    enabled: !!selectedMake && validYear && !customMake,
   });
 
   const makes = makesResult.data?.motorcycleMakes ?? [];
@@ -109,7 +111,10 @@ export default function AddBikeScreen() {
     onError: () => {}, // handled in handleSubmit try/catch
   });
 
-  const isValid = validYear && !!selectedMake && !!selectedModel;
+  const isValid =
+    validYear &&
+    (!!selectedMake || !!customMake.trim()) &&
+    (!!selectedModel || !!customModel.trim());
 
   const handleSubmit = async () => {
     if (!isValid || isPending) return;
@@ -117,8 +122,8 @@ export default function AddBikeScreen() {
     try {
       await mutateAsync({
         year: yearNum,
-        make: selectedMake.makeName,
-        model: selectedModel.modelName,
+        make: customMake || selectedMake?.makeName || '',
+        model: customModel || selectedModel?.modelName || '',
         nickname: nickname.trim() || undefined,
       });
       if (process.env.EXPO_OS === 'ios') {
@@ -205,6 +210,49 @@ export default function AddBikeScreen() {
 
           {makesResult.isLoading ? (
             <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+          ) : customMake && !makeSearch ? (
+            <Pressable
+              onPress={() => {
+                setMakeSearch(customMake);
+                setCustomMake('');
+                setSelectedModel(null);
+                setModelSearch('');
+                setCustomModel('');
+              }}
+              style={{
+                ...inputStyle,
+                borderWidth: 1.5,
+                borderColor: palette.primary500,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: palette.primary500,
+                    fontWeight: '600',
+                    marginBottom: 2,
+                  }}
+                >
+                  {t('garage.customEntry', { defaultValue: 'Custom' })}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                  }}
+                >
+                  {customMake}
+                </Text>
+              </View>
+              <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                {t('garage.tapToChange')}
+              </Text>
+            </Pressable>
           ) : selectedMake && !makeSearch ? (
             <Pressable
               onPress={() => {
@@ -283,12 +331,56 @@ export default function AddBikeScreen() {
                     ))}
                   </ScrollView>
                 </View>
-              ) : makeSearch.length > 0 ? (
-                <Text
-                  style={{ fontSize: 14, color: palette.neutral400, marginTop: 8, marginLeft: 4 }}
-                >
-                  {t('garage.noMakesFound')}
-                </Text>
+              ) : makeSearch.length > 1 && filteredMakes.length === 0 ? (
+                <>
+                  <Text
+                    style={{ fontSize: 14, color: palette.neutral400, marginTop: 8, marginLeft: 4 }}
+                  >
+                    {t('garage.noMakesFound')}
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      haptic();
+                      setCustomMake(makeSearch);
+                      setSelectedMake(null);
+                      setMakeSearch('');
+                      setSelectedModel(null);
+                      setModelSearch('');
+                      setCustomModel('');
+                    }}
+                    style={({ pressed }) => ({
+                      marginTop: 8,
+                      paddingHorizontal: 16,
+                      paddingVertical: 13,
+                      backgroundColor: pressed
+                        ? pressedBg
+                        : isDark
+                          ? palette.neutral800
+                          : palette.neutral50,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      borderWidth: 1,
+                      borderColor: palette.primary500,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        color: palette.primary500,
+                        fontWeight: '600',
+                        flex: 1,
+                      }}
+                    >
+                      {t('garage.useCustomMake', {
+                        defaultValue: `Use "${makeSearch}"`,
+                        make: makeSearch,
+                      })}
+                    </Text>
+                  </Pressable>
+                </>
               ) : null}
             </>
           )}
@@ -311,7 +403,7 @@ export default function AddBikeScreen() {
             </Text>
           </View>
 
-          {!selectedMake || !validYear ? (
+          {(!selectedMake && !customMake) || !validYear ? (
             <View
               style={{
                 ...inputStyle,
@@ -322,6 +414,68 @@ export default function AddBikeScreen() {
                 {t('garage.searchModel')}
               </Text>
             </View>
+          ) : customMake ? (
+            // Free-text model entry when using a custom make
+            customModel && !modelSearch ? (
+              <Pressable
+                onPress={() => {
+                  setModelSearch(customModel);
+                  setCustomModel('');
+                }}
+                style={{
+                  ...inputStyle,
+                  borderWidth: 1.5,
+                  borderColor: palette.primary500,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: palette.primary500,
+                      fontWeight: '600',
+                      marginBottom: 2,
+                    }}
+                  >
+                    {t('garage.customEntry', { defaultValue: 'Custom' })}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: isDark ? palette.neutral50 : palette.neutral950,
+                    }}
+                  >
+                    {customModel}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                  {t('garage.tapToChange')}
+                </Text>
+              </Pressable>
+            ) : (
+              <TextInput
+                value={modelSearch}
+                onChangeText={(text) => {
+                  setModelSearch(text);
+                  setCustomModel(text);
+                }}
+                onBlur={() => {
+                  if (modelSearch.trim()) {
+                    setCustomModel(modelSearch.trim());
+                    setModelSearch('');
+                  }
+                }}
+                placeholder={t('garage.searchModel')}
+                placeholderTextColor={palette.neutral400}
+                autoCapitalize="words"
+                returnKeyType="done"
+                style={inputStyle}
+              />
+            )
           ) : modelsResult.isLoading ? (
             <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
           ) : selectedModel && !modelSearch ? (
@@ -352,6 +506,47 @@ export default function AddBikeScreen() {
                 {t('garage.tapToChange')}
               </Text>
             </Pressable>
+          ) : customModel && !modelSearch ? (
+            <Pressable
+              onPress={() => {
+                setModelSearch(customModel);
+                setCustomModel('');
+                setSelectedModel(null);
+              }}
+              style={{
+                ...inputStyle,
+                borderWidth: 1.5,
+                borderColor: palette.primary500,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: palette.primary500,
+                    fontWeight: '600',
+                    marginBottom: 2,
+                  }}
+                >
+                  {t('garage.customEntry', { defaultValue: 'Custom' })}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                  }}
+                >
+                  {customModel}
+                </Text>
+              </View>
+              <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                {t('garage.tapToChange')}
+              </Text>
+            </Pressable>
           ) : (
             <>
               <TextInput
@@ -359,6 +554,7 @@ export default function AddBikeScreen() {
                 onChangeText={(text) => {
                   setModelSearch(text);
                   setSelectedModel(null);
+                  setCustomModel('');
                 }}
                 placeholder={t('garage.searchModel')}
                 placeholderTextColor={palette.neutral400}
@@ -403,12 +599,60 @@ export default function AddBikeScreen() {
                     ))}
                   </ScrollView>
                 </View>
-              ) : models.length > 0 && modelSearch.length > 0 ? (
-                <Text
-                  style={{ fontSize: 14, color: palette.neutral400, marginTop: 8, marginLeft: 4 }}
-                >
-                  {t('garage.noModelsFound')}
-                </Text>
+              ) : modelSearch.length > 1 && filteredModels.length === 0 ? (
+                <>
+                  {models.length > 0 && (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: palette.neutral400,
+                        marginTop: 8,
+                        marginLeft: 4,
+                      }}
+                    >
+                      {t('garage.noModelsFound')}
+                    </Text>
+                  )}
+                  <Pressable
+                    onPress={() => {
+                      haptic();
+                      setCustomModel(modelSearch);
+                      setSelectedModel(null);
+                      setModelSearch('');
+                    }}
+                    style={({ pressed }) => ({
+                      marginTop: 8,
+                      paddingHorizontal: 16,
+                      paddingVertical: 13,
+                      backgroundColor: pressed
+                        ? pressedBg
+                        : isDark
+                          ? palette.neutral800
+                          : palette.neutral50,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      borderWidth: 1,
+                      borderColor: palette.primary500,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    })}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        color: palette.primary500,
+                        fontWeight: '600',
+                        flex: 1,
+                      }}
+                    >
+                      {t('garage.useCustomModel', {
+                        defaultValue: `Use "${modelSearch}"`,
+                        model: modelSearch,
+                      })}
+                    </Text>
+                  </Pressable>
+                </>
               ) : null}
             </>
           )}

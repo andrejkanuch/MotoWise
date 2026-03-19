@@ -259,7 +259,12 @@
     "searchModel": "मॉडल खोजें...",
     "tapToChange": "बदलने के लिए टैप करें",
     "noMakesFound": "कोई मेक नहीं मिला",
-    "noModelsFound": "इस मेक और साल के लिए कोई मॉडल नहीं मिला"
+    "noModelsFound": "इस मेक और साल के लिए कोई मॉडल नहीं मिला",
+    "useCustomMake": "'{{make}}' को मेक के रूप में उपयोग करें",
+    "useCustomModel": "'{{model}}' को मॉडल के रूप में उपयोग करें",
+    "customEntry": "कस्टम",
+    "enterModelManually": "मॉडल का नाम लिखें",
+    "customMakeHint": "हमारे डेटाबेस में नहीं? मैन्युअल रूप से टाइप करें"
   },
   "profile": {
     "title": "प्रोफाइल",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "आपकी मोटरसाइकिल किस कंपनी की है?",
     "bikeMakeSubtitle": "खोजें या पॉपुलर ब्रांड्स में से चुनें",
     "popularMakes": "पॉपुलर मेक्स",
+    "useCustomMake": "'{{make}}' को मेक के रूप में उपयोग करें",
     "bikeModelTitle": "आपका मॉडल कौन सा है?",
     "modelsLoadError": "मॉडल लोड नहीं हो पाए। कृपया फिर कोशिश करें।",
     "enterModelManually": "मॉडल का नाम लिखें",

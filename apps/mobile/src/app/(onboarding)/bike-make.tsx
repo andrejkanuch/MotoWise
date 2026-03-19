@@ -42,6 +42,7 @@ export default function BikeMakeScreen() {
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
 
   const [search, setSearch] = useState('');
+  const [customMake, setCustomMake] = useState('');
   const [selectedMake, setSelectedMake] = useState<{
     makeId: number;
     makeName: string;
@@ -79,21 +80,23 @@ export default function BikeMakeScreen() {
   };
 
   const handleContinue = () => {
-    if (!selectedMake || !existingBikeData) return;
+    if ((!selectedMake && !customMake.trim()) || !existingBikeData) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setBikeData({
       ...existingBikeData,
-      make: selectedMake.makeName,
-      makeId: selectedMake.makeId,
+      make: customMake || selectedMake?.makeName || '',
+      makeId: customMake ? 0 : (selectedMake?.makeId ?? 0),
     });
     router.replace('/(onboarding)/bike-model');
   };
 
+  const canContinue = !!(selectedMake || customMake.trim());
+
   const showDropdown = search.length > 0 && filteredMakes.length > 0;
   const showNoResults = search.length > 0 && filteredMakes.length === 0 && !makesResult.isLoading;
-  const showPopular = !search && !selectedMake && popularMakeItems.length > 0;
+  const showPopular = !search && !selectedMake && !customMake && popularMakeItems.length > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
@@ -160,6 +163,47 @@ export default function BikeMakeScreen() {
                   >
                     {selectedMake.makeName}
                   </Text>
+                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
+                    {t('onboarding.tapToChange')}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            ) : customMake && !search ? (
+              <Animated.View entering={FadeInUp.delay(150).duration(300)}>
+                <Pressable
+                  onPress={() => {
+                    setSearch(customMake);
+                    setCustomMake('');
+                  }}
+                  style={{
+                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.accent,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    padding: 16,
+                    marginBottom: 24,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <View style={{ gap: 2 }}>
+                    <Text
+                      style={{
+                        fontSize: 17,
+                        color: ONBOARDING_COLORS.textPrimary,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {customMake}
+                    </Text>
+                    <Text
+                      style={{ fontSize: 12, color: ONBOARDING_COLORS.accent, fontWeight: '500' }}
+                    >
+                      {t('onboarding.customMakeLabel', { defaultValue: 'Custom' })}
+                    </Text>
+                  </View>
                   <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
                     {t('onboarding.tapToChange')}
                   </Text>
@@ -280,9 +324,50 @@ export default function BikeMakeScreen() {
 
             {/* No results */}
             {showNoResults && (
-              <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted, marginTop: 4 }}>
-                {t('onboarding.noMakesFound')}
-              </Text>
+              <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8, marginTop: 4 }}>
+                <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
+                  {t('onboarding.noMakesFound')}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    if (process.env.EXPO_OS === 'ios') {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
+                    setCustomMake(search);
+                    setSearch('');
+                    setSelectedMake(null);
+                  }}
+                  style={({ pressed }) => ({
+                    backgroundColor: pressed
+                      ? ONBOARDING_COLORS.cardBorder
+                      : ONBOARDING_COLORS.cardBg,
+                    borderWidth: 1,
+                    borderColor: ONBOARDING_COLORS.accent,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: ONBOARDING_COLORS.accent,
+                      fontWeight: '600',
+                      flexShrink: 1,
+                    }}
+                  >
+                    {t('onboarding.useCustomMake', {
+                      make: search,
+                      defaultValue: "Use '{{make}}' as make",
+                    })}
+                  </Text>
+                  <ChevronRight size={18} color={ONBOARDING_COLORS.accent} />
+                </Pressable>
+              </Animated.View>
             )}
 
             {/* Popular makes */}
@@ -341,7 +426,7 @@ export default function BikeMakeScreen() {
             )}
 
             {/* Continue button */}
-            {selectedMake && (
+            {canContinue && (
               <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
                 <Animated.View entering={FadeInUp.duration(250)}>
                   <Pressable

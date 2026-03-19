@@ -259,7 +259,12 @@
     "searchModel": "Cari model...",
     "tapToChange": "Ketuk untuk mengubah",
     "noMakesFound": "Merek tidak ditemukan",
-    "noModelsFound": "Model tidak ditemukan untuk merek dan tahun ini"
+    "noModelsFound": "Model tidak ditemukan untuk merek dan tahun ini",
+    "useCustomMake": "Gunakan '{{make}}' sebagai merek",
+    "useCustomModel": "Gunakan '{{model}}' sebagai model",
+    "customEntry": "Kustom",
+    "enterModelManually": "Ketik nama model",
+    "customMakeHint": "Tidak ada di database kami? Ketik secara manual"
   },
   "profile": {
     "title": "Profil",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "Siapa yang membuat motormu?",
     "bikeMakeSubtitle": "Cari atau pilih dari merek populer",
     "popularMakes": "Merek Populer",
+    "useCustomMake": "Gunakan '{{make}}' sebagai merek",
     "bikeModelTitle": "Apa modelnya?",
     "modelsLoadError": "Tidak bisa memuat model. Silakan coba lagi.",
     "enterModelManually": "Ketik nama model",

@@ -259,7 +259,12 @@
     "searchModel": "Cerca modello...",
     "tapToChange": "Tocca per cambiare",
     "noMakesFound": "Nessuna marca trovata",
-    "noModelsFound": "Nessun modello trovato per questa marca e anno"
+    "noModelsFound": "Nessun modello trovato per questa marca e anno",
+    "useCustomMake": "Usa '{{make}}' come marca",
+    "useCustomModel": "Usa '{{model}}' come modello",
+    "customEntry": "Personalizzato",
+    "enterModelManually": "Inserisci il nome del modello",
+    "customMakeHint": "Non è nel nostro database? Inseriscilo manualmente"
   },
   "profile": {
     "title": "Profilo",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "Chi produce la tua moto?",
     "bikeMakeSubtitle": "Cerca o scegli tra le marche popolari",
     "popularMakes": "Marche popolari",
+    "useCustomMake": "Usa '{{make}}' come marca",
     "bikeModelTitle": "Qual è il tuo modello?",
     "modelsLoadError": "Impossibile caricare i modelli. Riprova.",
     "enterModelManually": "Inserisci il nome del modello",

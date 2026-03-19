@@ -29,6 +29,7 @@ import {
   Alert,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   useColorScheme,
   useWindowDimensions,
@@ -415,22 +416,46 @@ export default function BikeDetailScreen() {
                     height: 80,
                   }}
                 />
-                <Pressable
-                  onPress={handleAddPhoto}
-                  style={{
-                    position: 'absolute',
-                    bottom: 12,
-                    right: 16,
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Camera size={20} color={palette.white} strokeWidth={2} />
-                </Pressable>
+                {uploadingPhoto && (
+                  <View
+                    style={{
+                      ...StyleSheet.absoluteFillObject,
+                      backgroundColor: 'rgba(0,0,0,0.45)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ActivityIndicator size="large" color={palette.white} />
+                    <Text
+                      style={{
+                        color: palette.white,
+                        fontSize: 14,
+                        fontWeight: '600',
+                        marginTop: 8,
+                      }}
+                    >
+                      {t('garage.uploadingPhoto', { defaultValue: 'Uploading...' })}
+                    </Text>
+                  </View>
+                )}
+                {!uploadingPhoto && (
+                  <Pressable
+                    onPress={handleAddPhoto}
+                    style={{
+                      position: 'absolute',
+                      bottom: 12,
+                      right: 16,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: 'rgba(0,0,0,0.5)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Camera size={20} color={palette.white} strokeWidth={2} />
+                  </Pressable>
+                )}
               </View>
             ) : (
               <LinearGradient

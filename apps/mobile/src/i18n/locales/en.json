@@ -259,7 +259,12 @@
     "searchModel": "Search model...",
     "tapToChange": "Tap to change",
     "noMakesFound": "No makes found",
-    "noModelsFound": "No models found for this make and year"
+    "noModelsFound": "No models found for this make and year",
+    "useCustomMake": "Use '{{make}}' as make",
+    "useCustomModel": "Use '{{model}}' as model",
+    "customEntry": "Custom",
+    "enterModelManually": "Enter model name",
+    "customMakeHint": "Not in our database? Type it manually"
   },
   "profile": {
     "title": "Profile",
@@ -391,6 +396,7 @@
     "bikeMakeTitle": "Who makes your motorcycle?",
     "bikeMakeSubtitle": "Search or pick from popular brands",
     "popularMakes": "Popular Makes",
+    "useCustomMake": "Use '{{make}}' as make",
     "bikeModelTitle": "What's your model?",
     "modelsLoadError": "Could not load models. Please try again.",
     "enterModelManually": "Enter model name",
