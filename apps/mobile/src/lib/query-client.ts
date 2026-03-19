@@ -12,7 +12,13 @@ export const queryClient = new QueryClient({
       networkMode: 'offlineFirst',
     },
     mutations: {
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Don't retry client errors (FORBIDDEN, BAD_REQUEST, etc.)
+        if (hasGraphQLCode(error, 'FORBIDDEN') || hasGraphQLCode(error, 'BAD_USER_INPUT')) {
+          return false;
+        }
+        return failureCount < 1;
+      },
       networkMode: 'offlineFirst',
     },
   },
@@ -23,16 +29,32 @@ export const queryClient = new QueryClient({
         supabase.auth.refreshSession();
         return;
       }
-      Alert.alert('Error', error.message);
+      Alert.alert('Error', extractGraphQLMessage(error));
     },
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
       if (mutation.options.onError) return;
-      Alert.alert('Error', error.message);
+      Alert.alert('Error', extractGraphQLMessage(error));
     },
   }),
 });
+
+function extractGraphQLMessage(error: unknown): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'response' in error &&
+    error.response &&
+    typeof error.response === 'object' &&
+    'errors' in error.response &&
+    Array.isArray(error.response.errors) &&
+    error.response.errors[0]?.message
+  ) {
+    return error.response.errors[0].message;
+  }
+  return error instanceof Error ? error.message : 'Something went wrong';
+}
 
 function hasGraphQLCode(error: unknown, code: string): boolean {
   if (

@@ -14,6 +14,15 @@ export class RevenueCatService {
   ) {}
 
   async processEvent(event: RevenueCatEvent): Promise<void> {
+    const UUID_REGEX =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_REGEX.test(event.app_user_id)) {
+      this.logger.log(
+        `Skipping event ${event.id}: app_user_id "${event.app_user_id}" is not a UUID`,
+      );
+      return;
+    }
+
     const { error } = await this.adminClient.rpc('process_revenuecat_event', {
       p_event_id: event.id,
       p_event_type: event.type,

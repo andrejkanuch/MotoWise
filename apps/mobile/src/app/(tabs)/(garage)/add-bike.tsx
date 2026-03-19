@@ -106,6 +106,7 @@ export default function AddBikeScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
     },
+    onError: () => {}, // handled in handleSubmit try/catch
   });
 
   const isValid = validYear && !!selectedMake && !!selectedModel;

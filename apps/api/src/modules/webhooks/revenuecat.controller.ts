@@ -48,7 +48,9 @@ export class RevenueCatWebhookController {
 
     const parsed = revenueCatWebhookPayloadSchema.safeParse(rawBody);
     if (!parsed.success) {
-      this.logger.warn(`Invalid webhook payload: ${parsed.error.message}`);
+      this.logger.warn(
+        `Invalid webhook payload: ${JSON.stringify(parsed.error.issues)}`,
+      );
       res.status(HttpStatus.UNPROCESSABLE_ENTITY);
       return { status: 'invalid_payload' };
     }

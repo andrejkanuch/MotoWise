@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const revenueCatEventSchema = z.object({
   id: z.string(),
   type: z.string(),
-  app_user_id: z.string().uuid(),
+  app_user_id: z.string(),
   product_id: z.string().optional(),
   entitlement_ids: z.array(z.string()).optional(),
   period_type: z.string().optional(),
@@ -14,7 +14,7 @@ export const revenueCatEventSchema = z.object({
 });
 
 export const revenueCatWebhookPayloadSchema = z.object({
-  api_version: z.string(),
+  api_version: z.string().optional(),
   event: revenueCatEventSchema,
 });
 

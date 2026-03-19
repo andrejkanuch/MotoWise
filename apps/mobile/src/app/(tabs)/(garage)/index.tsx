@@ -369,7 +369,7 @@ export default function GarageScreen() {
           backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
         }}
       >
-        <EmptyGarage onAdd={() => router.push('/(tabs)/(garage)/add-bike')} isDark={isDark} />
+        <EmptyGarage onAdd={handleAddBike} isDark={isDark} />
         <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
       </View>
     );

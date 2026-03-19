@@ -1,8 +1,8 @@
 import { palette } from '@motovault/design-system';
-import { MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
+import { DeleteAccountDocument, MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import type { SupportedLocale } from '@motovault/types';
 import { FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -24,11 +24,12 @@ import {
   Plus,
   Settings,
   Sun,
+  Trash2,
 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProBadge } from '../../../components/ProBadge';
 import { ProGateModal } from '../../../components/ProGateModal';
@@ -183,6 +184,57 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     haptic();
     await supabase.auth.signOut();
+  };
+
+  const queryClient = useQueryClient();
+  const deleteMutation = useMutation({
+    mutationFn: () => gqlFetcher(DeleteAccountDocument),
+    onSuccess: async () => {
+      await supabase.auth.signOut();
+      queryClient.clear();
+      router.replace('/(auth)/login');
+    },
+    onError: (error: Error) => {
+      Alert.alert(
+        t('privacy.deleteErrorTitle', { defaultValue: 'Deletion Failed' }),
+        error.message ?? t('privacy.deleteError', { defaultValue: 'Something went wrong.' }),
+      );
+    },
+  });
+
+  const handleDeleteAccount = () => {
+    haptic();
+    Alert.alert(
+      t('privacy.deleteTitle', { defaultValue: 'Delete Account' }),
+      t('privacy.deleteWarning', {
+        defaultValue:
+          'This will permanently delete your account and ALL associated data including motorcycles, maintenance history, diagnostics, and learning progress. Your subscription will be cancelled. You have 30 days to change your mind before data is permanently removed.',
+      }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('privacy.deleteConfirmButton', { defaultValue: 'Delete My Account' }),
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              t('privacy.deleteConfirmTitle', { defaultValue: 'Are you absolutely sure?' }),
+              t('privacy.deleteConfirmMessage', {
+                defaultValue:
+                  'This cannot be undone. Type DELETE to confirm is not required, but please be certain.',
+              }),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('privacy.deleteFinal', { defaultValue: 'Yes, Delete Everything' }),
+                  style: 'destructive',
+                  onPress: () => deleteMutation.mutate(),
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
   };
 
   const handleThemeChange = (value: 'system' | 'light' | 'dark') => {
@@ -815,6 +867,28 @@ export default function ProfileScreen() {
             icon={LogOut}
             label={t('auth.signOut')}
             onPress={handleLogout}
+            isDark={isDark}
+            color={palette.danger500}
+            isLast
+          />
+        </View>
+      </Animated.View>
+
+      {/* Delete Account */}
+      <Animated.View entering={FadeInUp.delay(520).duration(400)}>
+        <View
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <SettingsRow
+            icon={Trash2}
+            label={t('privacy.deleteAccount', { defaultValue: 'Delete Account' })}
+            onPress={handleDeleteAccount}
             isDark={isDark}
             color={palette.danger500}
             isLast
