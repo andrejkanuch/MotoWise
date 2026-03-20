@@ -152,10 +152,20 @@ export function FeatureFlow({
                   {/* Text side */}
                   <div className="flex flex-1 flex-col items-center text-center md:items-end md:text-right">
                     {!reversed && (
-                      <StepContent number={step.number} title={step.title} description={step.description} align="right" />
+                      <StepContent
+                        number={step.number}
+                        title={step.title}
+                        description={step.description}
+                        align="right"
+                      />
                     )}
                     {reversed && (
-                      <StepContent number={step.number} title={step.title} description={step.description} align="left" />
+                      <StepContent
+                        number={step.number}
+                        title={step.title}
+                        description={step.description}
+                        align="left"
+                      />
                     )}
                   </div>
 
@@ -210,7 +220,9 @@ function StepContent({
   align: 'left' | 'right';
 }) {
   return (
-    <div className={`max-w-sm ${align === 'left' ? 'md:items-start md:text-left' : 'md:items-end md:text-right'}`}>
+    <div
+      className={`max-w-sm ${align === 'left' ? 'md:items-start md:text-left' : 'md:items-end md:text-right'}`}
+    >
       {/* Mobile step number */}
       <div className="mb-4 flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-warm-400 to-signature-600 p-[2px] md:hidden">
         <div className="flex size-full items-center justify-center rounded-full bg-neutral-950">
