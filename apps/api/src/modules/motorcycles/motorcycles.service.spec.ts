@@ -233,7 +233,7 @@ describe('MotorcyclesService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should fail open on DB count error (no throw)', async () => {
+    it('should fail closed on DB count error (throws InternalServerErrorException)', async () => {
       (mockAdminClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
@@ -245,30 +245,16 @@ describe('MotorcyclesService', () => {
         }),
       });
 
-      const userFromSpy = vi.fn();
-      // Count query fails
-      userFromSpy.mockReturnValueOnce({
+      (mockUserClient.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({ count: null, error: { message: 'DB down' } }),
         }),
       });
-      // Insert succeeds
-      userFromSpy.mockReturnValueOnce({
-        insert: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: sampleRow, error: null }),
-          }),
-        }),
-      });
-      (mockUserClient.from as ReturnType<typeof vi.fn>).mockImplementation(userFromSpy);
 
-      // Should not throw — fails open
-      const result = await service.create('user-1', {
-        make: 'Honda',
-        model: 'CB500F',
-        year: 2023,
-      });
-      expect(result).toEqual(expectedMapped);
+      // Should throw — fails closed to prevent free-tier bypass
+      await expect(
+        service.create('user-1', { make: 'Honda', model: 'CB500F', year: 2023 }),
+      ).rejects.toThrow('Unable to verify bike limit');
     });
   });
 });

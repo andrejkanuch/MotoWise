@@ -1,14 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { ZodValidationPipe } from './zod-validation.pipe';
 
 describe('ZodValidationPipe', () => {
   const dummyMetadata = { type: 'body' as const, metatype: undefined, data: undefined };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
 
   it('should return result.data for valid input', () => {
     const schema = z.object({ name: z.string(), age: z.number() });
