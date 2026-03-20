@@ -209,7 +209,8 @@
     "processing": "Przetwarzanie diagnozy...",
     "failed": "Analiza diagnostyczna nie powiodla sie",
     "retry": "Sprobuj ponownie",
-    "imageTooLarge": "Obraz jest za duzy (maks. 5 MB). Wybierz mniejsze zdjecie lub zrob nowe w nizszej jakosci."
+    "imageTooLarge": "Obraz jest za duzy (maks. 5 MB). Wybierz mniejsze zdjecie lub zrob nowe w nizszej jakosci.",
+    "failedShort": "Analiza diagnostyczn"
   },
   "wizard": {
     "step": "Krok {{current}} z {{total}}",

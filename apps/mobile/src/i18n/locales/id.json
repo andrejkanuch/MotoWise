@@ -209,7 +209,8 @@
     "processing": "Memproses diagnostikmu...",
     "failed": "Analisis diagnostik gagal",
     "retry": "Coba Lagi",
-    "imageTooLarge": "Gambar terlalu besar (maks 5 MB). Silakan pilih foto yang lebih kecil atau ambil ulang dengan kualitas lebih rendah."
+    "imageTooLarge": "Gambar terlalu besar (maks 5 MB). Silakan pilih foto yang lebih kecil atau ambil ulang dengan kualitas lebih rendah.",
+    "failedShort": "Analisis diagnostik "
   },
   "wizard": {
     "step": "Langkah {{current}} dari {{total}}",

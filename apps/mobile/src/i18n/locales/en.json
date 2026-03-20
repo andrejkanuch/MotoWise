@@ -208,6 +208,7 @@
     "photoDisclaimer": "AI analysis is for educational purposes only and does not replace professional mechanical inspection. By submitting, you acknowledge this limitation.",
     "processing": "Processing your diagnostic...",
     "failed": "Diagnostic analysis failed",
+    "failedShort": "Failed",
     "retry": "Try Again",
     "imageTooLarge": "Image is too large (max 5 MB). Please choose a smaller photo or retake with lower quality."
   },

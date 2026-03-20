@@ -209,7 +209,8 @@
     "processing": "Elaborazione della diagnosi...",
     "failed": "L'analisi diagnostica è fallita",
     "retry": "Riprova",
-    "imageTooLarge": "L'immagine è troppo grande (max 5 MB). Scegli una foto più piccola o scattane una con qualità ridotta."
+    "imageTooLarge": "L'immagine è troppo grande (max 5 MB). Scegli una foto più piccola o scattane una con qualità ridotta.",
+    "failedShort": "L'analisi diagnostic"
   },
   "wizard": {
     "step": "Passo {{current}} di {{total}}",
