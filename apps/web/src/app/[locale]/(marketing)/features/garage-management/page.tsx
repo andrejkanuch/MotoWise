@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
+import { FeatureShowcase } from '@/components/marketing/feature-showcase';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -324,19 +325,62 @@ export default async function GarageManagementPage({ params }: PageProps) {
             aria-hidden="true"
           />
 
-          {/* Maintenance & Expenses Screenshots */}
-          <FeatureScreenshotPair
-            screenshots={[
-              {
-                src: '/images/features/maintenance.png',
-                alt: 'MotoVault maintenance task tracker with priority levels',
-              },
-              {
-                src: '/images/features/expenses.png',
-                alt: 'MotoVault expense insights with cost breakdown by category',
-              },
-            ]}
-          />
+          {/* Maintenance & Expenses Visual Showcase */}
+          <div className="my-16">
+            <FeatureShowcase
+              items={[
+                {
+                  label: 'Smart Tracking',
+                  title: 'Every Task, Organized',
+                  description:
+                    'Track active maintenance tasks with priority levels and mileage-based triggers. Never miss a service interval again.',
+                  bullets: [
+                    'Priority levels — High, Medium, Low',
+                    'Due dates & mileage tracking',
+                    'Full service history log',
+                    'Mark done with one tap',
+                  ],
+                  screenshot: {
+                    src: '/images/features/maintenance.png',
+                    alt: 'MotoVault maintenance task tracker with priority levels and due dates',
+                  },
+                },
+                {
+                  label: 'Expense Tracking',
+                  title: 'Know Where Every Dollar Goes',
+                  description:
+                    'Automatic cost breakdowns by category. See your true cost of ownership with per-kilometer and monthly averages.',
+                  bullets: [
+                    'Cost per kilometer calculated automatically',
+                    'Category breakdown: Fuel, Maintenance, Parts, Gear',
+                    'Monthly, yearly, and all-time views',
+                    'Track every receipt in one place',
+                  ],
+                  screenshot: {
+                    src: '/images/features/expenses.png',
+                    alt: 'MotoVault expense insights showing cost breakdown by category',
+                  },
+                  stat: { value: '$0.19', label: 'Per Kilometer' },
+                },
+                {
+                  label: 'Smart Alerts',
+                  title: 'Countdown to Service',
+                  description:
+                    'Get notified before maintenance is due. Smart alerts track days remaining and mileage so you never get caught off guard.',
+                  bullets: [
+                    'Days-until-due countdown',
+                    'Mileage-based triggers',
+                    'Push notification reminders',
+                    'Priority-based alert ordering',
+                  ],
+                  screenshot: {
+                    src: '/images/features/alerts.png',
+                    alt: 'MotoVault maintenance alerts with countdown timers and priority levels',
+                  },
+                },
+              ]}
+            />
+          </div>
 
           <div className="reveal-on-scroll">
             <h3 className="text-xl font-semibold text-neutral-50">{t('longFormResaleTitle')}</h3>

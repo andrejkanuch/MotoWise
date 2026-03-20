@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { FeatureScreenshot } from '@/components/marketing/feature-screenshot';
+import { FeatureFlow } from '@/components/marketing/feature-showcase';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -136,71 +136,40 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* App Screenshot */}
-      <FeatureScreenshot
-        src="/images/features/diagnose.png"
-        alt="MotoVault AI diagnostics screen showing photo-based motorcycle issue detection"
+      {/* Visual Flow: How AI Diagnostics Work */}
+      <FeatureFlow
+        label="How It Works"
+        title={t('howItWorksTitle')}
+        steps={[
+          {
+            number: '01',
+            title: t('step1Title'),
+            description: t('step1Desc'),
+            screenshot: {
+              src: '/images/features/diagnose.png',
+              alt: 'MotoVault AI diagnostics screen — tap Start New Diagnosis',
+            },
+          },
+          {
+            number: '02',
+            title: t('step2Title'),
+            description: t('step2Desc'),
+            screenshot: {
+              src: '/images/features/bike-details.png',
+              alt: 'MotoVault bike details — AI analyzes your motorcycle',
+            },
+          },
+          {
+            number: '03',
+            title: t('step3Title'),
+            description: t('step3Desc'),
+            screenshot: {
+              src: '/images/features/alerts.png',
+              alt: 'MotoVault maintenance alerts generated from AI diagnostics',
+            },
+          },
+        ]}
       />
-
-      {/* How It Works */}
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-7xl">
-          {/* Section header */}
-          <div className="reveal-on-scroll mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Three Simple Steps
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('howItWorksTitle')}
-            </h2>
-          </div>
-
-          {/* Steps */}
-          <div className="relative grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-8">
-            {/* Connector lines (desktop only) */}
-            <div
-              className="pointer-events-none absolute inset-x-0 top-[44px] hidden md:block"
-              aria-hidden="true"
-            >
-              <div className="mx-auto flex max-w-[66%] items-center">
-                <div
-                  className="draw-line h-[2px] flex-1 bg-neutral-700"
-                  style={{
-                    backgroundImage:
-                      'repeating-linear-gradient(90deg, currentColor 0, currentColor 8px, transparent 8px, transparent 14px)',
-                    color: 'var(--color-neutral-700)',
-                  }}
-                />
-              </div>
-            </div>
-
-            {(['step1', 'step2', 'step3'] as const).map((step, i) => (
-              <div
-                key={step}
-                className="reveal-on-scroll relative flex flex-col items-center text-center"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                {/* Numbered circle */}
-                <div className="step-circle mb-8 flex size-[88px] items-center justify-center rounded-full bg-gradient-to-br from-warm-400 to-signature-600 p-[2px]">
-                  <div className="flex size-full flex-col items-center justify-center gap-0.5 rounded-full bg-neutral-950">
-                    <span className="text-xl font-bold leading-none text-neutral-50">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card */}
-                <div className="card-lift w-full rounded-xl bg-neutral-900/30 p-8 shadow-[0_1px_0_0_oklch(1_0_0/0.04)]">
-                  <h3 className="text-lg font-semibold text-neutral-50">{t(`${step}Title`)}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-300">
-                    {t(`${step}Desc`)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Decorative rule */}
       <div
