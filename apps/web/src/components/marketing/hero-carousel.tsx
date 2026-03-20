@@ -5,28 +5,32 @@ import { useEffect, useReducer } from 'react';
 
 const IMAGES = [
   {
-    src: '/images/propagation-images/motovault-home-1284x2778.png',
-    alt: 'MotoVault app home screen showing motorcycle garage dashboard',
+    src: '/images/propagation-images/motovault-home-1206x2622.png',
+    alt: 'MotoVault app home screen showing bike health score, mileage, and expenses',
   },
   {
-    src: '/images/propagation-images/motovault-learn-1284x2778.png',
-    alt: 'MotoVault learning paths with motorcycle maintenance courses',
+    src: '/images/propagation-images/motovault-diagnose-1206x2622.png',
+    alt: 'MotoVault AI-powered photo diagnostics for motorcycle issues',
   },
   {
-    src: '/images/propagation-images/motovault-diagnose-1284x2778.png',
-    alt: 'MotoVault AI diagnostics analyzing a motorcycle issue',
+    src: '/images/propagation-images/motovault-bike-details-1206x2622.png',
+    alt: 'MotoVault bike details with BMW R 1250 GS photo and maintenance tasks',
   },
   {
-    src: '/images/propagation-images/motovault-garage-1284x2778.png',
-    alt: 'MotoVault digital garage with motorcycle details and service history',
+    src: '/images/propagation-images/motovault-maintenance-1206x2622.png',
+    alt: 'MotoVault maintenance tracker with active tasks and expense history',
   },
   {
-    src: '/images/propagation-images/motovault-expense-1284x2778.png',
-    alt: 'MotoVault expense tracker showing motorcycle ownership costs',
+    src: '/images/propagation-images/motovault-expense-1206x2622.png',
+    alt: 'MotoVault expense insights showing cost breakdown by category',
   },
   {
-    src: '/images/propagation-images/motovault-edit-1284x2778.png',
-    alt: 'MotoVault bike editor for updating motorcycle information',
+    src: '/images/propagation-images/motovault-garage-1206x2622.png',
+    alt: 'MotoVault digital garage with motorcycle collection',
+  },
+  {
+    src: '/images/propagation-images/motovault-alerts-1206x2622.png',
+    alt: 'MotoVault maintenance alerts and recommended articles',
   },
 ] as const;
 
@@ -44,14 +48,14 @@ export function HeroCarousel() {
   }, []);
 
   return (
-    <div className="relative" style={{ aspectRatio: '1284/2778' }}>
+    <div className="relative" style={{ aspectRatio: '1206/2622' }}>
       {IMAGES.map((image, i) => (
         <Image
           key={image.src}
           src={image.src}
           alt={image.alt}
-          width={1284}
-          height={2778}
+          width={1206}
+          height={2622}
           className="block w-full bg-neutral-900 transition-opacity duration-700 ease-in-out"
           style={{
             position: i === 0 ? 'relative' : 'absolute',
