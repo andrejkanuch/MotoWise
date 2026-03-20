@@ -21,7 +21,19 @@
       "mcp__XcodeBuildMCP__screenshot",
       "Bash(xcrun simctl:*)",
       "mcp__XcodeBuildMCP__snapshot_ui",
-      "Bash(grep -r diagnostic /Users/andrejmacm5/personal/MotoWise/apps/mobile/src --include=*.ts --include=*.tsx -l)"
+      "Bash(grep -r diagnostic /Users/andrejmacm5/personal/MotoWise/apps/mobile/src --include=*.ts --include=*.tsx -l)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm lint:fix)",
+      "Bash(for lang:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/andrejmacm5/personal/MotoWise/apps/mobile/src/i18n/locales/**)",
+      "Bash(done)",
+      "Bash(pnpm --filter mobile test)",
+      "Bash(lsof -ti:3001)",
+      "Bash(xargs kill:*)",
+      "Bash(pnpm --filter @motovault/types build)",
+      "Bash(pnpm --filter @motovault/mobile test)",
+      "Bash(node:*)"
     ]
   }
 }

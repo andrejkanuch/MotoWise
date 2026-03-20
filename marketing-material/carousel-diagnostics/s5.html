@@ -1,0 +1,29 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s5 { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px; }
+.bg { position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.08) 0%,transparent 60%);top:50%;left:50%;transform:translate(-50%,-50%); }
+.step-badge { position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px; }
+.feature-title { position:relative;z-index:2;color:#fafafa;font-size:46px;font-weight:800;text-align:center;line-height:1.12;margin-bottom:8px; }
+.feature-desc { position:relative;z-index:2;color:#a3a3a3;font-size:20px;text-align:center;line-height:1.5;max-width:520px;margin-bottom:16px; }
+.phones { position:relative;z-index:2;display:flex;gap:20px;align-items:center; }
+.phones .phone-img { width:260px;box-shadow:0 0 80px rgba(59,130,246,0.1),0 30px 100px rgba(0,0,0,0.5); }
+.arrow { color:#60a5fa;font-size:36px;font-weight:800; }
+</style></head><body>
+<div class="slide s5">
+  <div class="bg"></div>
+  <div class="slide-num">5 / 7</div>
+  <div class="step-badge">Steps 3 & 4</div>
+  <div class="feature-title">Snap. Submit.<br>AI Analyzes.</div>
+  <div class="feature-desc">Take a photo, review your submission, and let our AI engine analyze everything in seconds.</div>
+  <div class="phones">
+    <img class="phone-img" src="step3.png" alt="">
+    <span class="arrow">→</span>
+    <img class="phone-img" src="step4.png" alt="">
+  </div>
+</div></body></html>

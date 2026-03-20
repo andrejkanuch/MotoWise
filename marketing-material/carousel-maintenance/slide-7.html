@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0; padding: 0;
+    width: 1080px; height: 1080px; overflow: hidden;
+  }
+  .slide {
+    width: 1080px; height: 1080px;
+    position: relative; overflow: hidden;
+    background: #0a0a0a;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .bg-gradient {
+    position: absolute; inset: 0;
+    background: 
+      radial-gradient(circle at 30% 40%, rgba(212,98,46,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(34,197,94,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 50% 100%, rgba(63,94,251,0.04) 0%, transparent 40%);
+  }
+  .slide-num {
+    position: absolute; top: 36px; right: 40px;
+    color: rgba(255,255,255,0.12); font-size: 14px; font-weight: 600;
+    z-index: 10; letter-spacing: 1px;
+  }
+  .logo-big {
+    position: relative; z-index: 2;
+    width: 88px; height: 88px; border-radius: 24px;
+    object-fit: cover;
+    margin-bottom: 36px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+  }
+  .cta-title {
+    position: relative; z-index: 2;
+    color: #fafafa; font-size: 58px; font-weight: 800;
+    text-align: center; line-height: 1.12; margin-bottom: 16px; max-width: 700px;
+  }
+  .cta-subtitle {
+    position: relative; z-index: 2;
+    color: #a3a3a3; font-size: 22px; text-align: center;
+    margin-bottom: 48px; line-height: 1.5;
+  }
+  .cta-button {
+    position: relative; z-index: 2;
+    background: linear-gradient(135deg, #D4622E, #E8723A);
+    color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px; font-weight: 700;
+    padding: 20px 64px; border-radius: 100px; border: none;
+    letter-spacing: 0.5px;
+    box-shadow: 0 12px 48px rgba(212,98,46,0.3);
+    margin-bottom: 20px;
+  }
+  .waitlist {
+    position: relative; z-index: 2;
+    color: #737373; font-size: 16px; font-weight: 500; margin-bottom: 12px;
+  }
+  .waitlist span { color: #22c55e; font-weight: 700; }
+  .platforms {
+    position: relative; z-index: 2;
+    display: flex; gap: 20px;
+    color: #525252; font-size: 15px; font-weight: 500;
+  }
+  .brand-bottom {
+    position: absolute; bottom: 44px; z-index: 2;
+    color: #404040; font-size: 16px; font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="bg-gradient"></div>
+  <div class="slide-num">7 / 7</div>
+  <img class="logo-big" src="logo.png" alt="MotoVault">
+  <div class="cta-title">Your Bike<br>Deserves Better</div>
+  <div class="cta-subtitle">Than a spreadsheet, a sticky note, or your memory.</div>
+  <div class="cta-button">Join the Waitlist</div>
+  <div class="waitlist"><span>12,000+</span> riders already signed up</div>
+  <div class="platforms">
+    <span>iOS + Android — Coming Soon</span>
+  </div>
+  <div class="brand-bottom">motovault.app</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  .phone-img {
+    border-radius: 36px;
+    border: 2px solid rgba(255,255,255,0.06);
+  }
+  .slide-num {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    color: rgba(255,255,255,0.12);
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+</style>
+
+<style>
+  .slide-4 {
+    display: flex;
+    align-items: center;
+    padding: 60px 56px;
+    gap: 44px;
+  }
+  .bg-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,98,46,0.07) 0%, transparent 60%);
+    left: -80px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .text-side { flex: 1; z-index: 2; }
+  .feature-badge {
+    color: #D4622E;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 8px; height: 8px; background: #D4622E; border-radius: 50%; }
+  .feature-title {
+    color: #fafafa;
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 1.12;
+    margin-bottom: 18px;
+  }
+  .feature-desc {
+    color: #a3a3a3;
+    font-size: 19px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+  }
+  .countdown-card {
+    background: rgba(212,98,46,0.06);
+    border: 1px solid rgba(212,98,46,0.18);
+    border-radius: 20px;
+    padding: 26px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .countdown-card .card-label {
+    color: #d4d4d4;
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .countdown-card .card-sublabel {
+    color: #737373;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .days-wrap { text-align: right; }
+  .days {
+    color: #D4622E;
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .days-label {
+    color: #a3a3a3;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .phone-side { position: relative; z-index: 2; }
+  .phone-side .phone-img {
+    width: 380px;
+    box-shadow: 0 0 80px rgba(212,98,46,0.08), 0 30px 100px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+<div class="slide slide-4">
+  <div class="bg-glow"></div>
+  <div class="slide-num">4 / 7</div>
+  <div class="phone-side">
+    <img class="phone-img" src="alerts.png" alt="">
+  </div>
+  <div class="text-side">
+    <div class="feature-badge"><span class="dot"></span> Smart Alerts</div>
+    <div class="feature-title">Countdown<br>to Service</div>
+    <div class="feature-desc">Get notified before maintenance is due. Never get caught off guard again.</div>
+    <div class="countdown-card">
+      <div>
+        <div class="card-label">Tire Pressure Check</div>
+        <div class="card-sublabel">Due Apr 2, 2026</div>
+      </div>
+      <div class="days-wrap">
+        <div class="days">13</div>
+        <div class="days-label">days left</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

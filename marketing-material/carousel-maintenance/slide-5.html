@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  .phone-img {
+    border-radius: 36px;
+    border: 2px solid rgba(255,255,255,0.06);
+  }
+  .slide-num {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    color: rgba(255,255,255,0.12);
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+</style>
+
+<style>
+  .slide-5 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .bg-glow {
+    position: absolute;
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 60%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .feature-badge {
+    color: #22c55e;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; }
+  .feature-title {
+    position: relative; z-index: 2;
+    color: #fafafa;
+    font-size: 48px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.12;
+    margin-bottom: 8px;
+  }
+  .feature-desc {
+    position: relative; z-index: 2;
+    color: #a3a3a3;
+    font-size: 20px;
+    text-align: center;
+    line-height: 1.5;
+    max-width: 480px;
+    margin-bottom: 20px;
+  }
+  .phone-img {
+    position: relative; z-index: 2;
+    width: 300px;
+    box-shadow: 0 0 80px rgba(34,197,94,0.1), 0 30px 100px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+<div class="slide slide-5">
+  <div class="bg-glow"></div>
+  <div class="slide-num">5 / 7</div>
+  <div class="feature-badge"><span class="dot"></span> Health Score</div>
+  <div class="feature-title">Your Bike's Health<br>At a Glance</div>
+  <div class="feature-desc">One score that tells you everything. Green means go ride.</div>
+  <img class="phone-img" src="home.png" alt="">
+</div>
+</body>
+</html>

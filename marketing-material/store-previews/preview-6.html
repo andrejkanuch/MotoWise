@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    width: 1290px;
+    height: 2796px;
+    overflow: hidden;
+    background: #050508;
+    position: relative;
+  }
+
+  /* Background glows */
+  .bg-glow-1 {
+    position: absolute;
+    width: 1200px;
+    height: 1200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,98,46,0.12) 0%, rgba(212,98,46,0.03) 35%, transparent 65%);
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .bg-glow-2 {
+    position: absolute;
+    width: 1000px;
+    height: 1000px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,98,46,0.06) 0%, transparent 60%);
+    bottom: 200px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Top section with text */
+  .top-section {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 160px;
+    text-align: center;
+  }
+  .logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    margin-bottom: 48px;
+    object-fit: cover;
+  }
+  .headline {
+    color: #fafafa;
+    font-size: 96px;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    margin-bottom: 32px;
+  }
+  .headline span {
+    background: linear-gradient(135deg, #D4622E, #D4622Ecc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subline {
+    color: #a3a3a3;
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.4;
+    max-width: 900px;
+  }
+
+  /* Phone mockup */
+  .phone-container {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+  .phone-frame {
+    position: relative;
+    width: 820px;
+    padding: 18px;
+    background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    border-radius: 72px;
+    box-shadow: 
+      0 0 120px rgba(212,98,46,0.08),
+      0 60px 180px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .phone-inner {
+    border-radius: 58px;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  .phone-inner img {
+    width: 100%;
+    display: block;
+  }
+
+  /* Subtle bottom fade */
+  .bottom-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 300px;
+    background: linear-gradient(to top, #050508 0%, transparent 100%);
+    z-index: 4;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+
+  <div class="top-section">
+    <img class="logo" src="logo.png" alt="MotoVault">
+    <div class="headline">Your Digital<br>Garage.</div>
+    <div class="subline">Manage unlimited motorcycles in one place</div>
+  </div>
+
+  <div class="phone-container">
+    <div class="phone-frame">
+      <div class="phone-inner">
+        <img src="garage.png" alt="">
+      </div>
+    </div>
+  </div>
+  <div class="bottom-fade"></div>
+</body>
+</html>

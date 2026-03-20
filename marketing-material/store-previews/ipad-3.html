@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans',sans-serif;width:2048px;height:2732px;overflow:hidden;background:#050508;position:relative; }
+  .bg1 { position:absolute;width:1600px;height:1600px;border-radius:50%;background:radial-gradient(circle,rgba(212,98,46,0.10) 0%,rgba(212,98,46,0.02) 40%,transparent 65%);top:-200px;left:50%;transform:translateX(-50%); }
+  .bg2 { position:absolute;width:1400px;height:1400px;border-radius:50%;background:radial-gradient(circle,rgba(212,98,46,0.05) 0%,transparent 60%);bottom:300px;left:50%;transform:translateX(-50%); }
+  .top { position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:200px;text-align:center; }
+  .logo { width:88px;height:88px;border-radius:22px;margin-bottom:56px;object-fit:cover; }
+  .headline { color:#fafafa;font-size:120px;font-weight:800;line-height:1.08;letter-spacing:-3px;margin-bottom:36px; }
+  .subline { color:#a3a3a3;font-size:44px;font-weight:400;line-height:1.4;max-width:1400px; }
+  .phone-container { position:absolute;bottom:-50px;left:50%;transform:translateX(-50%);z-index:3; }
+  .phone-frame { position:relative;width:920px;padding:20px;background:linear-gradient(160deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04));border-radius:80px;box-shadow:0 0 140px rgba(212,98,46,0.08),0 60px 200px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.1); }
+  .phone-inner { border-radius:64px;overflow:hidden;background:#0a0a0a; }
+  .phone-inner img { width:100%;display:block; }
+  .bottom-fade { position:absolute;bottom:0;left:0;right:0;height:350px;background:linear-gradient(to top,#050508 0%,transparent 100%);z-index:4; }
+</style></head><body>
+  <div class="bg1"></div><div class="bg2"></div>
+  <div class="top">
+    <img class="logo" src="logo.png" alt="">
+    <div class="headline">Every Detail. One Place.</div>
+    <div class="subline">Your complete motorcycle profile with service history</div>
+  </div>
+  <div class="phone-container"><div class="phone-frame"><div class="phone-inner">
+    <img src="bikedetails.png" alt="">
+  </div></div></div>
+  <div class="bottom-fade"></div>
+</body></html>

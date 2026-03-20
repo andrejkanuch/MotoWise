@@ -21,16 +21,19 @@ export const metadata: Metadata = {
   description: 'AI-powered motorcycle learning & diagnostics platform',
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '16x16 32x32' },
-      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
+  manifest: '/site.webmanifest',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#0a0a0a',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

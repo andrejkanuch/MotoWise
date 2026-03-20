@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+  * { margin:0;padding:0;box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1920px;overflow:hidden;background:#050508;position:relative; }
+  .bg1 { position:absolute;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.12) 0%,rgba(34,197,94,0.03) 35%,transparent 65%);top:-150px;left:50%;transform:translateX(-50%); }
+  .bg2 { position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.06) 0%,transparent 60%);bottom:150px;left:50%;transform:translateX(-50%); }
+  .top { position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding-top:110px;text-align:center; }
+  .logo { width:56px;height:56px;border-radius:14px;margin-bottom:36px;object-fit:cover; }
+  .headline { color:#fafafa;font-size:72px;font-weight:800;line-height:1.08;letter-spacing:-1.5px;margin-bottom:24px; }
+  .subline { color:#a3a3a3;font-size:28px;font-weight:400;line-height:1.4;max-width:700px; }
+  .phone-container { position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);z-index:3; }
+  .phone-frame { position:relative;width:620px;padding:14px;background:linear-gradient(160deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04));border-radius:56px;box-shadow:0 0 100px rgba(34,197,94,0.08),0 50px 150px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.1); }
+  .phone-inner { border-radius:44px;overflow:hidden;background:#0a0a0a; }
+  .phone-inner img { width:100%;display:block; }
+  .bottom-fade { position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,#050508 0%,transparent 100%);z-index:4; }
+</style></head><body>
+  <div class="bg1"></div><div class="bg2"></div>
+  <div class="top">
+    <img class="logo" src="logo.png" alt="">
+    <div class="headline">Never Miss<br>a Service.</div>
+    <div class="subline">Smart tracking with priorities & mileage</div>
+  </div>
+  <div class="phone-container"><div class="phone-frame"><div class="phone-inner">
+    <img src="maintenance.png" alt="">
+  </div></div></div>
+  <div class="bottom-fade"></div>
+</body></html>

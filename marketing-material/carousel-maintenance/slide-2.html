@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+  }
+  .slide {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+  .phone-img {
+    border-radius: 36px;
+    border: 2px solid rgba(255,255,255,0.06);
+  }
+  .slide-num {
+    position: absolute;
+    top: 36px;
+    right: 40px;
+    color: rgba(255,255,255,0.12);
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+</style>
+
+<style>
+  .slide-2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px;
+  }
+  .bg-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(212,98,46,0.06) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(34,197,94,0.04) 0%, transparent 50%);
+  }
+  .emoji { font-size: 72px; margin-bottom: 36px; position: relative; z-index: 2; }
+  .question {
+    position: relative;
+    z-index: 2;
+    color: #fafafa;
+    font-size: 50px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.2;
+    margin-bottom: 48px;
+  }
+  .pain-points {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: 680px;
+  }
+  .pain-point {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 30px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    color: #d4d4d4;
+    font-size: 21px;
+    font-weight: 500;
+  }
+  .x-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="slide slide-2">
+  <div class="bg-pattern"></div>
+  <div class="slide-num">2 / 7</div>
+  <div class="emoji">🤔</div>
+  <div class="question">Still Tracking<br>Maintenance in<br>Your Head?</div>
+  <div class="pain-points">
+    <div class="pain-point">
+      <span class="x-icon">✕</span>
+      Forgetting oil changes until it's too late
+    </div>
+    <div class="pain-point">
+      <span class="x-icon">✕</span>
+      No clue when tires or brakes are due
+    </div>
+    <div class="pain-point">
+      <span class="x-icon">✕</span>
+      Scattered receipts, zero cost visibility
+    </div>
+    <div class="pain-point">
+      <span class="x-icon">✕</span>
+      Missing service intervals = voided warranty
+    </div>
+  </div>
+</div>
+</body>
+</html>
