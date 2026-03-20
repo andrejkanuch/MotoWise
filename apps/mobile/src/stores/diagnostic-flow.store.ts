@@ -140,7 +140,7 @@ const initialState = {
   additionalNotes: '',
   urgency: null as Urgency | null,
   dataSharingOptedIn: false,
-  includeMaintenanceHistory: false,
+  includeMaintenanceHistory: true,
   isSubmitting: false,
   submitError: null as string | null,
 };

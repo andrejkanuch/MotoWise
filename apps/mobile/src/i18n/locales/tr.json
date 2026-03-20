@@ -209,7 +209,8 @@
     "processing": "Teshisiniz isleniyor...",
     "failed": "Teshis analizi basarisiz oldu",
     "retry": "Tekrar Dene",
-    "imageTooLarge": "Gorsel cok buyuk (maks. 5 MB). Lutfen daha kucuk bir foto secin veya daha dusuk kalitede tekrar cekin."
+    "imageTooLarge": "Gorsel cok buyuk (maks. 5 MB). Lutfen daha kucuk bir foto secin veya daha dusuk kalitede tekrar cekin.",
+    "failedShort": "Teshis analizi basar"
   },
   "wizard": {
     "step": "Adim {{current}} / {{total}}",

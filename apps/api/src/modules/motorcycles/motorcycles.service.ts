@@ -146,8 +146,7 @@ export class MotorcyclesService {
 
     if (error) {
       this.logger.error('Failed to count user motorcycles for tier check', error);
-      // Fail open — don't block creation if count check fails
-      return;
+      throw new InternalServerErrorException('Unable to verify bike limit. Please try again.');
     }
 
     if ((count ?? 0) >= FREE_TIER_LIMITS.MAX_BIKES) {

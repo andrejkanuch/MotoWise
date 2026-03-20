@@ -209,7 +209,8 @@
     "processing": "Traitement de ton diagnostic...",
     "failed": "L'analyse du diagnostic a échoué",
     "retry": "Réessayer",
-    "imageTooLarge": "L'image est trop lourde (max 5 Mo). Choisis une photo plus petite ou reprends-en une en qualité réduite."
+    "imageTooLarge": "L'image est trop lourde (max 5 Mo). Choisis une photo plus petite ou reprends-en une en qualité réduite.",
+    "failedShort": "L'analyse du diagnos"
   },
   "wizard": {
     "step": "Étape {{current}} sur {{total}}",

@@ -111,7 +111,14 @@ export default function DiagnoseScreen() {
     queryKey: queryKeys.diagnostics.all,
     queryFn: () => gqlFetcher(MyDiagnosticsDocument),
   });
-  const diagnostics = data?.myDiagnostics ?? [];
+  const diagnostics = (data?.myDiagnostics ?? []).filter((d) => {
+    if (d.status === 'failed') return false;
+    if (d.status === 'processing') {
+      // Hide stuck diagnostics (processing > 2 min)
+      return Date.now() - new Date(d.createdAt).getTime() < 2 * 60 * 1000;
+    }
+    return true;
+  });
 
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -475,7 +482,6 @@ export default function DiagnoseScreen() {
               {diagnostics.slice(0, 5).map((diag, index) => {
                 const sevColors = getSeverityColors(diag.severity ?? 'default', isDark);
                 const bike = motorcycles.find((m) => m.id === diag.motorcycleId);
-                // resultJson is only in the detail query, use status for the list
                 const displayTitle =
                   diag.status === 'completed' ? (diag.severity ?? 'Completed') : diag.status;
 

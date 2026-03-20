@@ -209,7 +209,8 @@
     "processing": "Spracováva sa tvoja diagnostika...",
     "failed": "Analýza diagnostiky zlyhala",
     "retry": "Skúsiť znova",
-    "imageTooLarge": "Obrázok je príliš veľký (max 5 MB). Vyber menšiu fotografiu alebo odfotografuj znova s nižšou kvalitou."
+    "imageTooLarge": "Obrázok je príliš veľký (max 5 MB). Vyber menšiu fotografiu alebo odfotografuj znova s nižšou kvalitou.",
+    "failedShort": "Analýza diagnostiky "
   },
   "wizard": {
     "step": "Krok {{current}} z {{total}}",

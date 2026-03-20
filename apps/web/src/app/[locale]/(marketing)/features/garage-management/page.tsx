@@ -195,8 +195,45 @@ export default async function GarageManagementPage({ params }: PageProps) {
       <JsonLd data={softwareAppSchema} />
       <JsonLd data={faqSchema} />
 
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
+        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
+          <li>
+            <Link href="/" className="transition-colors hover:text-neutral-300">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-neutral-600"
+              aria-hidden="true"
+            >
+              <title>Separator</title>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </li>
+          <li>
+            <Link
+              href="/features/garage-management"
+              className="text-neutral-300"
+              aria-current="page"
+            >
+              {t('title')}
+            </Link>
+          </li>
+        </ol>
+      </nav>
+
       {/* Hero */}
-      <section className="px-6 pb-16 pt-24 md:pt-32">
+      <section className="px-6 pb-16 pt-8 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             Garage Management
@@ -230,10 +267,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
         <div className="mx-auto max-w-5xl">
           <div className="reveal-on-scroll mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Core Features
+              Your Digital Garage
             </p>
             <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-              Everything Your Garage Needs
+              Built for Multi-Bike Riders
             </h2>
           </div>
 
@@ -284,7 +321,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
 
           <div className="reveal-on-scroll mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Deep Dive
+              Under the Hood
             </p>
             <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
               {t('longFormTitle')}

@@ -53,7 +53,7 @@ export class GqlAuthGuard implements CanActivate {
 
       let payload: Record<string, unknown>;
 
-      const header = decodeProtectedHeader(token);
+      const header = await decodeProtectedHeader(token);
       if (header.kid) {
         // ECC/asymmetric key — verify against Supabase JWKS
         const jwks = await this.getJwks();

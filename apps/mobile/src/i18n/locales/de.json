@@ -209,7 +209,8 @@
     "processing": "Diagnose wird verarbeitet...",
     "failed": "Diagnoseanalyse fehlgeschlagen",
     "retry": "Erneut versuchen",
-    "imageTooLarge": "Das Bild ist zu gross (max. 5 MB). Bitte waehle ein kleineres Foto oder nimm eines mit geringerer Qualitaet auf."
+    "imageTooLarge": "Das Bild ist zu gross (max. 5 MB). Bitte waehle ein kleineres Foto oder nimm eines mit geringerer Qualitaet auf.",
+    "failedShort": "Diagnoseanalyse fehl"
   },
   "wizard": {
     "step": "Schritt {{current}} von {{total}}",

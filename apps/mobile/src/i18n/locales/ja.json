@@ -209,7 +209,8 @@
     "processing": "診断を処理中...",
     "failed": "診断分析に失敗しました",
     "retry": "再試行",
-    "imageTooLarge": "画像が大きすぎます（最大5MB）。小さい写真を選ぶか、低画質で撮り直してください。"
+    "imageTooLarge": "画像が大きすぎます（最大5MB）。小さい写真を選ぶか、低画質で撮り直してください。",
+    "failedShort": "診断分析に失敗しました"
   },
   "wizard": {
     "step": "ステップ {{current}} / {{total}}",
