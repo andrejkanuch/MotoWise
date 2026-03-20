@@ -1,4 +1,3 @@
-import { UnauthorizedException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
@@ -61,10 +60,7 @@ describe('GqlAuthGuard', () => {
   });
 
   // Helper to set up a valid HS256 token scenario
-  function setupHs256Token(
-    token: string,
-    payload: Record<string, unknown>,
-  ) {
+  function setupHs256Token(token: string, payload: Record<string, unknown>) {
     mockRequest.headers.authorization = `Bearer ${token}`;
     mockDecodeProtectedHeader.mockResolvedValue({ alg: 'HS256' });
     mockJwtVerify.mockResolvedValue({ payload });
