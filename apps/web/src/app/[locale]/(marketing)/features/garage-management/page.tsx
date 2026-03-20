@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
+import {
+  FeatureScreenshot,
+  FeatureScreenshotPair,
+} from '@/components/marketing/feature-screenshot';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -209,6 +213,20 @@ export default async function GarageManagementPage({ params }: PageProps) {
         </div>
       </section>
 
+      {/* App Screenshots */}
+      <FeatureScreenshotPair
+        screenshots={[
+          {
+            src: '/images/features/garage.png',
+            alt: 'MotoVault digital garage with motorcycle collection overview',
+          },
+          {
+            src: '/images/features/bike-details.png',
+            alt: 'MotoVault bike details showing BMW R 1250 GS with maintenance history',
+          },
+        ]}
+      />
+
       {/* Feature Grid */}
       <section className="px-6 py-28">
         <div className="mx-auto max-w-5xl">
@@ -307,6 +325,20 @@ export default async function GarageManagementPage({ params }: PageProps) {
           <div
             className="mx-auto my-12 h-px w-16 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
             aria-hidden="true"
+          />
+
+          {/* Maintenance & Expenses Screenshots */}
+          <FeatureScreenshotPair
+            screenshots={[
+              {
+                src: '/images/features/maintenance.png',
+                alt: 'MotoVault maintenance task tracker with priority levels',
+              },
+              {
+                src: '/images/features/expenses.png',
+                alt: 'MotoVault expense insights with cost breakdown by category',
+              },
+            ]}
           />
 
           <div className="reveal-on-scroll">

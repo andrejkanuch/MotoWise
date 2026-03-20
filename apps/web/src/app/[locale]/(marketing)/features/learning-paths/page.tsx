@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
+import { FeatureScreenshot } from '@/components/marketing/feature-screenshot';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -126,6 +127,12 @@ export default async function LearningPathsPage({ params }: PageProps) {
           <div className="mx-auto mt-6 h-1 w-24 rounded-full bg-signature-500" />
         </div>
       </section>
+
+      {/* App Screenshot */}
+      <FeatureScreenshot
+        src="/images/features/home.png"
+        alt="MotoVault home dashboard with bike health score, mileage tracking, and learning recommendations"
+      />
 
       {/* Courses */}
       <section className="px-6 py-28">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
+import { FeatureScreenshot } from '@/components/marketing/feature-screenshot';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -134,6 +135,12 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">{t('heroSubtitle')}</p>
         </div>
       </section>
+
+      {/* App Screenshot */}
+      <FeatureScreenshot
+        src="/images/features/diagnose.png"
+        alt="MotoVault AI diagnostics screen showing photo-based motorcycle issue detection"
+      />
 
       {/* How It Works */}
       <section className="reveal-on-scroll px-6 py-24">

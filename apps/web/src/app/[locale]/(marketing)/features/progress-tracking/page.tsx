@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
+import {
+  FeatureScreenshot,
+  FeatureScreenshotPair,
+} from '@/components/marketing/feature-screenshot';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
@@ -92,6 +96,20 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">{t('heroSubtitle')}</p>
         </div>
       </section>
+
+      {/* App Screenshots */}
+      <FeatureScreenshotPair
+        screenshots={[
+          {
+            src: '/images/features/home.png',
+            alt: 'MotoVault dashboard with bike health score and progress overview',
+          },
+          {
+            src: '/images/features/alerts.png',
+            alt: 'MotoVault maintenance alerts and recommended learning content',
+          },
+        ]}
+      />
 
       {/* Features */}
       <section className="px-4 py-16">
