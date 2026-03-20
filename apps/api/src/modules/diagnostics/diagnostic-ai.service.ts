@@ -236,6 +236,17 @@ export class DiagnosticAiService {
         relatedArticleId: parsed.relatedArticleId,
       };
 
+      // Validate relatedArticleId exists before saving (AI may hallucinate IDs)
+      let validatedArticleId: string | null = null;
+      if (result.relatedArticleId) {
+        const { data: article } = await this.adminClient
+          .from('articles')
+          .select('id')
+          .eq('id', result.relatedArticleId)
+          .maybeSingle();
+        validatedArticleId = article?.id ?? null;
+      }
+
       // Update diagnostic record with results
       const { error: updateError } = await this.adminClient
         .from('diagnostics')
@@ -243,7 +254,7 @@ export class DiagnosticAiService {
           result_json: result as unknown as Record<string, unknown>,
           severity: result.severity,
           confidence: result.confidence,
-          related_article_id: result.relatedArticleId || null,
+          related_article_id: validatedArticleId,
           status: 'completed',
         })
         .eq('id', diagnosticId);
