@@ -272,7 +272,7 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
 
           {/* Version at bottom */}
           <Animated.View style={[styles.versionWrap, versionStyle]}>
-            <Text style={styles.versionText}>v1.1.0</Text>
+            <Text style={styles.versionText}>v1.3.0</Text>
           </Animated.View>
         </LinearGradient>
       </Animated.View>
