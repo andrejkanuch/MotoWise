@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import type { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
-import type { MotorcyclesService } from './motorcycles.service';
 import { MotorcyclesResolver } from './motorcycles.resolver';
+import type { MotorcyclesService } from './motorcycles.service';
 import type { NhtsaService } from './nhtsa.service';
 
 describe('MotorcyclesResolver', () => {

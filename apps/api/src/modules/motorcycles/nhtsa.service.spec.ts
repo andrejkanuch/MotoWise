@@ -141,16 +141,14 @@ describe('NhtsaService', () => {
       // Add one more — should evict the first entry (makeId=0, year=2000)
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({ Results: [{ Model_ID: 500, Model_Name: 'Model500' }] }),
+        json: () => Promise.resolve({ Results: [{ Model_ID: 500, Model_Name: 'Model500' }] }),
       });
       await service.getModels(500, 2000);
 
       // Now fetching makeId=0, year=2000 should require a new fetch (was evicted)
       (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({ Results: [{ Model_ID: 0, Model_Name: 'Model0' }] }),
+        json: () => Promise.resolve({ Results: [{ Model_ID: 0, Model_Name: 'Model0' }] }),
       });
       const result = await service.getModels(0, 2000);
 

@@ -69,9 +69,10 @@ describe('MaintenanceTasksService', () => {
     }
     chain.single = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
     // Make the chain thenable so queries without .single() also resolve
-    chain.then = vi.fn().mockImplementation((resolve: (v: unknown) => void) =>
-      resolve(getResult()),
-    );
+    // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
+    chain.then = vi
+      .fn()
+      .mockImplementation((resolve: (v: unknown) => void) => resolve(getResult()));
 
     return {
       chain: chain as Record<string, ReturnType<typeof vi.fn>>,
@@ -130,10 +131,7 @@ describe('MaintenanceTasksService', () => {
       expect(result[0].id).toBe(taskId);
       expect(result[0].title).toBe('Oil Change');
       expect(mockUserClient.from).toHaveBeenCalledWith('maintenance_tasks');
-      expect(mockUserClient._chain.in).toHaveBeenCalledWith('status', [
-        'pending',
-        'in_progress',
-      ]);
+      expect(mockUserClient._chain.in).toHaveBeenCalledWith('status', ['pending', 'in_progress']);
     });
   });
 
@@ -344,9 +342,9 @@ describe('MaintenanceTasksService', () => {
       // Result 1: count query (thenable, no .single()) — returns count=5
       mockAdminClient._pushResult({ count: 5 });
 
-      await expect(
-        service.addPhoto(userId, taskId, 'photos/test.webp'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException for wrong user (task ownership check fails)', async () => {
@@ -356,9 +354,9 @@ describe('MaintenanceTasksService', () => {
         error: { message: 'Row not found', code: 'PGRST116' },
       });
 
-      await expect(
-        service.addPhoto(userId, taskId, 'photos/test.webp'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.addPhoto(userId, taskId, 'photos/test.webp')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

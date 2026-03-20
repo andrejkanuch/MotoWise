@@ -112,10 +112,7 @@ describe('GqlAuthGuard', () => {
     const result = await guard.canActivate(mockExecutionContext as never);
 
     expect(result).toBe(true);
-    expect(mockJwtVerify).toHaveBeenCalledWith(
-      'valid-hs256-token',
-      expect.any(Uint8Array),
-    );
+    expect(mockJwtVerify).toHaveBeenCalledWith('valid-hs256-token', expect.any(Uint8Array));
   });
 
   it('should validate JWKS token when header has kid', async () => {

@@ -1,4 +1,4 @@
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExpensesService } from './expenses.service';
 
@@ -30,8 +30,10 @@ describe('ExpensesService', () => {
     vi.clearAllMocks();
     mock = createSupabaseMock();
     // The service constructor takes the injected SUPABASE_USER client
+    // biome-ignore lint/suspicious/noExplicitAny: test mock instantiation
     service = new (ExpensesService as any)(mock as never);
     // Suppress logger output during tests
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private logger for test suppression
     (service as any).logger = { debug: vi.fn(), log: vi.fn(), warn: vi.fn(), error: vi.fn() };
   });
 
@@ -42,9 +44,39 @@ describe('ExpensesService', () => {
     it('returns grouped expenses with correct totals', async () => {
       mock.chain.order.mockResolvedValueOnce({
         data: [
-          { id: '1', user_id: 'u1', motorcycle_id: 'm1', amount: '50.00', category: 'fuel', date: '2025-03-01', description: null, maintenance_task_id: null, created_at: '2025-03-01T00:00:00Z' },
-          { id: '2', user_id: 'u1', motorcycle_id: 'm1', amount: '120.00', category: 'maintenance', date: '2025-03-05', description: 'Oil change', maintenance_task_id: 't1', created_at: '2025-03-05T00:00:00Z' },
-          { id: '3', user_id: 'u1', motorcycle_id: 'm1', amount: '30.00', category: 'fuel', date: '2025-02-15', description: null, maintenance_task_id: null, created_at: '2025-02-15T00:00:00Z' },
+          {
+            id: '1',
+            user_id: 'u1',
+            motorcycle_id: 'm1',
+            amount: '50.00',
+            category: 'fuel',
+            date: '2025-03-01',
+            description: null,
+            maintenance_task_id: null,
+            created_at: '2025-03-01T00:00:00Z',
+          },
+          {
+            id: '2',
+            user_id: 'u1',
+            motorcycle_id: 'm1',
+            amount: '120.00',
+            category: 'maintenance',
+            date: '2025-03-05',
+            description: 'Oil change',
+            maintenance_task_id: 't1',
+            created_at: '2025-03-05T00:00:00Z',
+          },
+          {
+            id: '3',
+            user_id: 'u1',
+            motorcycle_id: 'm1',
+            amount: '30.00',
+            category: 'fuel',
+            date: '2025-02-15',
+            description: null,
+            maintenance_task_id: null,
+            created_at: '2025-02-15T00:00:00Z',
+          },
         ],
         error: null,
       });
@@ -66,7 +98,17 @@ describe('ExpensesService', () => {
     it('maps amount string to number correctly ("99.99" -> 99.99)', async () => {
       mock.chain.order.mockResolvedValueOnce({
         data: [
-          { id: '1', user_id: 'u1', motorcycle_id: 'm1', amount: '99.99', category: 'parts', date: '2025-01-10', description: null, maintenance_task_id: null, created_at: '2025-01-10T00:00:00Z' },
+          {
+            id: '1',
+            user_id: 'u1',
+            motorcycle_id: 'm1',
+            amount: '99.99',
+            category: 'parts',
+            date: '2025-01-10',
+            description: null,
+            maintenance_task_id: null,
+            created_at: '2025-01-10T00:00:00Z',
+          },
         ],
         error: null,
       });
