@@ -543,6 +543,15 @@
   }
 }
 
+/* Fade-in for dynamic content swaps (with slight delay to let exit finish) */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out 0.1s both;
+}
+
 /* Paint containment for below-fold sections — avoids layout/paint work until visible */
 section:not(:first-child) {
   content-visibility: auto;

@@ -74,8 +74,11 @@ export default function DiagnosticResultScreen() {
     queryFn: () => gqlFetcher(DiagnosticByIdDocument, { id: id ?? '' }),
     enabled: !!id,
     refetchInterval: (query) => {
-      const status = query.state.data?.diagnosticById?.status;
-      return status === 'processing' ? 3000 : false;
+      const diag = query.state.data?.diagnosticById;
+      if (diag?.status !== 'processing') return false;
+      // Stop polling if processing for more than 2 minutes (stuck)
+      const age = Date.now() - new Date(diag.createdAt).getTime();
+      return age < 2 * 60 * 1000 ? 3000 : false;
     },
   });
 
@@ -145,6 +148,55 @@ export default function DiagnosticResultScreen() {
   }
 
   if (diagnostic.status === 'processing') {
+    // If processing for more than 2 minutes, it's stuck — show failed state
+    const createdMs = new Date(diagnostic.createdAt).getTime();
+    const isStuck = Date.now() - createdMs > 2 * 60 * 1000;
+
+    if (isStuck) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: bg,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: spacing[6],
+          }}
+        >
+          <AlertTriangle size={40} color={palette.danger500} strokeWidth={1.5} />
+          <Text
+            style={{
+              fontSize: 16,
+              color: textSecondary,
+              textAlign: 'center',
+              marginTop: spacing[3],
+            }}
+          >
+            {t('diagnose.failed')}
+          </Text>
+          <Pressable
+            style={{
+              marginTop: spacing[4],
+              backgroundColor: palette.primary500,
+              borderRadius: radii.card,
+              paddingHorizontal: spacing[6],
+              paddingVertical: spacing[3],
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing[2],
+              borderCurve: 'continuous',
+            }}
+            onPress={() => router.push('/(diagnose)/new')}
+          >
+            <RefreshCw size={16} color={palette.white} strokeWidth={2} />
+            <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
+              {t('diagnose.retry')}
+            </Text>
+          </Pressable>
+        </View>
+      );
+    }
+
     return (
       <View
         style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
