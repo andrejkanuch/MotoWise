@@ -95,8 +95,8 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
       },
     ],
     sameAs: [
+      'https://apps.apple.com/us/app/motovault/id6760291360',
       'https://play.google.com/store/apps/details?id=com.motovault.app',
-      'https://apps.apple.com/app/id6745417382',
     ],
   };
 

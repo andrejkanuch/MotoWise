@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { WaitlistForm } from './waitlist-form';
+import { StoreButtons } from './store-buttons';
 
 function CheckIcon() {
   return (
@@ -49,9 +49,9 @@ export async function CtaSection() {
 
         <p className="mt-4 text-center text-lg text-neutral-300">{t('subtitle')}</p>
 
-        {/* Waitlist signup form */}
+        {/* Download buttons */}
         <div className="mt-8 flex justify-center">
-          <WaitlistForm />
+          <StoreButtons />
         </div>
 
         {/* Trust badges */}

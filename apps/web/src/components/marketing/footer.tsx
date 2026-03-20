@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { ExternalLink } from '@/components/marketing/external-link';
 import { Link } from '@/i18n/navigation';
+import { STORE_LINKS } from './store-buttons';
 
 function FooterColumn({
   title,
@@ -43,8 +44,13 @@ export async function Footer() {
     { label: t('learning'), href: '/features/learning-paths' },
     { label: t('garage'), href: '/features/garage-management' },
     {
-      label: t('download'),
-      href: 'https://play.google.com/store/apps/details?id=com.motovault.app',
+      label: 'App Store',
+      href: STORE_LINKS.appStore,
+      external: true,
+    },
+    {
+      label: 'Google Play',
+      href: STORE_LINKS.googlePlay,
       external: true,
     },
   ];

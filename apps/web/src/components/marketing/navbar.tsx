@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { LanguageSwitcher } from './language-switcher';
+import { STORE_LINKS } from './store-buttons';
 
 const NAV_LINKS = [
   { key: 'features', href: '#features' },
@@ -122,7 +123,7 @@ export function Navbar() {
           })}
           <LanguageSwitcher />
           <a
-            href="https://play.google.com/store/apps/details?id=com.motovault.app"
+            href={STORE_LINKS.appStore}
             className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
           >
             {t('download')}
@@ -202,7 +203,7 @@ export function Navbar() {
             })}
             <LanguageSwitcher />
             <a
-              href="https://play.google.com/store/apps/details?id=com.motovault.app"
+              href={STORE_LINKS.appStore}
               onClick={closeMobile}
               className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >

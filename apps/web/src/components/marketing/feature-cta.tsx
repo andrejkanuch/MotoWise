@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { WaitlistForm } from './waitlist-form';
+import { StoreButtons } from './store-buttons';
 
 export async function FeatureCta() {
   const t = await getTranslations('Cta');
@@ -24,7 +24,7 @@ export async function FeatureCta() {
         </h2>
         <p className="mt-4 text-lg text-neutral-300">{t('subtitle')}</p>
         <div className="mt-8 flex justify-center">
-          <WaitlistForm />
+          <StoreButtons />
         </div>
       </div>
     </section>

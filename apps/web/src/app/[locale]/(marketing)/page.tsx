@@ -64,8 +64,8 @@ export default async function HomePage({ params }: PageProps) {
       contactType: 'customer support',
     },
     sameAs: [
+      'https://apps.apple.com/us/app/motovault/id6760291360',
       'https://play.google.com/store/apps/details?id=com.motovault.app',
-      'https://apps.apple.com/app/id6745417382',
     ],
   };
 
@@ -79,7 +79,7 @@ export default async function HomePage({ params }: PageProps) {
     description: tJsonLd('organizationDescription'),
     url: BASE_URL,
     downloadUrl: [
-      'https://apps.apple.com/app/id6745417382',
+      'https://apps.apple.com/us/app/motovault/id6760291360',
       'https://play.google.com/store/apps/details?id=com.motovault.app',
     ],
     screenshot: `${BASE_URL}/og-image.png`,

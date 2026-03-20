@@ -1,6 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { AppPreview } from './app-preview';
 import { HeroCarousel } from './hero-carousel';
+import { STORE_LINKS } from './store-buttons';
 
 const SPEED_LINES = [
   { top: '22%', duration: '2s', delay: '0s', width: '180px' },
@@ -83,21 +84,21 @@ export function Hero() {
           <p className="mt-6 max-w-lg text-xl text-neutral-300">{t('subtitle')}</p>
 
           <div className="mt-12 flex flex-wrap items-center gap-4">
-            {/* Primary CTA with glow */}
+            {/* App Store CTA with glow */}
             <a
-              href="https://play.google.com/store/apps/details?id=com.motovault.app"
+              href={STORE_LINKS.appStore}
               className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
               <span className="relative">{t('downloadCta')}</span>
             </a>
 
-            {/* Secondary CTA with glass effect */}
+            {/* Google Play CTA */}
             <a
-              href="#features"
+              href={STORE_LINKS.googlePlay}
               className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
-              {t('exploreFeatures')}
+              Google Play
             </a>
           </div>
         </div>

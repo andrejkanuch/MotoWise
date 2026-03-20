@@ -24,7 +24,7 @@ MotoVault helps motorcycle riders maintain, diagnose, and learn about their bike
 
 - Website: https://motovault.app
 - Google Play: https://play.google.com/store/apps/details?id=com.motovault.app
-- App Store: https://apps.apple.com/app/id6745417382
+- App Store: https://apps.apple.com/us/app/motovault/id6760291360
 - Support: support@motovault.app
 
 ## Optional
