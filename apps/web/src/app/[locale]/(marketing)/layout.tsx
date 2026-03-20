@@ -19,11 +19,26 @@ export async function generateMetadata() {
       siteName: 'MotoVault',
       locale,
       type: 'website',
-      images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'MotoVault - Learn, Track, Ride Smarter',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
-      images: ['/og-image.png'],
+      site: '@motovault',
+      images: [
+        {
+          url: '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'MotoVault - AI-powered motorcycle platform',
+        },
+      ],
     },
     robots: {
       index: true,
