@@ -190,7 +190,47 @@
     "privacy": "プライバシー",
     "terms": "利用規約",
     "accountDeletion": "アカウント削除",
-    "builtWithAi": "AIで開発"
+    "builtWithAi": "AIで開発",
+    "about": "MotoVaultについて"
+  },
+  "About": {
+    "metaTitle": "MotoVaultについて",
+    "metaDescription": "MotoVaultは、AIを活用したバイクプラットフォームで、すべてのライダーにメンテナンス知識を提供します。2025年スロバキア設立。",
+    "heroTitle": "MotoVaultについて",
+    "heroSubtitle": "AI技術を通じて、すべてのライダーにバイクメンテナンスの知識をお届けします。",
+    "founderName": "Andrej",
+    "founderRole": "創設者 & 開発者",
+    "founderBio": "スロバキア出身のバイク愛好家兼ソフトウェア開発者であるAndrejは、一つのビジョンを持ってMotoVaultを開発しました：すべてのライダーにバイクの知識を届けること。ベテランメカニックでも初めてのバイクオーナーでも、MotoVaultはAI診断、メンテナンス追跡、学習リソースをあなたのポケットに届けます。",
+    "missionTitle": "私たちのミッション",
+    "missionDescription": "多くのライダーが基本的なメンテナンスに苦労しています。知識がフォーラム、YouTube動画、部品より高いマニュアルに散らばっているからです。MotoVaultはあなたの特定のバイクを理解するAIで全てをまとめ、明確で実用的なガイダンスを提供します。",
+    "statsTitle": "数字で見るMotoVault",
+    "stats": {
+      "riders": "アクティブライダー",
+      "bikes": "データベース内のバイク",
+      "diagnoses": "AI診断実施数",
+      "articles": "学習記事"
+    },
+    "valuesTitle": "私たちの価値観",
+    "values": {
+      "aiPowered": {
+        "title": "AI搭載",
+        "description": "Claude AIをコアに — 正確な診断、パーソナライズされた学習、インテリジェントなメンテナンスリマインダーを提供。"
+      },
+      "communityDriven": {
+        "title": "コミュニティ主導",
+        "description": "ライダーによる、ライダーのためのプラットフォーム。すべての機能はガレージでの実際のニーズから生まれています。"
+      },
+      "openKnowledge": {
+        "title": "オープンな知識",
+        "description": "バイクメンテナンスの知識は独占されるべきではありません。専門的な知識を無料で誰もがアクセスできるようにします。"
+      }
+    },
+    "companyTitle": "会社情報",
+    "companyFounded": "設立",
+    "companyLocation": "所在地",
+    "companyLocationValue": "スロバキア、欧州連合",
+    "companyContact": "連絡先",
+    "backToHome": "ホームに戻る"
   },
   "Privacy": {
     "title": "プライバシーポリシー",

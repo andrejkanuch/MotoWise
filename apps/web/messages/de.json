@@ -190,7 +190,47 @@
     "privacy": "Datenschutz",
     "terms": "Nutzungsbedingungen",
     "accountDeletion": "Kontolöschung",
-    "builtWithAi": "Angetrieben von KI"
+    "builtWithAi": "Angetrieben von KI",
+    "about": "Über uns"
+  },
+  "About": {
+    "metaTitle": "Über MotoVault",
+    "metaDescription": "MotoVault ist eine KI-gestützte Motorradplattform, die Wartungswissen für jeden Fahrer zugänglich macht. Gegründet 2025 in der Slowakei.",
+    "heroTitle": "Über MotoVault",
+    "heroSubtitle": "Wir machen Motorrad-Wartungswissen durch KI-Technologie für jeden Fahrer zugänglich.",
+    "founderName": "Andrej",
+    "founderRole": "Gründer & Entwickler",
+    "founderBio": "Ein Motorrad-Enthusiast und Softwareentwickler aus der Slowakei. Andrej hat MotoVault mit einer einzigen Vision gebaut: Motorradwissen für jeden Fahrer zugänglich zu machen. Ob erfahrener Mechaniker oder Anfänger — MotoVault bringt KI-gestützte Diagnosen, Wartungsverfolgung und Lernressourcen direkt in deine Tasche.",
+    "missionTitle": "Unsere Mission",
+    "missionDescription": "Zu viele Fahrer kämpfen mit grundlegender Wartung, weil das Wissen über Foren, YouTube-Videos und Werkstatthandbücher verstreut ist, die mehr kosten als die Teile. MotoVault bringt alles zusammen mit KI, die dein spezifisches Motorrad versteht und dir klare, umsetzbare Anleitung gibt — ohne Hürden, ohne Fachjargon.",
+    "statsTitle": "MotoVault in Zahlen",
+    "stats": {
+      "riders": "Aktive Fahrer",
+      "bikes": "Motorräder in der Datenbank",
+      "diagnoses": "KI-Diagnosen durchgeführt",
+      "articles": "Lernartikel"
+    },
+    "valuesTitle": "Wofür wir stehen",
+    "values": {
+      "aiPowered": {
+        "title": "KI-gestützt",
+        "description": "Claude AI im Kern — liefert präzise Diagnosen, personalisiertes Lernen und intelligente Wartungserinnerungen."
+      },
+      "communityDriven": {
+        "title": "Community-getrieben",
+        "description": "Von einem Fahrer gebaut, für Fahrer. Jede Funktion entsteht aus echten Bedürfnissen in der Garage, nicht im Sitzungsraum."
+      },
+      "openKnowledge": {
+        "title": "Offenes Wissen",
+        "description": "Motorradwartung sollte nicht exklusiv sein. Wir machen Expertenwissen kostenlos und für jeden zugänglich."
+      }
+    },
+    "companyTitle": "Unternehmensinformationen",
+    "companyFounded": "Gegründet",
+    "companyLocation": "Standort",
+    "companyLocationValue": "Slowakei, Europäische Union",
+    "companyContact": "Kontakt",
+    "backToHome": "Zurück zur Startseite"
   },
   "Privacy": {
     "title": "Datenschutzrichtlinie",

@@ -4,6 +4,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
+import { routing } from '@/i18n/routing';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {
@@ -19,14 +20,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/progress-tracking'),
-      languages: {
-        en: `${BASE_URL}/features/progress-tracking`,
-        es: `${BASE_URL}/es/features/progress-tracking`,
-        de: `${BASE_URL}/de/features/progress-tracking`,
-        fr: `${BASE_URL}/fr/features/progress-tracking`,
-        it: `${BASE_URL}/it/features/progress-tracking`,
-        'x-default': `${BASE_URL}/features/progress-tracking`,
-      },
+      languages: Object.fromEntries([
+        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/progress-tracking')]),
+        ['x-default', getCanonicalUrl('en', '/features/progress-tracking')],
+      ]),
     },
   };
 }
@@ -49,12 +46,18 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
       {
         '@type': 'ListItem',
         position: 2,
+        name: 'Features',
+        item: getCanonicalUrl(locale, '/features'),
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
         name: t('title'),
-        item: `${BASE_URL}/features/progress-tracking`,
+        item: getCanonicalUrl(locale, '/features/progress-tracking'),
       },
     ],
   };
@@ -91,6 +94,28 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
           <li>
             <Link href="/" className="transition-colors hover:text-neutral-300">
               Home
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-neutral-600"
+              aria-hidden="true"
+            >
+              <title>Separator</title>
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </li>
+          <li>
+            <Link href="/features" className="transition-colors hover:text-neutral-300">
+              Features
             </Link>
           </li>
           <li aria-hidden="true">

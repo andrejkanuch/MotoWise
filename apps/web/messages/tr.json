@@ -190,7 +190,47 @@
     "privacy": "Gizlilik",
     "terms": "Kosullar",
     "accountDeletion": "Hesap Silme",
-    "builtWithAi": "Yapay Zeka Destekli"
+    "builtWithAi": "Yapay Zeka Destekli",
+    "about": "Hakkında"
+  },
+  "About": {
+    "metaTitle": "MotoVault Hakkında",
+    "metaDescription": "MotoVault, her motosikletçi için bakım bilgisini erişilebilir kılan yapay zeka destekli bir motosiklet platformudur. 2025 yılında Slovakya'da kurulmuştur.",
+    "heroTitle": "MotoVault Hakkında",
+    "heroSubtitle": "Yapay zeka teknolojisi ile her motosikletçi için motosiklet bakım bilgisini erişilebilir kılıyoruz.",
+    "founderName": "Andrej",
+    "founderRole": "Kurucu & Geliştirici",
+    "founderBio": "Slovakya'dan bir motosiklet tutkunu ve yazılım geliştiricisi olan Andrej, MotoVault'u tek bir vizyonla kurdu: motosiklet bilgisini her motosikletçi için erişilebilir kılmak. Deneyimli bir tamirci ya da ilk motosikletini yeni almış biri olun, MotoVault yapay zeka teşhisi, bakım takibi ve öğrenme kaynaklarını cebinize koyar.",
+    "missionTitle": "Misyonumuz",
+    "missionDescription": "Çok fazla motosikletçi temel bakımla boğuşuyor çünkü bilgi forumlara, YouTube videolarına ve parçalardan pahalı atölye el kitaplarına dağılmış durumda. MotoVault, motosikletinizi anlayan ve net, uygulanabilir rehberlik sunan yapay zeka ile her şeyi bir araya getiriyor.",
+    "statsTitle": "Rakamlarla MotoVault",
+    "stats": {
+      "riders": "Aktif Sürücü",
+      "bikes": "Veritabanındaki Motor",
+      "diagnoses": "Yapılan AI Teşhisi",
+      "articles": "Öğrenme Makalesi"
+    },
+    "valuesTitle": "Değerlerimiz",
+    "values": {
+      "aiPowered": {
+        "title": "Yapay Zeka Destekli",
+        "description": "Çekirdeğinde Claude AI — doğru teşhis, kişisellleştirilmiş öğrenme ve akıllı bakım hatırlatıcıları sunar."
+      },
+      "communityDriven": {
+        "title": "Topluluk Odaklı",
+        "description": "Bir motosikletçi tarafından, motosikletçiler için yapıldı. Her özellik garajdaki gerçek ihtiyaçlardan doğar."
+      },
+      "openKnowledge": {
+        "title": "Açık Bilgi",
+        "description": "Motosiklet bakımı kısıtlanmamalı. Uzman düzeyinde bilgiyi ücretsiz ve herkes için erişilebilir kılıyoruz."
+      }
+    },
+    "companyTitle": "Şirket Bilgileri",
+    "companyFounded": "Kuruluş",
+    "companyLocation": "Konum",
+    "companyLocationValue": "Slovakya, Avrupa Birliği",
+    "companyContact": "İletişim",
+    "backToHome": "Ana Sayfaya Dön"
   },
   "Privacy": {
     "title": "Gizlilik Politikasi",

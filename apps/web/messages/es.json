@@ -190,7 +190,47 @@
     "privacy": "Privacidad",
     "terms": "Términos",
     "accountDeletion": "Eliminación de Cuenta",
-    "builtWithAi": "Impulsado por IA"
+    "builtWithAi": "Impulsado por IA",
+    "about": "Acerca de"
+  },
+  "About": {
+    "metaTitle": "Acerca de MotoVault",
+    "metaDescription": "MotoVault es una plataforma de motocicletas impulsada por IA que hace accesible el conocimiento de mantenimiento a cada motociclista. Fundada en 2025 en Eslovaquia.",
+    "heroTitle": "Acerca de MotoVault",
+    "heroSubtitle": "Haciendo accesible el conocimiento de mantenimiento de motocicletas a cada motociclista a través de la tecnología de IA.",
+    "founderName": "Andrej",
+    "founderRole": "Fundador y Desarrollador",
+    "founderBio": "Un entusiasta de las motocicletas y desarrollador de software de Eslovaquia, Andrej construyó MotoVault con una sola visión: hacer que el conocimiento motociclista sea accesible para todos. Ya seas un mecánico experimentado o acabes de comprar tu primera moto, MotoVault pone diagnósticos con IA, seguimiento de mantenimiento y recursos de aprendizaje en tu bolsillo.",
+    "missionTitle": "Nuestra Misión",
+    "missionDescription": "Demasiados motociclistas luchan con el mantenimiento básico porque el conocimiento está disperso en foros, videos de YouTube y manuales de taller que cuestan más que las piezas. MotoVault lo reúne todo con IA que entiende tu moto específica y te da orientación clara y práctica — sin exclusiones, sin jerga innecesaria.",
+    "statsTitle": "MotoVault en Números",
+    "stats": {
+      "riders": "Motociclistas Activos",
+      "bikes": "Motos en la Base de Datos",
+      "diagnoses": "Diagnósticos IA Realizados",
+      "articles": "Artículos de Aprendizaje"
+    },
+    "valuesTitle": "Lo Que Defendemos",
+    "values": {
+      "aiPowered": {
+        "title": "Impulsado por IA",
+        "description": "Claude AI en el núcleo — ofreciendo diagnósticos precisos, aprendizaje personalizado y recordatorios inteligentes de mantenimiento."
+      },
+      "communityDriven": {
+        "title": "Impulsado por la Comunidad",
+        "description": "Creado por un motociclista, para motociclistas. Cada función nace de necesidades reales en el garaje, no en una sala de juntas."
+      },
+      "openKnowledge": {
+        "title": "Conocimiento Abierto",
+        "description": "El mantenimiento de motocicletas no debería estar restringido. Hacemos que el conocimiento experto sea gratuito y accesible para todos."
+      }
+    },
+    "companyTitle": "Información de la Empresa",
+    "companyFounded": "Fundada",
+    "companyLocation": "Ubicación",
+    "companyLocationValue": "Eslovaquia, Unión Europea",
+    "companyContact": "Contacto",
+    "backToHome": "Volver al Inicio"
   },
   "Privacy": {
     "title": "Política de Privacidad",

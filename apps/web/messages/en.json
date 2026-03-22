@@ -190,7 +190,47 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "accountDeletion": "Account Deletion",
-    "builtWithAi": "Powered by AI"
+    "builtWithAi": "Powered by AI",
+    "about": "About"
+  },
+  "About": {
+    "metaTitle": "About MotoVault",
+    "metaDescription": "MotoVault is an AI-powered motorcycle platform making maintenance knowledge accessible to every rider. Founded in 2025 in Slovakia.",
+    "heroTitle": "About MotoVault",
+    "heroSubtitle": "Making motorcycle maintenance knowledge accessible to every rider through AI technology.",
+    "founderName": "Andrej",
+    "founderRole": "Founder & Developer",
+    "founderBio": "A motorcycle enthusiast and software developer from Slovakia, Andrej built MotoVault with a single vision: making motorcycle knowledge accessible to every rider. Whether you're a seasoned mechanic or just got your first bike, MotoVault puts AI-powered diagnostics, maintenance tracking, and learning resources right in your pocket.",
+    "missionTitle": "Our Mission",
+    "missionDescription": "Too many riders struggle with basic maintenance because knowledge is scattered across forums, YouTube videos, and shop manuals that cost more than the parts. MotoVault brings it all together with AI that understands your specific bike and gives you clear, actionable guidance — no gatekeeping, no jargon walls.",
+    "statsTitle": "MotoVault in Numbers",
+    "stats": {
+      "riders": "Active Riders",
+      "bikes": "Bikes in Database",
+      "diagnoses": "AI Diagnoses Run",
+      "articles": "Learning Articles"
+    },
+    "valuesTitle": "What We Stand For",
+    "values": {
+      "aiPowered": {
+        "title": "AI-Powered",
+        "description": "Claude AI at the core — delivering accurate diagnostics, personalized learning, and intelligent maintenance reminders."
+      },
+      "communityDriven": {
+        "title": "Community-Driven",
+        "description": "Built by a rider, for riders. Every feature comes from real needs in the garage, not a boardroom."
+      },
+      "openKnowledge": {
+        "title": "Open Knowledge",
+        "description": "Motorcycle maintenance shouldn't be gatekept. We make expert-level knowledge free and accessible to everyone."
+      }
+    },
+    "companyTitle": "Company Info",
+    "companyFounded": "Founded",
+    "companyLocation": "Location",
+    "companyLocationValue": "Slovakia, European Union",
+    "companyContact": "Contact",
+    "backToHome": "Back to Home"
   },
   "Privacy": {
     "title": "Privacy Policy",

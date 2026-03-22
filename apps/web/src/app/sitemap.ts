@@ -27,6 +27,7 @@ const pages = [
   '/tools/cost-calculator',
   '/tools/tclocs-checklist',
   '/press',
+  '/about',
 ];
 
 function getLocalizedUrl(locale: string, path: string): string {
@@ -49,6 +50,7 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/tools/cost-calculator': '2026-03-22',
   '/tools/tclocs-checklist': '2026-03-22',
   '/press': '2026-03-01',
+  '/about': '2026-03-22',
 };
 
 function getPageImages(path: string): string[] {

@@ -61,6 +61,7 @@ export async function Footer() {
   ];
 
   const companyLinks = [
+    { label: t('about'), href: '/about' },
     { label: t('privacy'), href: '/privacy' },
     { label: t('terms'), href: '/terms' },
     { label: t('support'), href: '/support' },

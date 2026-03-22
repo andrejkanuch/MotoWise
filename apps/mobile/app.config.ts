@@ -13,6 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: getAppName(),
   slug: 'motowise',
+  description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
   version: '1.3.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
@@ -62,21 +63,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     '@react-native-community/datetimepicker',
     [
-      'expo-location',
-      {
-        locationAlwaysAndWhenInUsePermission:
-          'MotoVault needs background location access to record your ride route while the screen is locked.',
-        locationWhenInUsePermission: 'MotoVault needs location access to record your ride route.',
-        isAndroidBackgroundLocationEnabled: true,
-      },
-    ],
-    [
-      '@rnmapbox/maps',
-      {
-        RNMapboxMapsDownloadToken: process.env.MAPBOX_DOWNLOAD_TOKEN ?? '',
-      },
-    ],
-    [
       'expo-notifications',
       {
         color: '#FF6B35',
@@ -119,11 +105,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',
-      NSLocationWhenInUseUsageDescription:
-        'MotoVault needs location access to record your ride route.',
-      NSLocationAlwaysAndWhenInUseUsageDescription:
-        'MotoVault needs background location access to record your ride route while the screen is locked.',
-      UIBackgroundModes: ['location'],
     },
     config: {
       usesNonExemptEncryption: false,
@@ -136,17 +117,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './src/assets/images/MotoVaultDark.png',
       backgroundColor: '#0F1B2D',
     },
-    permissions: [
-      'CAMERA',
-      'READ_MEDIA_IMAGES',
-      'NOTIFICATIONS',
-      'SCHEDULE_EXACT_ALARM',
-      'ACCESS_FINE_LOCATION',
-      'ACCESS_COARSE_LOCATION',
-      'ACCESS_BACKGROUND_LOCATION',
-      'FOREGROUND_SERVICE',
-      'FOREGROUND_SERVICE_LOCATION',
-    ],
+    permissions: ['CAMERA', 'READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
   },
   extra: {
     eas: {
