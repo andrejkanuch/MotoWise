@@ -5,7 +5,7 @@ import { StackActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
-import { Bike, BookOpen, Home, Route, User, Wrench } from 'lucide-react-native';
+import { Bike, Home, Route, User, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
@@ -25,7 +25,6 @@ import { useRideStore } from '../../stores/ride.store';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
-  { name: '(learn)', icon: BookOpen, labelKey: 'tabs.learn' },
   { name: '(diagnose)', icon: Wrench, labelKey: 'tabs.diagnose' },
   { name: '(garage)', icon: Bike, labelKey: 'tabs.garage' },
   { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
@@ -270,7 +269,6 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
 
 export default function TabsLayout() {
   const { t, i18n } = useTranslation();
-  const queryClient = useQueryClient();
 
   return (
     <Tabs
@@ -279,22 +277,7 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false }}
     >
       <Tabs.Screen name="(home)" options={{ title: t('tabs.home') }} />
-      <Tabs.Screen
-        name="(learn)"
-        options={{ title: t('tabs.learn') }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            const state = navigation.getState();
-            const route = state.routes[state.index];
-            if (route.state && route.state.index > 0) {
-              e.preventDefault();
-              if (queryClient.isMutating() === 0) {
-                navigation.dispatch(StackActions.popToTop());
-              }
-            }
-          },
-        })}
-      />
+      <Tabs.Screen name="(learn)" options={{ title: t('tabs.learn'), href: null }} />
       <Tabs.Screen name="(diagnose)" options={{ title: t('tabs.diagnose') }} />
       <Tabs.Screen name="(garage)" options={{ title: t('tabs.garage') }} />
       <Tabs.Screen name="(profile)" options={{ title: t('tabs.profile') }} />

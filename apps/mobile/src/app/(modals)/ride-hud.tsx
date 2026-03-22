@@ -7,7 +7,14 @@ import { useRouter } from 'expo-router';
 import { BatteryLow, Moon, Sun } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HudControls } from '../../components/ride/hud-controls';
 import { HudMap } from '../../components/ride/hud-map';
@@ -59,8 +66,8 @@ export default function RideHudScreen() {
   const totalPausedRef = useRef(0);
 
   const isPaused = status === 'paused';
-  const bgColor = isNightMode ? '#0a0000' : '#0a0a0a';
-  const textColor = isNightMode ? '#CC0000' : palette.white;
+  const bgColor = isNightMode ? palette.nightBg : palette.neutral950;
+  const textColor = isNightMode ? palette.nightText : palette.white;
 
   // Keep screen awake
   useEffect(() => {
@@ -197,9 +204,8 @@ export default function RideHudScreen() {
     });
 
     // Navigate to summary
-    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-    router.replace({
-      pathname: '/(modals)/ride-summary',
+    const summaryRoute = {
+      pathname: '/(modals)/ride-summary' as const,
       params: {
         rideId,
         distanceM: String(Math.round(totalDistance)),
@@ -209,7 +215,9 @@ export default function RideHudScreen() {
         elevationGain: String(Math.round(elevGain)),
         startedAt: rideMMKV.getStartedAt()?.toString() ?? '',
       },
-    } as any);
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
+    router.replace(summaryRoute as any);
   }, [endRide, router, elapsedSeconds]);
 
   const handleToggleNight = useCallback(() => {
@@ -233,8 +241,28 @@ export default function RideHudScreen() {
   const statusColor = isPaused ? palette.warning500 : palette.success500;
   const statusBg = isPaused ? palette.warningBgDark : palette.successBgDark;
 
-  // Avg speed for stats
-  const avgSpeedDisplay = waypoints.length > 1 ? distance / elapsedSeconds : 0;
+  // Paused pulse animation
+  const pausePulse = useSharedValue(0);
+  useEffect(() => {
+    if (isPaused) {
+      pausePulse.value = withRepeat(withTiming(1, { duration: 1500 }), -1, true);
+    } else {
+      pausePulse.value = withTiming(0, { duration: 300 });
+    }
+  }, [isPaused, pausePulse]);
+
+  const pauseOverlayStyle = useAnimatedStyle(() => ({
+    opacity: pausePulse.value * 0.06,
+  }));
+
+  const pauseBadgePulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.6 + pausePulse.value * 0.4,
+    transform: [{ scale: 1 + pausePulse.value * 0.05 }],
+  }));
+
+  // Avg speed for stats — guard against division by zero
+  const avgSpeedDisplay =
+    elapsedSeconds > 0 && waypoints.length > 1 ? distance / elapsedSeconds : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -250,18 +278,23 @@ export default function RideHudScreen() {
           zIndex: 10,
         }}
       >
-        {/* Status badge */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            backgroundColor: statusBg,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 12,
-            borderCurve: 'continuous',
-          }}
+        {/* Status badge — pulsing when paused */}
+        <Animated.View
+          style={[
+            {
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: statusBg,
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+            },
+            isPaused ? pauseBadgePulseStyle : undefined,
+          ]}
+          accessibilityRole="text"
+          accessibilityLabel={isPaused ? 'Ride paused' : 'Recording ride'}
         >
           <View
             style={{
@@ -271,10 +304,10 @@ export default function RideHudScreen() {
               backgroundColor: statusColor,
             }}
           />
-          <Text style={{ fontSize: 12, fontWeight: '800', color: statusColor, letterSpacing: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: statusColor, letterSpacing: 1 }}>
             {statusLabel}
           </Text>
-        </View>
+        </Animated.View>
 
         {/* Timer */}
         <Text
@@ -288,14 +321,17 @@ export default function RideHudScreen() {
           {formatElapsed(elapsedSeconds)}
         </Text>
 
-        {/* Night / Battery toggle */}
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        {/* Night / Battery toggle — 52pt for glove operation */}
+        <View style={{ flexDirection: 'row', gap: 12 }}>
           <Pressable
             onPress={handleToggleBattery}
+            accessibilityRole="switch"
+            accessibilityLabel="Battery saver"
+            accessibilityState={{ checked: isBatterySaver }}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: 52,
+              height: 52,
+              borderRadius: 26,
               borderCurve: 'continuous',
               backgroundColor: isBatterySaver ? palette.warningBgDark : 'rgba(255,255,255,0.1)',
               alignItems: 'center',
@@ -303,30 +339,52 @@ export default function RideHudScreen() {
             }}
           >
             <BatteryLow
-              size={18}
+              size={22}
               color={isBatterySaver ? palette.warning500 : 'rgba(255,255,255,0.5)'}
             />
           </Pressable>
           <Pressable
             onPress={handleToggleNight}
+            accessibilityRole="switch"
+            accessibilityLabel="Night mode"
+            accessibilityState={{ checked: isNightMode }}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
+              width: 52,
+              height: 52,
+              borderRadius: 26,
               borderCurve: 'continuous',
-              backgroundColor: isNightMode ? 'rgba(204,0,0,0.15)' : 'rgba(255,255,255,0.1)',
+              backgroundColor: isNightMode ? palette.nightGlow : 'rgba(255,255,255,0.1)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             {isNightMode ? (
-              <Sun size={18} color="#CC0000" />
+              <Sun size={22} color={palette.nightText} />
             ) : (
-              <Moon size={18} color="rgba(255,255,255,0.5)" />
+              <Moon size={22} color="rgba(255,255,255,0.5)" />
             )}
           </Pressable>
         </View>
       </Animated.View>
+
+      {/* Paused overlay — pulsing amber tint */}
+      {isPaused && (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: palette.warning500,
+              zIndex: 5,
+              pointerEvents: 'none',
+            },
+            pauseOverlayStyle,
+          ]}
+        />
+      )}
 
       {/* Map zone */}
       <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 0.35 }}>
@@ -361,7 +419,14 @@ export default function RideHudScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: isNightMode ? palette.nightText : palette.neutral500,
+                  letterSpacing: 0.5,
+                }}
+              >
                 DISTANCE
               </Text>
               <Text
@@ -386,7 +451,14 @@ export default function RideHudScreen() {
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: isNightMode ? palette.nightText : palette.neutral500,
+                  letterSpacing: 0.5,
+                }}
+              >
                 DURATION
               </Text>
               <Text
@@ -413,7 +485,14 @@ export default function RideHudScreen() {
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '600',
+                color: isNightMode ? palette.nightText : palette.neutral500,
+                letterSpacing: 0.5,
+              }}
+            >
               AVG SPEED
             </Text>
             <Text

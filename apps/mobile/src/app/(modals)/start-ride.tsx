@@ -3,11 +3,19 @@ import { MyMotorcyclesDocument, StartRideDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { AlertTriangle, Bike, ChevronRight, Zap } from 'lucide-react-native';
+import {
+  AlertTriangle,
+  Bike,
+  ChevronDown,
+  ChevronRight,
+  Navigation,
+  Zap,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -24,6 +32,7 @@ export default function StartRideScreen() {
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(false);
   const [hasUnfinished, setHasUnfinished] = useState(false);
+  const [showBikePicker, setShowBikePicker] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.motorcycles.lists(),
@@ -43,6 +52,14 @@ export default function StartRideScreen() {
         }>;
       }
     )?.myMotorcycles ?? [];
+
+  const selectedBike = motorcycles.find((m) => m.id === selectedBikeId);
+  const selectedBikeLabel = selectedBike
+    ? selectedBike.nickname || `${selectedBike.year} ${selectedBike.make} ${selectedBike.model}`
+    : selectedBikeId === null
+      ? 'Quick Ride'
+      : '';
+  const hasSingleBike = motorcycles.length === 1;
 
   // Default to primary bike
   useEffect(() => {
@@ -79,7 +96,6 @@ export default function StartRideScreen() {
         },
       });
     }
-    // Clear MMKV state
     rideMMKV.setCurrentId('');
     setHasUnfinished(false);
   }, []);
@@ -87,7 +103,6 @@ export default function StartRideScreen() {
   const handleStartRide = useCallback(async () => {
     setIsStarting(true);
     try {
-      // 1. Request permissions
       const level = await checkAndRequestPermissions();
       if (level === 'denied') {
         Alert.alert(
@@ -105,18 +120,13 @@ export default function StartRideScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }
 
-      // 2. Generate client UUID
       const rideId = Crypto.randomUUID();
       const startedAt = new Date().toISOString();
 
-      // 3. Save to MMKV
       rideMMKV.setCurrentId(rideId);
       rideMMKV.setStartedAt(Date.now());
-
-      // 4. Update Zustand store
       startRide();
 
-      // 5. Enqueue mutation
       enqueue('startRide', {
         mutationDocument: StartRideDocument,
         variables: {
@@ -128,10 +138,8 @@ export default function StartRideScreen() {
         },
       });
 
-      // 6. Start GPS
       await startGPSListener(() => {});
 
-      // 7. Navigate to HUD
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(modals)/ride-hud' as any);
     } catch (error) {
@@ -146,40 +154,52 @@ export default function StartRideScreen() {
     <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: 24,
+          paddingHorizontal: 20,
           paddingTop: 32,
           paddingBottom: insets.bottom + 24,
+          flexGrow: 1,
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header — larger, more dramatic */}
         <Animated.View
           entering={FadeInUp.duration(300)}
-          style={{ alignItems: 'center', marginBottom: 28 }}
+          style={{ alignItems: 'center', marginBottom: 32 }}
         >
-          <View
+          <Animated.View
+            entering={ZoomIn.delay(100).springify().damping(12)}
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
+              width: 72,
+              height: 72,
+              borderRadius: 36,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(45,158,120,0.15)',
+              backgroundColor: 'rgba(45,158,120,0.12)',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: 16,
+              marginBottom: 20,
             }}
           >
-            <Bike size={28} color={palette.accent500} />
-          </View>
+            <Navigation size={32} color={palette.accent500} />
+          </Animated.View>
           <Text
             style={{
-              fontSize: 24,
+              fontSize: 28,
               fontWeight: '800',
               color: palette.white,
               letterSpacing: -0.5,
             }}
           >
-            Start a Ride
+            Ready to Ride
+          </Text>
+          <Text
+            style={{
+              fontSize: 15,
+              color: palette.neutral400,
+              marginTop: 8,
+              textAlign: 'center',
+            }}
+          >
+            GPS tracking, speed, and route recording
           </Text>
         </Animated.View>
 
@@ -194,6 +214,8 @@ export default function StartRideScreen() {
               padding: 16,
               gap: 12,
               marginBottom: 20,
+              borderWidth: 1,
+              borderColor: 'rgba(245,158,11,0.2)',
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -205,26 +227,30 @@ export default function StartRideScreen() {
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <Pressable
                 onPress={handleResume}
+                accessibilityRole="button"
+                accessibilityLabel="Resume unfinished ride"
                 style={{
                   flex: 1,
-                  height: 40,
-                  borderRadius: 12,
+                  height: 48,
+                  borderRadius: 14,
                   borderCurve: 'continuous',
                   backgroundColor: palette.accent500,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
                   Resume
                 </Text>
               </Pressable>
               <Pressable
                 onPress={handleEndUnfinished}
+                accessibilityRole="button"
+                accessibilityLabel="End unfinished ride"
                 style={{
                   flex: 1,
-                  height: 40,
-                  borderRadius: 12,
+                  height: 48,
+                  borderRadius: 14,
                   borderCurve: 'continuous',
                   borderWidth: 1.5,
                   borderColor: palette.neutral600,
@@ -232,7 +258,7 @@ export default function StartRideScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.neutral300 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: palette.neutral300 }}>
                   End Ride
                 </Text>
               </Pressable>
@@ -240,150 +266,346 @@ export default function StartRideScreen() {
           </Animated.View>
         )}
 
-        {/* Bike picker */}
+        {/* Bike selector — compact for single bike, expandable for multi */}
         <Animated.View entering={FadeInUp.delay(100).duration(300)}>
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: palette.neutral400,
-              marginBottom: 10,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-            }}
-          >
-            Select Motorcycle
-          </Text>
-
           {isLoading ? (
-            <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-              <ActivityIndicator size="large" color={palette.accent500} />
+            <View
+              style={{
+                backgroundColor: palette.cardDark,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 20,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: palette.surfaceElevated,
+              }}
+            >
+              <ActivityIndicator size="small" color={palette.accent500} />
+            </View>
+          ) : hasSingleBike ? (
+            /* Single bike — compact display, no picker needed */
+            <View
+              style={{
+                backgroundColor: palette.cardDark,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                borderWidth: 1,
+                borderColor: palette.surfaceElevated,
+              }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: 'rgba(45,158,120,0.12)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Bike size={20} color={palette.accent500} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: palette.neutral500,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  RIDING WITH
+                </Text>
+                <Text
+                  style={{ fontSize: 16, fontWeight: '700', color: palette.white, marginTop: 2 }}
+                  numberOfLines={1}
+                >
+                  {selectedBikeLabel}
+                </Text>
+              </View>
             </View>
           ) : (
-            <View style={{ gap: 8 }}>
-              {motorcycles.map((bike) => {
-                const isSelected = selectedBikeId === bike.id;
-                const label = bike.nickname || `${bike.year} ${bike.make} ${bike.model}`;
-                return (
+            /* Multi-bike — compact selected bike with expandable picker */
+            <View>
+              <Pressable
+                onPress={() => setShowBikePicker((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={`Selected bike: ${selectedBikeLabel}. Tap to change.`}
+                style={{
+                  backgroundColor: palette.cardDark,
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  padding: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  borderWidth: 1,
+                  borderColor: palette.surfaceElevated,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    borderCurve: 'continuous',
+                    backgroundColor: selectedBikeId
+                      ? 'rgba(45,158,120,0.12)'
+                      : palette.signatureBgDark,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {selectedBikeId ? (
+                    <Bike size={20} color={palette.accent500} />
+                  ) : (
+                    <Zap size={20} color={palette.signature500} />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '600',
+                      color: palette.neutral500,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    RIDING WITH
+                  </Text>
+                  <Text
+                    style={{ fontSize: 16, fontWeight: '700', color: palette.white, marginTop: 2 }}
+                    numberOfLines={1}
+                  >
+                    {selectedBikeLabel || 'Select motorcycle'}
+                  </Text>
+                </View>
+                <ChevronDown
+                  size={20}
+                  color={palette.neutral400}
+                  style={{
+                    transform: [{ rotate: showBikePicker ? '180deg' : '0deg' }],
+                  }}
+                />
+              </Pressable>
+
+              {/* Expandable bike list */}
+              {showBikePicker && (
+                <Animated.View entering={FadeIn.duration(200)} style={{ marginTop: 8, gap: 6 }}>
+                  {motorcycles.map((bike) => {
+                    const isSelected = selectedBikeId === bike.id;
+                    const label = bike.nickname || `${bike.year} ${bike.make} ${bike.model}`;
+                    return (
+                      <Pressable
+                        key={bike.id}
+                        onPress={() => {
+                          if (process.env.EXPO_OS === 'ios') {
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }
+                          setSelectedBikeId(bike.id);
+                          setShowBikePicker(false);
+                        }}
+                        accessibilityRole="radio"
+                        accessibilityLabel={label}
+                        accessibilityState={{ checked: isSelected }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          padding: 14,
+                          borderRadius: 14,
+                          borderCurve: 'continuous',
+                          backgroundColor: isSelected ? 'rgba(45,158,120,0.10)' : palette.cardDark,
+                          borderWidth: 1,
+                          borderColor: isSelected ? palette.accent500 : palette.surfaceElevated,
+                          gap: 12,
+                        }}
+                      >
+                        {/* Radio indicator */}
+                        <View
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                            borderWidth: 2,
+                            borderColor: isSelected ? palette.accent500 : palette.neutral600,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {isSelected && (
+                            <View
+                              style={{
+                                width: 12,
+                                height: 12,
+                                borderRadius: 6,
+                                backgroundColor: palette.accent500,
+                              }}
+                            />
+                          )}
+                        </View>
+                        <Text
+                          style={{ flex: 1, fontSize: 15, fontWeight: '600', color: palette.white }}
+                          numberOfLines={1}
+                        >
+                          {label}
+                        </Text>
+                        {bike.isPrimary && (
+                          <View
+                            style={{
+                              paddingHorizontal: 8,
+                              paddingVertical: 3,
+                              borderRadius: 8,
+                              borderCurve: 'continuous',
+                              backgroundColor: 'rgba(45,158,120,0.15)',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '700',
+                                color: palette.accent500,
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              PRIMARY
+                            </Text>
+                          </View>
+                        )}
+                      </Pressable>
+                    );
+                  })}
+
+                  {/* Quick ride — de-emphasized */}
                   <Pressable
-                    key={bike.id}
                     onPress={() => {
                       if (process.env.EXPO_OS === 'ios') {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                       }
-                      setSelectedBikeId(bike.id);
+                      setSelectedBikeId(null);
+                      setShowBikePicker(false);
                     }}
+                    accessibilityRole="radio"
+                    accessibilityLabel="Quick ride without a bike"
+                    accessibilityState={{ checked: selectedBikeId === null }}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      padding: 16,
-                      borderRadius: 16,
+                      padding: 14,
+                      borderRadius: 14,
                       borderCurve: 'continuous',
-                      borderWidth: isSelected ? 2 : 1.5,
-                      borderColor: isSelected ? palette.accent500 : 'rgba(255,255,255,0.1)',
-                      backgroundColor: isSelected ? 'rgba(45,158,120,0.08)' : 'transparent',
+                      backgroundColor:
+                        selectedBikeId === null ? palette.signatureBgDark : palette.cardDark,
+                      borderWidth: 1,
+                      borderColor:
+                        selectedBikeId === null ? palette.signature500 : palette.surfaceElevated,
                       gap: 12,
                     }}
                   >
-                    <Bike size={20} color={isSelected ? palette.accent500 : palette.neutral500} />
+                    <View
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
+                        borderWidth: 2,
+                        borderColor:
+                          selectedBikeId === null ? palette.signature500 : palette.neutral600,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {selectedBikeId === null && (
+                        <View
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: 6,
+                            backgroundColor: palette.signature500,
+                          }}
+                        />
+                      )}
+                    </View>
+                    <Zap
+                      size={16}
+                      color={selectedBikeId === null ? palette.signature500 : palette.neutral500}
+                    />
                     <Text
                       style={{
                         flex: 1,
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: '600',
-                        color: palette.white,
+                        color: palette.neutral300,
                       }}
-                      numberOfLines={1}
                     >
-                      {label}
+                      Quick Ride (no bike)
                     </Text>
-                    {bike.isPrimary && (
-                      <View
-                        style={{
-                          paddingHorizontal: 8,
-                          paddingVertical: 2,
-                          borderRadius: 8,
-                          borderCurve: 'continuous',
-                          backgroundColor: 'rgba(45,158,120,0.15)',
-                        }}
-                      >
-                        <Text style={{ fontSize: 11, fontWeight: '700', color: palette.accent500 }}>
-                          PRIMARY
-                        </Text>
-                      </View>
-                    )}
                   </Pressable>
-                );
-              })}
-
-              {/* Quick ride option */}
-              <Pressable
-                onPress={() => {
-                  if (process.env.EXPO_OS === 'ios') {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }
-                  setSelectedBikeId(null);
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  padding: 16,
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  borderWidth: selectedBikeId === null ? 2 : 1.5,
-                  borderColor:
-                    selectedBikeId === null ? palette.signature500 : 'rgba(255,255,255,0.1)',
-                  backgroundColor: selectedBikeId === null ? 'rgba(212,98,46,0.08)' : 'transparent',
-                  gap: 12,
-                }}
-              >
-                <Zap
-                  size={20}
-                  color={selectedBikeId === null ? palette.signature500 : palette.neutral500}
-                />
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 16,
-                    fontWeight: '600',
-                    color: palette.white,
-                  }}
-                >
-                  Quick Ride (no bike)
-                </Text>
-              </Pressable>
+                </Animated.View>
+              )}
             </View>
           )}
         </Animated.View>
 
-        {/* Start button */}
-        <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 28 }}>
+        {/* Spacer to push button to bottom */}
+        <View style={{ flex: 1, minHeight: 32 }} />
+
+        {/* Start button — gradient CTA */}
+        <Animated.View entering={FadeInUp.delay(200).duration(300)}>
           <Pressable
             onPress={handleStartRide}
             disabled={isStarting || hasUnfinished}
+            accessibilityRole="button"
+            accessibilityLabel="Start ride"
+            accessibilityState={{ disabled: isStarting || hasUnfinished }}
             style={({ pressed }) => ({
-              backgroundColor: palette.accent500,
               borderRadius: 20,
               borderCurve: 'continuous',
-              paddingVertical: 16,
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'row',
-              gap: 8,
+              overflow: 'hidden',
               opacity: isStarting || hasUnfinished ? 0.5 : pressed ? 0.85 : 1,
             })}
           >
-            {isStarting ? (
-              <ActivityIndicator size="small" color={palette.white} />
-            ) : (
-              <>
-                <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-                  Start Ride
-                </Text>
-                <ChevronRight size={18} color={palette.white} />
-              </>
-            )}
+            <LinearGradient
+              colors={[palette.accent400, palette.accent500]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+              }}
+            >
+              {isStarting ? (
+                <ActivityIndicator size="small" color={palette.white} />
+              ) : (
+                <>
+                  <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white }}>
+                    Start Ride
+                  </Text>
+                  <ChevronRight size={20} color={palette.white} />
+                </>
+              )}
+            </LinearGradient>
           </Pressable>
+
+          {hasUnfinished && (
+            <Animated.Text
+              entering={FadeIn.delay(300).duration(200)}
+              style={{
+                fontSize: 13,
+                color: palette.warning500,
+                textAlign: 'center',
+                marginTop: 12,
+              }}
+            >
+              Resolve the unfinished ride above to start a new one
+            </Animated.Text>
+          )}
         </Animated.View>
       </ScrollView>
     </View>

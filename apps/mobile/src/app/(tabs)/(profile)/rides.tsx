@@ -49,14 +49,17 @@ export default function RidesScreen() {
         gqlFetcher(MyRidesDocument, {
           first: PAGE_SIZE,
           after: pageParam ?? null,
+          // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen variables type mismatch
         } as any),
       initialPageParam: undefined as string | undefined,
+      // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen return type untyped for infinite query
       getNextPageParam: (lastPage: any) => {
         const pageInfo = lastPage?.myRides?.pageInfo;
         return pageInfo?.hasNextPage ? pageInfo.endCursor : undefined;
       },
     });
 
+  // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen page type untyped for infinite query
   const allEdges: RideEdge[] = data?.pages.flatMap((page: any) => page?.myRides?.edges ?? []) ?? [];
 
   // Free tier: limit to last 10
@@ -65,11 +68,9 @@ export default function RidesScreen() {
 
   const handleRidePress = useCallback(
     (rideId: string) => {
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      router.push({
-        pathname: '/(modals)/ride-summary',
-        params: { rideId },
-      } as any);
+      // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
+      const route = { pathname: '/(modals)/ride-summary' as const, params: { rideId } } as any;
+      router.push(route);
     },
     [router],
   );
@@ -86,6 +87,7 @@ export default function RidesScreen() {
         ride={{
           id: item.node.id,
           userId: '',
+          // biome-ignore lint/suspicious/noExplicitAny: graphql enum type mismatch with local model
           status: item.node.status as any,
           name: item.node.name ?? null,
           startedAt: item.node.startedAt,
