@@ -472,6 +472,7 @@ type Query {
   popularArticles(first: Int! = 10): [Article!]!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
+  rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
@@ -684,6 +685,15 @@ type User {
 enum UserRole {
   admin
   user
+}
+
+type Waypoint {
+  accuracy: Float
+  altitude: Float
+  latitude: Float!
+  longitude: Float!
+  recordedAt: String!
+  speedMps: Float
 }
 
 input WaypointInput {
