@@ -85,7 +85,7 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
     contactPoint: [
       {
         '@type': 'ContactPoint',
-        email: 'press@motovault.app',
+        email: 'support@motovault.app',
         contactType: 'press',
       },
       {
@@ -238,10 +238,10 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
                 <p className="mt-4 text-sm text-neutral-500">
                   Logo downloads coming soon. Contact{' '}
                   <a
-                    href="mailto:press@motovault.app"
+                    href="mailto:support@motovault.app"
                     className="text-warm-400 underline underline-offset-2 hover:text-warm-300"
                   >
-                    press@motovault.app
+                    support@motovault.app
                   </a>{' '}
                   for assets in the meantime.
                 </p>
@@ -262,10 +262,10 @@ export default async function PressPage({ params }: { params: Promise<{ locale: 
               For press inquiries, interview requests, or additional assets, please reach out to:
             </p>
             <a
-              href="mailto:press@motovault.app"
+              href="mailto:support@motovault.app"
               className="mt-4 inline-block text-xl font-bold text-warm-400 underline underline-offset-4 hover:text-warm-300"
             >
-              press@motovault.app
+              support@motovault.app
             </a>
             <p className="mt-6 text-sm text-neutral-500">
               We aim to respond to all press inquiries within 24 hours.

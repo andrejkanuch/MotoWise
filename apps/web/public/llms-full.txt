@@ -61,4 +61,4 @@ The MotoVault blog covers brand-specific maintenance schedules for BMW, Ducati, 
 
 - Website: https://motovault.app
 - Support: support@motovault.app
-- Press: press@motovault.app
+- Press: support@motovault.app

@@ -72,8 +72,8 @@ export default async function AccountDeletionPage() {
         <h2>{t('contactTitle')}</h2>
         <p>
           {t('contactDescription')}{' '}
-          <a href="mailto:privacy@motovault.app" className="text-blue-400 hover:text-blue-300">
-            privacy@motovault.app
+          <a href="mailto:support@motovault.app" className="text-blue-400 hover:text-blue-300">
+            support@motovault.app
           </a>
         </p>
       </section>

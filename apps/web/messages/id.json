@@ -206,9 +206,9 @@
     "securityTitle": "Keamanan Data",
     "security": "MotoVault menerapkan keamanan tingkat enterprise: (1) Enkripsi saat transit — HTTPS/TLS; (2) Enkripsi saat disimpan; (3) Autentikasi — JWT token yang aman; (4) Penyimpanan aman — secure storage platform-native di mobile; (5) Kontrol akses — kebijakan berbasis peran; (6) Audit rutin.",
     "yourRightsTitle": "Hak-Hak Kamu",
-    "yourRights": "Di bawah GDPR (penduduk UE) dan CCPA (penduduk California), kamu memiliki hak: (1) Akses — minta salinan data pribadi; (2) Perbaikan — koreksi informasi tidak akurat; (3) Penghapusan — minta penghapusan data; (4) Pembatasan pemrosesan; (5) Portabilitas data; (6) Keberatan; (7) Penarikan persetujuan. Gunakan hak-hak ini melalui privacy@motovault.app.",
+    "yourRights": "Di bawah GDPR (penduduk UE) dan CCPA (penduduk California), kamu memiliki hak: (1) Akses — minta salinan data pribadi; (2) Perbaikan — koreksi informasi tidak akurat; (3) Penghapusan — minta penghapusan data; (4) Pembatasan pemrosesan; (5) Portabilitas data; (6) Keberatan; (7) Penarikan persetujuan. Gunakan hak-hak ini melalui support@motovault.app.",
     "childrenPrivacyTitle": "Privasi Anak",
-    "childrenPrivacy": "MotoVault tidak ditujukan untuk pengguna di bawah 13 tahun. Kami tidak dengan sengaja mengumpulkan informasi pribadi dari anak di bawah 13 tahun. Orang tua yang percaya kami telah mengumpulkan data anak, silakan hubungi privacy@motovault.app segera.",
+    "childrenPrivacy": "MotoVault tidak ditujukan untuk pengguna di bawah 13 tahun. Kami tidak dengan sengaja mengumpulkan informasi pribadi dari anak di bawah 13 tahun. Orang tua yang percaya kami telah mengumpulkan data anak, silakan hubungi support@motovault.app segera.",
     "internationalTransfersTitle": "Transfer Data Internasional",
     "internationalTransfers": "MotoVault beroperasi secara global. Data kamu mungkin ditransfer ke negara lain termasuk Amerika Serikat. Dengan menggunakan MotoVault, kamu menyetujui transfer ini. Kami menerapkan klausul kontraktual standar untuk perlindungan yang memadai.",
     "accountDeletionTitle": "Penghapusan Akun",
@@ -216,7 +216,7 @@
     "changesTitle": "Perubahan Kebijakan Ini",
     "changes": "MotoVault mungkin memperbarui kebijakan ini. Kami akan memberi tahu perubahan penting melalui email atau pemberitahuan di website. Penggunaan berlanjut setelah perubahan berarti menerima kebijakan yang diperbarui.",
     "contactTitle": "Hubungi Kami",
-    "contact": "Untuk pertanyaan tentang privasi, akses data, atau menggunakan hak di bawah GDPR/CCPA: MotoVault Privacy Team, Email: privacy@motovault.app. Kami akan merespons dalam 30 hari sesuai hukum yang berlaku."
+    "contact": "Untuk pertanyaan tentang privasi, akses data, atau menggunakan hak di bawah GDPR/CCPA: MotoVault Privacy Team, Email: support@motovault.app. Kami akan merespons dalam 30 hari sesuai hukum yang berlaku."
   },
   "Terms": {
     "title": "Ketentuan Layanan",
@@ -297,7 +297,7 @@
     "retentionTitle": "Penyimpanan Data Setelah Penghapusan",
     "retentionDescription": "Data akan dihapus permanen dari sistem aktif dalam 30 hari. Salinan cadangan dihapus dalam 90 hari. Beberapa data mungkin disimpan dalam bentuk anonim untuk analitik atau sesuai ketentuan hukum.",
     "alternativeTitle": "Alternatif: Permintaan via Email",
-    "alternativeDescription": "Jika tidak bisa mengakses aplikasi, kamu bisa meminta penghapusan akun dengan mengirim email dari alamat yang terkait akun ke privacy@motovault.app. Sertakan \"Account Deletion Request\" di subjek. Kami akan memproses dalam 30 hari.",
+    "alternativeDescription": "Jika tidak bisa mengakses aplikasi, kamu bisa meminta penghapusan akun dengan mengirim email dari alamat yang terkait akun ke support@motovault.app. Sertakan \"Account Deletion Request\" di subjek. Kami akan memproses dalam 30 hari.",
     "contactTitle": "Pertanyaan?",
     "contactDescription": "Untuk pertanyaan tentang penghapusan akun atau privasi data, hubungi kami di"
   },
