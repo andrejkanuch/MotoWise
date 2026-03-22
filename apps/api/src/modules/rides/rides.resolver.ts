@@ -19,6 +19,7 @@ import { UpdateRideInput } from './dto/update-ride.input';
 import { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import { Ride } from './models/ride.model';
 import { RideConnection } from './models/ride-connection.model';
+import { Waypoint } from './models/waypoint.model';
 import { RidesService } from './rides.service';
 
 @Resolver(() => Ride)
@@ -80,5 +81,15 @@ export class RidesResolver {
   @Query(() => Ride)
   async ride(@CurrentUser() user: AuthUser, @Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
     return this.ridesService.findById(user.id, id);
+  }
+
+  @Query(() => [Waypoint])
+  @Throttle({ default: THROTTLE_PRESETS.WAYPOINT_QUERY })
+  async rideWaypoints(
+    @CurrentUser() user: AuthUser,
+    @Args('rideId', ParseUUIDPipe) rideId: string,
+    @Args('maxPoints', { type: () => Int, nullable: true }) maxPoints?: number,
+  ): Promise<Waypoint[]> {
+    return this.ridesService.findWaypoints(user.id, rideId, maxPoints);
   }
 }

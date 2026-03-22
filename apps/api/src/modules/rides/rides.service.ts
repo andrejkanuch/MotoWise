@@ -15,6 +15,7 @@ import type { UpdateRideInput } from './dto/update-ride.input';
 import type { UploadWaypointsInput } from './dto/upload-waypoints.input';
 import type { Ride } from './models/ride.model';
 import type { RideConnection } from './models/ride-connection.model';
+import type { Waypoint } from './models/waypoint.model';
 
 const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
 
@@ -257,6 +258,66 @@ export class RidesService {
       throw new NotFoundException('Ride not found');
     }
     return this.mapRow(data);
+  }
+
+  async findWaypoints(userId: string, rideId: string, maxPoints?: number): Promise<Waypoint[]> {
+    this.logger.debug(`findWaypoints: userId=${userId}, rideId=${rideId}, maxPoints=${maxPoints}`);
+
+    // Verify ride ownership (RLS handles this, but explicit check for clear errors)
+    const { data: ride, error: rideError } = await this.supabase
+      .from('rides')
+      .select('id')
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .single();
+
+    if (rideError || !ride) {
+      throw new NotFoundException('Ride not found');
+    }
+
+    // Fetch waypoints ordered by time, filter poor accuracy
+    const { data, error } = await this.supabase
+      .from('ride_waypoints')
+      .select('recorded_at, latitude, longitude, altitude, speed_mps, accuracy')
+      .eq('ride_id', rideId)
+      .or(`accuracy.is.null,accuracy.lte.${QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD}`)
+      .order('recorded_at', { ascending: true });
+
+    if (error) {
+      this.logger.error(`findWaypoints failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch waypoints');
+    }
+
+    const rows = data ?? [];
+    if (rows.length === 0) return [];
+
+    // Server-side downsampling
+    const limit = Math.min(
+      maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT,
+      QUERY_LIMITS.WAYPOINT_QUERY_MAX,
+    );
+    const sampled = rows.length <= limit ? rows : this.downsample(rows, limit);
+
+    return sampled.map((row) => ({
+      recordedAt: row.recorded_at as string,
+      latitude: row.latitude as number,
+      longitude: row.longitude as number,
+      altitude: (row.altitude as number) ?? undefined,
+      speedMps: (row.speed_mps as number) ?? undefined,
+      accuracy: (row.accuracy as number) ?? undefined,
+    }));
+  }
+
+  private downsample<T>(rows: T[], maxPoints: number): T[] {
+    if (rows.length <= maxPoints) return rows;
+    const result: T[] = [rows[0]];
+    const step = (rows.length - 1) / (maxPoints - 1);
+    for (let i = 1; i < maxPoints - 1; i++) {
+      result.push(rows[Math.round(i * step)]);
+    }
+    result.push(rows[rows.length - 1]);
+    return result;
   }
 
   private mapRow(row: Record<string, unknown>): Ride {

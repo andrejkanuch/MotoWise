@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@gorhom/bottom-sheet": "^5.2.8",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
