@@ -175,8 +175,8 @@ export const RideElevationChart = memo(function RideElevationChart({
         hideDataPoints
         thickness={2}
         color={palette.signature500}
-        startFillColor="rgba(212,74,46,0.12)"
-        endFillColor="rgba(212,74,46,0)"
+        startFillColor="rgba(212,98,46,0.12)"
+        endFillColor="rgba(212,98,46,0)"
         startOpacity={0.4}
         endOpacity={0}
         isAnimated

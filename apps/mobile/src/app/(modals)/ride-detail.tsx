@@ -357,7 +357,7 @@ export default function RideDetailScreen() {
             height: 44,
             borderRadius: 22,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.6)',
+            backgroundColor: palette.surfaceOverlay,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -387,7 +387,7 @@ export default function RideDetailScreen() {
               height: 44,
               borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.6)',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -404,7 +404,7 @@ export default function RideDetailScreen() {
             height: 44,
             borderRadius: 22,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.6)',
+            backgroundColor: palette.surfaceOverlay,
             alignItems: 'center',
             justifyContent: 'center',
           }}

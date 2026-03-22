@@ -282,7 +282,8 @@ export class RidesService {
       .select('recorded_at, latitude, longitude, altitude, speed_mps, accuracy')
       .eq('ride_id', rideId)
       .or(`accuracy.is.null,accuracy.lte.${QUERY_LIMITS.WAYPOINT_ACCURACY_THRESHOLD}`)
-      .order('recorded_at', { ascending: true });
+      .order('recorded_at', { ascending: true })
+      .limit(QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE);
 
     if (error) {
       this.logger.error(`findWaypoints failed: ${error.message} (${error.code})`);
