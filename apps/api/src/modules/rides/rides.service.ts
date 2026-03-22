@@ -295,7 +295,7 @@ export class RidesService {
 
     // Server-side downsampling
     const limit = Math.min(
-      maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT,
+      Math.max(maxPoints ?? QUERY_LIMITS.WAYPOINT_QUERY_DEFAULT, 2),
       QUERY_LIMITS.WAYPOINT_QUERY_MAX,
     );
     const sampled = rows.length <= limit ? rows : this.downsample(rows, limit);

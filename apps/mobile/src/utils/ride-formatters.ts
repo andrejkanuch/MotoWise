@@ -68,6 +68,16 @@ export function formatElevation(meters: number, system: MeasurementSystem = 'met
   return `${Math.round(meters)} m`;
 }
 
+/** Convert elevation to display value as a number (no unit) */
+export function formatElevationValue(meters: number, system: MeasurementSystem = 'metric'): number {
+  return isImperial(system) ? Math.round(meters * 3.281) : Math.round(meters);
+}
+
+/** Get the elevation unit label */
+export function elevationUnitLabel(system: MeasurementSystem = 'metric'): string {
+  return isImperial(system) ? 'ft' : 'm';
+}
+
 // ─── Time ────────────────────────────────────────────────────────────────────
 
 /** Format duration from seconds */

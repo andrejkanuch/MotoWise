@@ -216,6 +216,13 @@ export default function RideDetailScreen() {
     });
   }, []);
 
+  const renderBackdrop = useCallback(
+    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop {...props} appearsOnIndex={2} disappearsOnIndex={1} opacity={0.3} />
+    ),
+    [],
+  );
+
   // Android back handler: re-open sheet instead of closing modal
   useEffect(() => {
     const handler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -258,8 +265,6 @@ export default function RideDetailScreen() {
       ? [{ icon: Mountain, label: 'Elevation', value: formatElevation(elevationGain, system) }]
       : []),
   ];
-
-  const hasWaypointChartData = waypoints.length >= 10;
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
@@ -460,9 +465,7 @@ export default function RideDetailScreen() {
           borderCurve: 'continuous',
         }}
         handleIndicatorStyle={{ backgroundColor: palette.neutral500, width: 40 }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop {...props} appearsOnIndex={2} disappearsOnIndex={1} opacity={0.3} />
-        )}
+        backdropComponent={renderBackdrop}
       >
         <BottomSheetScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 20 }}>
           {/* Ride name + date */}
@@ -490,7 +493,7 @@ export default function RideDetailScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {stats.map(({ icon: Icon, label, value }, index) => {
               const chartKey = STAT_CHART_MAP[label] ?? null;
-              const isTappable = chartKey !== null && hasWaypointChartData;
+              const hasChart = chartKey !== null;
 
               return (
                 <Animated.View
@@ -499,19 +502,22 @@ export default function RideDetailScreen() {
                   style={{ flexBasis: '47%', flexGrow: 1 }}
                 >
                   <Pressable
-                    onPress={chartKey ? () => handleStatTap(chartKey) : undefined}
+                    onPress={hasChart ? () => handleStatTap(chartKey) : undefined}
                     accessibilityRole="button"
-                    accessibilityHint={isTappable ? 'Double tap to view chart' : undefined}
-                    disabled={!isTappable}
+                    accessibilityHint={hasChart ? 'Double tap to view chart' : undefined}
+                    disabled={!hasChart}
                     style={({ pressed }) => ({
-                      backgroundColor: pressed ? palette.surfaceHover : palette.surfaceSubtle,
+                      backgroundColor:
+                        pressed && hasChart ? palette.surfaceHover : palette.surfaceSubtle,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       padding: 14,
                       gap: 6,
                       borderWidth: 1,
                       borderColor:
-                        activeChart === chartKey ? palette.accent500 : palette.surfaceElevated,
+                        hasChart && activeChart === chartKey
+                          ? palette.accent500
+                          : palette.surfaceElevated,
                     })}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -543,17 +549,18 @@ export default function RideDetailScreen() {
           </View>
 
           {/* Active chart (conditionally rendered) */}
-          {activeChart === 'speed' && waypoints.length >= 10 && (
-            <Animated.View entering={FadeInUp.duration(250)}>
-              <RideSpeedChart waypoints={waypoints} system={system} />
-            </Animated.View>
+          {activeChart && waypointsLoading && (
+            <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={palette.accent500} />
+            </View>
           )}
-          {activeChart === 'elevation' && waypoints.length >= 10 && (
-            <Animated.View entering={FadeInUp.duration(250)}>
-              <RideElevationChart waypoints={waypoints} system={system} />
-            </Animated.View>
+          {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 10 && (
+            <RideSpeedChart waypoints={waypoints} system={system} />
           )}
-          {activeChart && waypoints.length < 10 && !waypointsLoading && (
+          {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 10 && (
+            <RideElevationChart waypoints={waypoints} system={system} />
+          )}
+          {activeChart && !waypointsLoading && waypoints.length < 10 && (
             <View
               style={{
                 backgroundColor: palette.surfaceSubtle,
@@ -561,7 +568,6 @@ export default function RideDetailScreen() {
                 borderCurve: 'continuous',
                 padding: 20,
                 alignItems: 'center',
-                justifyContent: 'center',
                 borderWidth: 1,
                 borderColor: palette.surfaceElevated,
               }}
@@ -569,11 +575,6 @@ export default function RideDetailScreen() {
               <Text style={{ color: palette.neutral500, fontSize: 14 }}>
                 Insufficient data for chart
               </Text>
-            </View>
-          )}
-          {activeChart && waypointsLoading && (
-            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={palette.accent500} />
             </View>
           )}
 

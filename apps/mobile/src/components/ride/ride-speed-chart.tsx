@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { memo, useMemo } from 'react';
-import { Dimensions, Text } from 'react-native';
+import { Text, useWindowDimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { formatSpeedValue, speedUnitLabel } from '../../utils/ride-formatters';
@@ -15,17 +15,18 @@ interface RideSpeedChartProps {
 }
 
 const CHART_HEIGHT = 180;
-const CHART_WIDTH = Dimensions.get('window').width - 72;
 
 export const RideSpeedChart = memo(function RideSpeedChart({
   waypoints,
   system,
 }: RideSpeedChartProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const chartWidth = screenWidth - 72;
   const unit = speedUnitLabel(system);
 
   const { chartData, xLabels, maxVal, spacing } = useMemo(() => {
     const valid = waypoints.filter((wp) => wp.speedMps != null);
-    if (valid.length < 10) return { chartData: [], xLabels: [], maxVal: 0, spacing: 0 };
+    if (valid.length < 2) return { chartData: [], xLabels: [], maxVal: 0, spacing: 0 };
 
     const startTime = new Date(valid[0].recordedAt).getTime();
 
@@ -48,57 +49,18 @@ export const RideSpeedChart = memo(function RideSpeedChart({
       const elapsed = Math.round((new Date(sampled[i].recordedAt).getTime() - startTime) / 60_000);
       labels[i] = `${elapsed}m`;
     }
-    const lastElapsed = Math.round(
+    labels[sampled.length - 1] = `${Math.round(
       (new Date(sampled[sampled.length - 1].recordedAt).getTime() - startTime) / 60_000,
-    );
-    labels[sampled.length - 1] = `${lastElapsed}m`;
+    )}m`;
 
     const peak = Math.max(...data.map((d) => d.value), 1);
     const rounded = Math.ceil(peak / 20) * 20 || 80;
-
-    // Calculate spacing to fill width
-    const sp = sampled.length > 1 ? (CHART_WIDTH - 16) / (sampled.length - 1) : 4;
+    const sp = sampled.length > 1 ? (chartWidth - 16) / (sampled.length - 1) : 4;
 
     return { chartData: data, xLabels: labels, maxVal: rounded, spacing: sp };
-  }, [waypoints, system]);
+  }, [waypoints, system, chartWidth]);
 
-  if (chartData.length === 0) {
-    return (
-      <Animated.View
-        entering={FadeInUp.duration(200)}
-        style={{
-          backgroundColor: palette.surfaceSubtle,
-          borderRadius: 16,
-          borderCurve: 'continuous',
-          padding: 16,
-          borderWidth: 1,
-          borderColor: palette.surfaceElevated,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 15,
-            color: palette.neutral400,
-          }}
-        >
-          Speed ({unit})
-        </Text>
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontSize: 13,
-            color: palette.neutral500,
-            marginTop: 12,
-            textAlign: 'center',
-          }}
-        >
-          Insufficient data
-        </Text>
-      </Animated.View>
-    );
-  }
+  if (chartData.length === 0) return null;
 
   return (
     <Animated.View
@@ -128,12 +90,12 @@ export const RideSpeedChart = memo(function RideSpeedChart({
         curved
         data={chartData}
         height={CHART_HEIGHT}
-        width={CHART_WIDTH}
+        width={chartWidth}
         hideDataPoints
         thickness={2}
         color={palette.accent500}
         startFillColor={palette.accentTint}
-        endFillColor="rgba(45,158,120,0)"
+        endFillColor={palette.accentTintZero}
         startOpacity={0.4}
         endOpacity={0}
         isAnimated

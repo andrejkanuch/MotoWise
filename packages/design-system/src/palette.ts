@@ -75,6 +75,8 @@ export const palette = {
   signature600: '#B85226',
   signatureBgLight: '#FFF1EB',
   signatureBgDark: '#3B1A0A',
+  signatureTint: 'rgba(212,98,46,0.12)',
+  signatureTintZero: 'rgba(212,98,46,0)',
 
   // Indigo (onboarding accent)
   indigo400: '#818CF8',
@@ -104,6 +106,7 @@ export const palette = {
   accentTint: 'rgba(45,158,120,0.12)',
   accentTintLight: 'rgba(45,158,120,0.08)',
   accentTintSubtle: 'rgba(45,158,120,0.1)',
+  accentTintZero: 'rgba(45,158,120,0)',
   warningBorder: 'rgba(245,158,11,0.2)',
 
   // Interactive states

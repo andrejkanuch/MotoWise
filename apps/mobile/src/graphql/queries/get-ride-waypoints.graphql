@@ -5,6 +5,5 @@ query GetRideWaypoints($rideId: String!, $maxPoints: Int) {
     longitude
     altitude
     speedMps
-    accuracy
   }
 }
