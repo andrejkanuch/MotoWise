@@ -27,9 +27,9 @@ jest.mock('../utils/ride-sync-queue', () => ({
   enqueue: jest.fn(),
 }));
 
+import { useRideStore } from '../stores/ride.store';
 import { distanceMeters } from '../utils/ride-location';
 import { CHUNK_SIZE, RIDE_KEYS } from '../utils/ride-storage';
-import { useRideStore } from '../stores/ride.store';
 
 // --- distanceMeters (haversine) ---
 

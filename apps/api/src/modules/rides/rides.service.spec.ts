@@ -324,9 +324,7 @@ describe('RidesService', () => {
     it('should throw BadRequestException for invalid cursor', async () => {
       const invalidCursor = Buffer.from('not-a-date').toString('base64');
 
-      await expect(service.myRides(userId, 20, invalidCursor)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.myRides(userId, 20, invalidCursor)).rejects.toThrow(BadRequestException);
     });
   });
 

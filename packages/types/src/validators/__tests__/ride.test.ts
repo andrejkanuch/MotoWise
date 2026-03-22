@@ -91,15 +91,11 @@ describe('EndRideInputSchema', () => {
   });
 
   it('rejects negative distanceM', () => {
-    expect(() =>
-      EndRideInputSchema.parse({ ...validEndRide, distanceM: -1 }),
-    ).toThrow();
+    expect(() => EndRideInputSchema.parse({ ...validEndRide, distanceM: -1 })).toThrow();
   });
 
   it('rejects maxSpeedMps > 200', () => {
-    expect(() =>
-      EndRideInputSchema.parse({ ...validEndRide, maxSpeedMps: 201 }),
-    ).toThrow();
+    expect(() => EndRideInputSchema.parse({ ...validEndRide, maxSpeedMps: 201 })).toThrow();
   });
 
   it('rejects missing required fields', () => {
@@ -137,21 +133,15 @@ describe('WaypointSchema', () => {
   });
 
   it('rejects latitude > 90', () => {
-    expect(() =>
-      WaypointSchema.parse({ ...validWaypoint, latitude: 91 }),
-    ).toThrow();
+    expect(() => WaypointSchema.parse({ ...validWaypoint, latitude: 91 })).toThrow();
   });
 
   it('rejects longitude > 180', () => {
-    expect(() =>
-      WaypointSchema.parse({ ...validWaypoint, longitude: 181 }),
-    ).toThrow();
+    expect(() => WaypointSchema.parse({ ...validWaypoint, longitude: 181 })).toThrow();
   });
 
   it('rejects invalid recordedAt', () => {
-    expect(() =>
-      WaypointSchema.parse({ ...validWaypoint, recordedAt: 'bad-date' }),
-    ).toThrow();
+    expect(() => WaypointSchema.parse({ ...validWaypoint, recordedAt: 'bad-date' })).toThrow();
   });
 });
 
@@ -180,16 +170,12 @@ describe('UploadWaypointsInputSchema', () => {
   });
 
   it('rejects empty array', () => {
-    expect(() =>
-      UploadWaypointsInputSchema.parse({ rideId: validUuid, waypoints: [] }),
-    ).toThrow();
+    expect(() => UploadWaypointsInputSchema.parse({ rideId: validUuid, waypoints: [] })).toThrow();
   });
 
   it('rejects more than 500 waypoints', () => {
     const waypoints = Array.from({ length: 501 }, (_, i) => makeWaypoint(i % 90));
-    expect(() =>
-      UploadWaypointsInputSchema.parse({ rideId: validUuid, waypoints }),
-    ).toThrow();
+    expect(() => UploadWaypointsInputSchema.parse({ rideId: validUuid, waypoints })).toThrow();
   });
 });
 
