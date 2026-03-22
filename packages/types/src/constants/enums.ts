@@ -148,6 +148,12 @@ export const MileageUnit = {
 } as const;
 export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit];
 
+export const MeasurementSystem = {
+  METRIC: 'metric',
+  IMPERIAL: 'imperial',
+} as const;
+export type MeasurementSystem = (typeof MeasurementSystem)[keyof typeof MeasurementSystem];
+
 /**
  * CANCELLED: User opted out but period hasn't ended (may still have access).
  * EXPIRED: Billing period ended without renewal (no access).

@@ -81,6 +81,39 @@ export const palette = {
   indigo500: '#6366F1',
   indigoBg: 'rgba(99,102,241,0.15)',
 
+  // Night mode (amber-red for riding without destroying night vision)
+  nightText: '#D44A1A',
+  nightBg: '#0D0604',
+  nightAccent: '#7A2A0A',
+  nightGlow: 'rgba(212,74,26,0.08)',
+
+  // Speed gradient (route visualization)
+  speedSlow: '#3b82f6',
+  speedMedium: '#22c55e',
+  speedFast: '#f97316',
+
+  // Elevated surfaces (dark mode depth)
+  surfaceElevated: 'rgba(255,255,255,0.06)',
+  surfaceSubtle: 'rgba(255,255,255,0.04)',
+  surfacePressed: 'rgba(255,255,255,0.05)',
+  surfaceHover: 'rgba(255,255,255,0.08)',
+  surfaceOverlay: 'rgba(0,0,0,0.6)',
+  surfaceProgressFill: 'rgba(0,0,0,0.3)',
+
+  // Accent tints (transparent overlays)
+  accentTint: 'rgba(45,158,120,0.12)',
+  accentTintLight: 'rgba(45,158,120,0.08)',
+  accentTintSubtle: 'rgba(45,158,120,0.1)',
+  warningBorder: 'rgba(245,158,11,0.2)',
+
+  // Interactive states
+  iconMuted: 'rgba(255,255,255,0.5)',
+  controlBg: 'rgba(255,255,255,0.1)',
+  controlBgActive: 'rgba(255,255,255,0.15)',
+
+  // Ride HUD
+  hudGlow: 'rgba(45,158,120,0.06)',
+
   // Surfaces
   surfaceDark: '#0F172A',
   cardDark: '#1E293B',

@@ -1,12 +1,19 @@
 import { palette } from '@motovault/design-system';
-import { MyRidesDocument } from '@motovault/graphql';
+import { type MyRidesQuery, MyRidesDocument } from '@motovault/graphql';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { MapPin, Search } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { ArrowLeft, Calendar, Navigation, TrendingUp } from 'lucide-react-native';
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
+import {
+  distanceUnitLabel,
+  formatDistanceValue,
+  formatDuration as fmtDuration,
+} from '../../../utils/ride-formatters';
 import { RideCard } from '../../../components/ride/ride-card';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -15,62 +22,90 @@ import { useSubscriptionStore } from '../../../stores/subscription.store';
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
 
-type RideEdge = {
-  node: {
-    id: string;
-    status: string;
-    name?: string | null;
-    startedAt: string;
-    endedAt?: string | null;
-    distanceM?: number | null;
-    maxSpeedMps?: number | null;
-    avgSpeedMps?: number | null;
-    elevationGain?: number | null;
-    pausedDurationS?: number | null;
-    autoPausedDurationS?: number | null;
-    durationS?: number | null;
-    motorcycleId?: string | null;
-    routeThumbnailUri?: string | null;
-    gpsQuality?: number | null;
-  };
-  cursor: string;
-};
+/** Extract the edge type from the generated MyRidesQuery */
+type RideEdge = MyRidesQuery['myRides']['edges'][number];
+
+/** Compute weekly/monthly/total stats from ride edges */
+function useRideStats(edges: RideEdge[]) {
+  return useMemo(() => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let weekDistance = 0;
+    let weekRides = 0;
+    let weekDuration = 0;
+    let monthDistance = 0;
+    let monthRides = 0;
+    let totalDistance = 0;
+
+    for (const edge of edges) {
+      const d = new Date(edge.node.startedAt);
+      const dist = edge.node.distanceM ?? 0;
+      const dur = edge.node.durationS ?? 0;
+      totalDistance += dist;
+
+      if (d >= weekStart) {
+        weekDistance += dist;
+        weekRides++;
+        weekDuration += dur;
+      }
+      if (d >= monthStart) {
+        monthDistance += dist;
+        monthRides++;
+      }
+    }
+
+    return {
+      weekDistance,
+      weekRides,
+      weekDuration,
+      monthDistance,
+      monthRides,
+      totalDistance,
+      totalRides: edges.length,
+    };
+  }, [edges]);
+}
 
 export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const isPro = useSubscriptionStore((s) => s.isPro);
-  const [searchVisible, setSearchVisible] = useState(false);
+
+  const system = useMeasurementSystem();
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
-    useInfiniteQuery({
+    useInfiniteQuery<MyRidesQuery>({
       queryKey: queryKeys.rides.all,
       queryFn: ({ pageParam }) =>
         gqlFetcher(MyRidesDocument, {
           first: PAGE_SIZE,
-          after: pageParam ?? null,
-          // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen variables type mismatch
-        } as any),
+          after: (pageParam as string) ?? null,
+        }),
       initialPageParam: undefined as string | undefined,
-      // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen return type untyped for infinite query
-      getNextPageParam: (lastPage: any) => {
+      getNextPageParam: (lastPage) => {
         const pageInfo = lastPage?.myRides?.pageInfo;
-        return pageInfo?.hasNextPage ? pageInfo.endCursor : undefined;
+        if (!pageInfo?.hasNextPage) return undefined;
+        return pageInfo.endCursor ?? undefined;
       },
     });
 
-  // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen page type untyped for infinite query
-  const allEdges: RideEdge[] = data?.pages.flatMap((page: any) => page?.myRides?.edges ?? []) ?? [];
-
-  // Free tier: limit to last 10
+  const allEdges = useMemo<RideEdge[]>(
+    () => (data?.pages ?? []).flatMap((page) => page?.myRides?.edges ?? []),
+    [data?.pages],
+  );
   const visibleEdges = isPro ? allEdges : allEdges.slice(0, FREE_TIER_LIMIT);
   const showUpgradeCta = !isPro && allEdges.length > FREE_TIER_LIMIT;
+  const stats = useRideStats(allEdges);
 
   const handleRidePress = useCallback(
     (rideId: string) => {
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
-      const route = { pathname: '/(modals)/ride-summary' as const, params: { rideId } } as any;
-      router.push(route);
+      // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
+      router.push({ pathname: '/(modals)/ride-detail' as const, params: { rideId } } as any);
     },
     [router],
   );
@@ -82,38 +117,205 @@ export default function RidesScreen() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPro]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: RideEdge; index: number }) => (
-      <RideCard
-        ride={{
-          id: item.node.id,
-          userId: '',
-          // biome-ignore lint/suspicious/noExplicitAny: graphql enum type mismatch with local model
-          status: item.node.status as any,
-          name: item.node.name ?? null,
-          startedAt: item.node.startedAt,
-          endedAt: item.node.endedAt ?? null,
-          durationS: item.node.durationS ?? null,
-          distanceM: item.node.distanceM ?? null,
-          maxSpeedMps: item.node.maxSpeedMps ?? null,
-          avgSpeedMps: item.node.avgSpeedMps ?? null,
-          elevationGain: item.node.elevationGain ?? null,
-          elevationLoss: null,
-          pausedDurationS: item.node.pausedDurationS ?? 0,
-          autoPausedDurationS: item.node.autoPausedDurationS ?? 0,
-          routePolyline: null,
-          gpsQuality: item.node.gpsQuality ?? null,
-          mileageApplied: false,
-          isPublic: false,
-          motorcycleId: item.node.motorcycleId ?? null,
-          createdAt: item.node.startedAt,
-          updatedAt: item.node.startedAt,
-          routeThumbnailUri: item.node.routeThumbnailUri,
-        }}
-        index={index}
-        onPress={() => handleRidePress(item.node.id)}
-      />
-    ),
+    ({ item, index }: { item: RideEdge; index: number }) => {
+      const { node } = item;
+      return (
+        <RideCard
+          ride={{
+            id: node.id,
+            userId: '',
+            status: node.status,
+            name: node.name ?? null,
+            startedAt: node.startedAt,
+            endedAt: node.endedAt ?? null,
+            durationS: node.durationS ?? null,
+            distanceM: node.distanceM ?? null,
+            maxSpeedMps: node.maxSpeedMps ?? null,
+            avgSpeedMps: node.avgSpeedMps ?? null,
+            elevationGain: node.elevationGain ?? null,
+            elevationLoss: null,
+            pausedDurationS: node.pausedDurationS,
+            autoPausedDurationS: node.autoPausedDurationS,
+            routePolyline: null,
+            gpsQuality: node.gpsQuality ?? null,
+            mileageApplied: false,
+            isPublic: false,
+            motorcycleId: node.motorcycleId ?? null,
+            createdAt: node.startedAt,
+            updatedAt: node.startedAt,
+            routeThumbnailUri: node.routeThumbnailUri ?? null,
+          }}
+          index={index}
+          onPress={() => handleRidePress(node.id)}
+        />
+      );
+    },
     [handleRidePress],
+  );
+
+  const renderHeader = useCallback(
+    () => (
+      <Animated.View entering={FadeIn.duration(300)} style={{ gap: 16, marginBottom: 16 }}>
+        {/* Stats hero card */}
+        <View
+          style={{
+            backgroundColor: palette.cardDark,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: palette.surfaceElevated,
+            overflow: 'hidden',
+          }}
+        >
+          <View style={{ padding: 20, gap: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Calendar size={16} color={palette.accent500} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color: palette.neutral400,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                This Week
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: '200',
+                    color: palette.white,
+                    fontVariant: ['tabular-nums'],
+                    letterSpacing: -1,
+                  }}
+                >
+                  {formatDistanceValue(stats.weekDistance, system)}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                  {distanceUnitLabel(system)}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: '200',
+                    color: palette.white,
+                    fontVariant: ['tabular-nums'],
+                    letterSpacing: -1,
+                  }}
+                >
+                  {stats.weekRides}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                  ride{stats.weekRides !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              <View>
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: '200',
+                    color: palette.white,
+                    fontVariant: ['tabular-nums'],
+                    letterSpacing: -1,
+                  }}
+                >
+                  {fmtDuration(stats.weekDuration)}
+                </Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                  riding
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Monthly + Total strip */}
+          <View
+            style={{
+              flexDirection: 'row',
+              borderTopWidth: 1,
+              borderTopColor: palette.surfaceElevated,
+            }}
+          >
+            <View
+              style={{
+                flex: 1,
+                padding: 14,
+                alignItems: 'center',
+                borderRightWidth: 1,
+                borderRightColor: palette.surfaceElevated,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: palette.neutral500,
+                  letterSpacing: 0.5,
+                }}
+              >
+                THIS MONTH
+              </Text>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: palette.white,
+                  fontVariant: ['tabular-nums'],
+                  marginTop: 4,
+                }}
+              >
+                {formatDistanceValue(stats.monthDistance, system)}{' '}
+                {distanceUnitLabel(system)}
+              </Text>
+            </View>
+            <View style={{ flex: 1, padding: 14, alignItems: 'center' }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: palette.neutral500,
+                  letterSpacing: 0.5,
+                }}
+              >
+                ALL TIME
+              </Text>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: palette.white,
+                  fontVariant: ['tabular-nums'],
+                  marginTop: 4,
+                }}
+              >
+                {formatDistanceValue(stats.totalDistance, system)}{' '}
+                {distanceUnitLabel(system)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: '700',
+            color: palette.neutral400,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}
+        >
+          Activity
+        </Text>
+      </Animated.View>
+    ),
+    [stats, system],
   );
 
   const renderEmpty = useCallback(() => {
@@ -121,7 +323,7 @@ export default function RidesScreen() {
     return (
       <Animated.View
         entering={FadeInUp.duration(300)}
-        style={{ alignItems: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 16 }}
+        style={{ alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 16 }}
       >
         <View
           style={{
@@ -129,32 +331,20 @@ export default function RidesScreen() {
             height: 72,
             borderRadius: 36,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(45,158,120,0.1)',
+            backgroundColor: palette.surfaceSubtle,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <MapPin size={32} color={palette.accent500} />
+          <Navigation size={32} color={palette.accent500} />
         </View>
-        <Text
-          style={{
-            fontSize: 18,
-            fontWeight: '700',
-            color: palette.white,
-            textAlign: 'center',
-          }}
-        >
+        <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white, textAlign: 'center' }}>
           No rides yet
         </Text>
         <Text
-          style={{
-            fontSize: 15,
-            color: palette.neutral400,
-            textAlign: 'center',
-            lineHeight: 22,
-          }}
+          style={{ fontSize: 15, color: palette.neutral400, textAlign: 'center', lineHeight: 22 }}
         >
-          Start your first ride! Tap the record button on the home screen to begin tracking.
+          Tap the ride button to start tracking your first route, speed, and distance.
         </Text>
       </Animated.View>
     );
@@ -173,45 +363,47 @@ export default function RidesScreen() {
         <Animated.View
           entering={FadeInUp.duration(280)}
           style={{
-            margin: 20,
+            marginTop: 12,
             backgroundColor: palette.cardDark,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             alignItems: 'center',
             gap: 10,
+            borderWidth: 1,
+            borderColor: palette.surfaceElevated,
           }}
         >
+          <TrendingUp size={24} color={palette.signature500} />
           <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-            Upgrade for full history
+            Unlock Full History
           </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: palette.neutral400,
-              textAlign: 'center',
-            }}
-          >
-            Free accounts show the last {FREE_TIER_LIMIT} rides. Unlock unlimited ride history with
-            Pro.
+          <Text style={{ fontSize: 14, color: palette.neutral400, textAlign: 'center' }}>
+            Free accounts show the last {FREE_TIER_LIMIT} rides. Upgrade for unlimited history and
+            stats.
           </Text>
           <Pressable
-            onPress={() =>
-              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-              router.push('/(tabs)/(profile)/upgrade' as any)
-            }
+            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+            onPress={() => router.push('/(tabs)/(profile)/upgrade' as any)}
+            accessibilityRole="button"
+            accessibilityLabel="Upgrade to Pro"
             style={{
-              backgroundColor: palette.signature500,
+              overflow: 'hidden',
               borderRadius: 14,
               borderCurve: 'continuous',
-              paddingHorizontal: 24,
-              paddingVertical: 12,
               marginTop: 4,
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-              Upgrade to Pro
-            </Text>
+            <LinearGradient
+              colors={[palette.signature400, palette.signature500]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{ paddingHorizontal: 24, paddingVertical: 12 }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                Upgrade to Pro
+              </Text>
+            </LinearGradient>
           </Pressable>
         </Animated.View>
       );
@@ -229,24 +421,50 @@ export default function RidesScreen() {
           paddingBottom: 12,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          gap: 12,
         }}
       >
-        <Text style={{ fontSize: 28, fontWeight: '800', color: palette.white }}>My Rides</Text>
         <Pressable
-          onPress={() => setSearchVisible(!searchVisible)}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
+            width: 40,
+            height: 40,
+            borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(255,255,255,0.1)',
+            backgroundColor: palette.surfaceSubtle,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Search size={18} color={palette.neutral400} />
+          <ArrowLeft size={20} color={palette.white} />
         </Pressable>
+        <Text
+          style={{ flex: 1, fontSize: 28, fontWeight: '800', color: palette.white, letterSpacing: -0.5 }}
+        >
+          My Rides
+        </Text>
+        <View
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 10,
+            borderCurve: 'continuous',
+            backgroundColor: palette.surfaceSubtle,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '700',
+              color: palette.accent500,
+              fontVariant: ['tabular-nums'],
+            }}
+          >
+            {stats.totalRides} ride{stats.totalRides !== 1 ? 's' : ''}
+          </Text>
+        </View>
       </View>
 
       {isLoading ? (
@@ -259,10 +477,11 @@ export default function RidesScreen() {
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
-            paddingHorizontal: 16,
+            paddingHorizontal: 20,
             paddingBottom: insets.bottom + 20,
-            gap: 10,
+            gap: 12,
           }}
+          ListHeaderComponent={allEdges.length > 0 ? renderHeader : undefined}
           ListEmptyComponent={renderEmpty}
           ListFooterComponent={renderFooter}
           onEndReached={handleLoadMore}
@@ -271,10 +490,12 @@ export default function RidesScreen() {
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              tintColor={palette.accent500}
+              tintColor={palette.white}
             />
           }
           showsVerticalScrollIndicator={false}
+          windowSize={7}
+          maxToRenderPerBatch={5}
         />
       )}
     </View>

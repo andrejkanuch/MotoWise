@@ -31,8 +31,8 @@ export function HudControls({
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPressed = useRef(false);
 
-  const accentColor = isNightMode ? '#CC0000' : palette.white;
-  const endBg = isNightMode ? '#990000' : palette.danger500;
+  const accentColor = isNightMode ? palette.nightText : palette.white;
+  const endBg = isNightMode ? palette.nightAccent : palette.danger500;
 
   const handlePauseResume = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
@@ -91,12 +91,14 @@ export function HudControls({
       {/* Pause / Resume */}
       <Pressable
         onPress={handlePauseResume}
+        accessibilityRole="button"
+        accessibilityLabel={isPaused ? 'Resume ride' : 'Pause ride'}
         style={{
           width: 64,
           height: 64,
           borderRadius: 32,
           borderCurve: 'continuous',
-          backgroundColor: 'rgba(255,255,255,0.15)',
+          backgroundColor: palette.controlBgActive,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -108,6 +110,9 @@ export function HudControls({
       <Pressable
         onPressIn={handleEndPressIn}
         onPressOut={handleEndPressOut}
+        accessibilityRole="button"
+        accessibilityLabel="Hold to end ride"
+        accessibilityHint="Press and hold for 2 seconds to finish your ride"
         style={{
           height: 64,
           minWidth: 160,
@@ -127,7 +132,7 @@ export function HudControls({
               left: 0,
               top: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0,0,0,0.3)',
+              backgroundColor: palette.surfaceProgressFill,
             },
             progressStyle,
           ]}

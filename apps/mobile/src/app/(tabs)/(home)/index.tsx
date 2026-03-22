@@ -17,6 +17,7 @@ import { FleetHealthHero } from '../../../components/home/fleet-health-hero';
 import { GreetingHeader } from '../../../components/home/greeting-header';
 import { MaintenanceSummary } from '../../../components/home/maintenance-summary';
 import { MileageOverview } from '../../../components/home/mileage-overview';
+import { RecentRidesWidget } from '../../../components/home/recent-rides-widget';
 import { NextServiceDue } from '../../../components/home/next-service-due';
 import { PriorityActionCard } from '../../../components/home/priority-action-card';
 import { SetupCtaBanner } from '../../../components/home/setup-cta-banner';
@@ -46,6 +47,8 @@ export default function HomeScreen() {
     sortedTasks,
     bikeNames,
     articles,
+    recentRides,
+    ridesTotalDistance,
     router,
   } = useHomeData();
 
@@ -87,7 +90,7 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor={palette.primary500}
+            tintColor={isDark ? palette.white : palette.primary500}
           />
         }
       >
@@ -150,6 +153,16 @@ export default function HomeScreen() {
             />
           </View>
         )}
+
+        {/* Recent Rides */}
+        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <RecentRidesWidget
+            rides={recentRides}
+            totalDistanceM={ridesTotalDistance}
+            totalRides={recentRides.length}
+            isDark={isDark}
+          />
+        </View>
 
         {hasMotorcycles && (
           <View style={{ paddingHorizontal: 20, marginTop: 20 }}>

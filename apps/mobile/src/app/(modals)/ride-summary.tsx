@@ -1,58 +1,53 @@
 import { palette } from '@motovault/design-system';
-import { UpdateRideDocument } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Clock, Gauge, Map as MapIcon, Mountain, Route, Share2 } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import {
+  Check,
+  Clock,
+  Gauge,
+  Map as MapIcon,
+  Mountain,
+  Route,
+  Share2,
+  Trash2,
+} from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MileagePrompt } from '../../components/ride/mileage-prompt';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import {
+  formatDistance,
+  formatDuration,
+  formatElevation,
+  formatSpeed,
+} from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
+import { type MapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { enqueue } from '../../utils/ride-sync-queue';
 
-type MapStyle = 'dark' | 'outdoors' | 'satellite';
-
-const MAP_STYLES: Record<MapStyle, string> = {
-  dark: 'mapbox://styles/mapbox/dark-v11',
-  outdoors: 'mapbox://styles/mapbox/outdoors-v12',
-  satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
-};
-
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
-
-function formatDistance(meters: number): string {
-  const miles = meters / 1609.34;
-  return miles < 10 ? `${miles.toFixed(1)} mi` : `${Math.round(miles)} mi`;
-}
-
-function formatSpeed(mps: number): string {
-  const mph = mps * 2.237;
-  return `${Math.round(mph)} mph`;
-}
-
-function formatElevation(meters: number): string {
-  const feet = meters * 3.281;
-  return `${Math.round(feet)} ft`;
-}
-
-function defaultRideName(startedAt: number, distanceM: number): string {
+/** Smart ride naming using time-of-day */
+function smartRideName(startedAt: number): string {
   const date = new Date(startedAt);
-  const month = date.toLocaleDateString(undefined, { month: 'short' });
-  const day = date.getDate();
-  const miles = Math.round(distanceM / 1609.34);
-  return `${month} ${day} \u2014 ${miles} mi`;
+  const hour = date.getHours();
+  const dayName = date.toLocaleDateString(undefined, { weekday: 'long' });
+
+  let timeOfDay: string;
+  if (hour < 6) timeOfDay = 'Night';
+  else if (hour < 12) timeOfDay = 'Morning';
+  else if (hour < 17) timeOfDay = 'Afternoon';
+  else if (hour < 21) timeOfDay = 'Evening';
+  else timeOfDay = 'Night';
+
+  return `${dayName} ${timeOfDay} Ride`;
 }
 
 export default function RideSummaryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const system = useMeasurementSystem();
   const params = useLocalSearchParams<{
     rideId: string;
     distanceM: string;
@@ -72,10 +67,16 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
 
   const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
-  const [rideName, setRideName] = useState(defaultRideName(startedAtMs, distanceM));
-  const [showMileagePrompt, setShowMileagePrompt] = useState(false);
+  const [rideName, setRideName] = useState(smartRideName(startedAtMs));
   const [isSaving, setIsSaving] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(true);
   const mapRef = useRef<MapboxGL.MapView>(null);
+
+  // Auto-dismiss celebration after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCelebration(false), 2200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Build route from stored waypoints
   const routeData = useMemo(() => {
@@ -89,13 +90,11 @@ export default function RideSummaryScreen() {
     const coordinates: [number, number][] = [];
     const speedValues: number[] = [];
 
-    // Compute bounds using for-loop (NOT Math.max(...array) — crashes at 10k elements)
     let minLng = combined[0].longitude;
     let maxLng = combined[0].longitude;
     let minLat = combined[0].latitude;
     let maxLat = combined[0].latitude;
 
-    // Cumulative distance for gradient
     let cumulativeDistance = 0;
     const distances: number[] = [0];
 
@@ -119,18 +118,16 @@ export default function RideSummaryScreen() {
       }
     }
 
-    // Build speed-gradient color stops
+    // Speed-gradient color stops
     const totalDist = cumulativeDistance || 1;
     const colorStops: [number, string][] = [];
     for (let i = 0; i < combined.length; i++) {
       const pct = distances[i] / totalDist;
       const speedKmh = (speedValues[i] ?? 0) * 3.6;
       let color: string;
-      if (speedKmh < 30)
-        color = '#3b82f6'; // blue
-      else if (speedKmh < 80)
-        color = '#22c55e'; // green
-      else color = '#f97316'; // orange
+      if (speedKmh < 30) color = palette.speedSlow;
+      else if (speedKmh < 80) color = palette.speedMedium;
+      else color = palette.speedFast;
       colorStops.push([pct, color]);
     }
 
@@ -162,7 +159,7 @@ export default function RideSummaryScreen() {
     }
     try {
       await Share.share({
-        message: `Just completed a ${formatDistance(distanceM)} ride in ${formatDuration(durationS)} with MotoVault!`,
+        message: `Just completed a ${formatDistance(distanceM, system)} ride in ${formatDuration(durationS)} with MotoVault!`,
       });
     } catch {
       // User cancelled
@@ -176,8 +173,7 @@ export default function RideSummaryScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      enqueue('updateRide' as 'endRide', {
-        mutationDocument: UpdateRideDocument,
+      enqueue('updateRide', {
         variables: {
           input: {
             rideId,
@@ -186,10 +182,8 @@ export default function RideSummaryScreen() {
         },
       });
 
-      // Clean up MMKV
       clearRideData(rideId);
 
-      // Navigate back
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(tabs)/(profile)' as any);
     } catch (error) {
@@ -199,6 +193,21 @@ export default function RideSummaryScreen() {
     }
   }, [rideId, rideName, router]);
 
+  const handleDiscard = useCallback(() => {
+    Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Discard',
+        style: 'destructive',
+        onPress: () => {
+          clearRideData(rideId);
+          // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+          router.replace('/(tabs)/(profile)' as any);
+        },
+      },
+    ]);
+  }, [rideId, router]);
+
   const cycleMapStyle = useCallback(() => {
     const styles: MapStyle[] = ['dark', 'outdoors', 'satellite'];
     const idx = styles.indexOf(mapStyle);
@@ -206,21 +215,100 @@ export default function RideSummaryScreen() {
   }, [mapStyle]);
 
   const stats = [
-    { icon: Route, label: 'Distance', value: formatDistance(distanceM) },
+    { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
     { icon: Clock, label: 'Moving Time', value: formatDuration(durationS) },
-    { icon: Gauge, label: 'Avg Speed', value: formatSpeed(avgSpeedMps) },
-    { icon: Gauge, label: 'Max Speed', value: formatSpeed(maxSpeedMps) },
-    { icon: Mountain, label: 'Elev. Gain', value: formatElevation(elevationGain) },
+    { icon: Gauge, label: 'Avg Speed', value: formatSpeed(avgSpeedMps, system) },
+    { icon: Gauge, label: 'Max Speed', value: formatSpeed(maxSpeedMps, system) },
+    { icon: Mountain, label: 'Elevation', value: formatElevation(elevationGain, system) },
   ];
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+      {/* Celebration overlay */}
+      {showCelebration && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 100,
+            backgroundColor: palette.surfaceDark,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 20,
+          }}
+        >
+          <Animated.View
+            entering={ZoomIn.springify().damping(12)}
+            style={{
+              width: 88,
+              height: 88,
+              borderRadius: 44,
+              backgroundColor: palette.accent500,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Check size={44} color={palette.white} strokeWidth={3} />
+          </Animated.View>
+          <Animated.Text
+            entering={FadeInUp.delay(200).duration(300)}
+            style={{
+              fontSize: 28,
+              fontWeight: '800',
+              color: palette.white,
+              letterSpacing: -0.5,
+            }}
+          >
+            Ride Complete!
+          </Animated.Text>
+          <Animated.View
+            entering={FadeIn.delay(400).duration(300)}
+            style={{ flexDirection: 'row', gap: 24 }}
+          >
+            <View style={{ alignItems: 'center' }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '700',
+                  color: palette.white,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDistance(distanceM, system)}
+              </Text>
+              <Text style={{ fontSize: 13, color: palette.neutral400, marginTop: 2 }}>
+                Distance
+              </Text>
+            </View>
+            <View style={{ width: 1, height: 40, backgroundColor: palette.surfaceElevated }} />
+            <View style={{ alignItems: 'center' }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '700',
+                  color: palette.white,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDuration(durationS)}
+              </Text>
+              <Text style={{ fontSize: 13, color: palette.neutral400, marginTop: 2 }}>
+                Duration
+              </Text>
+            </View>
+          </Animated.View>
+        </View>
+      )}
+
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Map (top 60%) */}
-        <View style={{ height: 420, position: 'relative' }}>
+        {/* Map */}
+        <View style={{ height: 380, position: 'relative' }}>
           <MapboxGL.MapView
             ref={mapRef}
             style={{ flex: 1 }}
@@ -291,49 +379,66 @@ export default function RideSummaryScreen() {
             )}
           </MapboxGL.MapView>
 
-          {/* Map style toggle */}
-          <Pressable
-            onPress={cycleMapStyle}
+          {/* Bottom gradient fade into content */}
+          <LinearGradient
+            colors={['transparent', palette.surfaceDark]}
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 60,
+            }}
+          />
+
+          {/* Map controls */}
+          <View
             style={{
               position: 'absolute',
               top: insets.top + 12,
               right: 16,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.6)',
-              alignItems: 'center',
-              justifyContent: 'center',
+              gap: 8,
             }}
           >
-            <MapIcon size={18} color={palette.white} />
-          </Pressable>
-
-          {/* Share button */}
-          <Pressable
-            onPress={handleShare}
-            style={{
-              position: 'absolute',
-              top: insets.top + 12,
-              right: 64,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.6)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Share2 size={18} color={palette.white} />
-          </Pressable>
+            <Pressable
+              onPress={cycleMapStyle}
+              accessibilityRole="button"
+              accessibilityLabel="Change map style"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderCurve: 'continuous',
+                backgroundColor: palette.surfaceOverlay,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MapIcon size={18} color={palette.white} />
+            </Pressable>
+            <Pressable
+              onPress={handleShare}
+              accessibilityRole="button"
+              accessibilityLabel="Share ride"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderCurve: 'continuous',
+                backgroundColor: palette.surfaceOverlay,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Share2 size={18} color={palette.white} />
+            </Pressable>
+          </View>
         </View>
 
-        {/* Stats overlay */}
+        {/* Content */}
         <Animated.View
-          entering={FadeInUp.delay(200).duration(300)}
-          style={{ paddingHorizontal: 20, marginTop: -24 }}
+          entering={SlideInUp.delay(showCelebration ? 2200 : 200).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: -32 }}
         >
           <View
             style={{
@@ -341,95 +446,115 @@ export default function RideSummaryScreen() {
               borderRadius: 24,
               borderCurve: 'continuous',
               padding: 20,
-              gap: 16,
+              gap: 20,
+              borderWidth: 1,
+              borderColor: palette.surfaceElevated,
             }}
           >
-            {/* Stats grid */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+            {/* Ride name */}
+            <View>
+              <TextInput
+                value={rideName}
+                onChangeText={setRideName}
+                placeholder="Name your ride..."
+                placeholderTextColor={palette.neutral600}
+                maxLength={100}
+                accessibilityLabel="Ride name"
+                style={{
+                  backgroundColor: palette.surfaceSubtle,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  padding: 14,
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: palette.white,
+                  borderWidth: 1,
+                  borderColor: palette.surfaceElevated,
+                }}
+              />
+            </View>
+
+            {/* Stats grid — proper flexbox */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
               {stats.map(({ icon: Icon, label, value }) => (
                 <View
                   key={label}
                   style={{
-                    width: '47%',
-                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    flexBasis: '47%',
+                    flexGrow: 1,
+                    backgroundColor: palette.surfaceSubtle,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 14,
                     gap: 6,
+                    borderWidth: 1,
+                    borderColor: palette.surfaceElevated,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon size={14} color={palette.neutral400} />
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral400 }}>
+                    <Icon size={14} color={palette.neutral500} />
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral500 }}>
                       {label}
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 20, fontWeight: '800', color: palette.white }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: '800',
+                      color: palette.white,
+                      fontVariant: ['tabular-nums'],
+                    }}
+                  >
                     {value}
                   </Text>
                 </View>
               ))}
             </View>
 
-            {/* Ride name */}
-            <View>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: palette.neutral400,
-                  marginBottom: 8,
-                }}
-              >
-                Ride Name
-              </Text>
-              <TextInput
-                value={rideName}
-                onChangeText={setRideName}
-                placeholder="Name your ride..."
-                placeholderTextColor={palette.neutral600}
-                style={{
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  padding: 14,
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: palette.white,
-                }}
-              />
-            </View>
-
-            {/* Mileage prompt toggle */}
-            {showMileagePrompt && (
-              <MileagePrompt
-                currentMileage={0}
-                rideDistance={distanceM / 1609.34}
-                mileageUnit="mi"
-                gpsQuality={1}
-                onAccept={() => setShowMileagePrompt(false)}
-                onEdit={() => setShowMileagePrompt(false)}
-                onSkip={() => setShowMileagePrompt(false)}
-              />
-            )}
-
-            {/* Save button */}
+            {/* Action buttons */}
             <Pressable
               onPress={handleSave}
               disabled={isSaving}
+              accessibilityRole="button"
+              accessibilityLabel={isSaving ? 'Saving ride' : 'Save ride'}
               style={({ pressed }) => ({
-                backgroundColor: palette.accent500,
                 borderRadius: 20,
                 borderCurve: 'continuous',
-                paddingVertical: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
+                overflow: 'hidden',
                 opacity: isSaving ? 0.5 : pressed ? 0.85 : 1,
               })}
             >
-              <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-                {isSaving ? 'Saving...' : 'Save Ride'}
-              </Text>
+              <LinearGradient
+                colors={[palette.accent400, palette.accent500]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
+                  {isSaving ? 'Saving...' : 'Save Ride'}
+                </Text>
+              </LinearGradient>
+            </Pressable>
+
+            {/* Discard option */}
+            <Pressable
+              onPress={handleDiscard}
+              accessibilityRole="button"
+              accessibilityLabel="Discard ride"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                paddingVertical: 8,
+              }}
+            >
+              <Trash2 size={14} color={palette.neutral500} />
+              <Text style={{ fontSize: 14, color: palette.neutral500 }}>Discard Ride</Text>
             </Pressable>
           </View>
         </Animated.View>

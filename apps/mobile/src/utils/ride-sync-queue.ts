@@ -1,11 +1,11 @@
-import { EndRideDocument, StartRideDocument, UploadWaypointsDocument } from '@motovault/graphql';
+import { DeleteRideDocument, EndRideDocument, StartRideDocument, UpdateRideDocument, UploadWaypointsDocument } from '@motovault/graphql';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';
 
 // --- Types ---
 
-type SyncOperationType = 'startRide' | 'uploadWaypoints' | 'endRide';
+type SyncOperationType = 'startRide' | 'uploadWaypoints' | 'endRide' | 'updateRide' | 'deleteRide';
 
 // Lookup map: resolve GraphQL documents from operation type string.
 // TypedDocumentNode objects can't be serialized to MMKV JSON, so we
@@ -15,6 +15,8 @@ const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, any> = {
   startRide: StartRideDocument,
   uploadWaypoints: UploadWaypointsDocument,
   endRide: EndRideDocument,
+  updateRide: UpdateRideDocument,
+  deleteRide: DeleteRideDocument,
 };
 
 interface SyncOperation {

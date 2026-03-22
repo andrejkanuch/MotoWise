@@ -14,6 +14,7 @@ export default function ModalsLayout() {
         options={{ presentation: 'fullScreenModal', gestureEnabled: false }}
       />
       <Stack.Screen name="ride-summary" />
+      <Stack.Screen name="ride-detail" />
     </Stack>
   );
 }

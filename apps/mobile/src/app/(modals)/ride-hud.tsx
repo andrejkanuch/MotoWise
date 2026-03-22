@@ -1,6 +1,5 @@
 import { palette } from '@motovault/design-system';
 import { EndRideDocument } from '@motovault/graphql';
-import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
@@ -28,23 +27,17 @@ import {
   rideMMKV,
 } from '../../utils/ride-storage';
 import { enqueue } from '../../utils/ride-sync-queue';
-
-function formatElapsed(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
-
-function formatDistance(meters: number): string {
-  const miles = meters / 1609.34;
-  return miles < 10 ? `${miles.toFixed(1)} mi` : `${Math.round(miles)} mi`;
-}
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import {
+  formatDistance,
+  formatElapsed,
+  formatSpeed,
+} from '../../utils/ride-formatters';
 
 export default function RideHudScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const system = useMeasurementSystem();
   const status = useRideStore((s) => s.status);
   const distance = useRideStore((s) => s.distance);
   const isNightMode = useRideStore((s) => s.isNightMode);
@@ -55,12 +48,9 @@ export default function RideHudScreen() {
   const resumeRide = useRideStore((s) => s.resumeRide);
   const endRide = useRideStore((s) => s.endRide);
   const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
-  const updateDistance = useRideStore((s) => s.updateDistance);
   const _updateSpeed = useRideStore((s) => s.updateSpeed);
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [waypoints, _setWaypoints] = useState<Waypoint[]>([]);
-  const [gpsAccuracy, _setGpsAccuracy] = useState(100);
   const [showAvgStats, setShowAvgStats] = useState(false);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedRef = useRef(0);
@@ -104,19 +94,6 @@ export default function RideHudScreen() {
       pausedAtRef.current = null;
     }
   }, [isPaused]);
-
-  // Calculate distance from waypoints
-  useEffect(() => {
-    if (waypoints.length < 2) return;
-    let total = 0;
-    for (let i = 1; i < waypoints.length; i++) {
-      total += distanceMeters(
-        { lat: waypoints[i - 1].latitude, lng: waypoints[i - 1].longitude },
-        { lat: waypoints[i].latitude, lng: waypoints[i].longitude },
-      );
-    }
-    updateDistance(total);
-  }, [waypoints, updateDistance]);
 
   const handlePause = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
@@ -262,7 +239,7 @@ export default function RideHudScreen() {
 
   // Avg speed for stats — guard against division by zero
   const avgSpeedDisplay =
-    elapsedSeconds > 0 && waypoints.length > 1 ? distance / elapsedSeconds : 0;
+    elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -317,6 +294,8 @@ export default function RideHudScreen() {
             fontVariant: ['tabular-nums'],
             color: textColor,
           }}
+          accessibilityRole="text"
+          accessibilityLabel={`Elapsed time: ${formatElapsed(elapsedSeconds)}`}
         >
           {formatElapsed(elapsedSeconds)}
         </Text>
@@ -333,14 +312,14 @@ export default function RideHudScreen() {
               height: 52,
               borderRadius: 26,
               borderCurve: 'continuous',
-              backgroundColor: isBatterySaver ? palette.warningBgDark : 'rgba(255,255,255,0.1)',
+              backgroundColor: isBatterySaver ? palette.warningBgDark : palette.controlBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <BatteryLow
               size={22}
-              color={isBatterySaver ? palette.warning500 : 'rgba(255,255,255,0.5)'}
+              color={isBatterySaver ? palette.warning500 : palette.iconMuted}
             />
           </Pressable>
           <Pressable
@@ -353,7 +332,7 @@ export default function RideHudScreen() {
               height: 52,
               borderRadius: 26,
               borderCurve: 'continuous',
-              backgroundColor: isNightMode ? palette.nightGlow : 'rgba(255,255,255,0.1)',
+              backgroundColor: isNightMode ? palette.nightGlow : palette.controlBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -361,7 +340,7 @@ export default function RideHudScreen() {
             {isNightMode ? (
               <Sun size={22} color={palette.nightText} />
             ) : (
-              <Moon size={22} color="rgba(255,255,255,0.5)" />
+              <Moon size={22} color={palette.iconMuted} />
             )}
           </Pressable>
         </View>
@@ -388,7 +367,7 @@ export default function RideHudScreen() {
 
       {/* Map zone */}
       <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 0.35 }}>
-        <HudMap waypoints={waypoints} gpsAccuracy={gpsAccuracy} />
+        <HudMap waypoints={[]} gpsAccuracy={0} />
       </Animated.View>
 
       {/* Speed hero */}
@@ -411,7 +390,7 @@ export default function RideHudScreen() {
           <>
             <View
               style={{
-                backgroundColor: 'rgba(255,255,255,0.08)',
+                backgroundColor: palette.surfaceHover,
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 paddingHorizontal: 20,
@@ -438,12 +417,12 @@ export default function RideHudScreen() {
                   marginTop: 2,
                 }}
               >
-                {formatDistance(distance)}
+                {formatDistance(distance, system)}
               </Text>
             </View>
             <View
               style={{
-                backgroundColor: 'rgba(255,255,255,0.08)',
+                backgroundColor: palette.surfaceHover,
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 paddingHorizontal: 20,
@@ -477,7 +456,7 @@ export default function RideHudScreen() {
         ) : (
           <View
             style={{
-              backgroundColor: 'rgba(255,255,255,0.08)',
+              backgroundColor: palette.surfaceHover,
               borderRadius: 14,
               borderCurve: 'continuous',
               paddingHorizontal: 20,
@@ -504,7 +483,7 @@ export default function RideHudScreen() {
                 marginTop: 2,
               }}
             >
-              {Math.round(avgSpeedDisplay * 2.237)} mph
+              {formatSpeed(avgSpeedDisplay, system)}
             </Text>
           </View>
         )}

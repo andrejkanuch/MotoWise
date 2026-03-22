@@ -8,4 +8,7 @@ export class UpdateUserInput {
 
   @Field(() => GraphQLJSON, { nullable: true })
   preferences?: Record<string, unknown>;
+
+  @Field(() => String, { nullable: true })
+  measurementSystem?: string;
 }

@@ -83,6 +83,15 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
   - `GetModelsForMakeIdYear/makeId/{id}/modelyear/{year}/vehicletype/motorcycle` — models
   - Free, no API key required
 
+## GraphQL Type Safety
+- ALWAYS use generated types from @motovault/graphql — NEVER use `any` for GraphQL data
+- Import query/mutation result types: `import { type MyRidesQuery, MyRidesDocument } from '@motovault/graphql'`
+- Extract nested types from generated ones: `type RideEdge = MyRidesQuery['myRides']['edges'][number]`
+- `gqlFetcher(Document)` returns the typed result — use `useQuery<MyRidesQuery>(...)` or `useInfiniteQuery<MyRidesQuery>(...)`
+- TypedDocumentNode carries both result AND variables types — no need for manual type annotations on variables
+- Run `pnpm generate` after changing any .graphql file or resolver to regenerate types
+- All colors must come from `palette` in @motovault/design-system — no hardcoded hex or rgba values in components
+
 ## Do NOT
 - Import from apps/ into packages/
 - Use relative paths across package boundaries (use @motovault/* imports)
@@ -93,3 +102,5 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - Skip RLS policies on new tables
 - Use raw_user_meta_data for role checks (use public.users.role)
 - Use TypeScript `enum` (use `as const` objects)
+- Use `any` type for GraphQL query/mutation data — always use generated types from @motovault/graphql
+- Hardcode colors (hex, rgba) — use palette tokens from @motovault/design-system

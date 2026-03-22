@@ -12,6 +12,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { EndRideInput } from './dto/end-ride.input';
 import { StartRideInput } from './dto/start-ride.input';
 import { UpdateRideInput } from './dto/update-ride.input';
@@ -42,7 +43,7 @@ export class RidesResolver {
   }
 
   @Mutation(() => Int)
-  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  @Throttle({ default: THROTTLE_PRESETS.WAYPOINT_UPLOAD })
   async uploadWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UploadWaypointsInputSchema)) input: UploadWaypointsInput,

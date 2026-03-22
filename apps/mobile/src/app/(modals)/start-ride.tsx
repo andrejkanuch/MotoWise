@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronRight,
   Navigation,
+  X,
   Zap,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -161,7 +162,27 @@ export default function StartRideScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header — larger, more dramatic */}
+        {/* Close button */}
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          style={{
+            alignSelf: 'flex-start',
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            borderCurve: 'continuous',
+            backgroundColor: palette.surfaceSubtle,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+          }}
+        >
+          <X size={18} color={palette.neutral400} />
+        </Pressable>
+
+        {/* Header */}
         <Animated.View
           entering={FadeInUp.duration(300)}
           style={{ alignItems: 'center', marginBottom: 32 }}
@@ -173,7 +194,7 @@ export default function StartRideScreen() {
               height: 72,
               borderRadius: 36,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(45,158,120,0.12)',
+              backgroundColor: palette.accentTint,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 20,
@@ -215,7 +236,7 @@ export default function StartRideScreen() {
               gap: 12,
               marginBottom: 20,
               borderWidth: 1,
-              borderColor: 'rgba(245,158,11,0.2)',
+              borderColor: palette.warningBorder,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -303,7 +324,7 @@ export default function StartRideScreen() {
                   height: 44,
                   borderRadius: 22,
                   borderCurve: 'continuous',
-                  backgroundColor: 'rgba(45,158,120,0.12)',
+                  backgroundColor: palette.accentTint,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -419,7 +440,7 @@ export default function StartRideScreen() {
                           padding: 14,
                           borderRadius: 14,
                           borderCurve: 'continuous',
-                          backgroundColor: isSelected ? 'rgba(45,158,120,0.10)' : palette.cardDark,
+                          backgroundColor: isSelected ? palette.accentTintSubtle : palette.cardDark,
                           borderWidth: 1,
                           borderColor: isSelected ? palette.accent500 : palette.surfaceElevated,
                           gap: 12,
@@ -461,7 +482,7 @@ export default function StartRideScreen() {
                               paddingVertical: 3,
                               borderRadius: 8,
                               borderCurve: 'continuous',
-                              backgroundColor: 'rgba(45,158,120,0.15)',
+                              backgroundColor: palette.accentTint,
                             }}
                           >
                             <Text

@@ -1,8 +1,18 @@
 import { palette } from '@motovault/design-system';
 import type { Ride } from '@motovault/types';
-import { Clock, MapPin } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Clock, Gauge, MapPin, Route } from 'lucide-react-native';
+import { memo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import {
+  formatDate,
+  formatDistance,
+  formatDuration,
+  formatRelativeDate,
+  formatSpeed,
+} from '../../utils/ride-formatters';
 
 interface RideCardProps {
   ride: Ride & { bikeName?: string | null; routeThumbnailUri?: string | null };
@@ -10,102 +20,140 @@ interface RideCardProps {
   onPress: () => void;
 }
 
-function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
-
-function formatDistance(meters: number): string {
-  const miles = meters / 1609.34;
-  return miles < 10 ? `${miles.toFixed(1)} mi` : `${Math.round(miles)} mi`;
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-export function RideCard({ ride, index, onPress }: RideCardProps) {
+export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCardProps) {
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
+  const avgSpeed = ride.avgSpeedMps ?? 0;
+  const rideName = ride.name || ride.bikeName || 'Ride';
   const bikeName = ride.bikeName || 'Quick Ride';
+  const hasMap = !!ride.routeThumbnailUri;
+  const system = useMeasurementSystem();
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(280)}>
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${rideName}, ${formatDate(ride.startedAt)}, ${formatDistance(distance, system)}, ${formatDuration(duration)}`}
         style={({ pressed }) => ({
-          flexDirection: 'row',
-          backgroundColor: pressed ? palette.neutral800 : palette.neutral900,
-          borderRadius: 16,
+          backgroundColor: pressed ? palette.neutral800 : palette.cardDark,
+          borderRadius: 20,
           borderCurve: 'continuous',
-          padding: 14,
-          gap: 12,
-          alignItems: 'center',
+          overflow: 'hidden',
+          borderWidth: 1,
+          borderColor: palette.surfaceElevated,
+          opacity: pressed ? 0.9 : 1,
         })}
       >
-        {/* Route thumbnail */}
-        {ride.routeThumbnailUri ? (
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-            }}
-          >
+        {/* Map thumbnail — full width top bleed */}
+        {hasMap ? (
+          <View style={{ height: 120, position: 'relative' }}>
             <Image
-              source={{ uri: ride.routeThumbnailUri }}
+              source={{ uri: ride.routeThumbnailUri ?? '' }}
+              style={{ width: '100%', height: 120, backgroundColor: palette.neutral900 }}
+            />
+            {/* Gradient fade to card background */}
+            <LinearGradient
+              colors={['transparent', palette.cardDark]}
               style={{
-                width: 56,
-                height: 56,
-                backgroundColor: palette.neutral800,
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 48,
               }}
             />
           </View>
         ) : (
+          /* No map — subtle topographic pattern placeholder */
           <View
             style={{
-              width: 56,
               height: 56,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              backgroundColor: palette.neutral800,
+              backgroundColor: palette.surfaceSubtle,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MapPin size={24} color={palette.neutral600} />
+            <Route size={20} color={palette.neutral700} />
           </View>
         )}
 
-        {/* Details */}
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: palette.white }} numberOfLines={1}>
-            {bikeName}
-          </Text>
-          <Text style={{ fontSize: 13, color: palette.neutral400 }}>
-            {formatDate(ride.startedAt)}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <MapPin size={12} color={palette.neutral500} />
-              <Text style={{ fontSize: 13, fontWeight: '500', color: palette.neutral300 }}>
-                {formatDistance(distance)}
+        {/* Content */}
+        <View style={{ padding: 16, gap: 8 }}>
+          {/* Title row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+            }}
+          >
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text
+                style={{ fontSize: 17, fontWeight: '700', color: palette.white }}
+                numberOfLines={1}
+              >
+                {rideName}
+              </Text>
+              <Text style={{ fontSize: 13, color: palette.neutral400 }}>
+                {formatRelativeDate(ride.startedAt)} · {bikeName}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Clock size={12} color={palette.neutral500} />
-              <Text style={{ fontSize: 13, fontWeight: '500', color: palette.neutral300 }}>
+          </View>
+
+          {/* Stats row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 16,
+              marginTop: 4,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <MapPin size={13} color={palette.accent500} />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: palette.neutral200,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
+                {formatDistance(distance, system)}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Clock size={13} color={palette.accent500} />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: palette.neutral200,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
                 {formatDuration(duration)}
               </Text>
             </View>
+            {avgSpeed > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <Gauge size={13} color={palette.accent500} />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: palette.neutral200,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {formatSpeed(avgSpeed, system)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </Pressable>
     </Animated.View>
   );
-}
+});

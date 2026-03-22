@@ -1,5 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { PageInfo } from '../../articles/models/article-connection.model';
+import { PageInfo } from '../../../common/models/page-info.model';
 import { Ride } from './ride.model';
 
 @ObjectType()

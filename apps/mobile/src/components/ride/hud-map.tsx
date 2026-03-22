@@ -88,7 +88,7 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
           borderRadius: 6,
           backgroundColor: gpsColor,
           borderWidth: 2,
-          borderColor: 'rgba(0,0,0,0.4)',
+          borderColor: palette.surfaceOverlay,
         }}
       />
     </View>
