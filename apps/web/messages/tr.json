@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Aktif Suruculer",
-    "ridersCount": "12.000+",
-    "diagnostics": "Motor Parcasi",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2.400+",
+    "diagnostics": "Yapilan AI Teshisleri",
+    "diagnosticsCount": "8.500+",
     "bikes": "Veritabanindaki Motor",
     "bikesCount": "18.000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Aksiyonda Gor",
+    "sectionTitle": "Motosiklet Komuta Merkezin",
+    "cap1Title": "Yapay Zeka Teshisi",
+    "cap1Desc": "Kamerani herhangi bir soruna dogrul. Parca tanima, ciddiyet derecesi ve adim adim cozumler saniyeler icinde.",
+    "cap1Alt": "MotoVault yapay zeka teshis sonuc ekrani",
+    "cap2Title": "Akilli Bakim",
+    "cap2Desc": "Her servisi kaydet, kilometre bazli hatirlatmalar kur ve bir daha asla yag degisimi veya zincir yaglama kacirma.",
+    "cap2Alt": "MotoVault bakim takip ekrani",
+    "cap3Title": "Ogren ve Gelis",
+    "cap3Desc": "Motor ic yapisi, sushansiyon ayari ve elektrik sistemleri uzerine yapilandirilmis kurslar — bilgini test etmek icin testlerle.",
+    "cap3Alt": "MotoVault ogrenme panosu",
+    "learnMore": "Daha fazla bilgi"
   },
   "Cta": {
     "socialProof": "Dunya genelinde binlerce surucu tarafindan guveniliyor",

@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Motards Actifs",
-    "ridersCount": "12 000+",
-    "diagnostics": "Diagnostics IA",
-    "diagnosticsCount": "85 000+",
+    "ridersCount": "2 400+",
+    "diagnostics": "Diagnostics IA Réalisés",
+    "diagnosticsCount": "8 500+",
     "bikes": "Motos Supportées",
     "bikesCount": "18 000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Voyez-le en Action",
+    "sectionTitle": "Votre Centre de Commande Moto",
+    "cap1Title": "Diagnostic IA",
+    "cap1Desc": "Pointez votre caméra sur n'importe quel problème. Obtenez l'identification des pièces, le niveau de gravité et des solutions étape par étape en quelques secondes.",
+    "cap1Alt": "Écran de résultat du diagnostic IA de MotoVault",
+    "cap2Title": "Entretien Intelligent",
+    "cap2Desc": "Suivez chaque service, définissez des rappels basés sur le kilométrage et ne manquez plus jamais une vidange ou un graissage de chaîne.",
+    "cap2Alt": "Écran de suivi de l'entretien de MotoVault",
+    "cap3Title": "Apprenez et Progressez",
+    "cap3Desc": "Des cours structurés sur les moteurs internes, le réglage de la suspension et les systèmes électriques — avec des quiz pour tester vos connaissances.",
+    "cap3Alt": "Tableau de bord d'apprentissage de MotoVault",
+    "learnMore": "En savoir plus"
   },
   "Cta": {
     "socialProof": "Approuvé par des milliers de motards dans le monde",

@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Active Riders",
-    "ridersCount": "12,000+",
-    "diagnostics": "Bike Components",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2,400+",
+    "diagnostics": "AI Diagnoses Run",
+    "diagnosticsCount": "8,500+",
     "bikes": "Bikes in Database",
     "bikesCount": "18,000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "See It in Action",
+    "sectionTitle": "Your Motorcycle Command Center",
+    "cap1Title": "AI Diagnostics",
+    "cap1Desc": "Point your camera at any issue. Get part identification, severity rating, and step-by-step fixes in seconds.",
+    "cap1Alt": "MotoVault AI diagnosis result screen",
+    "cap2Title": "Smart Maintenance",
+    "cap2Desc": "Track every service, set mileage-based reminders, and never miss an oil change or chain lube again.",
+    "cap2Alt": "MotoVault maintenance tracking screen",
+    "cap3Title": "Learn & Level Up",
+    "cap3Desc": "Structured courses on engine internals, suspension tuning, and electrical systems — with quizzes to test your knowledge.",
+    "cap3Alt": "MotoVault learning dashboard",
+    "learnMore": "Learn more"
   },
   "Cta": {
     "socialProof": "Trusted by thousands of riders worldwide",

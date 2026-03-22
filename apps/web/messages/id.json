@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Pengendara Aktif",
-    "ridersCount": "12.000+",
-    "diagnostics": "Komponen Motor",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2.400+",
+    "diagnostics": "Diagnosis AI Dijalankan",
+    "diagnosticsCount": "8.500+",
     "bikes": "Motor di Database",
     "bikesCount": "18.000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Lihat Aksinya",
+    "sectionTitle": "Pusat Komando Motor Kamu",
+    "cap1Title": "Diagnostik AI",
+    "cap1Desc": "Arahkan kamera ke masalah apa pun. Dapatkan identifikasi komponen, tingkat keparahan, dan perbaikan langkah demi langkah dalam hitungan detik.",
+    "cap1Alt": "Layar hasil diagnosis AI MotoVault",
+    "cap2Title": "Perawatan Pintar",
+    "cap2Desc": "Lacak setiap servis, atur pengingat berbasis jarak tempuh, dan jangan pernah lewatkan ganti oli atau pelumasan rantai lagi.",
+    "cap2Alt": "Layar pelacakan perawatan MotoVault",
+    "cap3Title": "Belajar & Tingkatkan",
+    "cap3Desc": "Kursus terstruktur tentang mesin internal, tuning suspensi, dan sistem kelistrikan — dengan kuis untuk menguji pengetahuanmu.",
+    "cap3Alt": "Dashboard pembelajaran MotoVault",
+    "learnMore": "Pelajari lebih lanjut"
   },
   "Cta": {
     "socialProof": "Dipercaya oleh ribuan pengendara di seluruh dunia",

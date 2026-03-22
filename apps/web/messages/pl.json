@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Aktywni jeźdźcy",
-    "ridersCount": "12 000+",
-    "diagnostics": "Komponenty motocyklowe",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2 400+",
+    "diagnostics": "Przeprowadzone diagnozy AI",
+    "diagnosticsCount": "8 500+",
     "bikes": "Motocykli w bazie",
     "bikesCount": "18 000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Zobacz w Akcji",
+    "sectionTitle": "Twoje Centrum Dowodzenia Motocyklem",
+    "cap1Title": "Diagnostyka AI",
+    "cap1Desc": "Skieruj aparat na dowolny problem. Uzyskaj identyfikacje czesci, ocene powagi i naprawy krok po kroku w kilka sekund.",
+    "cap1Alt": "Ekran wyniku diagnostyki AI MotoVault",
+    "cap2Title": "Inteligentny Serwis",
+    "cap2Desc": "Sledz kazdy serwis, ustawiaj przypomnienia na podstawie przebiegu i nigdy wiecej nie przegap wymiany oleju ani smarowania lancucha.",
+    "cap2Alt": "Ekran sledzenia serwisu MotoVault",
+    "cap3Title": "Ucz sie i Rozwijaj",
+    "cap3Desc": "Ustrukturyzowane kursy o budowie silnika, regulacji zawieszenia i ukladach elektrycznych — z quizami do sprawdzenia wiedzy.",
+    "cap3Alt": "Panel nauki MotoVault",
+    "learnMore": "Dowiedz sie wiecej"
   },
   "Cta": {
     "socialProof": "Zaufany przez tysiące jeźdźców na całym świecie",

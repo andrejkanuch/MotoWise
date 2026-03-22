@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Aktive Fahrer",
-    "ridersCount": "12.000+",
-    "diagnostics": "KI-Diagnosen",
-    "diagnosticsCount": "85.000+",
+    "ridersCount": "2.400+",
+    "diagnostics": "Durchgeführte KI-Diagnosen",
+    "diagnosticsCount": "8.500+",
     "bikes": "Unterstützte Bikes",
     "bikesCount": "18.000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "In Aktion erleben",
+    "sectionTitle": "Deine Motorrad-Kommandozentrale",
+    "cap1Title": "KI-Diagnose",
+    "cap1Desc": "Richte deine Kamera auf ein beliebiges Problem. Erhalte Teilerkennung, Schweregrad-Bewertung und Schritt-für-Schritt-Lösungen in Sekunden.",
+    "cap1Alt": "MotoVault KI-Diagnose-Ergebnisbildschirm",
+    "cap2Title": "Intelligente Wartung",
+    "cap2Desc": "Protokolliere jeden Service, stelle kilometerbasierte Erinnerungen ein und vergiss nie wieder einen Ölwechsel oder eine Kettenpflege.",
+    "cap2Alt": "MotoVault Wartungs-Tracking-Bildschirm",
+    "cap3Title": "Lerne & steige auf",
+    "cap3Desc": "Strukturierte Kurse zu Motorinterna, Fahrwerkseinstellung und Elektrik — mit Quizzen zum Wissenstest.",
+    "cap3Alt": "MotoVault Lern-Dashboard",
+    "learnMore": "Mehr erfahren"
   },
   "Cta": {
     "socialProof": "Vertraut von tausenden Fahrern weltweit",

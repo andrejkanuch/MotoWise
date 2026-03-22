@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "アクティブライダー",
-    "ridersCount": "12,000+",
-    "diagnostics": "バイクコンポーネント",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2,400+",
+    "diagnostics": "AI診断実行数",
+    "diagnosticsCount": "8,500+",
     "bikes": "データベース内のバイク",
     "bikesCount": "18,000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "実際に見てみよう",
+    "sectionTitle": "あなたのバイクコマンドセンター",
+    "cap1Title": "AI診断",
+    "cap1Desc": "カメラを問題箇所に向けるだけ。パーツの特定、重大度の評価、ステップバイステップの修理方法が数秒で得られます。",
+    "cap1Alt": "MotoVault AI診断結果画面",
+    "cap2Title": "スマートメンテナンス",
+    "cap2Desc": "すべてのサービスを記録し、走行距離ベースのリマインダーを設定。オイル交換やチェーン注油を忘れることはもうありません。",
+    "cap2Alt": "MotoVaultメンテナンス管理画面",
+    "cap3Title": "学んでレベルアップ",
+    "cap3Desc": "エンジン内部、サスペンションチューニング、電装システムの構造化されたコース — 知識を試すクイズ付き。",
+    "cap3Alt": "MotoVault学習ダッシュボード",
+    "learnMore": "詳しく見る"
   },
   "Cta": {
     "socialProof": "世界中の何千人ものライダーに信頼されています",

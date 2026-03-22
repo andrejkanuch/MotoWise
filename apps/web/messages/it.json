@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Motociclisti Attivi",
-    "ridersCount": "12.000+",
-    "diagnostics": "Diagnostiche IA",
-    "diagnosticsCount": "85.000+",
+    "ridersCount": "2.400+",
+    "diagnostics": "Diagnosi IA Eseguite",
+    "diagnosticsCount": "8.500+",
     "bikes": "Moto Supportate",
     "bikesCount": "18.000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Guardalo in Azione",
+    "sectionTitle": "Il Tuo Centro di Comando per la Moto",
+    "cap1Title": "Diagnostica IA",
+    "cap1Desc": "Punta la fotocamera su qualsiasi problema. Ottieni identificazione dei componenti, livello di gravità e soluzioni passo dopo passo in pochi secondi.",
+    "cap1Alt": "Schermata del risultato della diagnostica IA di MotoVault",
+    "cap2Title": "Manutenzione Intelligente",
+    "cap2Desc": "Traccia ogni servizio, imposta promemoria basati sul chilometraggio e non dimenticare mai più un cambio olio o una lubrificazione della catena.",
+    "cap2Alt": "Schermata di monitoraggio della manutenzione di MotoVault",
+    "cap3Title": "Impara e Migliora",
+    "cap3Desc": "Corsi strutturati sugli interni del motore, regolazione delle sospensioni e sistemi elettrici — con quiz per testare le tue conoscenze.",
+    "cap3Alt": "Dashboard di apprendimento di MotoVault",
+    "learnMore": "Scopri di più"
   },
   "Cta": {
     "socialProof": "Scelto da migliaia di motociclisti in tutto il mondo",

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { AppShowcase } from '@/components/marketing/app-showcase';
 import { CtaSection } from '@/components/marketing/cta-section';
 import { Faq } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
 import { HowItWorks } from '@/components/marketing/how-it-works';
 import { SocialProofBar } from '@/components/marketing/social-proof-bar';
-import { Testimonials } from '@/components/marketing/testimonials';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {
@@ -132,7 +132,7 @@ export default async function HomePage({ params }: PageProps) {
       <SocialProofBar />
       <HowItWorks />
       <FeaturesGrid />
-      <Testimonials />
+      <AppShowcase />
       <CtaSection />
       <Faq />
     </>

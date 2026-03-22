@@ -63,9 +63,9 @@
   },
   "SocialProof": {
     "riders": "Pilotos Ativos",
-    "ridersCount": "12.000+",
-    "diagnostics": "Componentes de Motos",
-    "diagnosticsCount": "500+",
+    "ridersCount": "2.400+",
+    "diagnostics": "Diagnósticos de IA Realizados",
+    "diagnosticsCount": "8.500+",
     "bikes": "Motos no Banco de Dados",
     "bikesCount": "18.000+"
   },
@@ -116,6 +116,20 @@
         "stars": 4
       }
     ]
+  },
+  "AppShowcase": {
+    "sectionLabel": "Veja em Ação",
+    "sectionTitle": "Seu Centro de Comando para Motos",
+    "cap1Title": "Diagnóstico IA",
+    "cap1Desc": "Aponte sua câmera para qualquer problema. Receba identificação de peças, nível de gravidade e correções passo a passo em segundos.",
+    "cap1Alt": "Tela de resultado do diagnóstico IA do MotoVault",
+    "cap2Title": "Manutenção Inteligente",
+    "cap2Desc": "Registre cada serviço, defina lembretes por quilometragem e nunca mais esqueça uma troca de óleo ou lubrificação de corrente.",
+    "cap2Alt": "Tela de acompanhamento de manutenção do MotoVault",
+    "cap3Title": "Aprenda e Evolua",
+    "cap3Desc": "Cursos estruturados sobre internos do motor, ajuste de suspensão e sistemas elétricos — com quizzes para testar seu conhecimento.",
+    "cap3Alt": "Painel de aprendizado do MotoVault",
+    "learnMore": "Saiba mais"
   },
   "Cta": {
     "socialProof": "Confiado por milhares de pilotos no mundo todo",
