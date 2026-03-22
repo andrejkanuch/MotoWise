@@ -1,6 +1,6 @@
-import { visit } from 'unist-util-visit';
-import { toString } from 'hast-util-to-string';
 import type { Root } from 'hast';
+import { toString as hastToString } from 'hast-util-to-string';
+import { visit } from 'unist-util-visit';
 
 export interface TocHeading {
   id: string;
@@ -10,11 +10,11 @@ export interface TocHeading {
 
 export function rehypeExtractHeadings(headings: TocHeading[]) {
   return () => (tree: Root) => {
-    visit(tree, 'element', (node: any) => {
+    visit(tree, 'element', (node: { tagName: string; properties?: Record<string, unknown> }) => {
       if (['h2', 'h3'].includes(node.tagName)) {
         headings.push({
           id: (node.properties?.id as string) || '',
-          text: toString(node),
+          text: hastToString(node),
           level: Number(node.tagName[1]),
         });
       }

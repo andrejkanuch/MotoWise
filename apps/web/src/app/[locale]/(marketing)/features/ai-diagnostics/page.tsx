@@ -6,7 +6,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl } from '@/lib/constants';
 import { DiagnosticsFaq } from './diagnostics-faq';
 
 interface PageProps {

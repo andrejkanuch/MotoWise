@@ -5,7 +5,7 @@ import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {
   params: Promise<{ locale: string }>;
