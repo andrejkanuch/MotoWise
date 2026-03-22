@@ -18,6 +18,7 @@ import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'reac
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
 import {
   formatDistance,
   formatDuration,
@@ -25,7 +26,6 @@ import {
   formatSpeed,
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
-import { type MapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { enqueue } from '../../utils/ride-sync-queue';
 
 /** Smart ride naming using time-of-day */
@@ -164,7 +164,7 @@ export default function RideSummaryScreen() {
     } catch {
       // User cancelled
     }
-  }, [distanceM, durationS]);
+  }, [distanceM, durationS, system]);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);

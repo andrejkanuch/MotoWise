@@ -109,7 +109,6 @@ export default function RideDetailScreen() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  // biome-ignore lint/suspicious/noExplicitAny: graphql-codegen return type
   const ride = (data as GetRideQuery | undefined)?.ride;
   const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
 
