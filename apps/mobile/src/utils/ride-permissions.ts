@@ -56,5 +56,5 @@ export function incrementForegroundRideCount(): void {
 }
 
 export function resetForegroundRideCount(): void {
-  rideStorage.delete(FOREGROUND_RIDE_COUNT_KEY);
+  rideStorage.remove(FOREGROUND_RIDE_COUNT_KEY);
 }

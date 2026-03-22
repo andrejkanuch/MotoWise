@@ -1,6 +1,6 @@
 import { EndRideDocument, StartRideDocument, UploadWaypointsDocument } from '@motovault/graphql';
 import * as Network from 'expo-network';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';
 
 // --- Types ---
@@ -10,7 +10,8 @@ type SyncOperationType = 'startRide' | 'uploadWaypoints' | 'endRide';
 // Lookup map: resolve GraphQL documents from operation type string.
 // TypedDocumentNode objects can't be serialized to MMKV JSON, so we
 // store only the type string and resolve the document at execution time.
-const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, Parameters<typeof gqlFetcher>[0]> = {
+// biome-ignore lint/suspicious/noExplicitAny: documents have heterogeneous generic params
+const MUTATION_DOCUMENT_MAP: Record<SyncOperationType, any> = {
   startRide: StartRideDocument,
   uploadWaypoints: UploadWaypointsDocument,
   endRide: EndRideDocument,
@@ -26,7 +27,7 @@ interface SyncOperation {
 
 // --- MMKV instance ---
 
-const syncStorage = new MMKV({ id: 'ride-sync-queue' });
+const syncStorage = createMMKV({ id: 'ride-sync-queue' });
 
 const QUEUE_KEY = 'sync.queue';
 const DEAD_LETTER_KEY = 'sync.dead_letter';
@@ -146,13 +147,13 @@ export function getQueueLength(): number {
 }
 
 export function clearDeadLetterQueue(): void {
-  syncStorage.delete(DEAD_LETTER_KEY);
+  syncStorage.remove(DEAD_LETTER_KEY);
 }
 
 export function clearAll(): void {
-  syncStorage.delete(QUEUE_KEY);
-  syncStorage.delete(DEAD_LETTER_KEY);
-  syncStorage.delete(SEQ_KEY);
+  syncStorage.remove(QUEUE_KEY);
+  syncStorage.remove(DEAD_LETTER_KEY);
+  syncStorage.remove(SEQ_KEY);
 }
 
 function sleep(ms: number): Promise<void> {

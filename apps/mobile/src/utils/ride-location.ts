@@ -62,8 +62,7 @@ export async function startGPSListener(
       accuracy: Location.Accuracy.High,
       distanceInterval: 10,
       timeInterval: 5000,
-      activityType: Location.ActivityType.AutomotiveNavigation,
-      pausesUpdatesAutomatically: false,
+      mayShowUserSettingsDialog: false,
     },
     (location) => {
       processLocation(location);
@@ -90,8 +89,7 @@ export async function toggleBatterySaver(enabled: boolean): Promise<void> {
         accuracy: enabled ? Location.Accuracy.Balanced : Location.Accuracy.High,
         distanceInterval: enabled ? 20 : 10,
         timeInterval: enabled ? 10000 : 5000,
-        activityType: Location.ActivityType.AutomotiveNavigation,
-        pausesUpdatesAutomatically: false,
+        mayShowUserSettingsDialog: false,
       },
       (location) => {
         processLocation(location);
@@ -187,7 +185,7 @@ function processLocation(location: Location.LocationObject): void {
 
 TaskManager.defineTask<{ locations: Location.LocationObject[] }>(
   BACKGROUND_LOCATION_TASK,
-  ({ data, error }) => {
+  async ({ data, error }) => {
     if (error) {
       console.error('Background GPS error:', error);
       return;

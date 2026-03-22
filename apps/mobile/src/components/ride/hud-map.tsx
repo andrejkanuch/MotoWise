@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL, { UserTrackingMode } from '@rnmapbox/maps';
 import { useMemo } from 'react';
 import { View } from 'react-native';
 
@@ -55,7 +55,7 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
       >
         <MapboxGL.Camera
           followUserLocation
-          followUserMode="compass"
+          followUserMode={UserTrackingMode.FollowWithCourse}
           followZoomLevel={15}
           animationMode="moveTo"
         />

@@ -1,7 +1,7 @@
 import type { Waypoint } from '@motovault/types';
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
-export const rideStorage = new MMKV({ id: 'ride-storage' });
+export const rideStorage = createMMKV({ id: 'ride-storage' });
 
 // --- Key constants ---
 
@@ -89,7 +89,7 @@ export function restoreBufferFromMMKV(rideId: string): void {
   const raw = rideStorage.getString(`ride:${rideId}:wp:buffer`);
   if (raw) {
     pointBuffer = JSON.parse(raw) as Waypoint[];
-    rideStorage.delete(`ride:${rideId}:wp:buffer`);
+    rideStorage.remove(`ride:${rideId}:wp:buffer`);
   }
 }
 
@@ -129,14 +129,14 @@ export function clearRideData(rideId: string): void {
   // Clear waypoint chunks
   let i = 0;
   while (rideStorage.getString(waypointChunkKey(rideId, i))) {
-    rideStorage.delete(waypointChunkKey(rideId, i));
+    rideStorage.remove(waypointChunkKey(rideId, i));
     i++;
   }
   // Clear waypoint buffer
-  rideStorage.delete(`ride:${rideId}:wp:buffer`);
+  rideStorage.remove(`ride:${rideId}:wp:buffer`);
   // Clear ride-level keys
   for (const key of Object.values(RIDE_KEYS)) {
-    rideStorage.delete(key);
+    rideStorage.remove(key);
   }
   // Clear in-memory buffer
   pointBuffer = [];

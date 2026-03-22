@@ -48,16 +48,16 @@ export function RideCard({ ride, index, onPress }: RideCardProps) {
       >
         {/* Route thumbnail */}
         {ride.routeThumbnailUri ? (
-          <Image
-            source={{ uri: ride.routeThumbnailUri }}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              backgroundColor: palette.neutral800,
-            }}
-          />
+          <View style={{ width: 56, height: 56, borderRadius: 12, borderCurve: 'continuous', overflow: 'hidden' }}>
+            <Image
+              source={{ uri: ride.routeThumbnailUri }}
+              style={{
+                width: 56,
+                height: 56,
+                backgroundColor: palette.neutral800,
+              }}
+            />
+          </View>
         ) : (
           <View
             style={{
