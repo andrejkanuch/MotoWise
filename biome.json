@@ -19,7 +19,8 @@
       "!**/ios",
       "!**/android",
       "!**/src/generated",
-      "!**/database.types.ts"
+      "!**/database.types.ts",
+      "!**/next-env.d.ts"
     ]
   },
   "formatter": {

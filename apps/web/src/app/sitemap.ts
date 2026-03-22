@@ -46,8 +46,8 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/features/garage-management': '2026-03-10',
   '/features/progress-tracking': '2026-03-10',
   '/blog': '2026-03-16',
-  '/tools/cost-calculator': '2026-03-01',
-  '/tools/tclocs-checklist': '2026-03-01',
+  '/tools/cost-calculator': '2026-03-22',
+  '/tools/tclocs-checklist': '2026-03-22',
   '/press': '2026-03-01',
 };
 
