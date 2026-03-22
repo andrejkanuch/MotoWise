@@ -12,8 +12,8 @@ import type { EndRideInput } from './dto/end-ride.input';
 import type { StartRideInput } from './dto/start-ride.input';
 import type { UpdateRideInput } from './dto/update-ride.input';
 import type { UploadWaypointsInput } from './dto/upload-waypoints.input';
-import type { RideConnection } from './models/ride-connection.model';
 import type { Ride } from './models/ride.model';
+import type { RideConnection } from './models/ride-connection.model';
 
 const MAX_WAYPOINTS_PER_RIDE = 10_000;
 

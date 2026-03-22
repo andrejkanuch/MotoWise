@@ -4,7 +4,7 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 
 ## Architecture
 - **Monorepo**: Turborepo + pnpm workspaces
-- **apps/mobile**: Expo 55 (RN 0.83, React 19.2) — user-facing mobile app
+- **apps/mobile**: Expo 54 (RN 0.83, React 19.2) — user-facing mobile app
 - **apps/api**: NestJS 11 — GraphQL API (code-first, Apollo Server driver) + Claude AI
 - **apps/web**: Next.js 16 — web app (public pages + admin dashboard)
 - **packages/types**: @motovault/types — Zod schemas, shared TS types, DB types

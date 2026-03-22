@@ -11,12 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeIn,
-  ZoomIn,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
+  ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -50,10 +50,7 @@ function RideFAB() {
   useEffect(() => {
     if (isActive) {
       pulseScale.value = withRepeat(
-        withSequence(
-          withTiming(1.12, { duration: 800 }),
-          withTiming(1, { duration: 800 }),
-        ),
+        withSequence(withTiming(1.12, { duration: 800 }), withTiming(1, { duration: 800 })),
         -1,
         true,
       );
@@ -80,7 +77,12 @@ function RideFAB() {
   }, [isActive, router]);
 
   return (
-    <Animated.View style={[{ position: 'relative', alignItems: 'center', justifyContent: 'center', flex: 1 }, animatedStyle]}>
+    <Animated.View
+      style={[
+        { position: 'relative', alignItems: 'center', justifyContent: 'center', flex: 1 },
+        animatedStyle,
+      ]}
+    >
       <Pressable
         onPress={onPress}
         style={{

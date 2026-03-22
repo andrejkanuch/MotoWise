@@ -66,8 +66,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         locationAlwaysAndWhenInUsePermission:
           'MotoVault needs background location access to record your ride route while the screen is locked.',
-        locationWhenInUsePermission:
-          'MotoVault needs location access to record your ride route.',
+        locationWhenInUsePermission: 'MotoVault needs location access to record your ride route.',
         isAndroidBackgroundLocationEnabled: true,
       },
     ],

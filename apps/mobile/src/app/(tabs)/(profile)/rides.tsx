@@ -4,14 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { MapPin, Search } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideCard } from '../../../components/ride/ride-card';
@@ -49,30 +42,22 @@ export default function RidesScreen() {
   const isPro = useSubscriptionStore((s) => s.isPro);
   const [searchVisible, setSearchVisible] = useState(false);
 
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    refetch,
-    isRefetching,
-  } = useInfiniteQuery({
-    queryKey: queryKeys.rides.all,
-    queryFn: ({ pageParam }) =>
-      gqlFetcher(MyRidesDocument, {
-        first: PAGE_SIZE,
-        after: pageParam ?? null,
-      } as any),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage: any) => {
-      const pageInfo = lastPage?.myRides?.pageInfo;
-      return pageInfo?.hasNextPage ? pageInfo.endCursor : undefined;
-    },
-  });
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
+    useInfiniteQuery({
+      queryKey: queryKeys.rides.all,
+      queryFn: ({ pageParam }) =>
+        gqlFetcher(MyRidesDocument, {
+          first: PAGE_SIZE,
+          after: pageParam ?? null,
+        } as any),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage: any) => {
+        const pageInfo = lastPage?.myRides?.pageInfo;
+        return pageInfo?.hasNextPage ? pageInfo.endCursor : undefined;
+      },
+    });
 
-  const allEdges: RideEdge[] =
-    data?.pages.flatMap((page: any) => page?.myRides?.edges ?? []) ?? [];
+  const allEdges: RideEdge[] = data?.pages.flatMap((page: any) => page?.myRides?.edges ?? []) ?? [];
 
   // Free tier: limit to last 10
   const visibleEdges = isPro ? allEdges : allEdges.slice(0, FREE_TIER_LIMIT);
@@ -205,8 +190,8 @@ export default function RidesScreen() {
               textAlign: 'center',
             }}
           >
-            Free accounts show the last {FREE_TIER_LIMIT} rides. Unlock unlimited ride history
-            with Pro.
+            Free accounts show the last {FREE_TIER_LIMIT} rides. Unlock unlimited ride history with
+            Pro.
           </Text>
           <Pressable
             onPress={() =>

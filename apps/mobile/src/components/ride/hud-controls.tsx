@@ -4,11 +4,10 @@ import { Pause, Play } from 'lucide-react-native';
 import { useCallback, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  runOnJS,
-  Easing,
 } from 'react-native-reanimated';
 
 const LONG_PRESS_DURATION = 2000;

@@ -1,11 +1,7 @@
-import { MMKV } from 'react-native-mmkv';
+import { EndRideDocument, StartRideDocument, UploadWaypointsDocument } from '@motovault/graphql';
 import * as Network from 'expo-network';
+import { MMKV } from 'react-native-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';
-import {
-  StartRideDocument,
-  EndRideDocument,
-  UploadWaypointsDocument,
-} from '@motovault/graphql';
 
 // --- Types ---
 

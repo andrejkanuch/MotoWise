@@ -13,13 +13,8 @@ import { HudControls } from '../../components/ride/hud-controls';
 import { HudMap } from '../../components/ride/hud-map';
 import { HudSpeed } from '../../components/ride/hud-speed';
 import { useRideStore } from '../../stores/ride.store';
+import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
 import {
-  distanceMeters,
-  stopGPSListener,
-  toggleBatterySaver,
-} from '../../utils/ride-location';
-import {
-  clearRideData,
   flushBufferToMMKV,
   getPointBuffer,
   getWaypointChunks,
@@ -54,11 +49,11 @@ export default function RideHudScreen() {
   const endRide = useRideStore((s) => s.endRide);
   const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
   const updateDistance = useRideStore((s) => s.updateDistance);
-  const updateSpeed = useRideStore((s) => s.updateSpeed);
+  const _updateSpeed = useRideStore((s) => s.updateSpeed);
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
-  const [gpsAccuracy, setGpsAccuracy] = useState(100);
+  const [waypoints, _setWaypoints] = useState<Waypoint[]>([]);
+  const [gpsAccuracy, _setGpsAccuracy] = useState(100);
   const [showAvgStats, setShowAvgStats] = useState(false);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedRef = useRef(0);
@@ -408,33 +403,31 @@ export default function RideHudScreen() {
             </View>
           </>
         ) : (
-          <>
-            <View
+          <View
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+              AVG SPEED
+            </Text>
+            <Text
               style={{
-                backgroundColor: 'rgba(255,255,255,0.08)',
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                alignItems: 'center',
+                fontSize: 20,
+                fontWeight: '700',
+                fontVariant: ['tabular-nums'],
+                color: textColor,
+                marginTop: 2,
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
-                AVG SPEED
-              </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  fontVariant: ['tabular-nums'],
-                  color: textColor,
-                  marginTop: 2,
-                }}
-              >
-                {Math.round(avgSpeedDisplay * 2.237)} mph
-              </Text>
-            </View>
-          </>
+              {Math.round(avgSpeedDisplay * 2.237)} mph
+            </Text>
+          </View>
         )}
       </Pressable>
 

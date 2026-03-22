@@ -3,32 +3,13 @@ import { UpdateRideDocument } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  Clock,
-  Gauge,
-  Map as MapIcon,
-  Mountain,
-  Route,
-  Share2,
-} from 'lucide-react-native';
+import { Clock, Gauge, Map as MapIcon, Mountain, Route, Share2 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  Share,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MileagePrompt } from '../../components/ride/mileage-prompt';
-import {
-  clearRideData,
-  getPointBuffer,
-  getWaypointChunks,
-  rideMMKV,
-} from '../../utils/ride-storage';
+import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { enqueue } from '../../utils/ride-sync-queue';
 
 type MapStyle = 'dark' | 'outdoors' | 'satellite';
@@ -145,8 +126,10 @@ export default function RideSummaryScreen() {
       const pct = distances[i] / totalDist;
       const speedKmh = (speedValues[i] ?? 0) * 3.6;
       let color: string;
-      if (speedKmh < 30) color = '#3b82f6'; // blue
-      else if (speedKmh < 80) color = '#22c55e'; // green
+      if (speedKmh < 30)
+        color = '#3b82f6'; // blue
+      else if (speedKmh < 80)
+        color = '#22c55e'; // green
       else color = '#f97316'; // orange
       colorStops.push([pct, color]);
     }
@@ -260,11 +243,7 @@ export default function RideSummaryScreen() {
                   animationDuration={1000}
                 />
 
-                <MapboxGL.ShapeSource
-                  id="route-source"
-                  shape={routeData.geojson}
-                  lineMetrics
-                >
+                <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson} lineMetrics>
                   <MapboxGL.LineLayer
                     id="route-line"
                     style={{
@@ -275,17 +254,14 @@ export default function RideSummaryScreen() {
                         'interpolate',
                         ['linear'],
                         ['line-progress'],
-                        ...routeData.colorStops.flatMap(([pct, color]) => [pct, color]),
+                        ...routeData.colorStops.flat(),
                       ],
                     }}
                   />
                 </MapboxGL.ShapeSource>
 
                 {/* Start marker */}
-                <MapboxGL.PointAnnotation
-                  id="start-marker"
-                  coordinate={routeData.startPoint}
-                >
+                <MapboxGL.PointAnnotation id="start-marker" coordinate={routeData.startPoint}>
                   <View
                     style={{
                       width: 16,
@@ -299,10 +275,7 @@ export default function RideSummaryScreen() {
                 </MapboxGL.PointAnnotation>
 
                 {/* End marker */}
-                <MapboxGL.PointAnnotation
-                  id="end-marker"
-                  coordinate={routeData.endPoint}
-                >
+                <MapboxGL.PointAnnotation id="end-marker" coordinate={routeData.endPoint}>
                   <View
                     style={{
                       width: 16,

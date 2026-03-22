@@ -1,15 +1,15 @@
-import * as Location from 'expo-location';
-import * as TaskManager from 'expo-task-manager';
-import * as Notifications from 'expo-notifications';
 import type { Waypoint } from '@motovault/types';
+import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
+import { useRideStore } from '../stores/ride.store';
 import {
-  rideMMKV,
   appendWaypoint,
+  clearPointBuffer,
   flushBufferToMMKV,
   restoreBufferFromMMKV,
-  clearPointBuffer,
+  rideMMKV,
 } from './ride-storage';
-import { useRideStore } from '../stores/ride.store';
 import { enqueue } from './ride-sync-queue';
 
 // --- Constants ---
@@ -40,9 +40,7 @@ export function distanceMeters(
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const sin2 =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos((a.lat * Math.PI) / 180) *
-      Math.cos((b.lat * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
+    Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(sin2), Math.sqrt(1 - sin2));
 }
 

@@ -5,7 +5,7 @@ import {
   UploadWaypointsInputSchema,
 } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -16,8 +16,8 @@ import { EndRideInput } from './dto/end-ride.input';
 import { StartRideInput } from './dto/start-ride.input';
 import { UpdateRideInput } from './dto/update-ride.input';
 import { UploadWaypointsInput } from './dto/upload-waypoints.input';
-import { RideConnection } from './models/ride-connection.model';
 import { Ride } from './models/ride.model';
+import { RideConnection } from './models/ride-connection.model';
 import { RidesService } from './rides.service';
 
 @Resolver(() => Ride)
@@ -77,10 +77,7 @@ export class RidesResolver {
   }
 
   @Query(() => Ride)
-  async ride(
-    @CurrentUser() user: AuthUser,
-    @Args('id', ParseUUIDPipe) id: string,
-  ): Promise<Ride> {
+  async ride(@CurrentUser() user: AuthUser, @Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
     return this.ridesService.findById(user.id, id);
   }
 }

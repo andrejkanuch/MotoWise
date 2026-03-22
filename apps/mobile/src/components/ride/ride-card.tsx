@@ -76,10 +76,7 @@ export function RideCard({ ride, index, onPress }: RideCardProps) {
 
         {/* Details */}
         <View style={{ flex: 1, gap: 4 }}>
-          <Text
-            style={{ fontSize: 15, fontWeight: '600', color: palette.white }}
-            numberOfLines={1}
-          >
+          <Text style={{ fontSize: 15, fontWeight: '600', color: palette.white }} numberOfLines={1}>
             {bikeName}
           </Text>
           <Text style={{ fontSize: 13, color: palette.neutral400 }}>

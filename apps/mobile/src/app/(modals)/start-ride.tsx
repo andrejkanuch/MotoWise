@@ -1,23 +1,12 @@
 import { palette } from '@motovault/design-system';
-import {
-  MyMotorcyclesDocument,
-  StartRideDocument,
-} from '@motovault/graphql';
+import { MyMotorcyclesDocument, StartRideDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { AlertTriangle, Bike, ChevronRight, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -41,7 +30,19 @@ export default function StartRideScreen() {
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
 
-  const motorcycles = (data as { myMotorcycles?: Array<{ id: string; make: string; model: string; year: number; nickname?: string | null; isPrimary: boolean }> })?.myMotorcycles ?? [];
+  const motorcycles =
+    (
+      data as {
+        myMotorcycles?: Array<{
+          id: string;
+          make: string;
+          model: string;
+          year: number;
+          nickname?: string | null;
+          isPrimary: boolean;
+        }>;
+      }
+    )?.myMotorcycles ?? [];
 
   // Default to primary bike
   useEffect(() => {
@@ -306,9 +307,7 @@ export default function StartRideScreen() {
                           backgroundColor: 'rgba(45,158,120,0.15)',
                         }}
                       >
-                        <Text
-                          style={{ fontSize: 11, fontWeight: '700', color: palette.accent500 }}
-                        >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: palette.accent500 }}>
                           PRIMARY
                         </Text>
                       </View>
@@ -334,8 +333,7 @@ export default function StartRideScreen() {
                   borderWidth: selectedBikeId === null ? 2 : 1.5,
                   borderColor:
                     selectedBikeId === null ? palette.signature500 : 'rgba(255,255,255,0.1)',
-                  backgroundColor:
-                    selectedBikeId === null ? 'rgba(212,98,46,0.08)' : 'transparent',
+                  backgroundColor: selectedBikeId === null ? 'rgba(212,98,46,0.08)' : 'transparent',
                   gap: 12,
                 }}
               >

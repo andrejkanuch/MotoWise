@@ -1,5 +1,5 @@
-import { MMKV } from 'react-native-mmkv';
 import type { Waypoint } from '@motovault/types';
+import { MMKV } from 'react-native-mmkv';
 
 export const rideStorage = new MMKV({ id: 'ride-storage' });
 
@@ -15,8 +15,7 @@ export const RIDE_KEYS = {
   PERMISSION_LEVEL: 'ride.permission_level',
 } as const;
 
-const waypointChunkKey = (rideId: string, chunkIndex: number) =>
-  `ride:${rideId}:wp:${chunkIndex}`;
+const waypointChunkKey = (rideId: string, chunkIndex: number) => `ride:${rideId}:wp:${chunkIndex}`;
 
 export const CHUNK_SIZE = 50;
 
@@ -28,10 +27,8 @@ export const rideMMKV = {
   setCurrentId: (id: string) => rideStorage.set(RIDE_KEYS.CURRENT_ID, id),
 
   // Ride status (persisted for crash recovery hydration)
-  getStatus: () =>
-    rideStorage.getString(RIDE_KEYS.STATUS) as 'recording' | 'paused' | undefined,
-  setStatus: (status: 'recording' | 'paused') =>
-    rideStorage.set(RIDE_KEYS.STATUS, status),
+  getStatus: () => rideStorage.getString(RIDE_KEYS.STATUS) as 'recording' | 'paused' | undefined,
+  setStatus: (status: 'recording' | 'paused') => rideStorage.set(RIDE_KEYS.STATUS, status),
 
   // Started at (epoch ms)
   getStartedAt: () => rideStorage.getNumber(RIDE_KEYS.STARTED_AT),

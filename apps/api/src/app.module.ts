@@ -22,8 +22,8 @@ import { LearningProgressModule } from './modules/learning-progress/learning-pro
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
-import { RidesModule } from './modules/rides/rides.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { RidesModule } from './modules/rides/rides.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { UsersModule } from './modules/users/users.module';

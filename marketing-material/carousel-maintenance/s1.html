@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s1 { display:flex;flex-direction:column;align-items:center;justify-content:center; }
+.bg1 { position:absolute;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.10) 0%,rgba(34,197,94,0.02) 40%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%); }
+.bg2 { position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(212,98,46,0.07) 0%,transparent 60%);top:5%;right:-5%; }
+.label { position:relative;z-index:2;color:#22c55e;font-size:15px;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;padding:8px 24px;border:1px solid rgba(34,197,94,0.3);border-radius:100px;background:rgba(34,197,94,0.06);display:flex;align-items:center;gap:10px; }
+.title { position:relative;z-index:2;color:#fafafa;font-size:68px;font-weight:800;text-align:center;line-height:1.12;max-width:800px;margin-bottom:20px; }
+.title span { background:linear-gradient(135deg,#22c55e,#3cb88c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.subtitle { position:relative;z-index:2;color:#a3a3a3;font-size:22px;text-align:center;max-width:560px;line-height:1.5;margin-bottom:36px; }
+.phone-img { position:relative;z-index:2;width:240px;box-shadow:0 0 80px rgba(34,197,94,0.12),0 20px 80px rgba(0,0,0,0.5); }
+.brand { position:absolute;bottom:44px;left:48px;z-index:2;display:flex;align-items:center;gap:12px; }
+.logo-icon { width:40px;height:40px;border-radius:10px;object-fit:cover; }
+.logo-text { color:#fafafa;font-size:20px;font-weight:700; }
+.swipe { position:absolute;bottom:48px;right:48px;z-index:2;color:#525252;font-size:14px;font-weight:500; }
+</style></head><body>
+<div class="slide s1">
+  <div class="bg1"></div><div class="bg2"></div>
+  <div class="label"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Maintenance</div>
+  <div class="title">Never Miss<br>a <span>Service</span> Again</div>
+  <div class="subtitle">Smart maintenance tracking that keeps your motorcycle in peak condition</div>
+  <img class="phone-img" src="maintenance.png" alt="">
+  <div class="brand"><img class="logo-icon" src="logo.png" alt=""><div class="logo-text">MotoVault</div></div>
+  <div class="swipe">Swipe →</div>
+</div></body></html>
