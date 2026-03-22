@@ -58,11 +58,11 @@
       "title": "Comunidad",
       "tagline": "Únete a otros motociclistas.",
       "description": "Comparte tu garaje, compara tu progreso y aprende junto a motociclistas de todos los niveles. El conocimiento sobre motos es mejor cuando se comparte.",
-      "badge": "Próximamente"
+      "badge": "Nuevo"
     }
   },
   "SocialProof": {
-    "riders": "Usuarios en Acceso Anticipado",
+    "riders": "Riders Activos",
     "ridersCount": "12.000+",
     "diagnostics": "Diagnósticos de IA",
     "diagnosticsCount": "85.000+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Testimonios",
     "sectionTitle": "Lo Que Dicen los Motociclistas",
-    "badge": "Acceso Anticipado",
+    "badge": "Rider Verificado",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Confiado por motociclistas en acceso anticipado",
+    "socialProof": "Confiado por miles de motociclistas en todo el mundo",
     "headline": "Empieza a Aprender Mantenimiento de Motos Hoy",
-    "subtitle": "Obtén acceso anticipado cuando lancemos en iOS y Android.",
+    "subtitle": "Gratis en iOS y Android. Comienza a rastrear tu moto hoy.",
     "trustFree": "Gratis al lanzar",
     "trustNoCard": "Sin tarjeta de crédito",
-    "disclaimer": "Próximamente en iOS y Android.",
+    "disclaimer": "Disponible ahora en iOS y Android.",
     "emailPlaceholder": "tu@email.com",
-    "submitButton": "Notifícame",
-    "submitting": "Uniéndose...",
-    "successMessage": "¡Estás dentro! Te avisaremos cuando MotoVault se lance.",
+    "submitButton": "Descargar Gratis",
+    "submitting": "Redirigiendo...",
+    "successMessage": "¡Gracias! Descarga MotoVault desde la App Store o Google Play.",
     "successTagline": "Tu moto merece algo mejor que una hoja de cálculo.",
     "errorMessage": "Algo salió mal. Por favor, inténtalo de nuevo.",
     "personality": "Tu moto merece algo mejor que una hoja de cálculo."
@@ -544,7 +544,7 @@
     "shareResults": "Comparte estos resultados — la URL se actualiza automáticamente con tus datos.",
     "copyLink": "Copiar Enlace",
     "trackActualCosts": "Registra tus costes <strong>reales</strong> con MotoVault",
-    "getEarlyAccess": "Obtener Acceso Anticipado",
+    "getEarlyAccess": "Descargar Gratis",
     "seoTitle1": "¿Cuánto cuesta tener una moto?",
     "seoP1": "El precio de compra es solo el principio. Los costes anuales de propiedad de una moto suelen oscilar entre 1.500 € y 5.000 €+ dependiendo de tus hábitos de conducción, tipo de moto y preferencias de mantenimiento. Comprender estos costes te ayuda a presupuestar eficazmente y evitar sorpresas.",
     "seoP2": "Los costes de combustible varían significativamente según el tipo de moto. Las motos touring consumen alrededor de 6 L/100km mientras que las adventure pueden lograr menos de 4,5 L/100km. Tu kilometraje anual es el factor más importante en los gastos de combustible.",
@@ -568,7 +568,7 @@
     "printChecklist": "Imprimir Lista",
     "ctaTitle": "Recibe Recordatorios Automáticos Pre-Ruta",
     "ctaDesc": "MotoVault envía recordatorios inteligentes antes de tus salidas y registra el historial de mantenimiento para que nunca olvides una revisión crítica.",
-    "getEarlyAccess": "Obtener Acceso Anticipado",
+    "getEarlyAccess": "Descargar Gratis",
     "catTires": "Neumáticos",
     "catControls": "Controles",
     "catLights": "Luces",

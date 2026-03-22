@@ -58,11 +58,11 @@
       "title": "コミュニティ",
       "tagline": "仲間のライダーと繋がろう。",
       "description": "ガレージを共有し、進捗を比較し、あらゆるレベルのライダーと一緒に学びましょう。バイクの知識はみんなで高めるもの。",
-      "badge": "近日公開"
+      "badge": "新機能"
     }
   },
   "SocialProof": {
-    "riders": "ウェイトリスト登録者",
+    "riders": "アクティブライダー",
     "ridersCount": "12,000+",
     "diagnostics": "バイクコンポーネント",
     "diagnosticsCount": "500+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "ユーザーの声",
     "sectionTitle": "ライダーからの声",
-    "badge": "早期アクセス",
+    "badge": "認証済みライダー",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "数千人のライダーがウェイトリストに登録中",
+    "socialProof": "世界中の何千人ものライダーに信頼されています",
     "headline": "バイクを隅々まで知ろう",
-    "subtitle": "iOS・Androidでのリリース時にいち早くお届けします。",
+    "subtitle": "iOS・Androidで無料。今すぐバイクの管理を始めましょう。",
     "trustFree": "無料で開始",
     "trustNoCard": "スパムは一切なし",
-    "disclaimer": "iOS・Androidでまもなくリリース。",
+    "disclaimer": "iOS・Androidで今すぐ利用可能。",
     "emailPlaceholder": "your@email.com",
-    "submitButton": "ウェイトリストに参加",
-    "submitting": "登録中...",
-    "successMessage": "リストに登録されました！リリース時にお知らせします。",
+    "submitButton": "無料ダウンロード",
+    "submitting": "リダイレクト中...",
+    "successMessage": "ありがとうございます！App StoreまたはGoogle PlayからMotoVaultをダウンロードしてください。",
     "successTagline": "あなたのバイクはスプレッドシートより良い管理を受けるべきです。",
     "errorMessage": "エラーが発生しました。もう一度お試しください。",
     "personality": "あなたのバイクはスプレッドシートより良い管理を受けるべきです。"
@@ -544,7 +544,7 @@
     "shareResults": "この結果をシェアできます — URLは入力内容に応じて自動更新されます。",
     "copyLink": "リンクをコピー",
     "trackActualCosts": "MotoVaultで<strong>実際の</strong>コストを記録",
-    "getEarlyAccess": "早期アクセスを取得",
+    "getEarlyAccess": "無料ダウンロード",
     "seoTitle1": "バイクの維持費はいくら？",
     "seoP1": "購入価格はほんの始まりにすぎません。バイクの年間所有コストは、走行習慣、バイクの種類、メンテナンスの好みによって通常15万円〜50万円以上になります。これらのコストを理解することで、効果的に予算を立て、想定外の出費を避けることができます。",
     "seoP2": "燃料費はバイクの種類によって大きく異なります。ツーリングバイクは平均約17km/Lですが、アドベンチャーバイクは22km/L以上を達成できます。年間走行距離が燃料費の最大の要因です。",
@@ -568,7 +568,7 @@
     "printChecklist": "チェックリストを印刷",
     "ctaTitle": "自動乗車前リマインダーを受け取る",
     "ctaDesc": "MotoVaultはライド前にスマートリマインダーを送信し、メンテナンス履歴を記録するので、重要な点検を見逃しません。",
-    "getEarlyAccess": "早期アクセスを取得",
+    "getEarlyAccess": "無料ダウンロード",
     "catTires": "タイヤ",
     "catControls": "操作系",
     "catLights": "灯火類",

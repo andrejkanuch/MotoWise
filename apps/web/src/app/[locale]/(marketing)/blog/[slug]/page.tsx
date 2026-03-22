@@ -244,7 +244,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             href="/"
             className="inline-block rounded-full bg-amber-500 px-8 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
           >
-            Get Early Access
+            Download Free
           </Link>
         </div>
 

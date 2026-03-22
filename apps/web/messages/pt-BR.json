@@ -58,11 +58,11 @@
       "title": "Comunidade",
       "tagline": "Junte-se a outros pilotos.",
       "description": "Compartilhe sua garagem, compare progresso e aprenda junto com pilotos de todos os níveis. Conhecimento sobre motos é melhor junto.",
-      "badge": "Em breve"
+      "badge": "Novo"
     }
   },
   "SocialProof": {
-    "riders": "Na Lista de Espera",
+    "riders": "Pilotos Ativos",
     "ridersCount": "12.000+",
     "diagnostics": "Componentes de Motos",
     "diagnosticsCount": "500+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Depoimentos",
     "sectionTitle": "O Que os Motociclistas Dizem",
-    "badge": "Acesso Antecipado",
+    "badge": "Piloto Verificado",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Junte-se a milhares de pilotos na lista de espera",
+    "socialProof": "Confiado por milhares de pilotos no mundo todo",
     "headline": "Conheça Sua Moto Por Dentro",
-    "subtitle": "Seja o primeiro quando lançarmos no iOS e Android.",
+    "subtitle": "Grátis no iOS e Android. Comece a acompanhar sua moto hoje.",
     "trustFree": "Grátis para começar",
     "trustNoCard": "Sem spam, nunca",
-    "disclaimer": "Lançamento em breve no iOS e Android.",
+    "disclaimer": "Disponível agora no iOS e Android.",
     "emailPlaceholder": "seu@email.com",
-    "submitButton": "Entrar na Lista de Espera",
-    "submitting": "Reservando sua vaga...",
-    "successMessage": "Você está na lista! Avisaremos quando for hora de pilotar.",
+    "submitButton": "Baixar Grátis",
+    "submitting": "Redirecionando...",
+    "successMessage": "Obrigado! Baixe o MotoVault na App Store ou Google Play.",
     "successTagline": "Sua moto merece mais do que uma planilha.",
     "errorMessage": "Algo deu errado. Tente novamente.",
     "personality": "Sua moto merece mais do que uma planilha."
@@ -544,7 +544,7 @@
     "shareResults": "Compartilhe esses resultados — a URL atualiza automaticamente com seus dados.",
     "copyLink": "Copiar Link",
     "trackActualCosts": "Acompanhe seus custos <strong>reais</strong> com o MotoVault",
-    "getEarlyAccess": "Obter Acesso Antecipado",
+    "getEarlyAccess": "Baixar Grátis",
     "seoTitle1": "Quanto custa ter uma moto?",
     "seoP1": "O preço de compra é só o começo. Os custos anuais de propriedade de uma moto geralmente variam de R$ 5.000 a R$ 20.000+ dependendo dos seus hábitos de pilotagem, tipo de moto e preferências de manutenção. Entender esses custos ajuda a planejar o orçamento e evitar surpresas.",
     "seoP2": "Os custos de combustível variam significativamente por tipo de moto. Motos touring fazem em média 17 km/L enquanto adventure podem atingir mais de 22 km/L. Sua quilometragem anual é o maior fator nos gastos com combustível.",
@@ -568,7 +568,7 @@
     "printChecklist": "Imprimir Checklist",
     "ctaTitle": "Receba Lembretes Automáticos Pré-Viagem",
     "ctaDesc": "O MotoVault envia lembretes inteligentes antes das suas viagens e acompanha o histórico de manutenção para que você nunca perca uma verificação crítica.",
-    "getEarlyAccess": "Obter Acesso Antecipado",
+    "getEarlyAccess": "Baixar Grátis",
     "catTires": "Pneus",
     "catControls": "Controles",
     "catLights": "Luzes",

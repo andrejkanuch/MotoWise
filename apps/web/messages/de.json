@@ -58,11 +58,11 @@
       "title": "Community",
       "tagline": "Schließe dich anderen Fahrern an.",
       "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser.",
-      "badge": "Demnächst"
+      "badge": "Neu"
     }
   },
   "SocialProof": {
-    "riders": "Early-Access-Fahrer",
+    "riders": "Aktive Fahrer",
     "ridersCount": "12.000+",
     "diagnostics": "KI-Diagnosen",
     "diagnosticsCount": "85.000+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Erfahrungen",
     "sectionTitle": "Was Motorradfahrer sagen",
-    "badge": "Early Access",
+    "badge": "Verifizierter Fahrer",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Vertraut von Fahrern im Early Access",
+    "socialProof": "Vertraut von tausenden Fahrern weltweit",
     "headline": "Starte heute mit der Motorradwartung",
-    "subtitle": "Erhalte Early Access, wenn wir auf iOS und Android starten.",
+    "subtitle": "Kostenlos auf iOS und Android. Starte heute mit dem Tracking deines Bikes.",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
-    "disclaimer": "Bald verfügbar auf iOS und Android.",
+    "disclaimer": "Jetzt verfügbar auf iOS und Android.",
     "emailPlaceholder": "deine@email.de",
-    "submitButton": "Benachrichtige mich",
-    "submitting": "Wird beigetreten...",
-    "successMessage": "Du bist dabei! Wir benachrichtigen dich, wenn MotoVault startet.",
+    "submitButton": "Kostenlos herunterladen",
+    "submitting": "Weiterleitung...",
+    "successMessage": "Danke! Lade MotoVault im App Store oder bei Google Play herunter.",
     "successTagline": "Dein Motorrad verdient mehr als eine Tabelle.",
     "errorMessage": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "personality": "Dein Motorrad verdient mehr als eine Tabelle."
@@ -544,7 +544,7 @@
     "shareResults": "Teile diese Ergebnisse — die URL aktualisiert sich automatisch mit deinen Eingaben.",
     "copyLink": "Link kopieren",
     "trackActualCosts": "Erfasse deine <strong>tatsächlichen</strong> Kosten mit MotoVault",
-    "getEarlyAccess": "Frühen Zugang sichern",
+    "getEarlyAccess": "Kostenlos herunterladen",
     "seoTitle1": "Was kostet ein Motorrad im Unterhalt?",
     "seoP1": "Der Kaufpreis ist erst der Anfang. Die jährlichen Unterhaltskosten eines Motorrads liegen typischerweise zwischen 1.500 € und 5.000 €+, je nach Fahrgewohnheiten, Motorradtyp und Wartungsvorlieben. Diese Kosten zu verstehen hilft dir, effektiv zu budgetieren und Überraschungen zu vermeiden.",
     "seoP2": "Kraftstoffkosten variieren erheblich je nach Motorradtyp. Touringmaschinen verbrauchen etwa 6 L/100km, während Adventure-Bikes unter 4,5 L/100km erreichen können. Deine jährliche Kilometerleistung ist der größte Faktor bei den Kraftstoffausgaben.",
@@ -568,7 +568,7 @@
     "printChecklist": "Checkliste drucken",
     "ctaTitle": "Automatische Erinnerungen vor der Fahrt erhalten",
     "ctaDesc": "MotoVault sendet intelligente Erinnerungen vor deinen Fahrten und verfolgt die Wartungshistorie, damit du keine kritische Prüfung verpasst.",
-    "getEarlyAccess": "Frühen Zugang sichern",
+    "getEarlyAccess": "Kostenlos herunterladen",
     "catTires": "Reifen",
     "catControls": "Bedienelemente",
     "catLights": "Beleuchtung",

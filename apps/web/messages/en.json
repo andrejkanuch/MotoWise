@@ -58,11 +58,11 @@
       "title": "Community",
       "tagline": "Join fellow riders.",
       "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together.",
-      "badge": "Coming soon"
+      "badge": "New"
     }
   },
   "SocialProof": {
-    "riders": "On the Waitlist",
+    "riders": "Active Riders",
     "ridersCount": "12,000+",
     "diagnostics": "Bike Components",
     "diagnosticsCount": "500+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Testimonials",
     "sectionTitle": "What Motorcycle Riders Say",
-    "badge": "Early Access",
+    "badge": "Verified Rider",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Join thousands of riders on the waitlist",
+    "socialProof": "Trusted by thousands of riders worldwide",
     "headline": "Know Your Bike Inside Out",
-    "subtitle": "Be first in line when we launch on iOS and Android.",
+    "subtitle": "Free on iOS and Android. Start tracking your bike today.",
     "trustFree": "Free to start",
     "trustNoCard": "No spam, ever",
-    "disclaimer": "Launching soon on iOS and Android.",
+    "disclaimer": "Available now on iOS and Android.",
     "emailPlaceholder": "your@email.com",
-    "submitButton": "Join the Waitlist",
-    "submitting": "Saving your spot...",
-    "successMessage": "You're on the list! We'll let you know when it's time to ride.",
+    "submitButton": "Download Free",
+    "submitting": "Redirecting...",
+    "successMessage": "Thanks! Download MotoVault from the App Store or Google Play.",
     "successTagline": "Your bike deserves better than a spreadsheet.",
     "errorMessage": "Something went wrong. Please try again.",
     "personality": "Your bike deserves better than a spreadsheet."
@@ -552,7 +552,7 @@
     "shareResults": "Share these results — the URL updates automatically with your inputs.",
     "copyLink": "Copy Link",
     "trackActualCosts": "Track your <strong>actual</strong> costs with MotoVault",
-    "getEarlyAccess": "Get Early Access",
+    "getEarlyAccess": "Download Free",
     "seoTitle1": "How Much Does a Motorcycle Cost to Own?",
     "seoP1": "The purchase price is only the beginning. Annual motorcycle ownership costs typically range from $1,500 to $5,000+ depending on your riding habits, bike type, and maintenance preferences. Understanding these costs helps you budget effectively and avoid surprises.",
     "seoP2": "Fuel costs vary significantly by motorcycle type. Touring bikes average around 38 MPG while adventure bikes can achieve 50+ MPG. Your annual mileage is the biggest factor in fuel expenses.",
@@ -576,7 +576,7 @@
     "printChecklist": "Print Checklist",
     "ctaTitle": "Get Automated Pre-Ride Reminders",
     "ctaDesc": "MotoVault sends smart reminders before your rides and tracks maintenance history so you never miss a critical check.",
-    "getEarlyAccess": "Get Early Access",
+    "getEarlyAccess": "Download Free",
     "catTires": "Tires",
     "catControls": "Controls",
     "catLights": "Lights",

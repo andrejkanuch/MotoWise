@@ -58,11 +58,11 @@
       "title": "Communauté",
       "tagline": "Rejoignez d'autres motards.",
       "description": "Partagez votre garage, comparez votre progression et apprenez aux côtés de motards de tous les niveaux. La connaissance des motos est meilleure ensemble.",
-      "badge": "À venir"
+      "badge": "Nouveau"
     }
   },
   "SocialProof": {
-    "riders": "Motards en Accès Anticipé",
+    "riders": "Motards Actifs",
     "ridersCount": "12 000+",
     "diagnostics": "Diagnostics IA",
     "diagnosticsCount": "85 000+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Témoignages",
     "sectionTitle": "Ce Que Disent les Motards",
-    "badge": "Accès Anticipé",
+    "badge": "Motard Vérifié",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Approuvé par les motards en accès anticipé",
+    "socialProof": "Approuvé par des milliers de motards dans le monde",
     "headline": "Commencez l'Apprentissage de l'Entretien Moto Aujourd'hui",
-    "subtitle": "Obtenez un accès anticipé lors de notre lancement sur iOS et Android.",
+    "subtitle": "Gratuit sur iOS et Android. Commencez à suivre votre moto aujourd'hui.",
     "trustFree": "Gratuit au lancement",
     "trustNoCard": "Pas de carte de crédit",
-    "disclaimer": "Bientôt disponible sur iOS et Android.",
+    "disclaimer": "Disponible maintenant sur iOS et Android.",
     "emailPlaceholder": "votre@email.fr",
-    "submitButton": "Me notifier",
-    "submitting": "Inscription...",
-    "successMessage": "C'est fait ! Nous vous préviendrons au lancement de MotoVault.",
+    "submitButton": "Télécharger Gratuitement",
+    "submitting": "Redirection...",
+    "successMessage": "Merci ! Téléchargez MotoVault sur l'App Store ou Google Play.",
     "successTagline": "Votre moto mérite mieux qu'un tableur.",
     "errorMessage": "Une erreur s'est produite. Veuillez réessayer.",
     "personality": "Votre moto mérite mieux qu'un tableur."
@@ -544,7 +544,7 @@
     "shareResults": "Partagez ces résultats — l'URL se met à jour automatiquement avec vos données.",
     "copyLink": "Copier le Lien",
     "trackActualCosts": "Suivez vos coûts <strong>réels</strong> avec MotoVault",
-    "getEarlyAccess": "Obtenir un Accès Anticipé",
+    "getEarlyAccess": "Télécharger Gratuitement",
     "seoTitle1": "Combien coûte une moto à entretenir ?",
     "seoP1": "Le prix d'achat n'est que le début. Les coûts annuels de possession d'une moto varient généralement de 1 500 € à 5 000 €+ selon vos habitudes de conduite, le type de moto et vos préférences d'entretien. Comprendre ces coûts vous aide à budgétiser efficacement et à éviter les surprises.",
     "seoP2": "Les coûts de carburant varient considérablement selon le type de moto. Les motos touring consomment environ 6 L/100km tandis que les adventure peuvent atteindre moins de 4,5 L/100km. Votre kilométrage annuel est le facteur le plus important dans les dépenses de carburant.",
@@ -568,7 +568,7 @@
     "printChecklist": "Imprimer la Checklist",
     "ctaTitle": "Recevez des Rappels Automatiques Pré-Départ",
     "ctaDesc": "MotoVault envoie des rappels intelligents avant vos sorties et suit l'historique d'entretien pour que vous ne manquiez jamais un contrôle critique.",
-    "getEarlyAccess": "Obtenir un Accès Anticipé",
+    "getEarlyAccess": "Télécharger Gratuitement",
     "catTires": "Pneus",
     "catControls": "Commandes",
     "catLights": "Éclairage",

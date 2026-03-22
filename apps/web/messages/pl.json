@@ -58,11 +58,11 @@
       "title": "Spolecznosc",
       "tagline": "Dolacz do innych jezdzcow.",
       "description": "Udostepniaj swoj garaz, porownuj postepy i ucz sie razem z jezdzcami na kazdym poziomie. Wiedza motocyklowa jest lepsza wspolnie.",
-      "badge": "Wkrotce"
+      "badge": "Nowość"
     }
   },
   "SocialProof": {
-    "riders": "Na liscie oczekujacych",
+    "riders": "Aktywni jeźdźcy",
     "ridersCount": "12 000+",
     "diagnostics": "Komponenty motocyklowe",
     "diagnosticsCount": "500+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Opinie",
     "sectionTitle": "Co mowia motocyklisci",
-    "badge": "Wczesny dostep",
+    "badge": "Zweryfikowany jeździec",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Dolacz do tysiecy jezdzcow na liscie oczekujacych",
+    "socialProof": "Zaufany przez tysiące jeźdźców na całym świecie",
     "headline": "Poznaj swoj motocykl od srodka",
-    "subtitle": "Badz pierwszy w kolejce, gdy uruchomimy na iOS i Android.",
+    "subtitle": "Za darmo na iOS i Android. Zacznij śledzić swój motocykl już dziś.",
     "trustFree": "Start za darmo",
     "trustNoCard": "Zadnego spamu",
-    "disclaimer": "Wkrotce premiera na iOS i Android.",
+    "disclaimer": "Dostępne teraz na iOS i Android.",
     "emailPlaceholder": "twoj@email.com",
-    "submitButton": "Dolacz do listy oczekujacych",
-    "submitting": "Zapisujemy twoje miejsce...",
-    "successMessage": "Jestes na liscie! Damy ci znac, gdy nadejdzie czas na jazde.",
+    "submitButton": "Pobierz za darmo",
+    "submitting": "Przekierowywanie...",
+    "successMessage": "Dziękujemy! Pobierz MotoVault z App Store lub Google Play.",
     "successTagline": "Twoj motocykl zasluguje na cos lepszego niz arkusz kalkulacyjny.",
     "errorMessage": "Cos poszlo nie tak. Sprobuj ponownie.",
     "personality": "Twoj motocykl zasluguje na cos lepszego niz arkusz kalkulacyjny."
@@ -544,7 +544,7 @@
     "shareResults": "Udostepnij te wyniki — URL aktualizuje sie automatycznie z twoimi danymi.",
     "copyLink": "Kopiuj Link",
     "trackActualCosts": "Sledz swoje <strong>rzeczywiste</strong> koszty z MotoVault",
-    "getEarlyAccess": "Uzyskaj Wczesny Dostep",
+    "getEarlyAccess": "Pobierz za darmo",
     "seoTitle1": "Ile kosztuje posiadanie motocykla?",
     "seoP1": "Cena zakupu to dopiero poczatek. Roczne koszty posiadania motocykla wynoszam zwykle od 5 000 do 20 000+ PLN w zaleznosci od nawykow jazdy, typu motocykla i preferencji serwisowych. Zrozumienie tych kosztow pomaga efektywnie planowac budzet i unikac niespodzianek.",
     "seoP2": "Koszty paliwa roznia sie znacznie w zaleznosci od typu motocykla. Motocykle turystyczne spalaja srednio okolo 6 L/100km, podczas gdy adventure moga osiagac ponizej 4,5 L/100km. Twoj roczny przebieg jest najwiekszym czynnikiem wplywajacym na wydatki na paliwo.",
@@ -568,7 +568,7 @@
     "printChecklist": "Wydrukuj Liste",
     "ctaTitle": "Otrzymuj Automatyczne Przypomnienia przed Jazda",
     "ctaDesc": "MotoVault wysyla inteligentne przypomnienia przed jazdami i sledzi historie serwisu, abys nigdy nie pominal krytycznej kontroli.",
-    "getEarlyAccess": "Uzyskaj Wczesny Dostep",
+    "getEarlyAccess": "Pobierz za darmo",
     "catTires": "Opony",
     "catControls": "Sterowanie",
     "catLights": "Oswietlenie",

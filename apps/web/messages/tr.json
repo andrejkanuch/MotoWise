@@ -58,11 +58,11 @@
       "title": "Topluluk",
       "tagline": "Diger suruculere katil.",
       "description": "Garajini paylas, ilerlemeni karsilastir ve her seviyedeki suruculerle birlikte ogren. Motosiklet bilgisi birlikte daha iyidir.",
-      "badge": "Yakin zamanda"
+      "badge": "Yeni"
     }
   },
   "SocialProof": {
-    "riders": "Bekleme Listesinde",
+    "riders": "Aktif Suruculer",
     "ridersCount": "12.000+",
     "diagnostics": "Motor Parcasi",
     "diagnosticsCount": "500+",
@@ -83,7 +83,7 @@
   "Testimonials": {
     "sectionLabel": "Kullanici Yorumlari",
     "sectionTitle": "Motosiklet Suruculeri Ne Diyor",
-    "badge": "Erken Erisim",
+    "badge": "Dogrulanmis Surucu",
     "items": [
       {
         "name": "Alex R.",
@@ -118,16 +118,16 @@
     ]
   },
   "Cta": {
-    "socialProof": "Bekleme listesindeki binlerce surucuye katil",
+    "socialProof": "Dunya genelinde binlerce surucu tarafindan guveniliyor",
     "headline": "Motorunu Icinden Dis Tani",
-    "subtitle": "iOS ve Android'de lansman yaptigimizda ilk siraya gec.",
+    "subtitle": "iOS ve Android'de ucretsiz. Bugun motorunu takip etmeye basla.",
     "trustFree": "Ucretsiz basla",
     "trustNoCard": "Asla spam yok",
-    "disclaimer": "Yakin zamanda iOS ve Android'de.",
+    "disclaimer": "Simdi iOS ve Android'de mevcut.",
     "emailPlaceholder": "senin@email.com",
-    "submitButton": "Bekleme Listesine Katil",
-    "submitting": "Yerin kaydediliyor...",
-    "successMessage": "Listedesin! Surme zamani geldiginde sana haber verecegiz.",
+    "submitButton": "Ucretsiz Indir",
+    "submitting": "Yonlendiriliyor...",
+    "successMessage": "Tesekkurler! MotoVault'u App Store veya Google Play'den indirin.",
     "successTagline": "Motorun bir elektronik tablodan daha fazlasini hak ediyor.",
     "errorMessage": "Bir seyler yanlis gitti. Lutfen tekrar dene.",
     "personality": "Motorun bir elektronik tablodan daha fazlasini hak ediyor."
@@ -544,7 +544,7 @@
     "shareResults": "Bu sonuclari paylasin — URL girislerinizle otomatik guncellenir.",
     "copyLink": "Linki Kopyala",
     "trackActualCosts": "MotoVault ile <strong>gercek</strong> maliyetlerinizi takip edin",
-    "getEarlyAccess": "Erken Erisim Alin",
+    "getEarlyAccess": "Ucretsiz Indir",
     "seoTitle1": "Motosiklet Sahip Olmanin Maliyeti Ne Kadar?",
     "seoP1": "Satin alma fiyati sadece baslangictir. Yillik motosiklet sahiplik maliyetleri, surus aliskanliklariniza, motor tipinize ve bakim tercihlerinize bagli olarak genellikle 15.000 TL ile 50.000 TL+ arasinda degisir. Bu maliyetleri anlamak etkili butce planlamaniza ve surprizlerden kacinmaniza yardimci olur.",
     "seoP2": "Yakit maliyetleri motosiklet tipine gore onemli olcude degisir. Touring motorlar ortalama 17 km/L yaparken adventure motorlar 22+ km/L'ye ulasabilir. Yillik kilometreniz yakit giderlerindeki en buyuk faktordur.",
@@ -568,7 +568,7 @@
     "printChecklist": "Kontrol Listesini Yazdir",
     "ctaTitle": "Otomatik Surus Oncesi Hatirlatmalar Alin",
     "ctaDesc": "MotoVault suruslerinizden once akilli hatirlatmalar gonderir ve bakim gecmisini takip eder, boylece kritik bir kontrolu asla kacirmazsiniz.",
-    "getEarlyAccess": "Erken Erisim Alin",
+    "getEarlyAccess": "Ucretsiz Indir",
     "catTires": "Lastikler",
     "catControls": "Kontroller",
     "catLights": "Isiklar",
