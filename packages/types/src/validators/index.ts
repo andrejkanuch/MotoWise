@@ -7,4 +7,5 @@ export * from './locale';
 export * from './maintenance-task';
 export * from './motorcycle';
 export * from './quiz';
+export * from './ride';
 export * from './user';

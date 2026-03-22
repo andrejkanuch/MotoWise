@@ -1,0 +1,453 @@
+import { palette } from '@motovault/design-system';
+import { EndRideDocument } from '@motovault/graphql';
+import type { Waypoint } from '@motovault/types';
+import * as Haptics from 'expo-haptics';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { useRouter } from 'expo-router';
+import { BatteryLow, Moon, Sun } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HudControls } from '../../components/ride/hud-controls';
+import { HudMap } from '../../components/ride/hud-map';
+import { HudSpeed } from '../../components/ride/hud-speed';
+import { useRideStore } from '../../stores/ride.store';
+import {
+  distanceMeters,
+  stopGPSListener,
+  toggleBatterySaver,
+} from '../../utils/ride-location';
+import {
+  clearRideData,
+  flushBufferToMMKV,
+  getPointBuffer,
+  getWaypointChunks,
+  rideMMKV,
+} from '../../utils/ride-storage';
+import { enqueue } from '../../utils/ride-sync-queue';
+
+function formatElapsed(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function formatDistance(meters: number): string {
+  const miles = meters / 1609.34;
+  return miles < 10 ? `${miles.toFixed(1)} mi` : `${Math.round(miles)} mi`;
+}
+
+export default function RideHudScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const status = useRideStore((s) => s.status);
+  const distance = useRideStore((s) => s.distance);
+  const isNightMode = useRideStore((s) => s.isNightMode);
+  const isBatterySaver = useRideStore((s) => s.isBatterySaver);
+  const toggleNight = useRideStore((s) => s.toggleNightMode);
+  const toggleBattery = useRideStore((s) => s.toggleBatterySaver);
+  const pauseRide = useRideStore((s) => s.pauseRide);
+  const resumeRide = useRideStore((s) => s.resumeRide);
+  const endRide = useRideStore((s) => s.endRide);
+  const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
+  const updateDistance = useRideStore((s) => s.updateDistance);
+  const updateSpeed = useRideStore((s) => s.updateSpeed);
+
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [gpsAccuracy, setGpsAccuracy] = useState(100);
+  const [showAvgStats, setShowAvgStats] = useState(false);
+  const pausedAtRef = useRef<number | null>(null);
+  const totalPausedRef = useRef(0);
+
+  const isPaused = status === 'paused';
+  const bgColor = isNightMode ? '#0a0000' : '#0a0a0a';
+  const textColor = isNightMode ? '#CC0000' : palette.white;
+
+  // Keep screen awake
+  useEffect(() => {
+    activateKeepAwakeAsync('ride-hud');
+    return () => {
+      deactivateKeepAwake('ride-hud');
+    };
+  }, []);
+
+  // Elapsed timer
+  useEffect(() => {
+    const startedAt = rideMMKV.getStartedAt();
+    if (!startedAt) return;
+
+    const interval = setInterval(() => {
+      if (isPaused) return;
+      const now = Date.now();
+      const raw = Math.floor((now - startedAt) / 1000);
+      const paused = Math.floor(totalPausedRef.current / 1000);
+      const elapsed = Math.max(0, raw - paused);
+      setElapsedSeconds(elapsed);
+      updateElapsedTime(elapsed);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, updateElapsedTime]);
+
+  // Track pause duration
+  useEffect(() => {
+    if (isPaused) {
+      pausedAtRef.current = Date.now();
+    } else if (pausedAtRef.current) {
+      totalPausedRef.current += Date.now() - pausedAtRef.current;
+      pausedAtRef.current = null;
+    }
+  }, [isPaused]);
+
+  // Calculate distance from waypoints
+  useEffect(() => {
+    if (waypoints.length < 2) return;
+    let total = 0;
+    for (let i = 1; i < waypoints.length; i++) {
+      total += distanceMeters(
+        { lat: waypoints[i - 1].latitude, lng: waypoints[i - 1].longitude },
+        { lat: waypoints[i].latitude, lng: waypoints[i].longitude },
+      );
+    }
+    updateDistance(total);
+  }, [waypoints, updateDistance]);
+
+  const handlePause = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
+    pauseRide();
+    rideMMKV.setTotalPausedMs(totalPausedRef.current);
+  }, [pauseRide]);
+
+  const handleResume = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
+    resumeRide();
+  }, [resumeRide]);
+
+  const handleEndRide = useCallback(() => {
+    const rideId = rideMMKV.getCurrentId();
+    if (!rideId) return;
+
+    // Flush remaining waypoints
+    flushBufferToMMKV(rideId);
+
+    // Gather all waypoints for stats
+    const chunks = getWaypointChunks(rideId);
+    const allWaypoints = chunks.flat();
+    const bufferPoints = [...getPointBuffer()];
+    const combined = [...allWaypoints, ...bufferPoints];
+
+    // Calculate stats
+    let totalDistance = 0;
+    let maxSpeed = 0;
+    let speedSum = 0;
+    let speedCount = 0;
+    let elevGain = 0;
+    let elevLoss = 0;
+
+    for (let i = 0; i < combined.length; i++) {
+      const wp = combined[i];
+      if (i > 0) {
+        totalDistance += distanceMeters(
+          { lat: combined[i - 1].latitude, lng: combined[i - 1].longitude },
+          { lat: wp.latitude, lng: wp.longitude },
+        );
+        const prevAlt = combined[i - 1].altitude;
+        const curAlt = wp.altitude;
+        if (prevAlt != null && curAlt != null) {
+          const diff = curAlt - prevAlt;
+          if (diff > 0) elevGain += diff;
+          else elevLoss += Math.abs(diff);
+        }
+      }
+      const speed = wp.speedMps ?? 0;
+      if (speed > maxSpeed) maxSpeed = speed;
+      if (speed > 0) {
+        speedSum += speed;
+        speedCount++;
+      }
+    }
+
+    const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
+    const endedAt = new Date().toISOString();
+
+    // Update store
+    endRide();
+    stopGPSListener();
+
+    // Enqueue mutation
+    enqueue('endRide', {
+      mutationDocument: EndRideDocument,
+      variables: {
+        input: {
+          rideId,
+          endedAt,
+          distanceM: Math.round(totalDistance),
+          maxSpeedMps: maxSpeed > 0 ? maxSpeed : null,
+          avgSpeedMps: avgSpeed > 0 ? avgSpeed : null,
+          elevationGain: elevGain > 0 ? Math.round(elevGain) : null,
+          elevationLoss: elevLoss > 0 ? Math.round(elevLoss) : null,
+          pausedDurationS: Math.round(totalPausedRef.current / 1000),
+          autoPausedDurationS: Math.round(rideMMKV.getTotalAutoPausedMs() / 1000),
+          gpsQuality: combined.length > 0 ? 1 : 0,
+        },
+      },
+    });
+
+    // Navigate to summary
+    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+    router.replace({
+      pathname: '/(modals)/ride-summary',
+      params: {
+        rideId,
+        distanceM: String(Math.round(totalDistance)),
+        durationS: String(elapsedSeconds),
+        maxSpeedMps: String(maxSpeed),
+        avgSpeedMps: String(avgSpeed),
+        elevationGain: String(Math.round(elevGain)),
+        startedAt: rideMMKV.getStartedAt()?.toString() ?? '',
+      },
+    } as any);
+  }, [endRide, router, elapsedSeconds]);
+
+  const handleToggleNight = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    toggleNight();
+  }, [toggleNight]);
+
+  const handleToggleBattery = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    const newState = !isBatterySaver;
+    toggleBattery();
+    toggleBatterySaver(newState);
+  }, [toggleBattery, isBatterySaver]);
+
+  // Status badge
+  const statusLabel = isPaused ? 'PAUSED' : 'RECORDING';
+  const statusColor = isPaused ? palette.warning500 : palette.success500;
+  const statusBg = isPaused ? palette.warningBgDark : palette.successBgDark;
+
+  // Avg speed for stats
+  const avgSpeedDisplay = waypoints.length > 1 ? distance / elapsedSeconds : 0;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: bgColor }}>
+      {/* Top bar */}
+      <Animated.View
+        entering={FadeIn.duration(200)}
+        style={{
+          paddingTop: insets.top + 8,
+          paddingHorizontal: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 10,
+        }}
+      >
+        {/* Status badge */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            backgroundColor: statusBg,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 12,
+            borderCurve: 'continuous',
+          }}
+        >
+          <View
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: statusColor,
+            }}
+          />
+          <Text style={{ fontSize: 12, fontWeight: '800', color: statusColor, letterSpacing: 1 }}>
+            {statusLabel}
+          </Text>
+        </View>
+
+        {/* Timer */}
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '700',
+            fontVariant: ['tabular-nums'],
+            color: textColor,
+          }}
+        >
+          {formatElapsed(elapsedSeconds)}
+        </Text>
+
+        {/* Night / Battery toggle */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Pressable
+            onPress={handleToggleBattery}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              borderCurve: 'continuous',
+              backgroundColor: isBatterySaver ? palette.warningBgDark : 'rgba(255,255,255,0.1)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <BatteryLow
+              size={18}
+              color={isBatterySaver ? palette.warning500 : 'rgba(255,255,255,0.5)'}
+            />
+          </Pressable>
+          <Pressable
+            onPress={handleToggleNight}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              borderCurve: 'continuous',
+              backgroundColor: isNightMode ? 'rgba(204,0,0,0.15)' : 'rgba(255,255,255,0.1)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isNightMode ? (
+              <Sun size={18} color="#CC0000" />
+            ) : (
+              <Moon size={18} color="rgba(255,255,255,0.5)" />
+            )}
+          </Pressable>
+        </View>
+      </Animated.View>
+
+      {/* Map zone */}
+      <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 0.35 }}>
+        <HudMap waypoints={waypoints} gpsAccuracy={gpsAccuracy} />
+      </Animated.View>
+
+      {/* Speed hero */}
+      <View style={{ flex: 0.3, alignItems: 'center', justifyContent: 'center' }}>
+        <HudSpeed />
+      </View>
+
+      {/* Stats row */}
+      <Pressable
+        onPress={() => setShowAvgStats((v) => !v)}
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          gap: 16,
+          paddingVertical: 12,
+          paddingHorizontal: 20,
+        }}
+      >
+        {!showAvgStats ? (
+          <>
+            <View
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+                DISTANCE
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  fontVariant: ['tabular-nums'],
+                  color: textColor,
+                  marginTop: 2,
+                }}
+              >
+                {formatDistance(distance)}
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+                DURATION
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  fontVariant: ['tabular-nums'],
+                  color: textColor,
+                  marginTop: 2,
+                }}
+              >
+                {formatElapsed(elapsedSeconds)}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '600', color: textColor, opacity: 0.5 }}>
+                AVG SPEED
+              </Text>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '700',
+                  fontVariant: ['tabular-nums'],
+                  color: textColor,
+                  marginTop: 2,
+                }}
+              >
+                {Math.round(avgSpeedDisplay * 2.237)} mph
+              </Text>
+            </View>
+          </>
+        )}
+      </Pressable>
+
+      {/* Bottom controls */}
+      <View style={{ paddingBottom: insets.bottom + 16 }}>
+        <HudControls
+          onPause={handlePause}
+          onResume={handleResume}
+          onEndRide={handleEndRide}
+          isPaused={isPaused}
+          isNightMode={isNightMode}
+        />
+      </View>
+    </View>
+  );
+}

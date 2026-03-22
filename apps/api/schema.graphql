@@ -178,6 +178,20 @@ enum DiagnosticSeverity {
   medium
 }
 
+input EndRideInput {
+  autoPausedDurationS: Int! = 0
+  avgSpeedMps: Float
+  distanceM: Float!
+  elevationGain: Float
+  elevationLoss: Float
+  endedAt: String!
+  gpsQuality: Float
+  maxSpeedMps: Float
+  pausedDurationS: Int! = 0
+  rideId: String!
+  routePolyline: String
+}
+
 type Expense {
   amount: Float!
   category: String!
@@ -381,7 +395,9 @@ type Mutation {
   deleteExpense(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
+  deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
+  endRide(input: EndRideInput!): Ride!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
 
@@ -392,11 +408,14 @@ type Mutation {
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
+  startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
+  updateRide(input: UpdateRideInput!): Ride!
   updateUser(input: UpdateUserInput!): User!
+  uploadWaypoints(input: UploadWaypointsInput!): Int!
 }
 
 type OemSchedule {
@@ -447,10 +466,12 @@ type Query {
   myDiagnostics: [Diagnostic!]!
   myMotorcycles: [Motorcycle!]!
   myProgress: [LearningProgress!]!
+  myRides(after: String, first: Int = 20, motorcycleId: String): RideConnection!
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
   quizByArticle(articleId: String!): Quiz
+  ride(id: String!): Ride!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
@@ -476,6 +497,51 @@ type QuizQuestion {
   explanation: String!
   options: [String!]!
   question: String!
+}
+
+type Ride {
+  autoPausedDurationS: Int!
+  avgSpeedMps: Float
+  createdAt: String!
+  distanceM: Int
+  durationS: Int
+  elevationGain: Float
+  elevationLoss: Float
+  endedAt: String
+  gpsQuality: Float
+  id: ID!
+  isPublic: Boolean!
+  maxLeanAngle: Float
+  maxSpeedMps: Float
+  mileageApplied: Boolean!
+  motorcycleId: String
+  name: String
+  pausedDurationS: Int!
+  region: String
+  routePolyline: String
+  routeThumbnailUri: String
+  startedAt: String!
+  status: RideStatus!
+  updatedAt: String!
+  userId: String!
+}
+
+type RideConnection {
+  edges: [RideEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type RideEdge {
+  cursor: String!
+  node: Ride!
+}
+
+"""Current status of a ride"""
+enum RideStatus {
+  completed
+  paused
+  recording
 }
 
 input SearchArticlesInput {
@@ -522,6 +588,12 @@ type SharedTaskInfo {
 type SpendingSummary {
   allTime: Float!
   thisYear: Float!
+}
+
+input StartRideInput {
+  motorcycleId: String
+  rideId: String!
+  startedAt: String!
 }
 
 input SubmitDiagnosticInput {
@@ -572,9 +644,21 @@ input UpdateMotorcycleInput {
   year: Int
 }
 
+input UpdateRideInput {
+  isPublic: Boolean
+  mileageApplied: Boolean
+  name: String
+  rideId: String!
+}
+
 input UpdateUserInput {
   fullName: String
   preferences: JSON
+}
+
+input UploadWaypointsInput {
+  rideId: String!
+  waypoints: [WaypointInput!]!
 }
 
 """User-reported urgency level for diagnostic requests"""
@@ -598,4 +682,14 @@ type User {
 enum UserRole {
   admin
   user
+}
+
+input WaypointInput {
+  accuracy: Float
+  altitude: Float
+  heading: Float
+  latitude: Float!
+  longitude: Float!
+  recordedAt: String!
+  speedMps: Float
 }

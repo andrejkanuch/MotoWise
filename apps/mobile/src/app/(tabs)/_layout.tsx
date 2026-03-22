@@ -4,15 +4,24 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { Tabs } from 'expo-router';
-import { Bike, BookOpen, Home, User, Wrench } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import { Bike, BookOpen, Home, Route, User, Wrench } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useRideStore } from '../../stores/ride.store';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -21,6 +30,90 @@ const TAB_CONFIG = [
   { name: '(garage)', icon: Bike, labelKey: 'tabs.garage' },
   { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
 ] as const;
+
+function formatElapsed(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function RideFAB() {
+  const router = useRouter();
+  const rideStatus = useRideStore((s) => s.status);
+  const elapsedTime = useRideStore((s) => s.elapsedTime);
+  const isActive = rideStatus === 'recording' || rideStatus === 'paused';
+
+  const pulseScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (isActive) {
+      pulseScale.value = withRepeat(
+        withSequence(
+          withTiming(1.12, { duration: 800 }),
+          withTiming(1, { duration: 800 }),
+        ),
+        -1,
+        true,
+      );
+    } else {
+      pulseScale.value = withTiming(1, { duration: 200 });
+    }
+  }, [isActive, pulseScale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
+
+  const onPress = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    if (isActive) {
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
+      router.push('/(modals)/ride-hud' as any);
+    } else {
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic route
+      router.push('/(modals)/start-ride' as any);
+    }
+  }, [isActive, router]);
+
+  return (
+    <Animated.View style={[{ position: 'relative', alignItems: 'center', justifyContent: 'center', flex: 1 }, animatedStyle]}>
+      <Pressable
+        onPress={onPress}
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: palette.accent500,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: -28,
+          borderCurve: 'continuous',
+          boxShadow: `0 4px 12px ${isActive ? 'rgba(45, 158, 120, 0.5)' : 'rgba(45, 158, 120, 0.3)'}`,
+        }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Route size={24} color={palette.white} strokeWidth={2.2} />
+      </Pressable>
+      {isActive && (
+        <Text
+          style={{
+            fontSize: 9,
+            fontWeight: '700',
+            color: palette.accent500,
+            marginTop: 2,
+            fontVariant: ['tabular-nums'],
+          }}
+        >
+          {formatElapsed(elapsedTime)}
+        </Text>
+      )}
+    </Animated.View>
+  );
+}
 
 function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
@@ -74,9 +167,9 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
         boxShadow: isDark ? '0 8px 24px rgba(0, 0, 0, 0.4)' : '0 8px 24px rgba(0, 0, 0, 0.12)',
       }}
     >
-      {state.routes.map((route, index) => {
+      {state.routes.flatMap((route, index) => {
         const config = TAB_CONFIG.find((c) => c.name === route.name);
-        if (!config) return null;
+        if (!config) return [];
 
         const isFocused = state.index === index;
         const Icon = config.icon;
@@ -105,7 +198,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
         const showBadge = config.name === '(garage)' && garageBadgeCount > 0 && !isFocused;
         const badgeDisplay = garageBadgeCount >= 10 ? '9+' : String(garageBadgeCount);
 
-        return (
+        const tabButton = (
           <Pressable
             key={route.key}
             onPress={onPress}
@@ -162,6 +255,12 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
             </Text>
           </Pressable>
         );
+
+        // Insert the Ride FAB between Diagnose and Garage tabs
+        if (config.name === '(garage)') {
+          return [<RideFAB key="ride-fab" />, tabButton];
+        }
+        return [tabButton];
       })}
     </Animated.View>
   );

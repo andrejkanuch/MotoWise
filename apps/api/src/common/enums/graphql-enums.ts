@@ -10,6 +10,7 @@ import type {
   MaintenanceTaskSource,
   MaintenanceTaskStatus,
   MotorcycleType,
+  RideStatus,
   RidingFrequency,
   RidingGoal,
   SubscriptionTier,
@@ -319,4 +320,21 @@ const _taskSourceSync: Record<MaintenanceTaskSource, GqlMaintenanceTaskSource> =
   user: GqlMaintenanceTaskSource.user,
   oem: GqlMaintenanceTaskSource.oem,
   imported: GqlMaintenanceTaskSource.imported,
+};
+
+export enum GqlRideStatus {
+  recording = 'recording',
+  paused = 'paused',
+  completed = 'completed',
+}
+
+registerEnumType(GqlRideStatus, {
+  name: 'RideStatus',
+  description: 'Current status of a ride',
+});
+
+const _rideStatusSync: Record<RideStatus, GqlRideStatus> = {
+  recording: GqlRideStatus.recording,
+  paused: GqlRideStatus.paused,
+  completed: GqlRideStatus.completed,
 };

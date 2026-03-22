@@ -1,0 +1,8 @@
+mutation StartRide($input: StartRideInput!) {
+  startRide(input: $input) {
+    id
+    status
+    startedAt
+    motorcycleId
+  }
+}
