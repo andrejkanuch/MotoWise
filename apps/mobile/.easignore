@@ -8,9 +8,38 @@
 ../../*.md
 !../../README.md
 
+# Marketing materials (huge — ~100MB of PNGs)
+../../marketing-material/
+../../marketing/
+../../Reddit-*
+
+# Old build artifacts (36MB each)
+*.ipa
+*.apk
+*.aab
+
+# Scripts not needed for build
+../../scripts/
+
+# Supabase migrations (not needed in mobile bundle)
+../../supabase/
+
 # IDE and editor config
 .vscode/
 .idea/
+../../.claude/
+../../.cursor/
+
+# PRDs, plans, reports
+../../PRD-*
+../../PLAN-*
+../../MotoWise_*
+../../MotoVault-*
+../../HOMEPAGE_PROMPT.md
+../../Architecture-*
+../../SEO-*
+../../design-review-progress.md
+../../compound-engineering.local.md
 
 # Test files
 **/__tests__/
