@@ -161,6 +161,13 @@ export class ExpensesService {
   ): Promise<Expense | null> {
     this.logger.log(`createFromTask: userId=${userId}, taskId=${taskId}, amount=${amount}`);
 
+    // Look up user's currency preference so task-generated expenses match manual ones
+    const { data: userRow } = await this.supabase
+      .from('users')
+      .select('currency')
+      .eq('id', userId)
+      .single();
+
     const { data, error } = await this.supabase
       .from('expenses')
       .insert({
@@ -171,6 +178,7 @@ export class ExpensesService {
         date: new Date().toISOString().split('T')[0],
         description: taskTitle,
         maintenance_task_id: taskId,
+        ...(userRow?.currency && { currency: userRow.currency }),
       })
       .select(
         'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',

@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
       colorScheme: 'system',
       onboardingCompleted: false,
       measurementSystem: detectMeasurementSystem(),
-      currency: 'USD' as Currency,
+      currency: 'USD',
       setSession: (session) =>
         set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
       setLoading: (isLoading) => set({ isLoading }),

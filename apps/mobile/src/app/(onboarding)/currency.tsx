@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import type { Currency } from '@motovault/types';
+import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';
@@ -9,16 +9,14 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { CURRENCY_LIST, SUPPORTED_CURRENCIES } from '../../lib/currencies';
+import { CURRENCY_LIST } from '../../lib/currencies';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
-type CurrencyCode = (typeof Currency)[keyof typeof Currency];
-
-function detectCurrency(): CurrencyCode {
+function detectCurrency(): Currency {
   try {
     const code = getLocales()[0]?.currencyCode;
-    if (code && SUPPORTED_CURRENCIES.has(code)) return code as CurrencyCode;
+    if (code && code in CURRENCY_SYMBOLS) return code as Currency;
   } catch {}
   return 'USD';
 }
@@ -28,9 +26,9 @@ export default function CurrencyScreen() {
   const setCurrency = useOnboardingStore((s) => s.setCurrency);
   const existingCurrency = useOnboardingStore((s) => s.currency);
 
-  const [selected, setSelected] = useState<CurrencyCode>(existingCurrency ?? detectCurrency());
+  const [selected, setSelected] = useState<Currency>(() => existingCurrency ?? detectCurrency());
 
-  const handleSelect = (code: CurrencyCode) => {
+  const handleSelect = (code: Currency) => {
     setSelected(code);
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

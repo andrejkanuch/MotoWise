@@ -1047,7 +1047,7 @@ export default function ProfileScreen() {
 
       {/* Currency */}
       <Animated.View entering={FadeInUp.delay(540).duration(400)}>
-        <SectionHeader label="Currency" />
+        <SectionHeader label={t('profile.currency', { defaultValue: 'Currency' })} />
         <Pressable
           onPress={() => setShowCurrencyPicker(true)}
           style={{
@@ -1110,11 +1110,11 @@ export default function ProfileScreen() {
                   color: isDark ? palette.neutral50 : palette.neutral950,
                 }}
               >
-                Select Currency
+                {t('profile.selectCurrency', { defaultValue: 'Select Currency' })}
               </Text>
               <Pressable onPress={() => setShowCurrencyPicker(false)}>
                 <Text style={{ fontSize: 16, fontWeight: '600', color: palette.primary500 }}>
-                  Done
+                  {t('common.done', { defaultValue: 'Done' })}
                 </Text>
               </Pressable>
             </View>

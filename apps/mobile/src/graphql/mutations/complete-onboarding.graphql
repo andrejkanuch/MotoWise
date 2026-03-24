@@ -2,6 +2,7 @@ mutation CompleteOnboarding($input: CompleteOnboardingInput!) {
   completeOnboarding(input: $input) {
     id
     preferences
+    currency
     createdAt
     updatedAt
   }

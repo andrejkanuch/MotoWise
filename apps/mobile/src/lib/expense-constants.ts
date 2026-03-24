@@ -40,11 +40,9 @@ export function getCurrencySymbol(currency: Currency): string {
   return CURRENCY_SYMBOLS[currency] ?? currency;
 }
 
-const ZERO_DECIMAL_CURRENCIES = new Set<string>(['JPY']);
-
 /** Format user input for a currency amount, restricting decimals for zero-decimal currencies. */
 export function formatCurrencyInput(value: string, currency: Currency = 'USD'): string {
-  if (ZERO_DECIMAL_CURRENCIES.has(currency)) {
+  if (currency === 'JPY') {
     return value.replace(/[^0-9]/g, '');
   }
   const digits = value.replace(/[^0-9.]/g, '');
