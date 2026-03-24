@@ -61,4 +61,7 @@ export class CompleteOnboardingInput {
 
   @Field({ nullable: true })
   bikeMileageUnit?: string;
+
+  @Field({ nullable: true })
+  currency?: string;
 }

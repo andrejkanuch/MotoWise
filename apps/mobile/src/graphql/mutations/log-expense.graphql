@@ -3,6 +3,7 @@ mutation LogExpense($input: LogExpenseInput!) {
     id
     amount
     category
+    currency
     description
     date
     createdAt

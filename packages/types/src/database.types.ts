@@ -1,3 +1,8 @@
+npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
+WARN: environment variable is unset: SUPABASE_AUTH_GOOGLE_CLIENT_ID
+WARN: environment variable is unset: SUPABASE_AUTH_GOOGLE_SECRET
+WARN: environment variable is unset: SUPABASE_AUTH_APPLE_SECRET
+Initialising login role...
 export type Json =
   | string
   | number
@@ -11,6 +16,31 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.1"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -347,6 +377,7 @@ export type Database = {
           amount: number
           category: string
           created_at: string
+          currency: string
           date: string
           deleted_at: string | null
           description: string | null
@@ -360,6 +391,7 @@ export type Database = {
           amount: number
           category: string
           created_at?: string
+          currency?: string
           date: string
           deleted_at?: string | null
           description?: string | null
@@ -373,6 +405,7 @@ export type Database = {
           amount?: number
           category?: string
           created_at?: string
+          currency?: string
           date?: string
           deleted_at?: string | null
           description?: string | null
@@ -1017,6 +1050,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          currency: string
           deleted_at: string | null
           deletion_scheduled_at: string | null
           email: string
@@ -1037,6 +1071,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          currency?: string
           deleted_at?: string | null
           deletion_scheduled_at?: string | null
           email: string
@@ -1057,6 +1092,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          currency?: string
           deleted_at?: string | null
           deletion_scheduled_at?: string | null
           email?: string
@@ -1096,6 +1132,7 @@ export type Database = {
           p_bike_photo_url?: string
           p_bike_type?: Database["public"]["Enums"]["motorcycle_type"]
           p_bike_year?: number
+          p_currency?: string
           p_last_service_date?: string
           p_maintenance_reminders?: boolean
           p_mileage_unit?: string
@@ -1305,6 +1342,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       article_category: [

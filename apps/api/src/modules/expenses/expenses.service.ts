@@ -22,6 +22,7 @@ interface ExpenseRow {
   motorcycle_id: string;
   amount: number | string; // DECIMAL comes back as string from Supabase
   category: string;
+  currency: string;
   date: string;
   description: string | null;
   maintenance_task_id: string | null;
@@ -51,7 +52,7 @@ export class ExpensesService {
     let query = this.supabase
       .from('expenses')
       .select(
-        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
       )
       .eq('user_id', userId)
       .eq('motorcycle_id', motorcycleId)
@@ -102,6 +103,7 @@ export class ExpensesService {
       category: string;
       date: string;
       description?: string;
+      currency?: string;
     },
   ): Promise<Expense> {
     this.logger.log(
@@ -117,9 +119,10 @@ export class ExpensesService {
         category: input.category,
         date: input.date,
         description: input.description,
+        ...(input.currency && { currency: input.currency }),
       })
       .select(
-        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
       )
       .single();
 
@@ -170,7 +173,7 @@ export class ExpensesService {
         maintenance_task_id: taskId,
       })
       .select(
-        'id, user_id, motorcycle_id, amount, category, date, description, maintenance_task_id, created_at',
+        'id, user_id, motorcycle_id, amount, category, currency, date, description, maintenance_task_id, created_at',
       )
       .single();
 
@@ -282,6 +285,7 @@ export class ExpensesService {
       motorcycleId: row.motorcycle_id,
       amount: Math.round(Number(row.amount) * 100) / 100,
       category: row.category,
+      currency: row.currency ?? 'USD',
       date: row.date,
       description: row.description ?? undefined,
       maintenanceTaskId: row.maintenance_task_id ?? undefined,

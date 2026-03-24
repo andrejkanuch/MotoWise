@@ -30,6 +30,7 @@ export class UsersService {
       preferences: (row.preferences as Record<string, unknown>) ?? undefined,
       subscriptionTier: row.subscription_tier ?? undefined,
       measurementSystem: row.measurement_system ?? undefined,
+      currency: row.currency,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -53,6 +54,7 @@ export class UsersService {
       yearsRiding: number;
       preferences: Record<string, unknown>;
       measurementSystem: string;
+      currency: string;
     }>,
   ): Promise<User> {
     const payload: Record<string, unknown> = {};
@@ -60,6 +62,7 @@ export class UsersService {
     if (input.avatarUrl !== undefined) payload.avatar_url = input.avatarUrl;
     if (input.yearsRiding !== undefined) payload.years_riding = input.yearsRiding;
     if (input.measurementSystem !== undefined) payload.measurement_system = input.measurementSystem;
+    if (input.currency !== undefined) payload.currency = input.currency;
 
     if (input.preferences) {
       const result = UserPreferencesSchema.safeParse(input.preferences);
@@ -119,6 +122,7 @@ export class UsersService {
       p_bike_nickname: input.bikeNickname ?? null,
       p_bike_photo_url: input.bikePhotoUrl ?? null,
       p_mileage_unit: input.bikeMileageUnit ?? null,
+      p_currency: input.currency ?? null,
     });
 
     if (error) {

@@ -3,5 +3,7 @@ mutation UpdateUser($input: UpdateUserInput!) {
     id
     fullName
     preferences
+    measurementSystem
+    currency
   }
 }
