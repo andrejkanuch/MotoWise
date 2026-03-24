@@ -62,12 +62,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     '@react-native-community/datetimepicker',
-    [
-      '@rnmapbox/maps',
-      {
-        RNMapboxMapsDownloadToken: process.env.MAPBOX_DOWNLOAD_TOKEN ?? '',
-      },
-    ],
+    '@rnmapbox/maps',
     [
       'expo-notifications',
       {
