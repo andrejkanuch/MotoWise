@@ -1,6 +1,8 @@
 import { palette } from '@motovault/design-system';
 import {
   DeleteMotorcycleDocument,
+  MotorcycleMakesDocument,
+  MotorcycleModelsDocument,
   MyMotorcyclesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
@@ -10,7 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Camera, Trash2 } from 'lucide-react-native';
+import { Camera, Search, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -52,8 +54,15 @@ export default function EditBikeScreen() {
   // --- Form state ---
   const [nickname, setNickname] = useState('');
   const [year, setYear] = useState('');
-  const [make, setMake] = useState('');
-  const [model, setModel] = useState('');
+  const [selectedMake, setSelectedMake] = useState<{ makeId: number; makeName: string } | null>(
+    null,
+  );
+  const [selectedModel, setSelectedModel] = useState<{
+    modelId: number;
+    modelName: string;
+  } | null>(null);
+  const [makeSearch, setMakeSearch] = useState('');
+  const [modelSearch, setModelSearch] = useState('');
   const [mileage, setMileage] = useState('');
   const [mileageUnit, setMileageUnit] = useState<'mi' | 'km'>('mi');
   const [isPrimary, setIsPrimary] = useState(false);
@@ -73,6 +82,36 @@ export default function EditBikeScreen() {
     photoUrl: null as string | null,
   });
 
+  // --- NHTSA queries ---
+  const yearNum = Number.parseInt(year, 10);
+  const validYear = year.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1;
+
+  const makesResult = useQuery({
+    queryKey: queryKeys.nhtsa.makes,
+    queryFn: () => gqlFetcher(MotorcycleMakesDocument),
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
+  const modelsResult = useQuery({
+    queryKey: queryKeys.nhtsa.models({ makeId: selectedMake?.makeId ?? 0, year: yearNum }),
+    queryFn: () =>
+      gqlFetcher(MotorcycleModelsDocument, {
+        makeId: selectedMake?.makeId ?? 0,
+        year: yearNum,
+      }),
+    enabled: !!selectedMake && validYear,
+  });
+
+  const makes = makesResult.data?.motorcycleMakes ?? [];
+  const filteredMakes = makes.filter((m: { makeName: string }) =>
+    m.makeName.toLowerCase().includes(makeSearch.toLowerCase()),
+  );
+  const models = modelsResult.data?.motorcycleModels ?? [];
+  const filteredModels = models.filter((m: { modelName: string }) =>
+    m.modelName.toLowerCase().includes(modelSearch.toLowerCase()),
+  );
+
+  // --- Initialize form from bike data ---
   useEffect(() => {
     if (bike && !initialized) {
       const vals = {
@@ -88,8 +127,6 @@ export default function EditBikeScreen() {
       initialValues.current = vals;
       setNickname(vals.nickname);
       setYear(vals.year);
-      setMake(vals.make);
-      setModel(vals.model);
       setMileage(vals.mileage);
       setMileageUnit(vals.mileageUnit as 'mi' | 'km');
       setIsPrimary(vals.isPrimary);
@@ -98,6 +135,33 @@ export default function EditBikeScreen() {
     }
   }, [bike, initialized]);
 
+  // Match make from NHTSA list once makes are loaded
+  useEffect(() => {
+    if (bike && initialized && makes.length > 0 && !selectedMake) {
+      const found = makes.find(
+        (m: { makeName: string }) => m.makeName.toLowerCase() === bike.make.toLowerCase(),
+      );
+      if (found) {
+        setSelectedMake({ makeId: found.makeId, makeName: found.makeName });
+      }
+    }
+  }, [bike, initialized, makes, selectedMake]);
+
+  // Match model from NHTSA list once models are loaded
+  useEffect(() => {
+    if (bike && initialized && models.length > 0 && !selectedModel) {
+      const found = models.find(
+        (m: { modelName: string }) => m.modelName.toLowerCase() === bike.model.toLowerCase(),
+      );
+      if (found) {
+        setSelectedModel({ modelId: found.modelId, modelName: found.modelName });
+      }
+    }
+  }, [bike, initialized, models, selectedModel]);
+
+  const makeName = selectedMake?.makeName ?? '';
+  const modelName = selectedModel?.modelName ?? '';
+
   // --- Dirty detection ---
   const isDirty = useMemo(() => {
     if (!initialized) return false;
@@ -105,16 +169,16 @@ export default function EditBikeScreen() {
     return (
       nickname !== init.nickname ||
       year !== init.year ||
-      make !== init.make ||
-      model !== init.model ||
+      makeName !== init.make ||
+      modelName !== init.model ||
       mileage !== init.mileage ||
       mileageUnit !== init.mileageUnit ||
       isPrimary !== init.isPrimary ||
       photoUrl !== init.photoUrl
     );
-  }, [nickname, year, make, model, mileage, mileageUnit, isPrimary, photoUrl, initialized]);
+  }, [nickname, year, makeName, modelName, mileage, mileageUnit, isPrimary, photoUrl, initialized]);
 
-  const isValid = make.trim().length > 0 && model.trim().length > 0;
+  const isValid = makeName.length > 0 && modelName.length > 0;
 
   // --- Unsaved changes guard ---
   const navigation = useNavigation();
@@ -153,8 +217,8 @@ export default function EditBikeScreen() {
         input: {
           nickname: nickname.trim() || null,
           year: Number.isNaN(yearNum) ? undefined : yearNum,
-          make: make.trim(),
-          model: model.trim(),
+          make: makeName,
+          model: modelName,
           isPrimary,
           ...(mileageNum != null && !Number.isNaN(mileageNum)
             ? { currentMileage: mileageNum }
@@ -473,7 +537,11 @@ export default function EditBikeScreen() {
               <Text style={labelStyle}>{t('garage.year', { defaultValue: 'Year' })}</Text>
               <TextInput
                 value={year}
-                onChangeText={(text) => setYear(text.replace(/[^0-9]/g, '').slice(0, 4))}
+                onChangeText={(text) => {
+                  setYear(text.replace(/[^0-9]/g, '').slice(0, 4));
+                  setSelectedModel(null);
+                  setModelSearch('');
+                }}
                 keyboardType="number-pad"
                 placeholder="2024"
                 placeholderTextColor={palette.neutral400}
@@ -482,28 +550,245 @@ export default function EditBikeScreen() {
               />
             </View>
 
+            {/* Make — NHTSA Autocomplete */}
             <View>
-              <Text style={labelStyle}>{t('garage.make', { defaultValue: 'Make' })}</Text>
-              <TextInput
-                value={make}
-                onChangeText={setMake}
-                placeholder="Honda"
-                placeholderTextColor={palette.neutral400}
-                autoCapitalize="words"
-                style={inputStyle}
-              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginBottom: 8,
+                  marginLeft: 4,
+                }}
+              >
+                <Search size={14} color={secondaryText} />
+                <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>
+                  {t('garage.make', { defaultValue: 'Make' })}
+                </Text>
+              </View>
+
+              {makesResult.isLoading ? (
+                <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+              ) : selectedMake && !makeSearch ? (
+                <Pressable
+                  onPress={() => {
+                    setMakeSearch(selectedMake.makeName);
+                    setSelectedMake(null);
+                    setSelectedModel(null);
+                    setModelSearch('');
+                  }}
+                  style={{
+                    ...inputStyle,
+                    borderWidth: 1.5,
+                    borderColor: palette.primary500,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: textColor,
+                    }}
+                  >
+                    {selectedMake.makeName}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                    {t('garage.tapToChange', { defaultValue: 'Tap to change' })}
+                  </Text>
+                </Pressable>
+              ) : (
+                <>
+                  <TextInput
+                    value={makeSearch}
+                    onChangeText={setMakeSearch}
+                    placeholder={t('garage.searchMake', { defaultValue: 'Search make...' })}
+                    placeholderTextColor={palette.neutral400}
+                    autoCapitalize="words"
+                    style={inputStyle}
+                  />
+                  {makeSearch.length > 0 && filteredMakes.length > 0 ? (
+                    <View
+                      style={{
+                        backgroundColor: cardBg,
+                        borderWidth: 1,
+                        borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        marginTop: 6,
+                        maxHeight: 220,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                        {filteredMakes
+                          .slice(0, 20)
+                          .map((m: { makeId: number; makeName: string }) => (
+                            <Pressable
+                              key={m.makeId}
+                              onPress={() => {
+                                haptic();
+                                setSelectedMake(m);
+                                setSelectedModel(null);
+                                setMakeSearch('');
+                                setModelSearch('');
+                              }}
+                              style={({ pressed }) => ({
+                                paddingHorizontal: 16,
+                                paddingVertical: 13,
+                                borderBottomWidth: 1,
+                                borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
+                                backgroundColor: pressed
+                                  ? isDark
+                                    ? palette.neutral700
+                                    : palette.neutral100
+                                  : 'transparent',
+                              })}
+                            >
+                              <Text style={{ fontSize: 15, color: textColor }}>{m.makeName}</Text>
+                            </Pressable>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  ) : makeSearch.length > 0 ? (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: palette.neutral400,
+                        marginTop: 8,
+                        marginLeft: 4,
+                      }}
+                    >
+                      {t('garage.noMakesFound', { defaultValue: 'No makes found' })}
+                    </Text>
+                  ) : null}
+                </>
+              )}
             </View>
 
+            {/* Model — NHTSA Autocomplete */}
             <View>
-              <Text style={labelStyle}>{t('garage.model', { defaultValue: 'Model' })}</Text>
-              <TextInput
-                value={model}
-                onChangeText={setModel}
-                placeholder="CB650R"
-                placeholderTextColor={palette.neutral400}
-                autoCapitalize="words"
-                style={inputStyle}
-              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginBottom: 8,
+                  marginLeft: 4,
+                }}
+              >
+                <Search size={14} color={secondaryText} />
+                <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>
+                  {t('garage.model', { defaultValue: 'Model' })}
+                </Text>
+              </View>
+
+              {!selectedMake || !validYear ? (
+                <View style={{ ...inputStyle, opacity: 0.4 }}>
+                  <Text style={{ fontSize: 16, color: palette.neutral400 }}>
+                    {t('garage.searchModel', { defaultValue: 'Search model...' })}
+                  </Text>
+                </View>
+              ) : modelsResult.isLoading ? (
+                <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+              ) : selectedModel && !modelSearch ? (
+                <Pressable
+                  onPress={() => {
+                    setModelSearch(selectedModel.modelName);
+                    setSelectedModel(null);
+                  }}
+                  style={{
+                    ...inputStyle,
+                    borderWidth: 1.5,
+                    borderColor: palette.primary500,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: textColor,
+                    }}
+                  >
+                    {selectedModel.modelName}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                    {t('garage.tapToChange', { defaultValue: 'Tap to change' })}
+                  </Text>
+                </Pressable>
+              ) : (
+                <>
+                  <TextInput
+                    value={modelSearch}
+                    onChangeText={(text) => {
+                      setModelSearch(text);
+                      setSelectedModel(null);
+                    }}
+                    placeholder={t('garage.searchModel', { defaultValue: 'Search model...' })}
+                    placeholderTextColor={palette.neutral400}
+                    autoCapitalize="words"
+                    style={inputStyle}
+                  />
+                  {filteredModels.length > 0 ? (
+                    <View
+                      style={{
+                        backgroundColor: cardBg,
+                        borderWidth: 1,
+                        borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        marginTop: 6,
+                        maxHeight: 220,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                        {filteredModels
+                          .slice(0, 20)
+                          .map((m: { modelId: number; modelName: string }) => (
+                            <Pressable
+                              key={m.modelId}
+                              onPress={() => {
+                                haptic();
+                                setSelectedModel(m);
+                                setModelSearch('');
+                              }}
+                              style={({ pressed }) => ({
+                                paddingHorizontal: 16,
+                                paddingVertical: 13,
+                                borderBottomWidth: 1,
+                                borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
+                                backgroundColor: pressed
+                                  ? isDark
+                                    ? palette.neutral700
+                                    : palette.neutral100
+                                  : 'transparent',
+                              })}
+                            >
+                              <Text style={{ fontSize: 15, color: textColor }}>{m.modelName}</Text>
+                            </Pressable>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  ) : models.length > 0 && modelSearch.length > 0 ? (
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: palette.neutral400,
+                        marginTop: 8,
+                        marginLeft: 4,
+                      }}
+                    >
+                      {t('garage.noModelsFound', { defaultValue: 'No models found' })}
+                    </Text>
+                  ) : null}
+                </>
+              )}
             </View>
           </Animated.View>
 

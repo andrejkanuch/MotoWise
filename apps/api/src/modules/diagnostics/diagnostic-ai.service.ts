@@ -201,6 +201,11 @@ export class DiagnosticAiService {
       { role: 'user', content: userContent },
     ];
 
+    // Upload photo in parallel with AI call (fire-and-forget, non-blocking)
+    const photoUploadPromise = photoBase64
+      ? this.uploadPhoto(diagnosticId, userId, photoBase64)
+      : Promise.resolve();
+
     try {
       const completion = await this.openai.chat.completions.parse({
         model: MODEL,
@@ -224,8 +229,8 @@ export class DiagnosticAiService {
       }
 
       const result: DiagnosticResult = {
-        part: parsed.part,
         description: parsed.description,
+        part: parsed.part,
         issues: parsed.issues,
         severity: parsed.severity as DiagnosticResult['severity'],
         toolsNeeded: parsed.toolsNeeded,
@@ -235,15 +240,19 @@ export class DiagnosticAiService {
         relatedArticleId: parsed.relatedArticleId,
       };
 
-      // Validate relatedArticleId exists before saving (AI may hallucinate IDs)
+      // Validate relatedArticleId exists before saving (AI may hallucinate UUIDs)
       let validatedArticleId: string | null = null;
       if (result.relatedArticleId) {
-        const { data: article } = await this.adminClient
+        const { data: articleRow } = await this.adminClient
           .from('articles')
           .select('id')
           .eq('id', result.relatedArticleId)
           .maybeSingle();
-        validatedArticleId = article?.id ?? null;
+        if (articleRow) {
+          validatedArticleId = result.relatedArticleId;
+        } else {
+          this.logger.warn(`AI returned non-existent relatedArticleId: ${result.relatedArticleId}`);
+        }
       }
 
       // Update diagnostic record with results
@@ -251,6 +260,7 @@ export class DiagnosticAiService {
         .from('diagnostics')
         .update({
           result_json: result as unknown as Record<string, unknown>,
+          description: result.description,
           severity: result.severity,
           confidence: result.confidence,
           related_article_id: validatedArticleId,
@@ -268,6 +278,9 @@ export class DiagnosticAiService {
           outputTokens * AI_COSTS.OUTPUT_COST_PER_MTOK) /
           AI_COSTS.MTOK_DIVISOR,
       );
+
+      // Wait for photo upload to finish before returning
+      await photoUploadPromise;
 
       // Log generation (fire-and-forget)
       this.adminClient
@@ -310,6 +323,50 @@ export class DiagnosticAiService {
         });
 
       throw new InternalServerErrorException('Diagnostic analysis failed');
+    }
+  }
+
+  /**
+   * Upload photo to Supabase Storage and save reference in diagnostic_photos + diagnostics.photo_url
+   */
+  private async uploadPhoto(
+    diagnosticId: string,
+    userId: string,
+    photoBase64: string,
+  ): Promise<void> {
+    try {
+      const buffer = Buffer.from(photoBase64, 'base64');
+      const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8;
+      const ext = isJpeg ? 'jpg' : 'png';
+      const mime = isJpeg ? 'image/jpeg' : 'image/png';
+      const storagePath = `${userId}/${diagnosticId}.${ext}`;
+
+      const { error: uploadError } = await this.adminClient.storage
+        .from('diagnostic-photos')
+        .upload(storagePath, buffer, { contentType: mime, upsert: true });
+
+      if (uploadError) {
+        this.logger.error('Failed to upload diagnostic photo', uploadError);
+        return;
+      }
+
+      const { data: urlData } = this.adminClient.storage
+        .from('diagnostic-photos')
+        .getPublicUrl(storagePath);
+
+      const photoUrl = urlData?.publicUrl;
+
+      // Save to diagnostic_photos table and update diagnostics.photo_url
+      await Promise.all([
+        this.adminClient.from('diagnostic_photos').insert({
+          diagnostic_id: diagnosticId,
+          storage_path: storagePath,
+          file_size_bytes: buffer.length,
+        }),
+        this.adminClient.from('diagnostics').update({ photo_url: photoUrl }).eq('id', diagnosticId),
+      ]);
+    } catch (err) {
+      this.logger.error('Photo upload failed (non-fatal)', err);
     }
   }
 

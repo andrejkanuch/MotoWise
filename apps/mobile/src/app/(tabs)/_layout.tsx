@@ -191,7 +191,11 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
             // Pop to top when tapping already-focused tab (guard against in-flight mutations)
             const routeState = route.state;
             if (routeState?.index && routeState.index > 0 && queryClient.isMutating() === 0) {
-              navigation.dispatch(StackActions.popToTop());
+              try {
+                navigation.dispatch(StackActions.popToTop());
+              } catch {
+                // Stack may not support popToTop in this state
+              }
             }
           }
         };

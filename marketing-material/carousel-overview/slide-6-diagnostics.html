@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Slide 6 — AI Diagnostics</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s6 { display:flex;align-items:center;padding:60px 56px;gap:44px; }
+.bg { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.07) 0%,transparent 60%);left:-80px;top:50%;transform:translateY(-50%); }
+.text { flex:1;z-index:2; }
+.step-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.2);color:#a78bfa;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px; }
+.feature-title { color:#fafafa;font-size:44px;font-weight:800;line-height:1.12;margin-bottom:18px; }
+.feature-desc { color:#a3a3a3;font-size:19px;line-height:1.6;margin-bottom:28px; }
+.ai-steps { display:flex;flex-direction:column;gap:12px; }
+.ai-step { display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:14px;background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.12); }
+.ai-num { width:28px;height:28px;border-radius:50%;background:rgba(139,92,246,0.15);color:#a78bfa;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.ai-label { color:#d4d4d4;font-size:16px;font-weight:500; }
+.phone { position:relative;z-index:2; }
+.phone .phone-img { width:380px;box-shadow:0 0 80px rgba(139,92,246,0.08),0 30px 100px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+<div class="slide s6">
+  <div class="bg"></div>
+  <div class="slide-num">6 / 7</div>
+  <div class="phone"><img class="phone-img" src="diagnosis-result.png" alt=""></div>
+  <div class="text">
+    <div class="step-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 0-4 4c0 2 2 3 2 6h4c0-3 2-4 2-6a4 4 0 0 0-4-4z"/><line x1="10" y1="16" x2="14" y2="16"/><line x1="10" y1="19" x2="14" y2="19"/><line x1="11" y1="22" x2="13" y2="22"/></svg>
+      AI Diagnostics
+    </div>
+    <div class="feature-title">Your AI<br>Mechanic</div>
+    <div class="feature-desc">Describe symptoms, snap a photo — get instant diagnosis with confidence scores and step-by-step fixes.</div>
+    <div class="ai-steps">
+      <div class="ai-step"><div class="ai-num">1</div><div class="ai-label">Describe symptoms & take photo</div></div>
+      <div class="ai-step"><div class="ai-num">2</div><div class="ai-label">AI identifies parts & severity</div></div>
+      <div class="ai-step"><div class="ai-num">3</div><div class="ai-label">Get ranked fixes + mechanic rec</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

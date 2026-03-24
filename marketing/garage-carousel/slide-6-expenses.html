@@ -1,0 +1,29 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s6 { display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:64px; }
+.bg { position:absolute;inset:0;background:radial-gradient(circle at 30% 80%,rgba(59,130,246,0.06) 0%,transparent 50%),radial-gradient(circle at 70% 30%,rgba(245,158,11,0.05) 0%,transparent 50%); }
+.step-badge { position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px; }
+.feature-title { position:relative;z-index:2;color:#fafafa;font-size:52px;font-weight:800;text-align:center;line-height:1.12;margin-bottom:14px; }
+.feature-desc { position:relative;z-index:2;color:#a3a3a3;font-size:20px;text-align:center;max-width:600px;line-height:1.5;margin-bottom:40px; }
+.phones { position:relative;z-index:2;display:flex;gap:24px;align-items:flex-start; }
+.phones .phone-img { width:320px;box-shadow:0 0 80px rgba(59,130,246,0.08),0 30px 100px rgba(0,0,0,0.5); }
+.arrow { position:relative;z-index:2;display:flex;align-items:center;align-self:center;color:#525252;margin:0 -4px; }
+</style></head><body>
+<div class="slide s6">
+  <div class="bg"></div>
+  <div class="slide-num">6 / 7</div>
+  <div class="step-badge">Steps 4 & 5</div>
+  <div class="feature-title">Know Every Dollar.<br>Stay Ahead.</div>
+  <div class="feature-desc">Track expenses by category and get maintenance alerts before something goes wrong.</div>
+  <div class="phones">
+    <img class="phone-img" src="expenses.png" alt="">
+    <div class="arrow"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+    <img class="phone-img" src="home-alerts.png" alt="">
+  </div>
+</div></body></html>

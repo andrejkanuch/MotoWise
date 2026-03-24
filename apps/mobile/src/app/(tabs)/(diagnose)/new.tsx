@@ -179,8 +179,20 @@ export default function NewDiagnosticScreen() {
 
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
-    } catch (error) {
-      state.setSubmitError(error instanceof Error ? error.message : 'Failed to analyze');
+    } catch (error: unknown) {
+      let message = 'Failed to analyze';
+      if (error && typeof error === 'object') {
+        // graphql-request ClientError has response.errors[]
+        const gqlErrors = (error as { response?: { errors?: { message: string }[] } }).response
+          ?.errors;
+        if (gqlErrors?.length) {
+          message = gqlErrors.map((e) => e.message).join('; ');
+        } else if (error instanceof Error) {
+          message = error.message;
+        }
+      }
+      console.error('[submitDiagnostic] error:', JSON.stringify(error, null, 2));
+      state.setSubmitError(message);
     } finally {
       state.setIsSubmitting(false);
     }

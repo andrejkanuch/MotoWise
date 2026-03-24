@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Slide 3 — Log Expenses</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s3 { display:flex;align-items:center;padding:60px 56px;gap:44px; }
+.bg { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 60%);right:-80px;top:50%;transform:translateY(-50%); }
+.text { flex:1;z-index:2; }
+.step-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);color:#60a5fa;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px; }
+.feature-title { color:#fafafa;font-size:44px;font-weight:800;line-height:1.12;margin-bottom:18px; }
+.feature-desc { color:#a3a3a3;font-size:19px;line-height:1.6;margin-bottom:28px; }
+.highlight-box { background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:16px;padding:20px 24px;color:#d4d4d4;font-size:17px;line-height:1.5; }
+.highlight-box strong { color:#60a5fa; }
+.phone { position:relative;z-index:2; }
+.phone .phone-img { width:380px;box-shadow:0 0 80px rgba(59,130,246,0.08),0 30px 100px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+<div class="slide s3">
+  <div class="bg"></div>
+  <div class="slide-num">3 / 7</div>
+  <div class="text">
+    <div class="step-badge">Step 1</div>
+    <div class="feature-title">Log Every<br>Expense</div>
+    <div class="feature-desc">Fuel, maintenance, parts, gear — add it in seconds. Categorized automatically so you always know where the money goes.</div>
+    <div class="highlight-box">Track <strong>fuel, maintenance, parts & gear</strong> — all in one place</div>
+  </div>
+  <div class="phone"><img class="phone-img" src="home-dashboard.png" alt=""></div>
+</div>
+</body>
+</html>

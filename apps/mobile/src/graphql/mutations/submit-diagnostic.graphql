@@ -8,6 +8,7 @@ mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {
     relatedArticleId
     resultJson
     description
+    photoUrl
     status
     createdAt
   }

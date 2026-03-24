@@ -8,6 +8,10 @@ export class ZodValidationPipe implements PipeTransform {
     if (value === null || value === undefined) return value;
     const result = this.schema.safeParse(value);
     if (!result.success) {
+      console.error(
+        '[ZodValidationPipe] Validation failed:',
+        JSON.stringify(result.error.flatten(), null, 2),
+      );
       throw new BadRequestException(result.error.flatten());
     }
     return result.data;

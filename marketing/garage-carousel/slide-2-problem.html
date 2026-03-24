@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s2 { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px; }
+.bg { position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(59,130,246,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(212,98,46,0.04) 0%,transparent 50%); }
+.icon-wrap { position:relative;z-index:2;margin-bottom:36px;color:#60a5fa; }
+.question { position:relative;z-index:2;color:#fafafa;font-size:50px;font-weight:800;text-align:center;line-height:1.2;margin-bottom:48px; }
+.pain-points { position:relative;z-index:2;display:flex;flex-direction:column;gap:18px;width:100%;max-width:680px; }
+.pp { display:flex;align-items:center;gap:20px;padding:22px 30px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:18px;color:#d4d4d4;font-size:21px;font-weight:500; }
+.x { width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;flex-shrink:0; }
+.x svg { width:18px;height:18px; }
+</style></head><body>
+<div class="slide s2">
+  <div class="bg"></div>
+  <div class="slide-num">2 / 7</div>
+  <div class="icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+  <div class="question">Scattered Records?<br>Missed Services?<br>Unknown Costs?</div>
+  <div class="pain-points">
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>Sticky notes and spreadsheets for service records</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>Forgetting oil changes until the engine warns you</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>No idea how much you actually spend on your bike</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>No health overview — is your bike overdue for care?</div>
+  </div>
+</div></body></html>
