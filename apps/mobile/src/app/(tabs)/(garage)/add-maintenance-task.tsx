@@ -289,7 +289,7 @@ export default function AddMaintenanceTaskScreen() {
               }}
             >
               <DateTimePicker
-                value={dueDate}
+                value={dueDate && dueDate >= new Date() ? dueDate : new Date()}
                 mode="date"
                 display={process.env.EXPO_OS === 'ios' ? 'inline' : 'default'}
                 minimumDate={new Date()}
