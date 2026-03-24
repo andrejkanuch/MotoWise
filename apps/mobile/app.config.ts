@@ -74,8 +74,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
+        image: './src/assets/images/MotoVault.png',
+        imageWidth: 200,
         backgroundColor: '#04070e',
         dark: {
+          image: './src/assets/images/MotoVault.png',
           backgroundColor: '#04070e',
         },
       },
