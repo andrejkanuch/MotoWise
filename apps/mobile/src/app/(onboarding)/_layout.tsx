@@ -22,7 +22,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="bike-mileage" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-photo" options={{ gestureEnabled: true }} />
 
-      {/* Section C: About Your Riding */}
+      {/* Section C: Preferences & Riding */}
+      <Stack.Screen name="currency" options={{ gestureEnabled: true }} />
       <Stack.Screen name="riding-frequency" options={{ gestureEnabled: true }} />
       <Stack.Screen name="riding-goals" options={{ gestureEnabled: true }} />
       <Stack.Screen name="maintenance-style" options={{ gestureEnabled: true }} />

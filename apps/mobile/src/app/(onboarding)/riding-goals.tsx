@@ -71,7 +71,7 @@ export default function RidingGoalsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={9} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={10} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         style={{ flex: 1 }}

@@ -47,7 +47,7 @@ export default function RepairSpendingScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={11} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={12} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text

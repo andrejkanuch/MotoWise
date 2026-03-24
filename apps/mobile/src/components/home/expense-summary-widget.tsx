@@ -4,6 +4,7 @@ import { DollarSign } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useCurrency } from '../../hooks/use-currency';
 import { useDashboardData, useExpenseDashboard } from '../../hooks/use-expense-dashboard';
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
@@ -28,10 +29,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   parts: palette.warning500,
   gear: palette.signature400,
 };
-
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
 
 function getBikeName(bike: Motorcycle): string {
   return bike.nickname ?? `${bike.make} ${bike.model}`;
@@ -95,6 +92,7 @@ function BikeExpenseCard({
   onPress: () => void;
 }) {
   const { t } = useTranslation();
+  const { format } = useCurrency();
   const { dashboard, isPending } = useExpenseDashboard(bike.id);
 
   const currentMonth = new Date().getMonth() + 1;
@@ -113,7 +111,7 @@ function BikeExpenseCard({
           onPress();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`${getBikeName(bike)} expenses: ${hasData ? formatCurrency(monthlyTotal) : 'no data'}`}
+        accessibilityLabel={`${getBikeName(bike)} expenses: ${hasData ? format(monthlyTotal) : 'no data'}`}
         style={({ pressed }) => ({
           padding: 14,
           transform: [{ scale: pressed ? 0.97 : 1 }],
@@ -142,7 +140,7 @@ function BikeExpenseCard({
                 fontVariant: ['tabular-nums'],
               }}
             >
-              {formatCurrency(monthlyTotal)}
+              {format(monthlyTotal)}
             </Text>
             <Text
               style={{
@@ -220,6 +218,7 @@ function SingleBikeExpenseContent({
   onViewDetails: () => void;
 }) {
   const { t } = useTranslation();
+  const { format } = useCurrency();
   const { dashboard, isPending } = useExpenseDashboard(motorcycleId);
   const { periodTotal, categoryTotals } = useDashboardData(dashboard, 'thisYear');
 
@@ -265,7 +264,7 @@ function SingleBikeExpenseContent({
           onViewDetails();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`Monthly expenses: ${formatCurrency(monthlyTotal)}`}
+        accessibilityLabel={`Monthly expenses: ${format(monthlyTotal)}`}
         style={({ pressed }) => ({
           padding: 16,
           transform: [{ scale: pressed ? 0.98 : 1 }],
@@ -280,7 +279,7 @@ function SingleBikeExpenseContent({
               fontVariant: ['tabular-nums'],
             }}
           >
-            {formatCurrency(monthlyTotal)}
+            {format(monthlyTotal)}
           </Text>
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
             {t('home.thisMonth')}
@@ -325,7 +324,7 @@ function SingleBikeExpenseContent({
                       fontVariant: ['tabular-nums'],
                     }}
                   >
-                    {formatCurrency(cat.total)}
+                    {format(cat.total)}
                   </Text>
                 </View>
                 <View
@@ -356,7 +355,7 @@ function SingleBikeExpenseContent({
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
         >
           <Text style={{ fontSize: 12, fontWeight: '500', color: palette.neutral500 }}>
-            {t('home.ytd', { amount: formatCurrency(periodTotal) })}
+            {t('home.ytd', { amount: format(periodTotal) })}
           </Text>
           <Text style={{ fontSize: 13, fontWeight: '600', color: palette.primary500 }}>
             {t('home.viewDetails')}

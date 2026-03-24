@@ -7,6 +7,7 @@ export const ONBOARDING_SCREENS = [
   { route: 'bike-type', key: 'bikeType', section: 'B', canSkip: false },
   { route: 'bike-mileage', key: 'bikeMileage', section: 'B', canSkip: false },
   { route: 'bike-photo', key: 'bikePhoto', section: 'B', canSkip: false },
+  { route: 'currency', key: 'currency', section: 'C', canSkip: false },
   { route: 'riding-frequency', key: 'ridingFrequency', section: 'C', canSkip: false },
   { route: 'riding-goals', key: 'ridingGoals', section: 'C', canSkip: false },
   { route: 'maintenance-style', key: 'maintenanceStyle', section: 'C', canSkip: false },

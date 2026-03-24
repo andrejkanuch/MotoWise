@@ -140,7 +140,7 @@ export default function BikePhotoScreen() {
       photoUri: photoUri ?? undefined,
     });
 
-    router.replace('/(onboarding)/riding-frequency');
+    router.replace('/(onboarding)/currency');
   };
 
   const handleSkip = () => {
@@ -149,7 +149,7 @@ export default function BikePhotoScreen() {
       nickname: nickname.trim() || undefined,
     });
 
-    router.replace('/(onboarding)/riding-frequency');
+    router.replace('/(onboarding)/currency');
   };
 
   const displayName = nickname.trim() || bikeLabel;

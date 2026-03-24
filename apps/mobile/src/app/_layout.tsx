@@ -4,6 +4,7 @@ import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
+import type { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
@@ -90,6 +91,21 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       setOnboardingCompleted(true);
     }
   }, [serverOnboardingCompleted, storeOnboardingCompleted, setOnboardingCompleted]);
+
+  // Hydrate user preferences (currency + measurementSystem) from server
+  const setCurrency = useAuthStore((s) => s.setCurrency);
+  const setMeasurementSystem = useAuthStore((s) => s.setMeasurementSystem);
+  const serverCurrency = meQuery.data?.me?.currency;
+  const serverMeasurementSystem = meQuery.data?.me?.measurementSystem;
+
+  useEffect(() => {
+    if (serverCurrency) setCurrency(serverCurrency as Currency);
+  }, [serverCurrency, setCurrency]);
+
+  useEffect(() => {
+    if (serverMeasurementSystem)
+      setMeasurementSystem(serverMeasurementSystem as MeasurementSystem);
+  }, [serverMeasurementSystem, setMeasurementSystem]);
 
   useEffect(() => {
     if (isLoading) return;
