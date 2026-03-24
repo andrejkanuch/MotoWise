@@ -28,6 +28,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     url: 'https://u.expo.dev/359ae282-329d-455d-b9f3-64919afad0b4',
   },
   splash: {
+    image: './src/assets/images/MotoVault.png',
+    resizeMode: 'contain',
     backgroundColor: '#04070e',
   },
   plugins: [
