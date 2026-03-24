@@ -30,18 +30,24 @@ export function useLeanAngle() {
   );
 
   useEffect(() => {
-    DeviceMotion.setUpdateInterval(UPDATE_INTERVAL_MS);
+    let subscription: ReturnType<typeof DeviceMotion.addListener> | null = null;
 
-    const subscription = DeviceMotion.addListener((data) => {
-      const gamma = data.rotation?.gamma;
-      if (gamma == null) return;
+    try {
+      DeviceMotion.setUpdateInterval(UPDATE_INTERVAL_MS);
 
-      const degrees = gamma * (180 / Math.PI);
-      rawLean.value = Math.min(Math.max(degrees, MIN_LEAN), MAX_LEAN);
-    });
+      subscription = DeviceMotion.addListener((data) => {
+        const gamma = data.rotation?.gamma;
+        if (gamma == null) return;
+
+        const degrees = gamma * (180 / Math.PI);
+        rawLean.value = Math.min(Math.max(degrees, MIN_LEAN), MAX_LEAN);
+      });
+    } catch {
+      // DeviceMotion unavailable (simulator, missing native module) — degrade gracefully
+    }
 
     return () => {
-      subscription.remove();
+      subscription?.remove();
     };
   }, [rawLean]);
 
