@@ -1,8 +1,8 @@
 import type { MileageUnit } from '@motovault/types';
 import Slider from '@react-native-community/slider';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { triggerImpact } from '../../utils/haptics';
 import { ONBOARDING_COLORS } from './onboarding-colors';
 
@@ -16,13 +16,15 @@ interface MileageSliderProps {
 }
 
 const UNIT_CONFIG = {
-  mi: { max: 80_000, step: 1_000 },
-  km: { max: 130_000, step: 1_500 },
+  mi: { max: 80_000, step: 100 },
+  km: { max: 130_000, step: 100 },
 } as const;
 
 export function MileageSlider({ value, unit, onValueChange, onUnitChange }: MileageSliderProps) {
   const { t } = useTranslation();
   const lastHapticBucket = useRef(Math.floor(value / 5000));
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState('');
   const config = UNIT_CONFIG[unit];
 
   const handleValueChange = (raw: number) => {
@@ -34,6 +36,20 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
       lastHapticBucket.current = bucket;
       triggerImpact();
     }
+  };
+
+  const handleStartEditing = () => {
+    triggerImpact();
+    setEditText(String(value));
+    setIsEditing(true);
+  };
+
+  const handleEndEditing = () => {
+    const parsed = Number.parseInt(editText.replace(/[^0-9]/g, ''), 10);
+    if (!Number.isNaN(parsed) && parsed >= 0) {
+      onValueChange(Math.min(parsed, config.max));
+    }
+    setIsEditing(false);
   };
 
   const handleUnitChange = (newUnit: MileageUnit) => {
@@ -95,19 +111,57 @@ export function MileageSlider({ value, unit, onValueChange, onUnitChange }: Mile
         ))}
       </View>
 
-      {/* Large number display */}
-      <Text
-        style={{
-          fontSize: 28,
-          fontWeight: '700',
-          color: ONBOARDING_COLORS.textPrimary,
-          textAlign: 'center',
-          marginBottom: 16,
-          fontVariant: ['tabular-nums'],
-        }}
-      >
-        {MILEAGE_FORMAT.format(value)} {unit}
-      </Text>
+      {/* Large number display — tap to type exact value */}
+      {isEditing ? (
+        <TextInput
+          value={editText}
+          onChangeText={(text) => setEditText(text.replace(/[^0-9]/g, ''))}
+          onBlur={handleEndEditing}
+          onSubmitEditing={handleEndEditing}
+          keyboardType="number-pad"
+          autoFocus
+          selectTextOnFocus
+          style={{
+            fontSize: 28,
+            fontWeight: '700',
+            color: ONBOARDING_COLORS.textPrimary,
+            textAlign: 'center',
+            marginBottom: 16,
+            fontVariant: ['tabular-nums'],
+            borderBottomWidth: 2,
+            borderBottomColor: ONBOARDING_COLORS.accent,
+            paddingVertical: 4,
+            alignSelf: 'center',
+            minWidth: 120,
+          }}
+        />
+      ) : (
+        <Pressable onPress={handleStartEditing}>
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '700',
+              color: ONBOARDING_COLORS.textPrimary,
+              textAlign: 'center',
+              marginBottom: 16,
+              fontVariant: ['tabular-nums'],
+            }}
+          >
+            {MILEAGE_FORMAT.format(value)} {unit}
+          </Text>
+          <Text
+            style={{
+              fontSize: 11,
+              color: ONBOARDING_COLORS.textMuted,
+              textAlign: 'center',
+              marginTop: -12,
+              marginBottom: 8,
+            }}
+          >
+            {t('onboarding.tapToTypeExact', { defaultValue: 'Tap to type exact value' })}
+          </Text>
+        </Pressable>
+      )}
 
       {/* Slider */}
       <Slider

@@ -159,8 +159,8 @@ export default function EditBikeScreen() {
     }
   }, [bike, initialized, models, selectedModel]);
 
-  const makeName = selectedMake?.makeName ?? '';
-  const modelName = selectedModel?.modelName ?? '';
+  const makeName = selectedMake?.makeName ?? bike?.make ?? '';
+  const modelName = selectedModel?.modelName ?? bike?.model ?? '';
 
   // --- Dirty detection ---
   const isDirty = useMemo(() => {
