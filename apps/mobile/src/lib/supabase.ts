@@ -12,9 +12,28 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: {
-      getItem: (key: string) => SecureStore.getItemAsync(key),
-      setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-      removeItem: (key: string) => SecureStore.deleteItemAsync(key),
+      getItem: async (key: string) => {
+        try {
+          return await SecureStore.getItemAsync(key);
+        } catch {
+          // iOS blocks Keychain access during screen transitions ("User interaction is not allowed")
+          return null;
+        }
+      },
+      setItem: async (key: string, value: string) => {
+        try {
+          await SecureStore.setItemAsync(key, value);
+        } catch {
+          // Silently fail — session will be re-persisted on next successful write
+        }
+      },
+      removeItem: async (key: string) => {
+        try {
+          await SecureStore.deleteItemAsync(key);
+        } catch {
+          // Silently fail
+        }
+      },
     },
     autoRefreshToken: true,
     persistSession: true,
