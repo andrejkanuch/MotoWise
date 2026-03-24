@@ -6,8 +6,8 @@ import { Faq } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
 import { HowItWorks } from '@/components/marketing/how-it-works';
-import { SocialProofBar } from '@/components/marketing/social-proof-bar';
 import { JsonLd } from '@/components/marketing/json-ld';
+import { SocialProofBar } from '@/components/marketing/social-proof-bar';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {

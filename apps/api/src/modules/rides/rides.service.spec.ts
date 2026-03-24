@@ -167,10 +167,11 @@ describe('RidesService', () => {
         autoPausedDurationS: 60,
       });
 
-      expect(result.status).toBe('completed');
-      expect(result.distanceM).toBe(45000);
-      expect(result.maxSpeedMps).toBe(33.5);
-      expect(result.durationS).toBeDefined();
+      expect(result.ride.status).toBe('completed');
+      expect(result.ride.distanceM).toBe(45000);
+      expect(result.ride.maxSpeedMps).toBe(33.5);
+      expect(result.ride.durationS).toBeDefined();
+      expect(result.triggeredMaintenanceTasks).toEqual([]);
       expect(mockUserClient._chain.in).toHaveBeenCalledWith('status', ['recording', 'paused']);
       expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
     });

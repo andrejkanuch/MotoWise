@@ -17,6 +17,7 @@ import { EndRideInput } from './dto/end-ride.input';
 import { StartRideInput } from './dto/start-ride.input';
 import { UpdateRideInput } from './dto/update-ride.input';
 import { UploadWaypointsInput } from './dto/upload-waypoints.input';
+import { EndRideResponse } from './models/end-ride-response.model';
 import { Ride } from './models/ride.model';
 import { RideConnection } from './models/ride-connection.model';
 import { Waypoint } from './models/waypoint.model';
@@ -35,11 +36,11 @@ export class RidesResolver {
     return this.ridesService.startRide(user.id, input);
   }
 
-  @Mutation(() => Ride)
+  @Mutation(() => EndRideResponse)
   async endRide(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(EndRideInputSchema)) input: EndRideInput,
-  ): Promise<Ride> {
+  ): Promise<EndRideResponse> {
     return this.ridesService.endRide(user.id, input);
   }
 

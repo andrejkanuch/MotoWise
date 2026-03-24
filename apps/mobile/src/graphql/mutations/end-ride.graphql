@@ -1,16 +1,24 @@
 mutation EndRide($input: EndRideInput!) {
   endRide(input: $input) {
-    id
-    status
-    endedAt
-    distanceM
-    maxSpeedMps
-    avgSpeedMps
-    elevationGain
-    elevationLoss
-    pausedDurationS
-    autoPausedDurationS
-    gpsQuality
-    routePolyline
+    ride {
+      id
+      status
+      endedAt
+      distanceM
+      maxSpeedMps
+      avgSpeedMps
+      elevationGain
+      elevationLoss
+      pausedDurationS
+      autoPausedDurationS
+      gpsQuality
+      routePolyline
+      mileageApplied
+    }
+    triggeredMaintenanceTasks {
+      id
+      title
+      priority
+    }
   }
 }

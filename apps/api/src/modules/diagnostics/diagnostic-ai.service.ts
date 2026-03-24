@@ -13,13 +13,12 @@ import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
+import { AI_CLIENT, AI_COSTS, AI_MODELS, AI_TOKEN_LIMITS } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { EXPERIENCE_PROMPTS, MAINTENANCE_PROMPTS, URGENCY_PROMPTS } from './prompt-templates';
 
-const MODEL = 'gpt-4.1';
-const INPUT_COST_PER_MTOK = 3;
-const OUTPUT_COST_PER_MTOK = 12;
+const MODEL = AI_MODELS.DIAGNOSTIC;
 
 /** JPEG magic bytes: FF D8 FF */
 const JPEG_MAGIC = [0xff, 0xd8, 0xff];
@@ -57,8 +56,8 @@ export class DiagnosticAiService {
   ) {
     this.openai = new OpenAI({
       apiKey: this.configService.getOrThrow('OPENAI_API_KEY'),
-      maxRetries: 3,
-      timeout: 60_000,
+      maxRetries: AI_CLIENT.MAX_RETRIES,
+      timeout: AI_CLIENT.TIMEOUT_MS,
     });
   }
 
@@ -207,7 +206,7 @@ export class DiagnosticAiService {
         model: MODEL,
         messages,
         response_format: zodResponseFormat(DiagnosticAiResultSchema, 'diagnosis'),
-        max_tokens: 2048,
+        max_tokens: AI_TOKEN_LIMITS.DIAGNOSTIC_MAX_TOKENS,
       });
 
       const inputTokens = completion.usage?.prompt_tokens ?? 0;
@@ -265,7 +264,9 @@ export class DiagnosticAiService {
       }
 
       const costCents = Math.round(
-        (inputTokens * INPUT_COST_PER_MTOK + outputTokens * OUTPUT_COST_PER_MTOK) / 10000,
+        (inputTokens * AI_COSTS.INPUT_COST_PER_MTOK +
+          outputTokens * AI_COSTS.OUTPUT_COST_PER_MTOK) /
+          AI_COSTS.MTOK_DIVISOR,
       );
 
       // Log generation (fire-and-forget)
@@ -281,7 +282,9 @@ export class DiagnosticAiService {
           cost_cents: costCents,
           status: 'success',
         })
-        .then();
+        .then(({ error }) => {
+          if (error) this.logger.error('Failed to log diagnostic generation', error);
+        });
 
       return result;
     } catch (err) {
@@ -302,7 +305,9 @@ export class DiagnosticAiService {
           status: 'failed',
           error_message: err instanceof Error ? err.message : 'Unknown error',
         })
-        .then();
+        .then(({ error: logErr }) => {
+          if (logErr) this.logger.error('Failed to log diagnostic failure', logErr);
+        });
 
       throw new InternalServerErrorException('Diagnostic analysis failed');
     }

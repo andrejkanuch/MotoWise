@@ -3,8 +3,8 @@ import {
   AllMaintenanceTasksDocument,
   MeDocument,
   MyMotorcyclesDocument,
-  type MyRidesQuery,
   MyRidesDocument,
+  type MyRidesQuery,
   SearchArticlesDocument,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -63,7 +63,10 @@ export function useHomeData() {
   const isLoading = meQuery.isLoading || bikesQuery.isLoading;
   const hasCriticalError = meQuery.isError || bikesQuery.isError;
   const isRefreshing =
-    meQuery.isRefetching || bikesQuery.isRefetching || articlesQuery.isRefetching || ridesQuery.isRefetching;
+    meQuery.isRefetching ||
+    bikesQuery.isRefetching ||
+    articlesQuery.isRefetching ||
+    ridesQuery.isRefetching;
   const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
 
   const onRefresh = useCallback(() => {

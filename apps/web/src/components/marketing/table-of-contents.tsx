@@ -18,10 +18,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       <nav aria-label="Table of contents" className="mt-3">
         <ol className="list-none space-y-1">
           {headings.map((heading) => (
-            <li
-              key={heading.id}
-              className={heading.level === 3 ? 'pl-4' : ''}
-            >
+            <li key={heading.id} className={heading.level === 3 ? 'pl-4' : ''}>
               <a
                 href={`#${heading.id}`}
                 className="text-sm text-neutral-300 transition-colors hover:text-amber-400"

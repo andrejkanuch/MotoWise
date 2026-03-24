@@ -80,6 +80,7 @@ const STAT_CHART_MAP: Record<string, ChartType | null> = {
   'Avg Speed': 'speed',
   'Max Speed': 'speed',
   Elevation: 'elevation',
+  'Elev. Loss': 'elevation',
   Distance: null,
   'Moving Time': null,
 };
@@ -207,12 +208,14 @@ export default function RideDetailScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     setActiveChart((prev) => {
-      const next = prev === chart ? null : chart;
-      // Auto-expand sheet when opening chart
-      if (next !== null) {
-        sheetRef.current?.snapToIndex(2);
+      if (prev === chart) {
+        // Toggling off — snap sheet back down
+        sheetRef.current?.snapToIndex(1);
+        return null;
       }
-      return next;
+      // Toggling on — expand sheet and show chart
+      sheetRef.current?.snapToIndex(2);
+      return chart;
     });
   }, []);
 
@@ -255,6 +258,7 @@ export default function RideDetailScreen() {
   const maxSpeedMps = ride.maxSpeedMps ?? 0;
   const avgSpeedMps = ride.avgSpeedMps ?? 0;
   const elevationGain = ride.elevationGain ?? 0;
+  const elevationLoss = ride.elevationLoss ?? 0;
 
   const stats = [
     { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
@@ -263,6 +267,9 @@ export default function RideDetailScreen() {
     { icon: Gauge, label: 'Max Speed', value: formatSpeed(maxSpeedMps, system) },
     ...(elevationGain > 0
       ? [{ icon: Mountain, label: 'Elevation', value: formatElevation(elevationGain, system) }]
+      : []),
+    ...(elevationLoss > 0
+      ? [{ icon: Mountain, label: 'Elev. Loss', value: formatElevation(elevationLoss, system) }]
       : []),
   ];
 
@@ -458,7 +465,13 @@ export default function RideDetailScreen() {
         index={0}
         snapPoints={snapPoints}
         enablePanDownToClose
-        onChange={(index) => setIsMapFullScreen(index === -1)}
+        enableContentPanningGesture={activeChart === null}
+        onChange={(index) => {
+          setIsMapFullScreen(index === -1);
+          if (index === -1) {
+            setActiveChart(null);
+          }
+        }}
         backgroundStyle={{
           backgroundColor: palette.cardDark,
           borderRadius: 24,

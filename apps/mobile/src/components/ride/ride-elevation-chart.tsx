@@ -2,9 +2,10 @@ import { palette } from '@motovault/design-system';
 import type { GetRideWaypointsQuery } from '@motovault/graphql';
 import type { MeasurementSystem } from '@motovault/types';
 import { memo, useMemo } from 'react';
-import { Text, useWindowDimensions } from 'react-native';
+import { Text, useWindowDimensions, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { haversineDistance } from '../../utils/geo-utils';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -13,6 +14,11 @@ import {
 
 type Waypoint = GetRideWaypointsQuery['rideWaypoints'][number];
 
+interface ElevationChartItem {
+  value: number;
+  dist: number;
+}
+
 interface RideElevationChartProps {
   waypoints: Waypoint[];
   system: MeasurementSystem;
@@ -20,16 +26,28 @@ interface RideElevationChartProps {
 
 const CHART_HEIGHT = 180;
 
-/** Haversine distance between two coordinates in meters */
-function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
+const tooltipContainer = {
+  backgroundColor: palette.surfaceElevated,
+  borderRadius: 8,
+  borderCurve: 'continuous' as const,
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  borderWidth: 1,
+  borderColor: palette.neutral700,
+};
+
+const tooltipValueText = {
+  fontFamily: 'PlusJakartaSans-SemiBold' as const,
+  fontSize: 13,
+  color: palette.white,
+};
+
+const tooltipSecondaryText = {
+  fontFamily: 'PlusJakartaSans-Regular' as const,
+  fontSize: 11,
+  color: palette.neutral400,
+  marginTop: 2,
+};
 
 export const RideElevationChart = memo(function RideElevationChart({
   waypoints,
@@ -43,16 +61,27 @@ export const RideElevationChart = memo(function RideElevationChart({
 
   const { chartData, xLabels, maxVal, spacing } = useMemo(() => {
     const valid = waypoints.filter((wp) => wp.altitude != null);
-    if (valid.length < 2) return { chartData: [], xLabels: [], maxVal: 0, spacing: 0 };
+    if (valid.length < 2)
+      return { chartData: [] as ElevationChartItem[], xLabels: [], maxVal: 0, spacing: 0 };
+
+    // Find peak and valley indices before downsampling
+    let maxAltIdx = 0;
+    let minAltIdx = 0;
+    for (let i = 1; i < valid.length; i++) {
+      if ((valid[i].altitude ?? 0) > (valid[maxAltIdx].altitude ?? 0)) maxAltIdx = i;
+      if ((valid[i].altitude ?? 0) < (valid[minAltIdx].altitude ?? 0)) minAltIdx = i;
+    }
 
     // Downsample first, then compute distances (fewer haversine calls)
     const step = Math.max(1, Math.floor(valid.length / 60));
-    const sampled = valid.filter((_, i) => i % step === 0 || i === valid.length - 1);
+    const sampled = valid.filter(
+      (_, i) => i % step === 0 || i === valid.length - 1 || i === maxAltIdx || i === minAltIdx,
+    );
 
     // Compute cumulative distance only for sampled points
     const distDivisor = isImperial ? 1609.34 : 1000;
     let cumDist = 0;
-    const data = sampled.map((wp, i) => {
+    const data: ElevationChartItem[] = sampled.map((wp, i) => {
       if (i > 0) {
         cumDist += haversineDistance(
           sampled[i - 1].latitude,
@@ -87,7 +116,7 @@ export const RideElevationChart = memo(function RideElevationChart({
     const sp = sampled.length > 1 ? (chartWidth - 16) / (sampled.length - 1) : 4;
 
     return {
-      chartData: data.map((d) => ({ value: d.value })),
+      chartData: data,
       xLabels: labels,
       maxVal: rounded,
       spacing: sp,
@@ -156,6 +185,33 @@ export const RideElevationChart = memo(function RideElevationChart({
         spacing={spacing}
         initialSpacing={8}
         endSpacing={8}
+        pointerConfig={{
+          activatePointersOnLongPress: true,
+          autoAdjustPointerLabelPosition: true,
+          pointerStripHeight: CHART_HEIGHT,
+          pointerStripColor: palette.neutral500,
+          pointerStripWidth: 1,
+          pointerColor: palette.signature500,
+          radius: 5,
+          pointerLabelWidth: 120,
+          pointerLabelHeight: 50,
+          shiftPointerLabelX: -40,
+          shiftPointerLabelY: -55,
+          pointerLabelComponent: (items: ElevationChartItem[]) => {
+            const item = items[0];
+            if (!item) return null;
+            return (
+              <View style={tooltipContainer}>
+                <Text style={tooltipValueText}>
+                  {Math.round(item.value)} {elevUnit}
+                </Text>
+                <Text style={tooltipSecondaryText}>
+                  {item.dist.toFixed(1)} {distUnit}
+                </Text>
+              </View>
+            );
+          },
+        }}
       />
     </Animated.View>
   );

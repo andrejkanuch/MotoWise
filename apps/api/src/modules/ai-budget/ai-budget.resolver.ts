@@ -25,7 +25,7 @@ export class AiBudgetResolver {
     if (user.role !== 'admin') {
       throw new ForbiddenException('Admin access required');
     }
-    this.aiBudgetService.resetCircuitBreaker();
+    await this.aiBudgetService.resetCircuitBreaker();
     return true;
   }
 }

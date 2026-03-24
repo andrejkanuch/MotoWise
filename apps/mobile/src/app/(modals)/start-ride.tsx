@@ -15,7 +15,16 @@ import {
   Zap,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -28,6 +37,7 @@ import { enqueue } from '../../utils/ride-sync-queue';
 
 export default function StartRideScreen() {
   const router = useRouter();
+  const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const startRide = useRideStore((s) => s.startRide);
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);
@@ -126,6 +136,7 @@ export default function StartRideScreen() {
 
       rideMMKV.setCurrentId(rideId);
       rideMMKV.setStartedAt(Date.now());
+      if (selectedBikeId) rideMMKV.setMotorcycleId(selectedBikeId);
       startRide();
 
       enqueue('startRide', {
@@ -152,7 +163,7 @@ export default function StartRideScreen() {
   }, [selectedBikeId, startRide, router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
@@ -173,13 +184,13 @@ export default function StartRideScreen() {
             height: 36,
             borderRadius: 18,
             borderCurve: 'continuous',
-            backgroundColor: palette.surfaceSubtle,
+            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 16,
           }}
         >
-          <X size={18} color={palette.neutral400} />
+          <X size={18} color={isDark ? palette.neutral400 : palette.neutral500} />
         </Pressable>
 
         {/* Header */}
@@ -194,7 +205,7 @@ export default function StartRideScreen() {
               height: 72,
               borderRadius: 36,
               borderCurve: 'continuous',
-              backgroundColor: palette.accentTint,
+              backgroundColor: isDark ? palette.accentTint : palette.accentBgLight,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 20,
@@ -206,7 +217,7 @@ export default function StartRideScreen() {
             style={{
               fontSize: 28,
               fontWeight: '800',
-              color: palette.white,
+              color: isDark ? palette.white : palette.neutral950,
               letterSpacing: -0.5,
             }}
           >
@@ -215,7 +226,7 @@ export default function StartRideScreen() {
           <Text
             style={{
               fontSize: 15,
-              color: palette.neutral400,
+              color: isDark ? palette.neutral400 : palette.neutral500,
               marginTop: 8,
               textAlign: 'center',
             }}
@@ -229,7 +240,7 @@ export default function StartRideScreen() {
           <Animated.View
             entering={FadeInUp.delay(50).duration(280)}
             style={{
-              backgroundColor: palette.warningBgDark,
+              backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
               borderRadius: 16,
               borderCurve: 'continuous',
               padding: 16,
@@ -292,13 +303,13 @@ export default function StartRideScreen() {
           {isLoading ? (
             <View
               style={{
-                backgroundColor: palette.cardDark,
+                backgroundColor: isDark ? palette.cardDark : palette.white,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 20,
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: palette.surfaceElevated,
+                borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
               <ActivityIndicator size="small" color={palette.accent500} />
@@ -307,7 +318,7 @@ export default function StartRideScreen() {
             /* Single bike — compact display, no picker needed */
             <View
               style={{
-                backgroundColor: palette.cardDark,
+                backgroundColor: isDark ? palette.cardDark : palette.white,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
@@ -315,7 +326,7 @@ export default function StartRideScreen() {
                 alignItems: 'center',
                 gap: 12,
                 borderWidth: 1,
-                borderColor: palette.surfaceElevated,
+                borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
               <View
@@ -324,7 +335,7 @@ export default function StartRideScreen() {
                   height: 44,
                   borderRadius: 22,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.accentTint,
+                  backgroundColor: isDark ? palette.accentTint : palette.accentBgLight,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -336,14 +347,19 @@ export default function StartRideScreen() {
                   style={{
                     fontSize: 11,
                     fontWeight: '600',
-                    color: palette.neutral500,
+                    color: isDark ? palette.neutral500 : palette.neutral600,
                     letterSpacing: 0.5,
                   }}
                 >
                   RIDING WITH
                 </Text>
                 <Text
-                  style={{ fontSize: 16, fontWeight: '700', color: palette.white, marginTop: 2 }}
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: isDark ? palette.white : palette.neutral950,
+                    marginTop: 2,
+                  }}
                   numberOfLines={1}
                 >
                   {selectedBikeLabel}
@@ -358,7 +374,7 @@ export default function StartRideScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Selected bike: ${selectedBikeLabel}. Tap to change.`}
                 style={{
-                  backgroundColor: palette.cardDark,
+                  backgroundColor: isDark ? palette.cardDark : palette.white,
                   borderRadius: 16,
                   borderCurve: 'continuous',
                   padding: 16,
@@ -366,7 +382,7 @@ export default function StartRideScreen() {
                   alignItems: 'center',
                   gap: 12,
                   borderWidth: 1,
-                  borderColor: palette.surfaceElevated,
+                  borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
                 }}
               >
                 <View
@@ -376,8 +392,12 @@ export default function StartRideScreen() {
                     borderRadius: 22,
                     borderCurve: 'continuous',
                     backgroundColor: selectedBikeId
-                      ? 'rgba(45,158,120,0.12)'
-                      : palette.signatureBgDark,
+                      ? isDark
+                        ? palette.accentTint
+                        : palette.accentBgLight
+                      : isDark
+                        ? palette.signatureBgDark
+                        : palette.signatureBgLight,
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -393,14 +413,19 @@ export default function StartRideScreen() {
                     style={{
                       fontSize: 11,
                       fontWeight: '600',
-                      color: palette.neutral500,
+                      color: isDark ? palette.neutral500 : palette.neutral600,
                       letterSpacing: 0.5,
                     }}
                   >
                     RIDING WITH
                   </Text>
                   <Text
-                    style={{ fontSize: 16, fontWeight: '700', color: palette.white, marginTop: 2 }}
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: isDark ? palette.white : palette.neutral950,
+                      marginTop: 2,
+                    }}
                     numberOfLines={1}
                   >
                     {selectedBikeLabel || 'Select motorcycle'}
@@ -408,7 +433,7 @@ export default function StartRideScreen() {
                 </View>
                 <ChevronDown
                   size={20}
-                  color={palette.neutral400}
+                  color={isDark ? palette.neutral400 : palette.neutral500}
                   style={{
                     transform: [{ rotate: showBikePicker ? '180deg' : '0deg' }],
                   }}
@@ -440,9 +465,17 @@ export default function StartRideScreen() {
                           padding: 14,
                           borderRadius: 14,
                           borderCurve: 'continuous',
-                          backgroundColor: isSelected ? palette.accentTintSubtle : palette.cardDark,
+                          backgroundColor: isSelected
+                            ? palette.accentTintSubtle
+                            : isDark
+                              ? palette.cardDark
+                              : palette.white,
                           borderWidth: 1,
-                          borderColor: isSelected ? palette.accent500 : palette.surfaceElevated,
+                          borderColor: isSelected
+                            ? palette.accent500
+                            : isDark
+                              ? palette.surfaceElevated
+                              : palette.neutral200,
                           gap: 12,
                         }}
                       >
@@ -470,7 +503,12 @@ export default function StartRideScreen() {
                           )}
                         </View>
                         <Text
-                          style={{ flex: 1, fontSize: 15, fontWeight: '600', color: palette.white }}
+                          style={{
+                            flex: 1,
+                            fontSize: 15,
+                            fontWeight: '600',
+                            color: isDark ? palette.white : palette.neutral950,
+                          }}
                           numberOfLines={1}
                         >
                           {label}
@@ -482,7 +520,7 @@ export default function StartRideScreen() {
                               paddingVertical: 3,
                               borderRadius: 8,
                               borderCurve: 'continuous',
-                              backgroundColor: palette.accentTint,
+                              backgroundColor: isDark ? palette.accentTint : palette.accentBgLight,
                             }}
                           >
                             <Text
@@ -520,10 +558,20 @@ export default function StartRideScreen() {
                       borderRadius: 14,
                       borderCurve: 'continuous',
                       backgroundColor:
-                        selectedBikeId === null ? palette.signatureBgDark : palette.cardDark,
+                        selectedBikeId === null
+                          ? isDark
+                            ? palette.signatureBgDark
+                            : palette.signatureBgLight
+                          : isDark
+                            ? palette.cardDark
+                            : palette.white,
                       borderWidth: 1,
                       borderColor:
-                        selectedBikeId === null ? palette.signature500 : palette.surfaceElevated,
+                        selectedBikeId === null
+                          ? palette.signature500
+                          : isDark
+                            ? palette.surfaceElevated
+                            : palette.neutral200,
                       gap: 12,
                     }}
                   >

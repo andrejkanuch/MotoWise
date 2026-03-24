@@ -88,6 +88,8 @@ export const palette = {
   nightBg: '#0D0604',
   nightAccent: '#7A2A0A',
   nightGlow: 'rgba(212,74,26,0.08)',
+  nightArcTrack: 'rgba(212,74,26,0.2)',
+  nightTickMark: 'rgba(212,74,26,0.3)',
 
   // Speed gradient (route visualization)
   speedSlow: '#3b82f6',
@@ -107,6 +109,7 @@ export const palette = {
   accentTintLight: 'rgba(45,158,120,0.08)',
   accentTintSubtle: 'rgba(45,158,120,0.1)',
   accentTintZero: 'rgba(45,158,120,0)',
+  accentBgLight: 'rgba(45,158,120,0.08)',
   warningBorder: 'rgba(245,158,11,0.2)',
 
   // Interactive states

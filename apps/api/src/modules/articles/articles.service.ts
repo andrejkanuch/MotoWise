@@ -86,7 +86,11 @@ export class ArticlesService {
     if (error || !data) return null;
 
     // Fire-and-forget view count increment
-    this.anonClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+    this.anonClient
+      .rpc('increment_article_view_count', { p_article_id: data.id })
+      .then(({ error: rpcErr }) => {
+        if (rpcErr) this.logger.error('Failed to increment view count', rpcErr);
+      });
 
     return this.mapRow(data);
   }
@@ -102,7 +106,11 @@ export class ArticlesService {
     if (error || !data) return null;
 
     // Fire-and-forget view count increment
-    this.anonClient.rpc('increment_article_view_count', { p_article_id: data.id }).then();
+    this.anonClient
+      .rpc('increment_article_view_count', { p_article_id: data.id })
+      .then(({ error: rpcErr }) => {
+        if (rpcErr) this.logger.error('Failed to increment view count', rpcErr);
+      });
 
     return this.mapRowFull(data);
   }

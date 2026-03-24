@@ -197,7 +197,13 @@ export function RecentRidesWidget({
               gap: 12,
             }}
           >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Text
                 style={{
                   fontSize: 11,
@@ -212,7 +218,13 @@ export function RecentRidesWidget({
                 {totalRides} ride{totalRides !== 1 ? 's' : ''}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
                 <Text
                   style={{
@@ -243,7 +255,10 @@ export function RecentRidesWidget({
             <Pressable
               key={ride.id}
               onPress={() => {
-                const route = { pathname: '/(modals)/ride-detail' as const, params: { rideId: ride.id } };
+                const route = {
+                  pathname: '/(modals)/ride-detail' as const,
+                  params: { rideId: ride.id },
+                };
                 // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
                 router.push(route as any);
               }}

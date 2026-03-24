@@ -16,9 +16,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HudControls } from '../../components/ride/hud-controls';
+import { HudLeanGauge } from '../../components/ride/hud-lean-gauge';
 import { HudMap } from '../../components/ride/hud-map';
+import { HudSparkline } from '../../components/ride/hud-sparkline';
 import { HudSpeed } from '../../components/ride/hud-speed';
+import { useLeanAngle } from '../../hooks/use-lean-angle';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideStore } from '../../stores/ride.store';
+import { formatDistance, formatElapsed, formatSpeed } from '../../utils/ride-formatters';
 import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
 import {
   flushBufferToMMKV,
@@ -27,12 +32,12 @@ import {
   rideMMKV,
 } from '../../utils/ride-storage';
 import { enqueue } from '../../utils/ride-sync-queue';
-import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import {
-  formatDistance,
-  formatElapsed,
-  formatSpeed,
-} from '../../utils/ride-formatters';
+
+type SparklineMode = 'altitude' | 'speed';
+
+function haptic(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
+  if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(style);
+}
 
 export default function RideHudScreen() {
   const router = useRouter();
@@ -40,6 +45,7 @@ export default function RideHudScreen() {
   const system = useMeasurementSystem();
   const status = useRideStore((s) => s.status);
   const distance = useRideStore((s) => s.distance);
+  const currentSpeed = useRideStore((s) => s.currentSpeed);
   const isNightMode = useRideStore((s) => s.isNightMode);
   const isBatterySaver = useRideStore((s) => s.isBatterySaver);
   const toggleNight = useRideStore((s) => s.toggleNightMode);
@@ -48,16 +54,55 @@ export default function RideHudScreen() {
   const resumeRide = useRideStore((s) => s.resumeRide);
   const endRide = useRideStore((s) => s.endRide);
   const updateElapsedTime = useRideStore((s) => s.updateElapsedTime);
-  const _updateSpeed = useRideStore((s) => s.updateSpeed);
 
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [showAvgStats, setShowAvgStats] = useState(false);
+  const elapsedRef = useRef(0);
+  const [sparklineMode, setSparklineMode] = useState<SparklineMode>('speed');
+  const [speedHistory, setSpeedHistory] = useState<number[]>([]);
+  const [altitudeHistory, setAltitudeHistory] = useState<number[]>([]);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedRef = useRef(0);
 
   const isPaused = status === 'paused';
   const bgColor = isNightMode ? palette.nightBg : palette.neutral950;
   const textColor = isNightMode ? palette.nightText : palette.white;
+  const labelColor = isNightMode ? palette.nightText : palette.neutral500;
+
+  // Lean angle sensor
+  const { smoothLean, peakLeft, peakRight } = useLeanAngle();
+
+  // Track max speed + current speed via refs (avoids re-render/interval reset)
+  const maxSpeedRef = useRef(0);
+  const currentSpeedRef = useRef(currentSpeed);
+  currentSpeedRef.current = currentSpeed;
+  if (currentSpeed > maxSpeedRef.current) {
+    maxSpeedRef.current = currentSpeed;
+  }
+
+  // Collect sparkline data every ~5 seconds (stable interval — no currentSpeed dep)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isPaused) return;
+
+      setSpeedHistory((prev) => {
+        const next = [...prev, currentSpeedRef.current];
+        return next.length > 300 ? next.slice(-300) : next;
+      });
+
+      const buffer = getPointBuffer();
+      if (buffer.length > 0) {
+        const lastPoint = buffer[buffer.length - 1];
+        if (lastPoint.altitude != null) {
+          setAltitudeHistory((prev) => {
+            const next = [...prev, lastPoint.altitude as number];
+            return next.length > 300 ? next.slice(-300) : next;
+          });
+        }
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
 
   // Keep screen awake
   useEffect(() => {
@@ -78,6 +123,7 @@ export default function RideHudScreen() {
       const raw = Math.floor((now - startedAt) / 1000);
       const paused = Math.floor(totalPausedRef.current / 1000);
       const elapsed = Math.max(0, raw - paused);
+      elapsedRef.current = elapsed;
       setElapsedSeconds(elapsed);
       updateElapsedTime(elapsed);
     }, 1000);
@@ -96,17 +142,13 @@ export default function RideHudScreen() {
   }, [isPaused]);
 
   const handlePause = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }
+    haptic(Haptics.ImpactFeedbackStyle.Heavy);
     pauseRide();
     rideMMKV.setTotalPausedMs(totalPausedRef.current);
   }, [pauseRide]);
 
   const handleResume = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    }
+    haptic(Haptics.ImpactFeedbackStyle.Heavy);
     resumeRide();
   }, [resumeRide]);
 
@@ -114,16 +156,13 @@ export default function RideHudScreen() {
     const rideId = rideMMKV.getCurrentId();
     if (!rideId) return;
 
-    // Flush remaining waypoints
     flushBufferToMMKV(rideId);
 
-    // Gather all waypoints for stats
     const chunks = getWaypointChunks(rideId);
     const allWaypoints = chunks.flat();
     const bufferPoints = [...getPointBuffer()];
     const combined = [...allWaypoints, ...bufferPoints];
 
-    // Calculate stats
     let totalDistance = 0;
     let maxSpeed = 0;
     let speedSum = 0;
@@ -157,11 +196,9 @@ export default function RideHudScreen() {
     const avgSpeed = speedCount > 0 ? speedSum / speedCount : 0;
     const endedAt = new Date().toISOString();
 
-    // Update store
     endRide();
     stopGPSListener();
 
-    // Enqueue mutation
     enqueue('endRide', {
       mutationDocument: EndRideDocument,
       variables: {
@@ -180,38 +217,39 @@ export default function RideHudScreen() {
       },
     });
 
-    // Navigate to summary
     const summaryRoute = {
       pathname: '/(modals)/ride-summary' as const,
       params: {
         rideId,
         distanceM: String(Math.round(totalDistance)),
-        durationS: String(elapsedSeconds),
+        durationS: String(elapsedRef.current),
         maxSpeedMps: String(maxSpeed),
         avgSpeedMps: String(avgSpeed),
         elevationGain: String(Math.round(elevGain)),
         startedAt: rideMMKV.getStartedAt()?.toString() ?? '',
+        motorcycleId: rideMMKV.getMotorcycleId() ?? '',
       },
     };
     // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params
     router.replace(summaryRoute as any);
-  }, [endRide, router, elapsedSeconds]);
+  }, [endRide, router]);
 
   const handleToggleNight = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    haptic();
     toggleNight();
   }, [toggleNight]);
 
   const handleToggleBattery = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    haptic();
     const newState = !isBatterySaver;
     toggleBattery();
     toggleBatterySaver(newState);
   }, [toggleBattery, isBatterySaver]);
+
+  const handleToggleSparkline = useCallback(() => {
+    haptic();
+    setSparklineMode((m) => (m === 'speed' ? 'altitude' : 'speed'));
+  }, []);
 
   // Status badge
   const statusLabel = isPaused ? 'PAUSED' : 'RECORDING';
@@ -237,9 +275,8 @@ export default function RideHudScreen() {
     transform: [{ scale: 1 + pausePulse.value * 0.05 }],
   }));
 
-  // Avg speed for stats — guard against division by zero
-  const avgSpeedDisplay =
-    elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
+  // Computed stats
+  const avgSpeedDisplay = elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -255,7 +292,7 @@ export default function RideHudScreen() {
           zIndex: 10,
         }}
       >
-        {/* Status badge — pulsing when paused */}
+        {/* Status badge */}
         <Animated.View
           style={[
             {
@@ -289,7 +326,7 @@ export default function RideHudScreen() {
         {/* Timer */}
         <Text
           style={{
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: '700',
             fontVariant: ['tabular-nums'],
             color: textColor,
@@ -317,10 +354,7 @@ export default function RideHudScreen() {
               justifyContent: 'center',
             }}
           >
-            <BatteryLow
-              size={22}
-              color={isBatterySaver ? palette.warning500 : palette.iconMuted}
-            />
+            <BatteryLow size={22} color={isBatterySaver ? palette.warning500 : palette.iconMuted} />
           </Pressable>
           <Pressable
             onPress={handleToggleNight}
@@ -365,132 +399,78 @@ export default function RideHudScreen() {
         />
       )}
 
-      {/* Map zone */}
-      <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 0.35 }}>
+      {/* Map zone — takes all remaining space */}
+      <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 1 }}>
         <HudMap waypoints={[]} gpsAccuracy={0} />
       </Animated.View>
 
-      {/* Speed hero */}
-      <View style={{ flex: 0.3, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Speed hero — fixed height, no absolute glow bleed */}
+      <View style={{ height: 120, alignItems: 'center', justifyContent: 'center' }}>
         <HudSpeed />
       </View>
 
-      {/* Stats row */}
-      <Pressable
-        onPress={() => setShowAvgStats((v) => !v)}
+      {/* Lean angle gauge — compact row */}
+      <View style={{ paddingVertical: 4 }}>
+        <HudLeanGauge
+          smoothLean={smoothLean}
+          peakLeft={peakLeft}
+          peakRight={peakRight}
+          isNightMode={isNightMode}
+        />
+      </View>
+
+      {/* Live sparkline strip */}
+      <View style={{ paddingHorizontal: 20, paddingVertical: 6 }}>
+        <HudSparkline
+          data={sparklineMode === 'speed' ? speedHistory : altitudeHistory}
+          mode={sparklineMode}
+          isNightMode={isNightMode}
+          onToggleMode={handleToggleSparkline}
+        />
+      </View>
+
+      {/* Stats strip — all 4 stats always visible */}
+      <View
         style={{
           flexDirection: 'row',
-          justifyContent: 'center',
-          gap: 16,
-          paddingVertical: 12,
-          paddingHorizontal: 20,
+          marginHorizontal: 20,
+          backgroundColor: palette.surfaceHover,
+          borderRadius: 16,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
         }}
       >
-        {!showAvgStats ? (
-          <>
-            <View
-              style={{
-                backgroundColor: palette.surfaceHover,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: isNightMode ? palette.nightText : palette.neutral500,
-                  letterSpacing: 0.5,
-                }}
-              >
-                DISTANCE
-              </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  fontVariant: ['tabular-nums'],
-                  color: textColor,
-                  marginTop: 2,
-                }}
-              >
-                {formatDistance(distance, system)}
-              </Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: palette.surfaceHover,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: isNightMode ? palette.nightText : palette.neutral500,
-                  letterSpacing: 0.5,
-                }}
-              >
-                DURATION
-              </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  fontVariant: ['tabular-nums'],
-                  color: textColor,
-                  marginTop: 2,
-                }}
-              >
-                {formatElapsed(elapsedSeconds)}
-              </Text>
-            </View>
-          </>
-        ) : (
-          <View
-            style={{
-              backgroundColor: palette.surfaceHover,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: isNightMode ? palette.nightText : palette.neutral500,
-                letterSpacing: 0.5,
-              }}
-            >
-              AVG SPEED
-            </Text>
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: '700',
-                fontVariant: ['tabular-nums'],
-                color: textColor,
-                marginTop: 2,
-              }}
-            >
-              {formatSpeed(avgSpeedDisplay, system)}
-            </Text>
-          </View>
-        )}
-      </Pressable>
+        <StatCell
+          label="DIST"
+          value={formatDistance(distance, system)}
+          textColor={textColor}
+          labelColor={labelColor}
+        />
+        <StatDivider isNightMode={isNightMode} />
+        <StatCell
+          label="TIME"
+          value={formatElapsed(elapsedSeconds)}
+          textColor={textColor}
+          labelColor={labelColor}
+        />
+        <StatDivider isNightMode={isNightMode} />
+        <StatCell
+          label="AVG"
+          value={formatSpeed(avgSpeedDisplay, system)}
+          textColor={textColor}
+          labelColor={labelColor}
+        />
+        <StatDivider isNightMode={isNightMode} />
+        <StatCell
+          label="MAX"
+          value={formatSpeed(maxSpeedRef.current, system)}
+          textColor={textColor}
+          labelColor={labelColor}
+        />
+      </View>
 
-      {/* Bottom controls */}
-      <View style={{ paddingBottom: insets.bottom + 16 }}>
+      {/* Bottom controls — fixed at bottom */}
+      <View style={{ paddingTop: 16, paddingBottom: insets.bottom + 16 }}>
         <HudControls
           onPause={handlePause}
           onResume={handleResume}
@@ -500,5 +480,54 @@ export default function RideHudScreen() {
         />
       </View>
     </View>
+  );
+}
+
+function StatCell({
+  label,
+  value,
+  textColor,
+  labelColor,
+}: {
+  label: string;
+  value: string;
+  textColor: string;
+  labelColor: string;
+}) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}>
+      <Text
+        style={{
+          fontSize: 10,
+          fontWeight: '700',
+          color: labelColor,
+          letterSpacing: 1,
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: '700',
+          fontVariant: ['tabular-nums'],
+          color: textColor,
+          marginTop: 2,
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function StatDivider({ isNightMode }: { isNightMode: boolean }) {
+  return (
+    <View
+      style={{
+        width: 1,
+        backgroundColor: isNightMode ? palette.nightGlow : palette.surfaceElevated,
+      }}
+    />
   );
 }

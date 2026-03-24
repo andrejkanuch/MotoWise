@@ -5,9 +5,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerStorage } from '@nestjs/throttler';
 import depthLimit from 'graphql-depth-limit';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
+import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
@@ -23,6 +24,8 @@ import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { RedisModule } from './modules/redis/redis.module';
+import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RidesModule } from './modules/rides/rides.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
@@ -57,6 +60,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
         limit: Number(process.env.THROTTLE_AI_LIMIT ?? 10),
       },
     ]),
+    RedisModule,
     SupabaseModule,
     EmailModule,
     AiBudgetModule,
@@ -79,8 +83,16 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
   ],
   providers: [
     {
+      provide: ThrottlerStorage,
+      useClass: RedisThrottlerStorage,
+    },
+    {
       provide: APP_GUARD,
       useClass: GqlThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CorrelationIdInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

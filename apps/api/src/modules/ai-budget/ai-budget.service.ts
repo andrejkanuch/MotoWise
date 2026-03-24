@@ -9,17 +9,24 @@ import {
   Logger,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Redis } from '@upstash/redis';
+import { DURATIONS } from '../../config/constants';
+import { REDIS } from '../redis/redis.constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+
+const CIRCUIT_BREAKER_KEY = 'ai:circuit_breaker';
 
 @Injectable()
 export class AiBudgetService {
   private readonly logger = new Logger(AiBudgetService.name);
 
-  /** In-memory circuit breaker — does NOT work across multiple server instances.
-   *  TODO: Move to Redis or DB flag before horizontal scaling. */
-  private circuitBreakerOpen = false;
+  /** In-memory fallback when Redis is unavailable (dev/test) */
+  private circuitBreakerFallback = false;
 
-  constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    @Inject(REDIS) private readonly redis: Redis | null,
+  ) {}
 
   /**
    * Look up the user's subscription tier from DB and check budget.
@@ -43,7 +50,8 @@ export class AiBudgetService {
    */
   async checkBudget(userId: string, subscriptionTier: 'free' | 'pro'): Promise<void> {
     // 1. Check global circuit breaker
-    if (this.circuitBreakerOpen) {
+    const isOpen = await this.isCircuitBreakerOpen();
+    if (isOpen) {
       this.logger.error('Global AI circuit breaker is OPEN — all AI generation paused');
       throw new InternalServerErrorException(
         'AI generation is temporarily paused. Please try again later.',
@@ -55,6 +63,40 @@ export class AiBudgetService {
 
     // 3. Check per-user daily generation count
     await this.checkUserDailyLimit(userId, subscriptionTier);
+  }
+
+  private async isCircuitBreakerOpen(): Promise<boolean> {
+    if (!this.redis) return this.circuitBreakerFallback;
+
+    try {
+      const value = await this.redis.get<string>(CIRCUIT_BREAKER_KEY);
+      return value === 'open';
+    } catch (err) {
+      this.logger.warn(
+        'Redis unavailable for circuit breaker check, using in-memory fallback',
+        err,
+      );
+      return this.circuitBreakerFallback;
+    }
+  }
+
+  private async setCircuitBreaker(open: boolean): Promise<void> {
+    this.circuitBreakerFallback = open;
+
+    if (!this.redis) return;
+
+    try {
+      if (open) {
+        // Auto-expire after 24h as a safety net
+        await this.redis.set(CIRCUIT_BREAKER_KEY, 'open', {
+          ex: DURATIONS.CIRCUIT_BREAKER_EXPIRE_SECONDS,
+        });
+      } else {
+        await this.redis.del(CIRCUIT_BREAKER_KEY);
+      }
+    } catch (err) {
+      this.logger.warn('Redis unavailable for circuit breaker write', err);
+    }
   }
 
   private async checkUserDailyLimit(
@@ -111,7 +153,7 @@ export class AiBudgetService {
     const totalCents = (data as number) ?? 0;
 
     if (totalCents >= AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS) {
-      this.circuitBreakerOpen = true;
+      await this.setCircuitBreaker(true);
       this.logger.error(
         `GLOBAL AI CIRCUIT BREAKER TRIPPED: daily spend ${totalCents} cents >= cap ${AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS} cents ($${(totalCents / 100).toFixed(2)}). All AI generation paused.`,
       );
@@ -150,7 +192,7 @@ export class AiBudgetService {
     const totalCents = (spendResult.data as number) ?? 0;
 
     return {
-      circuitBreakerOpen: this.circuitBreakerOpen,
+      circuitBreakerOpen: await this.isCircuitBreakerOpen(),
       todaySpendCents: totalCents,
       todayGenerationCount: countResult.count ?? 0,
       dailySpendCapCents: AI_BUDGET_LIMITS.GLOBAL_DAILY_SPEND_CAP_CENTS,
@@ -158,8 +200,8 @@ export class AiBudgetService {
   }
 
   /** Admin: reset the circuit breaker */
-  resetCircuitBreaker(): void {
+  async resetCircuitBreaker(): Promise<void> {
     this.logger.warn('Admin reset AI circuit breaker');
-    this.circuitBreakerOpen = false;
+    await this.setCircuitBreaker(false);
   }
 }

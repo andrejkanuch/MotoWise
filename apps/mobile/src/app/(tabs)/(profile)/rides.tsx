@@ -1,23 +1,31 @@
 import { palette } from '@motovault/design-system';
-import { type MyRidesQuery, MyRidesDocument } from '@motovault/graphql';
+import { MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, Navigation, TrendingUp } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
-import {
-  distanceUnitLabel,
-  formatDistanceValue,
-  formatDuration as fmtDuration,
-} from '../../../utils/ride-formatters';
 import { RideCard } from '../../../components/ride/ride-card';
+import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
+import {
+  distanceUnitLabel,
+  formatDuration as fmtDuration,
+  formatDistanceValue,
+} from '../../../utils/ride-formatters';
 
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
@@ -74,6 +82,7 @@ function useRideStats(edges: RideEdge[]) {
 export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const isDark = useColorScheme() === 'dark';
   const isPro = useSubscriptionStore((s) => s.isPro);
 
   const system = useMeasurementSystem();
@@ -159,11 +168,11 @@ export default function RidesScreen() {
         {/* Stats hero card */}
         <View
           style={{
-            backgroundColor: palette.cardDark,
+            backgroundColor: isDark ? palette.cardDark : palette.white,
             borderRadius: 20,
             borderCurve: 'continuous',
             borderWidth: 1,
-            borderColor: palette.surfaceElevated,
+            borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
             overflow: 'hidden',
           }}
         >
@@ -174,7 +183,7 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: palette.neutral400,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                 }}
@@ -189,14 +198,20 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: palette.white,
+                    color: isDark ? palette.white : palette.neutral950,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
                 >
                   {formatDistanceValue(stats.weekDistance, system)}
                 </Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral500 : palette.neutral600,
+                  }}
+                >
                   {distanceUnitLabel(system)}
                 </Text>
               </View>
@@ -205,14 +220,20 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: palette.white,
+                    color: isDark ? palette.white : palette.neutral950,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
                 >
                   {stats.weekRides}
                 </Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral500 : palette.neutral600,
+                  }}
+                >
                   ride{stats.weekRides !== 1 ? 's' : ''}
                 </Text>
               </View>
@@ -221,14 +242,20 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: palette.white,
+                    color: isDark ? palette.white : palette.neutral950,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
                 >
                   {fmtDuration(stats.weekDuration)}
                 </Text>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral500 : palette.neutral600,
+                  }}
+                >
                   riding
                 </Text>
               </View>
@@ -240,7 +267,7 @@ export default function RidesScreen() {
             style={{
               flexDirection: 'row',
               borderTopWidth: 1,
-              borderTopColor: palette.surfaceElevated,
+              borderTopColor: isDark ? palette.surfaceElevated : palette.neutral200,
             }}
           >
             <View
@@ -249,14 +276,14 @@ export default function RidesScreen() {
                 padding: 14,
                 alignItems: 'center',
                 borderRightWidth: 1,
-                borderRightColor: palette.surfaceElevated,
+                borderRightColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
               <Text
                 style={{
                   fontSize: 11,
                   fontWeight: '600',
-                  color: palette.neutral500,
+                  color: isDark ? palette.neutral500 : palette.neutral600,
                   letterSpacing: 0.5,
                 }}
               >
@@ -266,13 +293,12 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: isDark ? palette.white : palette.neutral950,
                   fontVariant: ['tabular-nums'],
                   marginTop: 4,
                 }}
               >
-                {formatDistanceValue(stats.monthDistance, system)}{' '}
-                {distanceUnitLabel(system)}
+                {formatDistanceValue(stats.monthDistance, system)} {distanceUnitLabel(system)}
               </Text>
             </View>
             <View style={{ flex: 1, padding: 14, alignItems: 'center' }}>
@@ -280,7 +306,7 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 11,
                   fontWeight: '600',
-                  color: palette.neutral500,
+                  color: isDark ? palette.neutral500 : palette.neutral600,
                   letterSpacing: 0.5,
                 }}
               >
@@ -290,13 +316,12 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: isDark ? palette.white : palette.neutral950,
                   fontVariant: ['tabular-nums'],
                   marginTop: 4,
                 }}
               >
-                {formatDistanceValue(stats.totalDistance, system)}{' '}
-                {distanceUnitLabel(system)}
+                {formatDistanceValue(stats.totalDistance, system)} {distanceUnitLabel(system)}
               </Text>
             </View>
           </View>
@@ -306,7 +331,7 @@ export default function RidesScreen() {
           style={{
             fontSize: 14,
             fontWeight: '700',
-            color: palette.neutral400,
+            color: isDark ? palette.neutral400 : palette.neutral500,
             textTransform: 'uppercase',
             letterSpacing: 0.5,
           }}
@@ -315,7 +340,7 @@ export default function RidesScreen() {
         </Text>
       </Animated.View>
     ),
-    [stats, system],
+    [stats, system, isDark],
   );
 
   const renderEmpty = useCallback(() => {
@@ -331,24 +356,36 @@ export default function RidesScreen() {
             height: 72,
             borderRadius: 36,
             borderCurve: 'continuous',
-            backgroundColor: palette.surfaceSubtle,
+            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <Navigation size={32} color={palette.accent500} />
         </View>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white, textAlign: 'center' }}>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '700',
+            color: isDark ? palette.white : palette.neutral950,
+            textAlign: 'center',
+          }}
+        >
           No rides yet
         </Text>
         <Text
-          style={{ fontSize: 15, color: palette.neutral400, textAlign: 'center', lineHeight: 22 }}
+          style={{
+            fontSize: 15,
+            color: isDark ? palette.neutral400 : palette.neutral500,
+            textAlign: 'center',
+            lineHeight: 22,
+          }}
         >
           Tap the ride button to start tracking your first route, speed, and distance.
         </Text>
       </Animated.View>
     );
-  }, [isLoading]);
+  }, [isLoading, isDark]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
@@ -364,21 +401,33 @@ export default function RidesScreen() {
           entering={FadeInUp.duration(280)}
           style={{
             marginTop: 12,
-            backgroundColor: palette.cardDark,
+            backgroundColor: isDark ? palette.cardDark : palette.white,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             alignItems: 'center',
             gap: 10,
             borderWidth: 1,
-            borderColor: palette.surfaceElevated,
+            borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
           }}
         >
           <TrendingUp size={24} color={palette.signature500} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: isDark ? palette.white : palette.neutral950,
+            }}
+          >
             Unlock Full History
           </Text>
-          <Text style={{ fontSize: 14, color: palette.neutral400, textAlign: 'center' }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: isDark ? palette.neutral400 : palette.neutral500,
+              textAlign: 'center',
+            }}
+          >
             Free accounts show the last {FREE_TIER_LIMIT} rides. Upgrade for unlimited history and
             stats.
           </Text>
@@ -409,10 +458,10 @@ export default function RidesScreen() {
       );
     }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, router]);
+  }, [isFetchingNextPage, showUpgradeCta, router, isDark]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
       {/* Header */}
       <View
         style={{
@@ -433,15 +482,21 @@ export default function RidesScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: palette.surfaceSubtle,
+            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color={palette.white} />
+          <ArrowLeft size={20} color={isDark ? palette.white : palette.neutral950} />
         </Pressable>
         <Text
-          style={{ flex: 1, fontSize: 28, fontWeight: '800', color: palette.white, letterSpacing: -0.5 }}
+          style={{
+            flex: 1,
+            fontSize: 28,
+            fontWeight: '800',
+            color: isDark ? palette.white : palette.neutral950,
+            letterSpacing: -0.5,
+          }}
         >
           My Rides
         </Text>
@@ -451,7 +506,7 @@ export default function RidesScreen() {
             paddingVertical: 4,
             borderRadius: 10,
             borderCurve: 'continuous',
-            backgroundColor: palette.surfaceSubtle,
+            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
           }}
         >
           <Text
@@ -490,7 +545,7 @@ export default function RidesScreen() {
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              tintColor={palette.white}
+              tintColor={isDark ? palette.white : palette.neutral400}
             />
           }
           showsVerticalScrollIndicator={false}

@@ -13,6 +13,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { revenueCatWebhookPayloadSchema } from './dto/revenuecat-event.dto';
 import { RevenueCatService } from './revenuecat.service';
 
@@ -23,7 +24,7 @@ function safeCompare(a: string, b: string): boolean {
   return timingSafeEqual(hmac(a), hmac(b));
 }
 
-@Throttle({ default: { limit: 30, ttl: 60000 } })
+@Throttle({ default: THROTTLE_PRESETS.WEBHOOK })
 @Controller('webhooks')
 export class RevenueCatWebhookController {
   private readonly logger = new Logger(RevenueCatWebhookController.name);

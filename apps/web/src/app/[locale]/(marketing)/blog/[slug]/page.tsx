@@ -11,8 +11,8 @@ import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticleBySlug, getArticleSlugs, getArticleUrl, getRelatedArticles } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
-import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
+import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -162,7 +162,9 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     },
     keywords: article.keywords.join(', '),
     wordCount,
-    articleSection: article.category ? CATEGORY_LABELS[article.category] || article.category : undefined,
+    articleSection: article.category
+      ? CATEGORY_LABELS[article.category] || article.category
+      : undefined,
     inLanguage: locale,
     isAccessibleForFree: true,
     timeRequired: `PT${article.readingTime}M`,

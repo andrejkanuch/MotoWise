@@ -17,9 +17,9 @@ import { FleetHealthHero } from '../../../components/home/fleet-health-hero';
 import { GreetingHeader } from '../../../components/home/greeting-header';
 import { MaintenanceSummary } from '../../../components/home/maintenance-summary';
 import { MileageOverview } from '../../../components/home/mileage-overview';
-import { RecentRidesWidget } from '../../../components/home/recent-rides-widget';
 import { NextServiceDue } from '../../../components/home/next-service-due';
 import { PriorityActionCard } from '../../../components/home/priority-action-card';
+import { RecentRidesWidget } from '../../../components/home/recent-rides-widget';
 import { SetupCtaBanner } from '../../../components/home/setup-cta-banner';
 import { useHomeData } from '../../../components/home/use-home-data';
 

@@ -1,4 +1,10 @@
-import { DeleteRideDocument, EndRideDocument, StartRideDocument, UpdateRideDocument, UploadWaypointsDocument } from '@motovault/graphql';
+import {
+  DeleteRideDocument,
+  EndRideDocument,
+  StartRideDocument,
+  UpdateRideDocument,
+  UploadWaypointsDocument,
+} from '@motovault/graphql';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
 import { gqlFetcher } from '../lib/graphql-client';

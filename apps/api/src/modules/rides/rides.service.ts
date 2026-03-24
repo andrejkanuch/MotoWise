@@ -47,7 +47,13 @@ export class RidesService {
     return this.mapRow(data);
   }
 
-  async endRide(userId: string, input: EndRideInput): Promise<Ride> {
+  async endRide(
+    userId: string,
+    input: EndRideInput,
+  ): Promise<{
+    ride: Ride;
+    triggeredMaintenanceTasks: { id: string; title: string; priority: string }[];
+  }> {
     this.logger.log(`endRide: userId=${userId}, rideId=${input.rideId}`);
 
     const { data, error } = await this.supabase
@@ -76,7 +82,68 @@ export class RidesService {
       this.logger.error(`endRide failed: ${error?.message} (${error?.code})`);
       throw new BadRequestException('Failed to end ride');
     }
-    return this.mapRow(data);
+
+    const ride = this.mapRow(data);
+    let triggeredMaintenanceTasks: { id: string; title: string; priority: string }[] = [];
+
+    // Auto-apply mileage to motorcycle
+    const motorcycleId = data.motorcycle_id;
+    const distanceM = input.distanceM ?? 0;
+
+    if (motorcycleId && distanceM > 0) {
+      try {
+        // Defense-in-depth: filter by user_id alongside RLS
+        const { data: bike } = await this.supabase
+          .from('motorcycles')
+          .select('current_mileage')
+          .eq('id', motorcycleId)
+          .eq('user_id', userId)
+          .single();
+
+        const newMileage = (bike?.current_mileage ?? 0) + distanceM;
+
+        await this.supabase
+          .from('motorcycles')
+          .update({
+            current_mileage: newMileage,
+            mileage_updated_at: new Date().toISOString(),
+          })
+          .eq('id', motorcycleId)
+          .eq('user_id', userId);
+
+        await this.supabase
+          .from('rides')
+          .update({ mileage_applied: true })
+          .eq('id', input.rideId)
+          .eq('user_id', userId);
+
+        this.logger.log(
+          `Mileage applied: +${distanceM}m to motorcycle ${motorcycleId} (total: ${newMileage}m)`,
+        );
+
+        // Check for maintenance tasks that are now due
+        const { data: dueTasks } = await this.supabase
+          .from('maintenance_tasks')
+          .select('id, title, priority')
+          .eq('motorcycle_id', motorcycleId)
+          .eq('status', 'pending')
+          .not('target_mileage', 'is', null)
+          .lte('target_mileage', newMileage);
+
+        if (dueTasks && dueTasks.length > 0) {
+          triggeredMaintenanceTasks = dueTasks;
+          this.logger.log(
+            `${dueTasks.length} maintenance task(s) triggered for motorcycle ${motorcycleId}`,
+          );
+        }
+      } catch (mileageError) {
+        const msg = mileageError instanceof Error ? mileageError.message : String(mileageError);
+        this.logger.warn(`Failed to apply mileage: ${msg}`);
+        // Non-fatal — ride is already saved
+      }
+    }
+
+    return { ride, triggeredMaintenanceTasks };
   }
 
   async uploadWaypoints(userId: string, input: UploadWaypointsInput): Promise<number> {

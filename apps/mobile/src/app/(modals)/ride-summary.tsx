@@ -9,9 +9,11 @@ import {
   Gauge,
   Map as MapIcon,
   Mountain,
+  Receipt,
   Route,
   Share2,
   Trash2,
+  Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
@@ -56,6 +58,7 @@ export default function RideSummaryScreen() {
     avgSpeedMps: string;
     elevationGain: string;
     startedAt: string;
+    motorcycleId: string;
   }>();
 
   const rideId = params.rideId ?? '';
@@ -65,6 +68,7 @@ export default function RideSummaryScreen() {
   const avgSpeedMps = Number(params.avgSpeedMps) || 0;
   const elevationGain = Number(params.elevationGain) || 0;
   const startedAtMs = Number(params.startedAt) || Date.now();
+  const motorcycleId = params.motorcycleId ?? '';
 
   const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));
@@ -118,17 +122,28 @@ export default function RideSummaryScreen() {
       }
     }
 
-    // Speed-gradient color stops
+    // Speed-gradient color stops (must be strictly ascending for Mapbox interpolate)
     const totalDist = cumulativeDistance || 1;
     const colorStops: [number, string][] = [];
+    let lastPct = -1;
     for (let i = 0; i < combined.length; i++) {
-      const pct = distances[i] / totalDist;
+      const pct = Math.round((distances[i] / totalDist) * 10000) / 10000; // 4 decimal precision
+      if (pct <= lastPct) continue; // skip duplicate/non-ascending values
       const speedKmh = (speedValues[i] ?? 0) * 3.6;
       let color: string;
       if (speedKmh < 30) color = palette.speedSlow;
       else if (speedKmh < 80) color = palette.speedMedium;
       else color = palette.speedFast;
       colorStops.push([pct, color]);
+      lastPct = pct;
+    }
+    // Ensure we have at least start and end stops
+    if (colorStops.length === 0) {
+      colorStops.push([0, palette.speedSlow], [1, palette.speedSlow]);
+    } else {
+      if (colorStops[0][0] !== 0) colorStops.unshift([0, colorStops[0][1]]);
+      if (colorStops[colorStops.length - 1][0] !== 1)
+        colorStops.push([1, colorStops[colorStops.length - 1][1]]);
     }
 
     const geojson: GeoJSON.FeatureCollection = {
@@ -510,6 +525,57 @@ export default function RideSummaryScreen() {
                 </View>
               ))}
             </View>
+
+            {/* Mileage applied indicator */}
+            {distanceM > 0 && motorcycleId && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  backgroundColor: palette.successBgDark,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                }}
+              >
+                <Wrench size={16} color={palette.success500} />
+                <Text style={{ fontSize: 13, color: palette.success500, flex: 1 }}>
+                  {formatDistance(distanceM, system)} added to bike odometer
+                </Text>
+              </View>
+            )}
+
+            {/* Add Expense shortcut */}
+            <Pressable
+              onPress={() => {
+                if (process.env.EXPO_OS === 'ios') {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                router.push({
+                  pathname: '/(modals)/add-ride-expense' as const,
+                  params: { motorcycleId },
+                });
+              }}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                paddingVertical: 14,
+                backgroundColor: pressed ? palette.surfaceHover : palette.surfaceSubtle,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: palette.surfaceElevated,
+              })}
+            >
+              <Receipt size={16} color={palette.neutral400} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.neutral400 }}>
+                Add Expense (Fuel, Tolls...)
+              </Text>
+            </Pressable>
 
             {/* Action buttons */}
             <Pressable

@@ -556,10 +556,12 @@ export default function ProfileScreen() {
                 fontWeight: '700',
               }}
             >
-              My Rides
+              {t('profile.myRidesTitle', { defaultValue: 'My Rides' })}
             </Text>
             <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
-              Ride history, stats & route maps
+              {t('profile.myRidesDescription', {
+                defaultValue: 'Ride history, stats & route maps',
+              })}
             </Text>
           </View>
           <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
@@ -961,7 +963,7 @@ export default function ProfileScreen() {
 
       {/* Units */}
       <Animated.View entering={FadeInUp.delay(520).duration(400)}>
-        <SectionHeader label="Units" />
+        <SectionHeader label={t('profile.units', { defaultValue: 'Units' })} />
         <View
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,
@@ -1015,7 +1017,9 @@ export default function ProfileScreen() {
                         : palette.neutral600,
                   }}
                 >
-                  {value === 'metric' ? 'Metric (km, °C)' : 'Imperial (mi, °F)'}
+                  {value === 'metric'
+                    ? t('profile.metric', { defaultValue: 'Metric (km, °C)' })
+                    : t('profile.imperial', { defaultValue: 'Imperial (mi, °F)' })}
                 </Text>
               </Pressable>
             );

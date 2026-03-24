@@ -9,6 +9,7 @@ export const RIDE_KEYS = {
   CURRENT_ID: 'ride.current_id',
   STATUS: 'ride.status',
   STARTED_AT: 'ride.started_at',
+  MOTORCYCLE_ID: 'ride.motorcycle_id',
   TOTAL_PAUSED_MS: 'ride.total_paused_ms',
   TOTAL_AUTO_PAUSED_MS: 'ride.total_auto_paused_ms',
   RECORDING_SUB_STATE: 'ride.recording_sub_state',
@@ -33,6 +34,10 @@ export const rideMMKV = {
   // Started at (epoch ms)
   getStartedAt: () => rideStorage.getNumber(RIDE_KEYS.STARTED_AT),
   setStartedAt: (ms: number) => rideStorage.set(RIDE_KEYS.STARTED_AT, ms),
+
+  // Motorcycle ID (for post-ride features)
+  getMotorcycleId: () => rideStorage.getString(RIDE_KEYS.MOTORCYCLE_ID),
+  setMotorcycleId: (id: string) => rideStorage.set(RIDE_KEYS.MOTORCYCLE_ID, id),
 
   // Paused duration
   getTotalPausedMs: () => rideStorage.getNumber(RIDE_KEYS.TOTAL_PAUSED_MS) ?? 0,

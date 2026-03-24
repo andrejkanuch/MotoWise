@@ -18,7 +18,12 @@ export function HudSpeed() {
 
   return (
     <View
-      style={{ alignItems: 'center', justifyContent: 'center' }}
+      style={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+        paddingVertical: 8,
+      }}
       accessibilityRole="text"
       accessibilityLabel={`Current speed: ${displaySpeed} ${unitLabel}`}
     >
@@ -26,20 +31,20 @@ export function HudSpeed() {
       <View
         style={{
           position: 'absolute',
-          width: 240,
-          height: 240,
-          borderRadius: 120,
+          width: 140,
+          height: 140,
+          borderRadius: 70,
           backgroundColor: glowColor,
         }}
       />
       <Text
         style={{
-          fontSize: 112,
+          fontSize: 88,
           fontVariant: ['tabular-nums'],
-          fontWeight: '200',
-          letterSpacing: -4,
+          fontWeight: '300',
+          letterSpacing: -3,
           color: textColor,
-          lineHeight: 112,
+          lineHeight: 88,
           includeFontPadding: false,
           opacity: isPaused ? 0.35 : 1,
         }}

@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+/** Treat empty strings as undefined so optional env vars work correctly */
+const optionalString = z
+  .string()
+  .min(1)
+  .optional()
+  .or(z.literal('').transform(() => undefined));
+const optionalUrl = z
+  .string()
+  .url()
+  .optional()
+  .or(z.literal('').transform(() => undefined));
+
 export const envSchema = z.object({
   PORT: z.string().default('4000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -9,9 +21,11 @@ export const envSchema = z.object({
   SUPABASE_JWT_SECRET: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1),
   CORS_ORIGINS: z.string().default('http://localhost:8081,http://localhost:3000'),
-  REVENUECAT_WEBHOOK_SECRET: z.string().min(1).optional(),
-  REVENUECAT_SECRET_API_KEY: z.string().min(1).optional(),
-  RESEND_API_KEY: z.string().min(1).optional(),
+  REVENUECAT_WEBHOOK_SECRET: optionalString,
+  REVENUECAT_SECRET_API_KEY: optionalString,
+  RESEND_API_KEY: optionalString,
+  UPSTASH_REDIS_REST_URL: optionalUrl,
+  UPSTASH_REDIS_REST_TOKEN: optionalString,
   GRAPHQL_PLAYGROUND: z.string().optional(),
   THROTTLE_TTL: z.string().default('60'),
   THROTTLE_LIMIT: z.string().default('100'),

@@ -192,6 +192,11 @@ input EndRideInput {
   routePolyline: String
 }
 
+type EndRideResponse {
+  ride: Ride!
+  triggeredMaintenanceTasks: [TriggeredMaintenanceTask!]!
+}
+
 type Expense {
   amount: Float!
   category: String!
@@ -397,7 +402,7 @@ type Mutation {
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
-  endRide(input: EndRideInput!): Ride!
+  endRide(input: EndRideInput!): EndRideResponse!
   generateArticle(input: GenerateArticleInput!): Article!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
 
@@ -622,6 +627,12 @@ type TaskPhoto {
   publicUrl: String!
   storagePath: String!
   taskId: String!
+}
+
+type TriggeredMaintenanceTask {
+  id: String!
+  priority: String!
+  title: String!
 }
 
 input UpdateMaintenanceTaskInput {

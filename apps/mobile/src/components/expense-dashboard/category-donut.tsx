@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
+import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../lib/expense-constants';
 
 const MIN_SEGMENT_FLEX = 2;
@@ -9,12 +10,16 @@ interface CategoryDonutProps {
   categoryTotals: Array<{ category: string; total: number }>;
   totalAmount: number;
   isDark: boolean;
+  selectedCategory?: string | null;
+  onCategoryPress?: (category: string) => void;
 }
 
 export const CategoryDonut = memo(function CategoryDonut({
   categoryTotals,
   totalAmount,
   isDark,
+  selectedCategory,
+  onCategoryPress,
 }: CategoryDonutProps) {
   const textColor = isDark ? palette.white : palette.neutral950;
   const bgColor = isDark ? palette.neutral900 : palette.neutral50;
@@ -81,16 +86,29 @@ export const CategoryDonut = memo(function CategoryDonut({
           const color = CATEGORY_COLORS[cat.category] ?? palette.neutral400;
           const label = CATEGORY_LABELS[cat.category] ?? cat.category;
 
+          const isSelected = selectedCategory === cat.category;
           return (
             <View key={cat.category}>
-              <View
-                accessibilityLabel={`${label}: ${formatCurrency(cat.total)}, ${pct} percent`}
-                accessibilityRole="text"
-                style={{
+              <Pressable
+                onPress={() => onCategoryPress?.(cat.category)}
+                accessibilityLabel={`${label}: ${formatCurrency(cat.total)}, ${pct} percent. Tap to view expenses.`}
+                accessibilityRole="button"
+                style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
                   height: 56,
-                }}
+                  backgroundColor: isSelected
+                    ? `${color}12`
+                    : pressed
+                      ? isDark
+                        ? 'rgba(255,255,255,0.04)'
+                        : 'rgba(0,0,0,0.03)'
+                      : 'transparent',
+                  borderRadius: 10,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 4,
+                  marginHorizontal: -4,
+                })}
               >
                 {/* Color indicator bar */}
                 <View
@@ -143,7 +161,12 @@ export const CategoryDonut = memo(function CategoryDonut({
                     {pct}%
                   </Text>
                 </View>
-              </View>
+                <ChevronRight
+                  size={16}
+                  color={isDark ? palette.neutral600 : palette.neutral400}
+                  style={{ marginLeft: 8 }}
+                />
+              </Pressable>
 
               {/* Separator */}
               {index < sorted.length - 1 && (
