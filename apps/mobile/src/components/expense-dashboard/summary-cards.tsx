@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { memo } from 'react';
 import { Text, View } from 'react-native';
-import { formatCurrency } from '../../lib/expense-constants';
+import { useCurrency } from '../../hooks/use-currency';
 
 interface SummaryCardsProps {
   avgPerMonth: number;
@@ -18,6 +18,7 @@ export const SummaryCards = memo(function SummaryCards({
   unitLabel,
   isDark,
 }: SummaryCardsProps) {
+  const { format: formatCurrency } = useCurrency();
   const textColor = isDark ? palette.white : palette.neutral950;
   const pillBg = isDark ? palette.neutral800 : palette.white;
   const borderColor = isDark ? 'transparent' : palette.neutral200;

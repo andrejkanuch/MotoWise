@@ -12,10 +12,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useCurrency } from '../../hooks/use-currency';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
-  formatCurrency,
   formatExpenseDate,
 } from '../../lib/expense-constants';
 
@@ -34,6 +34,7 @@ export interface SwipeableExpenseProps {
 
 export function SwipeableExpense({ expense, isDark, onDelete, index }: SwipeableExpenseProps) {
   const { t } = useTranslation();
+  const { format: formatCurrency } = useCurrency();
   const translateX = useSharedValue(0);
   const deleteThreshold = -80;
 
