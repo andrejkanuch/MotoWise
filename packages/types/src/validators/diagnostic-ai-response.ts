@@ -9,7 +9,6 @@ export const DiagnosticAiResultSchema = z.object({
     .string()
     .describe('A concise one or two sentence summary of the diagnosis for the user'),
   part: z.string().describe('The motorcycle part or component affected'),
-  description: z.string().describe('A concise summary of the overall diagnosis'),
   issues: z
     .array(
       z.object({

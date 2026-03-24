@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Slide 5 — Expenses</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s5 { display:flex;align-items:center;padding:60px 56px;gap:44px; }
+.bg { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,0.07) 0%,transparent 60%);right:-80px;top:50%;transform:translateY(-50%); }
+.text { flex:1;z-index:2; }
+.step-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#f59e0b;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px; }
+.feature-title { color:#fafafa;font-size:44px;font-weight:800;line-height:1.12;margin-bottom:18px; }
+.feature-desc { color:#a3a3a3;font-size:19px;line-height:1.6;margin-bottom:28px; }
+.stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.stat-card { padding:16px 20px;border-radius:14px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.12); }
+.stat-value { color:#fafafa;font-size:22px;font-weight:800;margin-bottom:4px; }
+.stat-label { color:#a3a3a3;font-size:13px;font-weight:500; }
+.phone { position:relative;z-index:2; }
+.phone .phone-img { width:380px;box-shadow:0 0 80px rgba(245,158,11,0.08),0 30px 100px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+<div class="slide s5">
+  <div class="bg"></div>
+  <div class="slide-num">5 / 7</div>
+  <div class="text">
+    <div class="step-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Expenses
+    </div>
+    <div class="feature-title">Know Every<br>Dollar</div>
+    <div class="feature-desc">Track fuel, maintenance, parts, and gear. See your real cost per kilometer and where the money actually goes.</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-value">$2,588</div><div class="stat-label">Total Spend</div></div>
+      <div class="stat-card"><div class="stat-value">$215/mo</div><div class="stat-label">Avg Monthly</div></div>
+      <div class="stat-card"><div class="stat-value">$0.19</div><div class="stat-label">Per Kilometer</div></div>
+      <div class="stat-card"><div class="stat-value">27</div><div class="stat-label">Entries Logged</div></div>
+    </div>
+  </div>
+  <div class="phone"><img class="phone-img" src="expenses.png" alt=""></div>
+</div>
+</body>
+</html>

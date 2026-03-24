@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Slide 2 — Problem</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s2 { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px; }
+.bg { position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(59,130,246,0.06) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(212,98,46,0.04) 0%,transparent 50%); }
+.icon-wrap { position:relative;z-index:2;margin-bottom:36px;color:#60a5fa; }
+.question { position:relative;z-index:2;color:#fafafa;font-size:50px;font-weight:800;text-align:center;line-height:1.2;margin-bottom:48px; }
+.pain-points { position:relative;z-index:2;display:flex;flex-direction:column;gap:18px;width:100%;max-width:680px; }
+.pp { display:flex;align-items:center;gap:20px;padding:22px 30px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:18px;color:#d4d4d4;font-size:21px;font-weight:500; }
+.x { width:36px;height:36px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;flex-shrink:0; }
+.x svg { width:18px;height:18px; }
+</style>
+</head>
+<body>
+<div class="slide s2">
+  <div class="bg"></div>
+  <div class="slide-num">2 / 7</div>
+  <div class="icon-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+  </div>
+  <div class="question">Managing Your<br>Bike Shouldn't<br>Be This Hard</div>
+  <div class="pain-points">
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>Service reminders scattered across apps & notes</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>No clue what you're actually spending per year</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>Weird noise? Google gives 100 wrong answers</div>
+    <div class="pp"><span class="x"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>Multiple bikes = multiple headaches</div>
+  </div>
+</div>
+</body>
+</html>

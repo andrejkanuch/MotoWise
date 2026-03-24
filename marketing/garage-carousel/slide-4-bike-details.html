@@ -1,0 +1,47 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s4 { display:flex;align-items:center;padding:60px 56px;gap:44px; }
+.bg { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,0.07) 0%,transparent 60%);left:-80px;top:50%;transform:translateY(-50%); }
+.phone { position:relative;z-index:2; }
+.phone .phone-img { width:380px;box-shadow:0 0 80px rgba(34,197,94,0.08),0 30px 100px rgba(0,0,0,0.5); }
+.text { flex:1;z-index:2; }
+.step-badge { display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:#22c55e;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:20px; }
+.feature-title { color:#fafafa;font-size:44px;font-weight:800;line-height:1.12;margin-bottom:18px; }
+.feature-desc { color:#a3a3a3;font-size:19px;line-height:1.6;margin-bottom:28px; }
+.details-list { display:flex;flex-direction:column;gap:14px; }
+.detail-item { display:flex;align-items:center;gap:14px;color:#d4d4d4;font-size:17px;font-weight:500; }
+.detail-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.icon-green { background:rgba(34,197,94,0.12);color:#22c55e; }
+.icon-blue { background:rgba(59,130,246,0.12);color:#60a5fa; }
+.icon-orange { background:rgba(245,158,11,0.12);color:#f59e0b; }
+</style></head><body>
+<div class="slide s4">
+  <div class="bg"></div>
+  <div class="slide-num">4 / 7</div>
+  <div class="phone"><img class="phone-img" src="bike-details.png" alt=""></div>
+  <div class="text">
+    <div class="step-badge">Step 2</div>
+    <div class="feature-title">Know Your Bike<br>Inside Out</div>
+    <div class="feature-desc">Every detail at a glance — health score, mileage, maintenance tasks, and quick actions.</div>
+    <div class="details-list">
+      <div class="detail-item">
+        <div class="detail-icon icon-green"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg></div>
+        Live health score (A–F grading)
+      </div>
+      <div class="detail-item">
+        <div class="detail-icon icon-blue"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        Mileage tracking with auto-updates
+      </div>
+      <div class="detail-item">
+        <div class="detail-icon icon-orange"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+        Quick actions: Add Task, Add Expense, Edit
+      </div>
+    </div>
+  </div>
+</div></body></html>

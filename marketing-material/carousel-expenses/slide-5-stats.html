@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Slide 5 — Key Stats</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
+.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#0a0a0a; }
+.phone-img { border-radius:36px;border:2px solid rgba(255,255,255,0.06); }
+.slide-num { position:absolute;top:36px;right:40px;color:rgba(255,255,255,0.12);font-size:14px;font-weight:600;z-index:10;letter-spacing:1px; }
+
+.s5 { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px; }
+.bg { position:absolute;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,0.08) 0%,transparent 60%);top:50%;left:50%;transform:translate(-50%,-50%); }
+.step-badge { position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:#f59e0b;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px; }
+.feature-title { position:relative;z-index:2;color:#fafafa;font-size:44px;font-weight:800;text-align:center;line-height:1.12;margin-bottom:12px; }
+.feature-desc { position:relative;z-index:2;color:#a3a3a3;font-size:19px;text-align:center;max-width:600px;line-height:1.5;margin-bottom:32px; }
+.phones { position:relative;z-index:2;display:flex;gap:20px;align-items:center; }
+.phones .phone-img { width:260px;box-shadow:0 0 80px rgba(245,158,11,0.1),0 30px 100px rgba(0,0,0,0.5); }
+.arrow { color:#f59e0b;font-size:36px;font-weight:800; }
+</style>
+</head>
+<body>
+<div class="slide s5">
+  <div class="bg"></div>
+  <div class="slide-num">5 / 7</div>
+  <div class="step-badge">The Full Picture</div>
+  <div class="feature-title">Dashboard Meets<br>Expense Insights</div>
+  <div class="feature-desc">Your total spend, average per month, and cost per kilometer — all calculated automatically.</div>
+  <div class="phones">
+    <img class="phone-img" src="home-dashboard.png" alt="">
+    <span class="arrow">→</span>
+    <img class="phone-img" src="expenses.png" alt="">
+  </div>
+</div>
+</body>
+</html>
