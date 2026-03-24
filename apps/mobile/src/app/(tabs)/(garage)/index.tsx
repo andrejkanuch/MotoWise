@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
@@ -288,6 +289,7 @@ function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) 
 export default function GarageScreen() {
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
@@ -380,7 +382,7 @@ export default function GarageScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: insets.bottom + 80 }}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}

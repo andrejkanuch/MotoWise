@@ -150,7 +150,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
     <View style={{ flex: 1 }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 20) + 120 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Step header */}
@@ -412,7 +412,7 @@ export function StepReviewSubmit({ onSubmit }: StepReviewSubmitProps) {
           borderTopWidth: 1,
           borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 12,
+          paddingBottom: Math.max(insets.bottom, 20) + 12,
           paddingTop: 12,
           backgroundColor: colors.background,
         }}

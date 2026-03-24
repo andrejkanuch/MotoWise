@@ -619,7 +619,7 @@ export function StepProblemDescription() {
           borderTopWidth: 1,
           borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 12,
+          paddingBottom: Math.max(insets.bottom, 20) + 12,
           paddingTop: 12,
         }}
       >
