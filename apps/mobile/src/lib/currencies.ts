@@ -1,4 +1,4 @@
-import { Currency, CURRENCY_SYMBOLS, type Currency as CurrencyType } from '@motovault/types';
+import { CURRENCY_SYMBOLS, Currency, type Currency as CurrencyType } from '@motovault/types';
 
 export interface CurrencyOption {
   code: CurrencyType;

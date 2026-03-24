@@ -1060,11 +1060,24 @@ export default function ProfileScreen() {
             boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
           }}
         >
-          <Text style={{ fontSize: 20, fontWeight: '700', width: 36, color: isDark ? palette.neutral50 : palette.neutral950 }}>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '700',
+              width: 36,
+              color: isDark ? palette.neutral50 : palette.neutral950,
+            }}
+          >
             {CURRENCY_SYMBOLS[currency as Currency] ?? '$'}
           </Text>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '600', color: isDark ? palette.neutral50 : palette.neutral950 }}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: isDark ? palette.neutral50 : palette.neutral950,
+              }}
+            >
               {currency}
             </Text>
           </View>
@@ -1077,13 +1090,32 @@ export default function ProfileScreen() {
           presentationStyle="formSheet"
           onRequestClose={() => setShowCurrencyPicker(false)}
         >
-          <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderColor: isDark ? palette.neutral700 : palette.neutral200 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: isDark ? palette.neutral50 : palette.neutral950 }}>
+          <View
+            style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 16,
+                borderBottomWidth: 1,
+                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                }}
+              >
                 Select Currency
               </Text>
               <Pressable onPress={() => setShowCurrencyPicker(false)}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: palette.primary500 }}>Done</Text>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: palette.primary500 }}>
+                  Done
+                </Text>
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }}>
@@ -1105,14 +1137,30 @@ export default function ProfileScreen() {
                       borderRadius: 12,
                       borderCurve: 'continuous',
                       backgroundColor: isSelected
-                        ? isDark ? `${palette.primary500}20` : `${palette.primary500}10`
+                        ? isDark
+                          ? `${palette.primary500}20`
+                          : `${palette.primary500}10`
                         : 'transparent',
                     }}
                   >
-                    <Text style={{ fontSize: 20, fontWeight: '700', width: 42, color: isDark ? palette.neutral50 : palette.neutral950 }}>
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: '700',
+                        width: 42,
+                        color: isDark ? palette.neutral50 : palette.neutral950,
+                      }}
+                    >
                       {symbol}
                     </Text>
-                    <Text style={{ flex: 1, fontSize: 15, fontWeight: '500', color: isDark ? palette.neutral200 : palette.neutral700 }}>
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        fontWeight: '500',
+                        color: isDark ? palette.neutral200 : palette.neutral700,
+                      }}
+                    >
                       {code}
                     </Text>
                     {isSelected && <Check size={18} color={palette.primary500} strokeWidth={3} />}

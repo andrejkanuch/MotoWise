@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { Currency } from '@motovault/types';
+import type { Currency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';
@@ -28,9 +28,7 @@ export default function CurrencyScreen() {
   const setCurrency = useOnboardingStore((s) => s.setCurrency);
   const existingCurrency = useOnboardingStore((s) => s.currency);
 
-  const [selected, setSelected] = useState<CurrencyCode>(
-    existingCurrency ?? detectCurrency(),
-  );
+  const [selected, setSelected] = useState<CurrencyCode>(existingCurrency ?? detectCurrency());
 
   const handleSelect = (code: CurrencyCode) => {
     setSelected(code);

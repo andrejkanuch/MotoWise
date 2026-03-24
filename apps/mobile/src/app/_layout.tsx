@@ -103,8 +103,7 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   }, [serverCurrency, setCurrency]);
 
   useEffect(() => {
-    if (serverMeasurementSystem)
-      setMeasurementSystem(serverMeasurementSystem as MeasurementSystem);
+    if (serverMeasurementSystem) setMeasurementSystem(serverMeasurementSystem as MeasurementSystem);
   }, [serverMeasurementSystem, setMeasurementSystem]);
 
   useEffect(() => {

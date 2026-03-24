@@ -32,7 +32,6 @@ function formatDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();

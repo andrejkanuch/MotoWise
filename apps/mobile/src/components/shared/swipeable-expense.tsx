@@ -13,11 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
-import {
-  CATEGORY_COLORS,
-  CATEGORY_LABELS,
-  formatExpenseDate,
-} from '../../lib/expense-constants';
+import { CATEGORY_COLORS, CATEGORY_LABELS, formatExpenseDate } from '../../lib/expense-constants';
 
 export interface SwipeableExpenseProps {
   expense: {

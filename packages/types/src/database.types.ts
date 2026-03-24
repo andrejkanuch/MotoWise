@@ -1,8 +1,3 @@
-npm warn Unknown project config "node-linker". This will stop working in the next major version of npm.
-WARN: environment variable is unset: SUPABASE_AUTH_GOOGLE_CLIENT_ID
-WARN: environment variable is unset: SUPABASE_AUTH_GOOGLE_SECRET
-WARN: environment variable is unset: SUPABASE_AUTH_APPLE_SECRET
-Initialising login role...
 export type Json =
   | string
   | number

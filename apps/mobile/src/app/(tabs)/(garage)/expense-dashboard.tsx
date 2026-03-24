@@ -16,13 +16,13 @@ import Animated, {
 import { CategoryDonut } from '../../../components/expense-dashboard/category-donut';
 import { MonthlyTrend } from '../../../components/expense-dashboard/monthly-trend';
 import { SummaryCards } from '../../../components/expense-dashboard/summary-cards';
+import { useCurrency } from '../../../hooks/use-currency';
 import {
   PERIOD_OPTIONS,
   type Period,
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
-import { useCurrency } from '../../../hooks/use-currency';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
