@@ -190,7 +190,47 @@
     "privacy": "Prywatnosc",
     "terms": "Regulamin",
     "accountDeletion": "Usuwanie konta",
-    "builtWithAi": "Wspierane przez AI"
+    "builtWithAi": "Wspierane przez AI",
+    "about": "O nas"
+  },
+  "About": {
+    "metaTitle": "O MotoVault",
+    "metaDescription": "MotoVault to platforma motocyklowa napędzana AI, która udostępnia wiedzę o konserwacji każdemu motocykliście. Założona w 2025 roku na Słowacji.",
+    "heroTitle": "O MotoVault",
+    "heroSubtitle": "Udostępniamy wiedzę o konserwacji motocykli każdemu motocykliście dzięki technologii AI.",
+    "founderName": "Andrej",
+    "founderRole": "Założyciel i Programista",
+    "founderBio": "Entuzjasta motocykli i programista ze Słowacji, Andrej stworzył MotoVault z jedną wizją: udostępnić wiedzę motocyklową każdemu motocykliście. Niezależnie czy jesteś doświadczonym mechanikiem czy właśnie kupiłeś swój pierwszy motocykl, MotoVault umieszcza diagnostykę AI, śledzenie konserwacji i zasoby edukacyjne w Twojej kieszeni.",
+    "missionTitle": "Nasza Misja",
+    "missionDescription": "Zbyt wielu motocyklistów zmaga się z podstawową konserwacją, ponieważ wiedza jest rozproszona po forach, filmach na YouTube i podręcznikach warsztatowych, które kosztują więcej niż części. MotoVault łączy wszystko z AI, które rozumie Twój konkretny motocykl i daje jasne, praktyczne wskazówki.",
+    "statsTitle": "MotoVault w Liczbach",
+    "stats": {
+      "riders": "Aktywnych Motocyklistów",
+      "bikes": "Motocykli w Bazie",
+      "diagnoses": "Wykonanych Diagnoz AI",
+      "articles": "Artykułów Edukacyjnych"
+    },
+    "valuesTitle": "Za Czym Stoimy",
+    "values": {
+      "aiPowered": {
+        "title": "Napędzane AI",
+        "description": "Claude AI w sercu — dostarcza precyzyjną diagnostykę, spersonalizowaną naukę i inteligentne przypomnienia o konserwacji."
+      },
+      "communityDriven": {
+        "title": "Napędzane Społecznością",
+        "description": "Stworzone przez motocykistę, dla motocyklistów. Każda funkcja wynika z rzeczywistych potrzeb w garażu, nie w sali konferencyjnej."
+      },
+      "openKnowledge": {
+        "title": "Otwarta Wiedza",
+        "description": "Konserwacja motocykli nie powinna być ograniczona. Udostępniamy wiedzę ekspercką za darmo i dla każdego."
+      }
+    },
+    "companyTitle": "Informacje o Firmie",
+    "companyFounded": "Założona",
+    "companyLocation": "Lokalizacja",
+    "companyLocationValue": "Słowacja, Unia Europejska",
+    "companyContact": "Kontakt",
+    "backToHome": "Powrót do Strony Głównej"
   },
   "Privacy": {
     "title": "Polityka prywatnosci",

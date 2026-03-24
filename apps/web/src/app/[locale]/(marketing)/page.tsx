@@ -6,6 +6,7 @@ import { Faq } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
 import { HowItWorks } from '@/components/marketing/how-it-works';
+import { JsonLd } from '@/components/marketing/json-ld';
 import { SocialProofBar } from '@/components/marketing/social-proof-bar';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
@@ -24,18 +25,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: getCanonicalUrl(locale),
     },
   };
-}
-
-function JsonLd({ data }: { data: Record<string, unknown> }) {
-  return (
-    <script
-      type="application/ld+json"
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
-      dangerouslySetInnerHTML={{
-        __html: JSON.stringify(data).replace(/</g, '\\u003c'),
-      }}
-    />
-  );
 }
 
 export default async function HomePage({ params }: PageProps) {
@@ -74,7 +63,8 @@ export default async function HomePage({ params }: PageProps) {
     '@type': 'MobileApplication',
     '@id': `${BASE_URL}/#app`,
     name: tJsonLd('organizationName'),
-    applicationCategory: 'LifestyleApplication',
+    applicationCategory: 'UtilitiesApplication',
+    applicationSubCategory: 'Motorcycle Maintenance',
     operatingSystem: ['iOS', 'Android'],
     description: tJsonLd('organizationDescription'),
     url: BASE_URL,
@@ -82,7 +72,20 @@ export default async function HomePage({ params }: PageProps) {
       'https://apps.apple.com/us/app/motovault/id6760291360',
       'https://play.google.com/store/apps/details?id=com.motovault.app',
     ],
-    screenshot: `${BASE_URL}/og-image.png`,
+    screenshot: [
+      {
+        '@type': 'ImageObject',
+        url: `${BASE_URL}/images/propagation-images/motovault-home-1206x2622.png`,
+        caption: 'MotoVault home screen showing garage and diagnostics',
+      },
+    ],
+    featureList: [
+      'AI motorcycle diagnostics from photos',
+      'Digital garage management',
+      'Structured learning paths and quizzes',
+      'Maintenance tracking and reminders',
+      'Expense management',
+    ],
     offers: [
       {
         '@type': 'Offer',
@@ -90,7 +93,15 @@ export default async function HomePage({ params }: PageProps) {
         priceCurrency: 'USD',
         name: 'Free',
       },
+      {
+        '@type': 'Offer',
+        price: '4.99',
+        priceCurrency: 'USD',
+        name: 'MotoVault Pro',
+        description: 'Unlock all features with a 7-day free trial',
+      },
     ],
+    creator: { '@id': `${BASE_URL}/#organization` },
   };
 
   const websiteSchema = {

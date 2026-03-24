@@ -1,0 +1,8 @@
+mutation UpdateRide($input: UpdateRideInput!) {
+  updateRide(input: $input) {
+    id
+    name
+    mileageApplied
+    isPublic
+  }
+}

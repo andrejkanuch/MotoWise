@@ -44,6 +44,12 @@ export const queryKeys = {
   expenses: {
     byMotorcycle: (motorcycleId: string) => ['expenses', 'byMotorcycle', motorcycleId] as const,
   },
+  rides: {
+    all: ['rides'] as const,
+    list: (cursor?: string) => ['rides', 'list', cursor] as const,
+    detail: (id: string) => ['rides', 'detail', id] as const,
+    waypoints: (id: string) => ['rides', 'waypoints', id] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },

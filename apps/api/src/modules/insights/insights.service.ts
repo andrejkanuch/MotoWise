@@ -2,12 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { GqlInsightType } from '../../common/enums/graphql-enums';
+import { AI_CLIENT, AI_MODELS } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
 import type { GenerateInsightsInput } from './dto/generate-insights.input';
 import type { OnboardingInsight } from './models/onboarding-insight.model';
 
-const MODEL = 'gpt-4.1-mini';
-const TIMEOUT_MS = 10_000;
+const MODEL = AI_MODELS.INSIGHTS;
+const TIMEOUT_MS = AI_CLIENT.INSIGHTS_TIMEOUT_MS;
 
 const FALLBACK_INSIGHTS: Record<string, OnboardingInsight[]> = {
   beginner: [

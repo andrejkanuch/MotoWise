@@ -1,8 +1,10 @@
 import { palette } from '@motovault/design-system';
+import { ExpensesByMotorcycleDocument, type ExpensesByMotorcycleQuery } from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { BarChart3 } from 'lucide-react-native';
-import { useState } from 'react';
+import { BarChart3, X } from 'lucide-react-native';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -21,6 +23,8 @@ import {
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
 import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../../lib/expense-constants';
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 
 const PERIOD_LABELS: Record<Period, string> = {
   thisYear: 'This Year',
@@ -156,10 +160,31 @@ export default function ExpenseDashboardScreen() {
   }>();
 
   const [period, setPeriod] = useState<Period>('thisYear');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const isDark = useColorScheme() === 'dark';
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
+
+  // Fetch individual expenses for category drill-down
+  const { data: expensesData } = useQuery({
+    queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
+    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId, year: 0 }),
+    enabled: !!motorcycleId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const categoryExpenses = useMemo(() => {
+    if (!selectedCategory || !expensesData) return [];
+    const data = expensesData as ExpensesByMotorcycleQuery;
+    const cat = data.expenses?.categories?.find((c) => c.category === selectedCategory);
+    return cat?.expenses ?? [];
+  }, [selectedCategory, expensesData]);
+
+  const handleCategoryPress = useCallback((category: string) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedCategory((prev) => (prev === category ? null : category));
+  }, []);
 
   const handlePeriodChange = (newPeriod: Period) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -500,9 +525,125 @@ export default function ExpenseDashboardScreen() {
             categoryTotals={categoryTotals}
             totalAmount={periodTotal}
             isDark={isDark}
+            selectedCategory={selectedCategory}
+            onCategoryPress={handleCategoryPress}
           />
         </View>
       </Animated.View>
+
+      {/* Category Expense List (drill-down) */}
+      {selectedCategory && categoryExpenses.length > 0 && (
+        <Animated.View entering={FadeInUp.duration(250)} style={{ marginTop: 16 }}>
+          <View
+            style={{
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              padding: 16,
+              ...(!isDark
+                ? {
+                    shadowColor: palette.black,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 8,
+                  }
+                : {}),
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: CATEGORY_COLORS[selectedCategory] ?? palette.neutral400,
+                  marginRight: 8,
+                }}
+              />
+              <Text
+                style={{
+                  fontFamily: 'PlusJakartaSans-SemiBold',
+                  fontWeight: '600',
+                  fontSize: 16,
+                  color: textColor,
+                  flex: 1,
+                }}
+              >
+                {CATEGORY_LABELS[selectedCategory] ?? selectedCategory} ({categoryExpenses.length})
+              </Text>
+              <Pressable
+                onPress={() => setSelectedCategory(null)}
+                hitSlop={12}
+                accessibilityLabel="Close expense list"
+              >
+                <X size={18} color={subtextColor} />
+              </Pressable>
+            </View>
+
+            {categoryExpenses.map((expense, index) => (
+              <View key={expense.id}>
+                {index > 0 && (
+                  <View
+                    style={{
+                      height: 1,
+                      backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
+                      marginVertical: 1,
+                    }}
+                  />
+                )}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 12,
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        fontFamily: 'PlusJakartaSans-Medium',
+                        fontWeight: '500',
+                        fontSize: 14,
+                        color: textColor,
+                      }}
+                    >
+                      {expense.description ||
+                        (CATEGORY_LABELS[expense.category] ?? expense.category)}
+                    </Text>
+                    <Text
+                      style={{
+                        fontFamily: 'PlusJakartaSans-Regular',
+                        fontWeight: '400',
+                        fontSize: 12,
+                        color: subtextColor,
+                        marginTop: 2,
+                      }}
+                    >
+                      {new Date(expense.date).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontFamily: 'PlusJakartaSans-SemiBold',
+                      fontWeight: '600',
+                      fontSize: 15,
+                      color: textColor,
+                      marginLeft: 12,
+                    }}
+                  >
+                    {formatCurrency(expense.amount)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+      )}
 
       {/* Monthly Trend */}
       <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 16 }}>

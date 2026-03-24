@@ -16,6 +16,8 @@ export interface Article {
   heroImage?: string;
   heroAlt?: string;
   category?: string;
+  wordCount?: number;
+  dateModified?: string;
 }
 
 const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
@@ -47,6 +49,8 @@ function readArticlesFromDisk(locale: string): Article[] {
         heroImage: data.heroImage,
         heroAlt: data.heroAlt,
         category: data.category,
+        wordCount: data.wordCount ? Number(data.wordCount) : undefined,
+        dateModified: data.dateModified || undefined,
       } satisfies Article;
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

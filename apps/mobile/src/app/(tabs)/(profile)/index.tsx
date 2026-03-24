@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import {
   Bell,
   Bike,
+  BookOpen,
   Check,
   ChevronDown,
   ChevronRight,
@@ -19,9 +20,11 @@ import {
   Lock,
   LogOut,
   Moon,
+  Navigation,
   Palette,
   Pencil,
   Plus,
+  Ruler,
   Settings,
   Sun,
   Trash2,
@@ -158,6 +161,8 @@ export default function ProfileScreen() {
     setLocale,
     colorScheme: storedScheme,
     setColorScheme: setStoredScheme,
+    measurementSystem,
+    setMeasurementSystem,
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -511,9 +516,112 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
+      {/* My Rides */}
+      <Animated.View entering={FadeInUp.delay(120).duration(400)}>
+        <Pressable
+          onPress={() => {
+            haptic();
+            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+            router.push('/(tabs)/(profile)/rides' as any);
+          }}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            padding: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? `${palette.accent500}25` : 'rgba(45,158,120,0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <Navigation size={22} color={palette.accent500} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              {t('profile.myRidesTitle', { defaultValue: 'My Rides' })}
+            </Text>
+            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              {t('profile.myRidesDescription', {
+                defaultValue: 'Ride history, stats & route maps',
+              })}
+            </Text>
+          </View>
+          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+      </Animated.View>
+
+      {/* Learn */}
+      <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+        <Pressable
+          onPress={() => {
+            haptic();
+            router.push('/(tabs)/(learn)');
+          }}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            padding: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? `${palette.primary500}25` : palette.primary50,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <BookOpen size={22} color={palette.primary500} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              {t('tabs.learn')}
+            </Text>
+            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              {t('learn.profileDescription', {
+                defaultValue: 'Articles, quizzes & motorcycle knowledge',
+              })}
+            </Text>
+          </View>
+          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+      </Animated.View>
+
       {/* Pro Banner — show upgrade CTA for free users, active status for pro users */}
       {isPro ? (
-        <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(240).duration(400)}>
           <View
             style={{
               backgroundColor: isDark ? palette.neutral800 : palette.white,
@@ -563,7 +671,7 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
       ) : (
-        <Animated.View entering={FadeInUp.delay(160).duration(400)}>
+        <Animated.View entering={FadeInUp.delay(200).duration(400)}>
           <Pressable
             onPress={() => {
               haptic();
@@ -608,7 +716,7 @@ export default function ProfileScreen() {
       )}
 
       {/* Settings */}
-      <Animated.View entering={FadeInUp.delay(240).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(280).duration(400)}>
         <SectionHeader label={t('profile.settings')} />
         <View
           style={{
@@ -654,7 +762,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Language */}
-      <Animated.View entering={FadeInUp.delay(320).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(360).duration(400)}>
         <SectionHeader label={t('profile.language')} />
         <Pressable
           onPress={() => {
@@ -792,7 +900,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Theme */}
-      <Animated.View entering={FadeInUp.delay(400).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(440).duration(400)}>
         <SectionHeader label={t('profile.theme')} />
         <View
           style={{
@@ -853,8 +961,74 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
+      {/* Units */}
+      <Animated.View entering={FadeInUp.delay(520).duration(400)}>
+        <SectionHeader label={t('profile.units', { defaultValue: 'Units' })} />
+        <View
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            flexDirection: 'row',
+            padding: 4,
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          {(['metric', 'imperial'] as const).map((value) => {
+            const selected = measurementSystem === value;
+            return (
+              <Pressable
+                key={value}
+                onPress={() => {
+                  haptic();
+                  setMeasurementSystem(value);
+                }}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: selected
+                    ? isDark
+                      ? palette.primary700
+                      : palette.primary500
+                    : 'transparent',
+                }}
+              >
+                <Ruler
+                  size={15}
+                  color={
+                    selected ? palette.white : isDark ? palette.neutral400 : palette.neutral600
+                  }
+                  strokeWidth={2}
+                />
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: selected
+                      ? palette.white
+                      : isDark
+                        ? palette.neutral400
+                        : palette.neutral600,
+                  }}
+                >
+                  {value === 'metric'
+                    ? t('profile.metric', { defaultValue: 'Metric (km, °C)' })
+                    : t('profile.imperial', { defaultValue: 'Imperial (mi, °F)' })}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Animated.View>
+
       {/* Logout */}
-      <Animated.View entering={FadeInUp.delay(480).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(560).duration(400)}>
         <View
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,
@@ -876,7 +1050,7 @@ export default function ProfileScreen() {
       </Animated.View>
 
       {/* Delete Account */}
-      <Animated.View entering={FadeInUp.delay(520).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(560).duration(400)}>
         <View
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,

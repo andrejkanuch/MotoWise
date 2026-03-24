@@ -1,0 +1,24 @@
+query GetRide($id: String!) {
+  ride(id: $id) {
+    id
+    status
+    name
+    startedAt
+    endedAt
+    distanceM
+    maxSpeedMps
+    avgSpeedMps
+    elevationGain
+    elevationLoss
+    pausedDurationS
+    autoPausedDurationS
+    durationS
+    motorcycleId
+    routePolyline
+    routeThumbnailUri
+    gpsQuality
+    mileageApplied
+    isPublic
+    createdAt
+  }
+}

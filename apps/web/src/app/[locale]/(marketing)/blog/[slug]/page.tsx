@@ -6,10 +6,13 @@ import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import { JsonLd } from '@/components/marketing/json-ld';
+import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 import { getArticleBySlug, getArticleSlugs, getArticleUrl, getRelatedArticles } from '@/lib/blog';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import type { TocHeading } from '@/lib/rehype-extract-headings';
+import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 
 interface BlogArticlePageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -93,6 +96,15 @@ const mdxComponents = {
   ),
 };
 
+const CATEGORY_LABELS: Record<string, string> = {
+  diy: 'DIY Tutorials',
+  maintenance: 'Maintenance',
+  troubleshooting: 'Troubleshooting',
+  'brand-specific': 'Brand-Specific Guides',
+  'cost-analysis': 'Cost Analysis',
+  safety: 'Safety',
+};
+
 export default async function BlogArticlePage({ params }: BlogArticlePageProps) {
   const { slug, locale } = await params;
   setRequestLocale(locale);
@@ -103,12 +115,14 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     notFound();
   }
 
+  const headings: TocHeading[] = [];
+
   const { content } = await compileMDX({
     source: article.content,
     options: {
       mdxOptions: {
         remarkPlugins: [remarkGfm],
-        rehypePlugins: [rehypeSlug],
+        rehypePlugins: [rehypeSlug, rehypeExtractHeadings(headings)],
       },
     },
     components: mdxComponents,
@@ -116,13 +130,16 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   const related = getRelatedArticles(slug, article.category, locale);
 
+  const wordCount = article.wordCount || article.content.split(/\s+/).length;
+  const articleUrl = getArticleUrl(slug, locale);
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: article.title,
     description: article.excerpt,
     datePublished: article.date,
-    dateModified: article.date,
+    dateModified: article.dateModified || article.date,
     image: article.heroImage ? `${BASE_URL}${article.heroImage}` : `${BASE_URL}/og-image.png`,
     author: {
       '@type': 'Organization',
@@ -131,6 +148,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     },
     publisher: {
       '@type': 'Organization',
+      '@id': `${BASE_URL}/#organization`,
       name: 'MotoVault',
       url: BASE_URL,
       logo: {
@@ -140,9 +158,16 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': getArticleUrl(slug, 'en'),
+      '@id': articleUrl,
     },
     keywords: article.keywords.join(', '),
+    wordCount,
+    articleSection: article.category
+      ? CATEGORY_LABELS[article.category] || article.category
+      : undefined,
+    inLanguage: locale,
+    isAccessibleForFree: true,
+    timeRequired: `PT${article.readingTime}M`,
   };
 
   const breadcrumbSchema = {
@@ -153,19 +178,19 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: BASE_URL,
+        item: getCanonicalUrl(locale),
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Blog',
-        item: `${BASE_URL}/blog`,
+        item: getCanonicalUrl(locale, '/blog'),
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: article.title,
-        item: getArticleUrl(slug, 'en'),
+        item: articleUrl,
       },
     ],
   };
@@ -229,6 +254,8 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
             </span>
           </div>
         </header>
+
+        <TableOfContents headings={headings} />
 
         <div className="prose prose-invert max-w-none">{content}</div>
 

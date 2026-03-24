@@ -3,6 +3,8 @@ import {
   AllMaintenanceTasksDocument,
   MeDocument,
   MyMotorcyclesDocument,
+  MyRidesDocument,
+  type MyRidesQuery,
   SearchArticlesDocument,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,6 +42,10 @@ export function useHomeData() {
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
   });
+  const ridesQuery = useQuery({
+    queryKey: queryKeys.rides.list('home'),
+    queryFn: () => gqlFetcher(MyRidesDocument, { first: 10 }),
+  });
 
   const user = meQuery.data?.me;
   const preferences = user?.preferences as
@@ -49,13 +55,18 @@ export function useHomeData() {
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
   const articles = articlesQuery.data?.searchArticles?.edges ?? [];
   const allTasks = maintenanceQuery.data?.allMaintenanceTasks ?? [];
+  const ridesData = ridesQuery.data as MyRidesQuery | undefined;
+  const ridesEdges = ridesData?.myRides?.edges ?? [];
 
   const showSetupCta = !preferences?.onboardingCompleted || motorcycles.length === 0;
   const hasMotorcycles = motorcycles.length > 0;
   const isLoading = meQuery.isLoading || bikesQuery.isLoading;
   const hasCriticalError = meQuery.isError || bikesQuery.isError;
   const isRefreshing =
-    meQuery.isRefetching || bikesQuery.isRefetching || articlesQuery.isRefetching;
+    meQuery.isRefetching ||
+    bikesQuery.isRefetching ||
+    articlesQuery.isRefetching ||
+    ridesQuery.isRefetching;
   const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
 
   const onRefresh = useCallback(() => {
@@ -63,6 +74,7 @@ export function useHomeData() {
     queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.articles.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+    queryClient.invalidateQueries({ queryKey: queryKeys.rides.list('home') });
   }, [queryClient]);
 
   const firstName = user?.fullName?.split(' ')[0];
@@ -76,6 +88,43 @@ export function useHomeData() {
     }
     return names;
   }, [motorcycles]);
+
+  // Map rides for the widget
+  const recentRides = useMemo(() => {
+    return ridesEdges.map((edge: any) => {
+      const node = edge.node;
+      const bikeName = bikeNames[node.motorcycleId] ?? null;
+      return {
+        id: node.id,
+        userId: '',
+        status: node.status,
+        name: node.name ?? null,
+        startedAt: node.startedAt,
+        endedAt: node.endedAt ?? null,
+        durationS: node.durationS ?? null,
+        distanceM: node.distanceM ?? null,
+        maxSpeedMps: node.maxSpeedMps ?? null,
+        avgSpeedMps: node.avgSpeedMps ?? null,
+        elevationGain: node.elevationGain ?? null,
+        elevationLoss: null,
+        pausedDurationS: node.pausedDurationS ?? 0,
+        autoPausedDurationS: node.autoPausedDurationS ?? 0,
+        routePolyline: null,
+        gpsQuality: node.gpsQuality ?? null,
+        mileageApplied: false,
+        isPublic: false,
+        motorcycleId: node.motorcycleId ?? null,
+        createdAt: node.startedAt,
+        updatedAt: node.startedAt,
+        routeThumbnailUri: node.routeThumbnailUri ?? null,
+        bikeName,
+      };
+    });
+  }, [ridesEdges, bikeNames]);
+
+  const ridesTotalDistance = useMemo(() => {
+    return recentRides.reduce((sum: number, r: any) => sum + (r.distanceM ?? 0), 0);
+  }, [recentRides]);
 
   const fleetHealth: FleetHealth | null = useMemo(() => {
     if (motorcycles.length === 0) return null;
@@ -245,6 +294,8 @@ export function useHomeData() {
     sortedTasks,
     bikeNames,
     articles,
+    recentRides,
+    ridesTotalDistance,
     router,
   };
 }

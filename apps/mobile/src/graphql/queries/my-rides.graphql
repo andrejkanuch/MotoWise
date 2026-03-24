@@ -1,0 +1,29 @@
+query MyRides($first: Int, $after: String, $motorcycleId: String) {
+  myRides(first: $first, after: $after, motorcycleId: $motorcycleId) {
+    edges {
+      node {
+        id
+        status
+        name
+        startedAt
+        endedAt
+        distanceM
+        maxSpeedMps
+        avgSpeedMps
+        elevationGain
+        pausedDurationS
+        autoPausedDurationS
+        durationS
+        motorcycleId
+        routeThumbnailUri
+        gpsQuality
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    totalCount
+  }
+}

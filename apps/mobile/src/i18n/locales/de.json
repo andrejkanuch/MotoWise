@@ -309,7 +309,12 @@
     "themeDark": "Dunkel",
     "notifications": "Benachrichtigungen",
     "proActive": "Pro aktiv",
-    "proActiveDesc": "Du hast ein aktives Pro-Abonnement"
+    "proActiveDesc": "Du hast ein aktives Pro-Abonnement",
+    "myRidesTitle": "My Rides",
+    "myRidesDescription": "Ride history, stats & route maps",
+    "units": "Units",
+    "metric": "Metric (km, °C)",
+    "imperial": "Imperial (mi, °F)"
   },
   "onboarding": {
     "welcomeTitle": "Willkommen bei MotoVault",
@@ -837,13 +842,42 @@
     "maintenanceStyleLabel": "Wartungsstil",
     "saveChanges": "Änderungen speichern",
     "saved": "Änderungen gespeichert",
-    "saveError": "Änderungen konnten nicht gespeichert werden. Bitte versuche es erneut."
+    "saveError": "Änderungen konnten nicht gespeichert werden. Bitte versuche es erneut.",
+    "formatQuickTips": "Quick Tips",
+    "formatDeepDives": "Deep Dives",
+    "formatVideoWalkthroughs": "Video Walkthroughs",
+    "formatHandsOnQuizzes": "Hands-on Quizzes",
+    "frequencyDaily": "Daily",
+    "frequencyWeekly": "Weekly",
+    "frequencyMonthly": "Monthly",
+    "frequencySeasonally": "Seasonally",
+    "maintenanceDiy": "DIY",
+    "maintenanceSometimes": "Mix",
+    "maintenanceMechanic": "Mechanic",
+    "goalLearnMaintenance": "Learn Maintenance",
+    "goalImproveRiding": "Improve Riding",
+    "goalTrackMaintenance": "Track Maintenance",
+    "goalSaveMoney": "Save Money",
+    "goalFindCommunity": "Find Community",
+    "goalSafety": "Safety",
+    "goalSaveOnMaintenance": "Save on Maintenance",
+    "goalTrackBikeHealth": "Track Bike Health"
   },
   "support": {
     "title": "Support",
     "faq": "FAQ",
     "contact": "Kontakt",
     "emailSupport": "E-Mail-Support",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "faq1Question": "How do I add a motorcycle?",
+    "faq1Answer": "Go to the Garage tab and tap the + button. You can search for your motorcycle by make, model, and year.",
+    "faq2Question": "How does diagnostics work?",
+    "faq2Answer": "Describe your motorcycle symptoms in the Diagnose tab. Our AI analyzes common issues and provides likely causes with recommended actions.",
+    "faq3Question": "Can I have multiple motorcycles?",
+    "faq3Answer": "Yes! You can add as many motorcycles as you want. Set one as your primary bike for personalized recommendations.",
+    "faq4Question": "How do I change my language?",
+    "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
+    "faq5Question": "Is my data secure?",
+    "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
   }
 }

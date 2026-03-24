@@ -4,6 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { GenerateInsightsInput } from './dto/generate-insights.input';
 import { InsightsService } from './insights.service';
 import { OnboardingInsight } from './models/onboarding-insight.model';
@@ -14,7 +15,7 @@ export class InsightsResolver {
 
   @Mutation(() => [OnboardingInsight])
   @UseGuards(GqlAuthGuard)
-  @Throttle({ ai: { ttl: 60000, limit: 3 } })
+  @Throttle({ ai: THROTTLE_PRESETS.AI_INSIGHTS })
   async generateOnboardingInsights(
     @CurrentUser() user: AuthUser,
     @Args('input') input: GenerateInsightsInput,

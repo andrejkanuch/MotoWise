@@ -26,6 +26,7 @@ export type Database = {
           is_safety_critical: boolean
           is_seed_content: boolean
           is_verified: boolean
+          keywords: string[]
           raw_text: string
           read_time_minutes: number | null
           search_vector: unknown
@@ -47,6 +48,7 @@ export type Database = {
           is_safety_critical?: boolean
           is_seed_content?: boolean
           is_verified?: boolean
+          keywords?: string[]
           raw_text?: string
           read_time_minutes?: number | null
           search_vector?: unknown
@@ -68,6 +70,7 @@ export type Database = {
           is_safety_critical?: boolean
           is_seed_content?: boolean
           is_verified?: boolean
+          keywords?: string[]
           raw_text?: string
           read_time_minutes?: number | null
           search_vector?: unknown
@@ -178,6 +181,50 @@ export type Database = {
           },
         ]
       }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          download_url: string | null
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          download_url?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_export_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diagnostic_photos: {
         Row: {
           diagnostic_id: string
@@ -215,41 +262,59 @@ export type Database = {
       }
       diagnostics: {
         Row: {
+          additional_notes: string | null
           confidence: number | null
           created_at: string
           data_sharing_opted_in: boolean
+          description: string | null
+          free_text_description: string | null
           id: string
-          motorcycle_id: string
+          manual_bike_info: Json | null
+          motorcycle_id: string | null
+          photo_url: string | null
           related_article_id: string | null
           result_json: Json
           severity: Database["public"]["Enums"]["diagnostic_severity"] | null
           status: string
+          urgency: string | null
           user_id: string
           wizard_answers: Json | null
         }
         Insert: {
+          additional_notes?: string | null
           confidence?: number | null
           created_at?: string
           data_sharing_opted_in?: boolean
+          description?: string | null
+          free_text_description?: string | null
           id?: string
-          motorcycle_id: string
+          manual_bike_info?: Json | null
+          motorcycle_id?: string | null
+          photo_url?: string | null
           related_article_id?: string | null
           result_json: Json
           severity?: Database["public"]["Enums"]["diagnostic_severity"] | null
           status?: string
+          urgency?: string | null
           user_id: string
           wizard_answers?: Json | null
         }
         Update: {
+          additional_notes?: string | null
           confidence?: number | null
           created_at?: string
           data_sharing_opted_in?: boolean
+          description?: string | null
+          free_text_description?: string | null
           id?: string
-          motorcycle_id?: string
+          manual_bike_info?: Json | null
+          motorcycle_id?: string | null
+          photo_url?: string | null
           related_article_id?: string | null
           result_json?: Json
           severity?: Database["public"]["Enums"]["diagnostic_severity"] | null
           status?: string
+          urgency?: string | null
           user_id?: string
           wizard_answers?: Json | null
         }
@@ -270,6 +335,70 @@ export type Database = {
           },
           {
             foreignKeyName: "diagnostics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          deleted_at: string | null
+          description: string | null
+          id: string
+          maintenance_task_id: string | null
+          motorcycle_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          date: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          maintenance_task_id?: string | null
+          motorcycle_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          maintenance_task_id?: string | null
+          motorcycle_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_maintenance_task_id_fkey"
+            columns: ["maintenance_task_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -671,6 +800,181 @@ export type Database = {
           },
         ]
       }
+      revenuecat_webhook_events: {
+        Row: {
+          app_user_id: string
+          event_id: string
+          event_type: string
+          processed_at: string
+        }
+        Insert: {
+          app_user_id: string
+          event_id: string
+          event_type: string
+          processed_at?: string
+        }
+        Update: {
+          app_user_id?: string
+          event_id?: string
+          event_type?: string
+          processed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenuecat_webhook_events_app_user_id_fkey"
+            columns: ["app_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_waypoints: {
+        Row: {
+          accuracy: number | null
+          altitude: number | null
+          heading: number | null
+          latitude: number
+          lean_angle: number | null
+          longitude: number
+          recorded_at: string
+          ride_id: string
+          speed_mps: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          altitude?: number | null
+          heading?: number | null
+          latitude: number
+          lean_angle?: number | null
+          longitude: number
+          recorded_at: string
+          ride_id: string
+          speed_mps?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          altitude?: number | null
+          heading?: number | null
+          latitude?: number
+          lean_angle?: number | null
+          longitude?: number
+          recorded_at?: string
+          ride_id?: string
+          speed_mps?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_waypoints_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          auto_paused_duration_s: number
+          avg_speed_mps: number | null
+          created_at: string
+          deleted_at: string | null
+          distance_m: number | null
+          elevation_gain: number | null
+          elevation_loss: number | null
+          ended_at: string | null
+          gps_quality: number | null
+          id: string
+          is_public: boolean
+          max_lean_angle: number | null
+          max_speed_mps: number | null
+          metadata: Json
+          mileage_applied: boolean
+          motorcycle_id: string | null
+          name: string | null
+          paused_duration_s: number
+          region: string | null
+          route_polyline: string | null
+          route_thumbnail_uri: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          weather_snapshot: Json | null
+        }
+        Insert: {
+          auto_paused_duration_s?: number
+          avg_speed_mps?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          distance_m?: number | null
+          elevation_gain?: number | null
+          elevation_loss?: number | null
+          ended_at?: string | null
+          gps_quality?: number | null
+          id?: string
+          is_public?: boolean
+          max_lean_angle?: number | null
+          max_speed_mps?: number | null
+          metadata?: Json
+          mileage_applied?: boolean
+          motorcycle_id?: string | null
+          name?: string | null
+          paused_duration_s?: number
+          region?: string | null
+          route_polyline?: string | null
+          route_thumbnail_uri?: string | null
+          started_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          weather_snapshot?: Json | null
+        }
+        Update: {
+          auto_paused_duration_s?: number
+          avg_speed_mps?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          distance_m?: number | null
+          elevation_gain?: number | null
+          elevation_loss?: number | null
+          ended_at?: string | null
+          gps_quality?: number | null
+          id?: string
+          is_public?: boolean
+          max_lean_angle?: number | null
+          max_speed_mps?: number | null
+          metadata?: Json
+          mileage_applied?: boolean
+          motorcycle_id?: string | null
+          name?: string | null
+          paused_duration_s?: number
+          region?: string | null
+          route_polyline?: string | null
+          route_thumbnail_uri?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          weather_snapshot?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       share_links: {
         Row: {
           created_at: string
@@ -713,15 +1017,18 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          deleted_at: string | null
+          deletion_scheduled_at: string | null
           email: string
           full_name: string | null
           id: string
+          measurement_system: string
           onboarding_completed_at: string | null
           preferences: Json | null
           revenuecat_id: string | null
           role: Database["public"]["Enums"]["user_role"]
           subscription_expires_at: string | null
-          subscription_status: string | null
+          subscription_status: string
           subscription_tier: string
           trial_started_at: string | null
           updated_at: string
@@ -730,15 +1037,18 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email: string
           full_name?: string | null
           id: string
+          measurement_system?: string
           onboarding_completed_at?: string | null
           preferences?: Json | null
           revenuecat_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           subscription_expires_at?: string | null
-          subscription_status?: string | null
+          subscription_status?: string
           subscription_tier?: string
           trial_started_at?: string | null
           updated_at?: string
@@ -747,15 +1057,18 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deletion_scheduled_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
+          measurement_system?: string
           onboarding_completed_at?: string | null
           preferences?: Json | null
           revenuecat_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           subscription_expires_at?: string | null
-          subscription_status?: string | null
+          subscription_status?: string
           subscription_tier?: string
           trial_started_at?: string | null
           updated_at?: string
@@ -769,42 +1082,34 @@ export type Database = {
     }
     Functions: {
       auth_uid_check: { Args: never; Returns: string }
-      complete_onboarding:
-        | {
-            Args: {
-              p_bike_make?: string
-              p_bike_mileage?: number
-              p_bike_model?: string
-              p_bike_nickname?: string
-              p_bike_type?: Database["public"]["Enums"]["motorcycle_type"]
-              p_bike_year?: number
-              p_preferences: Json
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_annual_repair_spend?: string
-              p_bike_make?: string
-              p_bike_mileage?: number
-              p_bike_model?: string
-              p_bike_nickname?: string
-              p_bike_photo_url?: string
-              p_bike_type?: Database["public"]["Enums"]["motorcycle_type"]
-              p_bike_year?: number
-              p_last_service_date?: string
-              p_maintenance_reminders?: boolean
-              p_mileage_unit?: string
-              p_preferences: Json
-              p_recall_alerts?: boolean
-              p_reminder_channel?: string
-              p_seasonal_tips?: boolean
-              p_user_id: string
-              p_weekly_summary?: boolean
-            }
-            Returns: Json
-          }
+      cancel_account_deletion: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      complete_onboarding: {
+        Args: {
+          p_annual_repair_spend?: string
+          p_bike_make?: string
+          p_bike_mileage?: number
+          p_bike_model?: string
+          p_bike_nickname?: string
+          p_bike_photo_url?: string
+          p_bike_type?: Database["public"]["Enums"]["motorcycle_type"]
+          p_bike_year?: number
+          p_last_service_date?: string
+          p_maintenance_reminders?: boolean
+          p_mileage_unit?: string
+          p_preferences: Json
+          p_recall_alerts?: boolean
+          p_reminder_channel?: string
+          p_seasonal_tips?: boolean
+          p_user_id: string
+          p_weekly_summary?: boolean
+        }
+        Returns: Json
+      }
+      get_daily_ai_spend: { Args: { p_since: string }; Returns: number }
+      hard_delete_expired_accounts: { Args: never; Returns: number }
       increment_article_view_count: {
         Args: { p_article_id: string }
         Returns: undefined
@@ -829,6 +1134,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      process_revenuecat_event: {
+        Args: {
+          p_app_user_id: string
+          p_event_id: string
+          p_event_type: string
+          p_expiration_at?: string
+          p_period_type?: string
+        }
+        Returns: undefined
+      }
+      purge_soft_deleted_rides: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_maintenance_task: {
@@ -839,6 +1155,7 @@ export type Database = {
         Args: { motorcycle_id: string }
         Returns: boolean
       }
+      soft_delete_user: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       article_category:

@@ -190,7 +190,47 @@
     "privacy": "Privasi",
     "terms": "Ketentuan",
     "accountDeletion": "Hapus Akun",
-    "builtWithAi": "Didukung oleh AI"
+    "builtWithAi": "Didukung oleh AI",
+    "about": "Tentang"
+  },
+  "About": {
+    "metaTitle": "Tentang MotoVault",
+    "metaDescription": "MotoVault adalah platform motor bertenaga AI yang membuat pengetahuan perawatan dapat diakses oleh setiap pengendara. Didirikan pada 2025 di Slovakia.",
+    "heroTitle": "Tentang MotoVault",
+    "heroSubtitle": "Membuat pengetahuan perawatan motor dapat diakses oleh setiap pengendara melalui teknologi AI.",
+    "founderName": "Andrej",
+    "founderRole": "Pendiri & Pengembang",
+    "founderBio": "Seorang penggemar motor dan pengembang perangkat lunak dari Slovakia, Andrej membangun MotoVault dengan satu visi: membuat pengetahuan motor dapat diakses oleh setiap pengendara. Baik Anda mekanik berpengalaman atau baru membeli motor pertama, MotoVault menaruh diagnostik AI, pelacakan perawatan, dan sumber belajar di saku Anda.",
+    "missionTitle": "Misi Kami",
+    "missionDescription": "Terlalu banyak pengendara kesulitan dengan perawatan dasar karena pengetahuan tersebar di forum, video YouTube, dan manual bengkel yang harganya lebih mahal dari suku cadang. MotoVault menyatukan semuanya dengan AI yang memahami motor spesifik Anda dan memberikan panduan yang jelas dan dapat ditindaklanjuti.",
+    "statsTitle": "MotoVault dalam Angka",
+    "stats": {
+      "riders": "Pengendara Aktif",
+      "bikes": "Motor di Database",
+      "diagnoses": "Diagnosis AI Dilakukan",
+      "articles": "Artikel Pembelajaran"
+    },
+    "valuesTitle": "Yang Kami Perjuangkan",
+    "values": {
+      "aiPowered": {
+        "title": "Bertenaga AI",
+        "description": "Claude AI di inti — memberikan diagnostik akurat, pembelajaran personal, dan pengingat perawatan cerdas."
+      },
+      "communityDriven": {
+        "title": "Digerakkan Komunitas",
+        "description": "Dibuat oleh pengendara, untuk pengendara. Setiap fitur lahir dari kebutuhan nyata di garasi, bukan ruang rapat."
+      },
+      "openKnowledge": {
+        "title": "Pengetahuan Terbuka",
+        "description": "Perawatan motor tidak boleh dibatasi. Kami membuat pengetahuan ahli gratis dan dapat diakses oleh semua orang."
+      }
+    },
+    "companyTitle": "Info Perusahaan",
+    "companyFounded": "Didirikan",
+    "companyLocation": "Lokasi",
+    "companyLocationValue": "Slovakia, Uni Eropa",
+    "companyContact": "Kontak",
+    "backToHome": "Kembali ke Beranda"
   },
   "Privacy": {
     "title": "Kebijakan Privasi",

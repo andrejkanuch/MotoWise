@@ -22,6 +22,9 @@ export class User {
   @Field(() => String, { nullable: true })
   subscriptionTier?: string;
 
+  @Field({ nullable: true })
+  measurementSystem?: string;
+
   @Field()
   createdAt: string;
 

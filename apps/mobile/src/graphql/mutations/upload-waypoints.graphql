@@ -1,0 +1,3 @@
+mutation UploadWaypoints($input: UploadWaypointsInput!) {
+  uploadWaypoints(input: $input)
+}

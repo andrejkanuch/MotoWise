@@ -1,5 +1,6 @@
 import '../global.css';
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
+import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -31,6 +32,9 @@ SplashScreen.preventAutoHideAsync();
 // Initialize Sentry and PostHog as early as possible
 initSentry();
 initPostHog();
+
+// Initialize Mapbox
+MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '');
 
 // Configure foreground notification display
 Notifications.setNotificationHandler({

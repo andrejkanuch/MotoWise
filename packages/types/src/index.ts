@@ -11,6 +11,7 @@ export * from './validators/maintenance-task';
 export * from './validators/motorcycle';
 export * from './validators/onboarding-input';
 export * from './validators/quiz';
+export * from './validators/ride';
 export * from './validators/share-link';
 export * from './validators/user';
 export * from './validators/user-preferences';

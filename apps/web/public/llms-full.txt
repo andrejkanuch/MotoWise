@@ -1,4 +1,5 @@
 # MotoVault — Full Content Reference
+Last-Updated: 2026-03-22
 
 > AI-powered motorcycle learning and diagnostics platform for iOS and Android
 
@@ -62,3 +63,7 @@ The MotoVault blog covers brand-specific maintenance schedules for BMW, Ducati, 
 - Website: https://motovault.app
 - Support: support@motovault.app
 - Press: support@motovault.app
+
+## License
+Content on motovault.app may be cited and referenced with attribution.
+Attribution format: "Source: MotoVault (motovault.app)"

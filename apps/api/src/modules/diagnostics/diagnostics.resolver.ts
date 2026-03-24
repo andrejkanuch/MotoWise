@@ -7,6 +7,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { UsersService } from '../users/users.service';
@@ -52,7 +53,7 @@ export class DiagnosticsResolver {
 
   @Mutation(() => Diagnostic)
   @UseGuards(GqlAuthGuard)
-  @Throttle({ ai: { ttl: 60000, limit: 3 } })
+  @Throttle({ ai: THROTTLE_PRESETS.AI_DIAGNOSTIC })
   async submitDiagnostic(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,

@@ -33,7 +33,18 @@
       "Bash(xargs kill:*)",
       "Bash(pnpm --filter @motovault/types build)",
       "Bash(pnpm --filter @motovault/mobile test)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm view:*)",
+      "Bash(gh search:*)",
+      "Bash(git status:*)",
+      "Bash(gh repo:*)",
+      "Bash(git remote:*)",
+      "Bash(pnpm:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d[:3], indent=2\\)\\)\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''plugins'''',{}\\), indent=2\\)\\)\")",
+      "Bash(grep:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''extraKnownMarketplaces'''',{}\\), indent=2\\)\\)\")"
     ]
   }
 }

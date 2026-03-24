@@ -7,6 +7,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { CreateShareLinkInput } from './dto/create-share-link.input';
 import { ShareLink } from './models/share-link.model';
 import { SharedBikeHistory } from './models/shared-bike-history.model';
@@ -46,7 +47,7 @@ export class ShareLinksResolver {
 
   @Query(() => SharedBikeHistory)
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
   async sharedBikeHistory(@Args('token') token: string): Promise<SharedBikeHistory> {
     return this.shareLinksService.resolve(token);
   }

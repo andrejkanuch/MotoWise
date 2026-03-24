@@ -323,7 +323,7 @@ export default function SupportScreen() {
             MotoVault
           </Text>
           <Text style={{ fontSize: 13, color: palette.neutral500, marginTop: 2 }}>
-            {t('support.version', { defaultValue: 'Version' })} {appVersion}
+            {t('support.version', { version: appVersion, defaultValue: `Version ${appVersion}` })}
           </Text>
         </Animated.View>
       </ScrollView>

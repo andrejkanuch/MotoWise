@@ -1,4 +1,5 @@
 # MotoVault
+Last-Updated: 2026-03-22
 
 > AI-powered motorcycle learning and diagnostics platform
 
@@ -30,3 +31,7 @@ MotoVault helps motorcycle riders maintain, diagnose, and learn about their bike
 ## Optional
 
 - [Full content version](https://motovault.app/llms-full.txt)
+
+## License
+Content on motovault.app may be cited and referenced with attribution.
+Attribution format: "Source: MotoVault (motovault.app)"

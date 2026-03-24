@@ -7,6 +7,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { THROTTLE_PRESETS } from '../../config/constants';
 import { ArticleGeneratorService } from './article-generator.service';
 import { ArticlesService } from './articles.service';
 import { GenerateArticleInput } from './dto/generate-article.input';
@@ -48,7 +49,7 @@ export class ArticlesResolver {
   @Query(() => [Article])
   @UseGuards(GqlAuthGuard)
   @Public()
-  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  @Throttle({ default: THROTTLE_PRESETS.ARTICLE_LIST })
   async popularArticles(
     @Args('first', { type: () => Int, defaultValue: 10 }) first: number,
   ): Promise<Article[]> {
@@ -57,7 +58,7 @@ export class ArticlesResolver {
 
   @Mutation(() => Article)
   @UseGuards(GqlAuthGuard)
-  @Throttle({ ai: { ttl: 60000, limit: 5 } })
+  @Throttle({ ai: THROTTLE_PRESETS.AI_GENERATION })
   async generateArticle(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(GenerateArticleSchema)) input: GenerateArticleInput,

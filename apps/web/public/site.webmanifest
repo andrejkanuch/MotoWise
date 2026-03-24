@@ -1,7 +1,7 @@
 {
   "name": "MotoVault",
   "short_name": "MotoVault",
-  "description": "AI-powered motorcycle learning, photo diagnostics, and maintenance tracking",
+  "description": "AI-powered motorcycle maintenance tracking, photo diagnostics, and expense management",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#050508",

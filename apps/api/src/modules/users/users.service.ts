@@ -29,6 +29,7 @@ export class UsersService {
       role: row.role,
       preferences: (row.preferences as Record<string, unknown>) ?? undefined,
       subscriptionTier: row.subscription_tier ?? undefined,
+      measurementSystem: row.measurement_system ?? undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -51,12 +52,14 @@ export class UsersService {
       avatarUrl: string;
       yearsRiding: number;
       preferences: Record<string, unknown>;
+      measurementSystem: string;
     }>,
   ): Promise<User> {
     const payload: Record<string, unknown> = {};
     if (input.fullName !== undefined) payload.full_name = input.fullName;
     if (input.avatarUrl !== undefined) payload.avatar_url = input.avatarUrl;
     if (input.yearsRiding !== undefined) payload.years_riding = input.yearsRiding;
+    if (input.measurementSystem !== undefined) payload.measurement_system = input.measurementSystem;
 
     if (input.preferences) {
       const result = UserPreferencesSchema.safeParse(input.preferences);

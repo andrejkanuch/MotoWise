@@ -1,0 +1,485 @@
+
+
+
+
+PRODUCT REQUIREMENTS DOCUMENT
+Ride Logging & Live Ride HUD
+Transform MotoVault from “open when something breaks” into “open every time you ride” — with a real-time dashboard showing speed, altitude, and route on a live map.
+
+Document Type
+PRD v2.0 (Post-Architecture Review)
+Author
+Andrej Kanuch
+Date
+March 22, 2026
+Effort Rating
+High (10–12 weeks)
+Status
+Architecture Review Complete — Ready for Phase 1
+Architecture Doc
+Architecture-Ride-Logging-HUD.html (v2.1)
+Design Reference
+Ride-HUD-Design.html
+
+Revision History
+Version
+Date
+Changes
+1.0
+Mar 17, 2026
+Initial PRD with ride logging + safety contact feature
+1.1
+Mar 17, 2026
+Removed safety contact/Twilio. Added Live Ride HUD screen (R5–R12)
+2.0
+Mar 22, 2026
+Post-architecture review: 18 findings incorporated. Lean angle deferred to v1.1. Timeline updated to 10–12 weeks. MMKV, auto-pause, HUD safety redesign, GDPR purge, cursor pagination, waypoint quotas.
+2.1
+Mar 22, 2026
+Map provider: @rnmapbox/maps (Mapbox SDK v11). R19: Ride Summary Screen with gradient polyline. R1 updated: center FAB in tab bar. R16 updated: ride history in Profile tab. Design reference: Ride-HUD-Design.html. Scope note: v1 targets basic working UX/UI, polished frontend deferred to follow-up.
+
+1. Problem Statement
+Motorcycle riders use REVER (millions of downloads), Calimoto, and Scenic as daily ride-tracking companions — apps they open every time they ride. MotoVault, by contrast, is opened only when something needs attention: a diagnostic, a maintenance task, or an expense to log. The current DAU/MAU ratio is estimated at ~10%, a pattern typical of utility-only apps. Without a daily engagement touchpoint, MotoVault cannot build the habitual usage necessary for long-term retention or sustainable subscription revenue.
+Who experiences this: Every active MotoVault user who rides regularly (estimated 70%+ of user base, riding 2–5 times per week in season). These riders currently have no reason to open MotoVault on a ride day.
+Cost of not solving it: REVER and Calimoto own the “daily ride” moment. Every ride logged in REVER is a ride NOT logged in MotoVault. MotoVault’s maintenance schedules depend on accurate mileage, but motorcycle.current_mileage is only updated manually. Ride logging would auto-increment mileage, making OEM task thresholds significantly more accurate.
+MotoVault’s unique advantage: No ride-tracking app auto-updates a bike’s service mileage or triggers maintenance reminders based on ride distance. REVER tracks rides. MotoVault can track rides AND tell you “you’re 200 miles from your next oil change” when you finish. This is the moat: ride → mileage → maintenance → expenses → AI diagnostics.
+2. Goals
+USER GOAL
+Record every ride with zero friction. Starting a ride takes one tap from the home screen. Ending a ride presents instant stats (distance, duration, avg speed) and a mileage update prompt. Target: ride start-to-recording in under 3 seconds.
+
+USER GOAL
+Experience a real-time Ride HUD. While riding, the user sees a live map with their route, current speed (96pt, dominant), altitude, and ride stats — all on a dark, high-contrast screen optimized for outdoor visibility with glove-friendly 64pt touch targets.
+
+USER GOAL
+Keep maintenance schedules accurate without manual effort. Ride distance is added to the bike’s odometer after each ride. Maintenance tasks with target_mileage are automatically rechecked. Target: 85% of rides result in accepted mileage updates.
+
+BUSINESS GOAL
+Increase DAU/MAU from ~10% to 25%+. Ride logging creates a reason to open MotoVault on every ride. Measured at 90 days post-launch.
+
+BUSINESS GOAL
+Grow Pro subscriptions through high-frequency feature gating. Free tier: last 10 rides visible, unlimited recording. Pro: full history, GPX export, waypoint playback, route maps. Measured via incremental Free→Pro conversion.
+3. Non-Goals (Explicit Scope Boundaries)
+Turn-by-turn navigation. Navigation is Calimoto’s core offering, requiring deep map engine integration, voice guidance, and offline routing. MotoVault records rides — it doesn’t plan them.
+Lean angle tracking in v1 (deferred to v1.1). Architecture review found high device variance, calibration UX complexity, and questionable gyroscope reliability on budget Android phones. The DB schema includes max_lean_angle as nullable for zero-migration-cost addition later. Not the differentiator — mileage sync is.
+Community route discovery or social feed. Sharing and discovering routes requires a community layer, moderation, and network effects. Design the schema with is_public and region columns for future sharing, but don’t build the community UI.
+Crash detection and automatic emergency calls. Requires accelerometer analysis, false-positive handling, and emergency service integration. Carries legal liability and needs dedicated safety engineering.
+Safety contact / emergency SMS notifications. Requires Twilio/SNS backend, per-message costs, and liability review. Descoped from v1 — revisit once ride logging adoption is validated.
+Group ride coordination or multi-rider tracking. Requires real-time multi-user location sharing with presence channels and privacy controls. Out of scope.
+
+Frontend Scope Note
+v1 targets basic, functional UX/UI — clean layouts, correct data flow, and reliable state management. Polished animations, advanced map interactions, and premium visual refinements are deferred to a follow-up frontend pass. The HUD design reference (Ride-HUD-Design.html) serves as the visual north star, but pixel-perfect implementation is not a v1 gate. Ship working, then ship beautiful.
+
+4. User Stories
+Core: Ride Recording
+As a recreational rider, I want to tap one button (the center FAB in the tab bar, visible on every screen) to start recording my ride so that I can track distance and duration without fiddling with settings.
+Edge: If no motorcycle is selected, prompt to add a bike or select “Quick Ride” without a bike association.
+
+As a rider mid-ride, I want the app to continue recording my GPS track even when the screen is off or I switch to another app so that I get a complete route without keeping MotoVault in the foreground.
+Edge: Battery saver mode may throttle GPS. Show a warning if low-power mode is detected.
+
+As a rider finishing a ride, I want to see an instant summary (distance, duration, avg speed, max speed, elevation gain) and be prompted to update my bike’s mileage so that my maintenance schedule stays accurate.
+Edge: If GPS accuracy was poor (>50% of waypoints with accuracy >100m), show a warning and present suggested mileage as editable.
+
+As a touring rider on a multi-day trip, I want to pause and resume a ride (e.g., at a fuel stop or overnight) so that rest periods don’t count toward ride duration.
+Edge: If the app is force-killed during a paused ride, the ride should be recoverable on next app open via MMKV-persisted state.
+
+Core: Live Ride HUD
+As a rider with a phone mounted on handlebars, I want to see a dark, high-contrast Ride HUD with my current speed displayed at 96pt so I can read it at a glance without taking my eyes off the road.
+Edge: Speed must be readable in direct sunlight. White-on-black text. All controls must be 64pt minimum for gloved hands.
+
+As a touring rider, I want to see my route drawn on a live map in real time so that I can see where I’ve been and orient myself geographically.
+Edge: Map should auto-pan to keep current position centered. Show GPS quality indicator (green/yellow/red).
+
+As a mountain/ADV rider, I want to see my current altitude and elevation changes so that I can track how much climbing I’ve done on a ride.
+Edge: GPS altitude can be inaccurate (±30m). Display as integer, prefer barometric altitude if available.
+
+As a commuter stuck in traffic, I want the app to automatically distinguish between moving time and stopped time so my average speed reflects actual riding, not time spent at red lights.
+Edge: Auto-pause engages when speed=0 for 60 continuous seconds. Does not stop GPS — excludes from moving time calculation.
+
+As a night rider, I want a night mode HUD that uses red-tinted UI so my night vision isn’t destroyed by a bright screen.
+Edge: The app must never force max brightness. Respect system auto-brightness. Night mode toggle accessible from HUD.
+
+Core: Mileage Sync
+As a maintenance-conscious rider, I want my ride distance to be automatically suggested as a mileage update so that my OEM maintenance schedules stay accurate without manual editing.
+Edge: Display as “Add X mi to odometer? (Current: Y mi → New: Z mi)” — never auto-commit.
+
+As a rider who just hit a maintenance milestone, I want to see a notification after my ride saying “Oil change due” so that I act on maintenance tasks at the right time.
+Edge: Only show for tasks with target_mileage that the new odometer reading exceeds.
+
+Edge Cases & Empty States
+As a new user who hasn’t added a bike yet, I want to start a “Quick Ride” (unassociated with a motorcycle) so I can try ride logging immediately.
+
+As a rider in an area with poor cell service, I want ride recording to work fully offline (GPS only, no network required) and sync data when connectivity returns.
+Edge: Client generates rideId (UUID) locally. All waypoint batches reference this ID. Sync queue processes on reconnect.
+
+As a Free tier user, I want to see my last 10 rides and when I want more history, a clear upgrade prompt.
+Edge: Free: unlimited recording, last 10 rides visible. Pro: full history, GPX export, waypoint playback.
+
+5. Requirements
+P0 Must-Have — Core Ride Recording
+Requirement
+Expected Behavior
+Acceptance Criteria
+R1
+Start/Stop Ride
+Center FAB button in bottom tab bar (between Diagnose and Garage tabs) opens ride start flow. User selects motorcycle (defaults to primary). Tapping “Start” begins GPS recording, shows live HUD. “Stop Ride” requires 2-second long-press to prevent accidental taps with gloves. The center button is always visible across all tabs as the primary ride CTA.
+GPS recording begins within 3s. HUD appears with live stats. Persistent notification shows “Recording ride…”. End ride long-press shows progress ring animation. Center nav button pulses when ride is active.
+R2
+Background GPS
+GPS continues when app is backgrounded or screen locked. Uses expo-location with Accuracy.High + 10m distance filter. Foreground service notification on Android. Background task writes to MMKV (not Zustand) due to Android Hermes isolation. Battery Saver toggle drops to Accuracy.Balanced.
+Ride for 30 min with screen locked → continuous GPS track, no gaps. Battery saver warning shown if system power mode detected.
+R3
+Ride Summary
+After stopping: total distance (user’s unit), duration (moving time vs total time), avg speed, max speed, elevation gain/loss, route polyline on static map. Min ride: 0.1 mi / 0.2 km. Shows auto-pause breakdown.
+25-mile ride in 45 min shows: 25.0 mi, 0:45:00 moving / 0:52:00 total, ~33 mph avg. GPS quality warning if >50% points with accuracy >100m.
+R4
+Pause/Resume
+Tap Pause to stop GPS recording and time tracking. Tap Resume to continue. Paused time excluded from moving time. State persists in MMKV across app restarts. Force-kill recovery: “Unfinished ride detected. Resume or End?”
+Pause 20 min during 1-hour ride → summary shows 40 min moving time. App force-closed during pause → recovery modal on reopen.
+R5
+Auto-Pause
+When speed = 0 for 60 continuous seconds, auto-pause engages. GPS continues but time excluded from moving time. auto_paused_duration_s tracked separately from manual paused_duration_s. HUD shows “STOPPED” indicator.
+Stop at traffic light for 90s → 60s auto-paused, moving time excludes those 60s. Resume moving → auto-pause disengages immediately.
+R6
+Offline-First
+Rides work 100% offline. Client generates rideId UUID locally. All waypoints reference this ID. Stats computed locally. Sync queue processes when online: startRide → endRide → uploadWaypoints → updateMileage. Client supplies started_at timestamp (no server DEFAULT).
+Start ride in airplane mode, ride 30 min, end ride → full summary shown immediately. When connectivity returns, ride syncs to server within 60s.
+
+Architecture Review Note
+R2 GPS uses Accuracy.High (not Balanced) per finding H6 — Accuracy.Balanced misses hairpin turns on mountain roads. Background task writes MMKV per H10 — Android Hermes may spawn separate JS instance. Client supplies timestamps per H14 — DEFAULT NOW() reflects sync time for offline rides.
+
+P0 Must-Have — Live Ride HUD Screen
+Requirement
+Expected Behavior
+Acceptance Criteria
+R7
+Map Zone (Top 35%)
+Live map with route drawn as gradient polyline (blue → green). Pulsing blue dot for current position. GPS quality indicator (green/yellow/red). Compass in top-left. Auto-pans to follow rider. Translucent “PAUSED” overlay when paused.
+Route polyline extends in real time. GPS indicator changes color: green (<50m), yellow (50–200m), red (>200m accuracy).
+R8
+Speed Gauge (Hero)
+Current speed as dominant metric: 96pt monospace, white on black. Occupies 60% of center hero area. Unit label (mph/km/h) below in smaller text. Must be readable at arm’s length in sunlight. Updates every 1 second.
+Rider at 45 mph sees “45” in 96pt white monospace with “mph” below. Unit respects motorcycle.mileage_unit.
+R9
+Altitude Display
+Current altitude with mountain icon, numeric value in accent monospace, ft/m unit. Uses GPS altitude, preferring barometric if available. Integer, no decimals.
+Rider at 690 ft sees “690” with “ft” label.
+R10
+Stats Row
+2 visible stat pills (Distance + Duration). Swipe for Avg Speed and Elevation Gain. Monospace values. Translucent card backgrounds. Updates on GPS callback.
+12.4 mi ride, 33 min → shows “12.4 mi” and “0:33”. Swipe reveals avg speed + elevation.
+R11
+Top Bar
+Recording status (pulsing green “RECORDING” or amber “PAUSED” or yellow “STOPPED”), bike name, elapsed time HH:MM:SS excluding paused intervals.
+45 min active, 10 min paused → timer shows “00:35:00”.
+R12
+Control Buttons
+Circular Pause/Resume (left), red END RIDE pill (right). END RIDE requires 2-second long-press with progress ring animation. All controls minimum 64pt for gloved hands. Haptic feedback on press.
+Tap END RIDE briefly → nothing happens. Long-press 2s → progress ring completes, ride ends. Glove taps register reliably.
+R13
+Screen Behavior
+Dark theme (#0a0a0a). Screen does NOT auto-lock during ride (expo-keep-awake). Respects system auto-brightness (never forces max). Night Mode toggle: red-tinted HUD for night riding. If user locks screen, GPS continues via background task.
+Ride started → screen stays awake. System brightness respected. Night Mode toggle dims and red-tints all elements.
+
+Safety Review Note
+HUD redesigned per finding C5: Speed occupies 60% of hero area at 96pt (not 72px). END RIDE requires 2-second long-press (not single tap) to prevent catastrophic accidental taps with motorcycle gloves. All touch targets minimum 64pt. Night mode added per H13 — max brightness at night destroys night vision.
+
+P0 Must-Have — Mileage Sync
+Requirement
+Expected Behavior
+Acceptance Criteria
+R14
+Post-Ride Mileage Prompt
+Summary shows “Update odometer? Current: X mi → New: X + ride mi” with Accept, Edit, Skip. Accept calls updateMotorcycle. Edit allows manual adjustment. Skip saves ride without mileage update.
+Bike at 5000 mi, 47 mi ride → Accept updates to 5047, mileage_updated_at auto-set by DB trigger. Null mileage → “Set starting odometer” prompt.
+R15
+Maintenance Alert
+After mileage update, check pending tasks where target_mileage <= new mileage. Show alert card: “Oil Change is now due.” Tapping navigates to task detail.
+Task “Oil Change” at 6000 mi, mileage updated to 6047 → alert card appears on summary screen.
+
+P1 Nice-to-Have — Ride History & Naming
+Requirement
+Expected Behavior
+Acceptance Criteria
+R16
+Ride History
+Accessible from Profile tab as “My Rides” section. Chronological list of rides: date, distance, duration, route thumbnail. Filterable by bike. Cursor-based pagination (by started_at, not OFFSET). Free: last 10 rides. Pro: full history + GPX export. Tapping a ride opens the Ride Summary screen (R19) with full map.
+15 rides logged → listed newest-first in Profile > My Rides. Scroll loads more via cursor. Free user sees last 10 + “Upgrade for full history”. Tap ride card → opens summary with Mapbox map.
+R17
+Ride Naming
+Optional name field on summary screen. One nullable name column on rides table. Auto-suggest from route (e.g., “Highway 9 Loop”) or leave blank.
+User types “Sunday Canyon Run” → saved. Left blank → shows date/distance in history list.
+R18
+Bike Detail Stats
+On Garage bike detail: “Riding” summary card showing total rides, total distance, total time, last ride date.
+20 rides, 1200 mi, 40h total → card shows “20 rides · 1,200 mi · 40h · Last: Mar 15”.
+R19
+Ride Summary Screen
+After endRide, show full-screen Mapbox map (Dark style default) with speed-based gradient polyline (blue < 30 km/h, green 30–80 km/h, orange > 80 km/h using design tokens), start/end markers, and translucent stats overlay (distance, moving time, avg/max speed, elevation gain). Map style toggle: Dark / Outdoors / Satellite. Share button captures map snapshot. Route thumbnail generated for history list cards.
+Ride ends → summary modal opens with flyTo camera animation fitting route bounds. Polyline renders in 3 color tiers. Tap map style button → cycles Dark → Outdoors → Satellite. Tap Share → MapView.takeSnap() captures image to share sheet.
+
+P2 Future Considerations (v1.1+)
+Feature
+Design Consideration for v1
+Lean Angle Tracking
+Deferred from v1 per architecture review. DB schema includes max_lean_angle (nullable) and lean_angle on ride_waypoints. LeanAngleService code included behind feature flag. Calibration UX, device variance testing, and SharedValue integration are v1.1 scope. DeviceMotion sensor fusion at 60Hz with low-pass filter, downsampled to 10Hz for display.
+Post-Ride Fuel Prompt
+Deferred from v1. After mileage prompt: “Log fuel for this ride?” Opens add-expense with category=fuel, date=today, motorcycleId prefilled. Ride linked via ride_id FK on expenses table.
+Route Thumbnails
+Partially addressed in v1 via MapView.takeSnap() on Ride Summary (R19). Low-res 400×300 thumbnail stored locally. v1.1 scope: server-side static map generation via Mapbox Static Images API for history list cards without loading full MapView.
+Route Sharing
+Schema ready: is_public BOOLEAN, region TEXT on rides table. No sharing UI in v1.
+Weather Snapshots
+Schema ready: weather_snapshot JSONB on rides. Don’t fetch weather in v1, populate in v1.1.
+Ride Insights (AI)
+“You ride 30% faster on weekends.” Needs 10+ rides of data. Reserve insights JSONB on user profile.
+
+6. Proposed Data Model (Post-Architecture Review)
+All schema changes reflect architecture review findings. Key differences from v1.0 PRD: composite PK on ride_waypoints (H16), INT paused_duration_s (H18), auto_paused_duration_s (H17), client-supplied started_at with no DEFAULT (H14), public.update_updated_at() trigger (H7), RLS on both tables using public.is_admin() (H8, C2), and ride name column (Product Owner).
+
+rides table
+id UUID PK, user_id UUID FK, motorcycle_id UUID FK (nullable), name TEXT (nullable), status TEXT CHECK, started_at TIMESTAMPTZ NOT NULL (no default — client-supplied), ended_at TIMESTAMPTZ, paused_duration_s INT DEFAULT 0, auto_paused_duration_s INT DEFAULT 0, distance_m INT, max_speed_mps REAL, avg_speed_mps REAL, max_lean_angle REAL (v1.1), elevation_gain REAL, elevation_loss REAL, route_polyline TEXT, gps_quality REAL, mileage_applied BOOLEAN, is_public BOOLEAN, region TEXT, weather_snapshot JSONB, metadata JSONB, created_at, updated_at, deleted_at. Indexes: composite (user_id, motorcycle_id, started_at DESC WHERE deleted_at IS NULL), partial status index for active rides. Trigger: public.update_updated_at(). RLS: owner read/write, admin via public.is_admin().
+
+ride_waypoints table
+Composite PK: (ride_id UUID FK, recorded_at TIMESTAMPTZ). Columns: latitude DOUBLE PRECISION, longitude DOUBLE PRECISION, altitude REAL, speed_mps REAL, heading REAL, lean_angle REAL (v1.1), accuracy REAL. No separate id column — eliminates UUID B-tree write amplification. PK provides natural ordering. RLS via EXISTS subquery to rides table for ownership verification. Max 10,000 waypoints per ride (server-enforced).
+
+GDPR Compliance (H15)
+Scheduled purge: 30 days after soft-delete, permanently delete ride_waypoints and null out route_polyline on rides. Anonymization preserves aggregate stats (distance, duration) while removing PII (GPS coordinates). Future: /account/delete-data endpoint for user-initiated data erasure.
+7. Dependencies
+New Dependencies (Requires EAS Native Build)
+Package
+Status
+Purpose
+expo-location
+INSTALL
+Foreground + background location. Accuracy.High + 10m filter. Requires expo-task-manager.
+expo-task-manager
+INSTALL
+Background task registration for location updates. Required by expo-location.
+@rnmapbox/maps
+INSTALL
+Mapbox Maps SDK v11 via Expo config plugin. Premium vector tiles, gradient polylines via LineLayer, dark/outdoor/satellite styles, 3D terrain, map snapshots. Free: 25k MAU.
+@mapbox/polyline
+INSTALL
+Lightweight route polyline encoder/decoder. Compresses waypoints for storage.
+react-native-mmkv
+INSTALL
+High-performance key-value storage for ride state, waypoint buffer, sync queue. Replaces expo-secure-store for ride data (C1 fix). 30x faster than AsyncStorage.
+
+Already Available (No Install Needed)
+Package
+Status
+Purpose
+expo-sensors
+IN SDK
+DeviceMotion for lean angle (v1.1). Gyroscope + accelerometer sensor fusion.
+expo-keep-awake
+IN SDK
+Prevents auto-lock during active rides.
+expo-notifications
+INSTALLED
+v0.32.16. Extend with “rides” channel for milestone alerts.
+expo-secure-store
+INSTALLED
+v15.0.0. Used ONLY for auth tokens + lean angle calibration. NOT for ride state (C1 fix).
+
+EAS Build Required
+Phase 1 requires a new EAS native build (expo-location, expo-task-manager, @rnmapbox/maps, react-native-mmkv all require native code). Cannot ship via OTA update. Plan for App Store / Play Store review cycles (1–3 days).
+
+8. Success Metrics
+Leading Indicators (1–4 weeks post-launch)
+Metric
+Target
+Measurement
+Ride Adoption Rate
+40%
+% of active users who log at least one ride within 30 days. Stretch: 55%.
+Weekly Active Ride Loggers
+35%
+% of WAU who log ≥1 ride per week at 90 days. North star leading metric. Stretch: 45%.
+Mileage Update Acceptance
+85%
+% of completed rides where user accepts mileage update. Below 70% indicates GPS accuracy issues.
+HUD Engagement Rate
+60%
+% of rides where HUD screen is visible >50% of duration (mounted phone use). Stretch: 70%.
+
+Lagging Indicators (1–3 months)
+Metric
+Target
+Measurement
+DAU/MAU Ratio
+25%+
+Up from ~10%. Most important business metric. Below 18% triggers re-evaluation. Measured at 90 days.
+Free→Pro Conversion Lift
++12%
+Incremental conversion from ride-gated features (unlimited history, GPX export, waypoint playback). RevenueCat attribution at 60 days.
+Maintenance Task Accuracy
++40%
+Increase in tasks triggered by mileage threshold. Measures the mileage sync flywheel.
+7-Day Retention
++10pp
+D7 retention improvement for users who logged ≥1 ride vs. non-riders (cohort comparison).
+9. Open Questions
+Owner
+Blocking?
+Question
+Engineering
+BLOCKING
+expo-location vs react-native-background-geolocation ($299/yr). Week 1 spike will determine if expo-location survives 30+ min background tracking on Android 15. If it fails, budget for the license.
+Engineering
+BLOCKING
+Week 1 Android GPS spike: Does background GPS survive 30 min on Pixel + Samsung with screen locked? This is a GO/NO-GO gate for the entire feature.
+Design
+NON-BLOCK
+RESOLVED: Center FAB button in bottom tab bar (between Diagnose and Garage). Ride history accessible from Profile tab as “My Rides” section. Not a separate tab.
+Product
+NON-BLOCK
+Free tier strategy. Current proposal: unlimited recording, last 10 rides visible, Pro unlocks full history + GPX export + waypoint playback. Alternative: 5 rides/month limit.
+Product
+NON-BLOCK
+HUD information density vs pocket mode. Should we offer a “pocket mode” (no HUD, audio announcements) for unmounted riders?
+
+10. Timeline & Phasing (10–12 Weeks)
+Updated from 6–8 weeks per architecture review. Timeline is for a solo developer with design support. The Week 1 GPS spike is a mandatory GO/NO-GO gate.
+
+Phase
+Weeks
+Deliverables
+Phase 1: Core Recording
+1–5
+Week 1: EAS dev build + Android GPS spike (GO/NO-GO gate). Weeks 2–3: DB migration, NestJS rides module, Zustand store, MMKV persistence. Weeks 4–5: Background GPS, HUD screen, auto-pause, crash recovery.
+Phase 2: Mileage Sync
+6–8
+Ride Summary screen: Mapbox dark map, speed-gradient polyline, start/end markers, stats overlay, map style toggle, share snapshot (R19). Post-ride mileage prompt. Maintenance threshold alerts. Offline sync queue. Bike detail ride stats card.
+Phase 3: History & Polish
+9–10
+Ride history with cursor pagination. Ride naming. Free/Pro tier logic. Battery testing. Performance profiling (60fps HUD target). Night mode polish.
+Phase 4: v1.1 Features
+11–12
+Lean angle tracking (calibration UI, SharedValue plumbing). Fuel expense prompt. Route thumbnails. Weather snapshot population.
+
+Effort Estimate
+Phase
+Mobile
+API
+Design
+QA
+Total
+Phase 1: Core
+15–18 days
+4–5 days
+4–5 days
+4 days
+~5 weeks
+Phase 2: Sync
+6–8 days
+3–4 days
+2–3 days
+3 days
+~3 weeks
+Phase 3: History
+5–6 days
+2 days
+2 days
+2 days
+~2 weeks
+Phase 4: v1.1
+5–7 days
+1–2 days
+2 days
+2 days
+~2 weeks
+Total
+
+
+
+
+10–12 weeks
+
+Critical Gate: Week 1 Android GPS Spike
+Before committing to the full build: get an EAS dev build on Pixel + Samsung in Week 1. Prove background GPS survives 30 minutes of screen-locked riding. Test MMKV persistence during Hermes restart. Verify battery drain matches 12–15%/hr projection. If any test fails, revisit design before proceeding.
+
+11. Architecture Review Changes (v1.0 → v2.0)
+This PRD v2.0 incorporates all 18 findings from the specialist architecture review. The following changes were made relative to v1.0:
+
+#
+Severity
+Finding
+PRD Impact
+C1
+Critical
+MMKV for ride state
+Added react-native-mmkv to deps. All ride persistence uses MMKV, not SecureStore.
+C2
+Critical
+RLS on ride_waypoints
+Data model section notes RLS via EXISTS subquery on ride ownership.
+C3
+Critical
+Lean angle via SharedValue
+Lean angle deferred to v1.1. When implemented, uses Reanimated SharedValue.
+C4
+Critical
+Client rideId in StartRide
+R6 (Offline-First) specifies client-generated UUID. Sync queue references it.
+C5
+Critical
+HUD safety redesign
+R8: Speed at 96pt/60% hero. R12: END RIDE long-press. All controls 64pt min.
+H6
+High
+GPS Accuracy.High
+R2: Accuracy.High + 10m filter default. Battery Saver toggle for Balanced.
+H7
+High
+Trigger function name
+Data model: public.update_updated_at() (not moat.set_updated_at).
+H8
+High
+is_admin() for RLS
+Data model: Admin policies use public.is_admin() STABLE function.
+H9
+High
+Battery drain 12–15%/hr
+R13: Never forces max brightness. Architecture doc has corrected battery tables.
+H10
+High
+Background MMKV
+R2: Background task writes MMKV. Handles Android Hermes isolation.
+H11
+High
+Cursor pagination
+R16: Ride history uses cursor-based pagination on started_at.
+H12
+High
+Waypoint quota
+Data model: 10k waypoints/ride max, 10 uploads/min/user rate limit.
+H13
+High
+Night mode, no forced brightness
+R13: Night Mode toggle. System auto-brightness respected.
+H14
+High
+Client timestamps
+R6: Client supplies started_at. No DEFAULT NOW() on rides table.
+H15
+High
+GDPR purge
+Data model: 30-day hard-delete purge for waypoints + route anonymization.
+H16
+High
+Composite PK waypoints
+Data model: (ride_id, recorded_at) PK. No UUID column.
+H17
+High
+Auto-pause at speed=0
+R5: New requirement. STOPPED sub-state. auto_paused_duration_s column.
+H18
+High
+INT not INTERVAL
+Data model: paused_duration_s INT replaces INTERVAL type.
+
+
+Product Strategy Note
+The real moat is the closed loop: ride → mileage → maintenance → expenses → AI diagnostics. No competitor does this. Every design decision should reinforce this loop. Lean angle tracking, while impressive, is not the differentiator — mileage sync is.

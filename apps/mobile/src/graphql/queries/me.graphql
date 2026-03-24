@@ -5,6 +5,7 @@ query Me {
     fullName
     role
     preferences
+    measurementSystem
     createdAt
     updatedAt
   }

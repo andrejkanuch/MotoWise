@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { PageInfo } from '../../../common/models/page-info.model';
 import { Article } from './article.model';
 
 @ObjectType()
@@ -8,21 +9,6 @@ export class ArticleEdge {
 
   @Field()
   cursor: string;
-}
-
-@ObjectType()
-export class PageInfo {
-  @Field()
-  hasNextPage: boolean;
-
-  @Field()
-  hasPreviousPage: boolean;
-
-  @Field({ nullable: true })
-  startCursor?: string;
-
-  @Field({ nullable: true })
-  endCursor?: string;
 }
 
 @ObjectType()

@@ -1,0 +1,9 @@
+query GetRideWaypoints($rideId: String!, $maxPoints: Int) {
+  rideWaypoints(rideId: $rideId, maxPoints: $maxPoints) {
+    recordedAt
+    latitude
+    longitude
+    altitude
+    speedMps
+  }
+}
