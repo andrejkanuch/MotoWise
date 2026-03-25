@@ -11,4 +11,7 @@ export class UpdateUserInput {
 
   @Field(() => String, { nullable: true })
   measurementSystem?: string;
+
+  @Field(() => String, { nullable: true })
+  currency?: string;
 }

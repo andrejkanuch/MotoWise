@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   AnnualRepairSpend,
+  Currency,
   ExperienceLevel,
   LastServiceDate,
   LearningFormat,
@@ -20,6 +21,7 @@ const motorcycleTypeValues = Object.values(MotorcycleType) as [string, ...string
 const annualRepairSpendValues = Object.values(AnnualRepairSpend) as [string, ...string[]];
 const lastServiceDateValues = Object.values(LastServiceDate) as [string, ...string[]];
 const reminderChannelValues = Object.values(ReminderChannel) as [string, ...string[]];
+const currencyValues = Object.values(Currency) as [string, ...string[]];
 
 export const CompleteOnboardingInputSchema = z.object({
   experienceLevel: z.enum(experienceLevelValues),
@@ -42,6 +44,7 @@ export const CompleteOnboardingInputSchema = z.object({
   bikeNickname: z.string().max(50).optional(),
   bikePhotoUrl: z.string().url().max(500).optional(),
   bikeMileageUnit: z.enum(['mi', 'km']).optional(),
+  currency: z.enum(currencyValues).optional(),
 });
 
 export type CompleteOnboardingInput = z.infer<typeof CompleteOnboardingInputSchema>;

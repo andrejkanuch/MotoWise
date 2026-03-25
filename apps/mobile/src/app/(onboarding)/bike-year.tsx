@@ -56,7 +56,7 @@ export default function BikeYearScreen() {
   };
 
   const handleSkip = () => {
-    router.replace('/(onboarding)/riding-frequency');
+    router.replace('/(onboarding)/currency');
   };
 
   return (

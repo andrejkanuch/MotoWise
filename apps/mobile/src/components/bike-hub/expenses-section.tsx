@@ -8,7 +8,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../lib/expense-constants';
+import { useCurrency } from '../../hooks/use-currency';
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { SwipeableExpense } from '../shared/swipeable-expense';
@@ -27,6 +28,7 @@ export function ExpensesSection({
   mileageUnit,
 }: ExpensesSectionProps) {
   const { t } = useTranslation();
+  const { format: formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
   const currentYear = new Date().getFullYear();
 

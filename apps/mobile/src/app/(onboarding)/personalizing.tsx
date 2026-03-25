@@ -48,6 +48,7 @@ export default function PersonalizingScreen() {
     recallAlerts,
     weeklySummary,
     lastServiceDate,
+    currency,
     reset,
   } = useOnboardingStore();
   const queryClient = useQueryClient();
@@ -111,6 +112,7 @@ export default function PersonalizingScreen() {
         ...(annualRepairSpend && { annualRepairSpend }),
         ...(reminderChannel && { reminderChannel }),
         ...(lastServiceDate && { lastServiceDate }),
+        ...(currency && { currency }),
         ...(bikeData && {
           bikeMake: bikeData.make,
           bikeModel: bikeData.model,

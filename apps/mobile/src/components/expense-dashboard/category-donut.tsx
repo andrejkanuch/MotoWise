@@ -2,7 +2,8 @@ import { palette } from '@motovault/design-system';
 import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { CATEGORY_COLORS, CATEGORY_LABELS, formatCurrency } from '../../lib/expense-constants';
+import { useCurrency } from '../../hooks/use-currency';
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
 
 const MIN_SEGMENT_FLEX = 2;
 
@@ -21,6 +22,7 @@ export const CategoryDonut = memo(function CategoryDonut({
   selectedCategory,
   onCategoryPress,
 }: CategoryDonutProps) {
+  const { format: formatCurrency } = useCurrency();
   const textColor = isDark ? palette.white : palette.neutral950;
   const bgColor = isDark ? palette.neutral900 : palette.neutral50;
   const separatorColor = isDark ? palette.neutral700 : palette.neutral200;

@@ -1,4 +1,4 @@
-import type { MeasurementSystem, SupportedLocale } from '@motovault/types';
+import type { Currency, MeasurementSystem, SupportedLocale } from '@motovault/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { getLocales } from 'expo-localization';
@@ -26,12 +26,14 @@ interface AuthState {
   colorScheme: ColorScheme;
   onboardingCompleted: boolean;
   measurementSystem: MeasurementSystem;
+  currency: Currency;
   setSession: (session: Session | null) => void;
   setLoading: (loading: boolean) => void;
   setLocale: (locale: SupportedLocale) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setMeasurementSystem: (system: MeasurementSystem) => void;
+  setCurrency: (currency: Currency) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
       colorScheme: 'system',
       onboardingCompleted: false,
       measurementSystem: detectMeasurementSystem(),
+      currency: 'USD',
       setSession: (session) =>
         set({ session, ...(session === null ? { onboardingCompleted: false } : {}) }),
       setLoading: (isLoading) => set({ isLoading }),
@@ -53,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
       },
       setColorScheme: (colorScheme) => set({ colorScheme }),
       setMeasurementSystem: (measurementSystem) => set({ measurementSystem }),
+      setCurrency: (currency) => set({ currency }),
     }),
     {
       name: 'auth-preferences',
@@ -61,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
         locale: state.locale,
         colorScheme: state.colorScheme,
         measurementSystem: state.measurementSystem,
+        currency: state.currency,
       }),
     },
   ),

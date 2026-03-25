@@ -347,7 +347,7 @@ export function StepPhotoDetails() {
           borderTopWidth: 1,
           borderTopColor: colors.cardBorder,
           paddingHorizontal: 20,
-          paddingBottom: Math.max(insets.bottom, 20) + 12,
+          paddingBottom: insets.bottom + (process.env.EXPO_OS === 'android' ? 72 : 12),
           paddingTop: 12,
         }}
       >

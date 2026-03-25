@@ -1,7 +1,12 @@
 import { palette } from '@motovault/design-system';
-import { DeleteAccountDocument, MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
-import type { SupportedLocale } from '@motovault/types';
-import { FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
+import {
+  DeleteAccountDocument,
+  MeDocument,
+  MyMotorcyclesDocument,
+  UpdateUserDocument,
+} from '@motovault/graphql';
+import type { Currency, SupportedLocale } from '@motovault/types';
+import { CURRENCY_SYMBOLS, FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -163,11 +168,14 @@ export default function ProfileScreen() {
     setColorScheme: setStoredScheme,
     measurementSystem,
     setMeasurementSystem,
+    currency,
+    setCurrency,
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { isPro, requireAccess, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [showLangPicker, setShowLangPicker] = useState(false);
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
 
   const meQuery = useQuery({
     queryKey: queryKeys.user.me,
@@ -193,6 +201,15 @@ export default function ProfileScreen() {
   };
 
   const queryClient = useQueryClient();
+
+  const updatePreferenceMutation = useMutation({
+    mutationFn: (input: { currency?: string; measurementSystem?: string }) =>
+      gqlFetcher(UpdateUserDocument, { input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => gqlFetcher(DeleteAccountDocument),
     onSuccess: async () => {
@@ -982,6 +999,7 @@ export default function ProfileScreen() {
                 onPress={() => {
                   haptic();
                   setMeasurementSystem(value);
+                  updatePreferenceMutation.mutate({ measurementSystem: value });
                 }}
                 style={{
                   flex: 1,
@@ -1027,8 +1045,135 @@ export default function ProfileScreen() {
         </View>
       </Animated.View>
 
+      {/* Currency */}
+      <Animated.View entering={FadeInUp.delay(540).duration(400)}>
+        <SectionHeader label={t('profile.currency', { defaultValue: 'Currency' })} />
+        <Pressable
+          onPress={() => setShowCurrencyPicker(true)}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 16,
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: '700',
+              width: 36,
+              color: isDark ? palette.neutral50 : palette.neutral950,
+            }}
+          >
+            {CURRENCY_SYMBOLS[currency as Currency] ?? '$'}
+          </Text>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: isDark ? palette.neutral50 : palette.neutral950,
+              }}
+            >
+              {currency}
+            </Text>
+          </View>
+          <ChevronDown size={18} color={palette.neutral400} />
+        </Pressable>
+
+        <Modal
+          visible={showCurrencyPicker}
+          animationType="slide"
+          presentationStyle="formSheet"
+          onRequestClose={() => setShowCurrencyPicker(false)}
+        >
+          <View
+            style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 16,
+                borderBottomWidth: 1,
+                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                }}
+              >
+                {t('profile.selectCurrency', { defaultValue: 'Select Currency' })}
+              </Text>
+              <Pressable onPress={() => setShowCurrencyPicker(false)}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: palette.primary500 }}>
+                  {t('common.done', { defaultValue: 'Done' })}
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }}>
+              {Object.entries(CURRENCY_SYMBOLS).map(([code, symbol]) => {
+                const isSelected = currency === code;
+                return (
+                  <Pressable
+                    key={code}
+                    onPress={() => {
+                      haptic();
+                      setCurrency(code as Currency);
+                      updatePreferenceMutation.mutate({ currency: code });
+                      setShowCurrencyPicker(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      padding: 14,
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      backgroundColor: isSelected
+                        ? isDark
+                          ? `${palette.primary500}20`
+                          : `${palette.primary500}10`
+                        : 'transparent',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: '700',
+                        width: 42,
+                        color: isDark ? palette.neutral50 : palette.neutral950,
+                      }}
+                    >
+                      {symbol}
+                    </Text>
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        fontWeight: '500',
+                        color: isDark ? palette.neutral200 : palette.neutral700,
+                      }}
+                    >
+                      {code}
+                    </Text>
+                    {isSelected && <Check size={18} color={palette.primary500} strokeWidth={3} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Modal>
+      </Animated.View>
+
       {/* Logout */}
-      <Animated.View entering={FadeInUp.delay(560).duration(400)}>
+      <Animated.View entering={FadeInUp.delay(580).duration(400)}>
         <View
           style={{
             backgroundColor: isDark ? palette.neutral800 : palette.white,

@@ -8,6 +8,7 @@ query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {
         id
         amount
         category
+        currency
         description
         date
         createdAt

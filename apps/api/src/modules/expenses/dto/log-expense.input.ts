@@ -16,4 +16,7 @@ export class LogExpenseInput {
 
   @Field({ nullable: true })
   description?: string;
+
+  @Field({ nullable: true })
+  currency?: string;
 }

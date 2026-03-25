@@ -227,6 +227,12 @@ describe('ExpensesService', () => {
   // ---------------------------------------------------------------------------
   describe('createFromTask', () => {
     it('inserts expense linked to task', async () => {
+      // First single() call: user currency lookup
+      mock.chain.single.mockResolvedValueOnce({
+        data: { currency: 'EUR' },
+        error: null,
+      });
+      // Second single() call: expense insert
       mock.chain.single.mockResolvedValueOnce({
         data: {
           id: 'exp-task-1',
@@ -234,6 +240,7 @@ describe('ExpensesService', () => {
           motorcycle_id: 'm1',
           amount: '25.00',
           category: 'maintenance',
+          currency: 'EUR',
           date: '2025-06-15',
           description: 'Change oil filter',
           maintenance_task_id: 'task-1',
@@ -260,6 +267,12 @@ describe('ExpensesService', () => {
     });
 
     it('suppresses duplicate (Postgres error code 23505, returns null)', async () => {
+      // User currency lookup
+      mock.chain.single.mockResolvedValueOnce({
+        data: { currency: 'USD' },
+        error: null,
+      });
+      // Expense insert fails with duplicate
       mock.chain.single.mockResolvedValueOnce({
         data: null,
         error: { message: 'duplicate key', code: '23505' },
