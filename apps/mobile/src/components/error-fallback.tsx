@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 
 type ErrorFallbackProps = {
-  error: Error;
+  error: unknown;
   onRetry: () => void;
 };
 
 export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
+  const message = error instanceof Error ? error.message : String(error);
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
 
@@ -47,7 +48,7 @@ export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
           textAlign: 'center',
         }}
       >
-        {error.message}
+        {message}
       </Text>
       <Pressable
         onPress={onRetry}

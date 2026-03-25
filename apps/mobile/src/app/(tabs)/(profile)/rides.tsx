@@ -92,7 +92,7 @@ export default function RidesScreen() {
   const system = useMeasurementSystem();
 
   const { data: motorcyclesData } = useQuery({
-    queryKey: queryKeys.motorcycles.lists(),
+    queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
   const hasBikes = Array.isArray((motorcyclesData as { myMotorcycles?: unknown[] })?.myMotorcycles)

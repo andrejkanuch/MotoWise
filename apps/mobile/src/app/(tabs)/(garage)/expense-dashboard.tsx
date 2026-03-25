@@ -234,12 +234,11 @@ export default function ExpenseDashboardScreen() {
           refetchType: 'active',
         }),
       ]);
-      refetch();
     } finally {
       isRefreshingRef.current = false;
       setIsRefreshing(false);
     }
-  }, [queryClient, motorcycleId, refetch]);
+  }, [queryClient, motorcycleId]);
 
   // Theme colors
   const bgColor = isDark ? palette.neutral900 : palette.neutral50;

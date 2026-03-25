@@ -134,7 +134,7 @@ export default function LearnScreen() {
     try {
       await Promise.allSettled([
         queryClient.invalidateQueries({
-          queryKey: queryKeys.articles.popular(),
+          queryKey: queryKeys.articles.popular(10),
           refetchType: 'active',
         }),
         queryClient.invalidateQueries({ queryKey: queryKeys.progress.all, refetchType: 'active' }),
