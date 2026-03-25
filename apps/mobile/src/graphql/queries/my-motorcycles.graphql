@@ -11,6 +11,8 @@ query MyMotorcycles {
     currentMileage
     mileageUnit
     mileageUpdatedAt
+    purchasePrice
+    purchaseDate
     createdAt
   }
 }

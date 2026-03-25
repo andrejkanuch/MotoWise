@@ -18,5 +18,11 @@ export const UpdateMotorcycleSchema = z.object({
   primaryPhotoUrl: z.string().url().max(500).nullable().optional(),
   currentMileage: z.number().int().min(0).optional(),
   mileageUnit: z.enum(['mi', 'km']).optional(),
+  purchasePrice: z.number().min(0).max(999999.99).nullable().optional(),
+  purchaseDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .nullable()
+    .optional(),
 });
 export type UpdateMotorcycle = z.infer<typeof UpdateMotorcycleSchema>;

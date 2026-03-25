@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -359,6 +363,8 @@ type Motorcycle {
   model: String!
   nickname: String
   primaryPhotoUrl: String
+  purchaseDate: String
+  purchasePrice: Float
   type: MotorcycleType
   userId: String!
   year: Int!
@@ -653,6 +659,8 @@ input UpdateMotorcycleInput {
   model: String
   nickname: String
   primaryPhotoUrl: String
+  purchaseDate: String
+  purchasePrice: Float
   year: Int
 }
 
