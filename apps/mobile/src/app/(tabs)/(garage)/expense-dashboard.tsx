@@ -329,7 +329,12 @@ export default function ExpenseDashboardScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: bgColor }}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+      contentContainerStyle={{
+        paddingHorizontal: 20,
+        paddingBottom: 100,
+        // headerTransparent: true doesn't auto-inset on Android
+        ...(process.env.EXPO_OS === 'android' && { paddingTop: 56 }),
+      }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
