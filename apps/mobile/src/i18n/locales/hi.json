@@ -312,6 +312,10 @@
     "proActiveDesc": "आपकी Pro सब्सक्रिप्शन सक्रिय है",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "अभी तक कोई राइड नहीं",
+    "ridesEmptySubtitle": "स्टैट्स, रूट और खर्च देखने के लिए अपनी पहली राइड ट्रैक करें",
+    "ridesEmptyStartRide": "राइड शुरू करें",
+    "ridesEmptyAddBike": "अपनी पहली बाइक जोड़ें",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

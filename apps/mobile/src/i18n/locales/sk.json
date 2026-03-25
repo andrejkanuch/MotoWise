@@ -312,6 +312,10 @@
     "proActiveDesc": "Máš aktívne predplatné Pro",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "Zatiaľ žiadne jazdy",
+    "ridesEmptySubtitle": "Zaznamenaj svoju prvú jazdu a uvidíš štatistiky, trasy a výdavky",
+    "ridesEmptyStartRide": "Začať jazdu",
+    "ridesEmptyAddBike": "Pridaj svoju prvú motorku",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

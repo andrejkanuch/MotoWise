@@ -312,6 +312,10 @@
     "proActiveDesc": "Kamu memiliki langganan Pro yang aktif",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "Belum ada perjalanan",
+    "ridesEmptySubtitle": "Lacak perjalanan pertamamu untuk melihat statistik, rute, dan pengeluaran",
+    "ridesEmptyStartRide": "Mulai Perjalanan",
+    "ridesEmptyAddBike": "Tambahkan Motor Pertamamu",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

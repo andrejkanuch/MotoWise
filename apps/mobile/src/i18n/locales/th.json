@@ -312,6 +312,10 @@
     "proActiveDesc": "คุณมีสมาชิก Pro ที่ใช้งานอยู่",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "ยังไม่มีการขับขี่",
+    "ridesEmptySubtitle": "บันทึกการขับขี่ครั้งแรกเพื่อดูสถิติ เส้นทาง และค่าใช้จ่าย",
+    "ridesEmptyStartRide": "เริ่มขับขี่",
+    "ridesEmptyAddBike": "เพิ่มมอเตอร์ไซค์คันแรก",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

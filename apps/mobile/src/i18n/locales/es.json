@@ -312,6 +312,10 @@
     "proActiveDesc": "Tienes una suscripción Pro activa",
     "myRidesTitle": "Mis rutas",
     "myRidesDescription": "Historial de rutas, estadísticas y mapas",
+    "ridesEmptyTitle": "Aún no hay rutas",
+    "ridesEmptySubtitle": "Registra tu primera ruta para ver estadísticas, rutas y gastos",
+    "ridesEmptyStartRide": "Iniciar una ruta",
+    "ridesEmptyAddBike": "Añade tu primera moto",
     "units": "Unidades",
     "metric": "Métrico (km, °C)",
     "imperial": "Imperial (mi, °F)"

@@ -312,6 +312,10 @@
     "proActiveDesc": "Aktif bir Pro aboneligin var",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "Henüz sürüş yok",
+    "ridesEmptySubtitle": "İstatistikleri, rotaları ve harcamaları görmek için ilk sürüşünü kaydet",
+    "ridesEmptyStartRide": "Sürüşe Başla",
+    "ridesEmptyAddBike": "İlk Motorunu Ekle",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

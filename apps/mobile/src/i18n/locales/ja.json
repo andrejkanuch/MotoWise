@@ -312,6 +312,10 @@
     "proActiveDesc": "Proサブスクリプションが有効です",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "まだライドがありません",
+    "ridesEmptySubtitle": "最初のライドを記録して、統計、ルート、費用を確認しましょう",
+    "ridesEmptyStartRide": "ライドを開始",
+    "ridesEmptyAddBike": "最初のバイクを追加",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"
