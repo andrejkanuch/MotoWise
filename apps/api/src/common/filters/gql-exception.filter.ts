@@ -1,5 +1,6 @@
 import { Catch, HttpException } from '@nestjs/common';
 import { GqlExceptionFilter } from '@nestjs/graphql';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
 import { GraphQLError } from 'graphql';
 
 const HTTP_TO_GQL_CODE: Record<number, string> = {
@@ -14,6 +15,7 @@ const HTTP_TO_GQL_CODE: Record<number, string> = {
 
 @Catch()
 export class AllExceptionsFilter implements GqlExceptionFilter {
+  @SentryExceptionCaptured()
   catch(exception: unknown) {
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
