@@ -8,8 +8,17 @@ import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
-import * as QuickActions from 'expo-quick-actions';
-import { useQuickActionRouting } from 'expo-quick-actions/router';
+
+// expo-quick-actions requires a custom dev build — guard for Expo Go
+let QuickActions: typeof import('expo-quick-actions') | null = null;
+let useQuickActionRouting: (() => void) | null = null;
+try {
+  QuickActions = require('expo-quick-actions');
+  useQuickActionRouting = require('expo-quick-actions/router').useQuickActionRouting;
+} catch {
+  // Not available in Expo Go
+}
+
 import { Stack, useNavigationContainerRef, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
@@ -233,11 +242,11 @@ export default function RootLayout() {
   }, []);
 
   // Quick action routing — handles navigation automatically via params.href
-  useQuickActionRouting();
+  useQuickActionRouting?.();
 
   // Set up home screen quick actions
   useEffect(() => {
-    QuickActions.setItems([
+    QuickActions?.setItems([
       {
         id: 'start-ride',
         title: i18n.t('quickActions.startRide', { defaultValue: 'Start Ride' }),
