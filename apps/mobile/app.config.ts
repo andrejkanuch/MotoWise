@@ -83,6 +83,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    './plugins/remove-activity-recognition',
     [
       'expo-build-properties',
       {
