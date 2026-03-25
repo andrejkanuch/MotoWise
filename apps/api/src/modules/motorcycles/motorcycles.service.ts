@@ -27,7 +27,7 @@ export class MotorcyclesService {
     const { data, error } = await this.supabase
       .from('motorcycles')
       .select(
-        'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, created_at',
+        'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, created_at',
       )
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -81,6 +81,8 @@ export class MotorcyclesService {
       primaryPhotoUrl?: string;
       currentMileage?: number;
       mileageUnit?: string;
+      purchasePrice?: number | null;
+      purchaseDate?: string | null;
     },
   ): Promise<Motorcycle> {
     this.logger.log(
@@ -95,6 +97,8 @@ export class MotorcyclesService {
     if (input.primaryPhotoUrl != null) updates.primary_photo_url = input.primaryPhotoUrl;
     if (input.currentMileage != null) updates.current_mileage = input.currentMileage;
     if (input.mileageUnit != null) updates.mileage_unit = input.mileageUnit;
+    if (input.purchasePrice !== undefined) updates.purchase_price = input.purchasePrice;
+    if (input.purchaseDate !== undefined) updates.purchase_date = input.purchaseDate;
 
     const { data, error } = await this.supabase
       .from('motorcycles')
@@ -175,6 +179,8 @@ export class MotorcyclesService {
       | 'mileage_updated_at'
       | 'type'
       | 'engine_cc'
+      | 'purchase_price'
+      | 'purchase_date'
       | 'created_at'
     >,
   ): Motorcycle {
@@ -192,6 +198,8 @@ export class MotorcyclesService {
       mileageUpdatedAt: row.mileage_updated_at ?? undefined,
       type: row.type ?? undefined,
       engineCc: row.engine_cc ?? undefined,
+      purchasePrice: row.purchase_price ? Number(row.purchase_price) : undefined,
+      purchaseDate: row.purchase_date ?? undefined,
       createdAt: row.created_at,
     };
   }

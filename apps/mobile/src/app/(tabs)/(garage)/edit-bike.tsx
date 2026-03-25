@@ -67,6 +67,7 @@ export default function EditBikeScreen() {
   const [mileageUnit, setMileageUnit] = useState<'mi' | 'km'>('mi');
   const [isPrimary, setIsPrimary] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [purchasePrice, setPurchasePrice] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -80,6 +81,7 @@ export default function EditBikeScreen() {
     mileageUnit: 'mi' as string,
     isPrimary: false,
     photoUrl: null as string | null,
+    purchasePrice: '',
   });
 
   // --- NHTSA queries ---
@@ -123,6 +125,7 @@ export default function EditBikeScreen() {
         mileageUnit: (bike.mileageUnit as string) ?? 'mi',
         isPrimary: bike.isPrimary,
         photoUrl: bike.primaryPhotoUrl ?? null,
+        purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
       };
       initialValues.current = vals;
       setNickname(vals.nickname);
@@ -131,6 +134,7 @@ export default function EditBikeScreen() {
       setMileageUnit(vals.mileageUnit as 'mi' | 'km');
       setIsPrimary(vals.isPrimary);
       setPhotoUrl(vals.photoUrl);
+      setPurchasePrice(vals.purchasePrice);
       setInitialized(true);
     }
   }, [bike, initialized]);
@@ -174,9 +178,21 @@ export default function EditBikeScreen() {
       mileage !== init.mileage ||
       mileageUnit !== init.mileageUnit ||
       isPrimary !== init.isPrimary ||
-      photoUrl !== init.photoUrl
+      photoUrl !== init.photoUrl ||
+      purchasePrice !== init.purchasePrice
     );
-  }, [nickname, year, makeName, modelName, mileage, mileageUnit, isPrimary, photoUrl, initialized]);
+  }, [
+    nickname,
+    year,
+    makeName,
+    modelName,
+    mileage,
+    mileageUnit,
+    isPrimary,
+    photoUrl,
+    purchasePrice,
+    initialized,
+  ]);
 
   const isValid = makeName.length > 0 && modelName.length > 0;
 
@@ -226,6 +242,11 @@ export default function EditBikeScreen() {
           mileageUnit,
           ...(photoUrl !== initialValues.current.photoUrl && photoUrl
             ? { primaryPhotoUrl: photoUrl }
+            : {}),
+          ...(purchasePrice !== initialValues.current.purchasePrice
+            ? {
+                purchasePrice: purchasePrice.trim() ? Number.parseFloat(purchasePrice) : null,
+              }
             : {}),
         },
       });
@@ -861,8 +882,47 @@ export default function EditBikeScreen() {
             </View>
           </Animated.View>
 
+          {/* ─── Purchase Info Section ─── */}
+          <Animated.View entering={FadeInUp.delay(150).duration(350)} style={{ gap: 16 }}>
+            <Text style={sectionTitleStyle}>
+              {t('garage.purchaseInfoSection', { defaultValue: 'Purchase Info' })}
+            </Text>
+
+            <View>
+              <Text style={labelStyle}>
+                {t('garage.purchasePrice', { defaultValue: 'Purchase Price' })}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '700',
+                    color: textColor,
+                    marginRight: 8,
+                  }}
+                >
+                  $
+                </Text>
+                <TextInput
+                  value={purchasePrice}
+                  onChangeText={(text) => {
+                    const digits = text.replace(/[^0-9.]/g, '');
+                    const parts = digits.split('.');
+                    if (parts.length > 2) return;
+                    if (parts[1] && parts[1].length > 2) return;
+                    setPurchasePrice(digits);
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  placeholderTextColor={palette.neutral400}
+                  style={[inputStyle, { flex: 1 }]}
+                />
+              </View>
+            </View>
+          </Animated.View>
+
           {/* ─── Settings Section ─── */}
-          <Animated.View entering={FadeInUp.delay(150).duration(350)} style={{ gap: 12 }}>
+          <Animated.View entering={FadeInUp.delay(200).duration(350)} style={{ gap: 12 }}>
             <Text style={sectionTitleStyle}>
               {t('garage.settingsSection', { defaultValue: 'Settings' })}
             </Text>

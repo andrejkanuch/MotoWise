@@ -41,6 +41,7 @@ import { ExpensesSection } from '../../../../components/bike-hub/expenses-sectio
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { haptic } from '../../../../lib/haptics';
 import { computeHealthScore } from '../../../../lib/health-score';
@@ -827,6 +828,24 @@ export default function BikeDetailScreen() {
                   }
                   isDark={isDark}
                 />
+                {bike.purchasePrice != null && (
+                  <InfoRow
+                    label={t('garage.purchasePrice', { defaultValue: 'Purchase Price' })}
+                    value={formatCurrency(bike.purchasePrice)}
+                    isDark={isDark}
+                  />
+                )}
+                {bike.purchaseDate && (
+                  <InfoRow
+                    label={t('garage.purchaseDate', { defaultValue: 'Purchase Date' })}
+                    value={new Date(bike.purchaseDate).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                    isDark={isDark}
+                  />
+                )}
               </View>
             </Animated.View>
           )}
