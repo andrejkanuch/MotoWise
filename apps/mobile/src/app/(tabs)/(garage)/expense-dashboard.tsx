@@ -4,12 +4,20 @@ import {
   type ExpensesByMotorcycleQuery,
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3, Info, X } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -166,8 +174,11 @@ export default function ExpenseDashboardScreen() {
 
   const [period, setPeriod] = useState<Period>('thisYear');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
   const isDark = useColorScheme() === 'dark';
   const { format: formatCurrency } = useCurrency();
+  const queryClient = useQueryClient();
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
@@ -207,6 +218,28 @@ export default function ExpenseDashboardScreen() {
     }
     setPeriod(newPeriod);
   };
+
+  const onRefresh = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.motorcycles.all,
+          refetchType: 'active',
+        }),
+      ]);
+      refetch();
+    } finally {
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [queryClient, motorcycleId, refetch]);
 
   // Theme colors
   const bgColor = isDark ? palette.neutral900 : palette.neutral50;
@@ -339,6 +372,13 @@ export default function ExpenseDashboardScreen() {
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={isDark ? palette.white : palette.primary500}
+        />
+      }
     >
       {/* Period Selector */}
       <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>

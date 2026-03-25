@@ -8,6 +8,7 @@ import {
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -28,6 +29,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -43,12 +45,12 @@ import { MileageDisplay } from '../../../../components/bike-hub/mileage-display'
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
 import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
-import { haptic } from '../../../../lib/haptics';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
+import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
 
 function InfoRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
   return (
@@ -94,6 +96,8 @@ export default function BikeDetailScreen() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
 
   // --- Queries ---
 
@@ -115,12 +119,38 @@ export default function BikeDetailScreen() {
     }
   }, [highlightTask, tasksData]);
 
+  const onRefresh = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.motorcycles.all,
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.expenses.byMotorcycle(id),
+          refetchType: 'active',
+        }),
+      ]);
+    } finally {
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [queryClient, id]);
+
   // --- Mutations ---
 
   const { mutateAsync: deleteBike } = useMutation({
     mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
   });
 
@@ -141,7 +171,10 @@ export default function BikeDetailScreen() {
 
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
-    onSuccess: invalidateTasks,
+    onSuccess: () => {
+      invalidateTasks();
+      triggerNotification(Haptics.NotificationFeedbackType.Warning);
+    },
     onError: (_err: Error) => {
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
@@ -172,7 +205,7 @@ export default function BikeDetailScreen() {
   // --- Handlers ---
 
   const handleDeleteBike = () => {
-    haptic();
+    triggerImpact();
     Alert.alert(t('garage.deleteBike'), t('garage.confirmDelete'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
@@ -196,7 +229,7 @@ export default function BikeDetailScreen() {
   };
 
   const handleAddPhoto = () => {
-    haptic();
+    triggerImpact();
     const userId = session?.user?.id;
     if (!userId) return;
 
@@ -284,7 +317,7 @@ export default function BikeDetailScreen() {
 
   const handleExportPdf = async () => {
     if (!bike) return;
-    haptic();
+    triggerImpact();
     try {
       const pdfBike: PdfBike = {
         make: bike.make,
@@ -314,7 +347,7 @@ export default function BikeDetailScreen() {
   };
 
   const handleMoreActions = () => {
-    haptic();
+    triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
       export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
@@ -395,6 +428,13 @@ export default function BikeDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? palette.white : palette.primary500}
+          />
+        }
       >
         {/* 1. Hero — photo or gradient placeholder */}
         <Animated.View entering={FadeInUp.duration(400)}>
@@ -602,7 +642,7 @@ export default function BikeDetailScreen() {
         >
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               router.push({
                 pathname: '/(tabs)/(garage)/add-maintenance-task',
                 params: { motorcycleId: id, bikeName },
@@ -627,7 +667,7 @@ export default function BikeDetailScreen() {
 
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               router.push({
                 pathname: '/(tabs)/(garage)/add-expense',
                 params: { motorcycleId: id },
@@ -662,7 +702,7 @@ export default function BikeDetailScreen() {
 
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
             }}
             style={({ pressed }) => ({
@@ -752,7 +792,7 @@ export default function BikeDetailScreen() {
         >
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               setShowDetails((prev) => !prev);
             }}
             style={{

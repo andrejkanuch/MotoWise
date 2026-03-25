@@ -312,6 +312,10 @@
     "proActiveDesc": "You have an active Pro subscription",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "No rides yet",
+    "ridesEmptySubtitle": "Track your first ride to see stats, routes, and expenses",
+    "ridesEmptyStartRide": "Start a Ride",
+    "ridesEmptyAddBike": "Add Your First Bike",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"

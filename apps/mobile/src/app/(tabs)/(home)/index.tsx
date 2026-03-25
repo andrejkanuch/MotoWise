@@ -1,14 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArticleCarousel } from '../../../components/home/article-carousel';
 import { EmptyState } from '../../../components/home/empty-state';
@@ -22,6 +15,8 @@ import { PriorityActionCard } from '../../../components/home/priority-action-car
 import { RecentRidesWidget } from '../../../components/home/recent-rides-widget';
 import { SetupCtaBanner } from '../../../components/home/setup-cta-banner';
 import { useHomeData } from '../../../components/home/use-home-data';
+import { Skeleton } from '../../../components/skeleton/skeleton';
+import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -54,8 +49,33 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-neutral-50 dark:bg-neutral-950 items-center justify-center">
-        <ActivityIndicator size="large" color={palette.primary500} />
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: isDark ? palette.neutral950 : palette.neutral50,
+          paddingTop: insets.top,
+          paddingHorizontal: 20,
+        }}
+      >
+        <SkeletonProvider>
+          {/* Greeting bar */}
+          <Animated.View entering={FadeInUp.delay(0).duration(300)} style={{ marginTop: 16 }}>
+            <Skeleton width="60%" height={24} borderRadius={8} />
+          </Animated.View>
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} style={{ marginTop: 8 }}>
+            <Skeleton width="40%" height={16} borderRadius={6} />
+          </Animated.View>
+          {/* Card placeholders */}
+          {[0, 1, 2].map((i) => (
+            <Animated.View
+              key={i}
+              entering={FadeInUp.delay(100 + i * 50).duration(300)}
+              style={{ marginTop: 16 }}
+            >
+              <Skeleton width="100%" height={120} borderRadius={16} />
+            </Animated.View>
+          ))}
+        </SkeletonProvider>
       </View>
     );
   }

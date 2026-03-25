@@ -5,6 +5,7 @@ import {
   type MaintenanceTasksByMotorcycleQuery,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
@@ -25,8 +26,8 @@ import {
   SwipeableTaskCard,
 } from '../../../components/bike-hub/swipeable-task-card';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { haptic } from '../../../lib/haptics';
 import { queryKeys } from '../../../lib/query-keys';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
@@ -63,6 +64,7 @@ export default function BikeTasksScreen() {
         queryKey: queryKeys.maintenanceTasks.byMotorcycle(motorcycleId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
+      triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
     onError: () => {
       Alert.alert(
@@ -203,7 +205,7 @@ export default function BikeTasksScreen() {
               <Pressable
                 key={filter.key}
                 onPress={() => {
-                  haptic();
+                  triggerImpact();
                   setActiveFilter(filter.key);
                 }}
                 style={{

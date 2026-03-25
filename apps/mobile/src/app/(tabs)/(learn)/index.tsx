@@ -26,15 +26,19 @@ import {
   ActivityIndicator,
   type LayoutChangeEvent,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
+  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
 import { ProGateModal } from '../../../components/ProGateModal';
+import { Skeleton } from '../../../components/skeleton/skeleton';
+import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -64,10 +68,13 @@ export default function LearnScreen() {
   const router = useRouter();
   const { q } = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
+  const isDark = useColorScheme() === 'dark';
   const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const generateGuardRef = useRef(false);
+  const isRefreshingRef = useRef(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const searchInputRef = useRef<TextInput>(null);
   const modulesOffsetY = useRef(0);
@@ -88,7 +95,7 @@ export default function LearnScreen() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: progressData } = useQuery({
+  const { data: progressData, isLoading: isProgressLoading } = useQuery({
     queryKey: queryKeys.progress.all,
     queryFn: () => gqlFetcher(MyProgressDocument),
   });
@@ -110,7 +117,7 @@ export default function LearnScreen() {
   const searchResults = searchData?.searchArticles?.edges ?? [];
   const isSearchActive = debouncedQuery.length > 0;
 
-  const { data: popularData } = useQuery({
+  const { data: popularData, isLoading: isPopularLoading } = useQuery({
     queryKey: queryKeys.articles.popular(10),
     queryFn: () => gqlFetcher(ListPopularArticlesDocument),
     staleTime: 5 * 60 * 1000,
@@ -119,6 +126,28 @@ export default function LearnScreen() {
 
   const queryClient = useQueryClient();
   const [generateError, setGenerateError] = useState<string | null>(null);
+
+  const onRefresh = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.articles.popular(),
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.progress.all, refetchType: 'active' }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.motorcycles.all,
+          refetchType: 'active',
+        }),
+      ]);
+    } finally {
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [queryClient]);
 
   // Fetch user's motorcycles to pass bike context to article generation
   const { data: motorcyclesData } = useQuery({
@@ -185,6 +214,46 @@ export default function LearnScreen() {
     modulesOffsetY.current = e.nativeEvent.layout.y;
   }, []);
 
+  const isInitialLoading = isProgressLoading && isPopularLoading && !progressData && !popularData;
+
+  if (isInitialLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          paddingTop: insets.top,
+          paddingHorizontal: 20,
+        }}
+      >
+        <SkeletonProvider>
+          {/* Header placeholder */}
+          <Animated.View entering={FadeInUp.delay(0).duration(300)} style={{ marginTop: 12 }}>
+            <Skeleton width="30%" height={28} borderRadius={8} />
+          </Animated.View>
+          {/* Search bar placeholder */}
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} style={{ marginTop: 12 }}>
+            <Skeleton width="100%" height={44} borderRadius={12} />
+          </Animated.View>
+          {/* Hero card placeholder */}
+          <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 16 }}>
+            <Skeleton width="100%" height={200} borderRadius={16} />
+          </Animated.View>
+          {/* Article row placeholders */}
+          {[0, 1, 2].map((i) => (
+            <Animated.View
+              key={i}
+              entering={FadeInUp.delay(150 + i * 50).duration(300)}
+              style={{ marginTop: 12 }}
+            >
+              <Skeleton width="100%" height={80} borderRadius={16} />
+            </Animated.View>
+          ))}
+        </SkeletonProvider>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
       <ScrollView
@@ -192,6 +261,13 @@ export default function LearnScreen() {
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? palette.white : palette.primary500}
+          />
+        }
       >
         {/* Header */}
         <Animated.View entering={FadeIn.duration(300)} className="px-5 pt-3 pb-1">

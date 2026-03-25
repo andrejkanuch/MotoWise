@@ -8,12 +8,15 @@ import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
+import * as QuickActions from 'expo-quick-actions';
+import { useQuickActionRouting } from 'expo-quick-actions/router';
 import { Stack, useNavigationContainerRef, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
+import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
   identifyUser,
@@ -159,6 +162,8 @@ export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
   const navigationRef = useNavigationContainerRef();
 
+  useNotificationDeepLink();
+
   useEffect(() => {
     if (navigationRef) {
       sentryNavigationIntegration.registerNavigationContainer(navigationRef);
@@ -225,6 +230,33 @@ export default function RootLayout() {
       cancelled = true;
       cleanup?.();
     };
+  }, []);
+
+  // Quick action routing — handles navigation automatically via params.href
+  useQuickActionRouting();
+
+  // Set up home screen quick actions
+  useEffect(() => {
+    QuickActions.setItems([
+      {
+        id: 'start-ride',
+        title: 'Start Ride',
+        icon: process.env.EXPO_OS === 'ios' ? 'symbol:location.fill' : undefined,
+        params: { href: '/(modals)/start-ride' },
+      },
+      {
+        id: 'new-diagnostic',
+        title: 'Diagnose Issue',
+        icon: process.env.EXPO_OS === 'ios' ? 'symbol:wrench.and.screwdriver.fill' : undefined,
+        params: { href: '/(tabs)/(diagnose)/new' },
+      },
+      {
+        id: 'add-expense',
+        title: 'Add Expense',
+        icon: process.env.EXPO_OS === 'ios' ? 'symbol:dollarsign.circle.fill' : undefined,
+        params: { href: '/(tabs)/(garage)' },
+      },
+    ]);
   }, []);
 
   // Set up notification channels, categories, and request permission

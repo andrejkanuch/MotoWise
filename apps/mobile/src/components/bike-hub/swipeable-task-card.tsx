@@ -13,8 +13,8 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
-import { haptic } from '../../lib/haptics';
 import { getRelativeDueDate } from '../../lib/health-score';
+import { triggerImpact } from '../../utils/haptics';
 import { TaskPhotoGallery } from '../TaskPhotoGallery';
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -112,7 +112,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
         {/* Main card content */}
         <Pressable
           onPress={() => {
-            haptic();
+            triggerImpact();
             onToggleExpand(task.id);
           }}
           style={{ padding: 14 }}
@@ -205,7 +205,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
           >
             <Pressable
               onPress={() => {
-                haptic();
+                triggerImpact();
                 onComplete(task.id);
               }}
               style={{
@@ -226,7 +226,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
             </Pressable>
             <Pressable
               onPress={() => {
-                haptic();
+                triggerImpact();
                 onDelete(task.id, task.title);
               }}
               style={{

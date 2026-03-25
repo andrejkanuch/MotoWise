@@ -12,8 +12,8 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../../hooks/use-currency';
 import { formatCurrencyInput } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { haptic } from '../../../lib/haptics';
 import { queryKeys } from '../../../lib/query-keys';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
 type Category = (typeof CATEGORIES)[number];
@@ -66,9 +66,7 @@ export default function AddExpenseScreen() {
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
       });
       setSaved(true);
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => router.back(), 600);
     },
     onError: () => {
@@ -165,7 +163,7 @@ export default function AddExpenseScreen() {
               <Pressable
                 key={c}
                 onPress={() => {
-                  haptic();
+                  triggerImpact();
                   setCategory(c);
                 }}
                 style={{
@@ -237,7 +235,7 @@ export default function AddExpenseScreen() {
         >
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               setShowDatePicker(!showDatePicker);
             }}
             style={{
@@ -320,7 +318,7 @@ export default function AddExpenseScreen() {
               >
                 <Pressable
                   onPress={() => {
-                    haptic();
+                    triggerImpact();
                     setShowDatePicker(false);
                   }}
                 >
@@ -395,7 +393,7 @@ export default function AddExpenseScreen() {
       <Animated.View entering={FadeInDown.delay(200).duration(250)}>
         <Pressable
           onPress={() => {
-            haptic();
+            triggerImpact();
             logMutation.mutate();
           }}
           disabled={logMutation.isPending || !isValid || saved}

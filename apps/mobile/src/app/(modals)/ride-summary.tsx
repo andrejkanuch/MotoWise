@@ -3,6 +3,7 @@ import MapboxGL from '@rnmapbox/maps';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
 import {
   Check,
   Clock,
@@ -20,6 +21,8 @@ import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'reac
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
+import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
 import {
   formatDistance,
@@ -169,9 +172,7 @@ export default function RideSummaryScreen() {
   }, [rideId]);
 
   const handleShare = useCallback(async () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     try {
       await Share.share({
         message: `Just completed a ${formatDistance(distanceM, system)} ride in ${formatDuration(durationS)} with MotoVault!`,
@@ -184,9 +185,7 @@ export default function RideSummaryScreen() {
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     try {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
 
       enqueue('updateRide', {
         variables: {
@@ -198,6 +197,9 @@ export default function RideSummaryScreen() {
       });
 
       clearRideData(rideId);
+
+      incrementRideCount();
+      await maybeRequestReview();
 
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(tabs)/(profile)' as any);
@@ -550,9 +552,7 @@ export default function RideSummaryScreen() {
             {/* Add Expense shortcut */}
             <Pressable
               onPress={() => {
-                if (process.env.EXPO_OS === 'ios') {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
+                triggerImpact();
                 router.push({
                   pathname: '/(modals)/add-ride-expense' as const,
                   params: { motorcycleId },

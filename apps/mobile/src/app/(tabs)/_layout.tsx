@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import { AllMaintenanceTasksDocument } from '@motovault/graphql';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { StackActions } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ErrorFallback } from '../../components/error-fallback';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
@@ -275,16 +277,21 @@ export default function TabsLayout() {
   const { t, i18n } = useTranslation();
 
   return (
-    <Tabs
-      key={i18n.language}
-      tabBar={(props) => <IslandTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
+    <Sentry.ErrorBoundary
+      fallback={({ error, resetError }) => <ErrorFallback error={error} onRetry={resetError} />}
+      beforeCapture={(scope) => scope.setTag('boundary', 'tabs')}
     >
-      <Tabs.Screen name="(home)" options={{ title: t('tabs.home') }} />
-      <Tabs.Screen name="(learn)" options={{ title: t('tabs.learn'), href: null }} />
-      <Tabs.Screen name="(diagnose)" options={{ title: t('tabs.diagnose') }} />
-      <Tabs.Screen name="(garage)" options={{ title: t('tabs.garage') }} />
-      <Tabs.Screen name="(profile)" options={{ title: t('tabs.profile') }} />
-    </Tabs>
+      <Tabs
+        key={i18n.language}
+        tabBar={(props) => <IslandTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="(home)" options={{ title: t('tabs.home') }} />
+        <Tabs.Screen name="(learn)" options={{ title: t('tabs.learn'), href: null }} />
+        <Tabs.Screen name="(diagnose)" options={{ title: t('tabs.diagnose') }} />
+        <Tabs.Screen name="(garage)" options={{ title: t('tabs.garage') }} />
+        <Tabs.Screen name="(profile)" options={{ title: t('tabs.profile') }} />
+      </Tabs>
+    </Sentry.ErrorBoundary>
   );
 }

@@ -28,13 +28,14 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { haptic } from '../../../lib/haptics';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function EditBikeScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -255,9 +256,7 @@ export default function EditBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       isDirtyRef.current = false;
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       router.back();
     },
   });
@@ -268,6 +267,7 @@ export default function EditBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       isDirtyRef.current = false;
+      triggerNotification(Haptics.NotificationFeedbackType.Warning);
       router.dismiss(2);
     },
   });
@@ -275,13 +275,13 @@ export default function EditBikeScreen() {
   // --- Save handler ---
   const handleSave = useCallback(() => {
     if (!isDirty || !isValid || updateMutation.isPending) return;
-    haptic();
+    triggerImpact();
     updateMutation.mutate();
   }, [isDirty, isValid, updateMutation]);
 
   // --- Photo picker ---
   const handlePickPhoto = () => {
-    haptic();
+    triggerImpact();
     const userId = session?.user?.id;
     if (!userId) return;
 
@@ -343,7 +343,7 @@ export default function EditBikeScreen() {
 
   // --- Delete handler ---
   const handleDelete = () => {
-    haptic();
+    triggerImpact();
     const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
     if (process.env.EXPO_OS === 'ios') {
       Alert.prompt(
@@ -456,7 +456,8 @@ export default function EditBikeScreen() {
           ),
         }}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={20}
         contentInsetAdjustmentBehavior="automatic"
         keyboardDismissMode="interactive"
         style={{ flex: 1 }}
@@ -650,7 +651,7 @@ export default function EditBikeScreen() {
                             <Pressable
                               key={m.makeId}
                               onPress={() => {
-                                haptic();
+                                triggerImpact();
                                 setSelectedMake(m);
                                 setSelectedModel(null);
                                 setMakeSearch('');
@@ -775,7 +776,7 @@ export default function EditBikeScreen() {
                             <Pressable
                               key={m.modelId}
                               onPress={() => {
-                                haptic();
+                                triggerImpact();
                                 setSelectedModel(m);
                                 setModelSearch('');
                               }}
@@ -848,7 +849,7 @@ export default function EditBikeScreen() {
                   <Pressable
                     key={unit}
                     onPress={() => {
-                      haptic();
+                      triggerImpact();
                       setMileageUnit(unit);
                     }}
                     style={{
@@ -945,7 +946,7 @@ export default function EditBikeScreen() {
               <Switch
                 value={isPrimary}
                 onValueChange={(v) => {
-                  haptic();
+                  triggerImpact();
                   setIsPrimary(v);
                 }}
                 trackColor={{ false: palette.neutral300, true: palette.primary500 }}
@@ -1019,7 +1020,7 @@ export default function EditBikeScreen() {
             </Text>
           </Animated.View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

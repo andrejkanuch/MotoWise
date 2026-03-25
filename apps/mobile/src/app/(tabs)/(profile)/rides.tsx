@@ -1,10 +1,12 @@
 import { palette } from '@motovault/design-system';
-import { MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, Navigation, TrendingUp } from 'lucide-react-native';
+import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +18,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { RideCard } from '../../../components/ride/ride-card';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -84,8 +87,17 @@ export default function RidesScreen() {
   const insets = useSafeAreaInsets();
   const isDark = useColorScheme() === 'dark';
   const isPro = useSubscriptionStore((s) => s.isPro);
+  const { t } = useTranslation();
 
   const system = useMeasurementSystem();
+
+  const { data: motorcyclesData } = useQuery({
+    queryKey: queryKeys.motorcycles.lists(),
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const hasBikes = Array.isArray((motorcyclesData as { myMotorcycles?: unknown[] })?.myMotorcycles)
+    ? ((motorcyclesData as { myMotorcycles?: unknown[] })?.myMotorcycles?.length ?? 0) > 0
+    : false;
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<MyRidesQuery>({
@@ -347,22 +359,10 @@ export default function RidesScreen() {
     if (isLoading) return null;
     return (
       <Animated.View
-        entering={FadeInUp.duration(300)}
+        entering={FadeIn.duration(300)}
         style={{ alignItems: 'center', paddingTop: 48, paddingHorizontal: 32, gap: 16 }}
       >
-        <View
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 36,
-            borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Navigation size={32} color={palette.accent500} />
-        </View>
+        <LottieMotorcycle animation="emptyGarage" size={160} loop />
         <Text
           style={{
             fontSize: 18,
@@ -371,7 +371,7 @@ export default function RidesScreen() {
             textAlign: 'center',
           }}
         >
-          No rides yet
+          {t('profile.ridesEmptyTitle')}
         </Text>
         <Text
           style={{
@@ -381,11 +381,43 @@ export default function RidesScreen() {
             lineHeight: 22,
           }}
         >
-          Tap the ride button to start tracking your first route, speed, and distance.
+          {t('profile.ridesEmptySubtitle')}
         </Text>
+        <Pressable
+          onPress={() => {
+            if (process.env.EXPO_OS === 'ios')
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            if (hasBikes) {
+              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+              router.push('/(modals)/start-ride' as any);
+            } else {
+              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+              router.push('/(tabs)/(garage)/add-bike' as any);
+            }
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={
+            hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
+          }
+          style={({ pressed }) => ({
+            backgroundColor: palette.primary700,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            height: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'stretch',
+            marginTop: 8,
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
+        >
+          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
+            {hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')}
+          </Text>
+        </Pressable>
       </Animated.View>
     );
-  }, [isLoading, isDark]);
+  }, [isLoading, isDark, hasBikes, router, t]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {

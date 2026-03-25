@@ -1,5 +1,5 @@
 import { palette, radii, spacing } from '@motovault/design-system';
-import { DiagnosticByIdDocument } from '@motovault/graphql';
+import { DiagnosticByIdDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import {
   ChevronRight,
   HardHat,
   RefreshCw,
+  Share2,
   ShieldAlert,
   Wrench,
 } from 'lucide-react-native';
@@ -18,7 +19,9 @@ import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } 
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { exportDiagnosticReport } from '../../../lib/pdf-export';
 import { queryKeys } from '../../../lib/query-keys';
+import { triggerImpact } from '../../../utils/haptics';
 
 const SEVERITY_CONFIG = {
   critical: {
@@ -84,6 +87,32 @@ export default function DiagnosticResultScreen() {
 
   const diagnostic = data?.diagnosticById;
   const resultJson = (diagnostic?.resultJson ?? null) as DiagnosticResult | null;
+
+  const { data: motorcyclesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+  });
+  const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === diagnostic?.motorcycleId);
+  const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : 'Motorcycle';
+
+  const handleShareReport = async () => {
+    if (!diagnostic || diagnostic.status !== 'completed') return;
+    triggerImpact(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await exportDiagnosticReport(
+        {
+          severity: diagnostic.severity,
+          confidence: diagnostic.confidence,
+          description: diagnostic.description,
+          createdAt: diagnostic.createdAt,
+          resultJson,
+        },
+        bikeName,
+      );
+    } catch (_e) {
+      // User cancelled the share sheet — no action needed
+    }
+  };
 
   // Theme colors
   const bg = isDark ? palette.surfaceDark : palette.white;
@@ -828,9 +857,63 @@ export default function DiagnosticResultScreen() {
           </Animated.View>
         )}
 
+        {/* Share Report */}
+        <Animated.View
+          entering={FadeInUp.delay(375).duration(400)}
+          style={{ paddingHorizontal: spacing[5] }}
+        >
+          <Pressable
+            onPress={handleShareReport}
+            style={{
+              backgroundColor: isDark ? `${palette.neutral400}12` : palette.neutral100,
+              borderRadius: 16,
+              padding: spacing[4],
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing[3],
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor,
+            }}
+          >
+            <View
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: isDark ? `${palette.neutral400}18` : `${palette.neutral500}12`,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderCurve: 'continuous',
+              }}
+            >
+              <Share2
+                size={16}
+                color={isDark ? palette.neutral300 : palette.neutral600}
+                strokeWidth={2}
+              />
+            </View>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: isDark ? palette.neutral200 : palette.neutral700,
+                flex: 1,
+              }}
+            >
+              {t('diagnose.shareReport', { defaultValue: 'Share Diagnostic Report' })}
+            </Text>
+            <ArrowRight
+              size={16}
+              color={isDark ? palette.neutral400 : palette.neutral500}
+              strokeWidth={2}
+            />
+          </Pressable>
+        </Animated.View>
+
         {/* Disclaimer */}
         <Animated.View
-          entering={FadeInUp.delay(400).duration(400)}
+          entering={FadeInUp.delay(425).duration(400)}
           style={{ paddingHorizontal: spacing[5], marginTop: spacing[1] }}
         >
           <View
@@ -867,7 +950,7 @@ export default function DiagnosticResultScreen() {
 
         {/* Timestamp */}
         <Animated.View
-          entering={FadeInUp.delay(450).duration(400)}
+          entering={FadeInUp.delay(475).duration(400)}
           style={{ paddingHorizontal: spacing[5] }}
         >
           <Text style={{ fontSize: 12, color: textTertiary, textAlign: 'center' }}>

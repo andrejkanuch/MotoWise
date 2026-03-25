@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { haptic } from '../../lib/haptics';
+import { triggerImpact } from '../../utils/haptics';
 import { PRIORITY_ORDER, SwipeableTaskCard } from './swipeable-task-card';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
@@ -84,7 +84,7 @@ export function MaintenanceSection({
   const hasMore = totalCount > 5;
 
   const handleSeeAll = () => {
-    haptic();
+    triggerImpact();
     router.push({
       pathname: '/(tabs)/(garage)/bike-tasks',
       params: { motorcycleId },
@@ -186,7 +186,7 @@ export function MaintenanceSection({
             <Pressable
               key={tab}
               onPress={() => {
-                haptic();
+                triggerImpact();
                 setActiveTab(tab);
               }}
               style={{
