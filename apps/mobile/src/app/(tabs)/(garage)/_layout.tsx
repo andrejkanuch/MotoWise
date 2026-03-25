@@ -1,7 +1,12 @@
 import { palette } from '@motovault/design-system';
-import { Stack } from 'expo-router';
+import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
+import { ErrorFallback } from '../../../components/error-fallback';
+
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorFallback error={error} onRetry={retry} />;
+}
 
 export default function GarageLayout() {
   const { t } = useTranslation();

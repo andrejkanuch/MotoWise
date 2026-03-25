@@ -17,7 +17,8 @@
     "edit": "Bearbeiten",
     "more": "Mehr",
     "no": "Nein",
-    "yes": "Ja"
+    "yes": "Ja",
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
   },
   "auth": {
     "signIn": "Anmelden",
@@ -312,6 +313,10 @@
     "proActiveDesc": "Du hast ein aktives Pro-Abonnement",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "Noch keine Fahrten",
+    "ridesEmptySubtitle": "Starte deine erste Fahrt, um Statistiken, Routen und Ausgaben zu sehen",
+    "ridesEmptyStartRide": "Fahrt starten",
+    "ridesEmptyAddBike": "Erstes Motorrad hinzufügen",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"
@@ -879,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "Fahrt starten",
+    "diagnoseIssue": "Problem diagnostizieren",
+    "addExpense": "Ausgabe hinzufügen"
   }
 }

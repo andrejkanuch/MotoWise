@@ -1,5 +1,10 @@
 import { palette } from '@motovault/design-system';
-import { Stack } from 'expo-router';
+import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { ErrorFallback } from '../../components/error-fallback';
+
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <ErrorFallback error={error} onRetry={retry} />;
+}
 
 export default function OnboardingLayout() {
   return (

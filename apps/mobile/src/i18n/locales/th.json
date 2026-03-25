@@ -17,7 +17,8 @@
     "edit": "แก้ไข",
     "more": "เพิ่มเติม",
     "no": "ไม่",
-    "yes": "ใช่"
+    "yes": "ใช่",
+    "genericError": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"
   },
   "auth": {
     "signIn": "เข้าสู่ระบบ",
@@ -312,6 +313,10 @@
     "proActiveDesc": "คุณมีสมาชิก Pro ที่ใช้งานอยู่",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "ยังไม่มีการขับขี่",
+    "ridesEmptySubtitle": "บันทึกการขับขี่ครั้งแรกเพื่อดูสถิติ เส้นทาง และค่าใช้จ่าย",
+    "ridesEmptyStartRide": "เริ่มขับขี่",
+    "ridesEmptyAddBike": "เพิ่มมอเตอร์ไซค์คันแรก",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"
@@ -879,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "เริ่มขับขี่",
+    "diagnoseIssue": "วินิจฉัยปัญหา",
+    "addExpense": "เพิ่มค่าใช้จ่าย"
   }
 }

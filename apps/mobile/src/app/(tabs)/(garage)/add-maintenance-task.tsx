@@ -7,7 +7,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, Gauge, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
@@ -104,7 +105,8 @@ export default function AddMaintenanceTaskScreen() {
   const sectionGap = 24;
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={20}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: sectionGap }}
       keyboardDismissMode="interactive"
@@ -512,6 +514,6 @@ export default function AddMaintenanceTaskScreen() {
           </Text>
         </Pressable>
       </Animated.View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

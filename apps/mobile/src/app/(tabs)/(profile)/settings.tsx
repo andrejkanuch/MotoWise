@@ -6,15 +6,8 @@ import { router } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -327,7 +320,8 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={20}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
@@ -821,7 +815,7 @@ export default function SettingsScreen() {
             </Text>
           )}
         </Animated.View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

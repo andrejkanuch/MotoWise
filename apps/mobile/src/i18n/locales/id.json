@@ -17,7 +17,8 @@
     "edit": "Edit",
     "more": "Lainnya",
     "no": "Tidak",
-    "yes": "Ya"
+    "yes": "Ya",
+    "genericError": "Terjadi kesalahan. Silakan coba lagi."
   },
   "auth": {
     "signIn": "Masuk",
@@ -312,6 +313,10 @@
     "proActiveDesc": "Kamu memiliki langganan Pro yang aktif",
     "myRidesTitle": "My Rides",
     "myRidesDescription": "Ride history, stats & route maps",
+    "ridesEmptyTitle": "Belum ada perjalanan",
+    "ridesEmptySubtitle": "Lacak perjalanan pertamamu untuk melihat statistik, rute, dan pengeluaran",
+    "ridesEmptyStartRide": "Mulai Perjalanan",
+    "ridesEmptyAddBike": "Tambahkan Motor Pertamamu",
     "units": "Units",
     "metric": "Metric (km, °C)",
     "imperial": "Imperial (mi, °F)"
@@ -879,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "Mulai Perjalanan",
+    "diagnoseIssue": "Diagnosis Masalah",
+    "addExpense": "Tambah Pengeluaran"
   }
 }

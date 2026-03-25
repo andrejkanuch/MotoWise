@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { MyDiagnosticsDocument, MyMotorcyclesDocument } from '@motovault/graphql';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
@@ -16,9 +16,9 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react-native';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -106,6 +106,30 @@ export default function DiagnoseScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
+  const queryClient = useQueryClient();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isRefreshingRef = useRef(false);
+
+  const onRefresh = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    setIsRefreshing(true);
+    try {
+      await Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.diagnostics.all,
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.motorcycles.all,
+          refetchType: 'active',
+        }),
+      ]);
+    } finally {
+      isRefreshingRef.current = false;
+      setIsRefreshing(false);
+    }
+  }, [queryClient]);
 
   const { data } = useQuery({
     queryKey: queryKeys.diagnostics.all,
@@ -157,6 +181,13 @@ export default function DiagnoseScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? palette.white : palette.primary500}
+          />
+        }
       >
         {/* Header */}
         <Animated.View

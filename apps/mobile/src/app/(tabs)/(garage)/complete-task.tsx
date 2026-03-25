@@ -22,6 +22,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { incrementTaskCount, maybeRequestReview } from '../../../lib/store-review';
+import { triggerNotification } from '../../../utils/haptics';
 
 export default function CompleteTaskScreen() {
   const { t } = useTranslation();
@@ -64,14 +66,16 @@ export default function CompleteTaskScreen() {
         createNextOccurrence: task?.isRecurring ? scheduleNext : false,
       }),
     onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setCompleted(true);
       buttonScale.value = withSequence(
         withSpring(1.08, { damping: 8, stiffness: 200 }),
         withSpring(1, { damping: 12, stiffness: 150 }),
       );
+
+      incrementTaskCount();
+      maybeRequestReview();
+
       setTimeout(() => router.back(), 800);
     },
     onSettled: () => {

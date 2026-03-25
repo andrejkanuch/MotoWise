@@ -31,7 +31,8 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
@@ -332,7 +333,8 @@ export function StepProblemDescription() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={20}
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
@@ -606,7 +608,7 @@ export function StepProblemDescription() {
             </Text>
           </Animated.View>
         ) : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Bottom button */}
       <View

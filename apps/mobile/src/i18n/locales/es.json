@@ -17,7 +17,8 @@
     "edit": "Editar",
     "more": "Más",
     "no": "No",
-    "yes": "Sí"
+    "yes": "Sí",
+    "genericError": "Algo salió mal. Por favor, inténtalo de nuevo."
   },
   "auth": {
     "signIn": "Iniciar Sesión",
@@ -312,6 +313,10 @@
     "proActiveDesc": "Tienes una suscripción Pro activa",
     "myRidesTitle": "Mis rutas",
     "myRidesDescription": "Historial de rutas, estadísticas y mapas",
+    "ridesEmptyTitle": "Aún no hay rutas",
+    "ridesEmptySubtitle": "Registra tu primera ruta para ver estadísticas, rutas y gastos",
+    "ridesEmptyStartRide": "Iniciar una ruta",
+    "ridesEmptyAddBike": "Añade tu primera moto",
     "units": "Unidades",
     "metric": "Métrico (km, °C)",
     "imperial": "Imperial (mi, °F)"
@@ -879,5 +884,10 @@
     "faq4Answer": "Ve a Perfil y usa el selector de idioma para cambiar entre los idiomas disponibles.",
     "faq5Question": "¿Mis datos están seguros?",
     "faq5Answer": "Sí. Usamos cifrado de extremo a extremo y seguimos las mejores prácticas de la industria. Puedes exportar o eliminar tus datos en cualquier momento desde la configuración de Privacidad."
+  },
+  "quickActions": {
+    "startRide": "Iniciar viaje",
+    "diagnoseIssue": "Diagnosticar problema",
+    "addExpense": "Agregar gasto"
   }
 }

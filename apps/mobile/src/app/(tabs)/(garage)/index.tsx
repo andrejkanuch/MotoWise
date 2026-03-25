@@ -8,19 +8,13 @@ import { useRouter } from 'expo-router';
 import { Calendar, ChevronRight, Crown, Plus, Star, Wrench } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { ProGateModal } from '../../../components/ProGateModal';
+import { Skeleton } from '../../../components/skeleton/skeleton';
+import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -314,12 +308,31 @@ export default function GarageScreen() {
       <View
         style={{
           flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
           backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          padding: 20,
+          paddingTop: insets.top + 20,
         }}
       >
-        <ActivityIndicator size="large" color={palette.primary500} />
+        <SkeletonProvider>
+          {/* Title placeholder */}
+          <Animated.View entering={FadeInUp.delay(0).duration(300)}>
+            <Skeleton width="50%" height={16} borderRadius={6} />
+          </Animated.View>
+          {/* Add button placeholder */}
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} style={{ marginTop: 16 }}>
+            <Skeleton width="100%" height={48} borderRadius={14} />
+          </Animated.View>
+          {/* Bike card placeholders */}
+          {[0, 1, 2].map((i) => (
+            <Animated.View
+              key={i}
+              entering={FadeInUp.delay(100 + i * 50).duration(300)}
+              style={{ marginTop: 16 }}
+            >
+              <Skeleton width="100%" height={180} borderRadius={20} />
+            </Animated.View>
+          ))}
+        </SkeletonProvider>
       </View>
     );
   }
