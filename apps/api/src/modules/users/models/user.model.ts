@@ -26,6 +26,9 @@ export class User {
   measurementSystem?: string;
 
   @Field()
+  currency: string;
+
+  @Field()
   createdAt: string;
 
   @Field()

@@ -135,7 +135,7 @@ export default function SmartMaintenanceScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={13} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={14} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         style={{ flex: 1 }}

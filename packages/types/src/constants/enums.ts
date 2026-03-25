@@ -154,6 +154,44 @@ export const MeasurementSystem = {
 } as const;
 export type MeasurementSystem = (typeof MeasurementSystem)[keyof typeof MeasurementSystem];
 
+export const Currency = {
+  USD: 'USD',
+  EUR: 'EUR',
+  GBP: 'GBP',
+  JPY: 'JPY',
+  CAD: 'CAD',
+  AUD: 'AUD',
+  CHF: 'CHF',
+  INR: 'INR',
+  BRL: 'BRL',
+  MXN: 'MXN',
+  SEK: 'SEK',
+  NOK: 'NOK',
+  DKK: 'DKK',
+  PLN: 'PLN',
+  TRY: 'TRY',
+} as const;
+export type Currency = (typeof Currency)[keyof typeof Currency];
+
+/** Static symbol map — formatToParts() is broken on iOS Hermes */
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  USD: '$',
+  EUR: '\u20AC',
+  GBP: '\u00A3',
+  JPY: '\u00A5',
+  CAD: 'C$',
+  AUD: 'A$',
+  CHF: 'CHF',
+  INR: '\u20B9',
+  BRL: 'R$',
+  MXN: 'MX$',
+  SEK: 'kr',
+  NOK: 'kr',
+  DKK: 'kr',
+  PLN: 'z\u0142',
+  TRY: '\u20BA',
+};
+
 /**
  * CANCELLED: User opted out but period hasn't ended (may still have access).
  * EXPIRED: Billing period ended without renewal (no access).

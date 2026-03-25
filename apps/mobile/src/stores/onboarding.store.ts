@@ -1,5 +1,6 @@
 import type {
   AnnualRepairSpend,
+  Currency,
   ExperienceLevel,
   LastServiceDate,
   LearningFormat,
@@ -40,6 +41,7 @@ interface OnboardingState {
   recallAlerts: boolean;
   weeklySummary: boolean;
   lastServiceDate: LastServiceDate | null;
+  currency: Currency | null;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
@@ -53,6 +55,7 @@ interface OnboardingState {
   setRecallAlerts: (enabled: boolean) => void;
   setWeeklySummary: (enabled: boolean) => void;
   setLastServiceDate: (date: LastServiceDate) => void;
+  setCurrency: (currency: Currency) => void;
   reset: () => void;
 }
 
@@ -70,6 +73,7 @@ const initialState = {
   recallAlerts: true,
   weeklySummary: false,
   lastServiceDate: null as LastServiceDate | null,
+  currency: null as Currency | null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -89,11 +93,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setRecallAlerts: (enabled) => set({ recallAlerts: enabled }),
       setWeeklySummary: (enabled) => set({ weeklySummary: enabled }),
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
+      setCurrency: (currency) => set({ currency }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'onboarding-state',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({
         setExperienceLevel,
@@ -109,6 +114,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setRecallAlerts,
         setWeeklySummary,
         setLastServiceDate,
+        setCurrency,
         reset,
         ...data
       }) => data,
@@ -117,6 +123,9 @@ export const useOnboardingStore = create<OnboardingState>()(
           return initialState as unknown as OnboardingState;
 
         const state = persistedState as Record<string, unknown>;
+        if (version < 3) {
+          state.currency = state.currency ?? null;
+        }
         if (version < 2) {
           state.annualRepairSpend = state.annualRepairSpend ?? null;
           state.maintenanceReminders = state.maintenanceReminders ?? true;

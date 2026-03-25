@@ -20,6 +20,9 @@ export class Expense {
   @Field({ nullable: true })
   description?: string;
 
+  @Field()
+  currency: string;
+
   @Field({ nullable: true })
   maintenanceTaskId?: string;
 

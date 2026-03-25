@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { Currency } from '../constants/enums';
+
+const currencyValues = Object.values(Currency) as [string, ...string[]];
 
 export const LogExpenseSchema = z.object({
   motorcycleId: z.string().uuid(),
@@ -6,6 +9,7 @@ export const LogExpenseSchema = z.object({
   category: z.enum(['fuel', 'maintenance', 'parts', 'gear']),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
   description: z.string().max(200).optional(),
+  currency: z.enum(currencyValues).optional(),
 });
 export type LogExpense = z.infer<typeof LogExpenseSchema>;
 

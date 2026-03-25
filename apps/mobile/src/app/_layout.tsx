@@ -4,6 +4,7 @@ import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
+import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
@@ -90,6 +91,26 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       setOnboardingCompleted(true);
     }
   }, [serverOnboardingCompleted, storeOnboardingCompleted, setOnboardingCompleted]);
+
+  // Hydrate user preferences (currency + measurementSystem) from server
+  const setCurrency = useAuthStore((s) => s.setCurrency);
+  const setMeasurementSystem = useAuthStore((s) => s.setMeasurementSystem);
+  const serverCurrency = meQuery.data?.me?.currency;
+  const serverMeasurementSystem = meQuery.data?.me?.measurementSystem;
+
+  useEffect(() => {
+    const state = useAuthStore.getState();
+    if (serverCurrency && serverCurrency in Currency && serverCurrency !== state.currency) {
+      setCurrency(serverCurrency as typeof state.currency);
+    }
+    if (
+      serverMeasurementSystem &&
+      serverMeasurementSystem in MeasurementSystem &&
+      serverMeasurementSystem !== state.measurementSystem
+    ) {
+      setMeasurementSystem(serverMeasurementSystem as typeof state.measurementSystem);
+    }
+  }, [serverCurrency, serverMeasurementSystem, setCurrency, setMeasurementSystem]);
 
   useEffect(() => {
     if (isLoading) return;

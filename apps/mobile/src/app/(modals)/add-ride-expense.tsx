@@ -9,6 +9,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useCurrency } from '../../hooks/use-currency';
+import { formatCurrencyInput } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { haptic } from '../../lib/haptics';
 import { queryKeys } from '../../lib/query-keys';
@@ -30,18 +32,11 @@ function formatDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function formatCurrencyInput(value: string): string {
-  const digits = value.replace(/[^0-9.]/g, '');
-  const parts = digits.split('.');
-  if (parts.length > 2) return `${parts[0]}.${parts.slice(1).join('')}`;
-  if (parts[1] && parts[1].length > 2) return `${parts[0]}.${parts[1].slice(0, 2)}`;
-  return digits;
-}
-
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
   const isDark = useColorScheme() === 'dark';
+  const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState('');
@@ -63,6 +58,7 @@ export default function AddExpenseScreen() {
           category,
           date: formatDate(date),
           description: description.trim() || undefined,
+          currency,
         },
       }),
     onSuccess: () => {
@@ -128,14 +124,14 @@ export default function AddExpenseScreen() {
               color: isDark ? palette.neutral50 : palette.neutral950,
             }}
           >
-            $
+            {symbol}
           </Text>
           <TextInput
             value={amount}
-            onChangeText={(val) => setAmount(formatCurrencyInput(val))}
-            placeholder="0.00"
+            onChangeText={(val) => setAmount(formatCurrencyInput(val, currency))}
+            placeholder={currency === 'JPY' ? '0' : '0.00'}
             placeholderTextColor={palette.neutral400}
-            keyboardType="decimal-pad"
+            keyboardType={currency === 'JPY' ? 'number-pad' : 'decimal-pad'}
             style={{
               flex: 1,
               fontSize: 24,

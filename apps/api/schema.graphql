@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -77,6 +81,7 @@ input CompleteOnboardingInput {
   bikePhotoUrl: String
   bikeType: String
   bikeYear: Int
+  currency: String
   experienceLevel: String!
   lastServiceDate: String
   learningFormats: [String!]!
@@ -198,6 +203,7 @@ type Expense {
   amount: Float!
   category: String!
   createdAt: String!
+  currency: String!
   date: String!
   description: String
   id: ID!
@@ -274,6 +280,7 @@ type LearningProgress {
 input LogExpenseInput {
   amount: Float!
   category: String!
+  currency: String
   date: String!
   description: String
   motorcycleId: String!
@@ -665,6 +672,7 @@ input UpdateRideInput {
 }
 
 input UpdateUserInput {
+  currency: String
   fullName: String
   measurementSystem: String
   preferences: JSON
@@ -684,6 +692,7 @@ enum Urgency {
 
 type User {
   createdAt: String!
+  currency: String!
   email: String!
   fullName: String
   id: ID!

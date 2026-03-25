@@ -46,7 +46,7 @@ export default function RidingFrequencyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={8} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={9} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text
