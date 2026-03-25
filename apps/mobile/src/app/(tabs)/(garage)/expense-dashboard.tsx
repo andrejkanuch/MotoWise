@@ -1,9 +1,13 @@
 import { palette } from '@motovault/design-system';
-import { ExpensesByMotorcycleDocument, type ExpensesByMotorcycleQuery } from '@motovault/graphql';
+import {
+  ExpensesByMotorcycleDocument,
+  type ExpensesByMotorcycleQuery,
+  MyMotorcyclesDocument,
+} from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { BarChart3, X } from 'lucide-react-native';
+import { BarChart3, Info, X } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, {
@@ -168,6 +172,15 @@ export default function ExpenseDashboardScreen() {
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
 
+  // Fetch bike data for purchase price (uses existing cache from garage tab)
+  const { data: bikesData } = useQuery({
+    queryKey: queryKeys.motorcycles.all,
+    queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    staleTime: 5 * 60 * 1000,
+  });
+  const bike = (bikesData?.myMotorcycles ?? []).find((m: { id: string }) => m.id === motorcycleId);
+  const purchasePrice = bike?.purchasePrice as number | null | undefined;
+
   // Fetch individual expenses for category drill-down
   const { data: expensesData } = useQuery({
     queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
@@ -318,7 +331,12 @@ export default function ExpenseDashboardScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: bgColor }}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+      contentContainerStyle={{
+        paddingHorizontal: 20,
+        paddingBottom: 100,
+        // headerTransparent: true doesn't auto-inset on Android
+        ...(process.env.EXPO_OS === 'android' && { paddingTop: 56 }),
+      }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
     >
@@ -483,8 +501,115 @@ export default function ExpenseDashboardScreen() {
         )}
       </Animated.View>
 
+      {/* Purchase Price / Total Cost of Ownership */}
+      {purchasePrice != null && purchasePrice > 0 ? (
+        <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 20 }}>
+          <View
+            style={{
+              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              padding: 16,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: subtextColor,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
+              Total Cost of Ownership
+            </Text>
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '700',
+                color: textColor,
+                fontVariant: ['tabular-nums'],
+                letterSpacing: -0.5,
+              }}
+            >
+              {formatCurrency(purchasePrice + dashboard.allTimeTotal)}
+            </Text>
+            <View style={{ flexDirection: 'row', marginTop: 8, gap: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: subtextColor }}>
+                  Bike Purchase
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: textColor,
+                    fontVariant: ['tabular-nums'],
+                    marginTop: 2,
+                  }}
+                >
+                  {formatCurrency(purchasePrice)}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 11, fontWeight: '500', color: subtextColor }}>
+                  All Expenses
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '600',
+                    color: textColor,
+                    fontVariant: ['tabular-nums'],
+                    marginTop: 2,
+                  }}
+                >
+                  {formatCurrency(dashboard.allTimeTotal)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      ) : (
+        <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 20 }}>
+          <Pressable
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios')
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push({
+                pathname: '/(tabs)/(garage)/edit-bike',
+                params: { id: motorcycleId },
+              });
+            }}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: isDark ? `${palette.primary500}15` : `${palette.primary500}08`,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              padding: 14,
+              gap: 10,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}
+          >
+            <Info size={18} color={palette.primary500} />
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 13,
+                fontWeight: '500',
+                color: isDark ? palette.primary400 : palette.primary600,
+              }}
+            >
+              Add your bike's purchase price in Edit Bike to see total cost of ownership
+            </Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
       {/* Summary Metric Pills */}
-      <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 16 }}>
+      <Animated.View entering={FadeInUp.delay(140).duration(300)} style={{ marginTop: 16 }}>
         <SummaryCards
           avgPerMonth={avgPerMonth}
           expenseCount={dashboard.expenseCount}
