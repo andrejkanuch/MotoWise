@@ -1,6 +1,12 @@
 import Constants from 'expo-constants';
-import * as StoreReview from 'expo-store-review';
 import { createMMKV, type MMKV } from 'react-native-mmkv';
+
+let StoreReview: typeof import('expo-store-review') | null = null;
+try {
+  StoreReview = require('expo-store-review');
+} catch {
+  // Not available in Expo Go
+}
 
 let _storage: MMKV | null = null;
 function getStorage(): MMKV {
@@ -27,6 +33,7 @@ export function incrementTaskCount(): number {
 }
 
 export async function maybeRequestReview(): Promise<void> {
+  if (!StoreReview) return;
   const storage = getStorage();
   const currentVersion = Constants.expoConfig?.version ?? '1.0.0';
   if (storage.getString(REVIEWED_VERSION_KEY) === currentVersion) return;
