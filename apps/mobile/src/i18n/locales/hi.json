@@ -17,7 +17,8 @@
     "edit": "संपादित करें",
     "more": "और",
     "no": "नहीं",
-    "yes": "हाँ"
+    "yes": "हाँ",
+    "genericError": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।"
   },
   "auth": {
     "signIn": "साइन इन करें",
@@ -883,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "राइड शुरू करें",
+    "diagnoseIssue": "समस्या का निदान करें",
+    "addExpense": "खर्च जोड़ें"
   }
 }

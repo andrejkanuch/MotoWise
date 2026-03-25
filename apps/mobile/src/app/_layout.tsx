@@ -240,19 +240,19 @@ export default function RootLayout() {
     QuickActions.setItems([
       {
         id: 'start-ride',
-        title: 'Start Ride',
+        title: i18n.t('quickActions.startRide', { defaultValue: 'Start Ride' }),
         icon: process.env.EXPO_OS === 'ios' ? 'symbol:location.fill' : undefined,
         params: { href: '/(modals)/start-ride' },
       },
       {
         id: 'new-diagnostic',
-        title: 'Diagnose Issue',
+        title: i18n.t('quickActions.diagnoseIssue', { defaultValue: 'Diagnose Issue' }),
         icon: process.env.EXPO_OS === 'ios' ? 'symbol:wrench.and.screwdriver.fill' : undefined,
         params: { href: '/(tabs)/(diagnose)/new' },
       },
       {
         id: 'add-expense',
-        title: 'Add Expense',
+        title: i18n.t('quickActions.addExpense', { defaultValue: 'Add Expense' }),
         icon: process.env.EXPO_OS === 'ios' ? 'symbol:dollarsign.circle.fill' : undefined,
         params: { href: '/(tabs)/(garage)' },
       },

@@ -17,7 +17,8 @@
     "edit": "Duzenle",
     "more": "Daha fazla",
     "no": "Hayir",
-    "yes": "Evet"
+    "yes": "Evet",
+    "genericError": "Bir şeyler ters gitti. Lütfen tekrar deneyin."
   },
   "auth": {
     "signIn": "Giris Yap",
@@ -883,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "Sürüşe Başla",
+    "diagnoseIssue": "Sorunu Teşhis Et",
+    "addExpense": "Masraf Ekle"
   }
 }

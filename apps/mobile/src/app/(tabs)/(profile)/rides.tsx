@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react-native';
@@ -24,6 +23,7 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
+import { triggerImpact } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
   formatDuration as fmtDuration,
@@ -95,9 +95,10 @@ export default function RidesScreen() {
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
-  const hasBikes = Array.isArray((motorcyclesData as { myMotorcycles?: unknown[] })?.myMotorcycles)
-    ? ((motorcyclesData as { myMotorcycles?: unknown[] })?.myMotorcycles?.length ?? 0) > 0
-    : false;
+  const hasBikes = useMemo(
+    () => (motorcyclesData?.myMotorcycles?.length ?? 0) > 0,
+    [motorcyclesData],
+  );
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<MyRidesQuery>({
@@ -385,8 +386,7 @@ export default function RidesScreen() {
         </Text>
         <Pressable
           onPress={() => {
-            if (process.env.EXPO_OS === 'ios')
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            triggerImpact();
             if (hasBikes) {
               // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
               router.push('/(modals)/start-ride' as any);

@@ -17,7 +17,8 @@
     "edit": "Upraviť",
     "more": "Viac",
     "no": "Nie",
-    "yes": "Áno"
+    "yes": "Áno",
+    "genericError": "Niečo sa pokazilo. Skúste to prosím znova."
   },
   "auth": {
     "signIn": "Prihlásiť sa",
@@ -883,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "Začať jazdu",
+    "diagnoseIssue": "Diagnostikovať problém",
+    "addExpense": "Pridať výdavok"
   }
 }

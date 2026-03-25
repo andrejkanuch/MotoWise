@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 import {
   cancelAnimation,
   Easing,
@@ -8,10 +9,16 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 
-const SkeletonContext = createContext<SharedValue<number> | null>(null);
+interface SkeletonContextValue {
+  progress: SharedValue<number>;
+  isDark: boolean;
+}
+
+const SkeletonContext = createContext<SkeletonContextValue | null>(null);
 
 export function SkeletonProvider({ children }: { children: React.ReactNode }) {
   const progress = useSharedValue(0);
+  const isDark = useColorScheme() === 'dark';
 
   useEffect(() => {
     progress.value = withRepeat(
@@ -22,11 +29,18 @@ export function SkeletonProvider({ children }: { children: React.ReactNode }) {
     return () => cancelAnimation(progress);
   }, [progress]);
 
-  return <SkeletonContext.Provider value={progress}>{children}</SkeletonContext.Provider>;
+  return (
+    <SkeletonContext.Provider value={{ progress, isDark }}>{children}</SkeletonContext.Provider>
+  );
 }
 
-export function useSkeletonProgress() {
+export function useSkeletonContext() {
   const ctx = useContext(SkeletonContext);
   if (!ctx) throw new Error('Skeleton must be wrapped in SkeletonProvider');
   return ctx;
+}
+
+/** @deprecated Use useSkeletonContext().progress instead */
+export function useSkeletonProgress() {
+  return useSkeletonContext().progress;
 }

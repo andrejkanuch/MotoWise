@@ -17,7 +17,8 @@
     "edit": "Editar",
     "more": "Mais",
     "no": "Não",
-    "yes": "Sim"
+    "yes": "Sim",
+    "genericError": "Algo deu errado. Por favor, tente novamente."
   },
   "auth": {
     "signIn": "Entrar",
@@ -883,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "Iniciar viagem",
+    "diagnoseIssue": "Diagnosticar problema",
+    "addExpense": "Adicionar despesa"
   }
 }

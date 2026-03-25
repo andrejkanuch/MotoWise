@@ -214,7 +214,7 @@ export default function LearnScreen() {
     modulesOffsetY.current = e.nativeEvent.layout.y;
   }, []);
 
-  const isInitialLoading = isProgressLoading && isPopularLoading && !progressData && !popularData;
+  const isInitialLoading = (isProgressLoading || isPopularLoading) && !progressData && !popularData;
 
   if (isInitialLoading) {
     return (

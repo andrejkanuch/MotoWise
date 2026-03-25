@@ -199,7 +199,7 @@ export default function RideSummaryScreen() {
       clearRideData(rideId);
 
       incrementRideCount();
-      await maybeRequestReview();
+      maybeRequestReview();
 
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(tabs)/(profile)' as any);

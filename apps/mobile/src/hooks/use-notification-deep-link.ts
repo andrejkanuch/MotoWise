@@ -1,6 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { useRouter, useSegments } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../stores/auth.store';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -18,7 +18,12 @@ export function useNotificationDeepLink() {
   const session = useAuthStore((s) => s.session);
   const isLoading = useAuthStore((s) => s.isLoading);
   const pendingRoute = useRef<string | null>(null);
-  const isReady = !isLoading && !!session && segments[0] === '(tabs)';
+  const isReady = useMemo(
+    () => !isLoading && !!session && segments[0] === '(tabs)',
+    [isLoading, session, segments[0]],
+  );
+  const isReadyRef = useRef(isReady);
+  isReadyRef.current = isReady;
 
   // Cold start — read the last notification response that launched the app
   const lastResponse = Notifications.useLastNotificationResponse();
@@ -48,6 +53,7 @@ export function useNotificationDeepLink() {
   }, [isReady, router]);
 
   // Warm start — listen for notification taps while the app is running
+  // Uses ref for isReady to avoid tearing down the listener on every segment change
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       if (response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
@@ -55,9 +61,9 @@ export function useNotificationDeepLink() {
         response.notification.request.content.data as Record<string, unknown> | undefined,
       );
       if (!route) return;
-      if (isReady) router.push(route as any);
+      if (isReadyRef.current) router.push(route as any);
       else pendingRoute.current = route;
     });
     return () => sub.remove();
-  }, [isReady, router]);
+  }, [router]);
 }

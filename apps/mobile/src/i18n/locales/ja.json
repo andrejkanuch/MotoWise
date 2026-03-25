@@ -17,7 +17,8 @@
     "edit": "編集",
     "more": "もっと見る",
     "no": "いいえ",
-    "yes": "はい"
+    "yes": "はい",
+    "genericError": "エラーが発生しました。もう一度お試しください。"
   },
   "auth": {
     "signIn": "サインイン",
@@ -883,5 +884,10 @@
     "faq4Answer": "Go to Profile and use the language selector to switch between supported languages.",
     "faq5Question": "Is my data secure?",
     "faq5Answer": "Yes. We use end-to-end encryption and follow industry best practices. You can export or delete your data at any time from Privacy settings."
+  },
+  "quickActions": {
+    "startRide": "ライドを開始",
+    "diagnoseIssue": "問題を診断",
+    "addExpense": "費用を追加"
   }
 }

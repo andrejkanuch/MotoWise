@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { incrementTaskCount, maybeRequestReview } from '../../../lib/store-review';
+import { triggerNotification } from '../../../utils/haptics';
 
 export default function CompleteTaskScreen() {
   const { t } = useTranslation();
@@ -64,10 +65,8 @@ export default function CompleteTaskScreen() {
         id: taskId,
         createNextOccurrence: task?.isRecurring ? scheduleNext : false,
       }),
-    onSuccess: async () => {
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+    onSuccess: () => {
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
       setCompleted(true);
       buttonScale.value = withSequence(
         withSpring(1.08, { damping: 8, stiffness: 200 }),
@@ -75,7 +74,7 @@ export default function CompleteTaskScreen() {
       );
 
       incrementTaskCount();
-      await maybeRequestReview();
+      maybeRequestReview();
 
       setTimeout(() => router.back(), 800);
     },

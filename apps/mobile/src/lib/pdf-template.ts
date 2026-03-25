@@ -25,7 +25,8 @@ function escapeHtml(str: string): string {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function formatDate(dateStr: string): string {
@@ -118,10 +119,11 @@ function renderTaskRow(task: PdfTask, mileageUnit: string): string {
       ? formatDate(task.dueDate)
       : '—';
 
+  const safeUnit = escapeHtml(mileageUnit);
   const mileage = task.completedMileage
-    ? `${task.completedMileage.toLocaleString()} ${mileageUnit}`
+    ? `${task.completedMileage.toLocaleString()} ${safeUnit}`
     : task.targetMileage
-      ? `${task.targetMileage.toLocaleString()} ${mileageUnit}`
+      ? `${task.targetMileage.toLocaleString()} ${safeUnit}`
       : '—';
 
   const pColor = priorityColor(task.priority);
@@ -139,7 +141,7 @@ function renderTaskRow(task: PdfTask, mileageUnit: string): string {
       <td><strong>${escapeHtml(task.title)}</strong></td>
       <td>${mileage}</td>
       <td><span class="priority-badge" style="background:${pColor}20;color:${pColor}">${escapeHtml(task.priority)}</span></td>
-      <td>${statusLabel(task.status)}</td>
+      <td>${escapeHtml(statusLabel(task.status))}</td>
       <td class="notes-cell">${notesCell || '—'}</td>
     </tr>`;
 }

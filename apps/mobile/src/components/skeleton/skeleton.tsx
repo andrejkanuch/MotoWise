@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
-import { useColorScheme, type ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated';
-import { useSkeletonProgress } from './skeleton-provider';
+import { useSkeletonContext } from './skeleton-provider';
 
 interface SkeletonProps {
   width: number | `${number}%`;
@@ -11,8 +11,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ width, height, borderRadius = 8, style }: SkeletonProps) {
-  const progress = useSkeletonProgress();
-  const isDark = useColorScheme() === 'dark';
+  const { progress, isDark } = useSkeletonContext();
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0.4, 1]),

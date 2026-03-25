@@ -9,9 +9,13 @@ type ErrorFallbackProps = {
 };
 
 export function ErrorFallback({ error, onRetry }: ErrorFallbackProps) {
-  const message = error instanceof Error ? error.message : String(error);
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
+  const message = __DEV__
+    ? error instanceof Error
+      ? error.message
+      : String(error)
+    : t('common.genericError', { defaultValue: 'Something went wrong. Please try again.' });
 
   return (
     <View
