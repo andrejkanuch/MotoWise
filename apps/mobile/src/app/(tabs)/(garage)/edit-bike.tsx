@@ -31,6 +31,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCurrency } from '../../../hooks/use-currency';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
@@ -38,6 +39,7 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function EditBikeScreen() {
   const { t } = useTranslation();
+  const { symbol: currencySymbol } = useCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const isDark = useColorScheme() === 'dark';
@@ -902,7 +904,7 @@ export default function EditBikeScreen() {
                     marginRight: 8,
                   }}
                 >
-                  $
+                  {currencySymbol}
                 </Text>
                 <TextInput
                   value={purchasePrice}
