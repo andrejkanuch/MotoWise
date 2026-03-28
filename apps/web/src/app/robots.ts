@@ -8,8 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       // Allow AI search crawlers explicitly
       { userAgent: 'GPTBot', allow: '/' },
       { userAgent: 'OAI-SearchBot', allow: '/' },
+      { userAgent: 'ChatGPT-User', allow: '/' },
       { userAgent: 'ClaudeBot', allow: '/' },
       { userAgent: 'PerplexityBot', allow: '/' },
+      { userAgent: 'Amazonbot', allow: '/' },
       // Block training-only crawlers
       { userAgent: 'CCBot', disallow: '/' },
       { userAgent: 'Google-Extended', disallow: '/' },

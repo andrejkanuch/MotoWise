@@ -115,7 +115,7 @@ export default async function HomePage({ params }: PageProps) {
     inLanguage: 'en',
   };
 
-  const faqItems = Array.from({ length: 6 }, (_, i) => ({
+  const faqItems = Array.from({ length: 8 }, (_, i) => ({
     question: tFaq(`items.${i}.question`),
     answer: tFaq(`items.${i}.answer`),
   }));
