@@ -169,7 +169,7 @@ export default function InsightsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={15} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={9} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         contentContainerStyle={{

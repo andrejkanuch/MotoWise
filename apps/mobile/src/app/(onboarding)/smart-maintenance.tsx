@@ -1,8 +1,17 @@
 import { palette } from '@motovault/design-system';
+import type { MaintenanceStyle } from '@motovault/types';
 import { LastServiceDate, ReminderChannel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { BarChart3, Bell, ShieldAlert, Sun } from 'lucide-react-native';
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  HelpCircle,
+  ShieldAlert,
+  Sun,
+  Wrench,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
@@ -12,6 +21,16 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
+
+const MAINTENANCE_STYLE_OPTIONS: {
+  value: MaintenanceStyle;
+  icon: typeof Wrench;
+  color: string;
+}[] = [
+  { value: 'diy', icon: Wrench, color: ONBOARDING_COLORS.success },
+  { value: 'sometimes', icon: HelpCircle, color: palette.moduleSuspension },
+  { value: 'mechanic', icon: Building2, color: '#A78BFA' },
+];
 
 const TOGGLE_ROWS = [
   {
@@ -87,6 +106,8 @@ export default function SmartMaintenanceScreen() {
       ? `${bikeData.make} ${bikeData.model}`
       : t('common.appName'));
 
+  const [maintStyle, setMaintStyle] = useState<MaintenanceStyle | null>(store.maintenanceStyle);
+
   const [toggles, setToggles] = useState<Record<ToggleKey, boolean>>({
     maintenanceReminders: store.maintenanceReminders,
     seasonalTips: store.seasonalTips,
@@ -98,6 +119,13 @@ export default function SmartMaintenanceScreen() {
   const [reminderChannel, setReminderChannel] = useState<ReminderChannel | null>(
     store.reminderChannel,
   );
+
+  const handleMaintStylePress = (value: string) => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setMaintStyle(value as MaintenanceStyle);
+  };
 
   const handleToggle = (key: ToggleKey) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -115,13 +143,16 @@ export default function SmartMaintenanceScreen() {
   };
 
   const canContinue =
-    lastService !== null && (!toggles.maintenanceReminders || reminderChannel !== null);
+    maintStyle !== null &&
+    lastService !== null &&
+    (!toggles.maintenanceReminders || reminderChannel !== null);
 
   const handleContinue = () => {
     if (!canContinue) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    if (maintStyle) store.setMaintenanceStyle(maintStyle);
     store.setMaintenanceReminders(toggles.maintenanceReminders);
     store.setSeasonalTips(toggles.seasonalTips);
     store.setRecallAlerts(toggles.recallAlerts);
@@ -135,7 +166,7 @@ export default function SmartMaintenanceScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={14} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={8} totalScreens={TOTAL_SCREENS} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -154,6 +185,38 @@ export default function SmartMaintenanceScreen() {
         >
           {t('onboarding.smartMaintenanceTitle', { bike: bikeName })}
         </Animated.Text>
+
+        {/* Maintenance style — merged from maintenance-style screen */}
+        <Animated.Text
+          entering={FadeInUp.delay(100).duration(300)}
+          style={{
+            fontSize: 20,
+            fontWeight: '700',
+            color: ONBOARDING_COLORS.textPrimary,
+            marginBottom: 12,
+          }}
+        >
+          {t('onboarding.maintenanceStyleTitle')}
+        </Animated.Text>
+
+        <View style={{ gap: 8, marginBottom: 32 }}>
+          {MAINTENANCE_STYLE_OPTIONS.map((option, index) => (
+            <Animated.View
+              key={option.value}
+              entering={FadeInUp.delay(Math.min(150 + index * 50, 400)).duration(300)}
+            >
+              <OnboardingCard
+                value={option.value}
+                icon={option.icon}
+                label={t(`onboarding.maintenanceStyle_${option.value}`)}
+                subtitle={t(`onboarding.maintenanceStyleDesc_${option.value}`)}
+                color={option.color}
+                selected={maintStyle === option.value}
+                onPress={handleMaintStylePress}
+              />
+            </Animated.View>
+          ))}
+        </View>
 
         {/* Toggle rows */}
         <View style={{ gap: 16, marginBottom: 32 }}>

@@ -1,16 +1,22 @@
 import { palette } from '@motovault/design-system';
+import type { MileageUnit } from '@motovault/types';
 import { MotorcycleType } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
+import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';
-import { Bike, Gauge, HelpCircle, MapPin, Mountain } from 'lucide-react-native';
+import { Bike, ChevronRight, Gauge, HelpCircle, MapPin, Mountain } from 'lucide-react-native';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { MileageSlider } from '../../components/onboarding/mileage-slider';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
+
+const defaultUnit: MileageUnit = getLocales()[0]?.measurementSystem === 'metric' ? 'km' : 'mi';
 
 const MOTORCYCLE_TYPE_OPTIONS = [
   {
@@ -44,21 +50,30 @@ export default function BikeTypeScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
 
-  const selectedType = bikeData?.type ?? null;
-  const wasAutoDetected = selectedType !== null;
+  const [selectedType, setSelectedType] = useState<MotorcycleType | null>(bikeData?.type ?? null);
+  const [mileage, setMileage] = useState<number | null>(bikeData?.currentMileage ?? 5000);
+  const [unit, setUnit] = useState<MileageUnit>(bikeData?.mileageUnit ?? defaultUnit);
+  const wasAutoDetected = bikeData?.type !== null && bikeData?.type !== undefined;
 
-  const handleSelect = (value: string) => {
+  const handleSelectType = (value: string) => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    setSelectedType(value as MotorcycleType);
+  };
 
-    const type = value as MotorcycleType;
+  const handleContinue = () => {
+    if (!selectedType) return;
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
     setBikeData({
       ...(bikeData as NonNullable<typeof bikeData>),
-      type,
+      type: selectedType,
+      currentMileage: mileage ?? 0,
+      mileageUnit: unit,
     });
-
-    router.replace('/(onboarding)/bike-mileage');
+    router.replace('/(onboarding)/bike-photo');
   };
 
   return (
@@ -109,18 +124,70 @@ export default function BikeTypeScreen() {
                 icon={option.icon}
                 label={t(`onboarding.type_${option.labelKey}`)}
                 subtitle={
-                  wasAutoDetected && selectedType === option.value
+                  wasAutoDetected && bikeData?.type === option.value
                     ? t('onboarding.bikeTypeAutoDetected')
                     : undefined
                 }
                 color={option.color}
                 selected={selectedType === option.value}
-                onPress={handleSelect}
+                onPress={handleSelectType}
               />
             </Animated.View>
           ))}
         </View>
+
+        {/* Mileage section — merged from bike-mileage screen */}
+        {selectedType && (
+          <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 32 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '700',
+                color: ONBOARDING_COLORS.textPrimary,
+                marginBottom: 16,
+              }}
+            >
+              {t('onboarding.bikeMileageTitle')}
+            </Text>
+            <MileageSlider
+              value={mileage ?? 0}
+              unit={unit}
+              onValueChange={setMileage}
+              onUnitChange={setUnit}
+            />
+          </Animated.View>
+        )}
       </ScrollView>
+
+      {selectedType && (
+        <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
+          <Pressable
+            onPress={handleContinue}
+            style={({ pressed }) => ({
+              backgroundColor: ONBOARDING_COLORS.textPrimary,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
+            })}
+          >
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: '700',
+                color: ONBOARDING_COLORS.background,
+              }}
+            >
+              {t('onboarding.continue')}
+            </Text>
+            <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }

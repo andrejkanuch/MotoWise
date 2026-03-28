@@ -37,7 +37,7 @@ export default function PaywallScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={16} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={10} totalScreens={TOTAL_SCREENS} />
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color={ONBOARDING_COLORS.accent} />
       </View>

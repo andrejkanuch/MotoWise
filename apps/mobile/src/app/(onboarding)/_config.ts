@@ -5,18 +5,12 @@ export const ONBOARDING_SCREENS = [
   { route: 'bike-make', key: 'bikeMake', section: 'B', canSkip: false },
   { route: 'bike-model', key: 'bikeModel', section: 'B', canSkip: false },
   { route: 'bike-type', key: 'bikeType', section: 'B', canSkip: false },
-  { route: 'bike-mileage', key: 'bikeMileage', section: 'B', canSkip: false },
   { route: 'bike-photo', key: 'bikePhoto', section: 'B', canSkip: false },
   { route: 'currency', key: 'currency', section: 'C', canSkip: false },
-  { route: 'riding-frequency', key: 'ridingFrequency', section: 'C', canSkip: false },
-  { route: 'riding-goals', key: 'ridingGoals', section: 'C', canSkip: false },
-  { route: 'maintenance-style', key: 'maintenanceStyle', section: 'C', canSkip: false },
-  { route: 'repair-spending', key: 'repairSpending', section: 'C', canSkip: false },
-  { route: 'learning-preferences', key: 'learningPreferences', section: 'D', canSkip: false },
-  { route: 'smart-maintenance', key: 'smartMaintenance', section: 'D', canSkip: false },
-  { route: 'insights', key: 'insights', section: 'E', canSkip: false },
-  { route: 'paywall', key: 'paywall', section: 'E', canSkip: false },
-  { route: 'personalizing', key: 'personalizing', section: 'E', canSkip: false },
+  { route: 'smart-maintenance', key: 'smartMaintenance', section: 'C', canSkip: false },
+  { route: 'insights', key: 'insights', section: 'D', canSkip: false },
+  { route: 'paywall', key: 'paywall', section: 'D', canSkip: false },
+  { route: 'personalizing', key: 'personalizing', section: 'D', canSkip: false },
 ] as const;
 
 export type OnboardingRoute = (typeof ONBOARDING_SCREENS)[number]['route'];

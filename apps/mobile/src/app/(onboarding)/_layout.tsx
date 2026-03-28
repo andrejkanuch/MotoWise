@@ -24,21 +24,13 @@ export default function OnboardingLayout() {
       <Stack.Screen name="bike-make" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-model" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-type" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="bike-mileage" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-photo" options={{ gestureEnabled: true }} />
 
-      {/* Section C: Preferences & Riding */}
+      {/* Section C: Preferences & Maintenance */}
       <Stack.Screen name="currency" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="riding-frequency" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="riding-goals" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="maintenance-style" options={{ gestureEnabled: true }} />
-      <Stack.Screen name="repair-spending" options={{ gestureEnabled: true }} />
-
-      {/* Section D: Smart Features Setup */}
-      <Stack.Screen name="learning-preferences" options={{ gestureEnabled: true }} />
       <Stack.Screen name="smart-maintenance" options={{ gestureEnabled: true }} />
 
-      {/* Section E: Value Reveal & Conversion */}
+      {/* Section D: Value Reveal & Conversion */}
       <Stack.Screen name="insights" options={{ gestureEnabled: false }} />
       <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />

@@ -40,12 +40,12 @@ export default function CurrencyScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    router.replace('/(onboarding)/riding-frequency');
+    router.replace('/(onboarding)/smart-maintenance');
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={8} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={7} totalScreens={TOTAL_SCREENS} />
 
       <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
         <Animated.Text

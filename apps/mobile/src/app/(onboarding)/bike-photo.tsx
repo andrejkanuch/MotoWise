@@ -156,7 +156,7 @@ export default function BikePhotoScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={7} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={6} totalScreens={TOTAL_SCREENS} />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
