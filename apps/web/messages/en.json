@@ -719,7 +719,7 @@
       "name": "MotoVault",
       "tagline": "All-in-one: maintenance, expenses, rides, AI diagnostics, and learning",
       "best": "Best for: Riders who want one app for everything",
-      "description": "MotoVault combines maintenance tracking, expense logging, ride recording, AI-powered photo diagnostics, and structured learning paths in a single app. It's the only motorcycle app that covers all five categories.",
+      "description": "MotoVault combines maintenance tracking, expense logging, GPS ride recording (with route maps, max speed, avg speed, elevation profiles, and interactive charts), AI-powered photo diagnostics, and structured learning paths in a single app. It's the only motorcycle app that covers all five categories.",
       "pros": "All-in-one platform, AI diagnostics without hardware, learning content with quizzes, multi-bike support, free tier available",
       "cons": "Newer app — smaller community, no route planning/navigation",
       "price": "Free / Pro from $4.99/mo",
@@ -969,7 +969,7 @@
     "rideFeatures": {
       "0": {
         "title": "GPS Ride Recording",
-        "description": "Automatically or manually record your rides with distance, duration, speed, elevation, and route maps."
+        "description": "Record your rides with full GPS tracking — distance, duration, max speed, avg speed, elevation gain/loss, altitude profiles, interactive speed and elevation charts, and route maps."
       },
       "1": {
         "title": "Route Planning",
@@ -977,7 +977,7 @@
       },
       "2": {
         "title": "Ride Analytics",
-        "description": "Review lean angles, top speed, altitude changes, and ride statistics after each trip."
+        "description": "Review max speed, average speed, altitude profiles, elevation gain/loss, and interactive speed and elevation charts plotted over distance after each ride."
       },
       "3": {
         "title": "Community & Sharing",

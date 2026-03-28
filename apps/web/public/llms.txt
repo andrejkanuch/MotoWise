@@ -13,7 +13,7 @@ MotoVault is an AI-powered motorcycle companion app available on iOS and Android
 - [Garage Management](https://motovault.app/features/garage-management): Track multiple bikes, log maintenance history, set mileage-based service reminders, monitor expenses by category.
 - [Learning Paths](https://motovault.app/features/learning-paths): Structured courses from beginner to advanced — engine internals, suspension, electrical systems — with interactive quizzes.
 - [Expense Tracking](https://motovault.app/features/garage-management): Log fuel, parts, service, and gear costs. See spending breakdowns, cost-per-mile, and yearly trends.
-- [Ride Logging](https://motovault.app/features/progress-tracking): Record rides with GPS tracking, distance, duration, and route data.
+- [Ride Logging](https://motovault.app/features/progress-tracking): GPS ride recording with route maps, max speed, avg speed, elevation gain/loss, altitude profiles, interactive speed and elevation charts, and ride duration tracking.
 
 ## How MotoVault Compares to Other Motorcycle Apps
 

@@ -44,7 +44,7 @@ Riders can log all motorcycle-related expenses in four categories: fuel, mainten
 
 ## Ride Logging
 
-MotoVault records rides with GPS tracking including distance, duration, and route data. Rides are linked to specific bikes in the garage, providing a complete picture of each motorcycle's usage alongside its maintenance history and expenses.
+MotoVault records rides with full GPS tracking and detailed analytics. Each ride captures distance, duration (with moving time vs paused time), max speed, average speed, elevation gain, elevation loss, and a complete route polyline rendered as an interactive map. Per-waypoint data includes altitude, speed, and GPS accuracy. The ride detail screen shows an interactive speed profile chart and elevation profile chart — both plotted over distance with hover tooltips. Rides are linked to specific bikes in the garage, providing a complete picture of each motorcycle's usage alongside its maintenance history and expenses. All data supports both metric and imperial units.
 
 ## Learning Paths & Quizzes
 

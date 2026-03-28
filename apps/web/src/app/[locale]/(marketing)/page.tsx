@@ -84,7 +84,8 @@ export default async function HomePage({ params }: PageProps) {
       'Digital garage management',
       'Structured learning paths and quizzes',
       'Maintenance tracking and reminders',
-      'Expense management',
+      'Expense management with cost-per-mile analytics',
+      'GPS ride recording with route maps, max speed, elevation profiles, and interactive charts',
     ],
     offers: [
       {
