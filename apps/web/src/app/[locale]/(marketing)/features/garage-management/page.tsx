@@ -160,10 +160,11 @@ export default async function GarageManagementPage({ params }: PageProps) {
 
   const softwareAppSchema = {
     '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
+    '@type': 'MobileApplication',
     name: 'MotoVault',
-    applicationCategory: 'LifestyleApplication',
-    operatingSystem: 'iOS, Android',
+    applicationCategory: 'UtilitiesApplication',
+    applicationSubCategory: 'Motorcycle Maintenance',
+    operatingSystem: ['iOS', 'Android'],
     description: t('description'),
     url: BASE_URL,
     featureList: [t('multiBikeTitle'), t('nhtsaTitle'), t('historyTitle'), t('remindersTitle')],

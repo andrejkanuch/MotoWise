@@ -142,9 +142,15 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
     dateModified: article.dateModified || article.date,
     image: article.heroImage ? `${BASE_URL}${article.heroImage}` : `${BASE_URL}/og-image.png`,
     author: {
-      '@type': 'Organization',
-      name: article.author,
-      url: BASE_URL,
+      '@type': 'Person',
+      name: 'Andrej Kanuch',
+      url: `${BASE_URL}/about`,
+      jobTitle: 'Founder & Developer',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'MotoVault',
+        url: BASE_URL,
+      },
     },
     publisher: {
       '@type': 'Organization',

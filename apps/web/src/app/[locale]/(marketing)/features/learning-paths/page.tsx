@@ -76,6 +76,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
       name: 'MotoVault',
       url: BASE_URL,
     },
+    educationalLevel: 'Beginner to Advanced',
+    inLanguage: locale,
+    isAccessibleForFree: true,
     hasCourseInstance: {
       '@type': 'CourseInstance',
       courseMode: 'Online',

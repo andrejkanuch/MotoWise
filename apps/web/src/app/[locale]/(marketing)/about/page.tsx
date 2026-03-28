@@ -135,8 +135,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     foundingDate: '2025',
     founder: {
       '@type': 'Person',
-      name: 'Andrej',
+      name: 'Andrej Kanuch',
       jobTitle: 'Founder & Developer',
+      url: `${BASE_URL}/about`,
     },
     address: {
       '@type': 'PostalAddress',
@@ -154,10 +155,33 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
     ],
   };
 
+  const profilePageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name: 'Andrej Kanuch',
+      jobTitle: 'Founder & Developer',
+      worksFor: {
+        '@type': 'Organization',
+        name: 'MotoVault',
+        url: BASE_URL,
+      },
+      description: t('founderBio'),
+      nationality: {
+        '@type': 'Country',
+        name: 'Slovakia',
+      },
+    },
+    dateCreated: '2025-01-01',
+    dateModified: '2026-03-28',
+  };
+
   return (
     <>
       <JsonLd data={breadcrumbSchema} />
       <JsonLd data={organizationSchema} />
+      <JsonLd data={profilePageSchema} />
 
       {/* Hero */}
       <section className="px-4 pb-16 pt-24 md:pt-32">
