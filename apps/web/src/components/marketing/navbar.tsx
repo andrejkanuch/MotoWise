@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { key: 'diagnostics', href: '/features/ai-diagnostics' },
   { key: 'learning', href: '/features/learning-paths' },
   { key: 'garage', href: '/features/garage-management' },
+  { key: 'compare', href: '/compare' },
   { key: 'faq', href: '#faq' },
 ] as const;
 

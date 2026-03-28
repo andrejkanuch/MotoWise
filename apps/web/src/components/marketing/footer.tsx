@@ -60,6 +60,14 @@ export async function Footer() {
     { label: 'TCLOCS Checklist', href: '/tools/tclocs-checklist' },
   ];
 
+  const compareLinks = [
+    { label: 'Best Motorcycle Apps', href: '/compare' },
+    { label: 'App Alternatives', href: '/compare/alternatives' },
+    { label: 'MotoVault vs RideLog', href: '/compare/motovault-vs-ridelog' },
+    { label: 'MotoVault vs REVER', href: '/compare/motovault-vs-rever' },
+    { label: 'MotoVault vs Calimoto', href: '/compare/motovault-vs-calimoto' },
+  ];
+
   const companyLinks = [
     { label: t('about'), href: '/about' },
     { label: t('privacy'), href: '/privacy' },
@@ -71,9 +79,10 @@ export async function Footer() {
   return (
     <footer className="relative bg-gradient-to-b from-transparent to-neutral-950">
       <div className="mx-auto max-w-7xl px-6 pt-16 pb-[max(4rem,env(safe-area-inset-bottom))]">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <FooterColumn title={t('product')} links={productLinks} />
           <FooterColumn title="Tools" links={toolLinks} />
+          <FooterColumn title="Compare" links={compareLinks} />
           <FooterColumn title={t('company')} links={companyLinks} />
         </div>
 
