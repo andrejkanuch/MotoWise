@@ -146,7 +146,9 @@ export class ExpensesService {
       .single();
 
     if (error || !data) {
-      this.logger.error(`softDelete failed: ${error?.message} (${error?.code})`);
+      this.logger.error(
+        `softDelete failed: ${error?.message} (code=${error?.code}, details=${error?.details}, hint=${error?.hint})`,
+      );
       throw new BadRequestException('Failed to delete expense');
     }
     return true;
