@@ -1,10 +1,10 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/next';
-import { MetaPixel } from '@/components/meta-pixel';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
+import { MetaPixel } from '@/components/meta-pixel';
 import './globals.css';
 
 const plusJakarta = Plus_Jakarta_Sans({

@@ -1,8 +1,7 @@
 import { AppEventsLogger } from 'react-native-fbsdk-next';
 
 export const MetaAnalytics = {
-  trackCompleteTutorial: () =>
-    AppEventsLogger.logEvent('fb_mobile_tutorial_completion'),
+  trackCompleteTutorial: () => AppEventsLogger.logEvent('fb_mobile_tutorial_completion'),
 
   trackViewContent: (contentType: string, contentId: string) =>
     AppEventsLogger.logEvent('fb_mobile_content_view', {
@@ -40,6 +39,7 @@ export const MetaAnalytics = {
     AppEventsLogger.logEvent('fb_mobile_achievement_unlocked', {
       fb_description: 'ride_logged',
       fb_content_type: 'ride',
+      distance_km: distanceKm,
     }),
 
   trackLogMaintenance: (maintenanceType: string) =>

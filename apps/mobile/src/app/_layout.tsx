@@ -21,7 +21,9 @@ try {
 
 import { Stack, useNavigationContainerRef, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { useEffect, useRef, useState } from 'react';
+import { Settings } from 'react-native-fbsdk-next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
@@ -34,8 +36,6 @@ import {
   resetUser,
   sentryNavigationIntegration,
 } from '../lib/analytics';
-import { Settings } from 'react-native-fbsdk-next';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
   cancelAllNotifications,

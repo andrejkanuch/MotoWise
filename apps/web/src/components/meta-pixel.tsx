@@ -9,6 +9,7 @@ export function MetaPixel() {
   const pathname = usePathname();
   const isInitialLoad = useRef(true);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname dependency is intentional — fire PageView on route change
   useEffect(() => {
     if (!PIXEL_ID || typeof window.fbq === 'undefined') return;
     if (isInitialLoad.current) {
@@ -25,6 +26,7 @@ export function MetaPixel() {
       <Script
         id="meta-pixel"
         strategy="afterInteractive"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Meta Pixel requires inline script injection
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
@@ -38,6 +40,7 @@ export function MetaPixel() {
         }}
       />
       <noscript>
+        {/* biome-ignore lint/performance/noImgElement: noscript fallback for Meta Pixel — next/image not supported in noscript */}
         <img
           height="1"
           width="1"

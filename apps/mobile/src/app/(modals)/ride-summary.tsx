@@ -210,7 +210,7 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router]);
+  }, [rideId, rideName, router, distanceM]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
