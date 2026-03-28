@@ -3,10 +3,12 @@ import { ArticleBySlugFullDocument, MarkArticleReadDocument } from '@motovault/g
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, BookOpen, CheckCircle, Clock, Eye } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../../lib/meta-analytics';
 import { queryKeys } from '../../../../lib/query-keys';
 
 const DIFFICULTY_COLORS = {
@@ -47,6 +49,13 @@ export default function ArticleScreen() {
 
   const article = data?.articleBySlugFull;
   const content = article?.contentJson as ContentJson | null | undefined;
+
+  // Track article view for Meta
+  useEffect(() => {
+    if (slug) {
+      MetaAnalytics.trackViewContent('article', slug);
+    }
+  }, [slug]);
 
   const markReadMutation = useMutation({
     mutationFn: () => gqlFetcher(MarkArticleReadDocument, { articleId: article?.id ?? '' }),

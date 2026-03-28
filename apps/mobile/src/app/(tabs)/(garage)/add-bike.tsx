@@ -24,6 +24,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 
 function haptic() {
@@ -120,12 +121,15 @@ export default function AddBikeScreen() {
     if (!isValid || isPending) return;
 
     try {
+      const make = customMake || selectedMake?.makeName || '';
+      const model = customModel || selectedModel?.modelName || '';
       await mutateAsync({
         year: yearNum,
-        make: customMake || selectedMake?.makeName || '',
-        model: customModel || selectedModel?.modelName || '',
+        make,
+        model,
         nickname: nickname.trim() || undefined,
       });
+      MetaAnalytics.trackAddToGarage(make, model, yearNum);
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

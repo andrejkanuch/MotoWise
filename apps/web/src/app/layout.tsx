@@ -1,5 +1,6 @@
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Analytics } from '@vercel/analytics/next';
+import { MetaPixel } from '@/components/meta-pixel';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
       <head>
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
         <link
           rel="alternate"
           type="application/rss+xml"
@@ -56,6 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
+        <MetaPixel />
       </body>
     </html>
   );

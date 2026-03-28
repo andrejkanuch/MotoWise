@@ -1,3 +1,7 @@
+'use client';
+
+import { trackEvent } from '@/lib/meta-pixel';
+
 const STORE_LINKS = {
   appStore: 'https://apps.apple.com/us/app/motovault/id6760291360',
   googlePlay: 'https://play.google.com/store/apps/details?id=com.motovault.app',
@@ -16,6 +20,9 @@ export function StoreButtons({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
     <div className={`flex flex-wrap items-center ${styles[size]}`} style={{ gap: undefined }}>
       <a
         href={STORE_LINKS.appStore}
+        onClick={() =>
+          trackEvent('Lead', { content_name: 'App Download', content_category: 'ios' })
+        }
         className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
@@ -26,6 +33,9 @@ export function StoreButtons({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
       </a>
       <a
         href={STORE_LINKS.googlePlay}
+        onClick={() =>
+          trackEvent('Lead', { content_name: 'App Download', content_category: 'android' })
+        }
         className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
       >
         <span className="flex items-center gap-2">

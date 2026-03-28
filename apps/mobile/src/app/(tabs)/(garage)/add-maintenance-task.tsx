@@ -11,6 +11,7 @@ import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-n
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -88,6 +89,7 @@ export default function AddMaintenanceTaskScreen() {
         }
       }
 
+      MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
       haptic();
       setTimeout(() => router.back(), 600);

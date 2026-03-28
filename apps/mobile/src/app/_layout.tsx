@@ -34,6 +34,8 @@ import {
   resetUser,
   sentryNavigationIntegration,
 } from '../lib/analytics';
+import { Settings } from 'react-native-fbsdk-next';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
   cancelAllNotifications,
@@ -222,6 +224,26 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Initialize Meta SDK with ATT prompt
+  useEffect(() => {
+    async function initMetaSDK() {
+      if (process.env.EXPO_OS === 'ios') {
+        const { status } = await requestTrackingPermissionsAsync();
+        Settings.initializeSDK();
+        try {
+          if (status === 'granted') {
+            await Settings.setAdvertiserTrackingEnabled(true);
+          }
+        } catch {
+          // setAdvertiserTrackingEnabled can crash on iOS simulator
+        }
+      } else {
+        Settings.initializeSDK();
+      }
+    }
+    initMetaSDK();
   }, []);
 
   // Initialize RevenueCat SDK with cleanup

@@ -26,6 +26,7 @@ import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-revie
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
 
@@ -139,6 +140,7 @@ export default function NewDiagnosticScreen() {
     if (state.isSubmitting) return;
     state.setIsSubmitting(true);
     state.setSubmitError(null);
+    MetaAnalytics.trackStartDiagnostic();
 
     try {
       // Read base64 from photoUri at submission time

@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '2.3.0',
+  version: '2.4.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
@@ -85,6 +85,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     './plugins/remove-activity-recognition',
     [
+      'expo-tracking-transparency',
+      {
+        userTrackingPermission:
+          'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
+      },
+    ],
+    [
+      'react-native-fbsdk-next',
+      {
+        appID: '950678714025532',
+        clientToken: process.env.FACEBOOK_CLIENT_TOKEN ?? '',
+        displayName: 'MotoVault',
+        scheme: 'fb950678714025532',
+        advertiserIDCollectionEnabled: false,
+        autoLogAppEventsEnabled: true,
+        isAutoInitEnabled: true,
+        iosUserTrackingPermission:
+          'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
+      },
+    ],
+    [
       'expo-build-properties',
       {
         android: {
@@ -113,6 +134,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',
+      NSUserTrackingUsageDescription:
+        'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
     },
     config: {
       usesNonExemptEncryption: false,

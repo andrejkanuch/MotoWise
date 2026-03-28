@@ -41,6 +41,7 @@ import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 
 const MODULES = [
@@ -90,7 +91,11 @@ export default function LearnScreen() {
   // Debounce search input by 300ms
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery.trim());
+      const trimmed = searchQuery.trim();
+      setDebouncedQuery(trimmed);
+      if (trimmed.length > 0) {
+        MetaAnalytics.trackSearch(trimmed);
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
