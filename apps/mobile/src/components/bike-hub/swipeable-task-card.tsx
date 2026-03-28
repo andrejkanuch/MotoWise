@@ -194,15 +194,15 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
           </View>
         </Pressable>
 
-        {/* Action buttons row — visible always for active tasks */}
-        {!isCompleted && (
-          <View
-            style={{
-              flexDirection: 'row',
-              borderTopWidth: 0.5,
-              borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-            }}
-          >
+        {/* Action buttons row */}
+        <View
+          style={{
+            flexDirection: 'row',
+            borderTopWidth: 0.5,
+            borderTopColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          }}
+        >
+          {!isCompleted && (
             <Pressable
               onPress={() => {
                 triggerImpact();
@@ -224,27 +224,27 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 {t('maintenance.markDone', { defaultValue: 'Done' })}
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => {
-                triggerImpact();
-                onDelete(task.id, task.title);
-              }}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 10,
-              }}
-            >
-              <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
-                {t('common.delete', { defaultValue: 'Delete' })}
-              </Text>
-            </Pressable>
-          </View>
-        )}
+          )}
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              onDelete(task.id, task.title);
+            }}
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              paddingVertical: 10,
+            }}
+          >
+            <Trash2 size={14} color={palette.danger500} strokeWidth={2} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.danger500 }}>
+              {t('common.delete', { defaultValue: 'Delete' })}
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Completed info row */}
         {isCompleted && task.completedAt && (

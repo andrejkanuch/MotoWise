@@ -26,6 +26,9 @@ const pages = [
   '/blog',
   '/tools/cost-calculator',
   '/tools/tclocs-checklist',
+  '/compare',
+  '/compare/alternatives',
+  '/compare/maintenance-vs-ride-apps',
   '/press',
   '/about',
 ];
@@ -49,6 +52,9 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/blog': '2026-03-16',
   '/tools/cost-calculator': '2026-03-22',
   '/tools/tclocs-checklist': '2026-03-22',
+  '/compare': '2026-03-27',
+  '/compare/alternatives': '2026-03-27',
+  '/compare/maintenance-vs-ride-apps': '2026-03-27',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
 };

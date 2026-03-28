@@ -76,6 +76,16 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
       }
     });
 
+  const longPressGesture = Gesture.LongPress()
+    .minDuration(500)
+    .onEnd((_event, success) => {
+      if (success) {
+        runOnJS(confirmDelete)();
+      }
+    });
+
+  const composedGesture = Gesture.Race(panGesture, longPressGesture);
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
@@ -112,7 +122,7 @@ export function SwipeableExpense({ expense, isDark, onDelete, index }: Swipeable
         </Animated.View>
 
         {/* Expense row */}
-        <GestureDetector gesture={panGesture}>
+        <GestureDetector gesture={composedGesture}>
           <Animated.View
             style={[
               {
