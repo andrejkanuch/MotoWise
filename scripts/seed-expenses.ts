@@ -15,60 +15,160 @@ interface Expense {
   category: 'fuel' | 'maintenance' | 'parts' | 'gear';
   description: string;
   monthsAgo: number;
+  currency: string;
 }
 
 const EXPENSES: Expense[] = [
-  // Gear
-  { amount: 497.0, category: 'gear', description: 'Shoei NXR2 Nocturne TC-5 helmet', monthsAgo: 8 },
-  { amount: 279.0, category: 'gear', description: 'Alpinestars GP Pro R4 gloves', monthsAgo: 7 },
-  { amount: 449.99, category: 'gear', description: "Rev'it Ignition 4 H2O jacket", monthsAgo: 6 },
-  { amount: 211.5, category: 'gear', description: 'Sidi Performer boots', monthsAgo: 5 },
-  { amount: 656.99, category: 'gear', description: "Rev'it Valve H2O pants", monthsAgo: 4 },
+  // ── Services & Maintenance ──
   {
-    amount: 69.0,
-    category: 'gear',
-    description: 'Dainese Manis D1 G2 back protector',
-    monthsAgo: 3,
+    amount: 85.0,
+    category: 'maintenance',
+    description: 'Annual oil + filter change (Advantec 5W-40 4L + OEM filter, DIY)',
+    monthsAgo: 11,
+    currency: 'EUR',
   },
-  { amount: 319.95, category: 'gear', description: 'Cardo Packtalk Edge intercom', monthsAgo: 2 },
+  {
+    amount: 22.0,
+    category: 'maintenance',
+    description: 'Final drive (bevel gear) oil change — SAE 75W90, DIY',
+    monthsAgo: 11,
+    currency: 'EUR',
+  },
+  {
+    amount: 45.0,
+    category: 'maintenance',
+    description: 'Brake fluid flush (DOT 4, front + rear)',
+    monthsAgo: 9,
+    currency: 'EUR',
+  },
+  {
+    amount: 340.0,
+    category: 'maintenance',
+    description: '10,000 km annual service (BMW dealer) — oil, filter, valve clearance',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+  {
+    amount: 15.0,
+    category: 'maintenance',
+    description: 'Coolant level check + top-up (BMW coolant concentrate)',
+    monthsAgo: 3,
+    currency: 'EUR',
+  },
+  {
+    amount: 60.0,
+    category: 'maintenance',
+    description: 'Tire mounting + balancing (front + rear)',
+    monthsAgo: 4,
+    currency: 'EUR',
+  },
+
+  // ── Parts ──
+  {
+    amount: 45.0,
+    category: 'parts',
+    description: 'Front brake pads (EBC sintered Double-H)',
+    monthsAgo: 8,
+    currency: 'EUR',
+  },
+  {
+    amount: 29.0,
+    category: 'parts',
+    description: 'Air filter (Mahle)',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+  {
+    amount: 24.0,
+    category: 'parts',
+    description: 'Spark plugs (NGK LMAR8AI-10) ×2',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+  {
+    amount: 114.38,
+    category: 'parts',
+    description: 'Michelin Anakee Adventure — Front 120/70R19',
+    monthsAgo: 4,
+    currency: 'EUR',
+  },
+  {
+    amount: 140.22,
+    category: 'parts',
+    description: 'Michelin Anakee Adventure — Rear 170/60R17',
+    monthsAgo: 4,
+    currency: 'EUR',
+  },
+
+  // ── Fuel (R1250GS real-world: 5.0–5.3 L/100km, EU avg ~€1.70/L) ──
+  {
+    amount: 58.0,
+    category: 'fuel',
+    description: 'Fuel (~34L fill)',
+    monthsAgo: 11,
+    currency: 'EUR',
+  },
+  { amount: 62.0, category: 'fuel', description: 'Fuel', monthsAgo: 10, currency: 'EUR' },
+  { amount: 55.0, category: 'fuel', description: 'Fuel', monthsAgo: 9, currency: 'EUR' },
+  {
+    amount: 68.0,
+    category: 'fuel',
+    description: 'Fuel (longer ride)',
+    monthsAgo: 8,
+    currency: 'EUR',
+  },
+  { amount: 59.0, category: 'fuel', description: 'Fuel', monthsAgo: 7, currency: 'EUR' },
+  {
+    amount: 71.0,
+    category: 'fuel',
+    description: 'Fuel (weekend trip)',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+  { amount: 55.0, category: 'fuel', description: 'Fuel', monthsAgo: 5, currency: 'EUR' },
+  { amount: 63.0, category: 'fuel', description: 'Fuel', monthsAgo: 4, currency: 'EUR' },
+  { amount: 58.0, category: 'fuel', description: 'Fuel', monthsAgo: 3, currency: 'EUR' },
+  { amount: 65.0, category: 'fuel', description: 'Fuel', monthsAgo: 2, currency: 'EUR' },
+  { amount: 59.0, category: 'fuel', description: 'Fuel', monthsAgo: 1, currency: 'EUR' },
+
+  // ── Gear ──
+  {
+    amount: 407.0,
+    category: 'gear',
+    description: 'Shoei NXR2 Black (Fortamoto)',
+    monthsAgo: 10,
+    currency: 'EUR',
+  },
+  {
+    amount: 449.99,
+    category: 'gear',
+    description: "Rev'it Ignition 4 H2O jacket (Fortamoto)",
+    monthsAgo: 8,
+    currency: 'EUR',
+  },
+  {
+    amount: 119.95,
+    category: 'gear',
+    description: 'Alpinestars SP-8 V3 gloves',
+    monthsAgo: 7,
+    currency: 'EUR',
+  },
   {
     amount: 34.95,
     category: 'gear',
-    description: 'Pinlock 70 Max Vision insert (Shoei NXR2)',
-    monthsAgo: 1,
+    description: 'Pinlock 70 Max Vision (Shoei NXR2)',
+    monthsAgo: 2,
+    currency: 'EUR',
   },
-  { amount: 89.0, category: 'gear', description: 'Held Cloudbreak rain suit', monthsAgo: 1 },
-  // Maintenance
+
+  // ── Accessories ──
   {
-    amount: 95.0,
-    category: 'maintenance',
-    description: 'Oil + filter change (Advantec 4L + HF filter)',
-    monthsAgo: 7,
+    amount: 336.16,
+    category: 'gear',
+    description: 'Cardo Packtalk Edge single (motointercom.eu)',
+    monthsAgo: 5,
+    currency: 'EUR',
   },
-  {
-    amount: 350.0,
-    category: 'maintenance',
-    description: '10,000 km service (BMW dealer)',
-    monthsAgo: 3,
-  },
-  { amount: 45.0, category: 'maintenance', description: 'Coolant flush', monthsAgo: 1 },
-  // Parts
-  { amount: 185.0, category: 'parts', description: 'Chain and sprocket kit', monthsAgo: 5 },
-  {
-    amount: 58.0,
-    category: 'parts',
-    description: 'Brake pads front (BMW OEM sintered)',
-    monthsAgo: 4,
-  },
-  { amount: 32.0, category: 'parts', description: 'Air filter (Mahle/Mann boxer)', monthsAgo: 2 },
-  // Fuel
-  { amount: 62.0, category: 'fuel', description: 'Shell V-Power (~15L)', monthsAgo: 7 },
-  { amount: 58.0, category: 'fuel', description: 'OMV MaxxMotion', monthsAgo: 6 },
-  { amount: 71.0, category: 'fuel', description: 'Shell V-Power', monthsAgo: 5 },
-  { amount: 65.0, category: 'fuel', description: 'Slovnaft fuel stop', monthsAgo: 4 },
-  { amount: 59.0, category: 'fuel', description: 'OMV fuel', monthsAgo: 3 },
-  { amount: 68.0, category: 'fuel', description: 'Shell V-Power', monthsAgo: 2 },
-  { amount: 72.0, category: 'fuel', description: 'Shell V-Power (~16L)', monthsAgo: 1 },
 ];
 
 function dateMonthsAgo(months: number): string {
@@ -92,21 +192,35 @@ async function main() {
   }
   console.log('User:', user.id);
 
-  // Find BMW R 1250 GS (2023)
+  // Find BMW R 1250 GS
   const { data: bikes } = await supabase
     .from('motorcycles')
     .select('id, make, model, year')
     .eq('user_id', user.id)
     .is('deleted_at', null);
 
-  const bmw = bikes?.find((b) => b.model?.includes('1250') && b.year === 2023);
+  const bmw = bikes?.find(
+    (b) => b.make?.toLowerCase().includes('bmw') && b.model?.toLowerCase().includes('1250'),
+  );
   if (!bmw) {
     console.error('BMW R 1250 GS not found. Available:', bikes);
     process.exit(1);
   }
   console.log(`Bike: ${bmw.make} ${bmw.model} ${bmw.year} (${bmw.id})`);
 
-  // Insert expenses
+  // Delete existing expenses for this bike
+  const { error: delErr, count } = await supabase
+    .from('expenses')
+    .delete({ count: 'exact' })
+    .eq('user_id', user.id)
+    .eq('motorcycle_id', bmw.id);
+  if (delErr) {
+    console.error('Delete failed:', delErr);
+    process.exit(1);
+  }
+  console.log(`Deleted ${count ?? 0} old expenses`);
+
+  // Insert new expenses
   const rows = EXPENSES.map((e) => ({
     user_id: user.id,
     motorcycle_id: bmw.id,
@@ -114,6 +228,7 @@ async function main() {
     category: e.category,
     description: e.description,
     date: dateMonthsAgo(e.monthsAgo),
+    currency: e.currency,
   }));
 
   const { error: insertErr } = await supabase.from('expenses').insert(rows);
@@ -128,10 +243,10 @@ async function main() {
   const grand = Object.values(totals).reduce((a, b) => a + b, 0);
 
   console.log(`\n✓ ${rows.length} expenses inserted`);
-  console.log(`  Gear:        €${totals.gear.toFixed(2)}`);
+  console.log(`  Fuel:        €${totals.fuel.toFixed(2)}`);
   console.log(`  Maintenance: €${totals.maintenance.toFixed(2)}`);
   console.log(`  Parts:       €${totals.parts.toFixed(2)}`);
-  console.log(`  Fuel:        €${totals.fuel.toFixed(2)}`);
+  console.log(`  Gear:        €${totals.gear.toFixed(2)}`);
   console.log(`  TOTAL:       €${grand.toFixed(2)}`);
   console.log(`  Gear %:      ${((totals.gear / grand) * 100).toFixed(1)}%`);
 }
