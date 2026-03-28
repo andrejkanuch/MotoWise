@@ -40,16 +40,6 @@ export function MetaPixel() {
           `,
         }}
       />
-      <noscript>
-        {/* biome-ignore lint/performance/noImgElement: noscript fallback for Meta Pixel — next/image not supported in noscript */}
-        <img
-          height="1"
-          width="1"
-          style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1`}
-          alt=""
-        />
-      </noscript>
     </>
   );
 }

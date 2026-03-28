@@ -238,11 +238,11 @@ export default function UpgradeScreen() {
         return;
       }
       trackEvent(AnalyticsEvent.PURCHASE_STARTED, { packageId: selectedPlan });
-      MetaAnalytics.trackStartTrial(selectedPlan);
       await Purchases.purchasePackage(packageToBuy);
       trackEvent(AnalyticsEvent.PURCHASE_COMPLETED);
       const price = packageToBuy.product.price ?? 0;
       const currency = packageToBuy.product.currencyCode ?? 'USD';
+      MetaAnalytics.trackStartTrial(selectedPlan);
       MetaAnalytics.trackSubscribe(price, currency, selectedPlan);
       router.back();
     } catch (error) {

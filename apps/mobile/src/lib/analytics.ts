@@ -21,6 +21,10 @@ let posthogClient: PostHog | null = null;
 let analyticsEnabled = true;
 let crashReportingEnabled = true;
 
+export function isAnalyticsEnabled() {
+  return analyticsEnabled;
+}
+
 // ---- Initialisation ------------------------------------------------
 
 export const sentryNavigationIntegration: ReturnType<typeof Sentry.reactNavigationIntegration> =
