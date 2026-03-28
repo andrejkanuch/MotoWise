@@ -3,7 +3,8 @@ import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const RAW_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const PIXEL_ID = RAW_PIXEL_ID && /^\d{10,20}$/.test(RAW_PIXEL_ID) ? RAW_PIXEL_ID : null;
 
 export function MetaPixel() {
   const pathname = usePathname();

@@ -99,8 +99,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         displayName: 'MotoVault',
         scheme: 'fb950678714025532',
         advertiserIDCollectionEnabled: false,
-        autoLogAppEventsEnabled: true,
-        isAutoInitEnabled: true,
+        autoLogAppEventsEnabled: false,
+        isAutoInitEnabled: false,
         iosUserTrackingPermission:
           'MotoVault uses this identifier to deliver personalized ads and measure campaign effectiveness.',
       },

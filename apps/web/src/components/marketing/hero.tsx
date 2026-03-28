@@ -1,3 +1,4 @@
+'use client';
 import { useTranslations } from 'next-intl';
 import { trackEvent } from '@/lib/meta-pixel';
 import { AppPreview } from './app-preview';
