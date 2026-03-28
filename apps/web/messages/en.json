@@ -1026,5 +1026,152 @@
         "answer": "A good maintenance tracker pays for itself by preventing missed services. Catching a chain adjustment or oil change on time is far cheaper than the repair bill from neglecting it. Most apps offer free tiers to try before committing."
       }
     }
+  },
+  "VsRideLog": {
+    "title": "MotoVault vs RideLog: Which Motorcycle App Is Better? (2026)",
+    "description": "MotoVault vs RideLog — detailed comparison of features, pricing, and platforms. Both track maintenance and rides, but MotoVault adds AI diagnostics and learning. See which fits your needs.",
+    "heroLabel": "Head-to-Head",
+    "heroTitle": "MotoVault vs RideLog",
+    "heroSubtitle": "Both apps combine maintenance tracking with ride logging. But MotoVault adds AI diagnostics, structured learning, and Android support. Here's the full breakdown.",
+    "updatedAt": "Last updated: March 2026",
+    "quickVerdict": "MotoVault is the better choice if you want AI diagnostics, learning content, or use Android. RideLog wins on automatic ride detection and Apple ecosystem integration.",
+    "featureMaintenance": "Maintenance Tracking",
+    "featureExpenses": "Expense Tracking",
+    "featureRides": "Ride Logging",
+    "featureAutoDetect": "Auto Ride Detection",
+    "featureDiagnostics": "AI Diagnostics",
+    "featureLearning": "Learning Content",
+    "featureMultiBike": "Multi-Bike Garage",
+    "featureReminders": "Service Reminders",
+    "featureAndroid": "Android Support",
+    "featureFindBike": "Find My Motorcycle",
+    "mvWins": "Where MotoVault Wins",
+    "mvWin0": "AI-powered diagnostics — describe symptoms or snap a photo, no OBD hardware needed",
+    "mvWin1": "Structured learning paths with quizzes — actually teaches you motorcycle mechanics",
+    "mvWin2": "Runs on both iOS and Android with the same full feature set",
+    "mvWin3": "Expense dashboard with cost-per-mile analytics and category breakdowns",
+    "rlWins": "Where RideLog Wins",
+    "rlWin0": "Automatic ride detection using iPhone motion sensors — rides are logged passively",
+    "rlWin1": "Find My Motorcycle feature — see where you parked on a map",
+    "rlWin2": "Dynamic Island and Live Activities integration on iPhone",
+    "rlWin3": "Polished iOS-native experience with deep Apple ecosystem integration",
+    "pricing": "RideLog is freemium with a premium subscription (price not publicly listed). MotoVault offers a free tier with Pro from $4.99/month. Both have free options for core maintenance and ride features.",
+    "verdict": "If you're an iPhone-only user who wants passive ride tracking with minimal effort, RideLog is excellent. If you want AI diagnostics, want to learn how your bike works, need Android support, or want deeper expense analytics, MotoVault is the clear choice. MotoVault covers more ground: maintenance, expenses, rides, diagnostics, and learning in one app.",
+    "faq": {
+      "0": {
+        "question": "Is MotoVault or RideLog better for tracking motorcycle maintenance?",
+        "answer": "Both apps offer maintenance tracking with service history and reminders. MotoVault goes further with AI-powered diagnostics that can identify issues from photos, expense analytics with cost-per-mile breakdowns, and structured learning content. RideLog focuses more on the ride tracking side with automatic detection."
+      },
+      "1": {
+        "question": "Does RideLog work on Android?",
+        "answer": "No, RideLog is iOS-only. If you use an Android phone, MotoVault is the best alternative — it offers the same maintenance tracking and ride logging features plus AI diagnostics and learning, and it runs on both iOS and Android."
+      },
+      "2": {
+        "question": "Can MotoVault automatically detect rides like RideLog?",
+        "answer": "MotoVault currently uses manual ride logging rather than automatic detection. RideLog's automatic ride detection using iPhone motion sensors is a unique feature. However, MotoVault compensates with AI diagnostics and learning content that RideLog lacks entirely."
+      },
+      "3": {
+        "question": "Which app is cheaper, MotoVault or RideLog?",
+        "answer": "Both apps offer free tiers. MotoVault Pro starts at $4.99/month with a 7-day free trial. RideLog's premium pricing is not publicly listed. For the features included, MotoVault offers more value since it includes AI diagnostics and learning content alongside maintenance and ride tracking."
+      }
+    }
+  },
+  "VsRever": {
+    "title": "MotoVault vs REVER: Maintenance & Diagnostics vs Route Planning (2026)",
+    "description": "MotoVault vs REVER comparison — maintenance tracking and AI diagnostics vs route planning and community rides. Different apps for different needs. See which one you need.",
+    "heroLabel": "Head-to-Head",
+    "heroTitle": "MotoVault vs REVER",
+    "heroSubtitle": "MotoVault helps you maintain and understand your bike. REVER helps you plan where to ride it. Different tools for different jobs — here's when to use each.",
+    "updatedAt": "Last updated: March 2026",
+    "quickVerdict": "These apps solve different problems. MotoVault is for maintenance, diagnostics, expenses, and learning. REVER is for route planning and community ride discovery. Many riders use both.",
+    "featureMaintenance": "Maintenance Tracking",
+    "featureExpenses": "Expense Tracking",
+    "featureRides": "Ride Logging",
+    "featureRoutes": "Route Planning",
+    "featureDiagnostics": "AI Diagnostics",
+    "featureLearning": "Learning Content",
+    "featureCommunity": "Community Routes",
+    "featureOfflineMaps": "Offline Maps",
+    "featureFriendTracker": "Friend Tracker",
+    "featureReminders": "Service Reminders",
+    "mvWins": "Where MotoVault Wins",
+    "mvWin0": "Complete maintenance tracking with service history, reminders, and expense analytics",
+    "mvWin1": "AI-powered diagnostics — describe symptoms or snap a photo, get probable causes and repair steps",
+    "mvWin2": "Structured learning paths that teach you motorcycle mechanics with quizzes",
+    "mvWin3": "Expense tracking with cost-per-mile analytics, category breakdowns, and yearly trends",
+    "rvWins": "Where REVER Wins",
+    "rvWin0": "Purpose-built route planner with Butler Maps integration and community-shared routes",
+    "rvWin1": "Turn-by-turn navigation with offline maps (Pro) for touring and road trips",
+    "rvWin2": "Real-time friend tracker — share your location with riding buddies",
+    "rvWin3": "Large community of riders sharing and rating routes worldwide",
+    "pricing": "REVER is free for basic features; Pro costs $39.99/year and adds offline maps, Butler Maps, and navigation. MotoVault is free with Pro from $4.99/month for unlimited AI diagnostics and advanced features.",
+    "verdict": "Don't choose between them — use both. REVER is the best motorcycle route planner available, but it doesn't track your maintenance, expenses, or help you diagnose issues. MotoVault handles everything off the road: maintenance, expenses, diagnostics, and learning. Together they cover the full riding experience.",
+    "faq": {
+      "0": {
+        "question": "Can MotoVault replace REVER?",
+        "answer": "Not entirely. MotoVault doesn't offer route planning or turn-by-turn navigation, which is REVER's strength. However, MotoVault handles everything REVER can't: maintenance tracking, expense management, AI diagnostics, and learning content. Many riders use REVER for routes and MotoVault for bike care."
+      },
+      "1": {
+        "question": "Does REVER track motorcycle maintenance?",
+        "answer": "No. REVER focuses exclusively on route planning, ride recording, and community features. For maintenance tracking, service reminders, and expense management, you need a separate app like MotoVault."
+      },
+      "2": {
+        "question": "Which app is better for a new motorcycle rider?",
+        "answer": "MotoVault is better for new riders because it includes structured learning paths that teach motorcycle maintenance from basics to advanced topics. REVER is better once you're ready to plan longer rides and discover new routes."
+      },
+      "3": {
+        "question": "Is REVER Pro worth $40/year?",
+        "answer": "If you regularly plan multi-day touring routes, REVER Pro's offline maps and Butler Maps integration are valuable. For casual riders, the free tier with basic route planning and ride logging is sufficient. Either way, you'll still need a separate app like MotoVault for maintenance and diagnostics."
+      }
+    }
+  },
+  "VsCalimoto": {
+    "title": "MotoVault vs Calimoto: AI Diagnostics vs Curvy-Road Navigation (2026)",
+    "description": "MotoVault vs Calimoto — all-in-one maintenance and diagnostics app vs dedicated curvy-road navigation. Full feature comparison, pricing, and recommendations.",
+    "heroLabel": "Head-to-Head",
+    "heroTitle": "MotoVault vs Calimoto",
+    "heroSubtitle": "MotoVault is an all-in-one motorcycle platform with AI diagnostics. Calimoto is the curvy-road navigation specialist. They don't overlap much — here's the full picture.",
+    "updatedAt": "Last updated: March 2026",
+    "quickVerdict": "Calimoto is unmatched for finding and navigating curvy roads. MotoVault is unmatched for maintenance, diagnostics, and learning. They serve completely different needs — and cost very differently.",
+    "featureMaintenance": "Maintenance Tracking",
+    "featureExpenses": "Expense Tracking",
+    "featureRides": "Ride Logging",
+    "featureCurvyRoutes": "Curvy-Road Routing",
+    "featureNavigation": "Turn-by-Turn Navigation",
+    "featureLeanAngle": "Lean Angle Tracking",
+    "featureDiagnostics": "AI Diagnostics",
+    "featureLearning": "Learning Content",
+    "featureReminders": "Service Reminders",
+    "featureOfflineMaps": "Offline Maps",
+    "mvWins": "Where MotoVault Wins",
+    "mvWin0": "Complete maintenance platform — service history, reminders, expenses, and multi-bike garage",
+    "mvWin1": "AI diagnostics from photos or symptom descriptions — no hardware needed",
+    "mvWin2": "Learning paths with quizzes to build real mechanical knowledge",
+    "mvWin3": "Dramatically cheaper: free tier + Pro from $4.99/mo vs Calimoto's $43-66/year",
+    "cmWins": "Where Calimoto Wins",
+    "cmWin0": "Curvy-road algorithm specifically designed to find the most exciting motorcycle roads",
+    "cmWin1": "Full turn-by-turn voice navigation with offline map support",
+    "cmWin2": "Lean angle tracking — see how far you leaned in every corner",
+    "cmWin3": "Round-trip generation — set a distance, get a loop ride with maximum curves",
+    "pricing": "Calimoto costs $5.49/week or $43-66/year depending on region — one of the most expensive motorcycle apps. MotoVault is free with Pro from $4.99/month. For riders who don't need curvy-road navigation, MotoVault offers far more features per dollar.",
+    "verdict": "These apps barely overlap. Calimoto is a navigation tool for riders who chase curves. MotoVault is a maintenance, diagnostics, and learning platform for riders who want to take care of their bike. If you love canyon roads, get Calimoto for navigation and MotoVault for everything else.",
+    "faq": {
+      "0": {
+        "question": "Is MotoVault cheaper than Calimoto?",
+        "answer": "Significantly. MotoVault has a free tier and Pro costs $4.99/month. Calimoto charges $5.49/week or $43-66/year with no free tier for premium features. MotoVault also includes maintenance tracking, AI diagnostics, and learning content — features Calimoto doesn't offer at any price."
+      },
+      "1": {
+        "question": "Does MotoVault have route planning like Calimoto?",
+        "answer": "No. MotoVault focuses on maintenance, diagnostics, expenses, and learning — not route planning or navigation. For curvy-road routing, Calimoto (or REVER/Scenic) is a better choice. Many riders pair MotoVault with a navigation app."
+      },
+      "2": {
+        "question": "Can Calimoto track motorcycle maintenance?",
+        "answer": "No. Calimoto is purely a navigation and ride recording app. It doesn't track maintenance, expenses, or service history. For those features, you need a separate app like MotoVault."
+      },
+      "3": {
+        "question": "Should I get MotoVault or Calimoto?",
+        "answer": "It depends on your priority. If you want to find exciting roads and navigate with lean angle data, get Calimoto. If you want to maintain your bike, track expenses, diagnose issues, and learn mechanics, get MotoVault. They solve different problems — many riders use both."
+      }
+    }
   }
 }

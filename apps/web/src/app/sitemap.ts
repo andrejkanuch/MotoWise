@@ -29,6 +29,9 @@ const pages = [
   '/compare',
   '/compare/alternatives',
   '/compare/maintenance-vs-ride-apps',
+  '/compare/motovault-vs-ridelog',
+  '/compare/motovault-vs-rever',
+  '/compare/motovault-vs-calimoto',
   '/press',
   '/about',
 ];
@@ -55,6 +58,9 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare': '2026-03-27',
   '/compare/alternatives': '2026-03-27',
   '/compare/maintenance-vs-ride-apps': '2026-03-27',
+  '/compare/motovault-vs-ridelog': '2026-03-28',
+  '/compare/motovault-vs-rever': '2026-03-28',
+  '/compare/motovault-vs-calimoto': '2026-03-28',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
 };
