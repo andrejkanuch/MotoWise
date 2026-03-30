@@ -32,11 +32,31 @@ export class MaintenanceTasksService {
 
   async findAllForUser(userId: string): Promise<MaintenanceTask[]> {
     this.logger.debug(`findAllForUser: userId=${userId}`);
+
+    // Get IDs of active (non-deleted) motorcycles
+    const { data: activeBikes, error: bikesError } = await this.supabase
+      .from('motorcycles')
+      .select('id')
+      .eq('user_id', userId)
+      .is('deleted_at', null);
+
+    if (bikesError) {
+      this.logger.error(`findAllForUser bikes lookup failed: ${bikesError.message}`);
+      throw new InternalServerErrorException('Failed to fetch maintenance tasks');
+    }
+
+    const activeBikeIds = (activeBikes ?? []).map((b) => b.id as string);
+    if (activeBikeIds.length === 0) {
+      this.logger.debug('findAllForUser: no active bikes, returning empty');
+      return [];
+    }
+
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
       .select('*')
       .eq('user_id', userId)
       .is('deleted_at', null)
+      .in('motorcycle_id', activeBikeIds)
       .in('status', ['pending', 'in_progress'])
       .order('due_date', { ascending: true, nullsFirst: false })
       .order('priority', { ascending: true });
