@@ -3,10 +3,10 @@ import { join } from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ThrottlerModule, ThrottlerStorage } from '@nestjs/throttler';
-import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { SentryModule } from '@sentry/nestjs/setup';
 import depthLimit from 'graphql-depth-limit';
 import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
@@ -84,10 +84,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
   ],
   providers: [
-    {
-      provide: APP_FILTER,
-      useClass: SentryGlobalFilter,
-    },
     {
       provide: ThrottlerStorage,
       useClass: RedisThrottlerStorage,

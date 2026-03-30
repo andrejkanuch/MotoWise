@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AnalyticsEvent, trackEvent, trackScreen } from '../../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent, trackScreen } from '../../../lib/analytics';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 
@@ -189,6 +189,7 @@ export default function UpgradeScreen() {
       setOfferings(result);
     } catch (error) {
       console.error('[Upgrade] Failed to load offerings:', error);
+      captureException(error);
       setFetchError(
         error instanceof Error ? error.message : 'Failed to load subscription options.',
       );
@@ -253,6 +254,7 @@ export default function UpgradeScreen() {
         return;
       }
       console.error('[Upgrade] Purchase failed:', error);
+      captureException(error);
       Alert.alert(t('common.error'), t('paywall.purchaseFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);
@@ -274,6 +276,7 @@ export default function UpgradeScreen() {
       }
     } catch (error) {
       console.error('[Upgrade] Restore failed:', error);
+      captureException(error);
       Alert.alert(t('common.error'), t('paywall.restoreFailed'), [{ text: t('common.cancel') }]);
     } finally {
       setIsLoading(false);

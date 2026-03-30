@@ -1,6 +1,7 @@
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscription.store';
+import { captureException } from './analytics';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -89,6 +90,7 @@ async function doInit(): Promise<(() => void) | null> {
     };
   } catch (e) {
     console.error('[RevenueCat] Init failed:', e instanceof Error ? e.message : e);
+    captureException(e);
     return null;
   }
 }
@@ -103,6 +105,7 @@ export async function loginRevenueCat(userId: string) {
     await Purchases.logIn(userId);
   } catch (e) {
     console.error('[RevenueCat] logIn failed:', e instanceof Error ? e.message : e);
+    captureException(e);
   }
 }
 
@@ -145,6 +148,7 @@ export async function presentPaywall(
     }
   } catch (e) {
     console.error('[RevenueCat] presentPaywall failed:', e instanceof Error ? e.message : e);
+    captureException(e);
     return 'error';
   }
 }
@@ -158,5 +162,6 @@ export async function logoutRevenueCat() {
     await Purchases.logOut();
   } catch (e) {
     console.error('[RevenueCat] logOut failed:', e instanceof Error ? e.message : e);
+    captureException(e);
   }
 }

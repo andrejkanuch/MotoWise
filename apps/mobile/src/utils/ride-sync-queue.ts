@@ -7,6 +7,7 @@ import {
 } from '@motovault/graphql';
 import * as Network from 'expo-network';
 import { createMMKV } from 'react-native-mmkv';
+import { captureException } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 
 // --- Types ---
@@ -100,7 +101,8 @@ export async function enqueueOrExecute(
     try {
       await gqlFetcher(document, variables as never);
       return;
-    } catch {
+    } catch (error) {
+      captureException(error);
       // Transient failure — fall through to queue
     }
   }
@@ -126,7 +128,8 @@ export async function drainQueue(): Promise<void> {
 
     try {
       await executeSyncOperation(op);
-    } catch {
+    } catch (error) {
+      captureException(error);
       op.retries++;
       if (op.retries >= MAX_RETRIES) {
         moveToDeadLetter(op);

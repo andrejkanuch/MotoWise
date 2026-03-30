@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { captureException } from '../../lib/analytics';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -45,6 +46,7 @@ export default function RegisterScreen() {
         Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
       }
     } catch (err) {
+      captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);
     } finally {
       setLoading(false);
@@ -58,6 +60,7 @@ export default function RegisterScreen() {
     try {
       await signInWithApple();
     } catch (err) {
+      captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);
     }
   };
@@ -69,6 +72,7 @@ export default function RegisterScreen() {
     try {
       await signInWithGoogle();
     } catch (err) {
+      captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);
     }
   };

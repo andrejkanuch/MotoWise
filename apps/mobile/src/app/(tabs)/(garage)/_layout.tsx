@@ -3,8 +3,10 @@ import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useColorScheme } from 'react-native';
 import { ErrorFallback } from '../../../components/error-fallback';
+import { captureException } from '../../../lib/analytics';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  captureException(error, { boundary: 'garage' });
   return <ErrorFallback error={error} onRetry={retry} />;
 }
 
