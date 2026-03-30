@@ -23,7 +23,16 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, BackHandler, Pressable, Share, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  Pressable,
+  Share,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
@@ -86,6 +95,7 @@ const STAT_CHART_MAP: Record<string, ChartType | null> = {
 };
 
 export default function RideDetailScreen() {
+  const isDark = useColorScheme() === 'dark';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -243,7 +253,7 @@ export default function RideDetailScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: palette.surfaceDark,
+          backgroundColor: isDark ? palette.surfaceDark : palette.neutral50,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -274,7 +284,7 @@ export default function RideDetailScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
       {/* Full-screen map */}
       <View style={{ flex: 1 }}>
         {routeData ? (
@@ -339,7 +349,7 @@ export default function RideDetailScreen() {
           <View
             style={{
               flex: 1,
-              backgroundColor: palette.cardDark,
+              backgroundColor: isDark ? palette.cardDark : palette.white,
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
@@ -439,7 +449,7 @@ export default function RideDetailScreen() {
           <Pressable
             onPress={() => sheetRef.current?.snapToIndex(0)}
             style={{
-              backgroundColor: palette.cardDark,
+              backgroundColor: isDark ? palette.cardDark : palette.white,
               paddingHorizontal: 20,
               paddingVertical: 10,
               borderRadius: 20,
@@ -448,11 +458,17 @@ export default function RideDetailScreen() {
               alignItems: 'center',
               gap: 6,
               borderWidth: 1,
-              borderColor: palette.surfaceElevated,
+              borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
             }}
           >
-            <ChevronUp size={16} color={palette.white} />
-            <Text style={{ color: palette.white, fontSize: 14, fontWeight: '600' }}>
+            <ChevronUp size={16} color={isDark ? palette.white : palette.neutral950} />
+            <Text
+              style={{
+                color: isDark ? palette.white : palette.neutral950,
+                fontSize: 14,
+                fontWeight: '600',
+              }}
+            >
               Show Details
             </Text>
           </Pressable>
@@ -473,7 +489,7 @@ export default function RideDetailScreen() {
           }
         }}
         backgroundStyle={{
-          backgroundColor: palette.cardDark,
+          backgroundColor: isDark ? palette.cardDark : palette.white,
           borderRadius: 24,
           borderCurve: 'continuous',
         }}
@@ -487,15 +503,17 @@ export default function RideDetailScreen() {
               style={{
                 fontSize: 24,
                 fontWeight: '800',
-                color: palette.white,
+                color: isDark ? palette.white : palette.neutral950,
                 letterSpacing: -0.5,
               }}
             >
               {ride.name || 'Ride'}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <Calendar size={14} color={palette.neutral400} />
-              <Text style={{ fontSize: 14, color: palette.neutral400 }}>
+              <Calendar size={14} color={isDark ? palette.neutral400 : palette.neutral500} />
+              <Text
+                style={{ fontSize: 14, color: isDark ? palette.neutral400 : palette.neutral500 }}
+              >
                 {formatFullDate(ride.startedAt)}
                 {ride.startedAt && ` at ${formatTime(ride.startedAt)}`}
               </Text>
@@ -521,7 +539,11 @@ export default function RideDetailScreen() {
                     disabled={!hasChart}
                     style={({ pressed }) => ({
                       backgroundColor:
-                        pressed && hasChart ? palette.surfaceHover : palette.surfaceSubtle,
+                        pressed && hasChart
+                          ? palette.surfaceHover
+                          : isDark
+                            ? palette.surfaceSubtle
+                            : palette.neutral100,
                       borderRadius: 16,
                       borderCurve: 'continuous',
                       padding: 14,
@@ -530,7 +552,9 @@ export default function RideDetailScreen() {
                       borderColor:
                         hasChart && activeChart === chartKey
                           ? palette.accent500
-                          : palette.surfaceElevated,
+                          : isDark
+                            ? palette.surfaceElevated
+                            : palette.neutral200,
                     })}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -549,7 +573,7 @@ export default function RideDetailScreen() {
                       style={{
                         fontSize: 20,
                         fontWeight: '800',
-                        color: palette.white,
+                        color: isDark ? palette.white : palette.neutral950,
                         fontVariant: ['tabular-nums'],
                       }}
                     >
@@ -576,13 +600,13 @@ export default function RideDetailScreen() {
           {activeChart && !waypointsLoading && waypoints.length < 10 && (
             <View
               style={{
-                backgroundColor: palette.surfaceSubtle,
+                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 20,
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: palette.surfaceElevated,
+                borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
               <Text style={{ color: palette.neutral500, fontSize: 14 }}>

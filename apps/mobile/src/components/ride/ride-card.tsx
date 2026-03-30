@@ -3,7 +3,7 @@ import type { Ride } from '@motovault/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Clock, Gauge, MapPin, Route } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import {
@@ -21,6 +21,7 @@ interface RideCardProps {
 }
 
 export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCardProps) {
+  const isDark = useColorScheme() === 'dark';
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
   const avgSpeed = ride.avgSpeedMps ?? 0;
@@ -29,6 +30,15 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
   const hasMap = !!ride.routeThumbnailUri;
   const system = useMeasurementSystem();
 
+  const cardBg = isDark ? palette.cardDark : palette.white;
+  const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
+  const titleColor = isDark ? palette.white : palette.neutral950;
+  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
+  const statColor = isDark ? palette.neutral200 : palette.neutral700;
+  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
+  const placeholderBg = isDark ? palette.surfaceSubtle : palette.neutral100;
+  const placeholderIcon = isDark ? palette.neutral700 : palette.neutral400;
+
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(280)}>
       <Pressable
@@ -36,12 +46,12 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
         accessibilityRole="button"
         accessibilityLabel={`${rideName}, ${formatDate(ride.startedAt)}, ${formatDistance(distance, system)}, ${formatDuration(duration)}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? palette.neutral800 : palette.cardDark,
+          backgroundColor: pressed ? pressedBg : cardBg,
           borderRadius: 20,
           borderCurve: 'continuous',
           overflow: 'hidden',
           borderWidth: 1,
-          borderColor: palette.surfaceElevated,
+          borderColor: cardBorder,
           opacity: pressed ? 0.9 : 1,
         })}
       >
@@ -50,11 +60,15 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
           <View style={{ height: 120, position: 'relative' }}>
             <Image
               source={{ uri: ride.routeThumbnailUri ?? '' }}
-              style={{ width: '100%', height: 120, backgroundColor: palette.neutral900 }}
+              style={{
+                width: '100%',
+                height: 120,
+                backgroundColor: isDark ? palette.neutral900 : palette.neutral200,
+              }}
             />
             {/* Gradient fade to card background */}
             <LinearGradient
-              colors={['transparent', palette.cardDark]}
+              colors={['transparent', cardBg]}
               style={{
                 position: 'absolute',
                 bottom: 0,
@@ -65,16 +79,16 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
             />
           </View>
         ) : (
-          /* No map — subtle topographic pattern placeholder */
+          /* No map — subtle placeholder */
           <View
             style={{
               height: 56,
-              backgroundColor: palette.surfaceSubtle,
+              backgroundColor: placeholderBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Route size={20} color={palette.neutral700} />
+            <Route size={20} color={placeholderIcon} />
           </View>
         )}
 
@@ -90,12 +104,12 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
           >
             <View style={{ flex: 1, gap: 2 }}>
               <Text
-                style={{ fontSize: 17, fontWeight: '700', color: palette.white }}
+                style={{ fontSize: 17, fontWeight: '700', color: titleColor }}
                 numberOfLines={1}
               >
                 {rideName}
               </Text>
-              <Text style={{ fontSize: 13, color: palette.neutral400 }}>
+              <Text style={{ fontSize: 13, color: subtitleColor }}>
                 {formatRelativeDate(ride.startedAt)} · {bikeName}
               </Text>
             </View>
@@ -116,7 +130,7 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
                 style={{
                   fontSize: 14,
                   fontWeight: '600',
-                  color: palette.neutral200,
+                  color: statColor,
                   fontVariant: ['tabular-nums'],
                 }}
               >
@@ -129,7 +143,7 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
                 style={{
                   fontSize: 14,
                   fontWeight: '600',
-                  color: palette.neutral200,
+                  color: statColor,
                   fontVariant: ['tabular-nums'],
                 }}
               >
@@ -143,7 +157,7 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
                   style={{
                     fontSize: 14,
                     fontWeight: '600',
-                    color: palette.neutral200,
+                    color: statColor,
                     fontVariant: ['tabular-nums'],
                   }}
                 >
