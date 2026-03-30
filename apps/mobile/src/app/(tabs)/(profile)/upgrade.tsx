@@ -242,7 +242,9 @@ export default function UpgradeScreen() {
       trackEvent(AnalyticsEvent.PURCHASE_COMPLETED);
       const price = packageToBuy.product.price ?? 0;
       const currency = packageToBuy.product.currencyCode ?? 'USD';
-      MetaAnalytics.trackStartTrial(selectedPlan);
+      if (packageToBuy.product.introPrice) {
+        MetaAnalytics.trackStartTrial(selectedPlan);
+      }
       MetaAnalytics.trackSubscribe(price, currency, selectedPlan);
       router.back();
     } catch (error) {

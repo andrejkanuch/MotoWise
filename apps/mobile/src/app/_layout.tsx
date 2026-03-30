@@ -233,9 +233,7 @@ export default function RootLayout() {
         const { status } = await requestTrackingPermissionsAsync();
         Settings.initializeSDK();
         try {
-          if (status === 'granted') {
-            await Settings.setAdvertiserTrackingEnabled(true);
-          }
+          await Settings.setAdvertiserTrackingEnabled(status === 'granted');
         } catch {
           // setAdvertiserTrackingEnabled can crash on iOS simulator
         }

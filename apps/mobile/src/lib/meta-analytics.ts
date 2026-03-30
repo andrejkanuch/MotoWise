@@ -32,7 +32,7 @@ export const MetaAnalytics = {
 
   trackStartTrial: (offerId: string) => {
     if (!isAnalyticsEnabled()) return;
-    AppEventsLogger.logEvent('fb_mobile_activate_app', {
+    AppEventsLogger.logEvent('StartTrial', {
       fb_content_id: offerId,
     });
   },
@@ -46,15 +46,14 @@ export const MetaAnalytics = {
 
   trackStartDiagnostic: () => {
     if (!isAnalyticsEnabled()) return;
-    AppEventsLogger.logEvent('fb_mobile_rate', {
+    AppEventsLogger.logEvent('DiagnosticStarted', {
       fb_content_type: 'ai_diagnostic',
     });
   },
 
   trackLogRide: (distanceKm: number) => {
     if (!isAnalyticsEnabled()) return;
-    AppEventsLogger.logEvent('fb_mobile_achievement_unlocked', {
-      fb_description: 'ride_logged',
+    AppEventsLogger.logEvent('RideLogged', {
       fb_content_type: 'ride',
       distance_km: distanceKm,
     });
@@ -62,7 +61,7 @@ export const MetaAnalytics = {
 
   trackLogMaintenance: (maintenanceType: string) => {
     if (!isAnalyticsEnabled()) return;
-    AppEventsLogger.logEvent('fb_mobile_spent_credits', {
+    AppEventsLogger.logEvent('MaintenanceLogged', {
       fb_content_type: 'maintenance',
       fb_description: maintenanceType,
     });
