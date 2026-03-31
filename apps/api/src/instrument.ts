@@ -15,9 +15,9 @@ Sentry.init({
   beforeSend(event) {
     // Scrub sensitive headers to prevent leaking JWTs, cookies, API keys
     if (event.request?.headers) {
-      delete event.request.headers['authorization'];
-      delete event.request.headers['cookie'];
-      delete event.request.headers['x-api-key'];
+      delete event.request.headers.authorization;
+      delete event.request.headers.cookie;
+      delete (event.request.headers as Record<string, unknown>)['x-api-key'];
     }
     return event;
   },
