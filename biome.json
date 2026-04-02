@@ -20,7 +20,8 @@
       "!**/android",
       "!**/src/generated",
       "!**/database.types.ts",
-      "!**/next-env.d.ts"
+      "!**/next-env.d.ts",
+      "!marketing/video/**"
     ]
   },
   "formatter": {
