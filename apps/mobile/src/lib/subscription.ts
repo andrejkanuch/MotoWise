@@ -116,8 +116,15 @@ export async function loginRevenueCat(userId: string) {
  * @param options.requiredEntitlementIdentifier - Only show if user lacks this entitlement
  * @returns 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'
  */
+/**
+ * The RC-designed paywall offering identifier.
+ * All paywall presentations use this so the "Lowered price" paywall
+ * (with the motorcycle hero image) is shown instead of the generic default.
+ */
+const DEFAULT_OFFERING = 'lower_price';
+
 export async function presentPaywall(
-  options: { requiredEntitlementIdentifier?: string } = {},
+  options: { requiredEntitlementIdentifier?: string; offeringIdentifier?: string } = {},
 ): Promise<'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'> {
   if (isExpoGo()) {
     console.warn('[RevenueCat] Paywall not available in Expo Go');
@@ -128,11 +135,14 @@ export async function presentPaywall(
     const RevenueCatUI = await import('react-native-purchases-ui');
     const { PAYWALL_RESULT } = RevenueCatUI;
 
+    const offering = options.offeringIdentifier ?? DEFAULT_OFFERING;
+
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
           requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
+          offeringIdentifier: offering,
         })
-      : await RevenueCatUI.default.presentPaywall();
+      : await RevenueCatUI.default.presentPaywall({ offeringIdentifier: offering });
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:

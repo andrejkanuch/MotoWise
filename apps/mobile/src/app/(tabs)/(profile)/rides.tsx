@@ -22,6 +22,7 @@ import { RideCard } from '../../../components/ride/ride-card';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { presentPaywall } from '../../../lib/subscription';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { triggerImpact } from '../../../utils/haptics';
 import {
@@ -464,8 +465,7 @@ export default function RidesScreen() {
             stats.
           </Text>
           <Pressable
-            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-            onPress={() => router.push('/(tabs)/(profile)/upgrade' as any)}
+            onPress={() => presentPaywall()}
             accessibilityRole="button"
             accessibilityLabel="Upgrade to Pro"
             style={{
