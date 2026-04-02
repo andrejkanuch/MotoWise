@@ -1,0 +1,978 @@
+{
+  "last_updated": "2026-04-02T14:45:32+00:00",
+  "scrape_source": "Meta Business Suite - Published Posts (Last 90 days: 1 Jan 2026 - 31 Mar 2026)",
+  "max_values_in_period": {
+    "reach": 10484,
+    "likes": 387,
+    "comments": 5,
+    "shares": 21
+  },
+  "posts": [
+    {
+      "id": "post_20260402_ride_farther_ig_post",
+      "caption_preview": "How far would you ride if you trusted your bike completely?\n\nNot hope. Not guesswork. Actual data...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-02T14:45:32+00:00",
+      "post_id": "17876106408439839",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ride-farther/slide-1-cover-4x5.png",
+        "generation_method": "gemini-2.5-flash-image",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "AI-generated alpine motorcycle image via Gemini. Slogan: Ride Farther. Know Everything."
+    },
+    {
+      "id": "post_20260402_ride_farther_fb_post",
+      "caption_preview": "How far would you ride if you trusted your bike completely?\n\nNot hope. Not guesswork. Actual data...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-02T14:45:32+00:00",
+      "post_id": "1041569589040415_122105475272957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ride-farther/slide-1-cover-4x5.png",
+        "generation_method": "gemini-2.5-flash-image",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "AI-generated alpine motorcycle image via Gemini. Slogan: Ride Farther. Know Everything."
+    },
+    {
+      "id": "post_20260402_ride_farther_ig_story",
+      "caption_preview": "Ride Farther. Know Everything. (story)",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-02T14:45:32+00:00",
+      "post_id": "18575271412043703",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ride-farther/slide-1-cover-9x16.png",
+        "generation_method": "gemini-2.5-flash-image",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon"
+      }
+    },
+    {
+      "id": "post_20260402_ride_farther_fb_story",
+      "caption_preview": "Ride Farther. Know Everything. (story)",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-02T14:45:32+00:00",
+      "post_id": "2472846793181067",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ride-farther/slide-1-cover-9x16.png",
+        "generation_method": "gemini-2.5-flash-image",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon"
+      }
+    },
+    {
+      "id": "post_20260401_reel_veo_ig",
+      "caption_preview": "Where would you ride if distance didn't matter?\n\nPatagonia. Endless gravel roads, glacial rivers...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "published_at": "2026-04-01T17:00:17+00:00",
+      "post_id": "18008627333849988",
+      "metrics": {},
+      "classification": {
+        "video_file": "reel-patagonia-veo/reel-patagonia-final.mp4",
+        "generation_method": "veo-3.1-fast",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "Veo 3.1 AI-generated video with end card crossfade. Replaces image-stitching reel."
+    },
+    {
+      "id": "post_20260401_reel_veo_fb",
+      "caption_preview": "Where would you ride if distance didn't matter?\n\nPatagonia. Endless gravel roads, glacial rivers...",
+      "platform": "facebook",
+      "post_type": "reel",
+      "published_at": "2026-04-01T17:00:17+00:00",
+      "post_id": "122105278658957235",
+      "metrics": {},
+      "classification": {
+        "video_file": "reel-patagonia-veo/reel-patagonia-final.mp4",
+        "generation_method": "veo-3.1-fast",
+        "hook_type": "question",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "Veo 3.1 AI-generated video with end card crossfade. Replaces image-stitching reel."
+    },
+    {
+      "id": "post_20260401_1432_ig_post",
+      "caption_preview": "Where does your bike money actually go?\n\nFuel. Oil. Tires. Chain lube. That random part you ordered...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-01T14:32:46.761925+00:00",
+      "post_id": "17881712850508405",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-expense-tracking-4x5.png",
+        "hook_type": "question",
+        "content_category": "app_feature",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260401_1432_fb_post",
+      "caption_preview": "Where does your bike money actually go?\n\nFuel. Oil. Tires. Chain lube. That random part you ordered...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-01T14:32:46.761925+00:00",
+      "post_id": "1041569589040415_122105271548957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-expense-tracking-4x5.png",
+        "hook_type": "question",
+        "content_category": "app_feature",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260401_1432_ig_story",
+      "caption_preview": "Where does your bike money go? (story)",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-01T14:32:46.761925+00:00",
+      "post_id": "17930135376234977",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-expense-tracking-9x16.png",
+        "hook_type": "question",
+        "content_category": "app_feature",
+        "time_slot": "afternoon"
+      }
+    },
+    {
+      "id": "post_20260401_1432_fb_story",
+      "caption_preview": "Where does your bike money go? (story)",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-01T14:32:46.761925+00:00",
+      "post_id": "1302663915076514",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-expense-tracking-9x16.png",
+        "hook_type": "question",
+        "content_category": "app_feature",
+        "time_slot": "afternoon"
+      }
+    },
+    {
+      "id": "post_20260401_133953",
+      "caption_preview": "Your bike. Your data.\n\nMost riders rely on guesswork when it comes to maintenanc...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-01T13:39:53.593236+00:00",
+      "post_id": "18086635345992914",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-mountain-road.png"
+      }
+    },
+    {
+      "id": "post_20260401_133938",
+      "caption_preview": "Your bike. Your data.\n\nMost riders rely on guesswork when it comes to maintenanc...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-01T13:39:38.574039+00:00",
+      "post_id": "1041569589040415_122105262044957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-mountain-road.png"
+      }
+    },
+    {
+      "id": "post_20260401_125916",
+      "caption_preview": "What's your bike's health score? \ud83c\udfcd\ufe0f\n\nMost riders don't know until something brea...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-01T12:59:16.595610+00:00",
+      "post_id": "18572971267011397",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-health-score.png"
+      }
+    },
+    {
+      "id": "post_20260401_125905",
+      "caption_preview": "What's your bike's health score? \ud83c\udfcd\ufe0f\n\nMost riders don't know until something brea...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-01T12:59:05.634565+00:00",
+      "post_id": "1041569589040415_122105255564957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-health-score.png"
+      }
+    },
+    {
+      "id": "post_20260401_121549",
+      "caption_preview": "Your Digital Garage, Reimagined. MotoVault keeps every ride organized \u2014 maintena...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-01T12:15:49.996548+00:00",
+      "post_id": "18372044035166115",
+      "metrics": {},
+      "classification": {
+        "image_file": "slide-1-cover.jpg"
+      }
+    },
+    {
+      "id": "post_20260401_120859",
+      "caption_preview": "Your Digital Garage, Reimagined. MotoVault keeps every ride organized \u2014 maintena...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-01T12:08:59.572974+00:00",
+      "post_id": "1041569589040415_122105248088957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "slide-1-cover.png"
+      }
+    },
+    {
+      "id": "post_20260401_0600",
+      "caption_preview": "Don't neglect your motorcycle's basic upkeep! Simple home maintenance saves cash and boosts your kno...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-04-01T06:00:00",
+      "metrics": {
+        "reach": 155,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.59
+      },
+      "classification": {
+        "hook_type": "bold_claim",
+        "content_category": "diy_maintenance",
+        "time_slot": "early_morning",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260401_0355",
+      "caption_preview": "Replace your motorcycle brake pads yourself! This DIY guide shows you it's easier than you think...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-04-01T03:55:00",
+      "metrics": {
+        "reach": 134,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.75,
+        "virality_score": 0,
+        "content_score": 0.73
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "late_night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260401_0155",
+      "caption_preview": "Keep your ride smooth! Essential oil & filter change is crucial for DIY motorcycle maintenance...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-04-01T01:55:00",
+      "metrics": {
+        "reach": 229,
+        "likes": 5,
+        "comments": 0,
+        "shares": 1
+      },
+      "calculated": {
+        "engagement_rate": 4.37,
+        "virality_score": 0.44,
+        "content_score": 2.31
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "late_night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_2356",
+      "caption_preview": "Clean your motorcycle chain the easy way. Forget the myths, stick to a simple maintenance schedule...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T23:56:00",
+      "metrics": {
+        "reach": 150,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.57
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_2201",
+      "caption_preview": "Oil filter change: meticulous removal and clean installation. The right way to keep your engine runn...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T22:01:00",
+      "metrics": {
+        "reach": 132,
+        "likes": 3,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 2.27,
+        "virality_score": 0,
+        "content_score": 1.18
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1955",
+      "caption_preview": "Learn basic motorcycle maintenance at home! Save money and gain confidence by doing your own oil and...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T19:55:00",
+      "metrics": {
+        "reach": 166,
+        "likes": 1,
+        "comments": 0,
+        "shares": 2
+      },
+      "calculated": {
+        "engagement_rate": 6.63,
+        "virality_score": 1.2,
+        "content_score": 2.98
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "evening",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1801",
+      "caption_preview": "DIY motorcycle brake pad replacement! Save money and ensure your safety with this easy step-by-step...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T18:01:00",
+      "metrics": {
+        "reach": 166,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.63
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "evening",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1653_ig",
+      "caption_preview": "Your mechanic is 2,000km away. Your bike's health data isn't. MotoVault puts everything in your pock...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T16:53:00",
+      "metrics": {
+        "reach": 2,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.01
+      },
+      "classification": {
+        "hook_type": "scenario",
+        "content_category": "app_feature",
+        "time_slot": "afternoon",
+        "caption_length": "long"
+      }
+    },
+    {
+      "id": "post_20260331_1653_fb",
+      "caption_preview": "Your mechanic is 2,000km away. Your bike's health data isn't. MotoVault puts everything in your pock...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "account": "Moto Vault",
+      "published_at": "2026-03-31T16:53:00",
+      "metrics": {
+        "reach": 0,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0
+      },
+      "classification": {
+        "hook_type": "scenario",
+        "content_category": "app_feature",
+        "time_slot": "afternoon",
+        "caption_length": "long"
+      }
+    },
+    {
+      "id": "post_20260331_1554",
+      "caption_preview": "Keep your ride smooth! Learn to check and adjust your motorcycle chain slack. Essential maintenance...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T15:54:00",
+      "metrics": {
+        "reach": 167,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.6,
+        "virality_score": 0,
+        "content_score": 0.82
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1450_ig",
+      "caption_preview": "Some rides deserve more than a memory. They deserve data. MotoVault records every kilometer automat...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T14:50:00",
+      "metrics": {
+        "reach": 3,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.01
+      },
+      "classification": {
+        "hook_type": "bold_claim",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "long"
+      }
+    },
+    {
+      "id": "post_20260331_1450_fb",
+      "caption_preview": "Some rides deserve more than a memory. They deserve data. MotoVault records every kilometer automat...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "account": "Moto Vault",
+      "published_at": "2026-03-31T14:50:00",
+      "metrics": {
+        "reach": 0,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0
+      },
+      "classification": {
+        "hook_type": "bold_claim",
+        "content_category": "adventure",
+        "time_slot": "afternoon",
+        "caption_length": "long"
+      }
+    },
+    {
+      "id": "post_20260331_1401",
+      "caption_preview": "Motorcycle maintenance made easy! Learn the right way to install your oil filter and drain plug...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T14:01:00",
+      "metrics": {
+        "reach": 147,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.68,
+        "virality_score": 0,
+        "content_score": 0.76
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1155",
+      "caption_preview": "Keep your ride smooth! See the simple steps to cleaning and lubricating your motorcycle chain...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T11:55:00",
+      "metrics": {
+        "reach": 863,
+        "likes": 23,
+        "comments": 0,
+        "shares": 3
+      },
+      "calculated": {
+        "engagement_rate": 4.41,
+        "virality_score": 0.35,
+        "content_score": 4.73
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "morning",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_1002",
+      "caption_preview": "Ever wonder about motorcycle oil changes? Service manuals are key! Aim for at least once a year...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T10:02:00",
+      "metrics": {
+        "reach": 153,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.58
+      },
+      "classification": {
+        "hook_type": "question",
+        "content_category": "educational",
+        "time_slot": "morning",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_0758",
+      "caption_preview": "Keep your motorcycle running smoothly! Learn essential brake maintenance: pad replacement, fluid flu...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T07:58:00",
+      "metrics": {
+        "reach": 136,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.74,
+        "virality_score": 0,
+        "content_score": 0.74
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "early_morning",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_0558",
+      "caption_preview": "Motorcycle oil change? Filter swapped, plugs back in. Now, top up the oil - just shy of MAX...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T05:58:00",
+      "metrics": {
+        "reach": 512,
+        "likes": 6,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 1.17,
+        "virality_score": 0,
+        "content_score": 2.3
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "early_morning",
+        "caption_length": "short"
+      }
+    },
+    {
+      "id": "post_20260331_0400",
+      "caption_preview": "Never skip this simple motorcycle maintenance: changing your oil and filter. It's the most crucial s...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T04:00:00",
+      "metrics": {
+        "reach": 127,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.79,
+        "virality_score": 0,
+        "content_score": 0.72
+      },
+      "classification": {
+        "hook_type": "bold_claim",
+        "content_category": "diy_maintenance",
+        "time_slot": "early_morning",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260331_0204",
+      "caption_preview": "Keep your ride smooth and safe! Basic DIY motorcycle maintenance: brakes and coolant...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-31T02:04:00",
+      "metrics": {
+        "reach": 1164,
+        "likes": 46,
+        "comments": 0,
+        "shares": 2
+      },
+      "calculated": {
+        "engagement_rate": 4.81,
+        "virality_score": 0.17,
+        "content_score": 5.88
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "late_night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260330_2359",
+      "caption_preview": "Keep your motorcycle chain running smoothly! Regular cleaning, proper lubrication, and chain slack a...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-30T23:59:00",
+      "metrics": {
+        "reach": 142,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.7,
+        "virality_score": 0,
+        "content_score": 0.75
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260330_2302",
+      "caption_preview": "This is a joke about someone being very cheap. #Cheap #Humor #Funny #Comedy #Sarcasm #Relatable",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-30T23:02:00",
+      "metrics": {
+        "reach": 12,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 8.33,
+        "virality_score": 0,
+        "content_score": 2.55
+      },
+      "classification": {
+        "hook_type": "other",
+        "content_category": "humor",
+        "time_slot": "night",
+        "caption_length": "short"
+      }
+    },
+    {
+      "id": "post_20260330_2154",
+      "caption_preview": "Master your motorcycle oil change. Choosing the right oil, prepping your bike, draining old, and ins...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-30T21:54:00",
+      "metrics": {
+        "reach": 152,
+        "likes": 1,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0.66,
+        "virality_score": 0,
+        "content_score": 0.78
+      },
+      "classification": {
+        "hook_type": "how_to",
+        "content_category": "diy_maintenance",
+        "time_slot": "night",
+        "caption_length": "medium"
+      }
+    },
+    {
+      "id": "post_20260330_2103",
+      "caption_preview": "Your gears relax in a permabath of hot oil. Feels like Arnold. #Relaxation #Comfort #SpaVibes...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-30T21:03:00",
+      "metrics": {
+        "reach": 118,
+        "likes": 0,
+        "comments": 0,
+        "shares": 0
+      },
+      "calculated": {
+        "engagement_rate": 0,
+        "virality_score": 0,
+        "content_score": 0.45
+      },
+      "classification": {
+        "hook_type": "other",
+        "content_category": "humor",
+        "time_slot": "night",
+        "caption_length": "short"
+      }
+    },
+    {
+      "id": "post_20260330_1959",
+      "caption_preview": "Why do motorcycle tires wear out faster than car tires? It's not just mileage. Learn about tire type...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "account": "motovaultglobal",
+      "published_at": "2026-03-30T19:59:00",
+      "metrics": {
+        "reach": 10484,
+        "likes": 387,
+        "comments": 5,
+        "shares": 21
+      },
+      "calculated": {
+        "engagement_rate": 4.93,
+        "virality_score": 0.2,
+        "content_score": 41.54
+      },
+      "classification": {
+        "hook_type": "question",
+        "content_category": "educational",
+        "time_slot": "evening",
+        "caption_length": "medium"
+      }
+    }
+  ],
+  "insights": {
+    "top_performer": {
+      "id": "post_20260330_1959",
+      "caption_preview": "Why do motorcycle tires wear out faster than car tires?",
+      "reach": 10484,
+      "content_score": 41.54,
+      "why": "Question hook + educational content + evening posting time + reel format"
+    },
+    "format_performance": {
+      "reel": {
+        "count": 21,
+        "avg_reach": 661,
+        "avg_likes": 22,
+        "avg_shares": 1.3,
+        "avg_content_score": 3.3
+      },
+      "photo": {
+        "count": 4,
+        "avg_reach": 1.25,
+        "avg_likes": 0,
+        "avg_shares": 0,
+        "avg_content_score": 0.005
+      }
+    },
+    "hook_performance": {
+      "question": {
+        "count": 2,
+        "avg_reach": 5319,
+        "avg_content_score": 21.06,
+        "verdict": "BEST \u2014 use for 60% of posts"
+      },
+      "how_to": {
+        "count": 14,
+        "avg_reach": 264,
+        "avg_content_score": 1.6,
+        "verdict": "Solid baseline \u2014 reliable engagement"
+      },
+      "bold_claim": {
+        "count": 3,
+        "avg_reach": 97,
+        "avg_content_score": 0.44,
+        "verdict": "Underperforming \u2014 try pairing with stronger visuals"
+      },
+      "scenario": {
+        "count": 2,
+        "avg_reach": 1,
+        "avg_content_score": 0.005,
+        "verdict": "Only used on photos \u2014 not a fair comparison"
+      },
+      "other": {
+        "count": 2,
+        "avg_reach": 65,
+        "avg_content_score": 1.5,
+        "verdict": "Humor has mixed results"
+      }
+    },
+    "category_performance": {
+      "diy_maintenance": {
+        "count": 17,
+        "avg_reach": 310,
+        "avg_content_score": 1.83,
+        "verdict": "Most consistent category"
+      },
+      "educational": {
+        "count": 2,
+        "avg_reach": 5319,
+        "avg_content_score": 21.06,
+        "verdict": "Small sample but massive outlier"
+      },
+      "adventure": {
+        "count": 2,
+        "avg_reach": 1.5,
+        "avg_content_score": 0.005,
+        "verdict": "Only photo posts \u2014 try as reels"
+      },
+      "app_feature": {
+        "count": 2,
+        "avg_reach": 1,
+        "avg_content_score": 0.005,
+        "verdict": "Only photo posts \u2014 try as reels"
+      },
+      "humor": {
+        "count": 2,
+        "avg_reach": 65,
+        "avg_content_score": 1.5,
+        "verdict": "Mixed \u2014 high ER but low reach"
+      }
+    },
+    "time_slot_performance": {
+      "evening": {
+        "count": 3,
+        "avg_reach": 3605,
+        "verdict": "BEST \u2014 includes the viral hit"
+      },
+      "morning": {
+        "count": 2,
+        "avg_reach": 508,
+        "verdict": "Strong second \u2014 chain cleaning reel did well"
+      },
+      "late_night": {
+        "count": 3,
+        "avg_reach": 509,
+        "verdict": "Surprisingly good \u2014 brakes/coolant reel was top 3"
+      },
+      "early_morning": {
+        "count": 3,
+        "avg_reach": 268,
+        "verdict": "Decent reach for oil-change reels"
+      },
+      "afternoon": {
+        "count": 5,
+        "avg_reach": 64,
+        "verdict": "Weakest \u2014 dominated by low-reach photo posts"
+      },
+      "night": {
+        "count": 5,
+        "avg_reach": 131,
+        "verdict": "Below average"
+      }
+    },
+    "recommendations": [
+      "Post more question-hook Reels \u2014 they average 20x the reach of how-to hooks",
+      "STOP posting static photos \u2014 Reels get 200-500x more reach on this account",
+      "Schedule posts for evening (19:00-20:00) \u2014 that time slot has 3600 avg reach",
+      "Try educational content more often \u2014 the tire question reel was 10x any other post",
+      "Adventure and app-feature content should be converted to Reel format before posting"
+    ]
+  }
+}

@@ -490,7 +490,7 @@ export default function RidesScreen() {
       );
     }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, router, isDark]);
+  }, [isFetchingNextPage, showUpgradeCta, isDark]);
 
   return (
     <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
