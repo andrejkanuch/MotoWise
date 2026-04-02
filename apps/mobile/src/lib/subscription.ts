@@ -132,17 +132,22 @@ export async function presentPaywall(
   }
 
   try {
+    const Purchases = await getPurchases();
     const RevenueCatUI = await import('react-native-purchases-ui');
     const { PAYWALL_RESULT } = RevenueCatUI;
 
-    const offering = options.offeringIdentifier ?? DEFAULT_OFFERING;
+    // Fetch the target offering object — the RC paywall API requires the
+    // full PurchasesOffering, not just a string identifier.
+    const offeringId = options.offeringIdentifier ?? DEFAULT_OFFERING;
+    const offerings = await Purchases.getOfferings();
+    const offering = offerings.all[offeringId] ?? offerings.current ?? undefined;
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
           requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
-          offeringIdentifier: offering,
+          offering,
         })
-      : await RevenueCatUI.default.presentPaywall({ offeringIdentifier: offering });
+      : await RevenueCatUI.default.presentPaywall({ offering });
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:
