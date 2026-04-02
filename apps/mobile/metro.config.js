@@ -1,6 +1,6 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
-const { withSentryConfig } = require('@sentry/react-native/metro');
+// const { withSentryConfig } = require('@sentry/react-native/metro');
 const path = require('node:path');
 
 const projectRoot = __dirname;
@@ -20,4 +20,8 @@ config.resolver.nodeModulesPaths = [
 ];
 config.resolver.disableHierarchicalLookup = true;
 
-module.exports = withSentryConfig(withNativeWind(config));
+// withSentryConfig wraps the Metro serializer for source map debug IDs.
+// Temporarily disabled due to a crash in determineDebugIdFromBundleSource
+// with @sentry/react-native 7.2.0 during `eas update` exports.
+// TODO: Re-enable after upgrading Sentry or when the bug is fixed.
+module.exports = withNativeWind(config);
