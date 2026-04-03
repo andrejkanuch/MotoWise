@@ -71,6 +71,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   onToggleExpand,
   onComplete,
   onDelete,
+  mileageUnit,
 }: {
   task: MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
   index: number;
@@ -80,6 +81,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   onToggleExpand: (id: string) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  mileageUnit: string;
 }) {
   const { t } = useTranslation();
   const isCompleted = task.status === 'completed';
@@ -154,7 +156,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
                   <Gauge size={12} color={palette.neutral400} />
                   <Text style={{ fontSize: 12, color: palette.neutral400 }}>
-                    {task.targetMileage.toLocaleString()} mi
+                    {task.targetMileage.toLocaleString()} {mileageUnit}
                   </Text>
                 </View>
               )}
@@ -260,7 +262,9 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
             <CheckCircle2 size={14} color={palette.success500} strokeWidth={2} />
             <Text style={{ fontSize: 12, color: palette.success500 }}>
               {new Date(task.completedAt).toLocaleDateString()}
-              {task.completedMileage ? ` @ ${task.completedMileage.toLocaleString()} mi` : ''}
+              {task.completedMileage
+                ? ` @ ${task.completedMileage.toLocaleString()} ${mileageUnit}`
+                : ''}
             </Text>
           </View>
         )}

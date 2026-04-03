@@ -4,26 +4,40 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, DollarSign, Plus } from 'lucide-react-native';
+import { Calendar, Check, ChevronDown, DollarSign, Plus, Tag } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../../hooks/use-currency';
-import { formatCurrencyInput } from '../../../lib/expense-constants';
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  formatCurrencyInput,
+} from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
-const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
+const CATEGORIES = [
+  'fuel',
+  'maintenance',
+  'parts',
+  'tires',
+  'gear',
+  'insurance',
+  'registration',
+  'tolls',
+  'parking',
+  'modifications',
+  'training',
+] as const;
 type Category = (typeof CATEGORIES)[number];
 
-const CATEGORY_META: Record<Category, { color: string; label: string }> = {
-  fuel: { color: palette.warning500, label: 'Fuel' },
-  maintenance: { color: palette.primary500, label: 'Maintenance' },
-  parts: { color: palette.success500, label: 'Parts' },
-  gear: { color: palette.danger500, label: 'Gear' },
-};
+const CATEGORY_META: Record<Category, { color: string; label: string }> = Object.fromEntries(
+  CATEGORIES.map((c) => [c, { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] }]),
+) as Record<Category, { color: string; label: string }>;
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
@@ -44,6 +58,7 @@ export default function AddExpenseScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const parsedAmount = Number.parseFloat(amount) || 0;
@@ -81,7 +96,8 @@ export default function AddExpenseScreen() {
   const sectionGap = 24;
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={20}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, gap: sectionGap }}
       keyboardDismissMode="interactive"
@@ -142,7 +158,14 @@ export default function AddExpenseScreen() {
         </View>
       </Animated.View>
 
-      {/* Category pills */}
+      {/* Validation hint */}
+      {parsedAmount > 99999.99 && (
+        <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 4, marginLeft: 4 }}>
+          {t('expenses.amountTooHigh', { defaultValue: 'Maximum amount is 99,999.99' })}
+        </Text>
+      )}
+
+      {/* Category selector */}
       <Animated.View entering={FadeInDown.delay(50).duration(250)}>
         <Text
           style={{
@@ -155,59 +178,130 @@ export default function AddExpenseScreen() {
         >
           {t('expenses.category', { defaultValue: 'Category' })}
         </Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {CATEGORIES.map((c) => {
-            const selected = category === c;
-            const meta = CATEGORY_META[c];
-            return (
-              <Pressable
-                key={c}
-                onPress={() => {
-                  triggerImpact();
-                  setCategory(c);
-                }}
+        <View
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          {/* Selected category row */}
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              setShowCategoryPicker(!showCategoryPicker);
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                borderCurve: 'continuous',
+                backgroundColor: `${CATEGORY_META[category].color}18`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Tag size={16} color={CATEGORY_META[category].color} strokeWidth={2} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
                 style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  alignItems: 'center',
-                  backgroundColor: selected
-                    ? `${meta.color}18`
-                    : isDark
-                      ? palette.neutral800
-                      : palette.white,
-                  borderWidth: selected ? 1.5 : 1,
-                  borderColor: selected
-                    ? meta.color
-                    : isDark
-                      ? palette.neutral700
-                      : palette.neutral200,
-                  boxShadow: selected ? 'none' : isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.04)',
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
                 }}
               >
-                <View
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: meta.color,
-                    marginBottom: 4,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: selected ? '700' : '500',
-                    color: selected ? meta.color : isDark ? palette.neutral400 : palette.neutral600,
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {t(`expenses.category_${c}`, { defaultValue: meta.label })}
-                </Text>
-              </Pressable>
-            );
-          })}
+                {t(`expenses.category_${category}`, {
+                  defaultValue: CATEGORY_META[category].label,
+                })}
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: CATEGORY_META[category].color,
+                marginRight: 4,
+              }}
+            />
+            <ChevronDown
+              size={16}
+              color={palette.neutral400}
+              strokeWidth={2}
+              style={{
+                transform: [{ rotate: showCategoryPicker ? '180deg' : '0deg' }],
+              }}
+            />
+          </Pressable>
+
+          {/* Category options list */}
+          {showCategoryPicker && (
+            <View
+              style={{
+                borderTopWidth: 0.5,
+                borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+              }}
+            >
+              {CATEGORIES.map((c) => {
+                const selected = category === c;
+                const meta = CATEGORY_META[c];
+                return (
+                  <Pressable
+                    key={c}
+                    onPress={() => {
+                      triggerImpact();
+                      setCategory(c);
+                      setShowCategoryPicker(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      gap: 12,
+                      backgroundColor: selected ? `${meta.color}10` : 'transparent',
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: meta.color,
+                      }}
+                    />
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        fontWeight: selected ? '600' : '400',
+                        color: selected
+                          ? meta.color
+                          : isDark
+                            ? palette.neutral200
+                            : palette.neutral800,
+                      }}
+                    >
+                      {t(`expenses.category_${c}`, { defaultValue: meta.label })}
+                    </Text>
+                    {selected && <Check size={16} color={meta.color} strokeWidth={2.5} />}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
       </Animated.View>
 
@@ -428,6 +522,6 @@ export default function AddExpenseScreen() {
           </Text>
         </Pressable>
       </Animated.View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

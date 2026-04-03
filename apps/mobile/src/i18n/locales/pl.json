@@ -538,7 +538,17 @@
     "deleteTask": "Usun zadanie",
     "exportError": "Nie udalo sie wyeksportowac PDF. Sprobuj ponownie.",
     "exportPdf": "Eksportuj jako PDF",
-    "takePhoto": "Zrob zdjecie"
+    "takePhoto": "Zrob zdjecie",
+    "recurring": "Cykliczne",
+    "repeatTask": "Powtarzaj to zadanie",
+    "recurringHint": "Ustaw interwał dystansu lub czasu, w zależności co nastąpi pierwsze",
+    "everyKm": "Interwał dystansu",
+    "everyDays": "Interwał czasu",
+    "days": "dni",
+    "completionDetails": "Szczegóły ukończenia",
+    "odometer": "Licznik",
+    "currentReading": "Aktualnie: {{value}} {{unit}}",
+    "totalCost": "Koszt"
   },
   "paywall": {
     "title": "Twoje doswiadczenie MotoVault jest gotowe",
@@ -803,7 +813,18 @@
     "saved": "Wydatek zapisany",
     "seeAll": "Zobacz wszystko",
     "showLess": "Pokaz mniej",
-    "deleteFailed": "Nie udalo sie usunac wydatku. Sprobuj ponownie."
+    "deleteFailed": "Nie udalo sie usunac wydatku. Sprobuj ponownie.",
+    "category_fuel": "Paliwo",
+    "category_maintenance": "Serwis",
+    "category_parts": "Części",
+    "category_tires": "Opony",
+    "category_gear": "Wyposażenie",
+    "category_insurance": "Ubezpieczenie",
+    "category_registration": "Rejestracja",
+    "category_tolls": "Opłaty drogowe",
+    "category_parking": "Parking",
+    "category_modifications": "Modyfikacje",
+    "category_training": "Szkolenie"
   },
   "privacy": {
     "title": "Prywatnosc",

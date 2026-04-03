@@ -37,6 +37,7 @@ export function MileageDisplay({
       t('bikeHub.updateMileage', { defaultValue: 'Update Mileage' }),
       t('bikeHub.enterCurrentMileage', {
         defaultValue: `Enter current odometer reading (${mileageUnit})`,
+        unit: mileageUnit,
       }),
       [
         { text: t('common.cancel', { defaultValue: 'Cancel' }), style: 'cancel' },

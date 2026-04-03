@@ -538,7 +538,17 @@
     "deleteTask": "Excluir tarefa",
     "exportError": "Falha ao exportar o PDF. Tente novamente.",
     "exportPdf": "Exportar como PDF",
-    "takePhoto": "Tirar foto"
+    "takePhoto": "Tirar foto",
+    "recurring": "Recorrente",
+    "repeatTask": "Repetir esta tarefa",
+    "recurringHint": "Defina um intervalo de distância ou tempo, o que ocorrer primeiro",
+    "everyKm": "Intervalo de distância",
+    "everyDays": "Intervalo de tempo",
+    "days": "dias",
+    "completionDetails": "Detalhes da conclusão",
+    "odometer": "Odômetro",
+    "currentReading": "Atual: {{value}} {{unit}}",
+    "totalCost": "Custo"
   },
   "paywall": {
     "title": "Sua experiência MotoVault está pronta",
@@ -803,7 +813,18 @@
     "saved": "Despesa salva",
     "seeAll": "Ver tudo",
     "showLess": "Ver menos",
-    "deleteFailed": "Falha ao excluir a despesa. Tente novamente."
+    "deleteFailed": "Falha ao excluir a despesa. Tente novamente.",
+    "category_fuel": "Combustível",
+    "category_maintenance": "Serviço",
+    "category_parts": "Peças",
+    "category_tires": "Pneus",
+    "category_gear": "Equipamento",
+    "category_insurance": "Seguro",
+    "category_registration": "Registro",
+    "category_tolls": "Pedágios",
+    "category_parking": "Estacionamento",
+    "category_modifications": "Mods",
+    "category_training": "Treinamento"
   },
   "privacy": {
     "title": "Privacidade",

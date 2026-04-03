@@ -6,6 +6,9 @@ mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {
     status
     dueDate
     targetMileage
+    isRecurring
+    intervalKm
+    intervalDays
     createdAt
   }
 }

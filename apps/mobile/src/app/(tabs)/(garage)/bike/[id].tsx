@@ -293,7 +293,13 @@ export default function BikeDetailScreen() {
     const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
     router.push({
       pathname: '/(tabs)/(garage)/complete-task',
-      params: { taskId, motorcycleId: id, bikeName },
+      params: {
+        taskId,
+        motorcycleId: id,
+        bikeName,
+        currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
+        mileageUnit: bike?.mileageUnit ?? 'mi',
+      },
     });
   };
 
@@ -772,6 +778,7 @@ export default function BikeDetailScreen() {
             onToggleExpand={handleToggleExpand}
             onComplete={handleCompleteTask}
             onDelete={handleDeleteTask}
+            mileageUnit={bike.mileageUnit ?? 'mi'}
           />
         </Animated.View>
 

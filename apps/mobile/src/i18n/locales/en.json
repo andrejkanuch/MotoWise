@@ -538,7 +538,17 @@
     "deleteTask": "Delete Task",
     "exportError": "Failed to export PDF. Please try again.",
     "exportPdf": "Export as PDF",
-    "takePhoto": "Take Photo"
+    "takePhoto": "Take Photo",
+    "recurring": "Recurring",
+    "repeatTask": "Repeat this task",
+    "recurringHint": "Set a distance or time interval, whichever comes first",
+    "everyKm": "Distance interval",
+    "everyDays": "Time interval",
+    "days": "days",
+    "completionDetails": "Completion Details",
+    "odometer": "Odometer",
+    "currentReading": "Current: {{value}} {{unit}}",
+    "totalCost": "Cost"
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",
@@ -803,7 +813,18 @@
     "saved": "Expense saved",
     "seeAll": "See All",
     "showLess": "Show Less",
-    "deleteFailed": "Failed to delete expense. Please try again."
+    "deleteFailed": "Failed to delete expense. Please try again.",
+    "category_fuel": "Fuel",
+    "category_maintenance": "Service",
+    "category_parts": "Parts",
+    "category_gear": "Gear",
+    "category_insurance": "Insurance",
+    "category_registration": "Registration",
+    "category_tolls": "Tolls",
+    "category_parking": "Parking",
+    "category_tires": "Tires",
+    "category_modifications": "Mods",
+    "category_training": "Training"
   },
   "privacy": {
     "title": "Privacy",

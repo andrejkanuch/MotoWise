@@ -538,7 +538,17 @@
     "deleteTask": "ลบงาน",
     "exportError": "ส่งออก PDF ไม่สำเร็จ กรุณาลองอีกครั้ง",
     "exportPdf": "ส่งออกเป็น PDF",
-    "takePhoto": "ถ่ายรูป"
+    "takePhoto": "ถ่ายรูป",
+    "recurring": "ทำซ้ำ",
+    "repeatTask": "ทำซ้ำงานนี้",
+    "recurringHint": "ตั้งช่วงระยะทางหรือเวลา อันไหนมาถึงก่อน",
+    "everyKm": "ช่วงระยะทาง",
+    "everyDays": "ช่วงเวลา",
+    "days": "วัน",
+    "completionDetails": "รายละเอียดการเสร็จสิ้น",
+    "odometer": "มาตรวัดระยะทาง",
+    "currentReading": "ปัจจุบัน: {{value}} {{unit}}",
+    "totalCost": "ค่าใช้จ่าย"
   },
   "paywall": {
     "title": "ประสบการณ์ MotoVault ของคุณพร้อมแล้ว",
@@ -803,7 +813,18 @@
     "saved": "บันทึกค่าใช้จ่ายแล้ว",
     "seeAll": "ดูทั้งหมด",
     "showLess": "แสดงน้อยลง",
-    "deleteFailed": "ลบค่าใช้จ่ายไม่สำเร็จ กรุณาลองอีกครั้ง"
+    "deleteFailed": "ลบค่าใช้จ่ายไม่สำเร็จ กรุณาลองอีกครั้ง",
+    "category_fuel": "เชื้อเพลิง",
+    "category_maintenance": "เซอร์วิส",
+    "category_parts": "อะไหล่",
+    "category_tires": "ยาง",
+    "category_gear": "อุปกรณ์",
+    "category_insurance": "ประกัน",
+    "category_registration": "ทะเบียน",
+    "category_tolls": "ค่าผ่านทาง",
+    "category_parking": "ที่จอดรถ",
+    "category_modifications": "แต่ง",
+    "category_training": "อบรม"
   },
   "privacy": {
     "title": "ความเป็นส่วนตัว",

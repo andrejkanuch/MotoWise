@@ -538,7 +538,17 @@
     "deleteTask": "Hapus Tugas",
     "exportError": "Gagal mengekspor PDF. Silakan coba lagi.",
     "exportPdf": "Ekspor sebagai PDF",
-    "takePhoto": "Ambil Foto"
+    "takePhoto": "Ambil Foto",
+    "recurring": "Berulang",
+    "repeatTask": "Ulangi tugas ini",
+    "recurringHint": "Atur interval jarak atau waktu, mana yang lebih dulu",
+    "everyKm": "Interval jarak",
+    "everyDays": "Interval waktu",
+    "days": "hari",
+    "completionDetails": "Detail penyelesaian",
+    "odometer": "Odometer",
+    "currentReading": "Saat ini: {{value}} {{unit}}",
+    "totalCost": "Biaya"
   },
   "paywall": {
     "title": "Pengalaman MotoVault-mu sudah siap",
@@ -803,7 +813,18 @@
     "saved": "Pengeluaran tersimpan",
     "seeAll": "Lihat Semua",
     "showLess": "Tampilkan Lebih Sedikit",
-    "deleteFailed": "Gagal menghapus pengeluaran. Silakan coba lagi."
+    "deleteFailed": "Gagal menghapus pengeluaran. Silakan coba lagi.",
+    "category_fuel": "Bahan Bakar",
+    "category_maintenance": "Servis",
+    "category_parts": "Suku Cadang",
+    "category_tires": "Ban",
+    "category_gear": "Perlengkapan",
+    "category_insurance": "Asuransi",
+    "category_registration": "Registrasi",
+    "category_tolls": "Tol",
+    "category_parking": "Parkir",
+    "category_modifications": "Modifikasi",
+    "category_training": "Pelatihan"
   },
   "privacy": {
     "title": "Privasi",

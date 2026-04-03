@@ -538,7 +538,17 @@
     "deleteTask": "टास्क हटाएं",
     "exportError": "PDF एक्सपोर्ट विफल। कृपया फिर कोशिश करें।",
     "exportPdf": "PDF में एक्सपोर्ट करें",
-    "takePhoto": "फोटो लें"
+    "takePhoto": "फोटो लें",
+    "recurring": "दोहराव",
+    "repeatTask": "इस टास्क को दोहराएं",
+    "recurringHint": "दूरी या समय अंतराल सेट करें, जो पहले आए",
+    "everyKm": "दूरी अंतराल",
+    "everyDays": "समय अंतराल",
+    "days": "दिन",
+    "completionDetails": "पूर्णता विवरण",
+    "odometer": "ओडोमीटर",
+    "currentReading": "वर्तमान: {{value}} {{unit}}",
+    "totalCost": "लागत"
   },
   "paywall": {
     "title": "आपका MotoVault अनुभव तैयार है",
@@ -803,7 +813,18 @@
     "saved": "खर्चा सेव हो गया",
     "seeAll": "सभी देखें",
     "showLess": "कम दिखाएं",
-    "deleteFailed": "खर्चा हटाने में विफल। कृपया फिर कोशिश करें।"
+    "deleteFailed": "खर्चा हटाने में विफल। कृपया फिर कोशिश करें।",
+    "category_fuel": "ईंधन",
+    "category_maintenance": "सर्विस",
+    "category_parts": "पार्ट्स",
+    "category_tires": "टायर",
+    "category_gear": "गियर",
+    "category_insurance": "बीमा",
+    "category_registration": "पंजीकरण",
+    "category_tolls": "टोल",
+    "category_parking": "पार्किंग",
+    "category_modifications": "मॉड्स",
+    "category_training": "प्रशिक्षण"
   },
   "privacy": {
     "title": "प्राइवेसी",

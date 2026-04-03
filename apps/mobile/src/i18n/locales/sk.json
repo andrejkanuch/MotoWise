@@ -538,7 +538,17 @@
     "deleteTask": "Vymazať úlohu",
     "exportError": "Nepodarilo sa exportovať PDF. Skúste to znova.",
     "exportPdf": "Exportovať ako PDF",
-    "takePhoto": "Odfotiť"
+    "takePhoto": "Odfotiť",
+    "recurring": "Opakujúce sa",
+    "repeatTask": "Opakovať túto úlohu",
+    "recurringHint": "Nastavte vzdialenostný alebo časový interval, podľa toho čo nastane skôr",
+    "everyKm": "Interval vzdialenosti",
+    "everyDays": "Časový interval",
+    "days": "dní",
+    "completionDetails": "Podrobnosti dokončenia",
+    "odometer": "Odometer",
+    "currentReading": "Aktuálne: {{value}} {{unit}}",
+    "totalCost": "Náklady"
   },
   "paywall": {
     "title": "Tvoj MotoVault zážitok je pripravený",
@@ -803,7 +813,18 @@
     "saved": "Výdavok uložený",
     "seeAll": "Zobraziť všetko",
     "showLess": "Zobraziť menej",
-    "deleteFailed": "Nepodarilo sa vymazať výdavok. Skúste to znova."
+    "deleteFailed": "Nepodarilo sa vymazať výdavok. Skúste to znova.",
+    "category_fuel": "Palivo",
+    "category_maintenance": "Servis",
+    "category_parts": "Diely",
+    "category_tires": "Pneumatiky",
+    "category_gear": "Výbava",
+    "category_insurance": "Poistenie",
+    "category_registration": "Registrácia",
+    "category_tolls": "Mýto",
+    "category_parking": "Parkovanie",
+    "category_modifications": "Úpravy",
+    "category_training": "Školenie"
   },
   "privacy": {
     "title": "Súkromie",

@@ -105,12 +105,9 @@ export function ExpensesSection({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 18,
               fontWeight: '700',
-              color: palette.neutral500,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginLeft: 4,
+              color: isDark ? palette.neutral50 : palette.neutral950,
             }}
           >
             {t('expenses.title', { defaultValue: 'Expenses' })}
@@ -131,6 +128,7 @@ export function ExpensesSection({
           {/* Year filter pill */}
           <Pressable
             onPress={toggleYear}
+            hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -171,6 +169,7 @@ export function ExpensesSection({
                 },
               });
             }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               width: 28,
               height: 28,
@@ -195,6 +194,7 @@ export function ExpensesSection({
                 params: { motorcycleId },
               });
             }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={{
               width: 28,
               height: 28,
