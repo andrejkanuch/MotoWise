@@ -3,15 +3,29 @@ import { palette } from '@motovault/design-system';
 export const CATEGORY_COLORS: Record<string, string> = {
   fuel: palette.warning500,
   maintenance: palette.primary500,
-  parts: palette.success500,
-  gear: palette.danger500,
+  parts: palette.accent500,
+  gear: palette.signature500,
+  insurance: palette.indigo500,
+  registration: palette.moduleSuspension,
+  tolls: palette.neutral500,
+  parking: palette.indigo400,
+  tires: palette.danger500,
+  modifications: palette.moduleEngine,
+  training: palette.success500,
 };
 
 export const CATEGORY_LABELS: Record<string, string> = {
   fuel: 'Fuel',
-  maintenance: 'Maintenance',
+  maintenance: 'Service',
   parts: 'Parts',
   gear: 'Gear',
+  insurance: 'Insurance',
+  registration: 'Registration',
+  tolls: 'Tolls',
+  parking: 'Parking',
+  tires: 'Tires',
+  modifications: 'Mods',
+  training: 'Training',
 };
 
 import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';

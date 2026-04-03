@@ -128,6 +128,9 @@ input CreateFlagInput {
 input CreateMaintenanceTaskInput {
   description: String
   dueDate: String
+  intervalDays: Int
+  intervalKm: Int
+  isRecurring: Boolean = false
   motorcycleId: String!
   notes: String
   partsNeeded: [String!]

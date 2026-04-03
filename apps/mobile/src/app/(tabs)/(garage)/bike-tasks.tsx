@@ -34,9 +34,14 @@ type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
 
 export default function BikeTasksScreen() {
   const { t } = useTranslation();
-  const { motorcycleId, bikeName } = useLocalSearchParams<{
+  const {
+    motorcycleId,
+    bikeName,
+    mileageUnit = 'mi',
+  } = useLocalSearchParams<{
     motorcycleId: string;
     bikeName?: string;
+    mileageUnit?: string;
   }>();
   const router = useRouter();
   const isDark = useColorScheme() === 'dark';
@@ -308,6 +313,7 @@ export default function BikeTasksScreen() {
               isDark={isDark}
               isExpanded={expandedId === task.id}
               motorcycleId={motorcycleId}
+              mileageUnit={mileageUnit}
               onToggleExpand={handleToggleExpand}
               onComplete={handleComplete}
               onDelete={handleDelete}

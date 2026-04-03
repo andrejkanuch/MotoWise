@@ -19,6 +19,7 @@ interface MaintenanceSectionProps {
   onToggleExpand: (id: string) => void;
   onComplete: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  mileageUnit: string;
 }
 
 export function MaintenanceSection({
@@ -29,6 +30,7 @@ export function MaintenanceSection({
   onToggleExpand,
   onComplete,
   onDelete,
+  mileageUnit,
 }: MaintenanceSectionProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -87,7 +89,7 @@ export function MaintenanceSection({
     triggerImpact();
     router.push({
       pathname: '/(tabs)/(garage)/bike-tasks',
-      params: { motorcycleId },
+      params: { motorcycleId, mileageUnit },
     });
   };
 
@@ -255,6 +257,7 @@ export function MaintenanceSection({
             onToggleExpand={onToggleExpand}
             onComplete={onComplete}
             onDelete={onDelete}
+            mileageUnit={mileageUnit}
           />
         ))
       )}

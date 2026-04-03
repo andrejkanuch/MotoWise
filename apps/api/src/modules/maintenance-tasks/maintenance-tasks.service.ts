@@ -117,6 +117,9 @@ export class MaintenanceTasksService {
       priority?: string;
       notes?: string;
       partsNeeded?: string[];
+      isRecurring?: boolean;
+      intervalKm?: number;
+      intervalDays?: number;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
@@ -134,6 +137,9 @@ export class MaintenanceTasksService {
         priority: input.priority ?? 'medium',
         notes: input.notes,
         parts_needed: input.partsNeeded,
+        is_recurring: input.isRecurring ?? false,
+        interval_km: input.intervalKm ?? null,
+        interval_days: input.intervalDays ?? null,
       })
       .select()
       .single();

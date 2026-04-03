@@ -19,7 +19,7 @@ type Documents = {
     "mutation CompleteOnboarding($input: CompleteOnboardingInput!) {\n  completeOnboarding(input: $input) {\n    id\n    preferences\n    currency\n    createdAt\n    updatedAt\n  }\n}": typeof types.CompleteOnboardingDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.CreateDiagnosticDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": typeof types.CreateFlagDocument,
-    "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    createdAt\n  }\n}": typeof types.CreateMaintenanceTaskDocument,
+    "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    createdAt\n  }\n}": typeof types.CreateMaintenanceTaskDocument,
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": typeof types.CreateMotorcycleDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": typeof types.CreateShareLinkDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
@@ -70,7 +70,7 @@ const documents: Documents = {
     "mutation CompleteOnboarding($input: CompleteOnboardingInput!) {\n  completeOnboarding(input: $input) {\n    id\n    preferences\n    currency\n    createdAt\n    updatedAt\n  }\n}": types.CompleteOnboardingDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.CreateDiagnosticDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": types.CreateFlagDocument,
-    "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    createdAt\n  }\n}": types.CreateMaintenanceTaskDocument,
+    "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    createdAt\n  }\n}": types.CreateMaintenanceTaskDocument,
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": types.CreateMotorcycleDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": types.CreateShareLinkDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
@@ -153,7 +153,7 @@ export function graphql(source: "mutation CreateFlag($input: CreateFlagInput!) {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    createdAt\n  }\n}"): (typeof documents)["mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    createdAt\n  }\n}"];
+export function graphql(source: "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    createdAt\n  }\n}"): (typeof documents)["mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

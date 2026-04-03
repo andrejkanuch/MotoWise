@@ -26,4 +26,13 @@ export class CreateMaintenanceTaskInput {
 
   @Field(() => [String], { nullable: true })
   partsNeeded?: string[];
+
+  @Field({ nullable: true, defaultValue: false })
+  isRecurring?: boolean;
+
+  @Field(() => Int, { nullable: true })
+  intervalKm?: number;
+
+  @Field(() => Int, { nullable: true })
+  intervalDays?: number;
 }

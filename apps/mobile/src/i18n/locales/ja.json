@@ -538,7 +538,17 @@
     "deleteTask": "タスクを削除",
     "exportError": "PDFのエクスポートに失敗しました。もう一度お試しください。",
     "exportPdf": "PDFとしてエクスポート",
-    "takePhoto": "写真を撮る"
+    "takePhoto": "写真を撮る",
+    "recurring": "繰り返し",
+    "repeatTask": "このタスクを繰り返す",
+    "recurringHint": "距離または時間の間隔を設定（早い方が優先）",
+    "everyKm": "距離間隔",
+    "everyDays": "時間間隔",
+    "days": "日",
+    "completionDetails": "完了詳細",
+    "odometer": "オドメーター",
+    "currentReading": "現在: {{value}} {{unit}}",
+    "totalCost": "費用"
   },
   "paywall": {
     "title": "MotoVault体験の準備ができました",
@@ -803,7 +813,18 @@
     "saved": "費用を保存しました",
     "seeAll": "すべて見る",
     "showLess": "少なく表示",
-    "deleteFailed": "費用の削除に失敗しました。もう一度お試しください。"
+    "deleteFailed": "費用の削除に失敗しました。もう一度お試しください。",
+    "category_fuel": "燃料",
+    "category_maintenance": "整備",
+    "category_parts": "部品",
+    "category_tires": "タイヤ",
+    "category_gear": "用品",
+    "category_insurance": "保険",
+    "category_registration": "登録",
+    "category_tolls": "通行料",
+    "category_parking": "駐車",
+    "category_modifications": "カスタム",
+    "category_training": "講習"
   },
   "privacy": {
     "title": "プライバシー",

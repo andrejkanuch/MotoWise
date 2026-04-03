@@ -538,7 +538,17 @@
     "deleteTask": "Gorevi Sil",
     "exportError": "PDF disa aktarilamadi. Lutfen tekrar dene.",
     "exportPdf": "PDF Olarak Disa Aktar",
-    "takePhoto": "Foto Cek"
+    "takePhoto": "Foto Cek",
+    "recurring": "Tekrarlayan",
+    "repeatTask": "Bu görevi tekrarla",
+    "recurringHint": "Mesafe veya zaman aralığı belirle, hangisi önce gelirse",
+    "everyKm": "Mesafe aralığı",
+    "everyDays": "Zaman aralığı",
+    "days": "gün",
+    "completionDetails": "Tamamlama detayları",
+    "odometer": "Kilometre sayacı",
+    "currentReading": "Mevcut: {{value}} {{unit}}",
+    "totalCost": "Maliyet"
   },
   "paywall": {
     "title": "MotoVault deneyimin hazir",
@@ -803,7 +813,18 @@
     "saved": "Harcama kaydedildi",
     "seeAll": "Tumunu Gor",
     "showLess": "Daha Az Goster",
-    "deleteFailed": "Harcama silinemedi. Lutfen tekrar dene."
+    "deleteFailed": "Harcama silinemedi. Lutfen tekrar dene.",
+    "category_fuel": "Yakıt",
+    "category_maintenance": "Servis",
+    "category_parts": "Parçalar",
+    "category_tires": "Lastikler",
+    "category_gear": "Ekipman",
+    "category_insurance": "Sigorta",
+    "category_registration": "Tescil",
+    "category_tolls": "Geçiş ücreti",
+    "category_parking": "Otopark",
+    "category_modifications": "Modlar",
+    "category_training": "Eğitim"
   },
   "privacy": {
     "title": "Gizlilik",

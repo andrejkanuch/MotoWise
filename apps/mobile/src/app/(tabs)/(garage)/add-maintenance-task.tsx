@@ -2,32 +2,26 @@ import { palette } from '@motovault/design-system';
 import { CreateMaintenanceTaskDocument, type MaintenancePriority } from '@motovault/graphql';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, Gauge, Plus } from 'lucide-react-native';
+import { Calendar, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
+import { triggerImpact } from '../../../utils/haptics';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
-const PRIORITY_META: Record<string, { color: string; emoji: string }> = {
-  low: { color: palette.success500, emoji: '🟢' },
-  medium: { color: palette.primary500, emoji: '🔵' },
-  high: { color: palette.warning500, emoji: '🟠' },
-  critical: { color: palette.danger500, emoji: '🔴' },
+const PRIORITY_META: Record<string, { color: string }> = {
+  low: { color: palette.success500 },
+  medium: { color: palette.primary500 },
+  high: { color: palette.warning500 },
+  critical: { color: palette.danger500 },
 };
-
-function haptic() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }
-}
 
 function formatDate(date: Date): string {
   const y = date.getFullYear();
@@ -52,6 +46,9 @@ export default function AddMaintenanceTaskScreen() {
   const [targetMileage, setTargetMileage] = useState('');
   const [priority, setPriority] = useState<MaintenancePriority>('medium' as MaintenancePriority);
   const [notes, setNotes] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [intervalKm, setIntervalKm] = useState('');
+  const [intervalDays, setIntervalDays] = useState('');
   const [saved, setSaved] = useState(false);
 
   const createMutation = useMutation({
@@ -65,6 +62,9 @@ export default function AddMaintenanceTaskScreen() {
           targetMileage: targetMileage ? Number.parseInt(targetMileage, 10) : undefined,
           priority,
           notes: notes.trim() || undefined,
+          isRecurring,
+          intervalKm: intervalKm ? parseInt(intervalKm, 10) : undefined,
+          intervalDays: intervalDays ? parseInt(intervalDays, 10) : undefined,
         },
       }),
     onSuccess: (data) => {
@@ -91,7 +91,7 @@ export default function AddMaintenanceTaskScreen() {
 
       MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
-      haptic();
+      triggerImpact();
       setTimeout(() => router.back(), 600);
     },
     onError: () => {
@@ -165,7 +165,7 @@ export default function AddMaintenanceTaskScreen() {
               <Pressable
                 key={p}
                 onPress={() => {
-                  haptic();
+                  triggerImpact();
                   setPriority(p as MaintenancePriority);
                 }}
                 style={{
@@ -188,7 +188,15 @@ export default function AddMaintenanceTaskScreen() {
                   boxShadow: selected ? 'none' : isDark ? 'none' : '0 1px 2px rgba(0,0,0,0.04)',
                 }}
               >
-                <Text style={{ fontSize: 12, marginBottom: 2 }}>{meta.emoji}</Text>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: meta.color,
+                    marginBottom: 4,
+                  }}
+                />
                 <Text
                   style={{
                     fontSize: 12,
@@ -230,7 +238,7 @@ export default function AddMaintenanceTaskScreen() {
           {/* Due Date row */}
           <Pressable
             onPress={() => {
-              haptic();
+              triggerImpact();
               if (!dueDate) setDueDate(new Date());
               setShowDatePicker(!showDatePicker);
             }}
@@ -320,7 +328,7 @@ export default function AddMaintenanceTaskScreen() {
               >
                 <Pressable
                   onPress={() => {
-                    haptic();
+                    triggerImpact();
                     setDueDate(null);
                     setShowDatePicker(false);
                   }}
@@ -331,7 +339,7 @@ export default function AddMaintenanceTaskScreen() {
                 </Pressable>
                 <Pressable
                   onPress={() => {
-                    haptic();
+                    triggerImpact();
                     setShowDatePicker(false);
                   }}
                 >
@@ -407,8 +415,209 @@ export default function AddMaintenanceTaskScreen() {
         </View>
       </Animated.View>
 
+      {/* Recurring toggle */}
+      <Animated.View entering={FadeInDown.delay(125).duration(250)}>
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: palette.neutral500,
+            marginBottom: 8,
+            marginLeft: 4,
+          }}
+        >
+          {t('maintenance.recurring', { defaultValue: 'Recurring' })}
+        </Text>
+        <View
+          style={{
+            backgroundColor: cardBg,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          {/* Toggle row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              justifyContent: 'space-between',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                  backgroundColor: isDark ? palette.indigoBg : palette.primary50,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Repeat size={16} color={palette.indigo500} strokeWidth={2} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '500',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                }}
+              >
+                {t('maintenance.repeatTask', { defaultValue: 'Repeat this task' })}
+              </Text>
+            </View>
+            <Switch
+              value={isRecurring}
+              onValueChange={setIsRecurring}
+              trackColor={{
+                false: isDark ? palette.neutral700 : palette.neutral200,
+                true: palette.indigo500,
+              }}
+            />
+          </View>
+
+          {/* Interval inputs (shown when recurring) */}
+          {isRecurring && (
+            <>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: palette.neutral500,
+                  paddingHorizontal: 16,
+                  paddingBottom: 8,
+                }}
+              >
+                {t('maintenance.recurringHint', {
+                  defaultValue: 'Set a distance or time interval, whichever comes first',
+                })}
+              </Text>
+              <View
+                style={{
+                  height: 0.5,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                  marginLeft: 60,
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  gap: 12,
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    borderCurve: 'continuous',
+                    backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                    flex: 1,
+                  }}
+                >
+                  {t('maintenance.everyKm', { defaultValue: 'Distance interval' })}
+                </Text>
+                <TextInput
+                  value={intervalKm}
+                  onChangeText={(val) => setIntervalKm(val.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="e.g. 5000"
+                  placeholderTextColor={palette.neutral400}
+                  textAlign="right"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                    minWidth: 80,
+                    paddingVertical: 4,
+                  }}
+                />
+                <Text style={{ fontSize: 13, color: palette.neutral400 }}>km</Text>
+              </View>
+
+              <View
+                style={{
+                  height: 0.5,
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                  marginLeft: 60,
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  gap: 12,
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    borderCurve: 'continuous',
+                    backgroundColor: isDark ? palette.primary900 : palette.primary50,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Calendar size={16} color={palette.primary500} strokeWidth={2} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                    flex: 1,
+                  }}
+                >
+                  {t('maintenance.everyDays', { defaultValue: 'Time interval' })}
+                </Text>
+                <TextInput
+                  value={intervalDays}
+                  onChangeText={(val) => setIntervalDays(val.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="e.g. 90"
+                  placeholderTextColor={palette.neutral400}
+                  textAlign="right"
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '500',
+                    color: isDark ? palette.neutral50 : palette.neutral950,
+                    minWidth: 80,
+                    paddingVertical: 4,
+                  }}
+                />
+                <Text style={{ fontSize: 13, color: palette.neutral400 }}>
+                  {t('maintenance.days', { defaultValue: 'days' })}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+      </Animated.View>
+
       {/* Description + Notes — grouped card */}
-      <Animated.View entering={FadeInDown.delay(150).duration(250)}>
+      <Animated.View entering={FadeInDown.delay(175).duration(250)}>
         <Text
           style={{
             fontSize: 13,
@@ -478,10 +687,10 @@ export default function AddMaintenanceTaskScreen() {
       </Animated.View>
 
       {/* Save Button */}
-      <Animated.View entering={FadeInDown.delay(200).duration(250)}>
+      <Animated.View entering={FadeInDown.delay(225).duration(250)}>
         <Pressable
           onPress={() => {
-            haptic();
+            triggerImpact();
             createMutation.mutate();
           }}
           disabled={createMutation.isPending || !title.trim() || saved}
