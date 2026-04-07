@@ -29,6 +29,30 @@ interface HealthReportRow {
   download_expires_at: string | null;
 }
 
+/** Shape returned by the motorcycles select in generateReport */
+interface BikeRow {
+  make: string;
+  model: string;
+  year: number;
+  nickname: string | null;
+  current_mileage: number | null;
+  mileage_unit: string | null;
+}
+
+/** Shape returned by the maintenance_tasks select */
+interface TaskRow {
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  completed_at: string | null;
+}
+
+/** Shape returned by the expenses select */
+interface ExpenseRow {
+  amount: number;
+}
+
 @Injectable()
 export class HealthReportsService {
   private readonly logger = new Logger(HealthReportsService.name);
@@ -59,6 +83,8 @@ export class HealthReportsService {
       throw new ForbiddenException('Motorcycle not found or not owned by user');
     }
 
+    const typedBike = bike as unknown as BikeRow;
+
     // 2. Find existing pending report (created by RevenueCat webhook on purchase)
     const { data: report, error: reportError } = await this.supabaseAdmin
       .from('bike_health_reports')
@@ -80,7 +106,8 @@ export class HealthReportsService {
       );
     }
 
-    const reportId = report.id as string;
+    const typedReport = report as unknown as HealthReportRow;
+    const reportId = typedReport.id;
 
     try {
       // 3. Gather data for the report using admin (cross-table reads)
@@ -98,27 +125,25 @@ export class HealthReportsService {
           .is('deleted_at', null),
       ]);
 
-      const tasks = (tasksResult.data ?? []).map((t) => ({
-        title: t.title as string,
-        status: t.status as string,
-        priority: t.priority as string,
-        dueDate: (t.due_date as string) ?? undefined,
-        completedAt: (t.completed_at as string) ?? undefined,
+      const tasks = ((tasksResult.data ?? []) as unknown as TaskRow[]).map((t) => ({
+        title: t.title,
+        status: t.status,
+        priority: t.priority,
+        dueDate: t.due_date ?? undefined,
+        completedAt: t.completed_at ?? undefined,
       }));
 
-      const totalExpenses = (expensesResult.data ?? []).reduce(
-        (sum, e) => sum + ((e.amount as number) ?? 0),
-        0,
-      );
+      const expenses = (expensesResult.data ?? []) as unknown as ExpenseRow[];
+      const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 
       const reportData: ReportData = {
         bike: {
-          make: bike.make as string,
-          model: bike.model as string,
-          year: bike.year as number,
-          nickname: (bike.nickname as string) ?? undefined,
-          currentMileage: (bike.current_mileage as number) ?? undefined,
-          mileageUnit: (bike.mileage_unit as string) ?? undefined,
+          make: typedBike.make,
+          model: typedBike.model,
+          year: typedBike.year,
+          nickname: typedBike.nickname ?? undefined,
+          currentMileage: typedBike.current_mileage ?? undefined,
+          mileageUnit: typedBike.mileage_unit ?? undefined,
         },
         tasks,
         generatedAt: new Date().toISOString(),

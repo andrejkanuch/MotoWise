@@ -33,6 +33,16 @@ interface FeedRideRow {
   } | null;
 }
 
+/** Shape returned by follows select */
+interface FollowIdRow {
+  following_id: string;
+}
+
+/** Shape returned by ride_kudos select */
+interface KudosIdRow {
+  ride_id: string;
+}
+
 @Injectable()
 export class FeedService {
   private readonly logger = new Logger(FeedService.name);
@@ -55,7 +65,9 @@ export class FeedService {
       throw new InternalServerErrorException('Failed to fetch feed');
     }
 
-    const followingIds = (followRows ?? []).map((r) => r.following_id as string);
+    const followingIds = ((followRows ?? []) as unknown as FollowIdRow[]).map(
+      (r) => r.following_id,
+    );
 
     if (followingIds.length === 0) {
       return {
@@ -97,12 +109,12 @@ export class FeedService {
       throw new InternalServerErrorException('Failed to fetch feed');
     }
 
-    const rows = data ?? [];
+    const rows = (data ?? []) as unknown as FeedRideRow[];
     const hasNextPage = rows.length > limit;
     const sliced = hasNextPage ? rows.slice(0, limit) : rows;
 
     // Step 3: Batch-check kudos existence for all returned ride IDs
-    const rideIds = sliced.map((r) => r.id as string);
+    const rideIds = sliced.map((r) => r.id);
     let kudosSet = new Set<string>();
 
     if (rideIds.length > 0) {
@@ -116,13 +128,13 @@ export class FeedService {
         this.logger.warn(`getRideFeed kudos check failed: ${kudosError.message}`);
         // Non-fatal — feed still works, hasKudos will be false
       } else {
-        kudosSet = new Set((kudosRows ?? []).map((r) => r.ride_id as string));
+        kudosSet = new Set(((kudosRows ?? []) as unknown as KudosIdRow[]).map((r) => r.ride_id));
       }
     }
 
     // Step 4: Map rows to FeedRide
     const edges = sliced.map((row) => {
-      const node = this.mapFeedRow(row as unknown as FeedRideRow, kudosSet);
+      const node = this.mapFeedRow(row, kudosSet);
       return {
         node,
         cursor: Buffer.from(node.startedAt).toString('base64'),

@@ -25,6 +25,35 @@ interface RideSummaryRow {
   updated_at: string;
 }
 
+/** Shape returned by the rides select in generateSummary */
+interface RideDataRow {
+  id: string;
+  user_id: string;
+  motorcycle_id: string | null;
+  name: string | null;
+  distance_m: number | null;
+  started_at: string;
+  ended_at: string | null;
+  max_speed_mps: number | null;
+  avg_speed_mps: number | null;
+  elevation_gain: number | null;
+  elevation_loss: number | null;
+  region: string | null;
+  paused_duration_s: number | null;
+}
+
+/** Shape returned by the motorcycles select for bike info */
+interface RideBikeRow {
+  make: string;
+  model: string;
+  year: number;
+}
+
+/** Shape returned by ride_summaries id-only select */
+interface SummaryIdRow {
+  id: string;
+}
+
 /** Minimum thresholds to generate a summary */
 const MIN_DISTANCE_M = 1000;
 const MIN_DURATION_S = 300;
@@ -67,13 +96,14 @@ export class RideSummariesService {
       throw new NotFoundException('Ride not found or not completed');
     }
 
-    const distanceM = (ride.distance_m as number) ?? 0;
-    const durationS = ride.ended_at
+    const typedRide = ride as unknown as RideDataRow;
+
+    const distanceM = typedRide.distance_m ?? 0;
+    const durationS = typedRide.ended_at
       ? Math.round(
-          (new Date(ride.ended_at as string).getTime() -
-            new Date(ride.started_at as string).getTime()) /
+          (new Date(typedRide.ended_at).getTime() - new Date(typedRide.started_at).getTime()) /
             1000,
-        ) - ((ride.paused_duration_s as number) ?? 0)
+        ) - (typedRide.paused_duration_s ?? 0)
       : 0;
 
     if (distanceM < MIN_DISTANCE_M || durationS < MIN_DURATION_S) {
@@ -84,22 +114,23 @@ export class RideSummariesService {
 
     // Fetch motorcycle info if linked
     let bikeInfo = 'motorcycle';
-    if (ride.motorcycle_id) {
+    if (typedRide.motorcycle_id) {
       const { data: bike } = await this.supabase
         .from('motorcycles')
         .select('make, model, year')
-        .eq('id', ride.motorcycle_id as string)
+        .eq('id', typedRide.motorcycle_id)
         .single();
 
       if (bike) {
-        const parts = [bike.year, bike.make, bike.model].filter(Boolean);
+        const typedBike = bike as unknown as RideBikeRow;
+        const parts = [typedBike.year, typedBike.make, typedBike.model].filter(Boolean);
         bikeInfo = parts.length > 0 ? parts.join(' ') : 'motorcycle';
       }
     }
 
     // Sanitize user inputs before including in prompt
-    const rideName = sanitize(ride.name as string | null);
-    const region = sanitize(ride.region as string | null);
+    const rideName = sanitize(typedRide.name);
+    const region = sanitize(typedRide.region);
 
     // Build structured context (NO raw GPS)
     const context: Record<string, unknown> = {
@@ -108,17 +139,17 @@ export class RideSummariesService {
       bike: bikeInfo,
     };
 
-    if (ride.max_speed_mps) {
-      context.maxSpeedKmh = Math.round((ride.max_speed_mps as number) * 3.6);
+    if (typedRide.max_speed_mps) {
+      context.maxSpeedKmh = Math.round(typedRide.max_speed_mps * 3.6);
     }
-    if (ride.avg_speed_mps) {
-      context.avgSpeedKmh = Math.round((ride.avg_speed_mps as number) * 3.6);
+    if (typedRide.avg_speed_mps) {
+      context.avgSpeedKmh = Math.round(typedRide.avg_speed_mps * 3.6);
     }
-    if (ride.elevation_gain) {
-      context.elevationGainM = Math.round(ride.elevation_gain as number);
+    if (typedRide.elevation_gain) {
+      context.elevationGainM = Math.round(typedRide.elevation_gain);
     }
-    if (ride.elevation_loss) {
-      context.elevationLossM = Math.round(ride.elevation_loss as number);
+    if (typedRide.elevation_loss) {
+      context.elevationLossM = Math.round(typedRide.elevation_loss);
     }
     if (region) {
       context.region = region;
@@ -144,7 +175,8 @@ export class RideSummariesService {
       .eq('ride_id', rideId)
       .maybeSingle();
 
-    const summaryId = existingSummary?.id as string | undefined;
+    const typedExisting = existingSummary as unknown as SummaryIdRow | null;
+    const summaryId = typedExisting?.id;
 
     try {
       const completion = await this.openai.chat.completions.parse({

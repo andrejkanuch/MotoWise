@@ -18,6 +18,43 @@ import type { CompleteOnboardingInput } from './dto/complete-onboarding.input';
 import { DataExportRequest } from './models/data-export-request.model';
 import { User } from './models/user.model';
 
+/** Community columns not yet in database.types.ts Tables<'users'> */
+interface UserCommunityColumns {
+  public_username: string | null;
+  display_name: string | null;
+  bio: string | null;
+  city: string | null;
+  is_public: boolean | null;
+  follower_count: number | null;
+  following_count: number | null;
+  avatar_url: string | null;
+}
+
+/** Shape returned by the public_profiles view */
+interface ProfileViewRow {
+  id: string;
+  public_username: string;
+  display_name: string | null;
+  bio: string | null;
+  city: string | null;
+  avatar_url: string | null;
+  follower_count: number;
+  following_count: number;
+}
+
+/** Shape returned by the motorcycles select for profile bikes */
+interface ProfileBikeRow {
+  make: string;
+  model: string;
+  year: number;
+  nickname: string | null;
+}
+
+/** Shape returned by the rides distance select */
+interface RideDistanceRow {
+  distance_m: number | null;
+}
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
@@ -31,26 +68,26 @@ export class UsersService {
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
-    const r = row as Record<string, unknown>;
+    const r = row as unknown as Tables<'users'> & UserCommunityColumns;
     return {
-      id: row.id,
-      email: row.email,
-      fullName: row.full_name ?? undefined,
-      role: row.role,
-      preferences: (row.preferences as Record<string, unknown>) ?? undefined,
-      subscriptionTier: row.subscription_tier ?? undefined,
-      measurementSystem: row.measurement_system ?? undefined,
-      currency: row.currency,
-      publicUsername: (r.public_username as string) ?? undefined,
-      displayName: (r.display_name as string) ?? undefined,
-      bio: (r.bio as string) ?? undefined,
-      city: (r.city as string) ?? undefined,
-      isPublic: (r.is_public as boolean) ?? undefined,
-      followerCount: (r.follower_count as number) ?? 0,
-      followingCount: (r.following_count as number) ?? 0,
-      avatarUrl: (r.avatar_url as string) ?? undefined,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: r.id,
+      email: r.email,
+      fullName: r.full_name ?? undefined,
+      role: r.role,
+      preferences: (r.preferences as Record<string, unknown>) ?? undefined,
+      subscriptionTier: r.subscription_tier ?? undefined,
+      measurementSystem: r.measurement_system ?? undefined,
+      currency: r.currency,
+      publicUsername: r.public_username ?? undefined,
+      displayName: r.display_name ?? undefined,
+      bio: r.bio ?? undefined,
+      city: r.city ?? undefined,
+      isPublic: r.is_public ?? undefined,
+      followerCount: r.follower_count ?? 0,
+      followingCount: r.following_count ?? 0,
+      avatarUrl: r.avatar_url ?? undefined,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
     };
   }
 
@@ -195,25 +232,28 @@ export class UsersService {
       throw new NotFoundException('Profile not found');
     }
 
-    const p = profile as Record<string, unknown>;
+    const p = profile as unknown as ProfileViewRow;
 
     // Fetch public bikes — use admin client (no user JWT on @Public() route)
     const { data: bikes } = await this.supabaseAdmin
       .from('motorcycles')
       .select('make, model, year, nickname')
-      .eq('user_id', p.id as string)
+      .eq('user_id', p.id)
       .is('deleted_at', null);
+
+    const typedBikes = (bikes ?? []) as unknown as ProfileBikeRow[];
 
     // Fetch ride stats — admin client, only count public rides
     const { data: rides } = await this.supabaseAdmin
       .from('rides')
       .select('distance_m')
-      .eq('user_id', p.id as string)
+      .eq('user_id', p.id)
       .eq('is_public', true)
       .is('deleted_at', null);
 
-    const totalRides = rides?.length ?? 0;
-    const totalDistance = rides?.reduce((sum, r) => sum + ((r.distance_m as number) ?? 0), 0) ?? 0;
+    const typedRides = (rides ?? []) as unknown as RideDistanceRow[];
+    const totalRides = typedRides.length;
+    const totalDistance = typedRides.reduce((sum, r) => sum + (r.distance_m ?? 0), 0);
 
     // Check if current user follows this profile
     let isFollowing = false;
@@ -222,26 +262,26 @@ export class UsersService {
         .from('follows')
         .select('follower_id')
         .eq('follower_id', currentUserId)
-        .eq('following_id', p.id as string)
+        .eq('following_id', p.id)
         .maybeSingle();
       isFollowing = !!follow;
     }
 
     return {
-      id: p.id as string,
-      publicUsername: p.public_username as string,
-      displayName: (p.display_name as string) ?? null,
-      bio: (p.bio as string) ?? null,
-      city: (p.city as string) ?? null,
-      avatarUrl: (p.avatar_url as string) ?? null,
-      followerCount: (p.follower_count as number) ?? 0,
-      followingCount: (p.following_count as number) ?? 0,
+      id: p.id,
+      publicUsername: p.public_username,
+      displayName: p.display_name ?? null,
+      bio: p.bio ?? null,
+      city: p.city ?? null,
+      avatarUrl: p.avatar_url ?? null,
+      followerCount: p.follower_count ?? 0,
+      followingCount: p.following_count ?? 0,
       isFollowing,
-      bikes: (bikes ?? []).map((b) => ({
-        make: b.make as string,
-        model: b.model as string,
-        year: b.year as number,
-        nickname: (b.nickname as string) ?? null,
+      bikes: typedBikes.map((b) => ({
+        make: b.make,
+        model: b.model,
+        year: b.year,
+        nickname: b.nickname ?? null,
       })),
       rideStats: {
         totalRides,

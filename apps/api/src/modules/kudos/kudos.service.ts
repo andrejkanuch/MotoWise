@@ -11,6 +11,23 @@ import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { KudosResult } from './models/kudos.model';
 import type { KudosUser } from './models/kudos-user.model';
 
+/** Shape returned by the ride_kudos + users join query */
+interface KudosQueryRow {
+  user_id: string;
+  created_at: string;
+  users: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    public_username: string | null;
+  } | null;
+}
+
+/** Shape returned by rides.kudos_count select */
+interface RideKudosCountRow {
+  kudos_count: number;
+}
+
 @Injectable()
 export class KudosService {
   private readonly logger = new Logger(KudosService.name);
@@ -83,9 +100,11 @@ export class KudosService {
       throw new BadRequestException('Ride not found');
     }
 
+    const typedRideData = rideData as unknown as RideKudosCountRow;
+
     return {
       hasKudos: inserted,
-      kudosCount: (rideData.kudos_count as number) ?? 0,
+      kudosCount: typedRideData.kudos_count ?? 0,
     };
   }
 
@@ -124,15 +143,14 @@ export class KudosService {
     const hasNextPage = rows.length > limit;
     const sliced = hasNextPage ? rows.slice(0, limit) : rows;
 
-    const users: KudosUser[] = sliced.map((row) => {
-      const user = row.users as unknown as Record<string, unknown> | null;
-      return {
-        id: (user?.id as string) ?? (row.user_id as string),
-        displayName: (user?.display_name as string) ?? undefined,
-        avatarUrl: (user?.avatar_url as string) ?? undefined,
-        publicUsername: (user?.public_username as string) ?? undefined,
-      };
-    });
+    const typedSliced = sliced as unknown as KudosQueryRow[];
+
+    const users: KudosUser[] = typedSliced.map((row) => ({
+      id: row.users?.id ?? row.user_id,
+      displayName: row.users?.display_name ?? undefined,
+      avatarUrl: row.users?.avatar_url ?? undefined,
+      publicUsername: row.users?.public_username ?? undefined,
+    }));
 
     return { users, hasNextPage };
   }
