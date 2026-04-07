@@ -270,10 +270,10 @@ export class UsersService {
     return {
       id: p.id,
       publicUsername: p.public_username,
-      displayName: p.display_name ?? null,
-      bio: p.bio ?? null,
-      city: p.city ?? null,
-      avatarUrl: p.avatar_url ?? null,
+      displayName: p.display_name ?? undefined,
+      bio: p.bio ?? undefined,
+      city: p.city ?? undefined,
+      avatarUrl: p.avatar_url ?? undefined,
       followerCount: p.follower_count ?? 0,
       followingCount: p.following_count ?? 0,
       isFollowing,
@@ -281,7 +281,7 @@ export class UsersService {
         make: b.make,
         model: b.model,
         year: b.year,
-        nickname: b.nickname ?? null,
+        nickname: b.nickname ?? undefined,
       })),
       rideStats: {
         totalRides,
