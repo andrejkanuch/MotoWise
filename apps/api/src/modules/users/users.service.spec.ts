@@ -55,6 +55,7 @@ describe('UsersService', () => {
 
     service = new UsersService(
       mockUserClient as never,
+      mockUserClient as never,
       mockDataExportService as unknown as DataExportService,
       mockRevenueCatService as never,
       mockEmailService as never,

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../email/email.service';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
 import { DataExportService } from './data-export.service';
@@ -23,6 +24,7 @@ export class UsersService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly dataExportService: DataExportService,
     private readonly revenueCatService: RevenueCatService,
     private readonly emailService: EmailService,
@@ -195,15 +197,15 @@ export class UsersService {
 
     const p = profile as Record<string, unknown>;
 
-    // Fetch public bikes
-    const { data: bikes } = await this.supabase
+    // Fetch public bikes — use admin client (no user JWT on @Public() route)
+    const { data: bikes } = await this.supabaseAdmin
       .from('motorcycles')
       .select('make, model, year, nickname')
       .eq('user_id', p.id as string)
       .is('deleted_at', null);
 
-    // Fetch ride stats
-    const { data: rides } = await this.supabase
+    // Fetch ride stats — admin client, only count public rides
+    const { data: rides } = await this.supabaseAdmin
       .from('rides')
       .select('distance_m')
       .eq('user_id', p.id as string)
