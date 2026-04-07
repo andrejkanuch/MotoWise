@@ -244,16 +244,25 @@ export class UsersService {
       rideStats: {
         totalRides,
         totalDistance,
-        joinDate: null,
+        joinDate: undefined,
       },
     };
   }
 
-  async updateProfile(userId: string, input: Record<string, unknown>) {
+  async updateProfile(
+    userId: string,
+    input: {
+      publicUsername?: string;
+      displayName?: string;
+      bio?: string;
+      city?: string;
+      isPublic?: boolean;
+    },
+  ) {
     const updates: Record<string, unknown> = {};
 
     if (input.publicUsername !== undefined) {
-      const username = (input.publicUsername as string).toLowerCase();
+      const username = input.publicUsername.toLowerCase();
       if (!USERNAME_REGEX.test(username)) {
         throw new BadRequestException(
           'Username must be 3-20 characters, lowercase alphanumeric and underscores only',
