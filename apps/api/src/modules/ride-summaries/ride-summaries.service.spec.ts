@@ -146,8 +146,7 @@ describe('RideSummariesService', () => {
           {
             message: {
               parsed: {
-                summaryText:
-                  'An exhilarating 45 km ride through the Tatras on your Ducati.',
+                summaryText: 'An exhilarating 45 km ride through the Tatras on your Ducati.',
               },
             },
           },

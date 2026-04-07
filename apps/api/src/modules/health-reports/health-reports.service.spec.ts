@@ -93,12 +93,10 @@ describe('HealthReportsService', () => {
       storage: {
         from: vi.fn().mockReturnValue({
           upload: vi.fn().mockResolvedValue({ error: null }),
-          createSignedUrl: vi
-            .fn()
-            .mockResolvedValue({
-              data: { signedUrl: 'https://storage.supabase.co/signed/reports/new.pdf' },
-              error: null,
-            }),
+          createSignedUrl: vi.fn().mockResolvedValue({
+            data: { signedUrl: 'https://storage.supabase.co/signed/reports/new.pdf' },
+            error: null,
+          }),
         }),
       },
       _chain: chain,

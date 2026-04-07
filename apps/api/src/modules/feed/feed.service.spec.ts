@@ -198,9 +198,7 @@ describe('FeedService', () => {
         error: { message: 'Connection error', code: '08006' },
       });
 
-      await expect(service.getRideFeed(userId, 20)).rejects.toThrow(
-        InternalServerErrorException,
-      );
+      await expect(service.getRideFeed(userId, 20)).rejects.toThrow(InternalServerErrorException);
     });
   });
 });
