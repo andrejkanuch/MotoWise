@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { LanguageSwitcher } from './language-switcher';
-import { STORE_LINKS } from './store-buttons';
 
 const NAV_LINKS = [
   { key: 'features', href: '#features' },
@@ -124,10 +123,16 @@ export function Navbar() {
           })}
           <LanguageSwitcher />
           <a
-            href={STORE_LINKS.appStore}
+            href="/login"
+            className="text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded"
+          >
+            {t('login', { defaultValue: 'Log In' })}
+          </a>
+          <a
+            href="/signup"
             className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
           >
-            {t('download')}
+            {t('signup', { defaultValue: 'Sign Up' })}
           </a>
         </div>
 
@@ -204,11 +209,18 @@ export function Navbar() {
             })}
             <LanguageSwitcher />
             <a
-              href={STORE_LINKS.appStore}
+              href="/login"
               onClick={closeMobile}
-              className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="mt-4 text-lg font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
             >
-              {t('download')}
+              {t('login', { defaultValue: 'Log In' })}
+            </a>
+            <a
+              href="/signup"
+              onClick={closeMobile}
+              className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              {t('signup', { defaultValue: 'Sign Up' })}
             </a>
           </div>
         </div>
