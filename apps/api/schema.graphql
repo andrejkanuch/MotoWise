@@ -593,7 +593,7 @@ type PageInfo {
 }
 
 type PublicRideStats {
-  joinDate: String!
+  joinDate: String
   totalDistance: Float!
   totalRides: Int!
 }
@@ -630,6 +630,7 @@ type Query {
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
   getMyHealthReports: [HealthReport!]!
+  getPublicRide(id: String!): Ride!
   getRiderProfile(username: String!): PublicRiderProfile!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!

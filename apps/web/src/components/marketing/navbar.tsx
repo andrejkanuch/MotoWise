@@ -124,7 +124,7 @@ export function Navbar() {
           <LanguageSwitcher />
           <a
             href="/login"
-            className="text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded"
+            className="rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
           >
             {t('login', { defaultValue: 'Log In' })}
           </a>
@@ -211,7 +211,7 @@ export function Navbar() {
             <a
               href="/login"
               onClick={closeMobile}
-              className="mt-4 text-lg font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline"
+              className="mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
             >
               {t('login', { defaultValue: 'Log In' })}
             </a>

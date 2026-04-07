@@ -9,6 +9,7 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { QUERY_LIMITS } from '../../config/constants';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
 import type { StartRideInput } from './dto/start-ride.input';
@@ -26,6 +27,7 @@ export class RidesService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -319,6 +321,25 @@ export class RidesService {
       },
       totalCount: count ?? 0,
     };
+  }
+
+  async getPublicRide(id: string): Promise<Ride> {
+    this.logger.debug(`getPublicRide: rideId=${id}`);
+
+    const { data, error } = await this.supabaseAdmin
+      .from('rides')
+      .select(
+        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, region, route_thumbnail_uri, created_at, updated_at',
+      )
+      .eq('id', id)
+      .eq('is_public', true)
+      .is('deleted_at', null)
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundException('Ride not found');
+    }
+    return this.mapRow(data);
   }
 
   async findById(userId: string, id: string): Promise<Ride> {

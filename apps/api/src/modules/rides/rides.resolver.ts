@@ -9,6 +9,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
@@ -82,6 +83,14 @@ export class RidesResolver {
   @Query(() => Ride)
   async ride(@CurrentUser() user: AuthUser, @Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
     return this.ridesService.findById(user.id, id);
+  }
+
+  @Query(() => Ride)
+  @Public()
+  @UseGuards(GqlAuthGuard)
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
+  async getPublicRide(@Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
+    return this.ridesService.getPublicRide(id);
   }
 
   @Query(() => [Waypoint])

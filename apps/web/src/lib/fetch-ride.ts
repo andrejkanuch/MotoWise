@@ -1,28 +1,19 @@
-const API_URL = process.env.API_URL ?? 'https://motowise.onrender.com/graphql';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 const PUBLIC_RIDE_QUERY = `
-  query PublicRide($id: ID!) {
-    publicRide(id: $id) {
+  query GetPublicRide($id: String!) {
+    getPublicRide(id: $id) {
       id
       name
       distanceM
       durationS
-      elevationGainM
-      avgSpeedMps
-      aiSummary
-      routeThumbnailUri
+      elevationGain
+      elevationLoss
       startedAt
+      endedAt
+      routeThumbnailUri
+      motorcycleId
       isPublic
-      bike {
-        make
-        model
-        year
-        nickname
-      }
-      rider {
-        displayName
-        username
-      }
     }
   }
 `;
@@ -30,24 +21,15 @@ const PUBLIC_RIDE_QUERY = `
 export interface PublicRide {
   id: string;
   name?: string;
-  distanceM: number;
-  durationS: number;
-  elevationGainM?: number;
-  avgSpeedMps?: number;
-  aiSummary?: string;
-  routeThumbnailUri?: string;
+  distanceM?: number;
+  durationS?: number;
+  elevationGain?: number;
+  elevationLoss?: number;
   startedAt: string;
+  endedAt?: string;
+  routeThumbnailUri?: string;
+  motorcycleId?: string;
   isPublic: boolean;
-  bike?: {
-    make: string;
-    model: string;
-    year: number;
-    nickname?: string;
-  };
-  rider: {
-    displayName: string;
-    username: string;
-  };
 }
 
 export async function fetchRide(id: string): Promise<PublicRide | null> {
@@ -62,8 +44,8 @@ export async function fetchRide(id: string): Promise<PublicRide | null> {
       next: { revalidate: 300 },
     });
     const json = await res.json();
-    if (json.errors || !json.data?.publicRide) return null;
-    const ride = json.data.publicRide;
+    if (json.errors || !json.data?.getPublicRide) return null;
+    const ride = json.data.getPublicRide;
     if (!ride.isPublic) return null;
     return ride;
   } catch {

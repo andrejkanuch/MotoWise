@@ -11,10 +11,10 @@ export const revalidate = 3600;
 export default async function OGImage({ params }: { params: { username: string } }) {
   const profile = await fetchProfile(params.username);
 
-  const displayName = profile?.displayName ?? params.username;
-  const username = profile?.username ?? params.username;
-  const totalRides = profile?.stats.totalRides ?? 0;
-  const totalDistance = profile?.stats.totalDistanceM ?? 0;
+  const displayName = profile?.displayName ?? profile?.publicUsername ?? params.username;
+  const publicUsername = profile?.publicUsername ?? params.username;
+  const totalRides = profile?.rideStats.totalRides ?? 0;
+  const totalDistance = profile?.rideStats.totalDistance ?? 0;
   const city = profile?.city;
 
   return new ImageResponse(
@@ -52,7 +52,7 @@ export default async function OGImage({ params }: { params: { username: string }
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <div style={{ fontSize: '48px', fontWeight: 700, color: 'white' }}>{displayName}</div>
         <div style={{ fontSize: '24px', color: 'rgba(255,255,255,0.6)' }}>
-          @{username}
+          @{publicUsername}
           {city ? ` · ${city}` : ''}
         </div>
       </div>

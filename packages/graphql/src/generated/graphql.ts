@@ -862,6 +862,7 @@ export type Query = {
   getFollowers: FollowConnection;
   getFollowing: FollowConnection;
   getMyHealthReports: Array<HealthReport>;
+  getPublicRide: Ride;
   getRiderProfile: PublicRiderProfile;
   kudosList: Array<KudosUser>;
   maintenanceTaskHistory: Array<MaintenanceTask>;
@@ -924,6 +925,11 @@ export type QueryGetFollowingArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
   userId: Scalars['String']['input'];
+};
+
+
+export type QueryGetPublicRideArgs = {
+  id: Scalars['String']['input'];
 };
 
 

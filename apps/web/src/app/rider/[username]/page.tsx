@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchProfile } from '../../../lib/fetch-profile';
-import { formatDistance, formatDuration } from '../../../lib/format-utils';
+import { formatDistance } from '../../../lib/format-utils';
 
 export async function generateMetadata({
   params,
@@ -14,20 +14,20 @@ export async function generateMetadata({
 
   const description = profile.bio
     ? profile.bio.slice(0, 155)
-    : `${profile.displayName} rides with MotoVault. ${profile.stats.totalRides} rides logged.`;
+    : `${profile.displayName ?? profile.publicUsername} rides with MotoVault. ${profile.rideStats.totalRides} rides logged.`;
 
   return {
-    title: `${profile.displayName} (@${profile.username})`,
+    title: `${profile.displayName ?? profile.publicUsername} (@${profile.publicUsername})`,
     description,
     openGraph: {
-      title: `${profile.displayName} (@${profile.username})`,
+      title: `${profile.displayName ?? profile.publicUsername} (@${profile.publicUsername})`,
       description,
       type: 'profile',
-      url: `https://motovault.app/rider/${profile.username}`,
+      url: `https://motovault.app/rider/${profile.publicUsername}`,
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${profile.displayName} (@${profile.username})`,
+      title: `${profile.displayName ?? profile.publicUsername} (@${profile.publicUsername})`,
       description,
     },
   };
@@ -52,7 +52,8 @@ export default async function RiderProfilePage({
     notFound();
   }
 
-  const initial = profile.displayName?.charAt(0)?.toUpperCase() ?? '?';
+  const displayName = profile.displayName ?? profile.publicUsername;
+  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -64,7 +65,7 @@ export default async function RiderProfilePage({
               // biome-ignore lint/performance/noImgElement: user avatar from Supabase storage
               <img
                 src={profile.avatarUrl}
-                alt={profile.displayName}
+                alt={displayName}
                 className="h-20 w-20 rounded-full border-3 border-white/20 object-cover"
               />
             ) : (
@@ -73,8 +74,8 @@ export default async function RiderProfilePage({
               </div>
             )}
             <div>
-              <h1 className="text-2xl font-bold">{profile.displayName}</h1>
-              <p className="text-white/70">@{profile.username}</p>
+              <h1 className="text-2xl font-bold">{displayName}</h1>
+              <p className="text-white/70">@{profile.publicUsername}</p>
               {profile.city && <p className="mt-1 text-sm text-white/60">{profile.city}</p>}
             </div>
           </div>
@@ -85,16 +86,18 @@ export default async function RiderProfilePage({
           {/* Stats */}
           <div className="mt-8 grid grid-cols-3 gap-4">
             <div className="rounded-xl bg-white/10 p-3 text-center">
-              <p className="text-2xl font-bold">{profile.stats.totalRides}</p>
+              <p className="text-2xl font-bold">{profile.rideStats.totalRides}</p>
               <p className="text-xs text-white/60">Rides</p>
             </div>
             <div className="rounded-xl bg-white/10 p-3 text-center">
-              <p className="text-2xl font-bold">{formatDistance(profile.stats.totalDistanceM)}</p>
+              <p className="text-2xl font-bold">
+                {formatDistance(profile.rideStats.totalDistance)}
+              </p>
               <p className="text-xs text-white/60">Distance</p>
             </div>
             <div className="rounded-xl bg-white/10 p-3 text-center">
-              <p className="text-2xl font-bold">{formatDuration(profile.stats.totalDurationS)}</p>
-              <p className="text-xs text-white/60">Ride Time</p>
+              <p className="text-2xl font-bold">{profile.followerCount}</p>
+              <p className="text-xs text-white/60">Followers</p>
             </div>
           </div>
         </div>
@@ -125,9 +128,11 @@ export default async function RiderProfilePage({
           </section>
         )}
 
-        <p className="mt-6 text-xs text-neutral-400">
-          Riding since {formatJoinDate(profile.stats.joinedAt)}
-        </p>
+        {profile.rideStats.joinDate && (
+          <p className="mt-6 text-xs text-neutral-400">
+            Riding since {formatJoinDate(profile.rideStats.joinDate)}
+          </p>
+        )}
       </main>
 
       {/* CTA footer */}

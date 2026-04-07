@@ -1,25 +1,27 @@
-const API_URL = process.env.API_URL ?? 'https://motowise.onrender.com/graphql';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 const PUBLIC_PROFILE_QUERY = `
-  query PublicProfile($username: String!) {
-    publicProfile(username: $username) {
+  query GetRiderProfile($username: String!) {
+    getRiderProfile(username: $username) {
       id
+      publicUsername
       displayName
-      username
-      city
       bio
+      city
       avatarUrl
+      followerCount
+      followingCount
+      isFollowing
       bikes {
         make
         model
         year
         nickname
       }
-      stats {
+      rideStats {
         totalRides
-        totalDistanceM
-        totalDurationS
-        joinedAt
+        totalDistance
+        joinDate
       }
     }
   }
@@ -32,22 +34,24 @@ export interface ProfileBike {
   nickname?: string;
 }
 
-export interface ProfileStats {
+export interface ProfileRideStats {
   totalRides: number;
-  totalDistanceM: number;
-  totalDurationS: number;
-  joinedAt: string;
+  totalDistance: number;
+  joinDate?: string;
 }
 
 export interface PublicProfile {
   id: string;
-  displayName: string;
-  username: string;
-  city?: string;
+  publicUsername: string;
+  displayName?: string;
   bio?: string;
+  city?: string;
   avatarUrl?: string;
+  followerCount: number;
+  followingCount: number;
+  isFollowing?: boolean;
   bikes: ProfileBike[];
-  stats: ProfileStats;
+  rideStats: ProfileRideStats;
 }
 
 export async function fetchProfile(username: string): Promise<PublicProfile | null> {
@@ -62,8 +66,8 @@ export async function fetchProfile(username: string): Promise<PublicProfile | nu
       next: { revalidate: 300 },
     });
     const json = await res.json();
-    if (json.errors || !json.data?.publicProfile) return null;
-    return json.data.publicProfile;
+    if (json.errors || !json.data?.getRiderProfile) return null;
+    return json.data.getRiderProfile;
   } catch {
     return null;
   }

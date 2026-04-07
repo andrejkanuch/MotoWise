@@ -11,14 +11,9 @@ export const revalidate = 3600;
 export default async function OGImage({ params }: { params: { id: string } }) {
   const ride = await fetchRide(params.id);
 
-  const riderName = ride?.rider?.displayName ?? 'Rider';
-  const title = ride?.name ?? `${riderName}'s Ride`;
-  const bikeName =
-    ride?.bike?.nickname ??
-    (ride?.bike ? `${ride.bike.year} ${ride.bike.make} ${ride.bike.model}` : null);
-  const distance = ride ? formatDistance(ride.distanceM) : '—';
-  const duration = ride ? formatDuration(ride.durationS) : '—';
-  const summary = ride?.aiSummary?.slice(0, 120) ?? null;
+  const title = ride?.name ?? 'MotoVault Ride';
+  const distance = ride?.distanceM ? formatDistance(ride.distanceM) : '--';
+  const duration = ride?.durationS ? formatDuration(ride.durationS) : '--';
   const hasThumb = !!ride?.routeThumbnailUri;
 
   return new ImageResponse(
@@ -78,11 +73,6 @@ export default async function OGImage({ params }: { params: { id: string } }) {
         <div style={{ fontSize: '32px', fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
           {title}
         </div>
-        {bikeName && (
-          <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>
-            {bikeName}
-          </div>
-        )}
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: '32px', marginTop: '32px' }}>
@@ -95,20 +85,6 @@ export default async function OGImage({ params }: { params: { id: string } }) {
             <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>Duration</div>
           </div>
         </div>
-
-        {/* AI Summary */}
-        {summary && (
-          <div
-            style={{
-              fontSize: '14px',
-              color: 'rgba(255,255,255,0.6)',
-              marginTop: '24px',
-              lineHeight: 1.5,
-            }}
-          >
-            {summary}...
-          </div>
-        )}
 
         {/* Branding */}
         <div

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchRide } from '../../../lib/fetch-ride';
-import { formatDate, formatDistance, formatDuration, formatSpeed } from '../../../lib/format-utils';
+import { formatDate, formatDistance, formatDuration } from '../../../lib/format-utils';
 
 export async function generateMetadata({
   params,
@@ -12,13 +12,8 @@ export async function generateMetadata({
   const ride = await fetchRide(id);
   if (!ride) return { title: 'Ride Not Found' };
 
-  const bikeName =
-    ride.bike?.nickname ??
-    (ride.bike ? `${ride.bike.year} ${ride.bike.make} ${ride.bike.model}` : 'Motorcycle');
-  const title = ride.name ?? `${ride.rider.displayName}'s Ride`;
-  const description = ride.aiSummary
-    ? ride.aiSummary.slice(0, 155)
-    : `${formatDistance(ride.distanceM)} ride on ${bikeName} by ${ride.rider.displayName}`;
+  const title = ride.name ?? 'MotoVault Ride';
+  const description = `${formatDistance(ride.distanceM ?? 0)} ride tracked with MotoVault`;
 
   return {
     title,
@@ -45,10 +40,6 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
-  const bikeName =
-    ride.bike?.nickname ??
-    (ride.bike ? `${ride.bike.year} ${ride.bike.make} ${ride.bike.model}` : null);
-
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Route thumbnail hero */}
@@ -68,47 +59,22 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
 
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         {/* Title */}
-        <h1 className="text-2xl font-bold text-neutral-900">
-          {ride.name ?? `${ride.rider.displayName}'s Ride`}
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          {formatDate(ride.startedAt)}
-          {bikeName ? ` · ${bikeName}` : ''}
-        </p>
-
-        {/* Rider */}
-        <div className="mt-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#dbe4ff] text-sm font-bold text-[#1f40a0]">
-            {ride.rider.displayName.charAt(0).toUpperCase()}
-          </div>
-          <a
-            href={`/rider/${ride.rider.username}`}
-            className="text-sm font-medium text-neutral-900 hover:underline"
-          >
-            {ride.rider.displayName}
-          </a>
-          <span className="text-sm text-neutral-400">@{ride.rider.username}</span>
-        </div>
+        <h1 className="text-2xl font-bold text-neutral-900">{ride.name ?? 'MotoVault Ride'}</h1>
+        <p className="mt-1 text-sm text-neutral-500">{formatDate(ride.startedAt)}</p>
 
         {/* Stats grid */}
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Distance" value={formatDistance(ride.distanceM)} />
-          <StatCard label="Duration" value={formatDuration(ride.durationS)} />
-          {(ride.elevationGainM ?? 0) > 0 && (
-            <StatCard label="Elevation" value={`${Math.round(ride.elevationGainM ?? 0)}m`} />
+          <StatCard label="Distance" value={formatDistance(ride.distanceM ?? 0)} />
+          {ride.durationS != null && ride.durationS > 0 && (
+            <StatCard label="Duration" value={formatDuration(ride.durationS)} />
           )}
-          {(ride.avgSpeedMps ?? 0) > 0 && (
-            <StatCard label="Avg Speed" value={formatSpeed(ride.avgSpeedMps ?? 0)} />
+          {(ride.elevationGain ?? 0) > 0 && (
+            <StatCard label="Elevation Gain" value={`${Math.round(ride.elevationGain ?? 0)}m`} />
+          )}
+          {(ride.elevationLoss ?? 0) > 0 && (
+            <StatCard label="Elevation Loss" value={`${Math.round(ride.elevationLoss ?? 0)}m`} />
           )}
         </div>
-
-        {/* AI Summary */}
-        {ride.aiSummary && (
-          <div className="mt-8">
-            <h2 className="mb-2 text-sm font-semibold text-neutral-700">AI Summary</h2>
-            <p className="text-sm leading-relaxed text-neutral-600">{ride.aiSummary}</p>
-          </div>
-        )}
       </main>
 
       {/* CTA */}
