@@ -154,8 +154,15 @@ export async function proxy(request: NextRequest) {
   } else if (isProtectedRoute(pathname) && !isPublicRoute(pathname)) {
     // Community protected routes: require authenticated session
     response = await communityAuth(request);
-  } else if (pathname.startsWith('/login')) {
-    // Login route: skip locale processing
+  } else if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/rider/') ||
+    pathname.startsWith('/ride/')
+  ) {
+    // Auth + public community routes: skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing
