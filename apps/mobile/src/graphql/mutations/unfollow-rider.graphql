@@ -1,0 +1,3 @@
+mutation UnfollowRider($input: UnfollowRiderInput!) {
+  unfollowRider(input: $input)
+}

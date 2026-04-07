@@ -47,6 +47,26 @@ export const queryKeys = {
     detail: (id: string) => ['rides', 'detail', id] as const,
     waypoints: (id: string) => ['rides', 'waypoints', id] as const,
   },
+  healthReports: {
+    all: ['healthReports'] as const,
+    byMotorcycle: (motorcycleId: string) =>
+      ['healthReports', 'byMotorcycle', motorcycleId] as const,
+  },
+  feed: {
+    all: ['feed'] as const,
+  },
+  kudos: {
+    list: (rideId: string) => ['kudos', 'list', rideId] as const,
+  },
+  profiles: {
+    byUsername: (username: string) => ['profiles', 'byUsername', username] as const,
+  },
+  followers: {
+    list: (userId: string) => ['followers', 'list', userId] as const,
+  },
+  following: {
+    list: (userId: string) => ['following', 'list', userId] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },

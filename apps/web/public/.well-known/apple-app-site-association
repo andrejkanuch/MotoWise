@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "APPLE_TEAM_ID.com.motovault.app",
+        "paths": [
+          "/ride/*",
+          "/rider/*"
+        ]
+      }
+    ]
+  }
+}

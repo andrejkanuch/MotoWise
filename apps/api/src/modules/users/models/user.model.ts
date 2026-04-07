@@ -28,6 +28,30 @@ export class User {
   @Field()
   currency: string;
 
+  @Field({ nullable: true })
+  publicUsername?: string;
+
+  @Field({ nullable: true })
+  displayName?: string;
+
+  @Field({ nullable: true })
+  bio?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  isPublic?: boolean;
+
+  @Field({ nullable: true })
+  followerCount?: number;
+
+  @Field({ nullable: true })
+  followingCount?: number;
+
+  @Field({ nullable: true })
+  avatarUrl?: string;
+
   @Field()
   createdAt: string;
 

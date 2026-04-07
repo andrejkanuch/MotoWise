@@ -217,6 +217,28 @@ export type MaintenanceTaskSource =
 export const URGENCY_VALUES = ['stranded', 'soon', 'preventive'] as const;
 export type Urgency = (typeof URGENCY_VALUES)[number];
 
+export const AffiliatePartner = {
+  REVZILLA: 'revzilla',
+  AMAZON: 'amazon',
+  ROCKY_MOUNTAIN: 'rocky_mountain',
+} as const;
+export type AffiliatePartner = (typeof AffiliatePartner)[keyof typeof AffiliatePartner];
+
+export const HealthReportStatus = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+export type HealthReportStatus = (typeof HealthReportStatus)[keyof typeof HealthReportStatus];
+
+export const SummaryGenerationStatus = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+export type SummaryGenerationStatus =
+  (typeof SummaryGenerationStatus)[keyof typeof SummaryGenerationStatus];
+
 export const SUPPORTED_LOCALES = [
   'en',
   'es',

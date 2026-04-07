@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { HealthReportsService } from '../health-reports/health-reports.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 
@@ -11,6 +12,7 @@ export class RevenueCatService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly healthReportsService: HealthReportsService,
   ) {}
 
   async processEvent(event: RevenueCatEvent): Promise<void> {
@@ -19,6 +21,28 @@ export class RevenueCatService {
       this.logger.log(
         `Skipping event ${event.id}: app_user_id "${event.app_user_id}" is not a UUID`,
       );
+      return;
+    }
+
+    // Handle non-renewing purchases (Health Reports) — create pending record
+    if (event.type === 'NON_RENEWING_PURCHASE') {
+      const transactionId = event.id;
+      try {
+        await this.healthReportsService.createFromPurchase(
+          event.app_user_id,
+          null, // motorcycle_id assigned when user generates the report
+          transactionId,
+        );
+        this.logger.log(
+          `Created pending health report for user ${event.app_user_id} via IAP ${transactionId}`,
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        this.logger.error(
+          `Failed to create health report from purchase for user ${event.app_user_id}: ${message}`,
+        );
+        throw err;
+      }
       return;
     }
 

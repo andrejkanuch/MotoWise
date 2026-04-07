@@ -1,8 +1,10 @@
 import type {
+  AffiliatePartner,
   ArticleCategory,
   ArticleDifficulty,
   DiagnosticSeverity,
   FlagStatus,
+  HealthReportStatus,
   InsightType,
   LearningFormat,
   MaintenancePriority,
@@ -14,6 +16,7 @@ import type {
   RidingFrequency,
   RidingGoal,
   SubscriptionTier,
+  SummaryGenerationStatus,
   SupportedLocale,
   Urgency,
   UserRole,
@@ -337,4 +340,55 @@ const _rideStatusSync: Record<RideStatus, GqlRideStatus> = {
   recording: GqlRideStatus.recording,
   paused: GqlRideStatus.paused,
   completed: GqlRideStatus.completed,
+};
+
+export enum GqlAffiliatePartner {
+  revzilla = 'revzilla',
+  amazon = 'amazon',
+  rocky_mountain = 'rocky_mountain',
+}
+
+registerEnumType(GqlAffiliatePartner, {
+  name: 'AffiliatePartner',
+  description: 'Affiliate partner for product recommendations',
+});
+
+const _affiliatePartnerSync: Record<AffiliatePartner, GqlAffiliatePartner> = {
+  revzilla: GqlAffiliatePartner.revzilla,
+  amazon: GqlAffiliatePartner.amazon,
+  rocky_mountain: GqlAffiliatePartner.rocky_mountain,
+};
+
+export enum GqlHealthReportStatus {
+  pending = 'pending',
+  completed = 'completed',
+  failed = 'failed',
+}
+
+registerEnumType(GqlHealthReportStatus, {
+  name: 'HealthReportStatus',
+  description: 'Status of a bike health report generation',
+});
+
+const _healthReportStatusSync: Record<HealthReportStatus, GqlHealthReportStatus> = {
+  pending: GqlHealthReportStatus.pending,
+  completed: GqlHealthReportStatus.completed,
+  failed: GqlHealthReportStatus.failed,
+};
+
+export enum GqlGenerationStatus {
+  pending = 'pending',
+  completed = 'completed',
+  failed = 'failed',
+}
+
+registerEnumType(GqlGenerationStatus, {
+  name: 'GenerationStatus',
+  description: 'Status of AI content generation (e.g. ride summaries)',
+});
+
+const _generationStatusSync: Record<SummaryGenerationStatus, GqlGenerationStatus> = {
+  pending: GqlGenerationStatus.pending,
+  completed: GqlGenerationStatus.completed,
+  failed: GqlGenerationStatus.failed,
 };

@@ -1,0 +1,37 @@
+query GetRideFeed($first: Int, $after: String) {
+  rideFeed(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        name
+        distanceM
+        elevationGain
+        elevationLoss
+        startedAt
+        endedAt
+        aiSummary
+        kudosCount
+        hasKudos
+        routeThumbnailUri
+        rider {
+          displayName
+          avatarUrl
+          publicUsername
+        }
+        bike {
+          make
+          model
+          year
+          nickname
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}

@@ -1,0 +1,12 @@
+mutation GenerateBikeHealthReport($input: GenerateReportInput!) {
+  generateBikeHealthReport(input: $input) {
+    id
+    userId
+    motorcycleId
+    status
+    pdfUrl
+    iapTransactionId
+    createdAt
+    completedAt
+  }
+}

@@ -1,11 +1,21 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
   taskId: String!
+}
+
+"""Affiliate partner for product recommendations"""
+enum AffiliatePartner {
+  amazon
+  revzilla
+  rocky_mountain
+}
+
+type AffiliateProduct {
+  affiliateUrl: String!
+  partner: AffiliatePartner!
+  productUrl: String!
+  tracked: Boolean!
 }
 
 type AiBudgetStatus {
@@ -234,11 +244,74 @@ type ExpenseSummary {
   ytdTotal: Float!
 }
 
+type FeedBike {
+  make: String!
+  model: String!
+  nickname: String
+  year: Int!
+}
+
+type FeedRide {
+  aiSummary: String
+  bike: FeedBike
+  distanceM: Int
+  elevationGain: Float
+  elevationLoss: Float
+  endedAt: String
+  hasKudos: Boolean!
+  id: ID!
+  kudosCount: Int!
+  name: String
+  rider: FeedRider!
+  routeThumbnailUri: String
+  startedAt: String!
+}
+
+type FeedRideConnection {
+  edges: [FeedRideEdge!]!
+  pageInfo: PageInfo!
+}
+
+type FeedRideEdge {
+  cursor: String!
+  node: FeedRide!
+}
+
+type FeedRider {
+  avatarUrl: String
+  displayName: String!
+  publicUsername: String!
+}
+
 enum FlagStatus {
   dismissed
   pending
   resolved
   reviewed
+}
+
+type Follow {
+  avatarUrl: String
+  createdAt: String!
+  displayName: String
+  followerId: ID!
+  followingId: ID!
+  publicUsername: String
+}
+
+type FollowConnection {
+  edges: [FollowEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type FollowEdge {
+  cursor: String!
+  node: Follow!
+}
+
+input FollowRiderInput {
+  targetUserId: String!
 }
 
 input GenerateArticleInput {
@@ -258,6 +331,35 @@ input GenerateInsightsInput {
   ridingFrequency: String
 }
 
+input GenerateReportInput {
+  bikeId: String!
+}
+
+"""Status of AI content generation (e.g. ride summaries)"""
+enum GenerationStatus {
+  completed
+  failed
+  pending
+}
+
+type HealthReport {
+  completedAt: String
+  createdAt: String!
+  iapTransactionId: String
+  id: ID!
+  motorcycleId: String!
+  pdfUrl: String
+  status: HealthReportStatus!
+  userId: String!
+}
+
+"""Status of a bike health report generation"""
+enum HealthReportStatus {
+  completed
+  failed
+  pending
+}
+
 enum InsightType {
   community
   learning
@@ -268,6 +370,18 @@ enum InsightType {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+type KudosResult {
+  hasKudos: Boolean!
+  kudosCount: Int!
+}
+
+type KudosUser {
+  avatarUrl: String
+  displayName: String
+  id: ID!
+  publicUsername: String
+}
 
 type LearningProgress {
   articleId: String!
@@ -419,21 +533,28 @@ type Mutation {
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
+  followRider(input: FollowRiderInput!): Follow!
   generateArticle(input: GenerateArticleInput!): Article!
+  generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
 
   """Submit email to join waitlist (public, no auth)"""
   joinWaitlist(email: String!): Boolean!
   logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
+  regenerateRideSummary(rideId: String!): RideSummary!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
+  toggleKudos(rideId: String!): KudosResult!
+  trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
+  unfollowRider(input: UnfollowRiderInput!): Boolean!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
+  updateMyProfile(input: UpdateProfileInput!): User!
   updateRide(input: UpdateRideInput!): Ride!
   updateUser(input: UpdateUserInput!): User!
   uploadWaypoints(input: UploadWaypointsInput!): Int!
@@ -471,6 +592,33 @@ type PageInfo {
   startCursor: String
 }
 
+type PublicRideStats {
+  joinDate: String!
+  totalDistance: Float!
+  totalRides: Int!
+}
+
+type PublicRiderBike {
+  make: String!
+  model: String!
+  nickname: String
+  year: Int!
+}
+
+type PublicRiderProfile {
+  avatarUrl: String
+  bikes: [PublicRiderBike!]!
+  bio: String
+  city: String
+  displayName: String
+  followerCount: Int!
+  followingCount: Int!
+  id: ID!
+  isFollowing: Boolean
+  publicUsername: String!
+  rideStats: PublicRideStats!
+}
+
 type Query {
   aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!
@@ -479,6 +627,11 @@ type Query {
   diagnosticById(id: String!): Diagnostic
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
+  getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
+  getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
+  getMyHealthReports: [HealthReport!]!
+  getRiderProfile(username: String!): PublicRiderProfile!
+  kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
   me: User!
@@ -493,6 +646,7 @@ type Query {
   popularArticles(first: Int! = 10): [Article!]!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
+  rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
@@ -564,6 +718,16 @@ enum RideStatus {
   completed
   paused
   recording
+}
+
+type RideSummary {
+  createdAt: String!
+  generationStatus: GenerationStatus!
+  id: ID!
+  locale: String!
+  rideId: String!
+  summaryText: String!
+  updatedAt: String!
 }
 
 input SearchArticlesInput {
@@ -645,10 +809,20 @@ type TaskPhoto {
   taskId: String!
 }
 
+input TrackClickInput {
+  diagnosisType: String
+  partner: AffiliatePartner!
+  productUrl: String!
+}
+
 type TriggeredMaintenanceTask {
   id: String!
   priority: String!
   title: String!
+}
+
+input UnfollowRiderInput {
+  targetUserId: String!
 }
 
 input UpdateMaintenanceTaskInput {
@@ -672,6 +846,14 @@ input UpdateMotorcycleInput {
   purchaseDate: String
   purchasePrice: Float
   year: Int
+}
+
+input UpdateProfileInput {
+  bio: String
+  city: String
+  displayName: String
+  isPublic: Boolean
+  publicUsername: String
 }
 
 input UpdateRideInput {
@@ -701,13 +883,21 @@ enum Urgency {
 }
 
 type User {
+  avatarUrl: String
+  bio: String
+  city: String
   createdAt: String!
   currency: String!
+  displayName: String
   email: String!
+  followerCount: Float
+  followingCount: Float
   fullName: String
   id: ID!
+  isPublic: Boolean
   measurementSystem: String
   preferences: JSON
+  publicUsername: String
   role: UserRole!
   subscriptionTier: String
   updatedAt: String!
