@@ -17,9 +17,14 @@ CREATE TABLE public.affiliate_clicks (
 );
 
 -- Dedup: one click per user per URL per calendar day
-ALTER TABLE public.affiliate_clicks
-  ADD CONSTRAINT uq_affiliate_clicks_user_url_day
-  UNIQUE (user_id, product_url, (clicked_at::date));
+-- Use date_trunc with 'day' at UTC for immutability
+CREATE OR REPLACE FUNCTION public.utc_date(ts TIMESTAMPTZ)
+RETURNS DATE LANGUAGE sql IMMUTABLE AS $$
+  SELECT (ts AT TIME ZONE 'UTC')::date;
+$$;
+
+CREATE UNIQUE INDEX idx_affiliate_clicks_user_url_day
+  ON public.affiliate_clicks (user_id, product_url, public.utc_date(clicked_at));
 
 ALTER TABLE public.affiliate_clicks ENABLE ROW LEVEL SECURITY;
 
