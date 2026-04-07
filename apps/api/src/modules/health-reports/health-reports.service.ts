@@ -16,17 +16,17 @@ import type { ReportData } from './pdf/report-template';
 const SIGNED_URL_EXPIRY_SECONDS = 24 * 60 * 60; // 24 hours
 const STORAGE_BUCKET = 'reports';
 
-/** Local row interface matching bike_health_reports DB columns */
+/** Local row interface matching bike_health_reports DB columns from migration 00056 */
 interface HealthReportRow {
   id: string;
   user_id: string;
-  motorcycle_id: string;
+  bike_id: string;
   status: string;
-  pdf_url: string | null;
+  pdf_signed_url: string | null;
   pdf_storage_path: string | null;
   iap_transaction_id: string | null;
-  created_at: string;
-  completed_at: string | null;
+  purchased_at: string;
+  download_expires_at: string | null;
 }
 
 @Injectable()
@@ -64,9 +64,9 @@ export class HealthReportsService {
       .from('bike_health_reports')
       .select()
       .eq('user_id', userId)
-      .eq('motorcycle_id', bikeId)
+      .eq('bike_id', bikeId)
       .eq('status', 'pending')
-      .order('created_at', { ascending: false })
+      .order('purchased_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
@@ -158,8 +158,8 @@ export class HealthReportsService {
         .update({
           status: 'completed',
           pdf_storage_path: storagePath,
-          pdf_url: signedUrlData.signedUrl,
-          completed_at: new Date().toISOString(),
+          pdf_signed_url: signedUrlData.signedUrl,
+          download_expires_at: new Date(Date.now() + SIGNED_URL_EXPIRY_SECONDS * 1000).toISOString(),
         })
         .eq('id', reportId)
         .select()
@@ -186,7 +186,7 @@ export class HealthReportsService {
       .from('bike_health_reports')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('purchased_at', { ascending: false });
 
     if (error) {
       throw new InternalServerErrorException('Failed to fetch health reports');
@@ -252,9 +252,10 @@ export class HealthReportsService {
 
     const { error } = await this.supabaseAdmin.from('bike_health_reports').insert({
       user_id: userId,
-      motorcycle_id: motorcycleId,
+      bike_id: motorcycleId,
       iap_transaction_id: iapTransactionId,
       status: 'pending',
+      purchased_at: new Date().toISOString(),
     });
 
     if (error) {
@@ -289,12 +290,12 @@ export class HealthReportsService {
     return {
       id: row.id,
       userId: row.user_id,
-      motorcycleId: row.motorcycle_id,
+      motorcycleId: row.bike_id,
       status: row.status,
-      pdfUrl: row.pdf_url ?? undefined,
+      pdfUrl: row.pdf_signed_url ?? undefined,
       iapTransactionId: row.iap_transaction_id ?? undefined,
-      createdAt: row.created_at,
-      completedAt: row.completed_at ?? undefined,
+      createdAt: row.purchased_at,
+      completedAt: row.download_expires_at ?? undefined,
     };
   }
 }

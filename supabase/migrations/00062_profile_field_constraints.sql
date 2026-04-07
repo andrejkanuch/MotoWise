@@ -13,3 +13,20 @@ ALTER TABLE public.users
 -- DOCUMENTATION: ride_waypoints RLS privacy rationale
 -- ==========================================
 COMMENT ON TABLE public.ride_waypoints IS 'GPS waypoints for rides. RLS intentionally restricts to ride owner only - public rides expose route_thumbnail_uri but NOT raw GPS data for privacy.';
+
+-- ==========================================
+-- CONSTRAINTS: counter columns cannot go negative
+-- ==========================================
+ALTER TABLE public.users
+  ADD CONSTRAINT chk_users_follower_count CHECK (follower_count >= 0),
+  ADD CONSTRAINT chk_users_following_count CHECK (following_count >= 0);
+
+ALTER TABLE public.rides
+  ADD CONSTRAINT chk_rides_kudos_count CHECK (kudos_count >= 0);
+
+-- ==========================================
+-- INDEX: prevent duplicate IAP purchases for health reports
+-- ==========================================
+CREATE UNIQUE INDEX idx_health_reports_iap_transaction
+  ON public.bike_health_reports (iap_transaction_id)
+  WHERE iap_transaction_id IS NOT NULL;
