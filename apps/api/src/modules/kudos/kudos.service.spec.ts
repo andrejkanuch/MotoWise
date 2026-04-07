@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { KudosService } from './kudos.service';
 

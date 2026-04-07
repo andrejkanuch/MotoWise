@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FollowsService } from './follows.service';
 
@@ -119,9 +115,7 @@ describe('FollowsService', () => {
     it('should throw ForbiddenException when target profile is private', async () => {
       mockUserClient._pushResult({ data: fakePrivateUser });
 
-      await expect(service.follow(currentUserId, targetUserId)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(service.follow(currentUserId, targetUserId)).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw BadRequestException on duplicate follow (23505)', async () => {
@@ -220,9 +214,9 @@ describe('FollowsService', () => {
     it('should throw ForbiddenException for private profile', async () => {
       mockUserClient._pushResult({ data: fakePrivateUser });
 
-      await expect(
-        service.getFollowers(currentUserId, targetUserId, 20),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.getFollowers(currentUserId, targetUserId, 20)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw BadRequestException for invalid cursor', async () => {

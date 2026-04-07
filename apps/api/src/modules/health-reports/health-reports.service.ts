@@ -159,7 +159,9 @@ export class HealthReportsService {
           status: 'completed',
           pdf_storage_path: storagePath,
           pdf_signed_url: signedUrlData.signedUrl,
-          download_expires_at: new Date(Date.now() + SIGNED_URL_EXPIRY_SECONDS * 1000).toISOString(),
+          download_expires_at: new Date(
+            Date.now() + SIGNED_URL_EXPIRY_SECONDS * 1000,
+          ).toISOString(),
         })
         .eq('id', reportId)
         .select()

@@ -8,7 +8,7 @@ describe('AffiliatesService', () => {
 
   const userId = 'user-af1a2b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c';
 
-  const fakeClickRow = {
+  const _fakeClickRow = {
     id: 'click-1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
     user_id: userId,
     partner: 'revzilla',
@@ -94,9 +94,7 @@ describe('AffiliatesService', () => {
 
       expect(result.partner).toBe('revzilla');
       expect(result.affiliateUrl).toContain('ref=motovault-20');
-      expect(result.productUrl).toBe(
-        'https://www.revzilla.com/motorcycle/shoei-rf-1400-helmet',
-      );
+      expect(result.productUrl).toBe('https://www.revzilla.com/motorcycle/shoei-rf-1400-helmet');
       expect(result.tracked).toBe(true);
       expect(mockUserClient.from).toHaveBeenCalledWith('affiliate_clicks');
       expect(mockUserClient._chain.insert).toHaveBeenCalledWith(
@@ -158,10 +156,7 @@ describe('AffiliatesService', () => {
     });
 
     it('should append tag param for Amazon URLs', () => {
-      const url = service.getAffiliateUrl(
-        'amazon',
-        'https://www.amazon.com/dp/B08XYZ1234',
-      );
+      const url = service.getAffiliateUrl('amazon', 'https://www.amazon.com/dp/B08XYZ1234');
 
       expect(url).toContain('tag=motovault-20');
     });
@@ -179,10 +174,7 @@ describe('AffiliatesService', () => {
     });
 
     it('should return original URL for unknown partner', () => {
-      const url = service.getAffiliateUrl(
-        'unknown_partner',
-        'https://www.example.com/product',
-      );
+      const url = service.getAffiliateUrl('unknown_partner', 'https://www.example.com/product');
 
       expect(url).toBe('https://www.example.com/product');
     });
