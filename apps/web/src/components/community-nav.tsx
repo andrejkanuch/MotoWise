@@ -75,6 +75,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
           className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 sm:hidden"
+          aria-expanded={menuOpen}
           aria-label="Toggle navigation menu"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

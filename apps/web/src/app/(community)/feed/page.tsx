@@ -49,17 +49,62 @@ export default function FeedPage() {
 
   if (isError) {
     return (
-      <div className="py-20 text-center">
-        <p className="text-neutral-400">Failed to load feed. Please try again.</p>
+      <div className="flex flex-col items-center py-20 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-neutral-500">
+            <title>Error</title>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M12 8v4m0 4h.01"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-semibold text-neutral-200">Failed to load feed</p>
+        <p className="mt-1 text-sm text-neutral-500">
+          Something went wrong. Check your connection and try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-full bg-warm-500 px-6 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   if (allEdges.length === 0) {
     return (
-      <div className="py-20 text-center">
-        <p className="text-xl font-bold text-neutral-200">No rides yet</p>
-        <p className="mt-2 text-neutral-500">Follow riders to see their adventures here.</p>
+      <div className="flex flex-col items-center py-20 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-warm-400">
+            <title>Motorcycle</title>
+            <path
+              d="M5 16a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0 0h6l3-8h4l2 4h-3"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path d="M19 16a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M17 8V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </div>
+        <p className="text-lg font-semibold text-neutral-200">Your feed is empty</p>
+        <p className="mt-1 max-w-xs text-sm text-neutral-500">
+          Follow riders to see their adventures here. Discover the community and connect with fellow
+          motorcyclists.
+        </p>
+        <a
+          href="/profile"
+          className="mt-4 rounded-full bg-warm-500 px-6 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+        >
+          Find Riders
+        </a>
       </div>
     );
   }

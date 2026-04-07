@@ -58,7 +58,7 @@ export default async function RiderProfilePage({
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Hero header */}
-      <header className="bg-gradient-to-br from-[#0a1540] to-[#3366e6] text-white">
+      <header className="bg-gradient-to-br from-neutral-950 to-neutral-800 text-white">
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
           <div className="flex items-center gap-5">
             {profile.avatarUrl ? (
@@ -66,10 +66,10 @@ export default async function RiderProfilePage({
               <img
                 src={profile.avatarUrl}
                 alt={displayName}
-                className="h-20 w-20 rounded-full border-3 border-white/20 object-cover"
+                className="h-20 w-20 rounded-full border-3 border-warm-500/30 object-cover"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 text-3xl font-bold">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-warm-500/15 text-3xl font-bold text-warm-400">
                 {initial}
               </div>
             )}
@@ -85,17 +85,17 @@ export default async function RiderProfilePage({
 
           {/* Stats */}
           <div className="mt-8 grid grid-cols-3 gap-4">
-            <div className="rounded-xl bg-white/10 p-3 text-center">
+            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
               <p className="text-2xl font-bold">{profile.rideStats.totalRides}</p>
               <p className="text-xs text-white/60">Rides</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-3 text-center">
+            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
               <p className="text-2xl font-bold">
                 {formatDistance(profile.rideStats.totalDistance)}
               </p>
               <p className="text-xs text-white/60">Distance</p>
             </div>
-            <div className="rounded-xl bg-white/10 p-3 text-center">
+            <div className="rounded-xl bg-white/10 p-3 text-center border border-warm-500/10">
               <p className="text-2xl font-bold">{profile.followerCount}</p>
               <p className="text-xs text-white/60">Followers</p>
             </div>

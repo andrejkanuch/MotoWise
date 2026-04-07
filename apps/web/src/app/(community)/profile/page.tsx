@@ -13,7 +13,11 @@ type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 export default function ProfilePage() {
   const router = useRouter();
 
-  const { data: meData, isLoading: meLoading } = useQuery({
+  const {
+    data: meData,
+    isLoading: meLoading,
+    isError: meError,
+  } = useQuery({
     queryKey: ['me'],
     queryFn: () => gqlFetcher(MeDocument),
   });
@@ -21,6 +25,7 @@ export default function ProfilePage() {
   const { data: bikesData } = useQuery({
     queryKey: ['myMotorcycles'],
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    enabled: !!meData?.me,
   });
 
   const user: User | undefined = meData?.me;
@@ -41,8 +46,65 @@ export default function ProfilePage() {
     );
   }
 
-  if (!user || !user.publicUsername) {
-    return null; // Will redirect
+  if (meError) {
+    return (
+      <div className="flex flex-col items-center py-20 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-neutral-500">
+            <title>Error</title>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M12 8v4m0 4h.01"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-semibold text-neutral-200">Failed to load profile</p>
+        <p className="mt-1 text-sm text-neutral-500">Something went wrong. Please try again.</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded-full bg-warm-500 px-6 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect via layout
+  }
+
+  if (!user.publicUsername) {
+    return (
+      <div className="flex flex-col items-center py-20 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 mb-4">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-warm-400">
+            <title>Set up profile</title>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M12 8v8m-4-4h8"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <p className="text-lg font-semibold text-neutral-200">Set up your rider profile</p>
+        <p className="mt-1 max-w-xs text-sm text-neutral-500">
+          Create a public profile so other riders can find and follow you.
+        </p>
+        <a
+          href="/profile/edit"
+          className="mt-4 rounded-full bg-warm-500 px-6 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
+        >
+          Create Profile
+        </a>
+      </div>
+    );
   }
 
   const initial = user.displayName?.charAt(0)?.toUpperCase() ?? user.email.charAt(0).toUpperCase();

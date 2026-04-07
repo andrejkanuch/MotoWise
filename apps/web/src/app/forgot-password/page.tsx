@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-neutral-950">
+    <div className="flex justify-center items-center min-h-screen bg-neutral-950 pb-32">
       <div className="w-full max-w-[400px] px-4">
         <Link
           href="/login"
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
                     maxLength={255}
                     required
                     aria-describedby={error ? 'reset-error' : undefined}
-                    className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
                   />
                 </div>
                 <button

@@ -144,7 +144,7 @@ export default function EditProfilePage() {
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={50}
             required
-            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
           />
         </div>
 
@@ -159,7 +159,7 @@ export default function EditProfilePage() {
             maxLength={300}
             rows={3}
             placeholder="Tell other riders about yourself..."
-            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent resize-none"
           />
           <p className="text-right text-xs text-neutral-600">{bio.length}/300</p>
         </div>
@@ -175,7 +175,7 @@ export default function EditProfilePage() {
             onChange={(e) => setCity(e.target.value)}
             maxLength={100}
             placeholder="e.g. Prague, Czechia"
-            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
           />
         </div>
 
