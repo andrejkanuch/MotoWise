@@ -68,8 +68,9 @@ export class UsersResolver {
   }
 
   @Query(() => PublicRiderProfile)
+  @UseGuards(GqlAuthGuard)
   @Public()
-  @Throttle(THROTTLE_PRESETS.STANDARD)
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async getRiderProfile(
     @Args('username') username: string,
     @CurrentUser() user?: AuthUser,

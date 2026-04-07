@@ -6,7 +6,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
@@ -23,7 +24,10 @@ const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
 export class RidesService {
   private readonly logger = new Logger(RidesService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async startRide(userId: string, input: StartRideInput): Promise<Ride> {
     this.logger.log(`startRide: userId=${userId}, rideId=${input.rideId}`);
@@ -142,6 +146,13 @@ export class RidesService {
         // Non-fatal — ride is already saved
       }
     }
+
+    // Emit event for async AI ride summary generation
+    this.eventEmitter.emit('ride.completed', {
+      rideId: ride.id,
+      userId,
+      locale: 'en', // TODO: pass user's preferred locale
+    });
 
     return { ride, triggeredMaintenanceTasks };
   }

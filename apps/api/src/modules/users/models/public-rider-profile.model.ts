@@ -23,8 +23,8 @@ export class PublicRideStats {
   @Field()
   totalDistance: number;
 
-  @Field()
-  joinDate: string;
+  @Field({ nullable: true })
+  joinDate?: string;
 }
 
 @ObjectType()

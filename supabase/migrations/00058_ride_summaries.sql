@@ -12,6 +12,9 @@ CREATE TABLE public.ride_summaries (
   generated_at      TIMESTAMPTZ,
   model_version     TEXT,
   edited_by_user    BOOLEAN NOT NULL DEFAULT false,
+  locale            TEXT NOT NULL DEFAULT 'en',
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   CONSTRAINT chk_ride_summaries_status
     CHECK (generation_status IN ('pending', 'completed', 'failed'))
