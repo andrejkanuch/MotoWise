@@ -15,7 +15,7 @@ function buildCspHeader(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com https://connect.facebook.net https://www.facebook.com",
+    `connect-src 'self' ${supabaseUrl} https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com https://connect.facebook.net https://www.facebook.com`,
     "frame-ancestors 'none'",
   ].join('; ');
 }
@@ -32,7 +32,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 const intlMiddleware = createIntlMiddleware(routing);
 
 async function adminAuth(request: NextRequest) {
-  const response = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -40,6 +40,10 @@ async function adminAuth(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, options);
         }
@@ -110,7 +114,10 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 async function communityAuth(request: NextRequest) {
-  const response = NextResponse.next({ request });
+  // CRITICAL: supabaseResponse must be reassigned inside setAll
+  // so cookie updates from getUser() session refresh are preserved.
+  // See: https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -118,25 +125,31 @@ async function communityAuth(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        supabaseResponse = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          supabaseResponse.cookies.set(name, value, options);
         }
       },
     },
   });
 
-  // Refresh session on every request — validates the JWT with Supabase Auth
+  // Use getSession() to read from cookies (no network call).
+  // getUser() validates with Supabase Auth but can fail during the
+  // brief window after signInWithPassword before cookies propagate.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export async function proxy(request: NextRequest) {

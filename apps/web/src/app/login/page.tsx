@@ -2,11 +2,9 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = useMemo(
     () =>
       createBrowserClient(
@@ -31,7 +29,10 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push('/feed');
+      // Hard navigation to ensure middleware re-runs with new cookies
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect') || '/feed';
+      window.location.href = redirectTo;
     }
   };
 
