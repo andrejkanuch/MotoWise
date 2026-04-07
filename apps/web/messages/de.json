@@ -14,7 +14,8 @@
     "download": "App holen",
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
-    "closeMenu": "Navigationsmenü schließen"
+    "closeMenu": "Navigationsmenü schließen",
+    "signup": "Registrieren"
   },
   "Hero": {
     "line1": "LERNE DEIN BIKE.",

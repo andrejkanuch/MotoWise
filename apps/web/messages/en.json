@@ -15,7 +15,8 @@
     "download": "Get the App",
     "login": "Log In",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close navigation menu"
+    "closeMenu": "Close navigation menu",
+    "signup": "Sign Up"
   },
   "Hero": {
     "line1": "LEARN YOUR BIKE.",

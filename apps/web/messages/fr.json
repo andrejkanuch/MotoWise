@@ -14,7 +14,8 @@
     "download": "Télécharger",
     "login": "Connexion",
     "openMenu": "Ouvrir le menu de navigation",
-    "closeMenu": "Fermer le menu de navigation"
+    "closeMenu": "Fermer le menu de navigation",
+    "signup": "S'inscrire"
   },
   "Hero": {
     "line1": "APPRENEZ VOTRE MOTO.",

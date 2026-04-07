@@ -14,7 +14,8 @@
     "download": "Uygulamayi Indir",
     "login": "Giris Yap",
     "openMenu": "Navigasyon menusunu ac",
-    "closeMenu": "Navigasyon menusunu kapat"
+    "closeMenu": "Navigasyon menusunu kapat",
+    "signup": "Kayıt Ol"
   },
   "Hero": {
     "line1": "MOTORUNU OGREN.",

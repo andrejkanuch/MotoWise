@@ -14,7 +14,8 @@
     "download": "Descargar App",
     "login": "Iniciar Sesión",
     "openMenu": "Abrir menú de navegación",
-    "closeMenu": "Cerrar menú de navegación"
+    "closeMenu": "Cerrar menú de navegación",
+    "signup": "Registrarse"
   },
   "Hero": {
     "line1": "APRENDE TU MOTO.",
