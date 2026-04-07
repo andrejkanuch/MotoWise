@@ -39,8 +39,8 @@ BEGIN
     UPDATE public.users SET following_count = following_count + 1 WHERE id = NEW.follower_id;
     UPDATE public.users SET follower_count = follower_count + 1 WHERE id = NEW.following_id;
   ELSIF TG_OP = 'DELETE' THEN
-    UPDATE public.users SET following_count = following_count - 1 WHERE id = OLD.follower_id;
-    UPDATE public.users SET follower_count = follower_count - 1 WHERE id = OLD.following_id;
+    UPDATE public.users SET following_count = GREATEST(following_count - 1, 0) WHERE id = OLD.follower_id;
+    UPDATE public.users SET follower_count = GREATEST(follower_count - 1, 0) WHERE id = OLD.following_id;
   END IF;
   RETURN NULL;
 END;

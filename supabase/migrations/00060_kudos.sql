@@ -33,7 +33,7 @@ BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.rides SET kudos_count = kudos_count + 1 WHERE id = NEW.ride_id;
   ELSIF TG_OP = 'DELETE' THEN
-    UPDATE public.rides SET kudos_count = kudos_count - 1 WHERE id = OLD.ride_id;
+    UPDATE public.rides SET kudos_count = GREATEST(kudos_count - 1, 0) WHERE id = OLD.ride_id;
   END IF;
   RETURN NULL;
 END;

@@ -100,7 +100,7 @@ export class FollowsService {
     const limit = Math.min(first, 50);
     let query = this.supabase
       .from('follows')
-      .select('*', { count: 'exact' })
+      .select('follower_id, following_id, created_at', { count: 'exact' })
       .eq('following_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit + 1);
@@ -137,7 +137,7 @@ export class FollowsService {
     const limit = Math.min(first, 50);
     let query = this.supabase
       .from('follows')
-      .select('*', { count: 'exact' })
+      .select('follower_id, following_id, created_at', { count: 'exact' })
       .eq('follower_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit + 1);

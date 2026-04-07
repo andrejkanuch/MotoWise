@@ -98,7 +98,8 @@ export class AffiliatesService {
       }
 
       return url.toString();
-    } catch {
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       this.logger.warn(`Invalid product URL: ${productUrl}`);
       return productUrl;
     }

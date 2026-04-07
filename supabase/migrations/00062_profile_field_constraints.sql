@@ -6,7 +6,7 @@
 -- ==========================================
 ALTER TABLE public.users
   ADD CONSTRAINT chk_users_bio_length CHECK (length(bio) <= 500),
-  ADD CONSTRAINT chk_users_display_name_length CHECK (length(display_name) <= 100),
+  ADD CONSTRAINT chk_users_display_name_length CHECK (length(display_name) <= 50),
   ADD CONSTRAINT chk_users_city_length CHECK (length(city) <= 100);
 
 -- ==========================================
@@ -30,3 +30,13 @@ ALTER TABLE public.rides
 CREATE UNIQUE INDEX idx_health_reports_iap_transaction
   ON public.bike_health_reports (iap_transaction_id)
   WHERE iap_transaction_id IS NOT NULL;
+
+-- ==========================================
+-- RLS: Allow reading bikes of public profiles (for public rider profile pages)
+-- ==========================================
+CREATE POLICY "Public can read bikes of public profiles" ON public.motorcycles
+  FOR SELECT TO authenticated, anon
+  USING (
+    deleted_at IS NULL
+    AND EXISTS (SELECT 1 FROM public.users WHERE id = user_id AND is_public = true)
+  );
