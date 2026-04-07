@@ -4,9 +4,17 @@ import { Currency } from '../constants/enums';
 const currencyValues = Object.values(Currency) as [string, ...string[]];
 
 export const EXPENSE_CATEGORIES = [
-  'fuel', 'maintenance', 'parts', 'gear',
-  'tires', 'insurance', 'registration', 'tolls',
-  'parking', 'modifications', 'training',
+  'fuel',
+  'maintenance',
+  'parts',
+  'gear',
+  'tires',
+  'insurance',
+  'registration',
+  'tolls',
+  'parking',
+  'modifications',
+  'training',
 ] as const;
 
 export const LogExpenseSchema = z.object({

@@ -53,12 +53,10 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
     const data = buckets.map((bucket) => {
       if (bucket.total > max) max = bucket.total;
 
-      const stacks = EXPENSE_CATEGORIES
-        .filter((cat) => bucket[cat] > 0)
-        .map((cat) => {
-          catSet.add(cat);
-          return { value: bucket[cat], color: CATEGORY_COLORS[cat] };
-        });
+      const stacks = EXPENSE_CATEGORIES.filter((cat) => bucket[cat] > 0).map((cat) => {
+        catSet.add(cat);
+        return { value: bucket[cat], color: CATEGORY_COLORS[cat] };
+      });
 
       return {
         stacks: stacks.length > 0 ? stacks : [{ value: 0, color: 'transparent' }],
