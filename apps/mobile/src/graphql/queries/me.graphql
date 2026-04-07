@@ -7,6 +7,14 @@ query Me {
     preferences
     measurementSystem
     currency
+    publicUsername
+    displayName
+    bio
+    city
+    isPublic
+    followerCount
+    followingCount
+    avatarUrl
     createdAt
     updatedAt
   }
