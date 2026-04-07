@@ -88,6 +88,57 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
+const PROTECTED_PREFIXES = ['/feed', '/profile'];
+
+const PUBLIC_PREFIXES = [
+  '/rider/',
+  '/ride/',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/auth/callback',
+];
+
+function isProtectedRoute(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+async function communityAuth(request: NextRequest) {
+  const response = NextResponse.next({ request });
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]) {
+        for (const { name, value, options } of cookiesToSet) {
+          response.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
+  // Refresh session on every request — validates the JWT with Supabase Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const redirectUrl = new URL('/login', request.url);
+    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  return response;
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
@@ -100,6 +151,9 @@ export async function proxy(request: NextRequest) {
   // Admin routes: run auth guard (no locale processing)
   if (pathname.startsWith('/admin')) {
     response = await adminAuth(request);
+  } else if (isProtectedRoute(pathname) && !isPublicRoute(pathname)) {
+    // Community protected routes: require authenticated session
+    response = await communityAuth(request);
   } else if (pathname.startsWith('/login')) {
     // Login route: skip locale processing
     response = NextResponse.next({ request });
