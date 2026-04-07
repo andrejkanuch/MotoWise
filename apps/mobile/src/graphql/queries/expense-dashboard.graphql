@@ -11,6 +11,13 @@ query ExpenseDashboard($motorcycleId: String!) {
       maintenance
       parts
       gear
+      tires
+      insurance
+      registration
+      tolls
+      parking
+      modifications
+      training
       total
     }
     categoryTotals {

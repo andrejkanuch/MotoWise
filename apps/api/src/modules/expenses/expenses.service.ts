@@ -264,6 +264,13 @@ export class ExpensesService {
         maintenance: Math.round((categories.maintenance ?? 0) * 100) / 100,
         parts: Math.round((categories.parts ?? 0) * 100) / 100,
         gear: Math.round((categories.gear ?? 0) * 100) / 100,
+        tires: Math.round((categories.tires ?? 0) * 100) / 100,
+        insurance: Math.round((categories.insurance ?? 0) * 100) / 100,
+        registration: Math.round((categories.registration ?? 0) * 100) / 100,
+        tolls: Math.round((categories.tolls ?? 0) * 100) / 100,
+        parking: Math.round((categories.parking ?? 0) * 100) / 100,
+        modifications: Math.round((categories.modifications ?? 0) * 100) / 100,
+        training: Math.round((categories.training ?? 0) * 100) / 100,
         total: Math.round(Object.values(categories).reduce((sum, v) => sum + v, 0) * 100) / 100,
       });
     }

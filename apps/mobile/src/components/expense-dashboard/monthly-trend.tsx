@@ -1,7 +1,9 @@
 import { palette } from '@motovault/design-system';
+import { EXPENSE_CATEGORIES } from '@motovault/types/validators';
 import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
 
 interface MonthlyBucket {
   month: number;
@@ -10,6 +12,13 @@ interface MonthlyBucket {
   maintenance: number;
   parts: number;
   gear: number;
+  tires: number;
+  insurance: number;
+  registration: number;
+  tolls: number;
+  parking: number;
+  modifications: number;
+  training: number;
   total: number;
 }
 
@@ -34,29 +43,37 @@ const MONTH_LABELS = [
 ];
 
 export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: MonthlyTrendProps) {
-  const { stackData, maxValue, allZero } = useMemo(() => {
+  const { stackData, maxValue, allZero, presentCategories } = useMemo(() => {
     const isEmpty = buckets.length === 0 || buckets.every((b) => b.total === 0);
-    if (isEmpty) return { stackData: [], maxValue: 400, allZero: true };
+    if (isEmpty) return { stackData: [], maxValue: 400, allZero: true, presentCategories: [] };
 
     let max = 0;
+    const catSet = new Set<string>();
 
     const data = buckets.map((bucket) => {
       if (bucket.total > max) max = bucket.total;
 
+      const stacks = EXPENSE_CATEGORIES
+        .filter((cat) => bucket[cat] > 0)
+        .map((cat) => {
+          catSet.add(cat);
+          return { value: bucket[cat], color: CATEGORY_COLORS[cat] };
+        });
+
       return {
-        stacks: [
-          { value: bucket.fuel, color: palette.warning500 },
-          { value: bucket.maintenance, color: palette.primary500 },
-          { value: bucket.parts, color: palette.success500 },
-          { value: bucket.gear, color: palette.danger500 },
-        ],
+        stacks: stacks.length > 0 ? stacks : [{ value: 0, color: 'transparent' }],
         label: MONTH_LABELS[bucket.month - 1] ?? '',
       };
     });
 
     const rounded = Math.ceil(max / 100) * 100;
 
-    return { stackData: data, maxValue: rounded || 400, allZero: false };
+    return {
+      stackData: data,
+      maxValue: rounded || 400,
+      allZero: false,
+      presentCategories: EXPENSE_CATEGORIES.filter((cat) => catSet.has(cat)),
+    };
   }, [buckets]);
 
   if (allZero) return null;
@@ -124,26 +141,22 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
 
       {/* Legend */}
       <View
-        accessibilityLabel="Chart legend: Fuel, Maintenance, Parts, Gear"
+        accessibilityLabel={`Chart legend: ${presentCategories.map((c) => CATEGORY_LABELS[c]).join(', ')}`}
         style={{
           flexDirection: 'row',
+          flexWrap: 'wrap',
           gap: 12,
           marginTop: 16,
         }}
       >
-        {[
-          { label: 'Fuel', color: palette.warning500 },
-          { label: 'Maintenance', color: palette.primary500 },
-          { label: 'Parts', color: palette.success500 },
-          { label: 'Gear', color: palette.danger500 },
-        ].map((item) => (
-          <View key={item.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {presentCategories.map((cat) => (
+          <View key={cat} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <View
               style={{
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: item.color,
+                backgroundColor: CATEGORY_COLORS[cat],
               }}
             />
             <Text
@@ -154,7 +167,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
                 color: legendColor,
               }}
             >
-              {item.label}
+              {CATEGORY_LABELS[cat]}
             </Text>
           </View>
         ))}

@@ -347,10 +347,17 @@ input ManualBikeInfoInput {
 type MonthlyBucket {
   fuel: Float!
   gear: Float!
+  insurance: Float!
   maintenance: Float!
+  modifications: Float!
   month: Int!
+  parking: Float!
   parts: Float!
+  registration: Float!
+  tires: Float!
+  tolls: Float!
   total: Float!
+  training: Float!
   year: Int!
 }
 

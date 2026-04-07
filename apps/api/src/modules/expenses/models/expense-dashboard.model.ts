@@ -21,6 +21,27 @@ export class MonthlyBucket {
   gear: number;
 
   @Field(() => Float)
+  tires: number;
+
+  @Field(() => Float)
+  insurance: number;
+
+  @Field(() => Float)
+  registration: number;
+
+  @Field(() => Float)
+  tolls: number;
+
+  @Field(() => Float)
+  parking: number;
+
+  @Field(() => Float)
+  modifications: number;
+
+  @Field(() => Float)
+  training: number;
+
+  @Field(() => Float)
   total: number;
 }
 

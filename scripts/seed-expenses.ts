@@ -12,7 +12,18 @@ const USER_EMAIL = 'kanuchandrej@gmail.com';
 
 interface Expense {
   amount: number;
-  category: 'fuel' | 'maintenance' | 'parts' | 'gear';
+  category:
+    | 'fuel'
+    | 'maintenance'
+    | 'parts'
+    | 'gear'
+    | 'tires'
+    | 'insurance'
+    | 'registration'
+    | 'tolls'
+    | 'parking'
+    | 'modifications'
+    | 'training';
   description: string;
   monthsAgo: number;
   currency: string;
@@ -169,6 +180,97 @@ const EXPENSES: Expense[] = [
     monthsAgo: 5,
     currency: 'EUR',
   },
+
+  // ── Tires ──
+  {
+    amount: 285.0,
+    category: 'tires',
+    description: 'Michelin Road 6 Front 120/70ZR17',
+    monthsAgo: 5,
+    currency: 'EUR',
+  },
+  {
+    amount: 345.0,
+    category: 'tires',
+    description: 'Michelin Road 6 Rear 180/55ZR17',
+    monthsAgo: 5,
+    currency: 'EUR',
+  },
+
+  // ── Insurance ──
+  {
+    amount: 420.0,
+    category: 'insurance',
+    description: 'Annual liability insurance (Allianz)',
+    monthsAgo: 10,
+    currency: 'EUR',
+  },
+
+  // ── Registration ──
+  {
+    amount: 85.0,
+    category: 'registration',
+    description: 'Annual registration renewal + emissions check',
+    monthsAgo: 9,
+    currency: 'EUR',
+  },
+
+  // ── Tolls ──
+  {
+    amount: 12.5,
+    category: 'tolls',
+    description: 'Austrian highway vignette (10-day)',
+    monthsAgo: 7,
+    currency: 'EUR',
+  },
+  {
+    amount: 8.0,
+    category: 'tolls',
+    description: 'Brenner motorway toll',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+
+  // ── Parking ──
+  {
+    amount: 5.0,
+    category: 'parking',
+    description: 'Underground parking (Vienna old town)',
+    monthsAgo: 7,
+    currency: 'EUR',
+  },
+  {
+    amount: 3.5,
+    category: 'parking',
+    description: 'City center parking meter',
+    monthsAgo: 4,
+    currency: 'EUR',
+  },
+
+  // ── Modifications ──
+  {
+    amount: 189.0,
+    category: 'modifications',
+    description: 'SW-Motech crash bars',
+    monthsAgo: 8,
+    currency: 'EUR',
+  },
+  {
+    amount: 79.0,
+    category: 'modifications',
+    description: 'Puig touring windscreen',
+    monthsAgo: 6,
+    currency: 'EUR',
+  },
+
+  // ── Training ──
+  {
+    amount: 250.0,
+    category: 'training',
+    description: 'Advanced riding course (1 day)',
+    monthsAgo: 3,
+    currency: 'EUR',
+  },
 ];
 
 function dateMonthsAgo(months: number): string {
@@ -238,17 +340,15 @@ async function main() {
   }
 
   // Summary
-  const totals = { gear: 0, maintenance: 0, parts: 0, fuel: 0 };
-  for (const r of rows) totals[r.category as keyof typeof totals] += r.amount;
+  const totals: Record<string, number> = {};
+  for (const r of rows) totals[r.category] = (totals[r.category] ?? 0) + r.amount;
   const grand = Object.values(totals).reduce((a, b) => a + b, 0);
 
   console.log(`\n✓ ${rows.length} expenses inserted`);
-  console.log(`  Fuel:        €${totals.fuel.toFixed(2)}`);
-  console.log(`  Maintenance: €${totals.maintenance.toFixed(2)}`);
-  console.log(`  Parts:       €${totals.parts.toFixed(2)}`);
-  console.log(`  Gear:        €${totals.gear.toFixed(2)}`);
-  console.log(`  TOTAL:       €${grand.toFixed(2)}`);
-  console.log(`  Gear %:      ${((totals.gear / grand) * 100).toFixed(1)}%`);
+  for (const [cat, amount] of Object.entries(totals).sort((a, b) => b[1] - a[1])) {
+    console.log(`  ${cat.padEnd(15)} €${amount.toFixed(2)}`);
+  }
+  console.log(`  ${'TOTAL'.padEnd(15)} €${grand.toFixed(2)}`);
 }
 
 main().catch(console.error);

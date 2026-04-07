@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { useDashboardData, useExpenseDashboard } from '../../hooks/use-expense-dashboard';
+import { CATEGORY_COLORS } from '../../lib/expense-constants';
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
 
@@ -22,13 +23,6 @@ interface ExpenseSummaryWidgetProps {
   motorcycles: Motorcycle[];
   onViewDetails: (motorcycleId: string) => void;
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  fuel: palette.primary500,
-  maintenance: palette.success500,
-  parts: palette.warning500,
-  gear: palette.signature400,
-};
 
 function getBikeName(bike: Motorcycle): string {
   return bike.nickname ?? `${bike.make} ${bike.model}`;
