@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, usePathname } from '@/i18n/navigation';
+import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
 const NAV_LINKS = [
@@ -22,6 +23,21 @@ export function Navbar() {
   const t = useTranslations('Navbar');
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check auth state on mount
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
   const scrolledRef = useRef(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
@@ -122,18 +138,29 @@ export function Navbar() {
             );
           })}
           <LanguageSwitcher />
-          <a
-            href="/login"
-            className="rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
-          >
-            {t('login', { defaultValue: 'Log In' })}
-          </a>
-          <a
-            href="/signup"
-            className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-          >
-            {t('signup', { defaultValue: 'Sign Up' })}
-          </a>
+          {isLoggedIn ? (
+            <a
+              href="/feed"
+              className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              {t('dashboard', { defaultValue: 'My Feed' })}
+            </a>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
+              >
+                {t('login', { defaultValue: 'Log In' })}
+              </a>
+              <a
+                href="/signup"
+                className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              >
+                {t('signup', { defaultValue: 'Sign Up' })}
+              </a>
+            </>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -208,20 +235,32 @@ export function Navbar() {
               );
             })}
             <LanguageSwitcher />
-            <a
-              href="/login"
-              onClick={closeMobile}
-              className="mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
-            >
-              {t('login', { defaultValue: 'Log In' })}
-            </a>
-            <a
-              href="/signup"
-              onClick={closeMobile}
-              className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-            >
-              {t('signup', { defaultValue: 'Sign Up' })}
-            </a>
+            {isLoggedIn ? (
+              <a
+                href="/feed"
+                onClick={closeMobile}
+                className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              >
+                {t('dashboard', { defaultValue: 'My Feed' })}
+              </a>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  onClick={closeMobile}
+                  className="mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
+                >
+                  {t('login', { defaultValue: 'Log In' })}
+                </a>
+                <a
+                  href="/signup"
+                  onClick={closeMobile}
+                  className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                >
+                  {t('signup', { defaultValue: 'Sign Up' })}
+                </a>
+              </>
+            )}
           </div>
         </div>
       )}
