@@ -557,4 +557,213 @@ ${trkpts}
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  // ==========================================
+  // Route Reviews
+  // ==========================================
+
+  async getRouteReviews(routeId: string, first: number, after?: string) {
+    const limit = Math.min(first, 50);
+
+    const { count } = await this.supabaseAdmin
+      .from('route_reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('route_id', routeId);
+
+    let query = this.supabaseAdmin
+      .from('route_reviews')
+      .select(
+        'id, rating, text, condition_tags, created_at, user_id, bike_id, users:user_id(id, display_name, public_username, avatar_url), motorcycles:bike_id(make, model, year)',
+      )
+      .eq('route_id', routeId)
+      .order('created_at', { ascending: false })
+      .limit(limit + 1);
+
+    if (after) {
+      const decoded = Buffer.from(after, 'base64').toString('utf-8');
+      if (Number.isNaN(Date.parse(decoded))) throw new BadRequestException('Invalid cursor');
+      query = query.lt('created_at', decoded);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      this.logger.error(`getRouteReviews failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to fetch reviews');
+    }
+
+    const rows = data ?? [];
+    const hasNextPage = rows.length > limit;
+    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
+
+    const reviews = sliced.map((row: Record<string, unknown>) => {
+      const users = row.users as {
+        id: string;
+        display_name: string | null;
+        public_username: string | null;
+        avatar_url: string | null;
+      } | null;
+      const moto = row.motorcycles as { make: string; model: string; year: number } | null;
+      return {
+        id: row.id as string,
+        rating: row.rating as number,
+        text: (row.text as string) ?? undefined,
+        conditionTags: (row.condition_tags as string[]) ?? [],
+        createdAt: row.created_at as string,
+        author: {
+          id: users?.id ?? (row.user_id as string),
+          displayName: users?.display_name ?? 'Rider',
+          publicUsername: users?.public_username ?? undefined,
+          avatarUrl: users?.avatar_url ?? undefined,
+        },
+        bike: moto ? { make: moto.make, model: moto.model, year: moto.year } : undefined,
+      };
+    });
+
+    const last = sliced[sliced.length - 1];
+    return {
+      reviews,
+      hasNextPage,
+      endCursor: last ? Buffer.from(last.created_at as string).toString('base64') : undefined,
+      totalCount: count ?? 0,
+    };
+  }
+
+  async createRouteReview(
+    userId: string,
+    input: {
+      routeId: string;
+      rating: number;
+      text?: string;
+      conditionTags?: string[];
+      bikeId?: string;
+    },
+  ) {
+    const { data, error } = await this.supabase
+      .from('route_reviews')
+      .insert({
+        route_id: input.routeId,
+        user_id: userId,
+        rating: input.rating,
+        text: input.text ?? null,
+        condition_tags: input.conditionTags ?? [],
+        bike_id: input.bikeId ?? null,
+      })
+      .select(
+        'id, rating, text, condition_tags, created_at, user_id, users:user_id(id, display_name, public_username, avatar_url)',
+      )
+      .single();
+
+    if (error) {
+      if (error.code === '23505')
+        throw new BadRequestException('You have already reviewed this route');
+      this.logger.error(`createRouteReview failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to create review');
+    }
+
+    const users = (data as Record<string, unknown>).users as {
+      id: string;
+      display_name: string | null;
+      public_username: string | null;
+      avatar_url: string | null;
+    } | null;
+    return {
+      id: data.id,
+      rating: data.rating as number,
+      text: (data.text as string | null) ?? undefined,
+      conditionTags: (data.condition_tags as string[]) ?? [],
+      createdAt: data.created_at as string,
+      author: {
+        id: users?.id ?? userId,
+        displayName: users?.display_name ?? 'Rider',
+        publicUsername: users?.public_username ?? undefined,
+        avatarUrl: users?.avatar_url ?? undefined,
+      },
+    };
+  }
+
+  // ==========================================
+  // Route Saves (Bookmarks)
+  // ==========================================
+
+  async saveRoute(userId: string, routeId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('route_saves')
+      .insert({ route_id: routeId, user_id: userId });
+
+    if (error) {
+      if (error.code === '23505') return true; // Already saved
+      this.logger.error(`saveRoute failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to save route');
+    }
+    return true;
+  }
+
+  async unsaveRoute(userId: string, routeId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('route_saves')
+      .delete()
+      .eq('route_id', routeId)
+      .eq('user_id', userId);
+
+    if (error) {
+      this.logger.error(`unsaveRoute failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to unsave route');
+    }
+    return true;
+  }
+
+  async getSavedRoutes(userId: string, first: number, after?: string) {
+    const limit = Math.min(first, 50);
+
+    let query = this.supabase
+      .from('route_saves')
+      .select(
+        'route_id, saved_at, routes:route_id(id, name, polyline, distance_m, elevation_gain_m, surface_type, rating_avg, rating_count, is_motovault_pick, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url))',
+      )
+      .eq('user_id', userId)
+      .order('saved_at', { ascending: false })
+      .limit(limit + 1);
+
+    if (after) {
+      const decoded = Buffer.from(after, 'base64').toString('utf-8');
+      if (Number.isNaN(Date.parse(decoded))) throw new BadRequestException('Invalid cursor');
+      query = query.lt('saved_at', decoded);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      this.logger.error(`getSavedRoutes failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to fetch saved routes');
+    }
+
+    const rows = data ?? [];
+    const hasNextPage = rows.length > limit;
+    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
+
+    return {
+      saves: sliced.map((row: Record<string, unknown>) => ({
+        routeId: row.route_id as string,
+        savedAt: row.saved_at as string,
+        route: row.routes ? this.mapRouteRow(row.routes as unknown as RouteRow) : undefined,
+      })),
+      hasNextPage,
+    };
+  }
+
+  // ==========================================
+  // Premium Waitlist
+  // ==========================================
+
+  async joinPremiumWaitlist(userId: string, feature: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('premium_waitlist')
+      .insert({ user_id: userId, feature });
+
+    if (error) {
+      if (error.code === '23505') return true; // Already on waitlist
+      this.logger.error(`joinPremiumWaitlist failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to join waitlist');
+    }
+    return true;
+  }
 }

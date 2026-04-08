@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -193,6 +197,14 @@ input CreateMotorcycleInput {
   model: String!
   nickname: String
   year: Int!
+}
+
+input CreateRouteReviewInput {
+  bikeId: ID
+  conditionTags: [String!]
+  rating: Int!
+  routeId: ID!
+  text: String
 }
 
 input CreateShareLinkInput {
@@ -578,6 +590,7 @@ type Mutation {
   createFlag(input: CreateFlagInput!): ContentFlag!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
+  createRouteReview(input: CreateRouteReviewInput!): RouteReview!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   deleteAccount: Boolean!
   deleteComment(commentId: ID!): Boolean!
@@ -592,6 +605,7 @@ type Mutation {
   generateArticle(input: GenerateArticleInput!): Article!
   generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
+  joinPremiumWaitlist(feature: String!): Boolean!
 
   """Submit email to join waitlist (public, no auth)"""
   joinWaitlist(email: String!): Boolean!
@@ -601,6 +615,7 @@ type Mutation {
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
+  saveRoute(routeId: ID!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
@@ -608,6 +623,7 @@ type Mutation {
   toggleKudos(rideId: String!): KudosResult!
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
+  unsaveRoute(routeId: ID!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
@@ -691,6 +707,7 @@ type Query {
   getMyHealthReports: [HealthReport!]!
   getPublicRide(id: String!): Ride!
   getRiderProfile(username: String!): PublicRiderProfile!
+  getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
@@ -832,6 +849,36 @@ type RouteEdge {
 type RoutePageInfo {
   endCursor: String
   hasNextPage: Boolean!
+}
+
+type RouteReview {
+  author: RouteReviewAuthor!
+  bike: RouteReviewBike
+  conditionTags: [String!]!
+  createdAt: String!
+  id: ID!
+  rating: Int!
+  text: String
+}
+
+type RouteReviewAuthor {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type RouteReviewBike {
+  make: String!
+  model: String!
+  year: Int!
+}
+
+type RouteReviewConnection {
+  endCursor: String
+  hasNextPage: Boolean!
+  reviews: [RouteReview!]!
+  totalCount: Int!
 }
 
 input SearchArticlesInput {

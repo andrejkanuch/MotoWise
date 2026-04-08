@@ -1,0 +1,15 @@
+mutation CreateRouteReview($input: CreateRouteReviewInput!) {
+  createRouteReview(input: $input) {
+    id
+    rating
+    text
+    conditionTags
+    createdAt
+    author {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+  }
+}

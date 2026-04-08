@@ -1,0 +1,3 @@
+mutation SaveRoute($routeId: ID!) {
+  saveRoute(routeId: $routeId)
+}

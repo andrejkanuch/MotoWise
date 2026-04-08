@@ -1,10 +1,20 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import { RouteDetailDocument } from '@motovault/graphql';
+import { RouteDetailDocument, SaveRouteDocument, UnsaveRouteDocument } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Award, Download, Map as MapIcon, Share2, User } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Award,
+  Bookmark,
+  CloudOff,
+  Download,
+  Map as MapIcon,
+  Share2,
+  User,
+} from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -18,6 +28,9 @@ import {
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
+import { PremiumWaitlistModal } from '../../components/discover/premium-waitlist-modal';
+import { ReviewForm } from '../../components/discover/review-form';
+import { ReviewList } from '../../components/discover/review-list';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -66,6 +79,23 @@ export default function RouteDetailScreen() {
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const sheetRef = useRef<BottomSheet>(null);
   const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const [isSaved, setIsSaved] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (isSaved) {
+        await gqlFetcher(UnsaveRouteDocument, { routeId });
+      } else {
+        await gqlFetcher(SaveRouteDocument, { routeId });
+      }
+    },
+    onSuccess: () => {
+      setIsSaved((prev) => !prev);
+      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    },
+  });
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
@@ -384,12 +414,31 @@ export default function RouteDetailScreen() {
           )}
 
           {/* Action buttons */}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
             <ActionButton
               icon={<Download size={16} color={palette.white} />}
               label="Export GPX"
               onPress={handleExportGPX}
               primary
+            />
+            <ActionButton
+              icon={
+                <Bookmark
+                  size={16}
+                  color={isSaved ? palette.white : palette.accent500}
+                  fill={isSaved ? palette.white : 'transparent'}
+                />
+              }
+              label={isSaved ? 'Saved' : 'Save'}
+              onPress={() => saveMutation.mutate()}
+              primary={isSaved}
+            />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+            <ActionButton
+              icon={<CloudOff size={16} color={palette.accent500} />}
+              label="Offline"
+              onPress={() => setShowWaitlist(true)}
             />
             <ActionButton
               icon={<Share2 size={16} color={palette.accent500} />}
@@ -398,8 +447,36 @@ export default function RouteDetailScreen() {
             />
           </View>
 
+          {/* Reviews */}
+          <ReviewList routeId={routeId} />
+
+          {/* Review form */}
+          {showReviewForm ? (
+            <ReviewForm routeId={routeId} onSuccess={() => setShowReviewForm(false)} />
+          ) : (
+            <Pressable
+              onPress={() => setShowReviewForm(true)}
+              style={{
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: palette.accent500,
+                alignItems: 'center',
+                marginVertical: 12,
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                Leave a Review
+              </Text>
+            </Pressable>
+          )}
+
           {/* Comments */}
           <CommentList routeId={routeId} />
+
+          {/* Premium waitlist modal */}
+          <PremiumWaitlistModal visible={showWaitlist} onClose={() => setShowWaitlist(false)} />
         </BottomSheetScrollView>
       </BottomSheet>
     </View>

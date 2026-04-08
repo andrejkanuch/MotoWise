@@ -1,0 +1,3 @@
+mutation JoinPremiumWaitlist($feature: String!) {
+  joinPremiumWaitlist(feature: $feature)
+}
