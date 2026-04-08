@@ -117,8 +117,10 @@ export class RoutesService {
           const r = filter.lengthRanges[0];
           if (r === 'under50') query = query.lt('distance_m', 50000);
           else if (r === '50to100') query = query.gte('distance_m', 50000).lt('distance_m', 100000);
-          else if (r === '100to200') query = query.gte('distance_m', 100000).lt('distance_m', 200000);
-          else if (r === '200to500') query = query.gte('distance_m', 200000).lt('distance_m', 500000);
+          else if (r === '100to200')
+            query = query.gte('distance_m', 100000).lt('distance_m', 200000);
+          else if (r === '200to500')
+            query = query.gte('distance_m', 200000).lt('distance_m', 500000);
           else if (r === 'over500') query = query.gte('distance_m', 500000);
         }
       }
@@ -127,7 +129,8 @@ export class RoutesService {
       if (filter.elevationRanges && filter.elevationRanges.length === 1) {
         const e = filter.elevationRanges[0];
         if (e === 'flat') query = query.lt('elevation_gain_m', 200);
-        else if (e === 'moderate') query = query.gte('elevation_gain_m', 200).lt('elevation_gain_m', 800);
+        else if (e === 'moderate')
+          query = query.gte('elevation_gain_m', 200).lt('elevation_gain_m', 800);
         else if (e === 'mountainous') query = query.gte('elevation_gain_m', 800);
       }
     }
@@ -483,8 +486,7 @@ export class RoutesService {
     const dLng = ((b[1] - a[1]) * Math.PI) / 180;
     const aLat = (a[0] * Math.PI) / 180;
     const bLat = (b[0] * Math.PI) / 180;
-    const x =
-      Math.sin(dLat / 2) ** 2 + Math.cos(aLat) * Math.cos(bLat) * Math.sin(dLng / 2) ** 2;
+    const x = Math.sin(dLat / 2) ** 2 + Math.cos(aLat) * Math.cos(bLat) * Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
   }
 

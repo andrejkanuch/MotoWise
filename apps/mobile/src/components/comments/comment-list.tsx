@@ -4,7 +4,6 @@ import {
   DeleteCommentDocument,
   FlagCommentDocument,
   GetCommentsDocument,
-  type GetCommentsQuery,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -26,7 +25,7 @@ interface CommentListProps {
 export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) {
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
-  const router = useRouter();
+  const _router = useRouter();
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [replyingTo, setReplyingTo] = useState<string | undefined>();
 
@@ -34,7 +33,7 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
     ? queryKeys.comments.byRide(rideId)
     : routeId
       ? queryKeys.comments.byRoute(routeId)
-      : queryKeys.comments.byGroupRide(groupRideId!);
+      : queryKeys.comments.byGroupRide(groupRideId ?? '');
 
   const { data, isLoading } = useQuery({
     queryKey,
@@ -72,8 +71,7 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (commentId: string) =>
-      gqlFetcher(DeleteCommentDocument, { commentId }),
+    mutationFn: (commentId: string) => gqlFetcher(DeleteCommentDocument, { commentId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: queryKeys.feed.all });
@@ -81,8 +79,7 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
   });
 
   const flagMutation = useMutation({
-    mutationFn: (commentId: string) =>
-      gqlFetcher(FlagCommentDocument, { commentId }),
+    mutationFn: (commentId: string) => gqlFetcher(FlagCommentDocument, { commentId }),
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -97,13 +94,10 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
     [createMutation, replyingTo],
   );
 
-  const handleAuthorPress = useCallback(
-    (_username: string) => {
-      // TODO: Navigate to rider profile when modal is implemented
-      // router.push({ pathname: '/(modals)/rider-profile', params: { username } });
-    },
-    [],
-  );
+  const handleAuthorPress = useCallback((_username: string) => {
+    // TODO: Navigate to rider profile when modal is implemented
+    // router.push({ pathname: '/(modals)/rider-profile', params: { username } });
+  }, []);
 
   const emptyColor = isDark ? palette.neutral500 : palette.neutral400;
   const headerColor = isDark ? palette.neutral300 : palette.neutral600;

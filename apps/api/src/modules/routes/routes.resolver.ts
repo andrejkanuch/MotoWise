@@ -1,7 +1,7 @@
+import { ShareRideToDiscoverInputSchema } from '@motovault/types/validators';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
-import { ShareRideToDiscoverInputSchema } from '@motovault/types/validators';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';

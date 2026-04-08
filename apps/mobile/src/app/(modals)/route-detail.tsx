@@ -1,20 +1,10 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import { RouteDetailDocument, type RouteDetailQuery } from '@motovault/graphql';
+import { RouteDetailDocument } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  ArrowLeft,
-  Award,
-  Compass,
-  Download,
-  Map as MapIcon,
-  Mountain,
-  Share2,
-  Star,
-  User,
-} from 'lucide-react-native';
+import { ArrowLeft, Award, Download, Map as MapIcon, Share2, User } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -25,7 +15,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -80,7 +70,7 @@ export default function RouteDetailScreen() {
   const bg = isDark ? palette.background : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const statColor = isDark ? palette.neutral200 : palette.neutral700;
+  const _statColor = isDark ? palette.neutral200 : palette.neutral700;
   const sheetBg = isDark ? palette.cardDark : palette.white;
 
   const { data, isLoading } = useQuery({
@@ -154,7 +144,9 @@ export default function RouteDetailScreen() {
 
   if (isLoading || !route) {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
+      >
         <ActivityIndicator size="large" color={palette.accent500} />
       </View>
     );
@@ -173,7 +165,13 @@ export default function RouteDetailScreen() {
       >
         {bounds && (
           <MapboxGL.Camera
-            bounds={{ ...bounds, paddingBottom: 200, paddingTop: 60, paddingLeft: 40, paddingRight: 40 }}
+            bounds={{
+              ...bounds,
+              paddingBottom: 200,
+              paddingTop: 60,
+              paddingLeft: 40,
+              paddingRight: 40,
+            }}
             animationMode="flyTo"
             animationDuration={500}
           />
@@ -193,10 +191,7 @@ export default function RouteDetailScreen() {
         )}
         {/* Start point */}
         {coordinates.length > 0 && (
-          <MapboxGL.PointAnnotation
-            id="start"
-            coordinate={coordinates[0]}
-          >
+          <MapboxGL.PointAnnotation id="start" coordinate={coordinates[0]}>
             <View
               style={{
                 width: 14,
@@ -211,10 +206,7 @@ export default function RouteDetailScreen() {
         )}
         {/* End point */}
         {coordinates.length > 1 && (
-          <MapboxGL.PointAnnotation
-            id="end"
-            coordinate={coordinates[coordinates.length - 1]}
-          >
+          <MapboxGL.PointAnnotation id="end" coordinate={coordinates[coordinates.length - 1]}>
             <View
               style={{
                 width: 14,
@@ -355,7 +347,11 @@ export default function RouteDetailScreen() {
               marginBottom: 16,
             }}
           >
-            <StatBadge label="Distance" value={formatDistance(route.distanceM, system)} isDark={isDark} />
+            <StatBadge
+              label="Distance"
+              value={formatDistance(route.distanceM, system)}
+              isDark={isDark}
+            />
             {(route.elevationGainM ?? 0) > 0 && (
               <StatBadge
                 label="Elevation"
@@ -410,15 +406,7 @@ export default function RouteDetailScreen() {
   );
 }
 
-function StatBadge({
-  label,
-  value,
-  isDark,
-}: {
-  label: string;
-  value: string;
-  isDark: boolean;
-}) {
+function StatBadge({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
   return (
     <View
       style={{

@@ -31,9 +31,7 @@ interface CommentRow {
 export class CommentsService {
   private readonly logger = new Logger(CommentsService.name);
 
-  constructor(
-    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
   async getComments(
     targetField: 'ride_id' | 'route_id' | 'group_ride_id',
@@ -244,7 +242,7 @@ export class CommentsService {
   }
 
   async flagComment(commentId: string): Promise<boolean> {
-    const { data, error } = await this.supabase.rpc('flag_comment', {
+    const { error } = await this.supabase.rpc('flag_comment', {
       comment_uuid: commentId,
     });
 

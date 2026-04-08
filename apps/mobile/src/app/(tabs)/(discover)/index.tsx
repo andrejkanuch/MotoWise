@@ -1,21 +1,11 @@
 import { palette } from '@motovault/design-system';
-import {
-  DiscoverRoutesDocument,
-  type DiscoverRoutesQuery,
-} from '@motovault/graphql';
+import { DiscoverRoutesDocument, type DiscoverRoutesQuery } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Compass, Filter, Navigation } from 'lucide-react-native';
+import { Compass } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteCard } from '../../../components/discover/route-card';
@@ -29,19 +19,13 @@ export default function DiscoverScreen() {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const [mapStyle] = useState<MapStyle>('dark');
   const mapRef = useRef<MapboxGL.MapView>(null);
 
   const bg = isDark ? palette.background : palette.white;
   const headerColor = isDark ? palette.white : palette.neutral950;
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: [...queryKeys.routes.all],
     queryFn: ({ pageParam }) =>
       gqlFetcher(DiscoverRoutesDocument, {
@@ -51,7 +35,7 @@ export default function DiscoverScreen() {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
       const pi = lastPage.discoverRoutes.pageInfo;
-      return pi.hasNextPage ? pi.endCursor ?? undefined : undefined;
+      return pi.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
   });
 
@@ -68,7 +52,7 @@ export default function DiscoverScreen() {
         type: 'Feature' as const,
         geometry: {
           type: 'Point' as const,
-          coordinates: [r.startLng!, r.startLat!],
+          coordinates: [r.startLng ?? 0, r.startLat ?? 0],
         },
         properties: { id: r.id, name: r.name ?? 'Route' },
       }));
@@ -188,9 +172,7 @@ export default function DiscoverScreen() {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Compass size={22} color={palette.accent500} />
-            <Text style={{ fontSize: 20, fontWeight: '800', color: palette.white }}>
-              Discover
-            </Text>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: palette.white }}>Discover</Text>
           </View>
         </Animated.View>
       </View>

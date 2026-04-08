@@ -24,13 +24,7 @@ export type ShareRideToDiscoverInput = z.infer<typeof ShareRideToDiscoverInputSc
 
 // --- Discover Routes Filter ---
 
-export const LengthRangeSchema = z.enum([
-  'under50',
-  '50to100',
-  '100to200',
-  '200to500',
-  'over500',
-]);
+export const LengthRangeSchema = z.enum(['under50', '50to100', '100to200', '200to500', 'over500']);
 
 export const ElevationRangeSchema = z.enum(['flat', 'moderate', 'mountainous']);
 

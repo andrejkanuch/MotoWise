@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
-import { Bike, Compass, Home, Route, User, Wrench } from 'lucide-react-native';
+import { Bike, Compass, Home, Route, User } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';

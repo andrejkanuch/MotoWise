@@ -1,12 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { DiscoverRoutesQuery } from '@motovault/graphql';
-import {
-  Award,
-  MessageCircle,
-  Mountain,
-  Route,
-  Star,
-} from 'lucide-react-native';
+import { Award, MessageCircle, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -21,11 +15,7 @@ interface RouteCardProps {
   onPress: () => void;
 }
 
-export const RouteCard = memo(function RouteCard({
-  route,
-  index,
-  onPress,
-}: RouteCardProps) {
+export const RouteCard = memo(function RouteCard({ route, index, onPress }: RouteCardProps) {
   const isDark = useColorScheme() === 'dark';
   const system = useMeasurementSystem();
 
@@ -139,9 +129,7 @@ export const RouteCard = memo(function RouteCard({
               >
                 {route.ratingAvg.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor }}>
-                ({route.ratingCount})
-              </Text>
+              <Text style={{ fontSize: 11, color: subtitleColor }}>({route.ratingCount})</Text>
             </View>
           )}
 

@@ -1,8 +1,8 @@
 import { palette } from '@motovault/design-system';
 import type { GetCommentsQuery } from '@motovault/graphql';
 import * as Haptics from 'expo-haptics';
-import { Flag, Reply, Trash2 } from 'lucide-react-native';
-import { memo, useCallback, useState } from 'react';
+import { Reply } from 'lucide-react-native';
+import { memo, useCallback } from 'react';
 import { ActionSheetIOS, Alert, Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
@@ -48,9 +48,7 @@ export const CommentItem = memo(function CommentItem({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const options = isOwn
-      ? ['Delete', 'Cancel']
-      : ['Report', 'Cancel'];
+    const options = isOwn ? ['Delete', 'Cancel'] : ['Report', 'Cancel'];
     const destructiveIndex = 0;
     const cancelIndex = options.length - 1;
 
@@ -90,7 +88,11 @@ export const CommentItem = memo(function CommentItem({
     >
       <View style={{ flexDirection: 'row', gap: 10 }}>
         {/* Avatar */}
-        <Pressable onPress={() => comment.author.publicUsername && onAuthorPress?.(comment.author.publicUsername)}>
+        <Pressable
+          onPress={() =>
+            comment.author.publicUsername && onAuthorPress?.(comment.author.publicUsername)
+          }
+        >
           {comment.author.avatarUrl ? (
             <Image
               source={{ uri: comment.author.avatarUrl }}
@@ -123,9 +125,7 @@ export const CommentItem = memo(function CommentItem({
             </Text>
             <Text style={{ fontSize: 11, color: timeColor }}>{timeAgo}</Text>
           </View>
-          <Text style={{ fontSize: 14, lineHeight: 20, color: textColor }}>
-            {comment.text}
-          </Text>
+          <Text style={{ fontSize: 14, lineHeight: 20, color: textColor }}>{comment.text}</Text>
 
           {/* Reply action (only on top-level comments) */}
           {!isReply && onReply && (

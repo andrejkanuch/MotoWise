@@ -1,14 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { Send } from 'lucide-react-native';
 import { memo, useCallback, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  Text,
-  TextInput,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
 
 interface CommentInputProps {
   onSubmit: (text: string) => void;
@@ -60,9 +53,7 @@ export const CommentInput = memo(function CommentInput({
             backgroundColor: replyBg,
           }}
         >
-          <Text style={{ fontSize: 12, color: replyText }}>
-            Replying to comment
-          </Text>
+          <Text style={{ fontSize: 12, color: replyText }}>Replying to comment</Text>
           <Pressable onPress={onCancelReply} hitSlop={8}>
             <Text style={{ fontSize: 12, fontWeight: '600', color: replyText }}>Cancel</Text>
           </Pressable>
@@ -121,10 +112,7 @@ export const CommentInput = memo(function CommentInput({
           {isSubmitting ? (
             <ActivityIndicator size="small" color={palette.white} />
           ) : (
-            <Send
-              size={18}
-              color={canSubmit ? palette.white : placeholderColor}
-            />
+            <Send size={18} color={canSubmit ? palette.white : placeholderColor} />
           )}
         </Pressable>
       </View>

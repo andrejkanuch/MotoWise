@@ -21,13 +21,9 @@ export const CreateCommentInputSchema = z
     parentCommentId: z.string().uuid().optional(),
     text: z.string().min(1).max(500),
   })
-  .refine(
-    (d) => [d.rideId, d.routeId, d.groupRideId].filter(Boolean).length === 1,
-    {
-      message:
-        'Exactly one target (rideId, routeId, or groupRideId) must be provided',
-    },
-  );
+  .refine((d) => [d.rideId, d.routeId, d.groupRideId].filter(Boolean).length === 1, {
+    message: 'Exactly one target (rideId, routeId, or groupRideId) must be provided',
+  });
 
 export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>;
 

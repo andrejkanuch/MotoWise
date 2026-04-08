@@ -1,7 +1,7 @@
+import { CreateCommentInputSchema } from '@motovault/types/validators';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
-import { CreateCommentInputSchema } from '@motovault/types/validators';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
@@ -27,19 +27,10 @@ export class CommentsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<CommentConnection> {
-    const targetField = rideId
-      ? 'ride_id'
-      : routeId
-        ? 'route_id'
-        : 'group_ride_id';
-    const targetId = (rideId ?? routeId ?? groupRideId)!;
+    const targetField = rideId ? 'ride_id' : routeId ? 'route_id' : 'group_ride_id';
+    const targetId = rideId ?? routeId ?? groupRideId ?? '';
 
-    return this.commentsService.getComments(
-      targetField,
-      targetId,
-      first ?? 20,
-      after,
-    );
+    return this.commentsService.getComments(targetField, targetId, first ?? 20, after);
   }
 
   @Mutation(() => Comment)
