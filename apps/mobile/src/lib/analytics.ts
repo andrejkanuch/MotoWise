@@ -17,7 +17,14 @@ const SENTRY_DSN = Constants.expoConfig?.extra?.sentryDsn ?? '';
 const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey ?? '';
 const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://us.i.posthog.com';
 
-let posthogClient: PostHog | null = null;
+// Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
+// The client is disabled when no API key is configured, so events are no-ops.
+export const posthogClient: PostHog = new PostHog(POSTHOG_API_KEY || 'placeholder', {
+  host: POSTHOG_HOST,
+  enableSessionReplay: false,
+  disabled: !POSTHOG_API_KEY,
+});
+
 let analyticsEnabled = true;
 let crashReportingEnabled = true;
 
@@ -47,12 +54,7 @@ export function initSentry() {
 }
 
 export function initPostHog() {
-  if (!POSTHOG_API_KEY) return;
-
-  posthogClient = new PostHog(POSTHOG_API_KEY, {
-    host: POSTHOG_HOST,
-    enableSessionReplay: false,
-  });
+  // Client is initialized eagerly at module load time; this is a no-op kept for backwards compatibility.
 }
 
 // ---- Privacy Controls -----------------------------------------------
@@ -105,6 +107,10 @@ export function resetUser() {
 // ---- Event Tracking -------------------------------------------------
 
 export const AnalyticsEvent = {
+  // Auth
+  USER_SIGNED_IN: 'user_signed_in',
+  USER_SIGNED_UP: 'user_signed_up',
+
   // Onboarding
   ONBOARDING_STARTED: 'onboarding_started',
   ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
@@ -122,6 +128,18 @@ export const AnalyticsEvent = {
   GARAGE_BIKE_REMOVED: 'garage_bike_removed',
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
+  MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
+  EXPENSE_ADDED: 'expense_added',
+
+  // Rides
+  RIDE_STARTED: 'ride_started',
+  RIDE_COMPLETED: 'ride_completed',
+  RIDE_SHARED: 'ride_shared',
+
+  // Community
+  GROUP_RIDE_CREATED: 'group_ride_created',
+  GROUP_RIDE_JOINED: 'group_ride_joined',
+  GROUP_RIDE_LEFT: 'group_ride_left',
 
   // Subscription funnel
   PAYWALL_VIEWED: 'paywall_viewed',

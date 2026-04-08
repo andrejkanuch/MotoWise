@@ -43,6 +43,7 @@ import { ExpensesSection } from '../../../../components/bike-hub/expenses-sectio
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
@@ -150,6 +151,7 @@ export default function BikeDetailScreen() {
     mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      trackEvent(AnalyticsEvent.GARAGE_BIKE_REMOVED, { motorcycle_id: id });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
   });
@@ -171,8 +173,9 @@ export default function BikeDetailScreen() {
 
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
-    onSuccess: () => {
+    onSuccess: (_data, taskId) => {
       invalidateTasks();
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_DELETED, { motorcycle_id: id, task_id: taskId });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
     onError: (_err: Error) => {

@@ -33,6 +33,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
@@ -111,6 +112,7 @@ export default function GroupRideDetailScreen() {
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      trackEvent(AnalyticsEvent.GROUP_RIDE_JOINED, { group_ride_id: groupRideId });
       invalidateRide();
     },
   });
@@ -121,6 +123,7 @@ export default function GroupRideDetailScreen() {
     onSettled: () => setActionLoading(false),
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      trackEvent(AnalyticsEvent.GROUP_RIDE_LEFT, { group_ride_id: groupRideId });
       invalidateRide();
     },
   });
