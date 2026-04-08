@@ -8,14 +8,31 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 const isDev = process.env.NODE_ENV === 'development';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+
 function buildCspHeader(nonce: string): string {
+  const connectSources = [
+    "'self'",
+    supabaseUrl,
+    apiUrl,
+    isDev ? 'http://localhost:4000' : '',
+    'https://www.google-analytics.com',
+    'https://*.analytics.google.com',
+    'https://*.googletagmanager.com',
+    'https://vitals.vercel-insights.com',
+    'https://connect.facebook.net',
+    'https://www.facebook.com',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `connect-src 'self' ${supabaseUrl} https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com https://connect.facebook.net https://www.facebook.com`,
+    `connect-src ${connectSources}`,
     "frame-ancestors 'none'",
   ].join('; ');
 }
