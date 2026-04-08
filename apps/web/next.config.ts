@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   reactCompiler: true,
   transpilePackages: ['@motovault/types', '@motovault/graphql', '@motovault/design-system'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'tpsoneenbrmdwvzcbifw.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   headers: async () => [
     {
       source: '/images/:path*',
