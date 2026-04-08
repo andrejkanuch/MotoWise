@@ -229,7 +229,7 @@ export default function RouteDetailScreen() {
                 borderRadius: 7,
                 backgroundColor: palette.success500,
                 borderWidth: 2,
-                borderColor: '#fff',
+                borderColor: palette.white,
               }}
             />
           </MapboxGL.PointAnnotation>
@@ -244,7 +244,7 @@ export default function RouteDetailScreen() {
                 borderRadius: 7,
                 backgroundColor: palette.accent500,
                 borderWidth: 2,
-                borderColor: '#fff',
+                borderColor: palette.white,
               }}
             />
           </MapboxGL.PointAnnotation>
@@ -273,7 +273,7 @@ export default function RouteDetailScreen() {
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color="#fff" />
+          <ArrowLeft size={20} color={palette.white} />
         </Pressable>
       </View>
 
@@ -298,7 +298,7 @@ export default function RouteDetailScreen() {
             justifyContent: 'center',
           }}
         >
-          <MapIcon size={18} color="#fff" />
+          <MapIcon size={18} color={palette.white} />
         </Pressable>
         <Pressable
           onPress={handleShare}
@@ -312,7 +312,7 @@ export default function RouteDetailScreen() {
             justifyContent: 'center',
           }}
         >
-          <Share2 size={18} color="#fff" />
+          <Share2 size={18} color={palette.white} />
         </Pressable>
       </View>
 

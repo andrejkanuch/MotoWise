@@ -155,6 +155,7 @@ export class GroupRidesService {
       .from('group_rides')
       .select(GROUP_RIDE_SELECT)
       .eq('id', groupRideId)
+      .in('status', ['published', 'full', 'completed'])
       .single();
 
     if (rideError || !rideData) {
@@ -347,45 +348,17 @@ export class GroupRidesService {
   }
 
   async joinGroupRide(userId: string, groupRideId: string): Promise<boolean> {
-    // Verify ride exists and is joinable
-    const { data: ride, error: rideError } = await this.supabase
-      .from('group_rides')
-      .select('status, max_riders, participant_count, date_time')
-      .eq('id', groupRideId)
-      .single();
+    // Use atomic RPC with row-level locking to prevent race conditions
+    const { error } = await this.supabase.rpc('join_group_ride', {
+      p_group_ride_id: groupRideId,
+      p_user_id: userId,
+    });
 
-    if (rideError || !ride) {
-      if (rideError?.code === 'PGRST116') {
-        throw new NotFoundException('Group ride not found');
+    if (error) {
+      if (error.message.includes('Cannot join')) {
+        throw new BadRequestException(error.message.replace('Cannot join: ', ''));
       }
-      this.logger.error(`joinGroupRide check failed: ${rideError?.message}`);
-      throw new InternalServerErrorException('Failed to verify group ride');
-    }
-
-    if (ride.status !== 'published') {
-      throw new BadRequestException('Cannot join a ride that is not published');
-    }
-
-    if (new Date(ride.date_time).getTime() <= Date.now()) {
-      throw new BadRequestException('Cannot join a ride that has already started');
-    }
-
-    if (ride.participant_count >= ride.max_riders) {
-      throw new BadRequestException('This ride is full');
-    }
-
-    const { error: insertError } = await this.supabase
-      .from('group_ride_participants')
-      .insert({ group_ride_id: groupRideId, user_id: userId });
-
-    if (insertError) {
-      // Unique constraint violation — already joined
-      if (insertError.code === '23505') {
-        throw new BadRequestException('You have already joined this ride');
-      }
-      this.logger.error(
-        `joinGroupRide insert failed: ${insertError.message} (${insertError.code})`,
-      );
+      this.logger.error(`joinGroupRide failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to join group ride');
     }
 

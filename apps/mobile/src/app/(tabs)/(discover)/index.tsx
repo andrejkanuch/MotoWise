@@ -8,6 +8,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GroupRideSection } from '../../../components/discover/group-ride-section';
 import { RouteCard } from '../../../components/discover/route-card';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -124,7 +125,7 @@ export default function DiscoverScreen() {
                 style={{
                   textField: ['get', 'point_count_abbreviated'],
                   textSize: 13,
-                  textColor: '#ffffff',
+                  textColor: palette.white,
                   textFont: ['DIN Pro Medium'],
                 }}
               />
@@ -136,7 +137,7 @@ export default function DiscoverScreen() {
                 style={{
                   circleColor: palette.accent500,
                   circleRadius: 8,
-                  circleStrokeColor: '#ffffff',
+                  circleStrokeColor: palette.white,
                   circleStrokeWidth: 2,
                 }}
               />
@@ -186,10 +187,13 @@ export default function DiscoverScreen() {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
-          <View style={{ paddingVertical: 12 }}>
-            <Text style={{ fontSize: 16, fontWeight: '700', color: headerColor }}>
-              Routes{routes.length > 0 ? ` (${routes.length})` : ''}
-            </Text>
+          <View>
+            <GroupRideSection />
+            <View style={{ paddingVertical: 12 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: headerColor }}>
+                Routes{routes.length > 0 ? ` (${routes.length})` : ''}
+              </Text>
+            </View>
           </View>
         }
         ListEmptyComponent={

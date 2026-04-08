@@ -311,6 +311,7 @@ export class RoutesService {
       .from('routes')
       .select('id, name, source_ride_id, polyline, distance_m, elevation_gain_m')
       .eq('id', routeId)
+      .eq('status', 'published')
       .single();
 
     if (routeError || !route) {

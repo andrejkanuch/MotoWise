@@ -2,7 +2,7 @@ import {
   CreateRouteReviewInputSchema,
   ShareRideToDiscoverInputSchema,
 } from '@motovault/types/validators';
-import { UseGuards } from '@nestjs/common';
+import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
@@ -119,6 +119,9 @@ export class RoutesResolver {
     @CurrentUser() user: AuthUser,
     @Args('feature') feature: string,
   ): Promise<boolean> {
+    if (feature !== 'offline_routes' && feature !== 'premium_general') {
+      throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
+    }
     return this.routesService.joinPremiumWaitlist(user.id, feature);
   }
 }
