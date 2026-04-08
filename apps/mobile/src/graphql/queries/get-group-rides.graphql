@@ -1,0 +1,32 @@
+query GetGroupRides($first: Int, $after: String) {
+  getGroupRides(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        title
+        description
+        dateTime
+        meetingPointLat
+        meetingPointLng
+        meetingPointName
+        routeId
+        difficulty
+        maxRiders
+        participantCount
+        status
+        createdAt
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

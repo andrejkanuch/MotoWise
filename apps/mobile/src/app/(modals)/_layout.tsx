@@ -23,6 +23,11 @@ export default function ModalsLayout() {
         name="route-detail"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
+      <Stack.Screen
+        name="group-ride-detail"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen name="create-group-ride" />
     </Stack>
   );
 }

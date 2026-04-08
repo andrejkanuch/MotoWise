@@ -178,6 +178,19 @@ input CreateFlagInput {
   sectionReference: String
 }
 
+input CreateGroupRideInput {
+  dateTime: String!
+  description: String!
+  difficulty: String!
+  maxRiders: Int!
+  meetingPointLat: Float!
+  meetingPointLng: Float!
+  meetingPointName: String
+  routeDescription: String
+  routeId: String
+  title: String!
+}
+
 input CreateMaintenanceTaskInput {
   description: String
   dueDate: String
@@ -406,6 +419,55 @@ enum GenerationStatus {
   pending
 }
 
+type GroupRide {
+  createdAt: String!
+  dateTime: String!
+  description: String!
+  difficulty: String!
+  id: ID!
+  maxRiders: Int!
+  meetingPointLat: Float!
+  meetingPointLng: Float!
+  meetingPointName: String
+  organiser: GroupRideOrganiser!
+  participantCount: Int!
+  participants: [GroupRideParticipant!]
+  routeDescription: String
+  routeId: ID
+  status: String!
+  title: String!
+}
+
+type GroupRideConnection {
+  edges: [GroupRideEdge!]!
+  pageInfo: GroupRidePageInfo!
+}
+
+type GroupRideEdge {
+  cursor: String!
+  node: GroupRide!
+}
+
+type GroupRideOrganiser {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type GroupRidePageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type GroupRideParticipant {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  joinedAt: String!
+  publicUsername: String
+}
+
 type HealthReport {
   completedAt: String
   createdAt: String!
@@ -583,11 +645,13 @@ enum MotorcycleType {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
+  cancelGroupRide(groupRideId: ID!): Boolean!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
+  createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createRouteReview(input: CreateRouteReviewInput!): RouteReview!
@@ -605,10 +669,12 @@ type Mutation {
   generateArticle(input: GenerateArticleInput!): Article!
   generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
+  joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
 
   """Submit email to join waitlist (public, no auth)"""
   joinWaitlist(email: String!): Boolean!
+  leaveGroupRide(groupRideId: ID!): Boolean!
   logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
   regenerateRideSummary(rideId: String!): RideSummary!
@@ -625,6 +691,7 @@ type Mutation {
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unsaveRoute(routeId: ID!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
+  updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateMyProfile(input: UpdateProfileInput!): User!
@@ -704,10 +771,12 @@ type Query {
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
+  getGroupRides(after: String, first: Int = 20, nearLat: Float, nearLng: Float, radiusKm: Float): GroupRideConnection!
   getMyHealthReports: [HealthReport!]!
   getPublicRide(id: String!): Ride!
   getRiderProfile(username: String!): PublicRiderProfile!
   getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
+  groupRideDetail(groupRideId: ID!): GroupRide!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
@@ -980,6 +1049,17 @@ type TriggeredMaintenanceTask {
 
 input UnfollowRiderInput {
   targetUserId: String!
+}
+
+input UpdateGroupRideInput {
+  dateTime: String
+  description: String
+  groupRideId: ID!
+  maxRiders: Int
+  meetingPointLat: Float
+  meetingPointLng: Float
+  meetingPointName: String
+  title: String
 }
 
 input UpdateMaintenanceTaskInput {

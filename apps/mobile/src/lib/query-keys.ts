@@ -76,6 +76,10 @@ export const queryKeys = {
   following: {
     list: (userId: string) => ['following', 'list', userId] as const,
   },
+  groupRides: {
+    all: ['groupRides'] as const,
+    detail: (id: string) => ['groupRides', 'detail', id] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },

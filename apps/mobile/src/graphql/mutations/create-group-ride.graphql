@@ -1,0 +1,6 @@
+mutation CreateGroupRide($input: CreateGroupRideInput!) {
+  createGroupRide(input: $input) {
+    id
+    title
+  }
+}
