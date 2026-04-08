@@ -5,7 +5,6 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
-import { BlogViewTracker } from '@/components/marketing/blog-view-tracker';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
@@ -204,7 +203,6 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
 
   return (
     <>
-      <BlogViewTracker title={article.title} category={article.category} />
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
       <article className="mx-auto max-w-3xl px-6 py-24">
