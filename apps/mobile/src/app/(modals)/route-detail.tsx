@@ -67,7 +67,7 @@ export default function RouteDetailScreen() {
   const sheetRef = useRef<BottomSheet>(null);
   const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
 
-  const bg = isDark ? palette.background : palette.white;
+  const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
   const _statColor = isDark ? palette.neutral200 : palette.neutral700;
@@ -303,7 +303,7 @@ export default function RouteDetailScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 6,
-                backgroundColor: isDark ? palette.accent900 : palette.accent50,
+                backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
                 paddingHorizontal: 10,
                 paddingVertical: 5,
                 borderRadius: 8,
@@ -312,12 +312,12 @@ export default function RouteDetailScreen() {
                 marginBottom: 10,
               }}
             >
-              <Award size={14} color={isDark ? palette.accent300 : palette.accent700} />
+              <Award size={14} color={isDark ? palette.accent400 : palette.accent500} />
               <Text
                 style={{
                   fontSize: 12,
                   fontWeight: '700',
-                  color: isDark ? palette.accent300 : palette.accent700,
+                  color: isDark ? palette.accent400 : palette.accent500,
                 }}
               >
                 MotoVault Pick

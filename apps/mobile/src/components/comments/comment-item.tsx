@@ -96,7 +96,7 @@ export const CommentItem = memo(function CommentItem({
           {comment.author.avatarUrl ? (
             <Image
               source={{ uri: comment.author.avatarUrl }}
-              style={{ width: 32, height: 32, borderRadius: 16, borderCurve: 'continuous' }}
+              style={{ width: 32, height: 32, borderRadius: 16 }}
             />
           ) : (
             <View

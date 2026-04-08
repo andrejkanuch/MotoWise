@@ -22,7 +22,7 @@ export default function DiscoverScreen() {
   const [mapStyle] = useState<MapStyle>('dark');
   const mapRef = useRef<MapboxGL.MapView>(null);
 
-  const bg = isDark ? palette.background : palette.white;
+  const bg = isDark ? palette.neutral950 : palette.white;
   const headerColor = isDark ? palette.white : palette.neutral950;
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({

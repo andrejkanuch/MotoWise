@@ -226,10 +226,7 @@ export const FeedRideCard = memo(function FeedRideCard({
               onCountPress={onKudosCountPress}
             />
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <MessageCircle
-                size={18}
-                color={isDark ? palette.neutral500 : palette.neutral400}
-              />
+              <MessageCircle size={18} color={isDark ? palette.neutral500 : palette.neutral400} />
               {ride.commentCount > 0 && (
                 <Text
                   style={{

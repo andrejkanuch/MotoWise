@@ -25,8 +25,8 @@ export const RouteCard = memo(function RouteCard({ route, index, onPress }: Rout
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
   const statColor = isDark ? palette.neutral200 : palette.neutral700;
   const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
-  const badgeBg = isDark ? palette.accent900 : palette.accent50;
-  const badgeText = isDark ? palette.accent300 : palette.accent700;
+  const badgeBg = isDark ? palette.neutral900 : palette.neutral100;
+  const badgeText = isDark ? palette.accent400 : palette.accent500;
 
   const surfaceLabel =
     route.surfaceType === 'paved'

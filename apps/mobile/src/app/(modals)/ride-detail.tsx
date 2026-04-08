@@ -617,9 +617,7 @@ export default function RideDetailScreen() {
           )}
 
           {/* Comments section */}
-          {ride?.isPublic && (
-            <CommentList rideId={rideId} />
-          )}
+          {ride?.isPublic && <CommentList rideId={rideId} />}
 
           {/* Delete action */}
           <Pressable

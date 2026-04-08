@@ -25,7 +25,6 @@ interface CommentListProps {
 export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) {
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
-  const _router = useRouter();
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [replyingTo, setReplyingTo] = useState<string | undefined>();
 

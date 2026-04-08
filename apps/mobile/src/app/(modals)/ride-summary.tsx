@@ -211,7 +211,9 @@ export default function RideSummaryScreen() {
           import('../../lib/graphql-client').then(({ gqlFetcher: fetcher }) => {
             fetcher(ShareRideToDiscoverDocument, {
               input: { rideId, name: rideName || undefined },
-            }).catch((err: unknown) => console.warn('[RideSummary] Share to Discover failed:', err));
+            }).catch((err: unknown) =>
+              console.warn('[RideSummary] Share to Discover failed:', err),
+            );
           });
         });
       }
