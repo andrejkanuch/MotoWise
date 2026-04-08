@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { GetRouteReviewsDocument, type GetRouteReviewsQuery } from '@motovault/graphql';
+import { GetRouteReviewsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Star } from 'lucide-react-native';
 import { memo } from 'react';

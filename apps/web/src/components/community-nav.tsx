@@ -89,14 +89,12 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
                 strokeLinecap="round"
               />
             ) : (
-              <>
-                <path
-                  d="M3 5h14M3 10h14M3 15h14"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </>
+              <path
+                d="M3 5h14M3 10h14M3 15h14"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             )}
           </svg>
         </button>
