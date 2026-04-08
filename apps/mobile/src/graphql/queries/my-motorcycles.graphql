@@ -13,6 +13,8 @@ query MyMotorcycles {
     mileageUpdatedAt
     purchasePrice
     purchaseDate
+    type
+    engineCc
     createdAt
   }
 }

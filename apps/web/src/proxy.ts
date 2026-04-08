@@ -109,7 +109,7 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
-const PROTECTED_PREFIXES = ['/feed', '/profile'];
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
 
 const PUBLIC_PREFIXES = [
   '/rider/',

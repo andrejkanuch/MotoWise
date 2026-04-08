@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const NAV_LINKS = [
   { href: '/feed', label: 'Feed' },
+  { href: '/garage', label: 'Garage' },
   { href: '/profile', label: 'Profile' },
 ] as const;
 
