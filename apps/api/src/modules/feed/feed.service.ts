@@ -21,6 +21,7 @@ interface FeedRideRow {
   ended_at: string | null;
   ai_summary: string | null;
   kudos_count: number | null;
+  comment_count: number | null;
   route_thumbnail_uri: string | null;
   user_id: string;
   motorcycle_id: string | null;
@@ -85,7 +86,7 @@ export class FeedService {
     let query = this.supabase
       .from('rides')
       .select(
-        'id, name, distance_m, elevation_gain, elevation_loss, started_at, ended_at, ai_summary, kudos_count, route_thumbnail_uri, user_id, motorcycle_id, users!inner(display_name, avatar_url, public_username), motorcycles(make, model, year, nickname)',
+        'id, name, distance_m, elevation_gain, elevation_loss, started_at, ended_at, ai_summary, kudos_count, comment_count, route_thumbnail_uri, user_id, motorcycle_id, users!inner(display_name, avatar_url, public_username), motorcycles(make, model, year, nickname)',
       )
       .in('user_id', followingIds)
       .eq('is_public', true)
@@ -178,6 +179,7 @@ export class FeedService {
       endedAt: row.ended_at ?? undefined,
       aiSummary: row.ai_summary ?? undefined,
       kudosCount: row.kudos_count ?? 0,
+      commentCount: row.comment_count ?? 0,
       hasKudos: kudosSet.has(row.id),
       routeThumbnailUri: row.route_thumbnail_uri ?? undefined,
       rider,

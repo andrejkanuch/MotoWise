@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock, MapPin, Mountain, Route } from 'lucide-react-native';
+import { Clock, MapPin, MessageCircle, Mountain, Route } from 'lucide-react-native';
 import { memo } from 'react';
 import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -18,6 +18,7 @@ export interface FeedRide {
   aiSummary?: string | null;
   routeThumbnailUri?: string | null;
   kudosCount: number;
+  commentCount: number;
   hasKudos: boolean;
   bike?: {
     nickname?: string | null;
@@ -216,14 +217,32 @@ export const FeedRideCard = memo(function FeedRideCard({
             </Text>
           )}
 
-          {/* Kudos row */}
-          <View style={{ marginTop: 4 }}>
+          {/* Kudos + Comments row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 4 }}>
             <KudosButton
               rideId={ride.id}
               kudosCount={ride.kudosCount}
               hasKudos={ride.hasKudos}
               onCountPress={onKudosCountPress}
             />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <MessageCircle
+                size={18}
+                color={isDark ? palette.neutral500 : palette.neutral400}
+              />
+              {ride.commentCount > 0 && (
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral400 : palette.neutral500,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {ride.commentCount}
+                </Text>
+              )}
+            </View>
           </View>
         </View>
       </Pressable>

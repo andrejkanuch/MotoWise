@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Tabs, useRouter } from 'expo-router';
-import { Bike, Home, Route, User, Wrench } from 'lucide-react-native';
+import { Bike, Compass, Home, Route, User, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
@@ -27,7 +27,7 @@ import { useRideStore } from '../../stores/ride.store';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
-  { name: '(diagnose)', icon: Wrench, labelKey: 'tabs.diagnose' },
+  { name: '(discover)', icon: Compass, labelKey: 'tabs.discover' },
   { name: '(garage)', icon: Bike, labelKey: 'tabs.garage' },
   { name: '(profile)', icon: User, labelKey: 'tabs.profile' },
 ] as const;
@@ -287,8 +287,9 @@ export default function TabsLayout() {
         screenOptions={{ headerShown: false }}
       >
         <Tabs.Screen name="(home)" options={{ title: t('tabs.home') }} />
+        <Tabs.Screen name="(discover)" options={{ title: t('tabs.discover') }} />
         <Tabs.Screen name="(learn)" options={{ title: t('tabs.learn'), href: null }} />
-        <Tabs.Screen name="(diagnose)" options={{ title: t('tabs.diagnose') }} />
+        <Tabs.Screen name="(diagnose)" options={{ title: t('tabs.diagnose'), href: null }} />
         <Tabs.Screen name="(garage)" options={{ title: t('tabs.garage') }} />
         <Tabs.Screen name="(profile)" options={{ title: t('tabs.profile') }} />
       </Tabs>

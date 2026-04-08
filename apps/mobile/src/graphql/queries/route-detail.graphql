@@ -1,0 +1,25 @@
+query RouteDetail($routeId: ID!) {
+  routeDetail(routeId: $routeId) {
+    id
+    name
+    description
+    polyline
+    distanceM
+    elevationGainM
+    surfaceType
+    curvatureIndex
+    isMotovaultPick
+    editorialDescription
+    ratingAvg
+    ratingCount
+    commentCount
+    status
+    createdAt
+    contributor {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+  }
+}

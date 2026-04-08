@@ -58,6 +58,15 @@ export const queryKeys = {
   kudos: {
     list: (rideId: string) => ['kudos', 'list', rideId] as const,
   },
+  routes: {
+    all: ['routes'] as const,
+    detail: (routeId: string) => ['routes', 'detail', routeId] as const,
+  },
+  comments: {
+    byRide: (rideId: string) => ['comments', 'ride', rideId] as const,
+    byRoute: (routeId: string) => ['comments', 'route', routeId] as const,
+    byGroupRide: (groupRideId: string) => ['comments', 'groupRide', groupRideId] as const,
+  },
   profiles: {
     byUsername: (username: string) => ['profiles', 'byUsername', username] as const,
   },

@@ -1,0 +1,3 @@
+mutation UnshareRoute($routeId: ID!) {
+  unshareRoute(routeId: $routeId)
+}

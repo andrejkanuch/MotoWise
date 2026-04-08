@@ -56,6 +56,9 @@ export class FeedRide {
   @Field(() => Int)
   kudosCount: number;
 
+  @Field(() => Int)
+  commentCount: number;
+
   @Field()
   hasKudos: boolean;
 

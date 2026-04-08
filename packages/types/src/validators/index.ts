@@ -1,4 +1,5 @@
 export * from './article';
+export * from './comment';
 export * from './content-flag';
 export * from './content-generation-log';
 export * from './diagnostic';
@@ -8,4 +9,5 @@ export * from './maintenance-task';
 export * from './motorcycle';
 export * from './quiz';
 export * from './ride';
+export * from './route';
 export * from './user';

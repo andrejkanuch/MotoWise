@@ -50,6 +50,7 @@ export const THROTTLE_PRESETS = {
   KUDOS: { limit: 200, ttl: 3_600_000 },
   HEALTH_REPORT: { limit: 10, ttl: 3_600_000 },
   RIDE_SUMMARY: { limit: 20, ttl: 3_600_000 },
+  COMMENT: { limit: 30, ttl: 60_000 },
 } as const;
 
 /** Query and data limits */

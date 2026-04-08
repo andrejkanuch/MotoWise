@@ -11,6 +11,7 @@ query GetRideFeed($first: Int, $after: String) {
         endedAt
         aiSummary
         kudosCount
+        commentCount
         hasKudos
         routeThumbnailUri
         rider {

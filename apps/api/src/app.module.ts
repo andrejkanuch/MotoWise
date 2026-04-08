@@ -16,6 +16,7 @@ import { envSchema } from './config/env.validation';
 import { AffiliatesModule } from './modules/affiliates/affiliates.module';
 import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { EmailModule } from './modules/email/email.module';
@@ -35,6 +36,7 @@ import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
+import { RoutesModule } from './modules/routes/routes.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { UsersModule } from './modules/users/users.module';
@@ -75,6 +77,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     EmailModule,
     AiBudgetModule,
     AffiliatesModule,
+    CommentsModule,
     UsersModule,
     MotorcyclesModule,
     ArticlesModule,
@@ -92,6 +95,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     OemSchedulesModule,
     RideSummariesModule,
     RidesModule,
+    RoutesModule,
     ShareLinksModule,
     WaitlistModule,
     WebhooksModule,

@@ -35,6 +35,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommentList } from '../../components/comments/comment-list';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -613,6 +614,11 @@ export default function RideDetailScreen() {
                 Insufficient data for chart
               </Text>
             </View>
+          )}
+
+          {/* Comments section */}
+          {ride?.isPublic && (
+            <CommentList rideId={rideId} />
           )}
 
           {/* Delete action */}

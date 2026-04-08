@@ -68,9 +68,40 @@ type ArticleEdge {
   node: Article!
 }
 
+input BoundsInput {
+  neLat: Float!
+  neLng: Float!
+  swLat: Float!
+  swLng: Float!
+}
+
 type CategoryTotal {
   category: String!
   total: Float!
+}
+
+type Comment {
+  author: CommentAuthor!
+  createdAt: String!
+  flaggedCount: Int!
+  id: ID!
+  parentCommentId: ID
+  replies: [Comment!]
+  text: String!
+}
+
+type CommentAuthor {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type CommentConnection {
+  comments: [Comment!]!
+  endCursor: String
+  hasNextPage: Boolean!
+  totalCount: Int!
 }
 
 input CompleteMaintenanceTaskInput {
@@ -121,6 +152,14 @@ type ContentFlag {
   sectionReference: String
   status: FlagStatus!
   userId: String!
+}
+
+input CreateCommentInput {
+  groupRideId: ID
+  parentCommentId: ID
+  rideId: ID
+  routeId: ID
+  text: String!
 }
 
 input CreateDiagnosticInput {
@@ -193,6 +232,18 @@ enum DiagnosticSeverity {
   medium
 }
 
+input DiscoverRoutesFilterInput {
+  bikeCategory: String
+  bounds: BoundsInput
+  elevationRanges: [String!]
+  highlyRatedOnly: Boolean
+  lengthRanges: [String!]
+  nearLat: Float
+  nearLng: Float
+  radiusKm: Float
+  surfaceTypes: [String!]
+}
+
 input EndRideInput {
   autoPausedDurationS: Int! = 0
   avgSpeedMps: Float
@@ -254,6 +305,7 @@ type FeedBike {
 type FeedRide {
   aiSummary: String
   bike: FeedBike
+  commentCount: Int!
   distanceM: Int
   elevationGain: Float
   elevationLoss: Float
@@ -521,18 +573,21 @@ type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
+  createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   deleteAccount: Boolean!
+  deleteComment(commentId: ID!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
+  flagComment(commentId: ID!): Boolean!
   followRider(input: FollowRiderInput!): Follow!
   generateArticle(input: GenerateArticleInput!): Article!
   generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
@@ -546,12 +601,14 @@ type Mutation {
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
+  shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   toggleKudos(rideId: String!): KudosResult!
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
+  unshareRoute(routeId: ID!): Boolean!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateMyProfile(input: UpdateProfileInput!): User!
@@ -625,8 +682,10 @@ type Query {
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
   diagnosticById(id: String!): Diagnostic
+  discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
+  getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
   getMyHealthReports: [HealthReport!]!
@@ -649,6 +708,7 @@ type Query {
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
+  routeDetail(routeId: ID!): Route!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
@@ -731,6 +791,49 @@ type RideSummary {
   updatedAt: String!
 }
 
+type Route {
+  commentCount: Int!
+  contributor: RouteContributor!
+  createdAt: String!
+  curvatureIndex: Float
+  description: String
+  distanceM: Float!
+  editorialDescription: String
+  elevationGainM: Float
+  id: ID!
+  isMotovaultPick: Boolean!
+  name: String
+  polyline: String!
+  ratingAvg: Float
+  ratingCount: Int!
+  startLat: Float
+  startLng: Float
+  status: String!
+  surfaceType: String
+}
+
+type RouteConnection {
+  edges: [RouteEdge!]!
+  pageInfo: RoutePageInfo!
+}
+
+type RouteContributor {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type RouteEdge {
+  cursor: String!
+  node: Route!
+}
+
+type RoutePageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
 input SearchArticlesInput {
   after: String
   category: ArticleCategory
@@ -746,6 +849,12 @@ type ShareLink {
   motorcycleId: String!
   token: String!
   url: String!
+}
+
+input ShareRideToDiscoverInput {
+  name: String
+  rideId: ID!
+  surfaceType: String
 }
 
 type SharedBikeHistory {
