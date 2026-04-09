@@ -93,9 +93,9 @@ export class GroupRidesService {
   async getGroupRides(
     first: number,
     after?: string,
-    nearLat?: number,
-    nearLng?: number,
-    radiusKm?: number,
+    _nearLat?: number,
+    _nearLng?: number,
+    _radiusKm?: number,
   ): Promise<GroupRideConnection> {
     const limit = Math.min(first, 50);
 
