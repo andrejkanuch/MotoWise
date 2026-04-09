@@ -1002,5 +1002,20 @@
     "emptyNoFollowsTitle": "Fahrer zum Folgen finden",
     "emptyNoFollowsSubtitle": "Folge Fahrern, um ihre Abenteuer in deinem Feed zu sehen",
     "findRiders": "Fahrer entdecken"
+  },
+  "whatsNew": {
+    "badge": "What's New",
+    "next": "Next",
+    "getStarted": "Let's Go",
+    "v250": {
+      "groupRidesTitle": "Group Rides",
+      "groupRidesDesc": "Create and join group rides with fellow riders. Plan your next adventure together.",
+      "routeReviewsTitle": "Route Reviews",
+      "routeReviewsDesc": "Rate and save your favorite motorcycle routes. Share the best roads with the community.",
+      "commentsTitle": "Community Comments",
+      "commentsDesc": "Engage with other riders through comments. Share tips, ask questions, and connect.",
+      "tripsTitle": "Trip Planning",
+      "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
+    }
   }
 }
