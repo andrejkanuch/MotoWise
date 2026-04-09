@@ -15,7 +15,7 @@ import {
   type ViewToken,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { getWhatsNewRelease, type WhatsNewSlide } from '../../data/whats-new-releases';
+import { getWhatsNewRelease, type WhatsNewSlideEntry } from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
 
@@ -27,7 +27,7 @@ export default function WhatsNewModal() {
   const router = useRouter();
   const setLastSeenVersion = useWhatsNewStore((s) => s.setLastSeenVersion);
   const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList<WhatsNewSlide>>(null);
+  const flatListRef = useRef<FlatList<WhatsNewSlideEntry>>(null);
 
   const currentVersion = Application.nativeApplicationVersion ?? '0.0.0';
   const release = getWhatsNewRelease(currentVersion);
@@ -57,7 +57,7 @@ export default function WhatsNewModal() {
   }, [activeIndex, isLastSlide, dismiss]);
 
   const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken<WhatsNewSlide>[] }) => {
+    ({ viewableItems }: { viewableItems: ViewToken<WhatsNewSlideEntry>[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index != null) {
         setActiveIndex(viewableItems[0].index);
       }
@@ -67,7 +67,7 @@ export default function WhatsNewModal() {
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
   const renderSlide = useCallback(
-    ({ item }: ListRenderItemInfo<WhatsNewSlide>) => {
+    ({ item }: ListRenderItemInfo<WhatsNewSlideEntry>) => {
       const Icon = item.icon;
       return (
         <View

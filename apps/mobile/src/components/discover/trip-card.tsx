@@ -13,7 +13,7 @@ interface TripCardProps {
     difficulty: string;
     participantCount: number;
     maxRiders: number;
-    organiser: { displayName: string; avatarUrl?: string };
+    organiser: { displayName: string; avatarUrl?: string | null };
   };
   index: number;
   onPress: () => void;
@@ -23,7 +23,7 @@ const DIFFICULTY_COLORS = {
   easy: palette.success500,
   moderate: palette.warning500,
   challenging: palette.danger500,
-  expert: palette.danger700,
+  expert: palette.danger500,
 } as const;
 
 function formatDateRange(start: string, end: string): string {

@@ -1,7 +1,7 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import { CreateTripWithWaypointsDocument, PublishTripDocument } from '@motovault/graphql';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -48,7 +48,7 @@ const DIFFICULTY_COLORS = {
   easy: palette.success500,
   moderate: palette.warning500,
   challenging: palette.danger500,
-  expert: palette.danger700,
+  expert: palette.danger500,
 } as const;
 
 let tempIdCounter = 0;
@@ -137,7 +137,7 @@ export default function CreateTripScreen() {
 
   // Map long-press handler
   const handleLongPress = useCallback(
-    (event: MapboxGL.MapPressEvent) => {
+    (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
       const [lng, lat] = event.geometry.coordinates;
       setPendingCoord({ lat, lng });
       setPendingType(waypoints.length === 0 ? 'start' : 'fuel');

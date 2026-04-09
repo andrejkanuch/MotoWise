@@ -20,7 +20,7 @@ export interface WhatsNewRelease {
  * user-facing features worth highlighting. Only the entry matching
  * the current app version is shown.
  */
-export const WHATS_NEW_RELEASES: WhatsNewRelease[] = [
+export const WHATS_NEW_RELEASES = [
   {
     version: '2.5.0',
     slides: [
@@ -28,35 +28,38 @@ export const WHATS_NEW_RELEASES: WhatsNewRelease[] = [
         icon: Users,
         iconColor: palette.primary400,
         iconBgColor: palette.primary50,
-        titleKey: 'whatsNew.v250.groupRidesTitle',
-        descriptionKey: 'whatsNew.v250.groupRidesDesc',
+        titleKey: 'whatsNew.v250.groupRidesTitle' as const,
+        descriptionKey: 'whatsNew.v250.groupRidesDesc' as const,
       },
       {
         icon: Route,
         iconColor: palette.accent500,
         iconBgColor: palette.successBgLight,
-        titleKey: 'whatsNew.v250.routeReviewsTitle',
-        descriptionKey: 'whatsNew.v250.routeReviewsDesc',
+        titleKey: 'whatsNew.v250.routeReviewsTitle' as const,
+        descriptionKey: 'whatsNew.v250.routeReviewsDesc' as const,
       },
       {
         icon: MessageCircle,
         iconColor: palette.signature500,
         iconBgColor: palette.signatureBgLight,
-        titleKey: 'whatsNew.v250.commentsTitle',
-        descriptionKey: 'whatsNew.v250.commentsDesc',
+        titleKey: 'whatsNew.v250.commentsTitle' as const,
+        descriptionKey: 'whatsNew.v250.commentsDesc' as const,
       },
       {
         icon: MapIcon,
         iconColor: palette.indigo500,
         iconBgColor: palette.indigoBg,
-        titleKey: 'whatsNew.v250.tripsTitle',
-        descriptionKey: 'whatsNew.v250.tripsDesc',
+        titleKey: 'whatsNew.v250.tripsTitle' as const,
+        descriptionKey: 'whatsNew.v250.tripsDesc' as const,
       },
     ],
   },
-];
+] satisfies WhatsNewRelease[];
+
+export type WhatsNewReleaseEntry = (typeof WHATS_NEW_RELEASES)[number];
+export type WhatsNewSlideEntry = WhatsNewReleaseEntry['slides'][number];
 
 /** Find the release entry for a given version, or null if none exists. */
-export function getWhatsNewRelease(version: string): WhatsNewRelease | null {
+export function getWhatsNewRelease(version: string): WhatsNewReleaseEntry | null {
   return WHATS_NEW_RELEASES.find((r) => r.version === version) ?? null;
 }
