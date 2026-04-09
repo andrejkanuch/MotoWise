@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-09T11:26:40.928058+00:00",
+  "last_updated": "2026-04-09T12:17:36.467190+00:00",
   "scrape_source": "Meta Business Suite - Published Posts (Last 90 days: 1 Jan 2026 - 31 Mar 2026)",
   "max_values_in_period": {
     "reach": 10484,
@@ -8,6 +8,70 @@
     "shares": 21
   },
   "posts": [
+    {
+      "id": "post_20260409_121736",
+      "caption_preview": "",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-09T12:17:36.467190+00:00",
+      "post_id": "1271863251073041",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "short",
+        "image_file": "story-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121724",
+      "caption_preview": "",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-09T12:17:24.621740+00:00",
+      "post_id": "17934438249211884",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "short",
+        "image_file": "story-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121710",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-09T12:17:10.024728+00:00",
+      "post_id": "18126859285603721",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "long",
+        "image_file": "post-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121658",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-09T12:16:58.004391+00:00",
+      "post_id": "1041569589040415_122106917030957235",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "long",
+        "image_file": "post-gemini31.jpg"
+      }
+    },
     {
       "id": "post_20260409_112640",
       "caption_preview": "",
