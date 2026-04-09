@@ -105,6 +105,7 @@ const InlineWaypointSchema = z.object({
   lng: z.number().min(-180).max(180),
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0),
+  dayIndex: z.number().int().min(0).default(0),
 });
 
 export const CreateTripWithWaypointsInputSchema = z
@@ -148,6 +149,7 @@ export const CreateWaypointInputSchema = z.object({
   lng: z.number().min(-180).max(180),
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0),
+  dayIndex: z.number().int().min(0).default(0),
 });
 
 export type CreateWaypointInput = z.infer<typeof CreateWaypointInputSchema>;
@@ -162,6 +164,7 @@ export const UpdateWaypointInputSchema = z.object({
   lng: z.number().min(-180).max(180).optional(),
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).optional(),
+  dayIndex: z.number().int().min(0).optional(),
 });
 
 export type UpdateWaypointInput = z.infer<typeof UpdateWaypointInputSchema>;

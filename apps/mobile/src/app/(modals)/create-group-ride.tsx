@@ -1,9 +1,10 @@
 import { palette } from '@motovault/design-system';
 import { CreateGroupRideDocument } from '@motovault/graphql';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Plus } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Plus } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,6 +18,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import MapPicker from '../../components/map-picker';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -54,12 +56,23 @@ export default function CreateGroupRideScreen() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dateTime, setDateTime] = useState('');
-  const [meetingPoint, setMeetingPoint] = useState('');
+  // Default to tomorrow at 10:00 AM
+  const [rideDate, setRideDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+    return d;
+  });
+  const [meetingPoint, setMeetingPoint] = useState<{
+    lat: number;
+    lng: number;
+    name: string;
+  } | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [maxRiders, setMaxRiders] = useState('10');
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
-  const isValid = title.trim().length > 0 && description.trim().length > 0;
+  const isValid = title.trim().length > 0 && description.trim().length > 0 && meetingPoint !== null;
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -67,10 +80,10 @@ export default function CreateGroupRideScreen() {
         input: {
           title: title.trim(),
           description: description.trim(),
-          dateTime: dateTime.trim() || new Date().toISOString(),
-          meetingPointLat: 0,
-          meetingPointLng: 0,
-          meetingPointName: meetingPoint.trim() || undefined,
+          dateTime: rideDate.toISOString(),
+          meetingPointLat: meetingPoint?.lat ?? 0,
+          meetingPointLng: meetingPoint?.lng ?? 0,
+          meetingPointName: meetingPoint?.name || undefined,
           difficulty,
           maxRiders: Number.parseInt(maxRiders, 10) || 10,
         },
@@ -192,26 +205,31 @@ export default function CreateGroupRideScreen() {
             <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
               Date & Time
             </Text>
-            <TextInput
-              value={dateTime}
-              onChangeText={setDateTime}
-              placeholder="e.g. 2026-04-12T09:00"
-              placeholderTextColor={placeholderColor}
+            <View
               style={{
-                backgroundColor: inputBg,
-                borderWidth: 1,
-                borderColor: inputBorder,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                fontSize: 15,
-                color: inputTextColor,
+                flexDirection: 'row',
+                gap: 10,
+                alignItems: 'center',
               }}
-            />
-            <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
-              ISO format for now — date picker coming soon
-            </Text>
+            >
+              <DateTimePicker
+                value={rideDate}
+                mode="date"
+                minimumDate={new Date()}
+                onChange={(_e, d) => d && setRideDate(d)}
+                themeVariant={isDark ? 'dark' : 'light'}
+                accentColor={palette.signature500}
+                style={{ flex: 1 }}
+              />
+              <DateTimePicker
+                value={rideDate}
+                mode="time"
+                minuteInterval={15}
+                onChange={(_e, d) => d && setRideDate(d)}
+                themeVariant={isDark ? 'dark' : 'light'}
+                accentColor={palette.signature500}
+              />
+            </View>
           </Animated.View>
 
           {/* Meeting Point */}
@@ -219,24 +237,55 @@ export default function CreateGroupRideScreen() {
             <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
               Meeting Point
             </Text>
-            <TextInput
-              value={meetingPoint}
-              onChangeText={setMeetingPoint}
-              placeholder="e.g. Gas station on Main St"
-              placeholderTextColor={placeholderColor}
-              maxLength={200}
-              style={{
-                backgroundColor: inputBg,
-                borderWidth: 1,
-                borderColor: inputBorder,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                paddingHorizontal: 14,
-                paddingVertical: 12,
-                fontSize: 15,
-                color: inputTextColor,
-              }}
-            />
+            {showMapPicker ? (
+              <View
+                style={{
+                  height: 300,
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                }}
+              >
+                <MapPicker
+                  isDark={isDark}
+                  initialLat={meetingPoint?.lat}
+                  initialLng={meetingPoint?.lng}
+                  onSelect={(loc) => {
+                    setMeetingPoint(loc);
+                  }}
+                />
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setShowMapPicker(true)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  backgroundColor: inputBg,
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 14,
+                  paddingVertical: 14,
+                }}
+              >
+                <MapPin size={18} color={meetingPoint ? palette.signature500 : placeholderColor} />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    color: meetingPoint ? inputTextColor : placeholderColor,
+                  }}
+                  numberOfLines={1}
+                >
+                  {meetingPoint?.name || 'Tap to pick a meeting point'}
+                </Text>
+              </Pressable>
+            )}
           </Animated.View>
 
           {/* Difficulty */}

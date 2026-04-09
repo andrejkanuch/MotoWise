@@ -19,6 +19,9 @@ export class InlineWaypointInput {
 
   @Field(() => Int)
   sortOrder: number;
+
+  @Field(() => Int, { defaultValue: 0 })
+  dayIndex: number;
 }
 
 @InputType()

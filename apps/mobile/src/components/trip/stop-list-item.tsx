@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react-native';
+import { ArrowDown, ArrowUp, CalendarDays, Trash2 } from 'lucide-react-native';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { getWaypointIcon } from './waypoint-type-picker';
@@ -19,6 +19,9 @@ interface StopListItemProps {
   onMoveDown?: () => void;
   onDelete?: () => void;
   onPress?: () => void;
+  onMoveDay?: () => void;
+  distance?: string;
+  duration?: string;
 }
 
 export function StopListItem({
@@ -30,6 +33,9 @@ export function StopListItem({
   onMoveDown,
   onDelete,
   onPress,
+  onMoveDay,
+  distance,
+  duration,
 }: StopListItemProps) {
   const isDark = useColorScheme() === 'dark';
   const wt = getWaypointIcon(waypoint.type);
@@ -75,6 +81,13 @@ export function StopListItem({
               {waypoint.notes}
             </Text>
           ) : null}
+          {(distance || duration) && (
+            <Text
+              style={{ fontSize: 11, color: palette.accent500, marginTop: 3, fontWeight: '500' }}
+            >
+              {[distance, duration].filter(Boolean).join(' · ')}
+            </Text>
+          )}
         </View>
 
         <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -86,6 +99,11 @@ export function StopListItem({
           {!isLast && onMoveDown && (
             <Pressable onPress={onMoveDown} hitSlop={8} style={{ padding: 4 }}>
               <ArrowDown size={16} color={subtextColor} />
+            </Pressable>
+          )}
+          {onMoveDay && (
+            <Pressable onPress={onMoveDay} hitSlop={8} style={{ padding: 4 }}>
+              <CalendarDays size={16} color={subtextColor} />
             </Pressable>
           )}
           {onDelete && (

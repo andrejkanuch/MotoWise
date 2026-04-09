@@ -39,6 +39,7 @@ interface WaypointRow {
   id: string;
   trip_id: string;
   sort_order: number;
+  day_index: number;
   type: string;
   name: string;
   notes: string | null;
@@ -92,6 +93,7 @@ function mapRowToWaypoint(row: WaypointRow): TripWaypoint {
     id: row.id,
     tripId: row.trip_id,
     sortOrder: row.sort_order,
+    dayIndex: row.day_index,
     type: row.type,
     name: row.name,
     notes: row.notes ?? undefined,
@@ -362,6 +364,7 @@ export class TripsService {
         lng: wp.lng,
         notes: wp.notes ?? null,
         sort_order: wp.sortOrder,
+        day_index: wp.dayIndex ?? 0,
       }));
 
       const { data: waypointData, error: wpError } = await this.supabase
@@ -486,6 +489,7 @@ export class TripsService {
         lng: input.lng,
         notes: input.notes ?? null,
         sort_order: input.sortOrder,
+        day_index: input.dayIndex ?? 0,
       })
       .select('*')
       .single();
@@ -530,6 +534,7 @@ export class TripsService {
     if (input.lng !== undefined) update.lng = input.lng;
     if (input.notes !== undefined) update.notes = input.notes;
     if (input.sortOrder !== undefined) update.sort_order = input.sortOrder;
+    if (input.dayIndex !== undefined) update.day_index = input.dayIndex;
 
     const { data, error } = await this.supabase
       .from('trip_waypoints')

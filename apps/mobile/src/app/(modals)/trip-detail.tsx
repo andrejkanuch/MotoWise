@@ -8,12 +8,17 @@ import {
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import {
   ArrowLeft,
   Calendar,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  FileDown,
   HelpCircle,
   LogOut,
   Navigation,
@@ -114,6 +119,38 @@ export default function TripDetailScreen() {
   const waypoints = useMemo(
     () => [...(trip?.waypoints ?? [])].sort((a, b) => a.sortOrder - b.sortOrder) as TripWaypoint[],
     [trip?.waypoints],
+  );
+
+  const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
+
+  const waypointsByDay = useMemo(() => {
+    const grouped = new Map<number, TripWaypoint[]>();
+    for (const wp of waypoints) {
+      const day = wp.dayIndex ?? 0;
+      const existing = grouped.get(day);
+      if (existing) {
+        existing.push(wp);
+      } else {
+        grouped.set(day, [wp]);
+      }
+    }
+    return [...grouped.entries()].sort(([a], [b]) => a - b);
+  }, [waypoints]);
+
+  const toggleDay = useCallback((dayIndex: number) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setCollapsedDays((prev) => ({ ...prev, [dayIndex]: !prev[dayIndex] }));
+  }, []);
+
+  const formatDayDate = useCallback(
+    (dayIndex: number): string => {
+      if (!trip?.startDate) return `Day ${dayIndex + 1}`;
+      const date = new Date(trip.startDate);
+      date.setDate(date.getDate() + dayIndex);
+      const formatted = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return `Day ${dayIndex + 1} — ${formatted}`;
+    },
+    [trip?.startDate],
   );
 
   const waypointCoords = useMemo<[number, number][]>(
@@ -223,6 +260,66 @@ export default function TripDetailScreen() {
     });
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId });
   }, [trip, tripId]);
+
+  const handleExportGPX = useCallback(async () => {
+    if (!trip) return;
+    if (waypoints.length < 2) {
+      Alert.alert('Not enough stops', 'Add at least 2 stops before exporting.');
+      return;
+    }
+
+    const esc = (str: string) =>
+      str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+
+    const wptElements = waypoints
+      .map(
+        (wp) =>
+          `  <wpt lat="${wp.lat}" lon="${wp.lng}">\n    <name>${esc(wp.name)}</name>${wp.notes ? `\n    <desc>${esc(wp.notes)}</desc>` : ''}\n  </wpt>`,
+      )
+      .join('\n');
+
+    const rteptElements = waypoints
+      .map(
+        (wp) =>
+          `    <rtept lat="${wp.lat}" lon="${wp.lng}">\n      <name>${esc(wp.name)}</name>${wp.notes ? `\n      <desc>${esc(wp.notes)}</desc>` : ''}\n    </rtept>`,
+      )
+      .join('\n');
+
+    const gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MotoVault" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>${esc(trip.title)}</name>${trip.description ? `\n    <desc>${esc(trip.description)}</desc>` : ''}
+    <time>${trip.createdAt}</time>
+  </metadata>
+${wptElements}
+  <rte>
+    <name>${esc(trip.title)}</name>
+${rteptElements}
+  </rte>
+</gpx>`;
+
+    const slug = trip.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    const fileName = `${slug}-motovault.gpx`;
+    const filePath = `${FileSystem.cacheDirectory}${fileName}`;
+
+    await FileSystem.writeAsStringAsync(filePath, gpx, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    await Sharing.shareAsync(filePath, {
+      mimeType: 'application/gpx+xml',
+      UTI: 'com.topografix.gpx',
+    });
+
+    trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'gpx' });
+  }, [trip, waypoints, tripId]);
 
   const handleProfilePress = useCallback(
     (username: string) => {
@@ -422,64 +519,104 @@ export default function TripDetailScreen() {
             </Text>
           </View>
 
-          {/* Waypoint stop list */}
-          {waypoints.length > 0 && (
+          {/* Day-by-day itinerary */}
+          {waypointsByDay.length > 0 && (
             <Animated.View entering={FadeInUp.delay(50).duration(250)} style={{ marginBottom: 16 }}>
               <Text
                 style={{
                   fontSize: 12,
                   fontWeight: '600',
                   color: sectionLabelColor,
-                  marginBottom: 8,
+                  marginBottom: 4,
                 }}
               >
-                Stops
+                Itinerary
               </Text>
-              {waypoints.map((wp, index) => {
-                const wt = getWaypointIcon(wp.type);
+              {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
+                const isCollapsed = !!collapsedDays[dayIndex];
+                const DayChevron = isCollapsed ? ChevronDown : ChevronUp;
                 return (
                   <Animated.View
-                    key={wp.id}
-                    entering={FadeInUp.delay(index * 50).duration(200)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: 10,
-                      marginBottom: 6,
-                      borderRadius: 10,
-                      borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
-                    }}
+                    key={dayIndex}
+                    entering={FadeInUp.delay(sectionIdx * 60).duration(250)}
                   >
-                    <View
+                    {/* Day header */}
+                    <Pressable
+                      onPress={() => toggleDay(dayIndex)}
                       style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        backgroundColor: wt.color,
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        marginTop: 16,
+                        marginBottom: 8,
                       }}
                     >
-                      <wt.Icon size={16} color={palette.white} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
-                        numberOfLines={1}
-                      >
-                        {wp.name}
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
+                        {formatDayDate(dayIndex)}
                       </Text>
-                      {wp.notes ? (
-                        <Text
-                          style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}
-                          numberOfLines={2}
-                        >
-                          {wp.notes}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
+                          {dayWaypoints.length} {dayWaypoints.length === 1 ? 'stop' : 'stops'}
                         </Text>
-                      ) : null}
-                    </View>
+                        <DayChevron size={16} color={subtitleColor} />
+                      </View>
+                    </Pressable>
+
+                    {/* Waypoints within the day */}
+                    {!isCollapsed &&
+                      dayWaypoints.map((wp, index) => {
+                        const wt = getWaypointIcon(wp.type);
+                        return (
+                          <Animated.View
+                            key={wp.id}
+                            entering={FadeInUp.delay(index * 50).duration(200)}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 12,
+                              padding: 10,
+                              marginBottom: 6,
+                              borderRadius: 10,
+                              borderCurve: 'continuous',
+                              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 16,
+                                backgroundColor: wt.color,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <wt.Icon size={16} color={palette.white} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text
+                                style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
+                                numberOfLines={1}
+                              >
+                                {wp.name}
+                              </Text>
+                              {wp.notes ? (
+                                <Text
+                                  style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}
+                                  numberOfLines={2}
+                                >
+                                  {wp.notes}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </Animated.View>
+                        );
+                      })}
                   </Animated.View>
                 );
               })}
@@ -506,6 +643,30 @@ export default function TripDetailScreen() {
               <Navigation size={16} color={palette.accent500} />
               <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
                 Open in Maps
+              </Text>
+            </Pressable>
+          )}
+
+          {/* Export GPX */}
+          {waypoints.length > 0 && (
+            <Pressable
+              onPress={handleExportGPX}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: palette.accent500,
+                marginBottom: 16,
+              }}
+            >
+              <FileDown size={16} color={palette.accent500} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                Export GPX
               </Text>
             </Pressable>
           )}

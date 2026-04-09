@@ -5,7 +5,6 @@ import { Map as MapIcon, MessageCircle, Route, Users } from 'lucide-react-native
 export interface WhatsNewSlide {
   icon: LucideIcon;
   iconColor: string;
-  iconBgColor: string;
   titleKey: string;
   descriptionKey: string;
 }
@@ -27,28 +26,24 @@ export const WHATS_NEW_RELEASES = [
       {
         icon: Users,
         iconColor: palette.primary400,
-        iconBgColor: palette.primary50,
         titleKey: 'whatsNew.v250.groupRidesTitle' as const,
         descriptionKey: 'whatsNew.v250.groupRidesDesc' as const,
       },
       {
         icon: Route,
-        iconColor: palette.accent500,
-        iconBgColor: palette.successBgLight,
+        iconColor: palette.accent400,
         titleKey: 'whatsNew.v250.routeReviewsTitle' as const,
         descriptionKey: 'whatsNew.v250.routeReviewsDesc' as const,
       },
       {
         icon: MessageCircle,
-        iconColor: palette.signature500,
-        iconBgColor: palette.signatureBgLight,
+        iconColor: palette.signature400,
         titleKey: 'whatsNew.v250.commentsTitle' as const,
         descriptionKey: 'whatsNew.v250.commentsDesc' as const,
       },
       {
         icon: MapIcon,
-        iconColor: palette.indigo500,
-        iconBgColor: palette.indigoBg,
+        iconColor: palette.indigo400,
         titleKey: 'whatsNew.v250.tripsTitle' as const,
         descriptionKey: 'whatsNew.v250.tripsDesc' as const,
       },

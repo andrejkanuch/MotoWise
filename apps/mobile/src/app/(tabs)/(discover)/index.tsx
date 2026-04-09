@@ -3,9 +3,18 @@ import { DiscoverRoutesDocument, type DiscoverRoutesQuery } from '@motovault/gra
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { Compass } from 'lucide-react-native';
+import { Compass, Map as MapIcon, Plus, Users } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, useColorScheme, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  FlatList,
+  Platform,
+  Pressable,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GroupRideSection } from '../../../components/discover/group-ride-section';
@@ -73,6 +82,27 @@ export default function DiscoverScreen() {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const [showCreateSheet, setShowCreateSheet] = useState(false);
+
+  const handleCreatePress = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Group Ride', 'Trip', 'Cancel'],
+          cancelButtonIndex: 2,
+          title: 'Create',
+          message: 'What would you like to create?',
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) router.push('/(modals)/create-group-ride');
+          if (buttonIndex === 1) router.push('/(modals)/create-trip');
+        },
+      );
+    } else {
+      setShowCreateSheet(true);
+    }
+  }, [router]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: RouteNode; index: number }) => (
@@ -244,6 +274,177 @@ export default function DiscoverScreen() {
           ) : null
         }
       />
+
+      {/* FAB */}
+      <Pressable
+        onPress={handleCreatePress}
+        accessibilityRole="button"
+        accessibilityLabel="Create group ride or trip"
+        style={{
+          position: 'absolute',
+          bottom: insets.bottom + 88,
+          right: 20,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          borderCurve: 'continuous',
+          backgroundColor: palette.accent500,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: '#000',
+          shadowOpacity: 0.25,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 6,
+        }}
+      >
+        <Plus size={24} color={palette.white} />
+      </Pressable>
+
+      {/* Android create sheet */}
+      {showCreateSheet && Platform.OS !== 'ios' && (
+        <Pressable
+          onPress={() => setShowCreateSheet(false)}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: isDark ? palette.neutral900 : palette.white,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              borderCurve: 'continuous',
+              paddingTop: 20,
+              paddingBottom: insets.bottom + 16,
+              paddingHorizontal: 20,
+              gap: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '700',
+                color: headerColor,
+                marginBottom: 4,
+              }}
+            >
+              Create
+            </Text>
+
+            <Pressable
+              onPress={() => {
+                setShowCreateSheet(false);
+                router.push('/(modals)/create-group-ride');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.signature500,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Users size={20} color={palette.white} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: headerColor }}>
+                  Group Ride
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark ? palette.neutral400 : palette.neutral500,
+                  }}
+                >
+                  Meet up and ride together from one location
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                setShowCreateSheet(false);
+                router.push('/(modals)/create-trip');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 14,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.indigo500,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <MapIcon size={20} color={palette.white} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: headerColor }}>Trip</Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark ? palette.neutral400 : palette.neutral500,
+                  }}
+                >
+                  Plan a multi-day route with stops
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => setShowCreateSheet(false)}
+              style={{
+                alignItems: 'center',
+                paddingVertical: 14,
+                marginTop: 4,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: isDark ? palette.neutral400 : palette.neutral500,
+                }}
+              >
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      )}
     </View>
   );
 }

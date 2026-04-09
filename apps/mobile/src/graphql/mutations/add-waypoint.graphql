@@ -3,6 +3,7 @@ mutation AddWaypoint($input: CreateWaypointInput!) {
     id
     tripId
     sortOrder
+    dayIndex
     type
     name
     notes

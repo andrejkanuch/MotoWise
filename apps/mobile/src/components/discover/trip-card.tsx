@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { Calendar, MapPin, Users } from 'lucide-react-native';
+import { Calendar, Map as MapIcon, MapPin, Users } from 'lucide-react-native';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
@@ -60,6 +60,24 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
           shadowOffset: { width: 0, height: 2 },
         }}
       >
+        {/* Type badge */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            alignSelf: 'flex-start',
+            backgroundColor: palette.indigo500,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 6,
+            borderCurve: 'continuous',
+          }}
+        >
+          <MapIcon size={10} color={palette.white} />
+          <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>Trip</Text>
+        </View>
+
         {/* Title + difficulty badge */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text

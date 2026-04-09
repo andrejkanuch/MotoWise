@@ -27,7 +27,10 @@ export default function ModalsLayout() {
         name="group-ride-detail"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
-      <Stack.Screen name="whats-new" />
+      <Stack.Screen
+        name="whats-new"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true }}
+      />
       <Stack.Screen name="create-group-ride" />
       <Stack.Screen
         name="create-trip"

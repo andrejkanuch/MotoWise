@@ -1,16 +1,21 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import { CreateTripWithWaypointsDocument, PublishTripDocument } from '@motovault/graphql';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Map as MapIcon, MapPin, Plus, Save, Send } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Calendar, Map as MapIcon, Save, Send, X } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
+  Modal,
+  Platform,
   Pressable,
+  ScrollView as RNScrollView,
   Text,
   TextInput,
   useColorScheme,
@@ -18,12 +23,15 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
 import { StopListItem } from '../../components/trip/stop-list-item';
 import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
+import type { GeocodingResult } from '../../utils/mapbox-geocoding';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
 
@@ -35,6 +43,7 @@ interface LocalWaypoint {
   lng: number;
   notes?: string;
   sortOrder: number;
+  dayIndex: number;
 }
 
 const DIFFICULTIES: { key: Difficulty; label: string }[] = [
@@ -51,6 +60,24 @@ const DIFFICULTY_COLORS = {
   expert: palette.danger500,
 } as const;
 
+function formatSegmentDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
+function formatSegmentDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  if (h === 0) return `${m} min`;
+  return `${h}h ${m}m`;
+}
+
+function formatDayDate(startDate: Date, dayIndex: number): string {
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + dayIndex);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 let tempIdCounter = 0;
 function tempId(): string {
   tempIdCounter += 1;
@@ -63,6 +90,7 @@ export default function CreateTripScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const sheetRef = useRef<BottomSheet>(null);
+  const cameraRef = useRef<MapboxGL.Camera>(null);
 
   // Theme colors
   const bg = isDark ? palette.neutral950 : palette.white;
@@ -80,31 +108,107 @@ export default function CreateTripScreen() {
   // Map state
   const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
 
-  // Waypoint placement state
-  const [pendingCoord, setPendingCoord] = useState<{ lat: number; lng: number } | null>(null);
-  const [pendingType, setPendingType] = useState('start');
-
   // Waypoints
   const [waypoints, setWaypoints] = useState<LocalWaypoint[]>([]);
+  const [routeLegs, setRouteLegs] = useState<RouteLeg[]>([]);
+  const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
+  const routeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Recalculate route segments when waypoints change
+  useEffect(() => {
+    if (routeDebounceRef.current) clearTimeout(routeDebounceRef.current);
+
+    if (waypoints.length < 2) {
+      setRouteLegs([]);
+      setRouteGeometry(null);
+      return;
+    }
+
+    routeDebounceRef.current = setTimeout(async () => {
+      const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
+      const coords = sorted.map((wp) => ({ lat: wp.lat, lng: wp.lng }));
+      const result = await getRouteSegments(coords);
+      if (result) {
+        setRouteLegs(result.legs);
+        setRouteGeometry(result.geometry);
+      }
+    }, 800);
+
+    return () => {
+      if (routeDebounceRef.current) clearTimeout(routeDebounceRef.current);
+    };
+  }, [waypoints]);
 
   // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(9, 0, 0, 0);
+    return d;
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    d.setHours(18, 0, 0, 0);
+    return d;
+  });
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [maxRiders, setMaxRiders] = useState('10');
+
+  // Edit stop modal state
+  const [editingWaypoint, setEditingWaypoint] = useState<LocalWaypoint | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editType, setEditType] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+
+  const openEditModal = useCallback((wp: LocalWaypoint) => {
+    setEditName(wp.name);
+    setEditType(wp.type);
+    setEditNotes(wp.notes ?? '');
+    setEditingWaypoint(wp);
+  }, []);
+
+  const closeEditModal = useCallback(() => {
+    setEditingWaypoint(null);
+  }, []);
+
+  const applyEdit = useCallback(() => {
+    if (!editingWaypoint) return;
+    setWaypoints((prev) =>
+      prev.map((wp) =>
+        wp.id === editingWaypoint.id
+          ? {
+              ...wp,
+              name: editName.trim() || wp.name,
+              type: editType,
+              notes: editNotes.trim() || undefined,
+            }
+          : wp,
+      ),
+    );
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setEditingWaypoint(null);
+  }, [editingWaypoint, editName, editType, editNotes]);
 
   const isValid =
     title.trim().length > 0 &&
     description.trim().length > 0 &&
-    startDate.trim().length > 0 &&
-    endDate.trim().length > 0 &&
+    startDate <= endDate &&
     waypoints.length >= 2;
 
-  // Route line GeoJSON
+  // Route line GeoJSON — use actual road geometry when available, fallback to straight lines
   const routeGeoJSON = useMemo(() => {
     if (waypoints.length < 2) return null;
+    if (routeGeometry) {
+      return {
+        type: 'Feature' as const,
+        geometry: routeGeometry,
+        properties: {},
+      };
+    }
+    // Straight-line fallback while Directions API is loading
     const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
     return {
       type: 'Feature' as const,
@@ -114,7 +218,7 @@ export default function CreateTripScreen() {
       },
       properties: {},
     };
-  }, [waypoints]);
+  }, [waypoints, routeGeometry]);
 
   // Camera bounds
   const bounds = useMemo(() => {
@@ -135,42 +239,52 @@ export default function CreateTripScreen() {
     };
   }, [waypoints]);
 
-  // Map long-press handler
+  // Add a waypoint and fly the camera to it
+  const addWaypoint = useCallback((wp: Omit<LocalWaypoint, 'id'>) => {
+    const newWp: LocalWaypoint = { ...wp, id: tempId() };
+    setWaypoints((prev) => [...prev, newWp]);
+    trackEvent(AnalyticsEvent.TRIP_WAYPOINT_ADDED, {
+      waypoint_type: wp.type,
+      waypoint_index: wp.sortOrder,
+    });
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Fly camera to new waypoint
+    cameraRef.current?.flyTo([wp.lng, wp.lat], 500);
+  }, []);
+
+  // Geocoding search result handler
+  const handleGeocodingSelect = useCallback(
+    (result: GeocodingResult) => {
+      addWaypoint({
+        type: 'scenic',
+        name: result.name,
+        lat: result.lat,
+        lng: result.lng,
+        notes: '',
+        sortOrder: waypoints.length,
+        dayIndex: 0,
+      });
+    },
+    [addWaypoint, waypoints.length],
+  );
+
+  // Map long-press handler — adds a scenic waypoint directly
   const handleLongPress = useCallback(
     (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
       const [lng, lat] = event.geometry.coordinates;
-      setPendingCoord({ lat, lng });
-      setPendingType(waypoints.length === 0 ? 'start' : 'fuel');
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      addWaypoint({
+        type: 'scenic',
+        name: `Stop ${waypoints.length + 1}`,
+        lat,
+        lng,
+        notes: '',
+        sortOrder: waypoints.length,
+        dayIndex: 0,
+      });
     },
-    [waypoints.length],
+    [addWaypoint, waypoints.length],
   );
-
-  // Confirm waypoint placement
-  const handleConfirmWaypoint = useCallback(() => {
-    if (!pendingCoord) return;
-    const wt = getWaypointIcon(pendingType);
-    const newWp: LocalWaypoint = {
-      id: tempId(),
-      type: pendingType,
-      name: wt.label,
-      lat: pendingCoord.lat,
-      lng: pendingCoord.lng,
-      sortOrder: waypoints.length,
-    };
-    setWaypoints((prev) => [...prev, newWp]);
-    setPendingCoord(null);
-    trackEvent(AnalyticsEvent.TRIP_WAYPOINT_ADDED, {
-      waypoint_type: pendingType,
-      waypoint_index: waypoints.length,
-    });
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, [pendingCoord, pendingType, waypoints.length]);
-
-  // Cancel waypoint placement
-  const handleCancelPending = useCallback(() => {
-    setPendingCoord(null);
-  }, []);
 
   // Reorder waypoints
   const handleMoveUp = useCallback((index: number) => {
@@ -218,8 +332,8 @@ export default function CreateTripScreen() {
     return {
       title: title.trim(),
       description: description.trim(),
-      startDate: startDate.trim(),
-      endDate: endDate.trim(),
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
       difficulty,
       maxRiders: Number.parseInt(maxRiders, 10) || 10,
       waypoints: sorted.map((wp) => ({
@@ -229,11 +343,12 @@ export default function CreateTripScreen() {
         notes: wp.notes || undefined,
         lat: wp.lat,
         lng: wp.lng,
+        dayIndex: wp.dayIndex,
       })),
     };
   }, [title, description, startDate, endDate, difficulty, maxRiders, waypoints]);
 
-  // Save draft mutation — single batch call
+  // Save draft mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
       const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
@@ -257,7 +372,7 @@ export default function CreateTripScreen() {
     },
   });
 
-  // Publish mutation — batch create then publish
+  // Publish mutation
   const publishMutation = useMutation({
     mutationFn: async () => {
       const result = await gqlFetcher(CreateTripWithWaypointsDocument, {
@@ -290,6 +405,73 @@ export default function CreateTripScreen() {
     [waypoints],
   );
 
+  // Day-based organization
+  const numDays = useMemo(() => {
+    const msPerDay = 86400000;
+    return Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay) + 1);
+  }, [startDate, endDate]);
+
+  const waypointsByDay = useMemo(() => {
+    const groups: Record<number, LocalWaypoint[]> = {};
+    for (let d = 0; d < numDays; d++) groups[d] = [];
+    for (const wp of sortedWaypoints) {
+      const d = Math.min(wp.dayIndex, numDays - 1);
+      if (!groups[d]) groups[d] = [];
+      groups[d].push(wp);
+    }
+    return groups;
+  }, [sortedWaypoints, numDays]);
+
+  // Move waypoint to a different day
+  const handleMoveDay = useCallback(
+    (waypointId: string) => {
+      const dayOptions = Array.from(
+        { length: numDays },
+        (_, i) => `Day ${i + 1} — ${formatDayDate(startDate, i)}`,
+      );
+
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: [...dayOptions, 'Cancel'],
+            cancelButtonIndex: dayOptions.length,
+            title: 'Move to Day',
+          },
+          (buttonIndex) => {
+            if (buttonIndex < dayOptions.length) {
+              setWaypoints((prev) =>
+                prev.map((wp) => (wp.id === waypointId ? { ...wp, dayIndex: buttonIndex } : wp)),
+              );
+              if (process.env.EXPO_OS === 'ios')
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+          },
+        );
+      } else {
+        Alert.alert('Move to Day', 'Select a day for this stop', [
+          ...dayOptions.map((label, i) => ({
+            text: label,
+            onPress: () => {
+              setWaypoints((prev) =>
+                prev.map((wp) => (wp.id === waypointId ? { ...wp, dayIndex: i } : wp)),
+              );
+            },
+          })),
+          { text: 'Cancel', style: 'cancel' as const },
+        ]);
+      }
+    },
+    [numDays, startDate],
+  );
+
+  // Proximity for geocoding — center of existing waypoints or undefined
+  const searchProximity = useMemo(() => {
+    if (waypoints.length === 0) return undefined;
+    const avgLat = waypoints.reduce((sum, wp) => sum + wp.lat, 0) / waypoints.length;
+    const avgLng = waypoints.reduce((sum, wp) => sum + wp.lng, 0) / waypoints.length;
+    return { lat: avgLat, lng: avgLng };
+  }, [waypoints]);
+
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
       {/* Full-screen map */}
@@ -302,27 +484,29 @@ export default function CreateTripScreen() {
         scaleBarEnabled={false}
         onLongPress={handleLongPress}
       >
-        {bounds && waypoints.length >= 2 && (
-          <MapboxGL.Camera
-            bounds={{
-              ...bounds,
-              paddingBottom: 200,
-              paddingTop: 80,
-              paddingLeft: 40,
-              paddingRight: 40,
-            }}
-            animationMode="flyTo"
-            animationDuration={500}
-          />
-        )}
-        {waypoints.length === 1 && (
-          <MapboxGL.Camera
-            centerCoordinate={[waypoints[0].lng, waypoints[0].lat]}
-            zoomLevel={12}
-            animationMode="flyTo"
-            animationDuration={500}
-          />
-        )}
+        <MapboxGL.Camera
+          ref={cameraRef}
+          {...(bounds && waypoints.length >= 2
+            ? {
+                bounds: {
+                  ...bounds,
+                  paddingBottom: 200,
+                  paddingTop: 80,
+                  paddingLeft: 40,
+                  paddingRight: 40,
+                },
+                animationMode: 'flyTo' as const,
+                animationDuration: 500,
+              }
+            : waypoints.length === 1
+              ? {
+                  centerCoordinate: [waypoints[0].lng, waypoints[0].lat],
+                  zoomLevel: 12,
+                  animationMode: 'flyTo' as const,
+                  animationDuration: 500,
+                }
+              : {})}
+        />
 
         {/* Route line */}
         {routeGeoJSON && (
@@ -331,10 +515,10 @@ export default function CreateTripScreen() {
               id="trip-route-line-layer"
               style={{
                 lineColor: palette.accent500,
-                lineWidth: 3,
+                lineWidth: routeGeometry ? 4 : 3,
                 lineCap: 'round',
                 lineJoin: 'round',
-                lineDasharray: [2, 1.5],
+                ...(routeGeometry ? {} : { lineDasharray: [2, 1.5] }),
               }}
             />
           </MapboxGL.ShapeSource>
@@ -362,30 +546,6 @@ export default function CreateTripScreen() {
             </MapboxGL.PointAnnotation>
           );
         })}
-
-        {/* Pending waypoint (ghost) */}
-        {pendingCoord && (
-          <MapboxGL.PointAnnotation
-            id="pending-waypoint"
-            coordinate={[pendingCoord.lng, pendingCoord.lat]}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: palette.accent500,
-                borderWidth: 3,
-                borderColor: palette.white,
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.8,
-              }}
-            >
-              <MapPin size={16} color={palette.white} />
-            </View>
-          </MapboxGL.PointAnnotation>
-        )}
       </MapboxGL.MapView>
 
       {/* Floating back button */}
@@ -440,60 +600,6 @@ export default function CreateTripScreen() {
         </Pressable>
       </View>
 
-      {/* Waypoint type picker — shown when a long-press is pending */}
-      {pendingCoord && (
-        <Animated.View
-          entering={FadeIn.duration(200)}
-          style={{
-            position: 'absolute',
-            bottom: '50%',
-            left: 0,
-            right: 0,
-          }}
-        >
-          <WaypointTypePicker selected={pendingType} onSelect={setPendingType} />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              gap: 12,
-              marginTop: 12,
-            }}
-          >
-            <Pressable
-              onPress={handleCancelPending}
-              style={{
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleConfirmWaypoint}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-                borderRadius: 10,
-                borderCurve: 'continuous',
-                backgroundColor: palette.accent500,
-              }}
-            >
-              <Plus size={16} color={palette.white} />
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-                Add Stop
-              </Text>
-            </Pressable>
-          </View>
-        </Animated.View>
-      )}
-
       {/* Bottom Sheet */}
       <BottomSheet
         ref={sheetRef}
@@ -513,7 +619,7 @@ export default function CreateTripScreen() {
           contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Collapsed header — always visible */}
+          {/* Collapsed header */}
           <Animated.View
             entering={FadeIn.duration(200)}
             style={{ paddingHorizontal: 20, paddingBottom: 12 }}
@@ -523,26 +629,127 @@ export default function CreateTripScreen() {
             </Text>
             <Text style={{ fontSize: 13, color: subtitleColor, marginTop: 2 }}>
               {waypoints.length === 0
-                ? 'Long-press on the map to add stops'
+                ? 'Search or long-press the map to add stops'
                 : `${waypoints.length} stop${waypoints.length === 1 ? '' : 's'} planned`}
             </Text>
           </Animated.View>
 
-          {/* Stop list */}
+          {/* Geocoding search bar */}
+          <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
+            <GeocodingSearchBar
+              onSelect={handleGeocodingSelect}
+              placeholder="Search for a stop..."
+              isDark={isDark}
+              proximity={searchProximity}
+            />
+          </View>
+
+          {/* Day-by-day stop list */}
           {sortedWaypoints.length > 0 && (
             <View style={{ marginBottom: 16 }}>
-              {sortedWaypoints.map((wp, index) => (
-                <StopListItem
-                  key={wp.id}
-                  waypoint={wp}
-                  index={index}
-                  isFirst={index === 0}
-                  isLast={index === sortedWaypoints.length - 1}
-                  onMoveUp={() => handleMoveUp(index)}
-                  onMoveDown={() => handleMoveDown(index)}
-                  onDelete={() => handleDelete(wp.id)}
-                />
-              ))}
+              {Array.from({ length: numDays }, (_, dayIndex) => {
+                const dayWaypoints = waypointsByDay[dayIndex] ?? [];
+
+                // Compute day stats from route legs for stops in this day
+                let dayDistanceM = 0;
+                let dayDurationS = 0;
+                for (const wp of dayWaypoints) {
+                  const globalIdx = sortedWaypoints.indexOf(wp);
+                  if (globalIdx > 0 && routeLegs[globalIdx - 1]) {
+                    dayDistanceM += routeLegs[globalIdx - 1].distanceM;
+                    dayDurationS += routeLegs[globalIdx - 1].durationS;
+                  }
+                }
+                const dayHours = dayDurationS / 3600;
+                const rideTimeColor =
+                  dayHours > 6
+                    ? palette.danger500
+                    : dayHours > 4
+                      ? palette.warning500
+                      : palette.success500;
+
+                return (
+                  <View key={`day-${formatDayDate(startDate, dayIndex)}`}>
+                    {/* Day header */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        marginTop: dayIndex > 0 ? 16 : 0,
+                        marginBottom: 8,
+                        marginHorizontal: 20,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Calendar size={16} color={titleColor} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
+                          Day {dayIndex + 1} · {formatDayDate(startDate, dayIndex)}
+                        </Text>
+                      </View>
+                      {dayWaypoints.length > 0 && dayDurationS > 0 && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
+                            {formatSegmentDistance(dayDistanceM)}
+                          </Text>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: rideTimeColor }}>
+                            {formatSegmentDuration(dayDurationS)}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Day's stops */}
+                    {dayWaypoints.length > 0 ? (
+                      dayWaypoints.map((wp) => {
+                        const globalIdx = sortedWaypoints.indexOf(wp);
+                        return (
+                          <StopListItem
+                            key={wp.id}
+                            waypoint={wp}
+                            index={globalIdx}
+                            isFirst={globalIdx === 0}
+                            isLast={globalIdx === sortedWaypoints.length - 1}
+                            onMoveUp={() => handleMoveUp(globalIdx)}
+                            onMoveDown={() => handleMoveDown(globalIdx)}
+                            onDelete={() => handleDelete(wp.id)}
+                            onPress={() => openEditModal(wp)}
+                            onMoveDay={() => handleMoveDay(wp.id)}
+                            distance={
+                              globalIdx > 0 && routeLegs[globalIdx - 1]
+                                ? formatSegmentDistance(routeLegs[globalIdx - 1].distanceM)
+                                : undefined
+                            }
+                            duration={
+                              globalIdx > 0 && routeLegs[globalIdx - 1]
+                                ? formatSegmentDuration(routeLegs[globalIdx - 1].durationS)
+                                : undefined
+                            }
+                          />
+                        );
+                      })
+                    ) : (
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: subtitleColor,
+                          fontStyle: 'italic',
+                          textAlign: 'center',
+                          paddingVertical: 12,
+                          paddingHorizontal: 20,
+                        }}
+                      >
+                        No stops yet
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           )}
 
@@ -602,55 +809,45 @@ export default function CreateTripScreen() {
               />
             </Animated.View>
 
-            {/* Start date */}
+            {/* Dates */}
             <Animated.View entering={FadeInUp.delay(100).duration(250)}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-                Start Date
-              </Text>
-              <TextInput
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="e.g. 2026-06-15"
-                placeholderTextColor={placeholderColor}
-                style={{
-                  backgroundColor: inputBg,
-                  borderWidth: 1,
-                  borderColor: inputBorder,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  fontSize: 15,
-                  color: inputTextColor,
-                }}
-              />
-              <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
-                ISO format for now — date picker coming soon
-              </Text>
-            </Animated.View>
-
-            {/* End date */}
-            <Animated.View entering={FadeInUp.delay(150).duration(250)}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-                End Date
-              </Text>
-              <TextInput
-                value={endDate}
-                onChangeText={setEndDate}
-                placeholder="e.g. 2026-06-22"
-                placeholderTextColor={placeholderColor}
-                style={{
-                  backgroundColor: inputBg,
-                  borderWidth: 1,
-                  borderColor: inputBorder,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 14,
-                  paddingVertical: 12,
-                  fontSize: 15,
-                  color: inputTextColor,
-                }}
-              />
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
+                  >
+                    Start Date
+                  </Text>
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    minimumDate={new Date()}
+                    onChange={(_e, d) => {
+                      if (d) {
+                        setStartDate(d);
+                        if (d > endDate) setEndDate(d);
+                      }
+                    }}
+                    themeVariant={isDark ? 'dark' : 'light'}
+                    accentColor={palette.signature500}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
+                  >
+                    End Date
+                  </Text>
+                  <DateTimePicker
+                    value={endDate}
+                    mode="date"
+                    minimumDate={startDate}
+                    onChange={(_e, d) => d && setEndDate(d)}
+                    themeVariant={isDark ? 'dark' : 'light'}
+                    accentColor={palette.signature500}
+                  />
+                </View>
+              </View>
             </Animated.View>
 
             {/* Difficulty */}
@@ -803,6 +1000,203 @@ export default function CreateTripScreen() {
           </View>
         </BottomSheetScrollView>
       </BottomSheet>
+
+      {/* Edit Stop Modal */}
+      <Modal
+        visible={editingWaypoint !== null}
+        animationType="slide"
+        presentationStyle="formSheet"
+        onRequestClose={closeEditModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: isDark ? palette.neutral950 : palette.white,
+          }}
+        >
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 20,
+              paddingTop: 20,
+              paddingBottom: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '700',
+                color: titleColor,
+              }}
+            >
+              Edit Stop
+            </Text>
+            <Pressable
+              onPress={closeEditModal}
+              hitSlop={12}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={16} color={isDark ? palette.neutral400 : palette.neutral500} />
+            </Pressable>
+          </View>
+
+          <View
+            style={{
+              height: 1,
+              backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              marginHorizontal: 20,
+            }}
+          />
+
+          <RNScrollView
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingTop: 20,
+              paddingBottom: 40,
+              gap: 20,
+            }}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Name */}
+            <View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: labelColor,
+                  marginBottom: 6,
+                }}
+              >
+                Name
+              </Text>
+              <TextInput
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Stop name"
+                placeholderTextColor={placeholderColor}
+                maxLength={100}
+                style={{
+                  backgroundColor: inputBg,
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 15,
+                  color: inputTextColor,
+                }}
+              />
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              }}
+            />
+
+            {/* Type */}
+            <View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: labelColor,
+                  marginBottom: 6,
+                }}
+              >
+                Type
+              </Text>
+              <WaypointTypePicker selected={editType} onSelect={setEditType} />
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              }}
+            />
+
+            {/* Notes */}
+            <View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: labelColor,
+                  marginBottom: 6,
+                }}
+              >
+                Notes
+              </Text>
+              <TextInput
+                value={editNotes}
+                onChangeText={setEditNotes}
+                placeholder="Add notes about this stop..."
+                placeholderTextColor={placeholderColor}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                maxLength={500}
+                style={{
+                  backgroundColor: inputBg,
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 15,
+                  color: inputTextColor,
+                  minHeight: 100,
+                }}
+              />
+            </View>
+
+            <View
+              style={{
+                height: 1,
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              }}
+            />
+
+            {/* Done button */}
+            <Pressable
+              onPress={applyEdit}
+              style={{
+                paddingVertical: 14,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                backgroundColor: palette.signature500,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: palette.white,
+                }}
+              >
+                Done
+              </Text>
+            </Pressable>
+          </RNScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }

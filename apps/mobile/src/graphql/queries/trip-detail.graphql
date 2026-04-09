@@ -21,6 +21,7 @@ query TripDetail($tripId: ID!) {
       id
       tripId
       sortOrder
+      dayIndex
       type
       name
       notes

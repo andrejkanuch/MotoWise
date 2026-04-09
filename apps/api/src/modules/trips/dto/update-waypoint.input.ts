@@ -22,4 +22,7 @@ export class UpdateWaypointInput {
 
   @Field(() => Int, { nullable: true })
   sortOrder?: number;
+
+  @Field(() => Int, { nullable: true })
+  dayIndex?: number;
 }

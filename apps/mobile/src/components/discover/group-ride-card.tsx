@@ -72,6 +72,24 @@ export const GroupRideCard = memo(function GroupRideCard({
           gap: 8,
         })}
       >
+        {/* Type badge */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            alignSelf: 'flex-start',
+            backgroundColor: palette.signature500,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 6,
+            borderCurve: 'continuous',
+          }}
+        >
+          <Users size={10} color={palette.white} />
+          <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>Group Ride</Text>
+        </View>
+
         {/* Header row: title + badges */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text

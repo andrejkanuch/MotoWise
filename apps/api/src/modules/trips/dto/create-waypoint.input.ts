@@ -22,4 +22,7 @@ export class CreateWaypointInput {
 
   @Field(() => Int)
   sortOrder: number;
+
+  @Field(() => Int, { defaultValue: 0 })
+  dayIndex: number;
 }

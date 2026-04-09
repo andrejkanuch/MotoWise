@@ -1006,16 +1006,16 @@
   "whatsNew": {
     "badge": "What's New",
     "next": "Next",
-    "getStarted": "Let's Go",
+    "getStarted": "Let's Ride",
     "v250": {
-      "groupRidesTitle": "Group Rides",
-      "groupRidesDesc": "Create and join group rides with fellow riders. Plan your next adventure together.",
-      "routeReviewsTitle": "Route Reviews",
-      "routeReviewsDesc": "Rate and save your favorite motorcycle routes. Share the best roads with the community.",
-      "commentsTitle": "Community Comments",
-      "commentsDesc": "Engage with other riders through comments. Share tips, ask questions, and connect.",
-      "tripsTitle": "Trip Planning",
-      "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
+      "groupRidesTitle": "Ride Together",
+      "groupRidesDesc": "Organize group rides with live meeting points and rider counts. Your crew, your roads.",
+      "routeReviewsTitle": "Rate the Roads",
+      "routeReviewsDesc": "Score routes on twisties, scenery, and surface quality. Find the roads worth riding.",
+      "commentsTitle": "Rider Tips",
+      "commentsDesc": "Drop warnings about road hazards, recommend pit stops, and help the riding community.",
+      "tripsTitle": "Plan Your Trip",
+      "tripsDesc": "Map multi-stop rides with waypoints. Share your itinerary with riding buddies."
     }
   }
 }

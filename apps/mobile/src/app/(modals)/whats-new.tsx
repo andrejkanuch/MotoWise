@@ -3,234 +3,172 @@ import * as Application from 'expo-application';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Dimensions,
-  FlatList,
-  type ListRenderItemInfo,
-  Pressable,
-  Text,
-  View,
-  type ViewToken,
-} from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
-import { getWhatsNewRelease, type WhatsNewSlideEntry } from '../../data/whats-new-releases';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getWhatsNewRelease } from '../../data/whats-new-releases';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useWhatsNewStore } from '../../stores/whats-new.store';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SLIDE_WIDTH = SCREEN_WIDTH;
 
 export default function WhatsNewModal() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const setLastSeenVersion = useWhatsNewStore((s) => s.setLastSeenVersion);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList<WhatsNewSlideEntry>>(null);
 
   const currentVersion = Application.nativeApplicationVersion ?? '0.0.0';
   const release = getWhatsNewRelease(currentVersion);
   const slides = release?.slides ?? [];
 
-  const isLastSlide = activeIndex === slides.length - 1;
-
   const dismiss = useCallback(() => {
     setLastSeenVersion(currentVersion);
     trackEvent(AnalyticsEvent.WHATS_NEW_DISMISSED, {
       version: currentVersion,
-      last_slide_index: activeIndex,
-      completed_all: activeIndex === slides.length - 1,
+      completed_all: true,
     });
     router.back();
-  }, [currentVersion, activeIndex, slides.length, setLastSeenVersion, router]);
+  }, [currentVersion, setLastSeenVersion, router]);
 
-  const handleNext = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    if (isLastSlide) {
-      dismiss();
-    } else {
-      flatListRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
-    }
-  }, [activeIndex, isLastSlide, dismiss]);
-
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken<WhatsNewSlideEntry>[] }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index != null) {
-        setActiveIndex(viewableItems[0].index);
-      }
-    },
-  ).current;
-
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
-
-  const renderSlide = useCallback(
-    ({ item }: ListRenderItemInfo<WhatsNewSlideEntry>) => {
-      const Icon = item.icon;
-      return (
-        <View
-          style={{
-            width: SLIDE_WIDTH,
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            paddingHorizontal: 32,
-          }}
-        >
-          <Animated.View entering={FadeInUp.delay(100).duration(250)}>
-            <View
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: 24,
-                borderCurve: 'continuous',
-                backgroundColor: item.iconBgColor,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 24,
-              }}
-            >
-              <Icon size={40} color={item.iconColor} />
-            </View>
-          </Animated.View>
-
-          <Animated.Text
-            entering={FadeInUp.delay(200).duration(250)}
-            style={{
-              fontSize: 24,
-              fontWeight: '800',
-              color: palette.neutral900,
-              textAlign: 'center',
-              marginBottom: 12,
-              letterSpacing: -0.3,
-            }}
-          >
-            {t(item.titleKey)}
-          </Animated.Text>
-
-          <Animated.Text
-            entering={FadeInUp.delay(300).duration(250)}
-            style={{
-              fontSize: 16,
-              color: palette.neutral500,
-              textAlign: 'center',
-              lineHeight: 24,
-              maxWidth: 300,
-            }}
-          >
-            {t(item.descriptionKey)}
-          </Animated.Text>
-        </View>
-      );
-    },
-    [t],
-  );
-
-  // Safety net — NavigationGate already prevents opening without release data
   if (slides.length === 0) {
     return null;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.white }}>
+    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       {/* Header */}
       <Animated.View
         entering={FadeIn.duration(200)}
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingTop: 16,
+          alignItems: 'flex-start',
+          paddingHorizontal: 24,
+          paddingTop: insets.top + 16,
+          paddingBottom: 4,
         }}
       >
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.primary500,
-            textTransform: 'uppercase',
-            letterSpacing: 0.8,
-          }}
-        >
-          {t('whatsNew.badge')}
-        </Text>
+        <View style={{ gap: 6 }}>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: '800',
+              color: palette.white,
+              letterSpacing: -0.3,
+            }}
+          >
+            {t('whatsNew.badge')}
+          </Text>
+          <Text style={{ fontSize: 13, fontWeight: '500', color: palette.neutral500 }}>
+            Version {currentVersion}
+          </Text>
+        </View>
         <Pressable
           onPress={dismiss}
           hitSlop={16}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
           style={({ pressed }) => ({
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            backgroundColor: palette.surfaceElevated,
+            alignItems: 'center' as const,
+            justifyContent: 'center' as const,
             opacity: pressed ? 0.5 : 1,
-            padding: 4,
+            marginTop: 4,
           })}
         >
-          <X size={22} color={palette.neutral400} />
+          <X size={15} color={palette.neutral400} />
         </Pressable>
       </Animated.View>
 
-      {/* Carousel */}
-      <FlatList
-        ref={flatListRef}
-        data={slides}
-        renderItem={renderSlide}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        keyExtractor={(_, i) => `slide-${i}`}
-        bounces={false}
-        getItemLayout={(_, index) => ({
-          length: SLIDE_WIDTH,
-          offset: SLIDE_WIDTH * index,
-          index,
+      {/* Feature cards */}
+      <View
+        style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 20 }}
+      >
+        {slides.map((slide, index) => {
+          const Icon = slide.icon;
+          return (
+            <Animated.View
+              key={slide.titleKey}
+              entering={FadeInUp.delay(100 + index * 70).duration(250)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 16,
+                backgroundColor: palette.surfaceElevated,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.06)',
+                padding: 16,
+                marginBottom: index < slides.length - 1 ? 10 : 0,
+              }}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  backgroundColor: `${slide.iconColor}15`,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={24} color={slide.iconColor} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: palette.white,
+                    marginBottom: 3,
+                  }}
+                >
+                  {t(slide.titleKey)}
+                </Text>
+                <Text style={{ fontSize: 13, color: palette.neutral400, lineHeight: 18 }}>
+                  {t(slide.descriptionKey)}
+                </Text>
+              </View>
+            </Animated.View>
+          );
         })}
-      />
+      </View>
 
-      {/* Footer: dots + button */}
+      {/* CTA */}
       <Animated.View
         entering={FadeIn.delay(400).duration(250)}
-        style={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        style={{
+          paddingHorizontal: 24,
+          paddingBottom: Math.max(insets.bottom, 20) + 8,
+        }}
       >
-        {/* Dot indicators */}
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: 8,
-            marginBottom: 24,
-          }}
-        >
-          {slides.map((slide, i) => (
-            <View
-              key={slide.titleKey}
-              style={{
-                width: i === activeIndex ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                borderCurve: 'continuous',
-                backgroundColor: i === activeIndex ? palette.primary500 : palette.neutral200,
-              }}
-            />
-          ))}
-        </View>
-
-        {/* CTA Button */}
         <Pressable
-          onPress={handleNext}
+          onPress={() => {
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+            dismiss();
+          }}
           style={({ pressed }) => ({
-            backgroundColor: palette.neutral900,
-            borderRadius: 16,
+            backgroundColor: palette.signature500,
+            borderRadius: 14,
             borderCurve: 'continuous',
-            paddingVertical: 18,
+            paddingVertical: 16,
             alignItems: 'center',
             opacity: pressed ? 0.85 : 1,
             transform: [{ scale: pressed ? 0.98 : 1 }],
           })}
         >
-          <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-            {isLastSlide ? t('whatsNew.getStarted') : t('whatsNew.next')}
+          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+            {t('whatsNew.getStarted')}
           </Text>
         </Pressable>
       </Animated.View>

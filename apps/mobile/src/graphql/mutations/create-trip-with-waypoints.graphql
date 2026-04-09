@@ -17,6 +17,7 @@ mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {
       id
       tripId
       sortOrder
+      dayIndex
       type
       name
       notes

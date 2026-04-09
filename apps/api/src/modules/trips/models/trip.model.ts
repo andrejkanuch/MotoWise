@@ -41,6 +41,9 @@ export class TripWaypoint {
   @Field(() => Float)
   lng: number;
 
+  @Field(() => Int)
+  dayIndex: number;
+
   @Field()
   createdAt: string;
 }
