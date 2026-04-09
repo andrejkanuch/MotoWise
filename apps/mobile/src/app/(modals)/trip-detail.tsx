@@ -8,7 +8,7 @@ import {
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as FileSystem from 'expo-file-system/legacy';
+import { File, Paths } from 'expo-file-system/next';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
@@ -309,12 +309,10 @@ ${rteptElements}
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
     const fileName = `${slug}-motovault.gpx`;
-    const filePath = `${FileSystem.cacheDirectory}${fileName}`;
-
-    await FileSystem.writeAsStringAsync(filePath, gpx, {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
-    await Sharing.shareAsync(filePath, {
+    const file = new File(Paths.cache, fileName);
+    file.create();
+    file.write(gpx);
+    await Sharing.shareAsync(file.uri, {
       mimeType: 'application/gpx+xml',
       UTI: 'com.topografix.gpx',
     });
