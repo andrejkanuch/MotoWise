@@ -6,9 +6,10 @@ export const COMMENT_TARGET = {
   RIDE: 'ride',
   ROUTE: 'route',
   GROUP_RIDE: 'group_ride',
+  TRIP: 'trip',
 } as const;
 
-export const CommentTargetSchema = z.enum(['ride', 'route', 'group_ride']);
+export const CommentTargetSchema = z.enum(['ride', 'route', 'group_ride', 'trip']);
 export type CommentTarget = z.infer<typeof CommentTargetSchema>;
 
 // --- Create Comment ---
@@ -18,11 +19,12 @@ export const CreateCommentInputSchema = z
     rideId: z.string().uuid().optional(),
     routeId: z.string().uuid().optional(),
     groupRideId: z.string().uuid().optional(),
+    tripId: z.string().uuid().optional(),
     parentCommentId: z.string().uuid().optional(),
     text: z.string().min(1).max(500),
   })
-  .refine((d) => [d.rideId, d.routeId, d.groupRideId].filter(Boolean).length === 1, {
-    message: 'Exactly one target (rideId, routeId, or groupRideId) must be provided',
+  .refine((d) => [d.rideId, d.routeId, d.groupRideId, d.tripId].filter(Boolean).length === 1, {
+    message: 'Exactly one target (rideId, routeId, groupRideId, or tripId) must be provided',
   });
 
 export type CreateCommentInput = z.infer<typeof CreateCommentInputSchema>;

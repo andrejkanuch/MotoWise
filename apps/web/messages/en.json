@@ -1,12 +1,15 @@
 {
   "Metadata": {
-    "title": "MotoVault — AI Motorcycle Diagnostics & Learning App",
+    "title": "MotoVault — Motorcycle Maintenance, Expenses & Ride Tracker",
     "titleTemplate": "%s | MotoVault",
-    "description": "Master motorcycle maintenance, diagnose issues with a photo, and track your bike's health. Launching soon — free on iOS & Android.",
-    "ogDescription": "Master motorcycle maintenance, diagnose issues with a photo, and track your bike's health. Launching soon — free on iOS & Android."
+    "description": "Track maintenance tasks, log fuel and gear expenses, record rides, and diagnose issues with AI. Free on iOS & Android.",
+    "ogDescription": "Track maintenance tasks, log fuel and gear expenses, record rides, and diagnose issues with AI. Free on iOS & Android."
   },
   "Navbar": {
     "features": "Features",
+    "maintenance": "Maintenance",
+    "expenses": "Expenses",
+    "rides": "Rides",
     "diagnostics": "AI Diagnostics",
     "learning": "Learning",
     "garage": "Garage",
@@ -16,71 +19,72 @@
     "login": "Log In",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
-    "signup": "Sign Up"
+    "signup": "Sign Up",
+    "dashboard": "My Garage"
   },
   "Hero": {
-    "line1": "LEARN YOUR BIKE.",
-    "line2": "FIX",
-    "line3": "YOUR BIKE.",
-    "subtitle": "AI-powered motorcycle diagnostics & learning — launching soon.",
-    "downloadCta": "Get the App",
+    "line1": "TRACK YOUR BIKE.",
+    "line2": "OWN",
+    "line3": "YOUR RIDE.",
+    "subtitle": "Maintenance logs, expense tracking, and ride recording — all in one app.",
+    "downloadCta": "Start Tracking Free",
     "exploreFeatures": "Explore Features",
     "scrollDown": "Scroll down",
-    "seoTitle": "AI-Powered Motorcycle Diagnostics & Learning App"
+    "seoTitle": "Motorcycle Maintenance Tracker & Expense Manager"
   },
   "Features": {
     "sectionLabel": "Features",
     "sectionTitle": "Everything Your Bike Needs",
-    "sectionSubtitle": "Learn, maintain, and master your motorcycle — all in one app.",
+    "sectionSubtitle": "Track expenses, manage maintenance, log rides, and diagnose issues — all in one app.",
+    "maintenance": {
+      "title": "Maintenance Tracker",
+      "tagline": "Never miss a service again.",
+      "description": "Log every oil change, chain lube, and tire swap. Set mileage-based or time-based reminders that notify you before you're overdue. Full service history at a glance.",
+      "badge": "Smart reminders"
+    },
+    "expenses": {
+      "title": "Expense Tracker",
+      "tagline": "Know what your bike really costs.",
+      "description": "Track fuel, gear, parts, insurance, and every cost of ownership. See spending trends by category with monthly breakdowns and cost-per-mile analytics.",
+      "badge": "Cost insights"
+    },
+    "rides": {
+      "title": "Ride Logger",
+      "tagline": "Every ride, mapped and saved.",
+      "description": "Record GPS routes with speed, elevation, and distance. Review ride stats, share highlights, and build a complete riding history.",
+      "badge": "GPS tracking"
+    },
     "diag": {
       "title": "AI Diagnostics",
       "tagline": "Snap a photo. Get answers.",
       "description": "Point your camera at any part, warning light, or issue. Our AI identifies components, diagnoses problems, and suggests fixes — all in seconds.",
       "badge": "< 5 sec"
     },
-    "learn": {
-      "title": "Wrench Skills",
-      "tagline": "From oil changes to engine rebuilds.",
-      "description": "Learn how your engine, suspension, and electrics actually work — with bite-sized lessons, quizzes, and real garage tasks.",
-      "badge": "50+ lessons"
-    },
     "garage": {
-      "title": "Garage Management",
-      "tagline": "Track your bikes.",
-      "description": "Store every bike by make, model, and year. Log maintenance, set service reminders, and keep a complete history so nothing gets missed.",
+      "title": "Digital Garage",
+      "tagline": "All your bikes, one place.",
+      "description": "Store every bike by make, model, and year. Specs loaded automatically. One tap to see maintenance, expenses, and rides for any bike.",
       "badge": "Unlimited bikes"
-    },
-    "progress": {
-      "title": "Skill Tracker",
-      "tagline": "See how far you've come.",
-      "description": "Level up as you learn. Earn badges, track your quiz scores, and see your growth — from first oil change to full-on gearhead.",
-      "badge": "Level up"
-    },
-    "community": {
-      "title": "Community",
-      "tagline": "Join fellow riders.",
-      "description": "Share your garage, compare progress, and learn alongside riders at every level. Motorcycle knowledge is better together.",
-      "badge": "New"
     }
   },
   "SocialProof": {
     "riders": "Active Riders",
     "ridersCount": "2,400+",
-    "diagnostics": "AI Diagnoses Run",
-    "diagnosticsCount": "8,500+",
-    "bikes": "Bikes in Database",
+    "maintenance": "Maintenance Tasks Logged",
+    "maintenanceCount": "12,000+",
+    "bikes": "Bikes Tracked",
     "bikesCount": "18,000+"
   },
   "HowItWorks": {
     "sectionLabel": "How It Works",
-    "sectionTitle": "How It Works",
-    "sectionSubtitle": "Three steps. That's it.",
+    "sectionTitle": "Three Steps to Total Control",
+    "sectionSubtitle": "Set up in minutes. Track for years.",
     "step1Title": "Add Your Bike",
     "step1Desc": "Search by make, model, and year. Your bike's specs are loaded automatically from official databases.",
-    "step2Title": "Get AI Insights",
-    "step2Desc": "Snap a photo of any part or issue. Our AI identifies components, diagnoses problems, and suggests fixes.",
-    "step3Title": "Ride Smarter",
-    "step3Desc": "Stay on top of maintenance with smart reminders and build real skills with guided lessons."
+    "step2Title": "Track Everything",
+    "step2Desc": "Log maintenance, record expenses, and track rides. Every data point builds your bike's complete history.",
+    "step3Title": "Stay Ahead",
+    "step3Desc": "Get smart service reminders, cost-per-mile insights, and AI diagnostics — so nothing catches you off guard."
   },
   "Testimonials": {
     "sectionLabel": "Testimonials",
@@ -122,21 +126,21 @@
   "AppShowcase": {
     "sectionLabel": "See It in Action",
     "sectionTitle": "Your Motorcycle Command Center",
-    "cap1Title": "AI Diagnostics",
-    "cap1Desc": "Point your camera at any issue. Get part identification, severity rating, and step-by-step fixes in seconds.",
-    "cap1Alt": "MotoVault AI diagnosis result screen",
-    "cap2Title": "Smart Maintenance",
-    "cap2Desc": "Track every service, set mileage-based reminders, and never miss an oil change or chain lube again.",
-    "cap2Alt": "MotoVault maintenance tracking screen",
-    "cap3Title": "Learn & Level Up",
-    "cap3Desc": "Structured courses on engine internals, suspension tuning, and electrical systems — with quizzes to test your knowledge.",
-    "cap3Alt": "MotoVault learning dashboard",
+    "cap1Title": "Maintenance Tracker",
+    "cap1Desc": "Log every service with dates, mileage, and costs. Smart reminders notify you before the next oil change, chain lube, or brake check is due.",
+    "cap1Alt": "MotoVault maintenance tracking screen",
+    "cap2Title": "Expense Tracker",
+    "cap2Desc": "See exactly what your bike costs. Track fuel, parts, gear, and insurance with monthly breakdowns and cost-per-mile analytics.",
+    "cap2Alt": "MotoVault expense tracking screen",
+    "cap3Title": "AI Diagnostics",
+    "cap3Desc": "Point your camera at any issue. Get part identification, severity rating, and step-by-step fixes in seconds.",
+    "cap3Alt": "MotoVault AI diagnosis result screen",
     "learnMore": "Learn more"
   },
   "Cta": {
     "socialProof": "Trusted by thousands of riders worldwide",
-    "headline": "Know Your Bike Inside Out",
-    "subtitle": "Free on iOS and Android. Start tracking your bike today.",
+    "headline": "Stop Guessing. Start Tracking.",
+    "subtitle": "Free on iOS and Android. Your bike's maintenance, expenses, and rides — finally in one place.",
     "trustFree": "Free to start",
     "trustNoCard": "No spam, ever",
     "disclaimer": "Available now on iOS and Android.",
@@ -154,11 +158,11 @@
     "items": [
       {
         "question": "What is MotoVault?",
-        "answer": "MotoVault is an AI-powered platform built for motorcycle riders. It helps you learn maintenance, diagnose issues by snapping a photo, track your bikes in a digital garage, and build real mechanical skills through lessons and quizzes."
+        "answer": "MotoVault is a motorcycle management app built for riders. Track maintenance tasks with smart reminders, log every expense (fuel, gear, parts), record your rides, and diagnose issues with AI photo analysis — all in one app."
       },
       {
         "question": "Is MotoVault free?",
-        "answer": "Yes! MotoVault offers a free tier that includes basic learning content, one bike in your garage, and limited AI diagnostics. For unlimited diagnostics, all learning content, and unlimited bikes, you can upgrade to MotoVault Pro within the app."
+        "answer": "Yes! MotoVault offers a free tier that includes maintenance tracking with smart reminders, one bike in your garage, expense logging, and limited AI diagnostics. For unlimited bikes, full expense analytics, unlimited AI diagnostics, and all learning content, you can upgrade to MotoVault Pro within the app."
       },
       {
         "question": "What motorcycles are supported?",
@@ -174,7 +178,7 @@
       },
       {
         "question": "What's included in MotoVault Pro?",
-        "answer": "MotoVault Pro unlocks unlimited AI diagnostics, access to all lessons and courses, unlimited bikes in your garage, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
+        "answer": "MotoVault Pro unlocks unlimited bikes, full expense analytics with cost-per-mile, unlimited AI diagnostics, access to all lessons and courses, priority support, and exclusive content. You can subscribe monthly or yearly from within the app."
       },
       {
         "question": "What is the best motorcycle maintenance app?",
@@ -189,7 +193,7 @@
   "Footer": {
     "product": "Product",
     "company": "Company",
-    "tagline": "Learn your bike. Fix your bike.",
+    "tagline": "Track every mile. Know every cost.",
     "copyright": "© 2026 MotoVault. All rights reserved.",
     "features": "Features",
     "learning": "Learning Paths",

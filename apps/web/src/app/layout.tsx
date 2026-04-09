@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: 'MotoVault',
     template: '%s | MotoVault',
   },
-  description: 'AI-powered motorcycle learning & diagnostics platform',
+  description: 'Motorcycle maintenance, expense tracking & ride logging platform',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },

@@ -1,5 +1,6 @@
 'use client';
 import { useTranslations } from 'next-intl';
+import posthog from 'posthog-js';
 import { trackEvent } from '@/lib/meta-pixel';
 import { AppPreview } from './app-preview';
 import { HeroCarousel } from './hero-carousel';
@@ -45,7 +46,6 @@ export function Hero() {
             style={{
               top: line.top,
               width: line.width,
-              willChange: 'transform',
               animation: `speed-line ${line.duration} ease-in-out ${line.delay} infinite`,
             }}
           />
@@ -58,7 +58,6 @@ export function Hero() {
             style={{
               top: line.top,
               width: line.width,
-              willChange: 'transform',
               animation: `speed-line-slow ${line.duration} ease-in-out ${line.delay} infinite`,
             }}
           />
@@ -72,42 +71,52 @@ export function Hero() {
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             {t('seoTitle')}
           </p>
-          <h1 className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight text-neutral-50">
-            {t('line1')}
+          <h1
+            className="min-w-0 text-[clamp(2.5rem,7vw,6rem)] font-extrabold leading-[1.05] tracking-tight"
+            style={{
+              overflowWrap: 'anywhere',
+              hyphens: 'auto',
+              textShadow: '0 2px 32px oklch(0.76 0.13 70 / 0.18)',
+            }}
+          >
+            <span className="bg-gradient-to-r from-neutral-50 via-neutral-50 to-warm-300 bg-clip-text text-transparent">
+              {t('line1')}
+            </span>
             <br />
             <span>
-              <span className="text-warm-400">{t('line2')}</span> {t('line3')}
+              <span className="text-warm-400">{t('line2')}</span>{' '}
+              <span className="bg-gradient-to-r from-neutral-50 to-warm-200 bg-clip-text text-transparent">
+                {t('line3')}
+              </span>
             </span>
           </h1>
 
           {/* Gradient accent line */}
           <div className="accent-line-enter mt-4 h-1 w-32 rounded-full bg-signature-500" />
 
-          <p className="mt-6 max-w-lg text-xl text-neutral-300">{t('subtitle')}</p>
+          <p className="mt-6 max-w-lg text-xl leading-relaxed text-neutral-300">{t('subtitle')}</p>
 
           <div className="mt-12 flex flex-wrap items-center gap-4">
             {/* App Store CTA with glow */}
             <a
               href={STORE_LINKS.appStore}
-              onClick={() =>
-                trackEvent('Lead', { content_name: 'App Download', content_category: 'ios' })
-              }
+              onClick={() => {
+                trackEvent('Lead', { content_name: 'App Download', content_category: 'ios' });
+                posthog.capture('app_download_clicked', { platform: 'ios', location: 'hero' });
+              }}
               className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
-              <span className="absolute inset-0 -translate-x-full bg-warm-300 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-              <span className="relative">{t('downloadCta')}</span>
+              {t('downloadCta')}
             </a>
 
             {/* Google Play CTA */}
             <a
               href={STORE_LINKS.googlePlay}
-              onClick={() =>
-                trackEvent('Lead', {
-                  content_name: 'App Download',
-                  content_category: 'android',
-                })
-              }
-              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-8 py-3.5 text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              onClick={() => {
+                trackEvent('Lead', { content_name: 'App Download', content_category: 'android' });
+                posthog.capture('app_download_clicked', { platform: 'android', location: 'hero' });
+              }}
+              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               Google Play
             </a>

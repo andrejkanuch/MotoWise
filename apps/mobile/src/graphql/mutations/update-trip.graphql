@@ -1,0 +1,12 @@
+mutation UpdateTrip($input: UpdateTripInput!) {
+  updateTrip(input: $input) {
+    id
+    title
+    description
+    startDate
+    endDate
+    difficulty
+    maxRiders
+    status
+  }
+}

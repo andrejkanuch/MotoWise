@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — Yapay Zeka Destekli Motosiklet Teshis ve Ogrenme Uygulamasi",
+    "title": "MotoVault — Motosiklet Bakım, Gider ve Sürüş Takipçisi",
     "titleTemplate": "%s | MotoVault",
-    "description": "Motosiklet bakiminda ustalasin, bir fotoyla sorunlari teshis et ve motorunun sagligini takip et. Yakin zamanda basliyor — iOS ve Android'de ucretsiz.",
-    "ogDescription": "Motosiklet bakiminda ustalasin, bir fotoyla sorunlari teshis et ve motorunun sagligini takip et. Yakin zamanda basliyor — iOS ve Android'de ucretsiz."
+    "description": "Bakım görevlerini takip edin, yakıt ve ekipman giderlerini kaydedin, sürüşleri kaydedin ve sorunları yapay zeka ile teşhis edin. iOS ve Android'de ücretsiz.",
+    "ogDescription": "Bakım görevlerini takip edin, yakıt ve ekipman giderlerini kaydedin, sürüşleri kaydedin ve sorunları yapay zeka ile teşhis edin. iOS ve Android'de ücretsiz."
   },
   "Navbar": {
     "features": "Ozellikler",
-    "diagnostics": "Yapay Zeka Teshisi",
     "learning": "Ogrenme",
     "garage": "Garaj",
     "faq": "SSS",
@@ -15,71 +14,76 @@
     "login": "Giris Yap",
     "openMenu": "Navigasyon menusunu ac",
     "closeMenu": "Navigasyon menusunu kapat",
-    "signup": "Kayıt Ol"
+    "signup": "Kayıt Ol",
+    "dashboard": "My Garage",
+    "diagnostics": "Yapay Zeka Teshisi",
+    "maintenance": "Bakım",
+    "expenses": "Giderler",
+    "rides": "Sürüşler"
   },
   "Hero": {
-    "line1": "MOTORUNU OGREN.",
-    "line2": "TAMIR",
-    "line3": "ET.",
-    "subtitle": "Yapay zeka destekli motosiklet teshisi ve ogrenme — yakin zamanda basliyor.",
-    "downloadCta": "Uygulamayi Indir",
+    "line1": "MOTOSİKLETİNİ TAKİP ET.",
+    "line2": "SÜRÜŞÜNE",
+    "line3": "SAHİP ÇIK.",
+    "subtitle": "Bakım kayıtları, gider takibi ve sürüş kaydı — hepsi tek bir uygulamada.",
+    "downloadCta": "Ücretsiz Takibe Başla",
     "exploreFeatures": "Ozellikleri Kesfet",
     "scrollDown": "Asagi kaydir",
-    "seoTitle": "Yapay Zeka Destekli Motosiklet Teshis ve Ogrenme Uygulamasi"
+    "seoTitle": "Motosiklet Bakım Takipçisi ve Gider Yöneticisi"
   },
   "Features": {
     "sectionLabel": "Ozellikler",
     "sectionTitle": "Motorunun Ihtiyaci Olan Her Sey",
-    "sectionSubtitle": "Ogren, bakim yap ve motosikletinde ustalasin — hepsi tek uygulamada.",
+    "sectionSubtitle": "Giderleri takip edin, bakımı yönetin, sürüşleri kaydedin ve sorunları teşhis edin — hepsi tek bir uygulamada.",
     "diag": {
       "title": "Yapay Zeka Teshisi",
       "tagline": "Foto cek. Cevap al.",
       "description": "Kamerani herhangi bir parcaya, uyari isigina veya soruna dogrul. Yapay zekamiz parcalari tanir, sorunlari teshis eder ve cozumler onerir — saniyeler icinde.",
       "badge": "< 5 sn"
     },
-    "learn": {
-      "title": "Tamirci Becerileri",
-      "tagline": "Yag degisiminden motor revizyonuna.",
-      "description": "Motorunun, sushansiyonunun ve elektrik sisteminin nasil calistigini ogren — kisa dersler, testler ve gercek garaj gorevleriyle.",
-      "badge": "50+ ders"
-    },
     "garage": {
-      "title": "Garaj Yonetimi",
-      "tagline": "Motorlarini takip et.",
-      "description": "Her motoru marka, model ve yila gore kaydet. Bakim kaydet, servis hatirlatmalari kur ve eksiksiz bir gecmis tut.",
-      "badge": "Sinirsiz motor"
+      "title": "Dijital Garaj",
+      "tagline": "Tüm motosikletleriniz, tek bir yer.",
+      "description": "Her motosikleti marka, model ve yıla göre kaydedin. Özellikler otomatik yüklenir. Herhangi bir motosikletin bakım, gider ve sürüşlerini görmek için tek dokunuş.",
+      "badge": "Sınırsız motosiklet"
     },
-    "progress": {
-      "title": "Beceri Takibi",
-      "tagline": "Ne kadar ilerledigin gor.",
-      "description": "Ogrendikce seviye atla. Rozetler kazan, test puanlarini takip et ve gelisimini gor — ilk yag degisiminden tam bir motorcu olmaya.",
-      "badge": "Seviye atla"
+    "maintenance": {
+      "title": "Bakım Takipçisi",
+      "tagline": "Bir daha asla servis kaçırmayın.",
+      "description": "Her yağ değişimini, zincir yağlamasını ve lastik değişimini kaydedin. Kilometre veya zamana dayalı hatırlatıcılar ayarlayın. Tam servis geçmişi bir bakışta.",
+      "badge": "Akıllı hatırlatıcılar"
     },
-    "community": {
-      "title": "Topluluk",
-      "tagline": "Diger suruculere katil.",
-      "description": "Garajini paylas, ilerlemeni karsilastir ve her seviyedeki suruculerle birlikte ogren. Motosiklet bilgisi birlikte daha iyidir.",
-      "badge": "Yeni"
+    "expenses": {
+      "title": "Gider Yöneticisi",
+      "tagline": "Motosikletinizin gerçek maliyetini bilin.",
+      "description": "Yakıt, ekipman, parça, sigorta ve tüm sahip olma maliyetlerini takip edin. Aylık dökümler ve kilometre başına maliyet analizleriyle kategori bazında harcama trendlerini görün.",
+      "badge": "Maliyet analizleri"
+    },
+    "rides": {
+      "title": "Sürüş Kaydedici",
+      "tagline": "Her sürüş, haritada ve kayıtlı.",
+      "description": "Hız, yükseklik ve mesafe ile GPS rotalarını kaydedin. Sürüş istatistiklerini inceleyin, öne çıkanları paylaşın ve eksiksiz bir sürüş geçmişi oluşturun.",
+      "badge": "GPS takibi"
     }
   },
   "SocialProof": {
     "riders": "Aktif Suruculer",
     "ridersCount": "2.400+",
-    "diagnostics": "Yapilan AI Teshisleri",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Veritabanindaki Motor",
+    "maintenance": "Yapilan AI Teshisleri",
+    "maintenanceCount": "8.500+",
+    "bikes": "Takip Edilen Motosikletler",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Nasil Calisir",
-    "sectionTitle": "Nasil Calisir",
-    "sectionSubtitle": "Uc adim. Hepsi bu.",
+    "sectionTitle": "Tam Kontrole Üç Adım",
+    "sectionSubtitle": "Dakikalar içinde kurun. Yıllarca takip edin.",
     "step1Title": "Motorunu Ekle",
     "step1Desc": "Marka, model ve yila gore ara. Motor bilgilerin resmi veritabanindan otomatik olarak yuklenir.",
-    "step2Title": "Yapay Zeka Analizleri Al",
-    "step2Desc": "Herhangi bir parca veya sorunun fotografini cek. Yapay zekamiz parcalari tanir, sorunlari teshis eder ve cozumler onerir.",
-    "step3Title": "Daha Akilli Sur",
-    "step3Desc": "Akilli hatirlatmalarla bakimi takip et ve rehberli derslerle gercek beceriler kazan."
+    "step2Title": "Her Şeyi Takip Edin",
+    "step2Desc": "Bakımı kaydedin, giderleri not edin ve sürüşleri takip edin. Her veri noktası motosikletinizin tam geçmişini oluşturur.",
+    "step3Title": "Hep Bir Adım Önde",
+    "step3Desc": "Akıllı servis hatırlatıcıları, kilometre başına maliyet analizleri ve yapay zeka teşhisleri alın — hiçbir şey sizi hazırlıksız yakalamasın."
   },
   "Testimonials": {
     "sectionLabel": "Kullanici Yorumlari",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "Aksiyonda Gor",
     "sectionTitle": "Motosiklet Komuta Merkezin",
-    "cap1Title": "Yapay Zeka Teshisi",
-    "cap1Desc": "Kamerani herhangi bir soruna dogrul. Parca tanima, ciddiyet derecesi ve adim adim cozumler saniyeler icinde.",
-    "cap1Alt": "MotoVault yapay zeka teshis sonuc ekrani",
-    "cap2Title": "Akilli Bakim",
-    "cap2Desc": "Her servisi kaydet, kilometre bazli hatirlatmalar kur ve bir daha asla yag degisimi veya zincir yaglama kacirma.",
-    "cap2Alt": "MotoVault bakim takip ekrani",
-    "cap3Title": "Ogren ve Gelis",
-    "cap3Desc": "Motor ic yapisi, sushansiyon ayari ve elektrik sistemleri uzerine yapilandirilmis kurslar — bilgini test etmek icin testlerle.",
-    "cap3Alt": "MotoVault ogrenme panosu",
+    "cap1Title": "Bakım Takipçisi",
+    "cap1Desc": "Her servisi tarih, kilometre ve maliyetle kaydedin. Akıllı hatırlatıcılar bir sonraki yağ değişimi, zincir yağlaması veya fren kontrolünden önce sizi uyarır.",
+    "cap1Alt": "MotoVault bakım takip ekranı",
+    "cap2Title": "Gider Takipçisi",
+    "cap2Desc": "Motosikletinizin tam olarak ne kadara mal olduğunu görün. Yakıt, parça, ekipman ve sigortayı aylık döküm ve kilometre başına maliyet analizleriyle takip edin.",
+    "cap2Alt": "MotoVault gider takip ekranı",
+    "cap3Title": "Yapay Zeka Teşhisi",
+    "cap3Desc": "Kameranızı herhangi bir soruna yöneltin. Parça tanımlama, ciddiyet değerlendirmesi ve adım adım çözümleri saniyeler içinde alın.",
+    "cap3Alt": "MotoVault yapay zeka teşhis sonucu ekranı",
     "learnMore": "Daha fazla bilgi"
   },
   "Cta": {
     "socialProof": "Dunya genelinde binlerce surucu tarafindan guveniliyor",
-    "headline": "Motorunu Icinden Dis Tani",
-    "subtitle": "iOS ve Android'de ucretsiz. Bugun motorunu takip etmeye basla.",
+    "headline": "Tahmin Etmeyi Bırakın. Takibe Başlayın.",
+    "subtitle": "iOS ve Android'de ücretsiz. Motosikletinizin bakımı, giderleri ve sürüşleri — nihayet tek bir yerde.",
     "trustFree": "Ucretsiz basla",
     "trustNoCard": "Asla spam yok",
     "disclaimer": "Simdi iOS ve Android'de mevcut.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "MotoVault nedir?",
-        "answer": "MotoVault, motosiklet suruculeri icin olusturulmus yapay zeka destekli bir platformdur. Bakim ogrenmenize, foto cekerek sorunlari teshis etmenize, motorlarinizi dijital garajda takip etmenize ve dersler ile testlerle gercek mekanik beceriler kazanmaniza yardimci olur."
+        "answer": "MotoVault, motosiklet sürücüleri için oluşturulmuş bir motosiklet yönetim uygulamasıdır. Akıllı hatırlatıcılarla bakım görevlerini takip edin, her gideri (yakıt, ekipman, parça) kaydedin, sürüşlerinizi kaydedin ve yapay zeka fotoğraf analiziyle sorunları teşhis edin — hepsi tek bir uygulamada."
       },
       {
         "question": "MotoVault ucretsiz mi?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Urun",
     "company": "Sirket",
-    "tagline": "Motorunu ogren. Motorunu tamir et.",
+    "tagline": "Her kilometreyi takip edin. Her maliyeti bilin.",
     "copyright": "© 2026 MotoVault. Tum haklari saklidir.",
     "features": "Ozellikler",
     "learning": "Ogrenme Yollari",

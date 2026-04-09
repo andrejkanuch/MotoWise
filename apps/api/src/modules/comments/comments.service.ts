@@ -34,7 +34,7 @@ export class CommentsService {
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
   async getComments(
-    targetField: 'ride_id' | 'route_id' | 'group_ride_id',
+    targetField: 'ride_id' | 'route_id' | 'group_ride_id' | 'trip_id',
     targetId: string,
     first: number,
     after?: string,
@@ -161,6 +161,7 @@ export class CommentsService {
       rideId?: string;
       routeId?: string;
       groupRideId?: string;
+      tripId?: string;
       parentCommentId?: string;
       text: string;
     },
@@ -191,6 +192,7 @@ export class CommentsService {
         ride_id: input.rideId ?? null,
         route_id: input.routeId ?? null,
         group_ride_id: input.groupRideId ?? null,
+        trip_id: input.tripId ?? null,
         parent_comment_id: input.parentCommentId ?? null,
         text: input.text,
       })

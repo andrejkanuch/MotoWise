@@ -1,5 +1,6 @@
 'use client';
 
+import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 
@@ -111,6 +112,11 @@ export function TclocsChecklist({
       setElapsedMs(time);
       if (timerRef.current) clearInterval(timerRef.current);
 
+      posthog.capture('tclocs_checklist_completed', {
+        completion_time_ms: time,
+        total_items: totalItems,
+      });
+
       // Check for new record
       if (!bestTime || time < bestTime) {
         setBestTime(time);
@@ -120,7 +126,7 @@ export function TclocsChecklist({
         } catch {}
       }
     }
-  }, [allComplete, totalChecked, timerStartMs, completionTime, bestTime]);
+  }, [allComplete, totalChecked, timerStartMs, completionTime, bestTime, totalItems]);
 
   const toggleItem = useCallback(
     (categoryId: string, itemIndex: number) => {
@@ -246,6 +252,12 @@ export function TclocsChecklist({
         <p style="text-align:center;font-size:11px;color:#9ca3af;margin-top:20px;">${labels.pdfFooter}</p>
       </div>
     </body></html>`;
+
+    posthog.capture('tclocs_pdf_downloaded', {
+      items_checked: totalChecked,
+      total_items: totalItems,
+      all_complete: allComplete,
+    });
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;

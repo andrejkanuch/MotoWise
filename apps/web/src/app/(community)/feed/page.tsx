@@ -3,6 +3,7 @@
 import type { GetRideFeedQuery } from '@motovault/graphql';
 import { GetRideFeedDocument, ToggleKudosDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import posthog from 'posthog-js';
 import { formatDate, formatDistance } from '@/lib/format-utils';
 import { gqlFetcher } from '@/lib/graphql-client';
 
@@ -32,7 +33,8 @@ export default function FeedPage() {
 
   const kudosMutation = useMutation({
     mutationFn: (rideId: string) => gqlFetcher(ToggleKudosDocument, { rideId }),
-    onSuccess: () => {
+    onSuccess: (_data, rideId) => {
+      posthog.capture('kudos_toggled', { ride_id: rideId });
       queryClient.invalidateQueries({ queryKey: ['rideFeed'] });
     },
   });

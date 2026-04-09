@@ -22,6 +22,7 @@ import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } fr
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -180,6 +181,10 @@ export default function RideSummaryScreen() {
       await Share.share({
         message: `Just completed a ${formatDistance(distanceM, system)} ride in ${formatDuration(durationS)} with MotoVault!`,
       });
+      trackEvent(AnalyticsEvent.RIDE_SHARED, {
+        distance_m: distanceM,
+        duration_s: durationS,
+      });
     } catch {
       // User cancelled
     }
@@ -201,6 +206,11 @@ export default function RideSummaryScreen() {
 
       clearRideData(rideId);
 
+      trackEvent(AnalyticsEvent.RIDE_COMPLETED, {
+        distance_m: distanceM,
+        duration_s: durationS,
+        shared_to_discover: shareToDiscover,
+      });
       MetaAnalytics.trackLogRide(distanceM / 1000);
       incrementRideCount();
       maybeRequestReview();
@@ -225,7 +235,7 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router, distanceM, shareToDiscover]);
+  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [

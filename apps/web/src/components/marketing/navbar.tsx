@@ -7,11 +7,10 @@ import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
 const NAV_LINKS = [
-  { key: 'features', href: '#features' },
+  { key: 'maintenance', href: '#features' },
+  { key: 'expenses', href: '#features' },
+  { key: 'rides', href: '#features' },
   { key: 'diagnostics', href: '/features/ai-diagnostics' },
-  { key: 'learning', href: '/features/learning-paths' },
-  { key: 'garage', href: '/features/garage-management' },
-  { key: 'compare', href: '/compare' },
   { key: 'faq', href: '#faq' },
 ] as const;
 
@@ -113,7 +112,10 @@ export function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
+      <div
+        className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      >
         {/* Logo */}
         <Link
           href="/"
@@ -123,10 +125,10 @@ export function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-6 lg:gap-8 md:flex">
+        <div className="hidden items-center gap-4 xl:gap-8 lg:flex">
           {NAV_LINKS.map((link) => {
             const cls =
-              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded';
+              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded min-h-[44px] inline-flex items-center';
             return link.href.startsWith('#') ? (
               <a key={link.href} href={link.href} className={cls}>
                 {t(link.key)}
@@ -143,13 +145,13 @@ export function Navbar() {
               href="/feed"
               className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
-              {t('dashboard', { defaultValue: 'My Feed' })}
+              {t('dashboard', { defaultValue: 'My Garage' })}
             </a>
           ) : (
             <>
               <a
                 href="/login"
-                className="rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
+                className="cta-secondary rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
               >
                 {t('login', { defaultValue: 'Log In' })}
               </a>
@@ -167,7 +169,7 @@ export function Navbar() {
         <button
           ref={menuButtonRef}
           type="button"
-          className="flex size-11 items-center justify-center rounded-lg text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 md:hidden"
+          className="flex size-11 items-center justify-center rounded-lg text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 lg:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
@@ -206,7 +208,8 @@ export function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label={t('openMenu')}
-          className="fixed inset-0 top-[72px] z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl md:hidden"
+          className="fixed inset-0 z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl lg:hidden"
+          style={{ top: 'calc(72px + env(safe-area-inset-top, 0px))' }}
         >
           <div className="flex flex-1 flex-col items-center justify-center gap-6">
             {NAV_LINKS.map((link, i) => {
@@ -239,23 +242,23 @@ export function Navbar() {
               <a
                 href="/feed"
                 onClick={closeMobile}
-                className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
               >
-                {t('dashboard', { defaultValue: 'My Feed' })}
+                {t('dashboard', { defaultValue: 'My Garage' })}
               </a>
             ) : (
               <>
                 <a
                   href="/login"
                   onClick={closeMobile}
-                  className="mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
+                  className="cta-secondary mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
                 >
                   {t('login', { defaultValue: 'Log In' })}
                 </a>
                 <a
                   href="/signup"
                   onClick={closeMobile}
-                  className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-semibold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                  className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
                 >
                   {t('signup', { defaultValue: 'Sign Up' })}
                 </a>

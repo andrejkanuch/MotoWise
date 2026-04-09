@@ -23,6 +23,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../../../hooks/use-currency';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -99,6 +100,10 @@ export default function CompleteTaskScreen() {
       }),
     onSuccess: () => {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_COMPLETED, {
+        has_cost: !!cost,
+        scheduled_next: task?.isRecurring ? scheduleNext : false,
+      });
       setCompleted(true);
       buttonScale.value = withSequence(
         withSpring(1.08, { damping: 8, stiffness: 200 }),

@@ -4,6 +4,7 @@ import type { MeQuery } from '@motovault/graphql';
 import { MeDocument, UpdateMyProfileDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
 
@@ -52,6 +53,11 @@ export default function EditProfilePage() {
         },
       }),
     onSuccess: () => {
+      posthog.capture('profile_updated', {
+        is_public: isPublic,
+        has_bio: bio.trim().length > 0,
+        has_city: city.trim().length > 0,
+      });
       queryClient.invalidateQueries({ queryKey: ['me'] });
       router.push('/profile');
     },

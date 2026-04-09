@@ -27,6 +27,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
@@ -151,6 +152,10 @@ export default function StartRideScreen() {
       });
 
       await startGPSListener(() => {});
+
+      trackEvent(AnalyticsEvent.RIDE_STARTED, {
+        has_motorcycle: !!selectedBikeId,
+      });
 
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(modals)/ride-hud' as any);

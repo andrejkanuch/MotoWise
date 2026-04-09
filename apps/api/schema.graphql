@@ -164,6 +164,7 @@ input CreateCommentInput {
   rideId: ID
   routeId: ID
   text: String!
+  tripId: ID
 }
 
 input CreateDiagnosticInput {
@@ -223,6 +224,35 @@ input CreateRouteReviewInput {
 input CreateShareLinkInput {
   expiresInDays: Int = 30
   motorcycleId: String!
+}
+
+input CreateTripInput {
+  description: String!
+  difficulty: String!
+  endDate: String!
+  maxRiders: Int!
+  startDate: String!
+  title: String!
+}
+
+input CreateTripWithWaypointsInput {
+  description: String!
+  difficulty: String!
+  endDate: String!
+  maxRiders: Int!
+  startDate: String!
+  title: String!
+  waypoints: [InlineWaypointInput!]!
+}
+
+input CreateWaypointInput {
+  lat: Float!
+  lng: Float!
+  name: String!
+  notes: String
+  sortOrder: Int!
+  tripId: ID!
+  type: String!
 }
 
 type DataExportRequest {
@@ -486,6 +516,15 @@ enum HealthReportStatus {
   pending
 }
 
+input InlineWaypointInput {
+  lat: Float!
+  lng: Float!
+  name: String!
+  notes: String
+  sortOrder: Int!
+  type: String!
+}
+
 enum InsightType {
   community
   learning
@@ -496,6 +535,12 @@ enum InsightType {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+input JoinTripInput {
+  bikeId: ID
+  status: String
+  tripId: ID!
+}
 
 type KudosResult {
   hasKudos: Boolean!
@@ -645,6 +690,7 @@ enum MotorcycleType {
 
 type Mutation {
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
+  addWaypoint(input: CreateWaypointInput!): TripWaypoint!
   cancelGroupRide(groupRideId: ID!): Boolean!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
@@ -656,6 +702,8 @@ type Mutation {
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
   createRouteReview(input: CreateRouteReviewInput!): RouteReview!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
+  createTrip(input: CreateTripInput!): Trip!
+  createTripWithWaypoints(input: CreateTripWithWaypointsInput!): Trip!
   deleteAccount: Boolean!
   deleteComment(commentId: ID!): Boolean!
   deleteExpense(id: String!): Boolean!
@@ -663,6 +711,7 @@ type Mutation {
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
+  deleteTrip(tripId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
   flagComment(commentId: ID!): Boolean!
   followRider(input: FollowRiderInput!): Follow!
@@ -671,13 +720,18 @@ type Mutation {
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
+  joinTrip(input: JoinTripInput!): Boolean!
 
   """Submit email to join waitlist (public, no auth)"""
   joinWaitlist(email: String!): Boolean!
   leaveGroupRide(groupRideId: ID!): Boolean!
+  leaveTrip(tripId: ID!): Boolean!
   logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
+  publishTrip(tripId: ID!): Trip!
   regenerateRideSummary(rideId: String!): RideSummary!
+  removeWaypoint(waypointId: ID!): Boolean!
+  reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   revokeShareLink(linkId: ID!): Boolean!
@@ -695,8 +749,11 @@ type Mutation {
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateMyProfile(input: UpdateProfileInput!): User!
+  updateParticipantStatus(input: UpdateParticipantStatusInput!): Boolean!
   updateRide(input: UpdateRideInput!): Ride!
+  updateTrip(input: UpdateTripInput!): Trip!
   updateUser(input: UpdateUserInput!): User!
+  updateWaypoint(input: UpdateWaypointInput!): TripWaypoint!
   uploadWaypoints(input: UploadWaypointsInput!): Int!
 }
 
@@ -768,7 +825,7 @@ type Query {
   discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
-  getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID): CommentConnection!
+  getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
   getGroupRides(after: String, first: Int = 20, nearLat: Float, nearLng: Float, radiusKm: Float): GroupRideConnection!
@@ -776,6 +833,7 @@ type Query {
   getPublicRide(id: String!): Ride!
   getRiderProfile(username: String!): PublicRiderProfile!
   getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
+  getTrips(after: String, first: Int = 20): TripConnection!
   groupRideDetail(groupRideId: ID!): GroupRide!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
@@ -788,6 +846,7 @@ type Query {
   myProgress: [LearningProgress!]!
   myRides(after: String, first: Int = 20, motorcycleId: String): RideConnection!
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
+  myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
   quizByArticle(articleId: String!): Quiz
@@ -798,6 +857,7 @@ type Query {
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
+  tripDetail(tripId: ID!): Trip!
   user: User!
 }
 
@@ -820,6 +880,11 @@ type QuizQuestion {
   explanation: String!
   options: [String!]!
   question: String!
+}
+
+input ReorderWaypointsInput {
+  tripId: ID!
+  waypointIds: [ID!]!
 }
 
 type Ride {
@@ -1047,6 +1112,68 @@ type TriggeredMaintenanceTask {
   title: String!
 }
 
+type Trip {
+  coverImageUrl: String
+  createdAt: String!
+  description: String!
+  difficulty: String!
+  endDate: String!
+  id: ID!
+  maxRiders: Int!
+  organiser: TripOrganiser!
+  participantCount: Int!
+  participants: [TripParticipant!]
+  startDate: String!
+  status: String!
+  title: String!
+  waypoints: [TripWaypoint!]
+}
+
+type TripConnection {
+  edges: [TripEdge!]!
+  pageInfo: TripPageInfo!
+}
+
+type TripEdge {
+  cursor: String!
+  node: Trip!
+}
+
+type TripOrganiser {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type TripPageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type TripParticipant {
+  avatarUrl: String
+  bikeId: String
+  displayName: String!
+  id: ID!
+  joinedAt: String!
+  publicUsername: String
+  role: String!
+  status: String!
+}
+
+type TripWaypoint {
+  createdAt: String!
+  id: ID!
+  lat: Float!
+  lng: Float!
+  name: String!
+  notes: String
+  sortOrder: Int!
+  tripId: ID!
+  type: String!
+}
+
 input UnfollowRiderInput {
   targetUserId: String!
 }
@@ -1085,6 +1212,11 @@ input UpdateMotorcycleInput {
   year: Int
 }
 
+input UpdateParticipantStatusInput {
+  status: String!
+  tripId: ID!
+}
+
 input UpdateProfileInput {
   bio: String
   city: String
@@ -1100,11 +1232,31 @@ input UpdateRideInput {
   rideId: String!
 }
 
+input UpdateTripInput {
+  description: String
+  difficulty: String
+  endDate: String
+  maxRiders: Int
+  startDate: String
+  title: String
+  tripId: ID!
+}
+
 input UpdateUserInput {
   currency: String
   fullName: String
   measurementSystem: String
   preferences: JSON
+}
+
+input UpdateWaypointInput {
+  lat: Float
+  lng: Float
+  name: String
+  notes: String
+  sortOrder: Int
+  type: String
+  waypointId: ID!
 }
 
 input UploadWaypointsInput {

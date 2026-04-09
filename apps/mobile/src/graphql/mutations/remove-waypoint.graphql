@@ -1,0 +1,3 @@
+mutation RemoveWaypoint($waypointId: ID!) {
+  removeWaypoint(waypointId: $waypointId)
+}

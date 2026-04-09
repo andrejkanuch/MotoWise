@@ -40,6 +40,7 @@ import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
+import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
@@ -99,6 +100,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RidesModule,
     RoutesModule,
     ShareLinksModule,
+    TripsModule,
     WaitlistModule,
     WebhooksModule,
     HealthModule,

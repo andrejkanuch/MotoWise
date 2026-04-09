@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../../lib/meta-analytics';
 import { queryKeys } from '../../../../lib/query-keys';
@@ -50,16 +51,22 @@ export default function ArticleScreen() {
   const article = data?.articleBySlugFull;
   const content = article?.contentJson as ContentJson | null | undefined;
 
-  // Track article view for Meta
+  // Track article view for Meta and PostHog
   useEffect(() => {
     if (slug) {
       MetaAnalytics.trackViewContent('article', slug);
+      trackEvent(AnalyticsEvent.ARTICLE_VIEWED, { slug });
     }
   }, [slug]);
 
   const markReadMutation = useMutation({
     mutationFn: () => gqlFetcher(MarkArticleReadDocument, { articleId: article?.id ?? '' }),
     onSuccess: () => {
+      trackEvent(AnalyticsEvent.ARTICLE_READ, {
+        slug: slug ?? '',
+        category: article?.category ?? '',
+        difficulty: article?.difficulty ?? '',
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.progress.all });
     },
   });

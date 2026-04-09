@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { useMemo, useState } from 'react';
 
 export default function ForgotPasswordPage() {
@@ -29,6 +30,7 @@ export default function ForgotPasswordPage() {
     if (error) {
       setError(error.message);
     } else {
+      posthog.capture('password_reset_requested');
       setSuccess(true);
     }
     setLoading(false);

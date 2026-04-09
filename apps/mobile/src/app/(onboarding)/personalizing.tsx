@@ -14,6 +14,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { MetaAnalytics } from '../../lib/meta-analytics';
@@ -127,6 +128,10 @@ export default function PersonalizingScreen() {
       };
 
       await completeOnboarding(input);
+      trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
+        experience_level: experienceLevel ?? 'beginner',
+        has_bike: !!bikeData,
+      });
       MetaAnalytics.trackCompleteTutorial();
       if (bikeData?.make && bikeData?.model && bikeData?.year) {
         MetaAnalytics.trackAddToGarage(bikeData.make, bikeData.model, bikeData.year);

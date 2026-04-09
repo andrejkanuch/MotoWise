@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — KI-Motorraddiagnose & Lern-App",
+    "title": "MotoVault — Motorrad-Wartung, Ausgaben & Fahrt-Tracker",
     "titleTemplate": "%s | MotoVault",
-    "description": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android.",
-    "ogDescription": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android."
+    "description": "Verfolge Wartungsaufgaben, protokolliere Kraftstoff- und Ausrüstungskosten, zeichne Fahrten auf und diagnostiziere Probleme mit KI. Kostenlos auf iOS & Android.",
+    "ogDescription": "Verfolge Wartungsaufgaben, protokolliere Kraftstoff- und Ausrüstungskosten, zeichne Fahrten auf und diagnostiziere Probleme mit KI. Kostenlos auf iOS & Android."
   },
   "Navbar": {
     "features": "Funktionen",
-    "diagnostics": "KI-Diagnose",
     "learning": "Lernen",
     "garage": "Garage",
     "faq": "Häufige Fragen",
@@ -15,71 +14,76 @@
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen",
-    "signup": "Registrieren"
+    "signup": "Registrieren",
+    "dashboard": "My Garage",
+    "diagnostics": "KI-Diagnose",
+    "maintenance": "Wartung",
+    "expenses": "Ausgaben",
+    "rides": "Fahrten"
   },
   "Hero": {
-    "line1": "LERNE DEIN BIKE.",
-    "line2": "REPARIERE",
-    "line3": "DEIN BIKE.",
-    "subtitle": "KI-gestützte Motorraddiagnose & Lernen — bald verfügbar.",
-    "downloadCta": "App holen",
+    "line1": "VERFOLGE DEIN BIKE.",
+    "line2": "BESTIMME",
+    "line3": "DEINE FAHRT.",
+    "subtitle": "Wartungsprotokolle, Ausgabenverfolgung und Fahrtaufzeichnung — alles in einer App.",
+    "downloadCta": "Kostenlos starten",
     "exploreFeatures": "Funktionen Entdecken",
     "scrollDown": "Nach unten scrollen",
-    "seoTitle": "KI-gestützte Motorraddiagnose & Lern-App"
+    "seoTitle": "Motorrad-Wartungstracker & Ausgabenmanager"
   },
   "Features": {
     "sectionLabel": "Funktionen",
     "sectionTitle": "Motorraddiagnose- und Wartungsfunktionen",
-    "sectionSubtitle": "Alles, was du brauchst, um dein Motorrad zu lernen, zu warten und zu meistern.",
+    "sectionSubtitle": "Verfolge Ausgaben, verwalte Wartung, protokolliere Fahrten und diagnostiziere Probleme — alles in einer App.",
     "diag": {
       "title": "KI-Diagnose",
       "tagline": "Mach ein Foto. Erhalte Antworten.",
       "description": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor — alles in Sekunden.",
       "badge": "< 5 Sek."
     },
-    "learn": {
-      "title": "Lernpfade",
-      "tagline": "Strukturierte Kurse für jedes Niveau.",
-      "description": "Tauche ein in Motorinterna, Fahrwerkseinstellung, Elektrik und Routinewartung — jeweils mit Lektionen, Quizzen und praktischen Herausforderungen.",
-      "badge": "50+ Lektionen"
-    },
     "garage": {
-      "title": "Garagenverwaltung",
-      "tagline": "Verwalte deine Bikes.",
-      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Protokolliere Wartungen, stelle Serviceerinnerungen ein und führe eine vollständige Historie, damit nichts vergessen wird.",
+      "title": "Digitale Garage",
+      "tagline": "Alle deine Bikes, ein Ort.",
+      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Spezifikationen werden automatisch geladen. Ein Tipp, um Wartung, Ausgaben und Fahrten für jedes Bike zu sehen.",
       "badge": "Unbegrenzte Bikes"
     },
-    "progress": {
-      "title": "Fortschrittsverfolgung",
-      "tagline": "Meistere dein Wissen.",
-      "description": "Steige auf, wenn du Lektionen abschließt und Quizze bestehst. Verdiene Abzeichen, verfolge Punkte über alle Module hinweg und beobachte, wie dein Fachwissen mit der Zeit wächst.",
-      "badge": "Fortschritt verfolgen"
+    "maintenance": {
+      "title": "Wartungs-Tracker",
+      "tagline": "Verpasse nie wieder einen Service.",
+      "description": "Protokolliere jeden Ölwechsel, jede Kettenpflege und jeden Reifenwechsel. Stelle kilometerbasierte oder zeitbasierte Erinnerungen ein, die dich benachrichtigen, bevor du überfällig bist. Die komplette Servicehistorie auf einen Blick.",
+      "badge": "Smarte Erinnerungen"
     },
-    "community": {
-      "title": "Community",
-      "tagline": "Schließe dich anderen Fahrern an.",
-      "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser.",
-      "badge": "Neu"
+    "expenses": {
+      "title": "Ausgabenmanager",
+      "tagline": "Wisse, was dein Bike wirklich kostet.",
+      "description": "Verfolge Kraftstoff, Ausrüstung, Teile, Versicherung und alle Besitzkosten. Sieh Ausgabentrends nach Kategorie mit monatlichen Aufschlüsselungen und Kosten-pro-Kilometer-Analysen.",
+      "badge": "Kosteneinblicke"
+    },
+    "rides": {
+      "title": "Fahrten-Logger",
+      "tagline": "Jede Fahrt, kartiert und gespeichert.",
+      "description": "Zeichne GPS-Routen mit Geschwindigkeit, Höhe und Entfernung auf. Überprüfe Fahrtstatistiken, teile Highlights und erstelle eine vollständige Fahrthistorie.",
+      "badge": "GPS-Tracking"
     }
   },
   "SocialProof": {
     "riders": "Aktive Fahrer",
     "ridersCount": "2.400+",
-    "diagnostics": "Durchgeführte KI-Diagnosen",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Unterstützte Bikes",
+    "maintenance": "Durchgeführte KI-Diagnosen",
+    "maintenanceCount": "8.500+",
+    "bikes": "Verfolgte Bikes",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "So funktioniert's",
-    "sectionTitle": "So funktioniert die KI-Motorraddiagnose",
-    "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
+    "sectionTitle": "Drei Schritte zur vollen Kontrolle",
+    "sectionSubtitle": "In Minuten einrichten. Jahrelang verfolgen.",
     "step1Title": "Füge Dein Bike Hinzu",
     "step1Desc": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
-    "step2Title": "Erhalte KI-Einblicke",
-    "step2Desc": "Mach ein Foto von jedem Teil oder Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor.",
-    "step3Title": "Verfolge & Lerne",
-    "step3Desc": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
+    "step2Title": "Alles verfolgen",
+    "step2Desc": "Protokolliere Wartung, erfasse Ausgaben und verfolge Fahrten. Jeder Datenpunkt vervollständigt die Geschichte deines Bikes.",
+    "step3Title": "Immer voraus sein",
+    "step3Desc": "Erhalte smarte Service-Erinnerungen, Kosten-pro-Kilometer-Einblicke und KI-Diagnosen — damit dich nichts überrascht."
   },
   "Testimonials": {
     "sectionLabel": "Erfahrungen",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "In Aktion erleben",
     "sectionTitle": "Deine Motorrad-Kommandozentrale",
-    "cap1Title": "KI-Diagnose",
-    "cap1Desc": "Richte deine Kamera auf ein beliebiges Problem. Erhalte Teilerkennung, Schweregrad-Bewertung und Schritt-für-Schritt-Lösungen in Sekunden.",
-    "cap1Alt": "MotoVault KI-Diagnose-Ergebnisbildschirm",
-    "cap2Title": "Intelligente Wartung",
-    "cap2Desc": "Protokolliere jeden Service, stelle kilometerbasierte Erinnerungen ein und vergiss nie wieder einen Ölwechsel oder eine Kettenpflege.",
-    "cap2Alt": "MotoVault Wartungs-Tracking-Bildschirm",
-    "cap3Title": "Lerne & steige auf",
-    "cap3Desc": "Strukturierte Kurse zu Motorinterna, Fahrwerkseinstellung und Elektrik — mit Quizzen zum Wissenstest.",
-    "cap3Alt": "MotoVault Lern-Dashboard",
+    "cap1Title": "Wartungs-Tracker",
+    "cap1Desc": "Protokolliere jeden Service mit Datum, Kilometerstand und Kosten. Smarte Erinnerungen benachrichtigen dich, bevor der nächste Ölwechsel, die Kettenpflege oder die Bremsprüfung fällig ist.",
+    "cap1Alt": "MotoVault Wartungsverfolgungsbildschirm",
+    "cap2Title": "Ausgaben-Tracker",
+    "cap2Desc": "Sieh genau, was dein Bike kostet. Verfolge Kraftstoff, Teile, Ausrüstung und Versicherung mit monatlichen Aufschlüsselungen und Kosten-pro-Kilometer-Analysen.",
+    "cap2Alt": "MotoVault Ausgabenverfolgungsbildschirm",
+    "cap3Title": "KI-Diagnose",
+    "cap3Desc": "Richte deine Kamera auf ein beliebiges Problem. Erhalte Teilerkennung, Schweregrad-Bewertung und Schritt-für-Schritt-Lösungen in Sekunden.",
+    "cap3Alt": "MotoVault KI-Diagnose-Ergebnisbildschirm",
     "learnMore": "Mehr erfahren"
   },
   "Cta": {
     "socialProof": "Vertraut von tausenden Fahrern weltweit",
-    "headline": "Starte heute mit der Motorradwartung",
-    "subtitle": "Kostenlos auf iOS und Android. Starte heute mit dem Tracking deines Bikes.",
+    "headline": "Schluss mit Raten. Fang an zu verfolgen.",
+    "subtitle": "Kostenlos auf iOS und Android. Wartung, Ausgaben und Fahrten deines Bikes — endlich an einem Ort.",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
     "disclaimer": "Jetzt verfügbar auf iOS und Android.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "Was ist MotoVault?",
-        "answer": "MotoVault ist eine KI-gestützte Plattform für Motorradbegeisterte. Sie hilft dir, Wartung zu lernen, Probleme mittels fotobasierter KI-Analyse zu diagnostizieren, deine Bikes in einer digitalen Garage zu verfolgen und dein Wissen durch strukturierte Kurse und Quizze aufzubauen."
+        "answer": "MotoVault ist eine Motorrad-Management-App für Fahrer. Verfolge Wartungsaufgaben mit smarten Erinnerungen, protokolliere jede Ausgabe (Kraftstoff, Ausrüstung, Teile), zeichne deine Fahrten auf und diagnostiziere Probleme mit KI-Fotoanalyse — alles in einer App."
       },
       {
         "question": "Ist MotoVault kostenlos?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Produkt",
     "company": "Unternehmen",
-    "tagline": "Lerne dein Bike. Repariere dein Bike.",
+    "tagline": "Jede Meile verfolgen. Jede Kosten kennen.",
     "copyright": "© 2026 MotoVault. Alle Rechte vorbehalten.",
     "features": "Funktionen",
     "learning": "Lernpfade",

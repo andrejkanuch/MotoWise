@@ -1,0 +1,30 @@
+query GetTrips($first: Int, $after: String) {
+  getTrips(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        title
+        description
+        startDate
+        endDate
+        difficulty
+        maxRiders
+        participantCount
+        status
+        coverImageUrl
+        createdAt
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

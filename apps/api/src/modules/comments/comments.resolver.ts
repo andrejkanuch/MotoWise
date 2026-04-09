@@ -23,12 +23,19 @@ export class CommentsResolver {
     @Args('rideId', { type: () => ID, nullable: true }) rideId?: string,
     @Args('routeId', { type: () => ID, nullable: true }) routeId?: string,
     @Args('groupRideId', { type: () => ID, nullable: true }) groupRideId?: string,
+    @Args('tripId', { type: () => ID, nullable: true }) tripId?: string,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<CommentConnection> {
-    const targetField = rideId ? 'ride_id' : routeId ? 'route_id' : 'group_ride_id';
-    const targetId = rideId ?? routeId ?? groupRideId ?? '';
+    const targetField = rideId
+      ? 'ride_id'
+      : routeId
+        ? 'route_id'
+        : tripId
+          ? 'trip_id'
+          : 'group_ride_id';
+    const targetId = rideId ?? routeId ?? tripId ?? groupRideId ?? '';
 
     return this.commentsService.getComments(targetField, targetId, first ?? 20, after);
   }

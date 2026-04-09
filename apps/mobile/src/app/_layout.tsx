@@ -7,6 +7,7 @@ import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql'
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
+import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
@@ -19,22 +20,28 @@ try {
   // Not available in Expo Go
 }
 
-import { Stack, useNavigationContainerRef, useRouter, useSegments } from 'expo-router';
+import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import { PostHogProvider } from 'posthog-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Settings } from 'react-native-fbsdk-next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
+import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
+  AnalyticsEvent,
   identifyUser,
   initPostHog,
   initSentry,
+  posthogClient,
   resetUser,
   sentryNavigationIntegration,
+  trackEvent,
+  trackScreen,
 } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
@@ -50,6 +57,7 @@ import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
+import { useWhatsNewStore } from '../stores/whats-new.store';
 
 // Keep native splash visible until animated splash is ready
 SplashScreen.preventAutoHideAsync();
@@ -160,6 +168,29 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     meQuery.isError,
   ]);
 
+  // --- What's New modal trigger ---
+  const lastSeenVersion = useWhatsNewStore((s) => s.lastSeenVersion);
+  const whatsNewShown = useRef(false);
+
+  useEffect(() => {
+    if (isLoading || !session || !onboardingCompleted) return;
+    if (whatsNewShown.current) return;
+
+    const currentVersion = Application.nativeApplicationVersion;
+    if (!currentVersion || currentVersion === lastSeenVersion) return;
+
+    // Only show if we have release data for this version
+    if (!getWhatsNewRelease(currentVersion)) return;
+
+    // Avoid showing during initial navigation
+    const inTabs = segments[0] === '(tabs)';
+    if (!inTabs) return;
+
+    whatsNewShown.current = true;
+    trackEvent(AnalyticsEvent.WHATS_NEW_VIEWED, { version: currentVersion });
+    setTimeout(() => router.push('/(modals)/whats-new' as never), 500);
+  }, [isLoading, session, onboardingCompleted, segments, lastSeenVersion, router]);
+
   if (isLoading || (session && meQuery.isLoading && !meQuery.isError)) {
     return null;
   }
@@ -172,8 +203,17 @@ export default function RootLayout() {
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   const [appReady, setAppReady] = useState(false);
   const navigationRef = useNavigationContainerRef();
+  const pathname = usePathname();
+  const previousPathname = useRef<string | undefined>(undefined);
 
   useNotificationDeepLink();
+
+  useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      trackScreen(pathname, { previous_screen: previousPathname.current ?? null });
+      previousPathname.current = pathname;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (navigationRef) {
@@ -345,15 +385,20 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AnimatedSplash isReady={appReady}>
-        <KeyboardProvider>
-          <QueryClientProvider client={queryClient}>
-            <NavigationGate>
-              <Stack screenOptions={{ headerShown: false }} />
-            </NavigationGate>
-          </QueryClientProvider>
-        </KeyboardProvider>
-      </AnimatedSplash>
+      <PostHogProvider
+        client={posthogClient}
+        autocapture={{ captureScreens: false, captureTouches: true }}
+      >
+        <AnimatedSplash isReady={appReady}>
+          <KeyboardProvider>
+            <QueryClientProvider client={queryClient}>
+              <NavigationGate>
+                <Stack screenOptions={{ headerShown: false }} />
+              </NavigationGate>
+            </QueryClientProvider>
+          </KeyboardProvider>
+        </AnimatedSplash>
+      </PostHogProvider>
     </GestureHandlerRootView>
   );
 }

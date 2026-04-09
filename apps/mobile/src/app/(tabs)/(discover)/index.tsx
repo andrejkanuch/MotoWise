@@ -10,6 +10,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GroupRideSection } from '../../../components/discover/group-ride-section';
 import { RouteCard } from '../../../components/discover/route-card';
+import { TripSection } from '../../../components/discover/trip-section';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { MAP_STYLES, type MapStyle } from '../../../utils/map-styles';
@@ -189,6 +190,7 @@ export default function DiscoverScreen() {
         ListHeaderComponent={
           <View>
             <GroupRideSection />
+            <TripSection />
             <View style={{ paddingVertical: 12 }}>
               <Text style={{ fontSize: 16, fontWeight: '700', color: headerColor }}>
                 Routes{routes.length > 0 ? ` (${routes.length})` : ''}

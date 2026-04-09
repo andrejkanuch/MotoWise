@@ -25,6 +25,7 @@ import { StepProblemDescription } from '../../../components/diagnostic-flow/step
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
@@ -57,7 +58,10 @@ export default function NewDiagnosticScreen() {
   useFocusEffect(
     useCallback(() => {
       const { isSubmitting } = useDiagnosticFlowStore.getState();
-      if (!isSubmitting) reset();
+      if (!isSubmitting) {
+        reset();
+        trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED);
+      }
     }, [reset]),
   );
 
@@ -179,6 +183,10 @@ export default function NewDiagnosticScreen() {
         },
       });
 
+      trackEvent(AnalyticsEvent.DIAGNOSTIC_COMPLETED, {
+        has_photo: !!state.photoUri,
+        has_wizard_answers: !!hasWizardAnswers,
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);
     } catch (error: unknown) {

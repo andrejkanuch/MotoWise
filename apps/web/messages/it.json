@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — Diagnostica Moto IA & App di Apprendimento",
+    "title": "MotoVault — Manutenzione Moto, Spese e Registro Viaggi",
     "titleTemplate": "%s | MotoVault",
-    "description": "Padroneggia la manutenzione moto, diagnostica problemi con foto IA e monitora la salute della tua moto. Gratis su iOS e Android.",
-    "ogDescription": "Padroneggia la manutenzione moto, diagnostica problemi con foto IA e monitora la salute della tua moto. Gratis su iOS e Android."
+    "description": "Gestisci la manutenzione, registra le spese di carburante e accessori, registra i viaggi e diagnostica i problemi con l'IA. Gratis su iOS e Android.",
+    "ogDescription": "Gestisci la manutenzione, registra le spese di carburante e accessori, registra i viaggi e diagnostica i problemi con l'IA. Gratis su iOS e Android."
   },
   "Navbar": {
     "features": "Funzioni",
-    "diagnostics": "Diagnostica IA",
     "learning": "Formazione",
     "garage": "Garage",
     "faq": "Domande Frequenti",
@@ -15,71 +14,76 @@
     "login": "Accedi",
     "openMenu": "Apri menu di navigazione",
     "closeMenu": "Chiudi menu di navigazione",
-    "signup": "Registrati"
+    "signup": "Registrati",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnostica IA",
+    "maintenance": "Manutenzione",
+    "expenses": "Spese",
+    "rides": "Viaggi"
   },
   "Hero": {
-    "line1": "IMPARA LA TUA MOTO.",
-    "line2": "RIPARA",
-    "line3": "LA TUA MOTO.",
-    "subtitle": "Diagnostica e apprendimento moto powered by IA — prossimamente disponibile.",
-    "downloadCta": "Scarica l'App",
+    "line1": "TRACCIA LA TUA MOTO.",
+    "line2": "CONTROLLA",
+    "line3": "IL TUO VIAGGIO.",
+    "subtitle": "Registri di manutenzione, monitoraggio spese e registrazione viaggi — tutto in un'unica app.",
+    "downloadCta": "Inizia a Tracciare Gratis",
     "exploreFeatures": "Scopri le Funzioni",
     "scrollDown": "Scorri verso il basso",
-    "seoTitle": "Diagnostica Moto con IA & App di Apprendimento"
+    "seoTitle": "Tracker Manutenzione Moto e Gestore Spese"
   },
   "Features": {
     "sectionLabel": "Funzionalità",
     "sectionTitle": "Funzioni di Diagnostica e Manutenzione Moto",
-    "sectionSubtitle": "Tutto ciò di cui hai bisogno per imparare, mantenere e padroneggiare la tua moto.",
+    "sectionSubtitle": "Traccia le spese, gestisci la manutenzione, registra i viaggi e diagnostica i problemi — tutto in un'unica app.",
     "diag": {
       "title": "Diagnostica IA",
       "tagline": "Scatta una foto. Ottieni risposte.",
       "description": "Punta la tua fotocamera su qualsiasi parte, spia di avvertimento o problema. La nostra IA identifica i componenti, diagnostica i problemi e suggerisce soluzioni — il tutto in pochi secondi.",
       "badge": "< 5 sec"
     },
-    "learn": {
-      "title": "Percorsi di Apprendimento",
-      "tagline": "Corsi strutturati per ogni livello di abilità.",
-      "description": "Immergiti negli Interni del Motore, Regolazione Sospensioni, Sistemi Elettrici e Manutenzione di Routine — ognuno con lezioni, quiz e sfide pratiche.",
-      "badge": "50+ lezioni"
-    },
     "garage": {
-      "title": "Gestione del Garage",
-      "tagline": "Traccia le tue moto.",
-      "description": "Archivia ogni moto per marca, modello e anno. Registra la manutenzione, imposta promemoria di servizio e mantieni una cronologia completa così nulla viene dimenticato.",
+      "title": "Garage Digitale",
+      "tagline": "Tutte le tue moto, un unico posto.",
+      "description": "Salva ogni moto per marca, modello e anno. Le specifiche vengono caricate automaticamente. Un tocco per vedere manutenzione, spese e viaggi di qualsiasi moto.",
       "badge": "Moto illimitate"
     },
-    "progress": {
-      "title": "Monitoraggio dei Progressi",
-      "tagline": "Padroneggia la tua conoscenza.",
-      "description": "Sali di livello mentre completi lezioni e superi quiz. Guadagna badge, traccia i punteggi su tutti i moduli e guarda la tua competenza crescere nel tempo.",
-      "badge": "Traccia i progressi"
+    "maintenance": {
+      "title": "Tracker Manutenzione",
+      "tagline": "Non saltare mai più un tagliando.",
+      "description": "Registra ogni cambio olio, lubrificazione catena e sostituzione pneumatici. Imposta promemoria basati su chilometraggio o tempo che ti avvisano prima della scadenza. Cronologia completa dei servizi a colpo d'occhio.",
+      "badge": "Promemoria intelligenti"
     },
-    "community": {
-      "title": "Comunità",
-      "tagline": "Unisciti ad altri motociclisti.",
-      "description": "Condividi il tuo garage, confronta i tuoi progressi e impara insieme a motociclisti di ogni livello. La conoscenza della moto è migliore insieme.",
-      "badge": "Novità"
+    "expenses": {
+      "title": "Gestore Spese",
+      "tagline": "Scopri quanto costa davvero la tua moto.",
+      "description": "Traccia carburante, accessori, ricambi, assicurazione e ogni costo di proprietà. Visualizza i trend di spesa per categoria con analisi mensili e costo per chilometro.",
+      "badge": "Analisi dei costi"
+    },
+    "rides": {
+      "title": "Registro Viaggi",
+      "tagline": "Ogni viaggio, mappato e salvato.",
+      "description": "Registra percorsi GPS con velocità, altitudine e distanza. Rivedi le statistiche dei viaggi, condividi i momenti salienti e costruisci una storia completa delle tue uscite.",
+      "badge": "Tracciamento GPS"
     }
   },
   "SocialProof": {
     "riders": "Motociclisti Attivi",
     "ridersCount": "2.400+",
-    "diagnostics": "Diagnosi IA Eseguite",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Moto Supportate",
+    "maintenance": "Diagnosi IA Eseguite",
+    "maintenanceCount": "8.500+",
+    "bikes": "Moto Tracciate",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Come funziona",
-    "sectionTitle": "Come Funziona la Diagnostica Moto con IA",
-    "sectionSubtitle": "Tre semplici passaggi verso la padronanza della moto.",
+    "sectionTitle": "Tre Passi per il Controllo Totale",
+    "sectionSubtitle": "Configurazione in pochi minuti. Tracciamento per anni.",
     "step1Title": "Aggiungi la Tua Moto",
     "step1Desc": "Cerca per marca, modello e anno. Le specifiche della tua moto vengono caricate automaticamente dai database ufficiali.",
-    "step2Title": "Ottieni Insight IA",
-    "step2Desc": "Scatta una foto di qualsiasi parte o problema. La nostra IA identifica i componenti, diagnostica i problemi e suggerisce soluzioni.",
-    "step3Title": "Traccia e Impara",
-    "step3Desc": "Segui i programmi di manutenzione personalizzati e i percorsi di apprendimento strutturati per padroneggiare la tua moto."
+    "step2Title": "Traccia Tutto",
+    "step2Desc": "Registra la manutenzione, annota le spese e traccia i viaggi. Ogni dato arricchisce la storia completa della tua moto.",
+    "step3Title": "Resta Sempre Avanti",
+    "step3Desc": "Ricevi promemoria intelligenti, analisi del costo per chilometro e diagnostica IA — così nulla ti coglie di sorpresa."
   },
   "Testimonials": {
     "sectionLabel": "Testimonianze",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "Guardalo in Azione",
     "sectionTitle": "Il Tuo Centro di Comando per la Moto",
-    "cap1Title": "Diagnostica IA",
-    "cap1Desc": "Punta la fotocamera su qualsiasi problema. Ottieni identificazione dei componenti, livello di gravità e soluzioni passo dopo passo in pochi secondi.",
-    "cap1Alt": "Schermata del risultato della diagnostica IA di MotoVault",
-    "cap2Title": "Manutenzione Intelligente",
-    "cap2Desc": "Traccia ogni servizio, imposta promemoria basati sul chilometraggio e non dimenticare mai più un cambio olio o una lubrificazione della catena.",
-    "cap2Alt": "Schermata di monitoraggio della manutenzione di MotoVault",
-    "cap3Title": "Impara e Migliora",
-    "cap3Desc": "Corsi strutturati sugli interni del motore, regolazione delle sospensioni e sistemi elettrici — con quiz per testare le tue conoscenze.",
-    "cap3Alt": "Dashboard di apprendimento di MotoVault",
+    "cap1Title": "Tracker Manutenzione",
+    "cap1Desc": "Registra ogni servizio con date, chilometraggio e costi. I promemoria intelligenti ti avvisano prima del prossimo cambio olio, lubrificazione catena o controllo freni.",
+    "cap1Alt": "Schermata di tracciamento manutenzione di MotoVault",
+    "cap2Title": "Tracker Spese",
+    "cap2Desc": "Scopri esattamente quanto costa la tua moto. Traccia carburante, ricambi, accessori e assicurazione con analisi mensili e costo per chilometro.",
+    "cap2Alt": "Schermata di tracciamento spese di MotoVault",
+    "cap3Title": "Diagnostica IA",
+    "cap3Desc": "Punta la fotocamera su qualsiasi problema. Ottieni identificazione dei componenti, valutazione della gravità e soluzioni passo dopo passo in pochi secondi.",
+    "cap3Alt": "Schermata dei risultati della diagnostica IA di MotoVault",
     "learnMore": "Scopri di più"
   },
   "Cta": {
     "socialProof": "Scelto da migliaia di motociclisti in tutto il mondo",
-    "headline": "Inizia ad Imparare la Manutenzione Moto Oggi",
-    "subtitle": "Gratis su iOS e Android. Inizia a monitorare la tua moto oggi.",
+    "headline": "Basta Indovinare. Inizia a Tracciare.",
+    "subtitle": "Gratis su iOS e Android. Manutenzione, spese e viaggi della tua moto — finalmente in un unico posto.",
     "trustFree": "Gratuito al lancio",
     "trustNoCard": "Nessuna carta di credito",
     "disclaimer": "Disponibile ora su iOS e Android.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "Cos'è MotoVault?",
-        "answer": "MotoVault è una piattaforma powered by IA progettata per gli appassionati di moto. Ti aiuta a imparare la manutenzione, diagnosticare problemi tramite analisi foto IA, tracciare le tue moto in un garage digitale e costruire la tua conoscenza attraverso corsi strutturati e quiz."
+        "answer": "MotoVault è un'app di gestione moto pensata per i motociclisti. Traccia le attività di manutenzione con promemoria intelligenti, registra ogni spesa (carburante, accessori, ricambi), registra i tuoi viaggi e diagnostica i problemi con l'analisi fotografica IA — tutto in un'unica app."
       },
       {
         "question": "MotoVault è gratuito?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Prodotto",
     "company": "Azienda",
-    "tagline": "Impara la tua moto. Ripara la tua moto.",
+    "tagline": "Traccia ogni chilometro. Conosci ogni costo.",
     "copyright": "© 2026 MotoVault. Tutti i diritti riservati.",
     "features": "Funzioni",
     "learning": "Percorsi di Apprendimento",

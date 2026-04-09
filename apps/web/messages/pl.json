@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — Diagnostyka motocyklowa AI i aplikacja edukacyjna",
+    "title": "MotoVault — Serwis Motocykla, Wydatki i Rejestr Tras",
     "titleTemplate": "%s | MotoVault",
-    "description": "Opanuj serwis motocykla, diagnozuj problemy ze zdjecia i sledz stan swojego motocykla. Wkrotce premiera — za darmo na iOS i Android.",
-    "ogDescription": "Opanuj serwis motocykla, diagnozuj problemy ze zdjecia i sledz stan swojego motocykla. Wkrotce premiera — za darmo na iOS i Android."
+    "description": "Śledź zadania serwisowe, rejestruj wydatki na paliwo i ekwipunek, nagrywaj trasy i diagnozuj problemy z AI. Za darmo na iOS i Android.",
+    "ogDescription": "Śledź zadania serwisowe, rejestruj wydatki na paliwo i ekwipunek, nagrywaj trasy i diagnozuj problemy z AI. Za darmo na iOS i Android."
   },
   "Navbar": {
     "features": "Funkcje",
-    "diagnostics": "Diagnostyka AI",
     "learning": "Nauka",
     "garage": "Garaz",
     "faq": "FAQ",
@@ -15,71 +14,76 @@
     "login": "Zaloguj sie",
     "openMenu": "Otworz menu nawigacji",
     "closeMenu": "Zamknij menu nawigacji",
-    "signup": "Zarejestruj się"
+    "signup": "Zarejestruj się",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnostyka AI",
+    "maintenance": "Serwis",
+    "expenses": "Wydatki",
+    "rides": "Trasy"
   },
   "Hero": {
-    "line1": "POZNAJ SWOJ MOTOCYKL.",
-    "line2": "NAPRAW",
-    "line3": "SWOJ MOTOCYKL.",
-    "subtitle": "Diagnostyka i nauka motocyklowa oparta na AI — wkrotce premiera.",
-    "downloadCta": "Pobierz aplikacje",
+    "line1": "ŚLEDŹ SWÓJ MOTOCYKL.",
+    "line2": "KONTROLUJ",
+    "line3": "SWOJĄ JAZDĘ.",
+    "subtitle": "Dziennik serwisowy, śledzenie wydatków i rejestrowanie tras — wszystko w jednej aplikacji.",
+    "downloadCta": "Zacznij Śledzić Za Darmo",
     "exploreFeatures": "Odkryj funkcje",
     "scrollDown": "Przewin w dol",
-    "seoTitle": "Diagnostyka motocyklowa AI i aplikacja edukacyjna"
+    "seoTitle": "Tracker Serwisu Motocykla i Menedżer Wydatków"
   },
   "Features": {
     "sectionLabel": "Funkcje",
     "sectionTitle": "Wszystko, czego potrzebuje twoj motocykl",
-    "sectionSubtitle": "Ucz sie, serwisuj i opanuj swoj motocykl — wszystko w jednej aplikacji.",
+    "sectionSubtitle": "Śledź wydatki, zarządzaj serwisem, rejestruj trasy i diagnozuj problemy — wszystko w jednej aplikacji.",
     "diag": {
       "title": "Diagnostyka AI",
       "tagline": "Zrob zdjecie. Uzyskaj odpowiedzi.",
       "description": "Skieruj aparat na dowolna czesc, lampke ostrzegawcza lub problem. Nasze AI identyfikuje komponenty, diagnozuje problemy i sugeruje naprawy — wszystko w kilka sekund.",
       "badge": "< 5 sek"
     },
-    "learn": {
-      "title": "Umiejetnosci serwisowe",
-      "tagline": "Od wymiany oleju po remont silnika.",
-      "description": "Dowiedz sie, jak dzialaja silnik, zawieszenie i elektryka — z krotkimi lekcjami, quizami i prawdziwymi zadaniami garażowymi.",
-      "badge": "50+ lekcji"
-    },
     "garage": {
-      "title": "Zarzadzanie garazem",
-      "tagline": "Sledz swoje motocykle.",
-      "description": "Przechowuj kazdy motocykl wedlug marki, modelu i roku. Rejestruj serwis, ustawiaj przypomnienia i prowadz kompletna historie.",
-      "badge": "Nielimitowane motocykle"
+      "title": "Cyfrowy Garaż",
+      "tagline": "Wszystkie Twoje motocykle, jedno miejsce.",
+      "description": "Zapisz każdy motocykl wg marki, modelu i roku. Specyfikacje ładują się automatycznie. Jedno dotknięcie, aby zobaczyć serwis, wydatki i trasy dowolnego motocykla.",
+      "badge": "Bez limitu motocykli"
     },
-    "progress": {
-      "title": "Sledzenie postepu",
-      "tagline": "Zobacz, jak daleko zaszles.",
-      "description": "Awansuj, uczac sie. Zdobywaj odznaki, sledz wyniki quizow i obserwuj swoj rozwoj — od pierwszej wymiany oleju po pelna bieglosc.",
-      "badge": "Awansuj"
+    "maintenance": {
+      "title": "Tracker Serwisu",
+      "tagline": "Nigdy więcej nie przegap przeglądu.",
+      "description": "Rejestruj każdą wymianę oleju, smarowanie łańcucha i wymianę opon. Ustaw przypomnienia na podstawie przebiegu lub czasu, które informują przed terminem. Pełna historia serwisowa w jednym miejscu.",
+      "badge": "Inteligentne przypomnienia"
     },
-    "community": {
-      "title": "Spolecznosc",
-      "tagline": "Dolacz do innych jezdzcow.",
-      "description": "Udostepniaj swoj garaz, porownuj postepy i ucz sie razem z jezdzcami na kazdym poziomie. Wiedza motocyklowa jest lepsza wspolnie.",
-      "badge": "Nowość"
+    "expenses": {
+      "title": "Menedżer Wydatków",
+      "tagline": "Dowiedz się, ile naprawdę kosztuje Twój motocykl.",
+      "description": "Śledź paliwo, ekwipunek, części, ubezpieczenie i każdy koszt posiadania. Zobacz trendy wydatków wg kategorii z miesięcznymi zestawieniami i analizą kosztu na kilometr.",
+      "badge": "Analiza kosztów"
+    },
+    "rides": {
+      "title": "Rejestr Tras",
+      "tagline": "Każda trasa, zmapowana i zapisana.",
+      "description": "Nagrywaj trasy GPS z prędkością, wysokością i dystansem. Przeglądaj statystyki tras, udostępniaj najciekawsze momenty i buduj kompletną historię jazdy.",
+      "badge": "Śledzenie GPS"
     }
   },
   "SocialProof": {
     "riders": "Aktywni jeźdźcy",
     "ridersCount": "2 400+",
-    "diagnostics": "Przeprowadzone diagnozy AI",
-    "diagnosticsCount": "8 500+",
-    "bikes": "Motocykli w bazie",
+    "maintenance": "Przeprowadzone diagnozy AI",
+    "maintenanceCount": "8 500+",
+    "bikes": "Śledzone Motocykle",
     "bikesCount": "18 000+"
   },
   "HowItWorks": {
     "sectionLabel": "Jak to dziala",
-    "sectionTitle": "Jak to dziala",
-    "sectionSubtitle": "Trzy kroki. To wszystko.",
+    "sectionTitle": "Trzy Kroki do Pełnej Kontroli",
+    "sectionSubtitle": "Skonfiguruj w kilka minut. Śledź przez lata.",
     "step1Title": "Dodaj swoj motocykl",
     "step1Desc": "Wyszukaj wedlug marki, modelu i roku. Dane twojego motocykla sa ladowane automatycznie z oficjalnych baz danych.",
-    "step2Title": "Uzyskaj analizy AI",
-    "step2Desc": "Zrob zdjecie dowolnej czesci lub problemu. Nasze AI identyfikuje komponenty, diagnozuje problemy i sugeruje naprawy.",
-    "step3Title": "Jedz madrzej",
-    "step3Desc": "Badz na biezaco z serwisem dzieki inteligentnym przypomnieniom i buduj prawdziwe umiejetnosci z lekcjami krok po kroku."
+    "step2Title": "Śledź Wszystko",
+    "step2Desc": "Rejestruj serwis, zapisuj wydatki i śledź trasy. Każdy punkt danych buduje kompletną historię Twojego motocykla.",
+    "step3Title": "Bądź o Krok przed",
+    "step3Desc": "Otrzymuj inteligentne przypomnienia serwisowe, analizę kosztu na kilometr i diagnostykę AI — żeby nic Cię nie zaskoczyło."
   },
   "Testimonials": {
     "sectionLabel": "Opinie",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "Zobacz w Akcji",
     "sectionTitle": "Twoje Centrum Dowodzenia Motocyklem",
-    "cap1Title": "Diagnostyka AI",
-    "cap1Desc": "Skieruj aparat na dowolny problem. Uzyskaj identyfikacje czesci, ocene powagi i naprawy krok po kroku w kilka sekund.",
-    "cap1Alt": "Ekran wyniku diagnostyki AI MotoVault",
-    "cap2Title": "Inteligentny Serwis",
-    "cap2Desc": "Sledz kazdy serwis, ustawiaj przypomnienia na podstawie przebiegu i nigdy wiecej nie przegap wymiany oleju ani smarowania lancucha.",
-    "cap2Alt": "Ekran sledzenia serwisu MotoVault",
-    "cap3Title": "Ucz sie i Rozwijaj",
-    "cap3Desc": "Ustrukturyzowane kursy o budowie silnika, regulacji zawieszenia i ukladach elektrycznych — z quizami do sprawdzenia wiedzy.",
-    "cap3Alt": "Panel nauki MotoVault",
+    "cap1Title": "Tracker Serwisu",
+    "cap1Desc": "Rejestruj każdy przegląd z datami, przebiegiem i kosztami. Inteligentne przypomnienia informują przed kolejną wymianą oleju, smarowaniem łańcucha lub kontrolą hamulców.",
+    "cap1Alt": "Ekran śledzenia serwisu MotoVault",
+    "cap2Title": "Tracker Wydatków",
+    "cap2Desc": "Zobacz dokładnie, ile kosztuje Twój motocykl. Śledź paliwo, części, ekwipunek i ubezpieczenie z miesięcznymi zestawieniami i analizą kosztu na kilometr.",
+    "cap2Alt": "Ekran śledzenia wydatków MotoVault",
+    "cap3Title": "Diagnostyka AI",
+    "cap3Desc": "Skieruj kamerę na dowolny problem. Uzyskaj identyfikację części, ocenę powagi i naprawy krok po kroku w kilka sekund.",
+    "cap3Alt": "Ekran wyniku diagnostyki AI MotoVault",
     "learnMore": "Dowiedz sie wiecej"
   },
   "Cta": {
     "socialProof": "Zaufany przez tysiące jeźdźców na całym świecie",
-    "headline": "Poznaj swoj motocykl od srodka",
-    "subtitle": "Za darmo na iOS i Android. Zacznij śledzić swój motocykl już dziś.",
+    "headline": "Przestań Zgadywać. Zacznij Śledzić.",
+    "subtitle": "Za darmo na iOS i Android. Serwis, wydatki i trasy Twojego motocykla — wreszcie w jednym miejscu.",
     "trustFree": "Start za darmo",
     "trustNoCard": "Zadnego spamu",
     "disclaimer": "Dostępne teraz na iOS i Android.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "Czym jest MotoVault?",
-        "answer": "MotoVault to platforma oparta na AI, stworzona dla motocyklistow. Pomaga uczyc sie serwisowania, diagnozowac problemy ze zdjecia, sledzic motocykle w cyfrowym garazu i budowac prawdziwe umiejetnosci mechaniczne poprzez lekcje i quizy."
+        "answer": "MotoVault to aplikacja do zarządzania motocyklem stworzona dla motocyklistów. Śledź zadania serwisowe z inteligentnymi przypomnieniami, rejestruj każdy wydatek (paliwo, ekwipunek, części), nagrywaj swoje trasy i diagnozuj problemy z analizą zdjęć AI — wszystko w jednej aplikacji."
       },
       {
         "question": "Czy MotoVault jest darmowy?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Produkt",
     "company": "Firma",
-    "tagline": "Poznaj swoj motocykl. Napraw swoj motocykl.",
+    "tagline": "Śledź każdy kilometr. Znaj każdy koszt.",
     "copyright": "© 2026 MotoVault. Wszelkie prawa zastrzezone.",
     "features": "Funkcje",
     "learning": "Sciezki nauki",

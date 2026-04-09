@@ -20,9 +20,10 @@ interface CommentListProps {
   rideId?: string;
   routeId?: string;
   groupRideId?: string;
+  tripId?: string;
 }
 
-export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) {
+export function CommentList({ rideId, routeId, groupRideId, tripId }: CommentListProps) {
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
   const userId = useAuthStore((s) => s.session?.user?.id);
@@ -32,7 +33,9 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
     ? queryKeys.comments.byRide(rideId)
     : routeId
       ? queryKeys.comments.byRoute(routeId)
-      : queryKeys.comments.byGroupRide(groupRideId ?? '');
+      : tripId
+        ? queryKeys.comments.byTrip(tripId)
+        : queryKeys.comments.byGroupRide(groupRideId ?? '');
 
   const { data, isLoading } = useQuery({
     queryKey,
@@ -41,6 +44,7 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
         rideId: rideId ?? null,
         routeId: routeId ?? null,
         groupRideId: groupRideId ?? null,
+        tripId: tripId ?? null,
         first: 50,
       }),
   });
@@ -55,6 +59,7 @@ export function CommentList({ rideId, routeId, groupRideId }: CommentListProps) 
           rideId: rideId ?? undefined,
           routeId: routeId ?? undefined,
           groupRideId: groupRideId ?? undefined,
+          tripId: tripId ?? undefined,
           parentCommentId: variables.parentCommentId,
           text: variables.text,
         },

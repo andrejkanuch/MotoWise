@@ -1,0 +1,3 @@
+mutation JoinTrip($input: JoinTripInput!) {
+  joinTrip(input: $input)
+}

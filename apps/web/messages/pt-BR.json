@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — Diagnóstico e Aprendizado de Motos com IA",
+    "title": "MotoVault — Manutenção de Motos, Despesas e Rastreador de Percursos",
     "titleTemplate": "%s | MotoVault",
-    "description": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android.",
-    "ogDescription": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android."
+    "description": "Gerencie tarefas de manutenção, registre gastos com combustível e equipamentos, grave percursos e diagnostique problemas com IA. Grátis no iOS e Android.",
+    "ogDescription": "Gerencie tarefas de manutenção, registre gastos com combustível e equipamentos, grave percursos e diagnostique problemas com IA. Grátis no iOS e Android."
   },
   "Navbar": {
     "features": "Recursos",
-    "diagnostics": "Diagnóstico IA",
     "learning": "Aprendizado",
     "garage": "Garagem",
     "faq": "FAQ",
@@ -15,71 +14,76 @@
     "login": "Entrar",
     "openMenu": "Abrir menu de navegação",
     "closeMenu": "Fechar menu de navegação",
-    "signup": "Cadastrar"
+    "signup": "Cadastrar",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnóstico IA",
+    "maintenance": "Manutenção",
+    "expenses": "Despesas",
+    "rides": "Percursos"
   },
   "Hero": {
-    "line1": "APRENDA SUA MOTO.",
-    "line2": "CONSERTE",
-    "line3": "SUA MOTO.",
-    "subtitle": "Diagnóstico e aprendizado de motos com IA — em breve.",
-    "downloadCta": "Baixar o App",
+    "line1": "ACOMPANHE SUA MOTO.",
+    "line2": "DOMINE",
+    "line3": "SEU PERCURSO.",
+    "subtitle": "Registros de manutenção, controle de despesas e gravação de percursos — tudo em um só app.",
+    "downloadCta": "Comece a Rastrear Grátis",
     "exploreFeatures": "Explorar Recursos",
     "scrollDown": "Rolar para baixo",
-    "seoTitle": "App de Diagnóstico e Aprendizado de Motos com IA"
+    "seoTitle": "Rastreador de Manutenção de Motos e Gerenciador de Despesas"
   },
   "Features": {
     "sectionLabel": "Recursos",
     "sectionTitle": "Tudo que Sua Moto Precisa",
-    "sectionSubtitle": "Aprenda, mantenha e domine sua moto — tudo em um app.",
+    "sectionSubtitle": "Acompanhe despesas, gerencie manutenção, registre percursos e diagnostique problemas — tudo em um só app.",
     "diag": {
       "title": "Diagnóstico IA",
       "tagline": "Tire uma foto. Receba respostas.",
       "description": "Aponte sua câmera para qualquer peça, luz de aviso ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções — tudo em segundos.",
       "badge": "< 5 seg"
     },
-    "learn": {
-      "title": "Habilidades Mecânicas",
-      "tagline": "De troca de óleo a reconstrução de motor.",
-      "description": "Aprenda como seu motor, suspensão e sistema elétrico realmente funcionam — com aulas práticas, quizzes e tarefas de garagem.",
-      "badge": "50+ aulas"
-    },
     "garage": {
-      "title": "Gerenciamento de Garagem",
-      "tagline": "Acompanhe suas motos.",
-      "description": "Armazene cada moto por marca, modelo e ano. Registre manutenções, defina lembretes de serviço e mantenha um histórico completo para não perder nada.",
+      "title": "Garagem Digital",
+      "tagline": "Todas as suas motos, um só lugar.",
+      "description": "Salve cada moto por marca, modelo e ano. Especificações carregadas automaticamente. Um toque para ver manutenção, despesas e percursos de qualquer moto.",
       "badge": "Motos ilimitadas"
     },
-    "progress": {
-      "title": "Rastreador de Habilidades",
-      "tagline": "Veja o quanto você evoluiu.",
-      "description": "Suba de nível conforme aprende. Ganhe badges, acompanhe suas notas nos quizzes e veja sua evolução — da primeira troca de óleo a expert em motos.",
-      "badge": "Suba de nível"
+    "maintenance": {
+      "title": "Rastreador de Manutenção",
+      "tagline": "Nunca mais perca uma revisão.",
+      "description": "Registre cada troca de óleo, lubrificação de corrente e troca de pneu. Configure lembretes por quilometragem ou tempo que avisam antes do vencimento. Histórico completo de serviços em uma olhada.",
+      "badge": "Lembretes inteligentes"
     },
-    "community": {
-      "title": "Comunidade",
-      "tagline": "Junte-se a outros pilotos.",
-      "description": "Compartilhe sua garagem, compare progresso e aprenda junto com pilotos de todos os níveis. Conhecimento sobre motos é melhor junto.",
-      "badge": "Novo"
+    "expenses": {
+      "title": "Gerenciador de Despesas",
+      "tagline": "Saiba quanto sua moto realmente custa.",
+      "description": "Acompanhe combustível, equipamentos, peças, seguro e todos os custos de propriedade. Veja tendências de gastos por categoria com análises mensais e custo por quilômetro.",
+      "badge": "Análise de custos"
+    },
+    "rides": {
+      "title": "Registro de Percursos",
+      "tagline": "Cada percurso, mapeado e salvo.",
+      "description": "Grave rotas GPS com velocidade, elevação e distância. Revise estatísticas de percursos, compartilhe destaques e construa um histórico completo de pilotagem.",
+      "badge": "Rastreamento GPS"
     }
   },
   "SocialProof": {
     "riders": "Pilotos Ativos",
     "ridersCount": "2.400+",
-    "diagnostics": "Diagnósticos de IA Realizados",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Motos no Banco de Dados",
+    "maintenance": "Diagnósticos de IA Realizados",
+    "maintenanceCount": "8.500+",
+    "bikes": "Motos Rastreadas",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Como Funciona",
-    "sectionTitle": "Como Funciona",
-    "sectionSubtitle": "Três passos. Só isso.",
+    "sectionTitle": "Três Passos para o Controle Total",
+    "sectionSubtitle": "Configure em minutos. Rastreie por anos.",
     "step1Title": "Adicione Sua Moto",
     "step1Desc": "Busque por marca, modelo e ano. As especificações da sua moto são carregadas automaticamente de bancos de dados oficiais.",
-    "step2Title": "Receba Insights da IA",
-    "step2Desc": "Tire uma foto de qualquer peça ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções.",
-    "step3Title": "Pilote com Mais Inteligência",
-    "step3Desc": "Fique em dia com a manutenção usando lembretes inteligentes e desenvolva habilidades reais com aulas guiadas."
+    "step2Title": "Rastreie Tudo",
+    "step2Desc": "Registre manutenção, anote despesas e rastreie percursos. Cada dado constrói o histórico completo da sua moto.",
+    "step3Title": "Fique Sempre à Frente",
+    "step3Desc": "Receba lembretes inteligentes de serviço, análises de custo por quilômetro e diagnósticos com IA — para que nada te pegue de surpresa."
   },
   "Testimonials": {
     "sectionLabel": "Depoimentos",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "Veja em Ação",
     "sectionTitle": "Seu Centro de Comando para Motos",
-    "cap1Title": "Diagnóstico IA",
-    "cap1Desc": "Aponte sua câmera para qualquer problema. Receba identificação de peças, nível de gravidade e correções passo a passo em segundos.",
-    "cap1Alt": "Tela de resultado do diagnóstico IA do MotoVault",
-    "cap2Title": "Manutenção Inteligente",
-    "cap2Desc": "Registre cada serviço, defina lembretes por quilometragem e nunca mais esqueça uma troca de óleo ou lubrificação de corrente.",
-    "cap2Alt": "Tela de acompanhamento de manutenção do MotoVault",
-    "cap3Title": "Aprenda e Evolua",
-    "cap3Desc": "Cursos estruturados sobre internos do motor, ajuste de suspensão e sistemas elétricos — com quizzes para testar seu conhecimento.",
-    "cap3Alt": "Painel de aprendizado do MotoVault",
+    "cap1Title": "Rastreador de Manutenção",
+    "cap1Desc": "Registre cada serviço com datas, quilometragem e custos. Lembretes inteligentes avisam antes da próxima troca de óleo, lubrificação de corrente ou verificação de freios.",
+    "cap1Alt": "Tela de rastreamento de manutenção do MotoVault",
+    "cap2Title": "Rastreador de Despesas",
+    "cap2Desc": "Veja exatamente quanto custa sua moto. Acompanhe combustível, peças, equipamentos e seguro com análises mensais e custo por quilômetro.",
+    "cap2Alt": "Tela de rastreamento de despesas do MotoVault",
+    "cap3Title": "Diagnóstico com IA",
+    "cap3Desc": "Aponte a câmera para qualquer problema. Obtenha identificação de peças, avaliação de gravidade e soluções passo a passo em segundos.",
+    "cap3Alt": "Tela de resultado do diagnóstico IA do MotoVault",
     "learnMore": "Saiba mais"
   },
   "Cta": {
     "socialProof": "Confiado por milhares de pilotos no mundo todo",
-    "headline": "Conheça Sua Moto Por Dentro",
-    "subtitle": "Grátis no iOS e Android. Comece a acompanhar sua moto hoje.",
+    "headline": "Pare de Adivinhar. Comece a Rastrear.",
+    "subtitle": "Grátis no iOS e Android. Manutenção, despesas e percursos da sua moto — finalmente em um só lugar.",
     "trustFree": "Grátis para começar",
     "trustNoCard": "Sem spam, nunca",
     "disclaimer": "Disponível agora no iOS e Android.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "O que é o MotoVault?",
-        "answer": "MotoVault é uma plataforma com IA feita para motociclistas. Ela ajuda você a aprender manutenção, diagnosticar problemas tirando uma foto, acompanhar suas motos em uma garagem digital e desenvolver habilidades mecânicas reais com aulas e quizzes."
+        "answer": "MotoVault é um app de gerenciamento de motos feito para motociclistas. Rastreie tarefas de manutenção com lembretes inteligentes, registre cada despesa (combustível, equipamentos, peças), grave seus percursos e diagnostique problemas com análise fotográfica por IA — tudo em um só app."
       },
       {
         "question": "O MotoVault é gratuito?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Produto",
     "company": "Empresa",
-    "tagline": "Aprenda sua moto. Conserte sua moto.",
+    "tagline": "Rastreie cada quilômetro. Conheça cada custo.",
     "copyright": "© 2026 MotoVault. Todos os direitos reservados.",
     "features": "Recursos",
     "learning": "Trilhas de Aprendizado",

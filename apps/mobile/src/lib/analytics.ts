@@ -140,6 +140,15 @@ export const AnalyticsEvent = {
   GROUP_RIDE_CREATED: 'group_ride_created',
   GROUP_RIDE_JOINED: 'group_ride_joined',
   GROUP_RIDE_LEFT: 'group_ride_left',
+  TRIP_CREATED: 'trip_created',
+  TRIP_PUBLISHED: 'trip_published',
+  TRIP_JOINED: 'trip_joined',
+  TRIP_LEFT: 'trip_left',
+  TRIP_DRAFT_SAVED: 'trip_draft_saved',
+  TRIP_WAYPOINT_ADDED: 'trip_waypoint_added',
+  TRIP_VIEWED: 'trip_viewed',
+  TRIP_SHARED: 'trip_shared',
+  TRIP_OPENED_IN_MAPS: 'trip_opened_in_maps',
 
   // Subscription funnel
   PAYWALL_VIEWED: 'paywall_viewed',
@@ -150,6 +159,10 @@ export const AnalyticsEvent = {
 
   // Privacy
   DATA_EXPORT_REQUESTED: 'data_export_requested',
+
+  // What's New
+  WHATS_NEW_VIEWED: 'whats_new_viewed',
+  WHATS_NEW_DISMISSED: 'whats_new_dismissed',
 
   // Navigation
   SCREEN_VIEWED: 'screen_viewed',

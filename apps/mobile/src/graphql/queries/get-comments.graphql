@@ -1,5 +1,5 @@
-query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $first: Int, $after: String) {
-  getComments(rideId: $rideId, routeId: $routeId, groupRideId: $groupRideId, first: $first, after: $after) {
+query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {
+  getComments(rideId: $rideId, routeId: $routeId, groupRideId: $groupRideId, tripId: $tripId, first: $first, after: $after) {
     comments {
       id
       text

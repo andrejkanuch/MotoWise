@@ -1,13 +1,12 @@
 {
   "Metadata": {
-    "title": "MotoVault — Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI",
+    "title": "MotoVault — Perawatan Motor, Pengeluaran & Pelacak Perjalanan",
     "titleTemplate": "%s | MotoVault",
-    "description": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android.",
-    "ogDescription": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android."
+    "description": "Lacak tugas perawatan, catat pengeluaran bahan bakar dan perlengkapan, rekam perjalanan, dan diagnosis masalah dengan AI. Gratis di iOS & Android.",
+    "ogDescription": "Lacak tugas perawatan, catat pengeluaran bahan bakar dan perlengkapan, rekam perjalanan, dan diagnosis masalah dengan AI. Gratis di iOS & Android."
   },
   "Navbar": {
     "features": "Fitur",
-    "diagnostics": "Diagnostik AI",
     "learning": "Pembelajaran",
     "garage": "Garasi",
     "faq": "FAQ",
@@ -15,71 +14,76 @@
     "login": "Masuk",
     "openMenu": "Buka menu navigasi",
     "closeMenu": "Tutup menu navigasi",
-    "signup": "Daftar"
+    "signup": "Daftar",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnostik AI",
+    "maintenance": "Perawatan",
+    "expenses": "Pengeluaran",
+    "rides": "Perjalanan"
   },
   "Hero": {
-    "line1": "PELAJARI MOTORMU.",
-    "line2": "PERBAIKI",
-    "line3": "MOTORMU.",
-    "subtitle": "Diagnostik & pembelajaran motor berbasis AI — segera hadir.",
-    "downloadCta": "Unduh Aplikasi",
+    "line1": "LACAK MOTORMU.",
+    "line2": "KUASAI",
+    "line3": "PERJALANANMU.",
+    "subtitle": "Log perawatan, pelacakan pengeluaran, dan pencatatan perjalanan — semua dalam satu aplikasi.",
+    "downloadCta": "Mulai Lacak Gratis",
     "exploreFeatures": "Jelajahi Fitur",
     "scrollDown": "Gulir ke bawah",
-    "seoTitle": "Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI"
+    "seoTitle": "Pelacak Perawatan Motor & Manajer Pengeluaran"
   },
   "Features": {
     "sectionLabel": "Fitur",
     "sectionTitle": "Semua yang Motor Kamu Butuhkan",
-    "sectionSubtitle": "Belajar, rawat, dan kuasai motormu — semua dalam satu aplikasi.",
+    "sectionSubtitle": "Lacak pengeluaran, kelola perawatan, catat perjalanan, dan diagnosis masalah — semua dalam satu aplikasi.",
     "diag": {
       "title": "Diagnostik AI",
       "tagline": "Foto. Dapat jawaban.",
       "description": "Arahkan kamera ke komponen, lampu peringatan, atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan — semua dalam hitungan detik.",
       "badge": "< 5 detik"
     },
-    "learn": {
-      "title": "Keahlian Mekanik",
-      "tagline": "Dari ganti oli hingga rebuild mesin.",
-      "description": "Pelajari cara kerja mesin, suspensi, dan kelistrikan — dengan pelajaran singkat, kuis, dan tugas bengkel nyata.",
-      "badge": "50+ pelajaran"
-    },
     "garage": {
-      "title": "Manajemen Garasi",
-      "tagline": "Lacak motor kamu.",
-      "description": "Simpan setiap motor berdasarkan merek, model, dan tahun. Catat perawatan, atur pengingat servis, dan simpan riwayat lengkap agar tidak ada yang terlewat.",
+      "title": "Garasi Digital",
+      "tagline": "Semua motormu, satu tempat.",
+      "description": "Simpan setiap motor berdasarkan merek, model, dan tahun. Spesifikasi dimuat otomatis. Satu ketukan untuk melihat perawatan, pengeluaran, dan perjalanan untuk motor mana pun.",
       "badge": "Motor tak terbatas"
     },
-    "progress": {
-      "title": "Pelacak Keahlian",
-      "tagline": "Lihat sejauh mana kamu sudah maju.",
-      "description": "Naik level saat belajar. Kumpulkan lencana, lacak skor kuis, dan lihat perkembanganmu — dari ganti oli pertama hingga mekanik handal.",
-      "badge": "Naik level"
+    "maintenance": {
+      "title": "Pelacak Perawatan",
+      "tagline": "Jangan pernah lewatkan servis lagi.",
+      "description": "Catat setiap ganti oli, pelumasan rantai, dan penggantian ban. Atur pengingat berdasarkan jarak tempuh atau waktu yang memberi tahu sebelum jadwal terlewat. Riwayat servis lengkap dalam sekali pandang.",
+      "badge": "Pengingat pintar"
     },
-    "community": {
-      "title": "Komunitas",
-      "tagline": "Bergabung dengan sesama pengendara.",
-      "description": "Bagikan garasi, bandingkan kemajuan, dan belajar bersama pengendara di setiap level. Pengetahuan motor lebih baik bersama-sama.",
-      "badge": "Baru"
+    "expenses": {
+      "title": "Manajer Pengeluaran",
+      "tagline": "Ketahui biaya sebenarnya dari motormu.",
+      "description": "Lacak bahan bakar, perlengkapan, suku cadang, asuransi, dan setiap biaya kepemilikan. Lihat tren pengeluaran berdasarkan kategori dengan rincian bulanan dan analisis biaya per kilometer.",
+      "badge": "Wawasan biaya"
+    },
+    "rides": {
+      "title": "Pencatat Perjalanan",
+      "tagline": "Setiap perjalanan, dipetakan dan disimpan.",
+      "description": "Rekam rute GPS dengan kecepatan, ketinggian, dan jarak. Tinjau statistik perjalanan, bagikan momen terbaik, dan bangun riwayat berkendara yang lengkap.",
+      "badge": "Pelacakan GPS"
     }
   },
   "SocialProof": {
     "riders": "Pengendara Aktif",
     "ridersCount": "2.400+",
-    "diagnostics": "Diagnosis AI Dijalankan",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Motor di Database",
+    "maintenance": "Diagnosis AI Dijalankan",
+    "maintenanceCount": "8.500+",
+    "bikes": "Motor Terlacak",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Cara Kerja",
-    "sectionTitle": "Cara Kerja",
-    "sectionSubtitle": "Tiga langkah. Itu saja.",
+    "sectionTitle": "Tiga Langkah Menuju Kontrol Penuh",
+    "sectionSubtitle": "Siapkan dalam hitungan menit. Lacak selama bertahun-tahun.",
     "step1Title": "Tambahkan Motormu",
     "step1Desc": "Cari berdasarkan merek, model, dan tahun. Spesifikasi motor dimuat otomatis dari database resmi.",
-    "step2Title": "Dapatkan Insight AI",
-    "step2Desc": "Foto komponen atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan.",
-    "step3Title": "Berkendara Lebih Cerdas",
-    "step3Desc": "Pantau perawatan dengan pengingat pintar dan bangun keahlian nyata dengan pelajaran terpandu."
+    "step2Title": "Lacak Semuanya",
+    "step2Desc": "Catat perawatan, rekam pengeluaran, dan lacak perjalanan. Setiap data membangun riwayat lengkap motormu.",
+    "step3Title": "Selalu Selangkah di Depan",
+    "step3Desc": "Dapatkan pengingat servis pintar, analisis biaya per kilometer, dan diagnosis AI — agar tidak ada yang mengejutkanmu."
   },
   "Testimonials": {
     "sectionLabel": "Testimoni",
@@ -121,21 +125,21 @@
   "AppShowcase": {
     "sectionLabel": "Lihat Aksinya",
     "sectionTitle": "Pusat Komando Motor Kamu",
-    "cap1Title": "Diagnostik AI",
-    "cap1Desc": "Arahkan kamera ke masalah apa pun. Dapatkan identifikasi komponen, tingkat keparahan, dan perbaikan langkah demi langkah dalam hitungan detik.",
-    "cap1Alt": "Layar hasil diagnosis AI MotoVault",
-    "cap2Title": "Perawatan Pintar",
-    "cap2Desc": "Lacak setiap servis, atur pengingat berbasis jarak tempuh, dan jangan pernah lewatkan ganti oli atau pelumasan rantai lagi.",
-    "cap2Alt": "Layar pelacakan perawatan MotoVault",
-    "cap3Title": "Belajar & Tingkatkan",
-    "cap3Desc": "Kursus terstruktur tentang mesin internal, tuning suspensi, dan sistem kelistrikan — dengan kuis untuk menguji pengetahuanmu.",
-    "cap3Alt": "Dashboard pembelajaran MotoVault",
+    "cap1Title": "Pelacak Perawatan",
+    "cap1Desc": "Catat setiap servis dengan tanggal, jarak tempuh, dan biaya. Pengingat pintar memberi tahu sebelum ganti oli, pelumasan rantai, atau pemeriksaan rem berikutnya.",
+    "cap1Alt": "Layar pelacakan perawatan MotoVault",
+    "cap2Title": "Pelacak Pengeluaran",
+    "cap2Desc": "Lihat persis berapa biaya motormu. Lacak bahan bakar, suku cadang, perlengkapan, dan asuransi dengan rincian bulanan dan analisis biaya per kilometer.",
+    "cap2Alt": "Layar pelacakan pengeluaran MotoVault",
+    "cap3Title": "Diagnosis AI",
+    "cap3Desc": "Arahkan kamera ke masalah apa pun. Dapatkan identifikasi komponen, penilaian tingkat keparahan, dan perbaikan langkah demi langkah dalam hitungan detik.",
+    "cap3Alt": "Layar hasil diagnosis AI MotoVault",
     "learnMore": "Pelajari lebih lanjut"
   },
   "Cta": {
     "socialProof": "Dipercaya oleh ribuan pengendara di seluruh dunia",
-    "headline": "Kenali Motormu Luar Dalam",
-    "subtitle": "Gratis di iOS dan Android. Mulai lacak motormu hari ini.",
+    "headline": "Berhenti Menebak. Mulai Melacak.",
+    "subtitle": "Gratis di iOS dan Android. Perawatan, pengeluaran, dan perjalanan motormu — akhirnya dalam satu tempat.",
     "trustFree": "Gratis untuk mulai",
     "trustNoCard": "Tanpa spam, selamanya",
     "disclaimer": "Tersedia sekarang di iOS dan Android.",
@@ -153,7 +157,7 @@
     "items": [
       {
         "question": "Apa itu MotoVault?",
-        "answer": "MotoVault adalah platform berbasis AI untuk pengendara motor. Membantu kamu belajar perawatan, mendiagnosis masalah dengan foto, melacak motor di garasi digital, dan membangun keahlian mekanik nyata melalui pelajaran dan kuis."
+        "answer": "MotoVault adalah aplikasi manajemen motor yang dibuat untuk pengendara. Lacak tugas perawatan dengan pengingat pintar, catat setiap pengeluaran (bahan bakar, perlengkapan, suku cadang), rekam perjalananmu, dan diagnosis masalah dengan analisis foto AI — semua dalam satu aplikasi."
       },
       {
         "question": "Apakah MotoVault gratis?",
@@ -180,7 +184,7 @@
   "Footer": {
     "product": "Produk",
     "company": "Perusahaan",
-    "tagline": "Pelajari motormu. Perbaiki motormu.",
+    "tagline": "Lacak setiap kilometer. Ketahui setiap biaya.",
     "copyright": "© 2026 MotoVault. Hak cipta dilindungi.",
     "features": "Fitur",
     "learning": "Jalur Pembelajaran",

@@ -12,6 +12,9 @@ export class CreateCommentInput {
   groupRideId?: string;
 
   @Field(() => ID, { nullable: true })
+  tripId?: string;
+
+  @Field(() => ID, { nullable: true })
   parentCommentId?: string;
 
   @Field()

@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { useMemo, useState } from 'react';
 
 export default function LoginPage() {
@@ -24,11 +25,16 @@ export default function LoginPage() {
     if (loading) return;
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    posthog.capture('sign_in_submitted', { method: 'email' });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message);
       setLoading(false);
+      posthog.capture('sign_in_error', { method: 'email', error_message: error.message });
     } else {
+      if (data.user) {
+        posthog.identify(data.user.id, { email: data.user.email });
+      }
       // Hard navigation to ensure middleware re-runs with new cookies
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get('redirect') || '/feed';
@@ -38,6 +44,7 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     setOauthLoading('google');
+    posthog.capture('sign_in_oauth_clicked', { provider: 'google' });
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -46,6 +53,7 @@ export default function LoginPage() {
 
   const handleAppleSignIn = async () => {
     setOauthLoading('apple');
+    posthog.capture('sign_in_oauth_clicked', { provider: 'apple' });
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
