@@ -327,6 +327,7 @@ export class TripsService {
         lng: number;
         notes?: string;
         sortOrder: number;
+        dayIndex?: number;
       }>;
     },
   ): Promise<Trip> {
@@ -475,6 +476,7 @@ export class TripsService {
       lng: number;
       notes?: string;
       sortOrder: number;
+      dayIndex?: number;
     },
   ): Promise<TripWaypoint> {
     await this.verifyOrganiser(userId, input.tripId);
@@ -512,6 +514,7 @@ export class TripsService {
       lng?: number;
       notes?: string;
       sortOrder?: number;
+      dayIndex?: number;
     },
   ): Promise<TripWaypoint> {
     // Get waypoint to find trip_id
