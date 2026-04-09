@@ -191,85 +191,118 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
 
   const aspectRatio: AspectRatio = body.aspect_ratio || '4:5';
 
-  // Imagen 4 supports: 1:1, 3:4, 4:3, 9:16, 16:9
-  // Map 4:5 → 3:4 (closest supported portrait ratio)
-  const imagenRatioMap: Record<AspectRatio, string> = {
-    '4:5': '3:4',
-    '9:16': '9:16',
-    '1:1': '1:1',
-  };
-  const imagenRatio = imagenRatioMap[aspectRatio];
+  // Primary: Gemini 3.1 Flash Image — native 4:5 and 9:16 support + text rendering
+  const gemini31Url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
 
-  const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${env.GOOGLE_AI_STUDIO_KEY}`;
-
-  const res = await fetch(imagenUrl, {
+  const res = await fetch(gemini31Url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      instances: [{ prompt: body.prompt }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: imagenRatio,
-        outputOptions: { mimeType: 'image/png' },
+      contents: [{ parts: [{ text: body.prompt }] }],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        imageConfig: {
+          aspectRatio: aspectRatio,
+          imageSize: '2K',
+        },
       },
     }),
   });
 
   const data = await res.json<any>();
 
-  if (!res.ok) {
-    // Fallback to Gemini if Imagen fails
-    return handleGenerateImageGeminiFallback(body.prompt, env);
+  if (res.ok) {
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find((p: any) => p.inlineData);
+
+    if (imagePart) {
+      return json({
+        image_base64: imagePart.inlineData.data,
+        mime_type: imagePart.inlineData.mimeType || 'image/png',
+        engine: 'gemini-3.1-flash-image',
+        aspect_ratio: aspectRatio,
+      });
+    }
   }
 
-  const predictions = data.predictions;
-  if (!predictions || predictions.length === 0) {
-    // Fallback to Gemini
-    return handleGenerateImageGeminiFallback(body.prompt, env);
-  }
+  // Fallback 1: Gemini 3 Pro Image (Nano Banana Pro)
+  const gemini3ProUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
 
-  const imageBase64 = predictions[0].bytesBase64Encoded;
-  return json({
-    image_base64: imageBase64,
-    mime_type: 'image/png',
-    engine: 'imagen-4',
-    aspect_ratio: aspectRatio,
-  });
-}
-
-/** Fallback: use Gemini 2.5 Flash Image (no aspect ratio control) */
-async function handleGenerateImageGeminiFallback(prompt: string, env: Env): Promise<Response> {
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
-
-  const res = await fetch(geminiUrl, {
+  const res2 = await fetch(gemini3ProUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+      contents: [{ parts: [{ text: body.prompt }] }],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+        imageConfig: {
+          aspectRatio: aspectRatio,
+          imageSize: '2K',
+        },
+      },
     }),
   });
 
-  const data = await res.json<any>();
+  const data2 = await res2.json<any>();
 
-  if (!res.ok) {
-    return json({ error: data.error?.message || 'Gemini API error' }, 500);
+  if (res2.ok) {
+    const parts2 = data2.candidates?.[0]?.content?.parts || [];
+    const imagePart2 = parts2.find((p: any) => p.inlineData);
+
+    if (imagePart2) {
+      return json({
+        image_base64: imagePart2.inlineData.data,
+        mime_type: imagePart2.inlineData.mimeType || 'image/png',
+        engine: 'gemini-3-pro-image',
+        aspect_ratio: aspectRatio,
+      });
+    }
   }
 
-  const parts = data.candidates?.[0]?.content?.parts || [];
-  const imagePart = parts.find((p: any) => p.inlineData);
+  // Fallback 2: Imagen 4 (no text overlay, but correct ratios for 9:16)
+  const imagenRatioMap: Record<AspectRatio, string> = {
+    '4:5': '3:4',
+    '9:16': '9:16',
+    '1:1': '1:1',
+  };
 
-  if (!imagePart) {
-    const textPart = parts.find((p: any) => p.text);
-    return json({ error: 'No image generated', text: textPart?.text }, 400);
-  }
+  const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${env.GOOGLE_AI_STUDIO_KEY}`;
 
-  return json({
-    image_base64: imagePart.inlineData.data,
-    mime_type: imagePart.inlineData.mimeType,
-    engine: 'gemini-fallback',
-    warning: 'Gemini fallback — aspect ratio may be 1:1',
+  const res3 = await fetch(imagenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      instances: [{ prompt: body.prompt }],
+      parameters: {
+        sampleCount: 1,
+        aspectRatio: imagenRatioMap[aspectRatio],
+        outputOptions: { mimeType: 'image/png' },
+      },
+    }),
   });
+
+  const data3 = await res3.json<any>();
+
+  if (res3.ok && data3.predictions?.length > 0) {
+    return json({
+      image_base64: data3.predictions[0].bytesBase64Encoded,
+      mime_type: 'image/png',
+      engine: 'imagen-4-fallback',
+      aspect_ratio: aspectRatio,
+    });
+  }
+
+  return json(
+    {
+      error: 'All image generation engines failed',
+      details: {
+        gemini31: data.error?.message || 'No image',
+        gemini3pro: data2.error?.message || 'No image',
+        imagen4: data3.error?.message || 'No predictions',
+      },
+    },
+    500,
+  );
 }
 
 // ---------------------------------------------------------------------------
