@@ -22,6 +22,7 @@ import {
   HelpCircle,
   LogOut,
   Navigation,
+  Pencil,
   Share2,
   User,
   Users,
@@ -429,6 +430,27 @@ ${rteptElements}
           gap: 8,
         }}
       >
+        {isOrganiser && (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: '/(modals)/create-trip',
+                params: { tripId: trip.id },
+              } as never)
+            }
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Pencil size={18} color={palette.white} />
+          </Pressable>
+        )}
         <Pressable
           onPress={handleShare}
           style={{

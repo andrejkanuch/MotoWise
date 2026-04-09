@@ -1,12 +1,25 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import { CreateTripWithWaypointsDocument, PublishTripDocument } from '@motovault/graphql';
+import {
+  CreateTripWithWaypointsDocument,
+  PublishTripDocument,
+  TripDetailDocument,
+  UpdateTripDocument,
+} from '@motovault/graphql';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, Map as MapIcon, Save, Send, X } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  Map as MapIcon,
+  Save,
+  Send,
+  X,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
@@ -89,8 +102,17 @@ export default function CreateTripScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ tripId?: string }>();
+  const isEditMode = !!params.tripId;
   const sheetRef = useRef<BottomSheet>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
+
+  // Fetch existing trip data when in edit mode
+  const tripQuery = useQuery({
+    queryKey: ['trip-edit', params.tripId],
+    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: params.tripId! }),
+    enabled: isEditMode,
+  });
 
   // Theme colors
   const bg = isDark ? palette.neutral950 : palette.white;
@@ -156,6 +178,33 @@ export default function CreateTripScreen() {
   });
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
   const [maxRiders, setMaxRiders] = useState('10');
+
+  // Pre-populate state from fetched trip in edit mode
+  const [editDataLoaded, setEditDataLoaded] = useState(false);
+  useEffect(() => {
+    if (!isEditMode || editDataLoaded || !tripQuery.data) return;
+    const trip = tripQuery.data.tripDetail;
+    setTitle(trip.title);
+    setDescription(trip.description);
+    setDifficulty(trip.difficulty as Difficulty);
+    setMaxRiders(String(trip.maxRiders));
+    setStartDate(new Date(`${trip.startDate}T09:00:00`));
+    setEndDate(new Date(`${trip.endDate}T18:00:00`));
+    if (trip.waypoints) {
+      const mapped: LocalWaypoint[] = trip.waypoints.map((wp) => ({
+        id: wp.id,
+        type: wp.type,
+        name: wp.name,
+        lat: wp.lat,
+        lng: wp.lng,
+        notes: wp.notes ?? undefined,
+        sortOrder: wp.sortOrder,
+        dayIndex: wp.dayIndex,
+      }));
+      setWaypoints(mapped);
+    }
+    setEditDataLoaded(true);
+  }, [isEditMode, editDataLoaded, tripQuery.data]);
 
   // Edit stop modal state
   const [editingWaypoint, setEditingWaypoint] = useState<LocalWaypoint | null>(null);
@@ -399,7 +448,35 @@ export default function CreateTripScreen() {
     },
   });
 
-  const isSaving = saveMutation.isPending || publishMutation.isPending;
+  // Update mutation (edit mode)
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      await gqlFetcher(UpdateTripDocument, {
+        input: {
+          tripId: params.tripId!,
+          title: title.trim(),
+          description: description.trim(),
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          difficulty,
+          maxRiders: Number.parseInt(maxRiders, 10) || 10,
+        },
+      });
+    },
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId!) });
+      router.back();
+    },
+    onError: () => {
+      Alert.alert('Error', 'Failed to update trip. Please try again.');
+    },
+  });
+
+  const isSaving = saveMutation.isPending || publishMutation.isPending || updateMutation.isPending;
   const sortedWaypoints = useMemo(
     () => [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder),
     [waypoints],
@@ -625,7 +702,7 @@ export default function CreateTripScreen() {
             style={{ paddingHorizontal: 20, paddingBottom: 12 }}
           >
             <Text style={{ fontSize: 18, fontWeight: '700', color: titleColor }}>
-              {title.trim() || 'New Trip'}
+              {title.trim() || (isEditMode ? 'Edit Trip' : 'New Trip')}
             </Text>
             <Text style={{ fontSize: 13, color: subtitleColor, marginTop: 2 }}>
               {waypoints.length === 0
@@ -917,86 +994,172 @@ export default function CreateTripScreen() {
             </Animated.View>
 
             {/* Error messages */}
-            {(saveMutation.isError || publishMutation.isError) && (
+            {(saveMutation.isError || publishMutation.isError || updateMutation.isError) && (
               <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
                 Something went wrong. Please try again.
               </Text>
             )}
 
-            {/* Action buttons */}
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-              <Pressable
-                onPress={() => saveMutation.mutate()}
-                disabled={!isValid || isSaving}
+            {/* Published trip warning banner (edit mode only) */}
+            {isEditMode && tripQuery.data?.tripDetail.status === 'published' && (
+              <Animated.View
+                entering={FadeIn.duration(250)}
                 style={{
-                  flex: 1,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 14,
-                  borderRadius: 14,
+                  gap: 10,
+                  backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  borderRadius: 12,
                   borderCurve: 'continuous',
-                  borderWidth: 1,
-                  borderColor: isValid ? palette.accent500 : 'transparent',
-                  backgroundColor: isValid
-                    ? 'transparent'
-                    : isDark
-                      ? palette.neutral800
-                      : palette.neutral300,
-                  opacity: isSaving ? 0.7 : 1,
                 }}
               >
-                {saveMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.accent500} />
-                ) : (
-                  <>
-                    <Save size={16} color={isValid ? palette.accent500 : palette.white} />
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: isValid ? palette.accent500 : palette.white,
-                      }}
-                    >
-                      Save Draft
-                    </Text>
-                  </>
-                )}
-              </Pressable>
+                <AlertTriangle size={16} color={palette.warning500} />
+                <Text style={{ fontSize: 13, color: palette.warning500, flex: 1 }}>
+                  Editing a published trip. Changes will be visible to participants.
+                </Text>
+              </Animated.View>
+            )}
 
-              <Pressable
-                onPress={() => publishMutation.mutate()}
-                disabled={!isValid || isSaving}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  backgroundColor: isValid
-                    ? palette.accent500
-                    : isDark
-                      ? palette.neutral800
-                      : palette.neutral300,
-                  opacity: isSaving ? 0.7 : 1,
-                }}
-              >
-                {publishMutation.isPending ? (
-                  <ActivityIndicator size="small" color={palette.white} />
-                ) : (
-                  <>
-                    <Send size={16} color={palette.white} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                      Publish
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-            </View>
+            {/* Action buttons */}
+            {isEditMode ? (
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                <Pressable
+                  onPress={() => router.back()}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                    backgroundColor: 'transparent',
+                  }}
+                >
+                  <X size={16} color={subtitleColor} />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: subtitleColor,
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => updateMutation.mutate()}
+                  disabled={!isValid || isSaving}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: isValid
+                      ? palette.accent500
+                      : isDark
+                        ? palette.neutral800
+                        : palette.neutral300,
+                    opacity: isSaving ? 0.7 : 1,
+                  }}
+                >
+                  {updateMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <>
+                      <Save size={16} color={palette.white} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        Save Changes
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                <Pressable
+                  onPress={() => saveMutation.mutate()}
+                  disabled={!isValid || isSaving}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: isValid ? palette.accent500 : 'transparent',
+                    backgroundColor: isValid
+                      ? 'transparent'
+                      : isDark
+                        ? palette.neutral800
+                        : palette.neutral300,
+                    opacity: isSaving ? 0.7 : 1,
+                  }}
+                >
+                  {saveMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.accent500} />
+                  ) : (
+                    <>
+                      <Save size={16} color={isValid ? palette.accent500 : palette.white} />
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: '700',
+                          color: isValid ? palette.accent500 : palette.white,
+                        }}
+                      >
+                        Save Draft
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+
+                <Pressable
+                  onPress={() => publishMutation.mutate()}
+                  disabled={!isValid || isSaving}
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: isValid
+                      ? palette.accent500
+                      : isDark
+                        ? palette.neutral800
+                        : palette.neutral300,
+                    opacity: isSaving ? 0.7 : 1,
+                  }}
+                >
+                  {publishMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <>
+                      <Send size={16} color={palette.white} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        Publish
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              </View>
+            )}
           </View>
         </BottomSheetScrollView>
       </BottomSheet>
