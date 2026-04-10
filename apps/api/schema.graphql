@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -616,6 +620,9 @@ type MaintenanceTask {
   partsNeeded: [String!]
   photos: [TaskPhoto!]!
   priority: MaintenancePriority!
+  remind1d: Boolean!
+  remind7d: Boolean!
+  remind30d: Boolean!
   source: MaintenanceTaskSource!
   status: MaintenanceTaskStatus!
   targetMileage: Int

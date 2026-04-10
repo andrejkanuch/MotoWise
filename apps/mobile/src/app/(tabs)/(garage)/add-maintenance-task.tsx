@@ -74,7 +74,10 @@ export default function AddMaintenanceTaskScreen() {
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
 
-      // Schedule a notification reminder if the task has a due date
+      // Schedule notification reminders if the task has a due date.
+      // MOT-139: pass the multi-stage flags from the server response so the
+      // scheduler fires 30d/7d/1d stages based on whatever defaults the API
+      // applied (or explicit per-task overrides in a future iteration).
       if (dueDate) {
         const createdTask = data?.createMaintenanceTask;
         if (createdTask?.id) {
@@ -84,6 +87,9 @@ export default function AddMaintenanceTaskScreen() {
               title: title.trim(),
               dueDate: formatDate(dueDate),
               motorcycleId,
+              remind30d: createdTask.remind30d ?? false,
+              remind7d: createdTask.remind7d ?? false,
+              remind1d: createdTask.remind1d ?? true,
             },
             bikeName ?? 'Your bike',
           );

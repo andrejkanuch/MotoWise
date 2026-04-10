@@ -549,6 +549,10 @@ export class MaintenanceTasksService {
       intervalDays: (row.interval_days as number) ?? undefined,
       isRecurring: (row.is_recurring as boolean) ?? false,
       photos: [],
+      // MOT-139: multi-stage reminder flags with legacy defaults
+      remind30d: (row.remind_30d as boolean) ?? false,
+      remind7d: (row.remind_7d as boolean) ?? false,
+      remind1d: (row.remind_1d as boolean) ?? true,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };

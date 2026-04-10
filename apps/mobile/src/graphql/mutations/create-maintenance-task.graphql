@@ -9,6 +9,9 @@ mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {
     isRecurring
     intervalKm
     intervalDays
+    remind30d
+    remind7d
+    remind1d
     createdAt
   }
 }

@@ -994,6 +994,9 @@ export type Database = {
           parts_cost: number | null
           parts_needed: string[] | null
           priority: string
+          remind_1d: boolean
+          remind_30d: boolean
+          remind_7d: boolean
           source: string
           status: string
           target_mileage: number | null
@@ -1021,6 +1024,9 @@ export type Database = {
           parts_cost?: number | null
           parts_needed?: string[] | null
           priority?: string
+          remind_1d?: boolean
+          remind_30d?: boolean
+          remind_7d?: boolean
           source?: string
           status?: string
           target_mileage?: number | null
@@ -1048,6 +1054,9 @@ export type Database = {
           parts_cost?: number | null
           parts_needed?: string[] | null
           priority?: string
+          remind_1d?: boolean
+          remind_30d?: boolean
+          remind_7d?: boolean
           source?: string
           status?: string
           target_mileage?: number | null
