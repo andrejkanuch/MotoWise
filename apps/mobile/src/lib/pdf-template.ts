@@ -123,17 +123,14 @@ function statusLabel(status: string): string {
   }
 }
 
-function formatCost(amount: number, currency?: string): string {
-  const c = currency ?? 'USD';
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: c,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `${c} ${amount.toFixed(2)}`;
-  }
+function formatCost(amount: number, currency = 'USD'): string {
+  // P3-119: Intl.NumberFormat only throws on invalid currency codes, which
+  // can't reach this path — DB-validated currency values flow through.
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 function renderTaskRow(task: PdfTask, mileageUnit: string): string {

@@ -118,7 +118,7 @@ export async function scheduleMaintenanceReminder(
   // Cancel any existing stages for this task first
   await cancelTaskNotification(task.id);
 
-  const stages: Array<{ daysBefore: number; enabled: boolean; label: string }> = [
+  const stages: Array<{ daysBefore: number; enabled: boolean; label: Stage }> = [
     { daysBefore: 30, enabled: task.remind30d ?? false, label: '30d' },
     { daysBefore: 7, enabled: task.remind7d ?? false, label: '7d' },
     { daysBefore: 1, enabled: task.remind1d ?? true, label: '1d' },
@@ -162,29 +162,31 @@ export async function scheduleMaintenanceReminder(
   }
 }
 
+// P3-118/119: exhaustive union type kills the dead default case and gives
+// us a compile error if a new stage is added without matching copy.
+type Stage = '30d' | '7d' | '1d';
+
+const STAGE_COPY: Record<Stage, (taskTitle: string, bikeName: string) => { title: string; body: string }> = {
+  '30d': (taskTitle, bikeName) => ({
+    title: `${taskTitle} in 30 days`,
+    body: `${bikeName} — time to order parts if needed`,
+  }),
+  '7d': (taskTitle, bikeName) => ({
+    title: `${taskTitle} in 7 days`,
+    body: `${bikeName} — book your shop appointment`,
+  }),
+  '1d': (taskTitle, bikeName) => ({
+    title: `${taskTitle} due tomorrow`,
+    body: `${bikeName} — tap to view details`,
+  }),
+};
+
 function buildStageNotificationCopy(
-  stage: '30d' | '7d' | '1d' | string,
+  stage: Stage,
   taskTitle: string,
   bikeName: string,
 ): { title: string; body: string } {
-  switch (stage) {
-    case '30d':
-      return {
-        title: `${taskTitle} in 30 days`,
-        body: `${bikeName} — time to order parts if needed`,
-      };
-    case '7d':
-      return {
-        title: `${taskTitle} in 7 days`,
-        body: `${bikeName} — book your shop appointment`,
-      };
-    case '1d':
-    default:
-      return {
-        title: `${taskTitle} due tomorrow`,
-        body: `${bikeName} — tap to view details`,
-      };
-  }
+  return STAGE_COPY[stage](taskTitle, bikeName);
 }
 
 /**
