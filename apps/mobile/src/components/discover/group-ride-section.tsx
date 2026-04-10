@@ -51,13 +51,19 @@ export function GroupRideSection() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 16,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Users size={18} color={palette.accent500} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: headerColor }}>
-            Group Rides{rides.length > 0 ? ` (${rides.length})` : ''}
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '800',
+              color: headerColor,
+              letterSpacing: -0.2,
+            }}
+          >
+            Rides near you
           </Text>
         </View>
       </View>
@@ -66,44 +72,68 @@ export function GroupRideSection() {
       {isLoading ? (
         <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 24 }} />
       ) : rides.length === 0 ? (
-        <View style={{ alignItems: 'center', paddingVertical: 24, gap: 10, paddingHorizontal: 16 }}>
-          <Users size={36} color={emptyIconColor} />
-          <Text
+        <View
+          style={{
+            alignItems: 'center',
+            paddingVertical: 28,
+            gap: 10,
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
             style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: subtitleColor,
-              textAlign: 'center',
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            No group rides yet
+            <Users size={26} color={palette.accent500} />
+          </View>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '800',
+              color: headerColor,
+              textAlign: 'center',
+              letterSpacing: -0.3,
+            }}
+          >
+            Nothing rolling yet
           </Text>
           <Text
             style={{
               fontSize: 13,
-              color: isDark ? palette.neutral500 : palette.neutral400,
+              lineHeight: 18,
+              color: subtitleColor,
               textAlign: 'center',
             }}
           >
-            Be the first to organize a ride with the community.
+            Post a meetup and see who shows up.
           </Text>
           <Pressable
             onPress={handleCreate}
+            accessibilityRole="button"
+            accessibilityLabel="Start a group ride"
+            accessibilityHint="Opens the group ride planner"
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
               backgroundColor: palette.accent500,
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 12,
+              paddingHorizontal: 18,
+              paddingVertical: 12,
+              borderRadius: 14,
               borderCurve: 'continuous',
-              marginTop: 4,
+              marginTop: 6,
             }}
           >
             <Plus size={16} color={palette.white} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-              Create Ride
+            <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+              Start a ride
             </Text>
           </Pressable>
         </View>
@@ -111,7 +141,8 @@ export function GroupRideSection() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
+          style={{ marginHorizontal: -16 }}
+          contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
         >
           {rides.map((ride: GroupRideNode, index: number) => (
             <GroupRideCard
@@ -126,17 +157,20 @@ export function GroupRideSection() {
           <Pressable
             onPress={handleCreate}
             accessibilityRole="button"
-            accessibilityLabel="Create a group ride"
+            accessibilityLabel="Start a group ride"
+            accessibilityHint="Opens the group ride planner"
             style={{
-              width: 80,
+              width: 96,
+              minHeight: 180,
               borderRadius: 16,
               borderCurve: 'continuous',
               borderWidth: 1,
+              borderStyle: 'dashed',
               borderColor: createBorder,
               backgroundColor: createBg,
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
+              gap: 8,
             }}
           >
             <View

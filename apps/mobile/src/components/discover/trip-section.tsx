@@ -51,13 +51,19 @@ export function TripSection() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 16,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <MapPin size={18} color={palette.accent500} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: headerColor }}>
-            Upcoming Trips{trips.length > 0 ? ` (${trips.length})` : ''}
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '800',
+              color: headerColor,
+              letterSpacing: -0.2,
+            }}
+          >
+            Multi-day trips
           </Text>
         </View>
       </View>
@@ -66,44 +72,68 @@ export function TripSection() {
       {isLoading ? (
         <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 24 }} />
       ) : trips.length === 0 ? (
-        <View style={{ alignItems: 'center', paddingVertical: 24, gap: 10, paddingHorizontal: 16 }}>
-          <MapPin size={36} color={emptyIconColor} />
-          <Text
+        <View
+          style={{
+            alignItems: 'center',
+            paddingVertical: 28,
+            gap: 10,
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
             style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: subtitleColor,
-              textAlign: 'center',
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            No upcoming trips
+            <MapPin size={26} color={palette.accent500} />
+          </View>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '800',
+              color: headerColor,
+              textAlign: 'center',
+              letterSpacing: -0.3,
+            }}
+          >
+            Map your next long one
           </Text>
           <Text
             style={{
               fontSize: 13,
-              color: isDark ? palette.neutral500 : palette.neutral400,
+              lineHeight: 18,
+              color: subtitleColor,
               textAlign: 'center',
             }}
           >
-            Plan a multi-day adventure with the community.
+            Plot the stops, bring the crew, ride it.
           </Text>
           <Pressable
             onPress={handleCreate}
+            accessibilityRole="button"
+            accessibilityLabel="Create a trip"
+            accessibilityHint="Opens the trip planner"
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
               backgroundColor: palette.accent500,
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 12,
+              paddingHorizontal: 18,
+              paddingVertical: 12,
+              borderRadius: 14,
               borderCurve: 'continuous',
-              marginTop: 4,
+              marginTop: 6,
             }}
           >
             <Plus size={16} color={palette.white} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-              Create Trip
+            <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+              Plan a trip
             </Text>
           </Pressable>
         </View>
@@ -111,7 +141,8 @@ export function TripSection() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16 }}
+          style={{ marginHorizontal: -16 }}
+          contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
         >
           {trips.map((trip: TripNode, index: number) => (
             <TripCard
@@ -127,16 +158,19 @@ export function TripSection() {
             onPress={handleCreate}
             accessibilityRole="button"
             accessibilityLabel="Create a trip"
+            accessibilityHint="Opens the trip planner"
             style={{
-              width: 80,
-              borderRadius: 16,
+              width: 96,
+              minHeight: 196,
+              borderRadius: 18,
               borderCurve: 'continuous',
               borderWidth: 1,
+              borderStyle: 'dashed',
               borderColor: createBorder,
               backgroundColor: createBg,
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 6,
+              gap: 8,
             }}
           >
             <View

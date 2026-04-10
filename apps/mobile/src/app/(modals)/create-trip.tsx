@@ -2,6 +2,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import {
   CreateTripWithWaypointsDocument,
+  DeleteTripDocument,
   PublishTripDocument,
   TripDetailDocument,
   UpdateTripDocument,
@@ -19,6 +20,7 @@ import {
   Plus,
   Save,
   Send,
+  Trash2,
   X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -514,7 +516,41 @@ export default function CreateTripScreen() {
     },
   });
 
-  const isSaving = saveMutation.isPending || publishMutation.isPending || updateMutation.isPending;
+  // Delete mutation (edit mode only) — permanently removes the trip.
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await gqlFetcher(DeleteTripDocument, { tripId: params.tripId! });
+    },
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      queryClient.removeQueries({ queryKey: queryKeys.trips.detail(params.tripId!) });
+      // Pop both the edit modal AND the trip-detail modal underneath it.
+      router.dismissAll();
+    },
+    onError: () => {
+      Alert.alert('Error', 'Failed to delete trip. Please try again.');
+    },
+  });
+
+  const handleDelete = useCallback(() => {
+    Alert.alert(
+      'Delete this trip?',
+      "The route, every stop, and all the riders on it will be gone. Can't be undone.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteMutation.mutate() },
+      ],
+    );
+  }, [deleteMutation]);
+
+  const isSaving =
+    saveMutation.isPending ||
+    publishMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
   const sortedWaypoints = useMemo(
     () => [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder),
     [waypoints],
@@ -1148,11 +1184,77 @@ export default function CreateTripScreen() {
 
             {/* Action buttons */}
             {isEditMode ? (
-              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+              <View style={{ gap: 12, marginTop: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <Pressable
+                    onPress={() => router.back()}
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      borderWidth: 1,
+                      borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                      backgroundColor: 'transparent',
+                    }}
+                  >
+                    <X size={16} color={subtitleColor} />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: subtitleColor,
+                      }}
+                    >
+                      Cancel
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => updateMutation.mutate()}
+                    disabled={!isValid || isSaving}
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: isValid
+                        ? palette.accent500
+                        : isDark
+                          ? palette.neutral800
+                          : palette.neutral300,
+                      opacity: isSaving ? 0.7 : 1,
+                    }}
+                  >
+                    {updateMutation.isPending ? (
+                      <ActivityIndicator size="small" color={palette.white} />
+                    ) : (
+                      <>
+                        <Save size={16} color={palette.white} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                          Save Changes
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+
+                {/* Delete — full width, danger outlined. Lives here (edit mode)
+                    so the view screen stays read-only. */}
                 <Pressable
-                  onPress={() => router.back()}
+                  onPress={handleDelete}
+                  disabled={isSaving}
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete trip"
                   style={{
-                    flex: 1,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1161,49 +1263,18 @@ export default function CreateTripScreen() {
                     borderRadius: 14,
                     borderCurve: 'continuous',
                     borderWidth: 1,
-                    borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                    borderColor: palette.danger500,
                     backgroundColor: 'transparent',
+                    opacity: isSaving ? 0.6 : 1,
                   }}
                 >
-                  <X size={16} color={subtitleColor} />
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: subtitleColor,
-                    }}
-                  >
-                    Cancel
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => updateMutation.mutate()}
-                  disabled={!isValid || isSaving}
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: isValid
-                      ? palette.accent500
-                      : isDark
-                        ? palette.neutral800
-                        : palette.neutral300,
-                    opacity: isSaving ? 0.7 : 1,
-                  }}
-                >
-                  {updateMutation.isPending ? (
-                    <ActivityIndicator size="small" color={palette.white} />
+                  {deleteMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.danger500} />
                   ) : (
                     <>
-                      <Save size={16} color={palette.white} />
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                        Save Changes
+                      <Trash2 size={16} color={palette.danger500} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                        Delete trip
                       </Text>
                     </>
                   )}

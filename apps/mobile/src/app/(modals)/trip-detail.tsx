@@ -18,8 +18,11 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronUp,
+  EyeOff,
   FileDown,
+  Globe,
   HelpCircle,
+  Lock,
   LogOut,
   Navigation,
   Pencil,
@@ -49,6 +52,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { getRouteSegments } from '../../utils/mapbox-directions';
 import { MAP_STYLES } from '../../utils/map-styles';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
@@ -66,6 +70,18 @@ const DIFFICULTY_COLORS = {
     bgDark: palette.dangerBgDark,
     text: palette.danger500,
   },
+  expert: {
+    bg: palette.signatureBgLight,
+    bgDark: palette.signatureBgDark,
+    text: palette.signature500,
+  },
+} as const;
+
+const DIFFICULTY_LABELS = {
+  easy: 'Chill',
+  moderate: 'Spirited',
+  challenging: 'Technical',
+  expert: 'Expert',
 } as const;
 
 const STATUS_ICONS = {
@@ -122,6 +138,12 @@ export default function TripDetailScreen() {
     [trip?.waypoints],
   );
 
+  const tripDays = useMemo(() => {
+    if (!trip?.startDate || !trip?.endDate) return 1;
+    const ms = new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime();
+    return Math.max(1, Math.round(ms / 86_400_000) + 1);
+  }, [trip?.startDate, trip?.endDate]);
+
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
 
   const waypointsByDay = useMemo(() => {
@@ -177,14 +199,35 @@ export default function TripDetailScreen() {
     };
   }, [waypointCoords]);
 
+  // Real road-routed geometry fetched from Mapbox Directions.
+  // Falls back to straight lines between waypoints while loading or on failure.
+  const [routedGeometry, setRoutedGeometry] = useState<GeoJSON.LineString | null>(null);
+
+  useEffect(() => {
+    if (waypointCoords.length < 2) {
+      setRoutedGeometry(null);
+      return;
+    }
+    const controller = new AbortController();
+    (async () => {
+      const coords = waypointCoords.map(([lng, lat]) => ({ lat, lng }));
+      const result = await getRouteSegments(coords, controller.signal);
+      if (!controller.signal.aborted && result) {
+        setRoutedGeometry(result.geometry);
+      }
+    })();
+    return () => controller.abort();
+  }, [waypointCoords]);
+
   const routeGeoJSON = useMemo(() => {
     if (waypointCoords.length < 2) return null;
     return {
       type: 'Feature' as const,
-      geometry: { type: 'LineString' as const, coordinates: waypointCoords },
+      geometry:
+        routedGeometry ?? ({ type: 'LineString' as const, coordinates: waypointCoords } as const),
       properties: {},
     };
-  }, [waypointCoords]);
+  }, [waypointCoords, routedGeometry]);
 
   const isOrganiser = trip?.organiser.id === userId;
   const myParticipant = useMemo(
@@ -196,7 +239,7 @@ export default function TripDetailScreen() {
     trip?.difficulty ?? 'easy'
   ).toLowerCase() as keyof typeof DIFFICULTY_COLORS;
   const difficultyStyle = DIFFICULTY_COLORS[difficultyKey] ?? DIFFICULTY_COLORS.easy;
-  const difficultyLabel = difficultyKey.charAt(0).toUpperCase() + difficultyKey.slice(1);
+  const difficultyLabel = DIFFICULTY_LABELS[difficultyKey] ?? 'Chill';
 
   const invalidateTrip = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
@@ -227,8 +270,8 @@ export default function TripDetailScreen() {
   });
 
   const handleLeave = useCallback(() => {
-    Alert.alert('Leave Trip', 'Are you sure you want to leave this trip?', [
-      { text: 'Stay', style: 'cancel' },
+    Alert.alert('Leave this trip?', "You'll drop off the rider list and lose your spot.", [
+      { text: 'Stay in', style: 'cancel' },
       { text: 'Leave', style: 'destructive', onPress: () => leaveMutation.mutate() },
     ]);
   }, [leaveMutation]);
@@ -256,7 +299,7 @@ export default function TripDetailScreen() {
   const handleShare = useCallback(async () => {
     if (!trip) return;
     await Share.share({
-      message: `Check out this trip on MotoVault: ${trip.title}`,
+      message: `${trip.title} — riding this on MotoVault. Come along:`,
       url: `https://motovault.app/trips/${tripId}`,
     });
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId });
@@ -265,7 +308,10 @@ export default function TripDetailScreen() {
   const handleExportGPX = useCallback(async () => {
     if (!trip) return;
     if (waypoints.length < 2) {
-      Alert.alert('Not enough stops', 'Add at least 2 stops before exporting.');
+      Alert.alert(
+        'Need at least two stops',
+        'A GPX file needs a start and an end. Add one more stop and try again.',
+      );
       return;
     }
 
@@ -410,7 +456,7 @@ ${rteptElements}
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: palette.neutral950,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -441,7 +487,7 @@ ${rteptElements}
               height: 40,
               borderRadius: 20,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.neutral950,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -456,7 +502,7 @@ ${rteptElements}
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: palette.neutral950,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -468,33 +514,179 @@ ${rteptElements}
       {/* Bottom sheet */}
       <BottomSheet
         ref={sheetRef}
-        snapPoints={['40%', '70%', '92%']}
+        snapPoints={['55%', '85%', '95%']}
         index={0}
         backgroundStyle={{ backgroundColor: sheetBg, borderRadius: 24, borderCurve: 'continuous' }}
         handleIndicatorStyle={{ backgroundColor: isDark ? palette.neutral600 : palette.neutral300 }}
       >
         <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
           {/* Title */}
-          <Text style={{ fontSize: 22, fontWeight: '800', color: titleColor, marginBottom: 4 }}>
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '800',
+              color: titleColor,
+              letterSpacing: -0.5,
+              marginBottom: 10,
+            }}
+          >
             {trip.title}
           </Text>
 
-          {/* Difficulty badge + organiser */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          {/* Badge row — difficulty + visibility */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 12,
+              flexWrap: 'wrap',
+            }}
+          >
             <View
               style={{
                 backgroundColor: isDark ? difficultyStyle.bgDark : difficultyStyle.bg,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
                 borderRadius: 8,
                 borderCurve: 'continuous',
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: difficultyStyle.text }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: difficultyStyle.text }}>
                 {difficultyLabel}
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 8,
+                borderCurve: 'continuous',
+              }}
+            >
+              {trip.visibility === 'public' ? (
+                <Globe size={11} color={palette.success500} />
+              ) : trip.visibility === 'unlisted' ? (
+                <EyeOff size={11} color={palette.warning500} />
+              ) : (
+                <Lock size={11} color={palette.neutral500} />
+              )}
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '700',
+                  color:
+                    trip.visibility === 'public'
+                      ? palette.success500
+                      : trip.visibility === 'unlisted'
+                        ? palette.warning500
+                        : palette.neutral500,
+                }}
+              >
+                {trip.visibility === 'public'
+                  ? 'Public'
+                  : trip.visibility === 'unlisted'
+                    ? 'Link only'
+                    : 'Private'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Stats bar — the at-a-glance decision data */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+              paddingHorizontal: 14,
+              paddingVertical: 12,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              marginBottom: 14,
+              gap: 14,
+            }}
+          >
+            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '800',
+                  color: titleColor,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {tripDays}
+              </Text>
+              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                {tripDays === 1 ? 'day' : 'days'}
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 1,
+                alignSelf: 'stretch',
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              }}
+            />
+            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '800',
+                  color: titleColor,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {waypoints.length}
+              </Text>
+              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                {waypoints.length === 1 ? 'stop' : 'stops'}
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 1,
+                alignSelf: 'stretch',
+                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              }}
+            />
+            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: '800',
+                  color: titleColor,
+                  letterSpacing: -0.3,
+                }}
+              >
+                {trip.participantCount}
+                <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
+              </Text>
+              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>riders</Text>
+            </View>
+          </View>
+
+          {/* Date + organiser compact row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 14,
+              flexWrap: 'wrap',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Calendar size={13} color={palette.accent500} />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
+                {formatDateRange(trip.startDate, trip.endDate)}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <User size={13} color={subtitleColor} />
               <Text style={{ fontSize: 13, color: subtitleColor }}>
                 {trip.organiser.displayName}
@@ -502,15 +694,7 @@ ${rteptElements}
             </View>
           </View>
 
-          {/* Date range */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-            <Calendar size={14} color={palette.accent500} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-              {formatDateRange(trip.startDate, trip.endDate)}
-            </Text>
-          </View>
-
-          {/* Description */}
+          {/* Description — now below the decision-relevant data */}
           {trip.description && (
             <Animated.View entering={FadeIn.duration(300)} style={{ marginBottom: 16 }}>
               <Text style={{ fontSize: 14, lineHeight: 20, color: bodyColor }}>
@@ -518,26 +702,6 @@ ${rteptElements}
               </Text>
             </Animated.View>
           )}
-
-          {/* Rider count */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
-              paddingHorizontal: 12,
-              paddingVertical: 10,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              marginBottom: 16,
-            }}
-          >
-            <Users size={16} color={palette.accent500} />
-            <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-              {trip.participantCount}/{trip.maxRiders} riders
-            </Text>
-          </View>
 
           {/* Day-by-day itinerary */}
           {waypointsByDay.length > 0 && (
@@ -793,7 +957,7 @@ ${rteptElements}
                   <>
                     <Users size={16} color={palette.white} />
                     <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                      Join Trip
+                      I'm in
                     </Text>
                   </>
                 )}
@@ -845,7 +1009,7 @@ ${rteptElements}
               >
                 <LogOut size={16} color={palette.danger500} />
                 <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                  Leave Trip
+                  Leave
                 </Text>
               </Pressable>
             )}

@@ -11,6 +11,7 @@ query GetTrips($first: Int, $after: String) {
         maxRiders
         participantCount
         status
+        visibility
         coverImageUrl
         createdAt
         organiser {
@@ -18,6 +19,13 @@ query GetTrips($first: Int, $after: String) {
           displayName
           publicUsername
           avatarUrl
+        }
+        waypoints {
+          id
+          sortOrder
+          dayIndex
+          lat
+          lng
         }
       }
       cursor

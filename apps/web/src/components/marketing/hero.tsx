@@ -96,29 +96,85 @@ export function Hero() {
 
           <p className="mt-6 max-w-lg text-xl leading-relaxed text-neutral-300">{t('subtitle')}</p>
 
-          <div className="mt-12 flex flex-wrap items-center gap-4">
-            {/* App Store CTA with glow */}
+          {/* Download tagline */}
+          <p className="mt-10 flex items-center gap-2 text-sm font-medium text-warm-400">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            {t('downloadCta')} — iOS &amp; Android
+          </p>
+
+          {/* Platform-explicit store buttons */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <a
               href={STORE_LINKS.appStore}
               onClick={() => {
                 trackEvent('Lead', { content_name: 'App Download', content_category: 'ios' });
                 posthog.capture('app_download_clicked', { platform: 'ios', location: 'hero' });
               }}
-              className="cta-primary cta-glow group relative inline-flex items-center justify-center overflow-hidden rounded-full bg-warm-500 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-950 shadow-lg shadow-warm-500/25 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              aria-label="Download on the App Store"
+              className="cta-primary cta-glow group relative inline-flex items-center gap-3 overflow-hidden rounded-2xl bg-neutral-50 px-5 py-3 text-neutral-950 shadow-lg shadow-neutral-950/25 transition-all hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
-              {t('downloadCta')}
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+                className="shrink-0"
+              >
+                <path d="M17.05 12.536c-.02-2.13 1.738-3.153 1.816-3.202-.99-1.449-2.532-1.647-3.081-1.672-1.313-.133-2.56.774-3.228.774-.667 0-1.693-.754-2.783-.733-1.433.021-2.754.834-3.49 2.117-1.49 2.583-.381 6.406 1.069 8.503.71 1.026 1.555 2.18 2.662 2.14 1.069-.042 1.474-.693 2.767-.693 1.293 0 1.657.693 2.79.67 1.152-.02 1.881-1.046 2.584-2.075.813-1.191 1.148-2.347 1.17-2.406-.026-.012-2.255-.865-2.276-3.423zm-2.1-6.297c.595-.716.994-1.714.886-2.706-.856.035-1.89.57-2.5 1.285-.55.633-1.029 1.645-.9 2.618.954.074 1.924-.485 2.514-1.197z" />
+              </svg>
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">Download on the</span>
+                <span className="text-lg font-bold">App Store</span>
+              </span>
             </a>
 
-            {/* Google Play CTA */}
             <a
               href={STORE_LINKS.googlePlay}
               onClick={() => {
                 trackEvent('Lead', { content_name: 'App Download', content_category: 'android' });
                 posthog.capture('app_download_clicked', { platform: 'android', location: 'hero' });
               }}
-              className="cta-secondary inline-flex items-center justify-center rounded-full border-2 border-neutral-600 px-6 sm:px-10 py-4 text-base sm:text-lg font-semibold text-neutral-300 transition-colors hover:border-neutral-500 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              aria-label="Get it on Google Play"
+              className="group relative inline-flex items-center gap-3 rounded-2xl border-2 border-neutral-700 bg-neutral-900/80 px-5 py-3 text-neutral-50 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
-              Google Play
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="shrink-0"
+              >
+                <path
+                  fill="#00D7FE"
+                  d="M3.18 1.67a2 2 0 0 0-1.18 1.83v17a2 2 0 0 0 1.18 1.83L13.54 12 3.18 1.67z"
+                />
+                <path
+                  fill="#FFCE00"
+                  d="M17.89 15.5l3.69-2.1a2 2 0 0 0 0-3.47l-3.69-2.1-4.35 3.83 4.35 3.84z"
+                />
+                <path fill="#00F076" d="M3.18 1.67L13.54 12l4.35-3.83L4.5 1a2 2 0 0 0-1.32.67z" />
+                <path
+                  fill="#F4433C"
+                  d="M3.18 22.33a2 2 0 0 0 1.32.67L17.89 15.5 13.54 12 3.18 22.33z"
+                />
+              </svg>
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">Get it on</span>
+                <span className="text-lg font-bold">Google Play</span>
+              </span>
             </a>
           </div>
         </div>

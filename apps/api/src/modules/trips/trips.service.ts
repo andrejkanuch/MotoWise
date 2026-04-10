@@ -221,12 +221,14 @@ export class TripsService {
   }
 
   async tripDetail(tripId: string): Promise<Trip> {
-    // Fetch trip — supabaseAdmin for public endpoint (no JWT on @Public() queries)
-    const { data: tripData, error: tripError } = await this.supabaseAdmin
+    // Use the per-request user client so RLS enforces visibility:
+    // - Organiser sees their own trips in any status (incl. drafts)
+    // - Everyone else sees trips allowed by the visibility policy
+    //   (public to anyone, unlisted/private per invite rules)
+    const { data: tripData, error: tripError } = await this.supabase
       .from('trips')
       .select(TRIP_SELECT)
       .eq('id', tripId)
-      .in('status', ['published', 'active', 'completed'])
       .single();
 
     if (tripError || !tripData) {

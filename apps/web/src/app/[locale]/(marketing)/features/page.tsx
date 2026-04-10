@@ -12,6 +12,15 @@ interface PageProps {
 
 const FEATURES = [
   {
+    titleKey: 'tripPlanningTitle',
+    descKey: 'tripPlanningDesc',
+    href: '/features/trip-planning',
+    accentClass: 'text-warm-400',
+    glowColor: 'oklch(0.70 0.16 150 / 0.08)',
+    // Map-pin + route
+    icon: 'M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  },
+  {
     titleKey: 'diagnosticsTitle',
     descKey: 'diagnosticsDesc',
     href: '/features/ai-diagnostics',

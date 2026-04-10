@@ -293,6 +293,7 @@
 @media (min-width: 1024px) {
   .features-bento {
     grid-template-areas:
+      "trip trip trip"
       "maintenance maintenance expenses"
       "rides diag expenses"
       "rides diag garage";

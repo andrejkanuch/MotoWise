@@ -6,11 +6,44 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
-const NAV_LINKS = [
-  { key: 'maintenance', href: '#features' },
-  { key: 'expenses', href: '#features' },
-  { key: 'rides', href: '#features' },
-  { key: 'diagnostics', href: '/features/ai-diagnostics' },
+type NavLeaf = { key: string; href: string; tagline?: string };
+type NavGroup = { key: string; children: NavLeaf[] };
+type NavItem = NavLeaf | NavGroup;
+
+const isGroup = (item: NavItem): item is NavGroup => 'children' in item;
+
+const NAV_LINKS: readonly NavItem[] = [
+  {
+    key: 'features',
+    children: [
+      {
+        key: 'tripPlanning',
+        href: '/features/trip-planning',
+        tagline: 'Multi-day routes, typed waypoints, live map',
+      },
+      {
+        key: 'diagnostics',
+        href: '/features/ai-diagnostics',
+        tagline: 'Snap a photo, get an AI-powered diagnosis',
+      },
+      {
+        key: 'garage',
+        href: '/features/garage-management',
+        tagline: 'Every bike, every service, one timeline',
+      },
+      {
+        key: 'learning',
+        href: '/features/learning-paths',
+        tagline: 'Modules tailored to your motorcycle',
+      },
+      {
+        key: 'progress',
+        href: '/features/progress-tracking',
+        tagline: 'Rides, tasks and spend logged automatically',
+      },
+    ],
+  },
+  { key: 'compare', href: '/compare' },
   { key: 'faq', href: '#faq' },
 ] as const;
 
@@ -125,17 +158,93 @@ export function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden items-center gap-4 xl:gap-8 lg:flex">
-          {NAV_LINKS.map((link) => {
+        <div className="hidden items-center gap-5 xl:gap-7 lg:flex">
+          {NAV_LINKS.map((item) => {
             const cls =
-              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded min-h-[44px] inline-flex items-center';
-            return link.href.startsWith('#') ? (
-              <a key={link.href} href={link.href} className={cls}>
-                {t(link.key)}
+              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded min-h-[44px] inline-flex items-center';
+
+            if (isGroup(item)) {
+              return (
+                <div key={item.key} className="nav-dropdown group relative">
+                  <button
+                    type="button"
+                    className={`${cls} gap-1`}
+                    aria-haspopup="menu"
+                    aria-expanded="false"
+                  >
+                    {t(item.key)}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="transition-transform duration-200 group-hover:rotate-180"
+                      aria-hidden="true"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  <div
+                    role="menu"
+                    className="pointer-events-none absolute left-1/2 top-full z-50 w-[340px] -translate-x-1/2 translate-y-0 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                  >
+                    <div className="overflow-hidden rounded-2xl border border-neutral-800/80 bg-neutral-950/95 shadow-2xl ring-1 ring-neutral-800 backdrop-blur-xl">
+                      <ul className="p-2">
+                        {item.children.map((child) => (
+                          <li key={child.key}>
+                            <Link
+                              href={child.href}
+                              role="menuitem"
+                              className="flex flex-col gap-0.5 rounded-xl px-4 py-3 text-left transition-colors hover:bg-neutral-900 focus-visible:bg-neutral-900 focus-visible:outline-none"
+                            >
+                              <span className="text-sm font-semibold text-neutral-50">
+                                {t(child.key)}
+                              </span>
+                              {child.tagline && (
+                                <span className="text-xs text-neutral-500">{child.tagline}</span>
+                              )}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="border-t border-neutral-900 px-4 py-3">
+                        <Link
+                          href="/features"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-warm-400 transition-colors hover:text-warm-300"
+                        >
+                          {t('viewAllFeatures', { defaultValue: 'View all features' })}
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                          >
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return item.href.startsWith('#') ? (
+              <a key={item.key} href={item.href} className={cls}>
+                {t(item.key)}
               </a>
             ) : (
-              <Link key={link.href} href={link.href} className={cls}>
-                {t(link.key)}
+              <Link key={item.key} href={item.href} className={cls}>
+                {t(item.key)}
               </Link>
             );
           })}
@@ -148,20 +257,20 @@ export function Navbar() {
               {t('dashboard', { defaultValue: 'My Garage' })}
             </a>
           ) : (
-            <>
+            <div className="flex items-center gap-2 rounded-full border border-neutral-800/80 bg-neutral-900/40 p-1 backdrop-blur-sm">
               <a
                 href="/login"
-                className="cta-secondary rounded-full border border-neutral-600 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400"
+                className="rounded-full px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
               >
                 {t('login', { defaultValue: 'Log In' })}
               </a>
               <a
                 href="/signup"
-                className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                className="cta-primary rounded-full bg-warm-500 px-4 py-2 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
               >
                 {t('signup', { defaultValue: 'Sign Up' })}
               </a>
-            </>
+            </div>
           )}
         </div>
 
@@ -211,32 +320,43 @@ export function Navbar() {
           className="fixed inset-0 z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl lg:hidden"
           style={{ top: 'calc(72px + env(safe-area-inset-top, 0px))' }}
         >
-          <div className="flex flex-1 flex-col items-center justify-center gap-6">
-            {NAV_LINKS.map((link, i) => {
-              const cls =
-                'text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline';
-              return link.href.startsWith('#') ? (
-                <a
-                  key={link.href}
-                  ref={i === 0 ? firstLinkRef : undefined}
-                  href={link.href}
-                  onClick={closeMobile}
-                  className={cls}
-                >
-                  {t(link.key)}
-                </a>
-              ) : (
-                <Link
-                  key={link.href}
-                  ref={i === 0 ? firstLinkRef : undefined}
-                  href={link.href}
-                  onClick={closeMobile}
-                  className={cls}
-                >
-                  {t(link.key)}
-                </Link>
-              );
-            })}
+          <div className="flex flex-1 flex-col items-center justify-center gap-6 overflow-y-auto py-8">
+            {(() => {
+              // Flatten dropdown children into top-level for mobile menu
+              const mobileItems: NavLeaf[] = [];
+              for (const item of NAV_LINKS) {
+                if (isGroup(item)) {
+                  for (const child of item.children) mobileItems.push(child);
+                } else {
+                  mobileItems.push(item);
+                }
+              }
+              return mobileItems.map((link, i) => {
+                const cls =
+                  'text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline';
+                return link.href.startsWith('#') ? (
+                  <a
+                    key={link.key}
+                    ref={i === 0 ? firstLinkRef : undefined}
+                    href={link.href}
+                    onClick={closeMobile}
+                    className={cls}
+                  >
+                    {t(link.key)}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.key}
+                    ref={i === 0 ? firstLinkRef : undefined}
+                    href={link.href}
+                    onClick={closeMobile}
+                    className={cls}
+                  >
+                    {t(link.key)}
+                  </Link>
+                );
+              });
+            })()}
             <LanguageSwitcher />
             {isLoggedIn ? (
               <a
@@ -247,22 +367,22 @@ export function Navbar() {
                 {t('dashboard', { defaultValue: 'My Garage' })}
               </a>
             ) : (
-              <>
+              <div className="mt-4 flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 p-1.5 backdrop-blur-sm">
                 <a
                   href="/login"
                   onClick={closeMobile}
-                  className="cta-secondary mt-4 rounded-full border border-neutral-600 px-8 py-3.5 text-lg font-medium text-neutral-200 transition-colors hover:border-neutral-400 hover:text-neutral-50"
+                  className="rounded-full px-6 py-3 text-base font-medium text-neutral-300 transition-colors hover:text-neutral-50"
                 >
                   {t('login', { defaultValue: 'Log In' })}
                 </a>
                 <a
                   href="/signup"
                   onClick={closeMobile}
-                  className="cta-primary rounded-full bg-warm-500 px-10 py-4 text-lg font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                  className="cta-primary rounded-full bg-warm-500 px-6 py-3 text-base font-bold text-neutral-950 transition-opacity hover:opacity-90"
                 >
                   {t('signup', { defaultValue: 'Sign Up' })}
                 </a>
-              </>
+              </div>
             )}
           </div>
         </div>

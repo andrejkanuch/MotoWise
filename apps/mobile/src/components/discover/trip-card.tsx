@@ -1,7 +1,16 @@
 import { palette } from '@motovault/design-system';
-import { Calendar, Map as MapIcon, MapPin, Users } from 'lucide-react-native';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { Calendar, EyeOff, Globe, Lock, MapPin, User, Users } from 'lucide-react-native';
+import type { ComponentType } from 'react';
+import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface TripCardProps {
   trip: {
@@ -13,121 +22,277 @@ interface TripCardProps {
     difficulty: string;
     participantCount: number;
     maxRiders: number;
+    visibility?: string | null;
     organiser: { displayName: string; avatarUrl?: string | null };
+    waypoints?: { id: string; lat: number; lng: number }[] | null;
   };
   index: number;
   onPress: () => void;
 }
 
+// Four distinct difficulty hues — expert is purple, not a duplicate red.
 const DIFFICULTY_COLORS = {
   easy: palette.success500,
   moderate: palette.warning500,
   challenging: palette.danger500,
-  expert: palette.danger500,
+  expert: palette.signature500,
 } as const;
+
+// Riderly difficulty labels — replaces generic "Moderate/Challenging".
+const DIFFICULTY_LABELS = {
+  easy: 'Chill',
+  moderate: 'Spirited',
+  challenging: 'Technical',
+  expert: 'Expert',
+} as const;
+
+type VisibilityKey = 'private' | 'unlisted' | 'public';
+
+const VISIBILITY_STYLES: Record<
+  VisibilityKey,
+  { Icon: ComponentType<{ size?: number; color?: string }>; label: string; tint: string }
+> = {
+  private: { Icon: Lock, label: 'Private', tint: palette.neutral500 },
+  unlisted: { Icon: EyeOff, label: 'Link only', tint: palette.warning500 },
+  public: { Icon: Globe, label: 'Public', tint: palette.success500 },
+};
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
   const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  if (start === end) return s.toLocaleDateString(undefined, opts);
-  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
+  if (start === end) return s.toLocaleDateString('en-US', opts);
+  return `${s.toLocaleDateString('en-US', opts)} – ${e.toLocaleDateString('en-US', opts)}`;
+}
+
+function dayCount(start: string, end: string): number {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  return Math.max(1, Math.round(ms / 86_400_000) + 1);
 }
 
 export function TripCard({ trip, index, onPress }: TripCardProps) {
   const isDark = useColorScheme() === 'dark';
   const cardBg = isDark ? palette.cardDark : palette.white;
+  const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
   const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
-  const diffColor =
-    DIFFICULTY_COLORS[trip.difficulty as keyof typeof DIFFICULTY_COLORS] ?? palette.neutral500;
+  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
+  const metaColor = isDark ? palette.neutral300 : palette.neutral500;
+  const avatarFallbackBg = isDark ? palette.neutral800 : palette.neutral200;
+
+  const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof DIFFICULTY_COLORS;
+  const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
+  const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
+
+  // Harden against unknown visibility strings from the server.
+  const rawVis = (trip.visibility ?? 'private').toLowerCase();
+  const visibilityKey: VisibilityKey =
+    rawVis === 'public' || rawVis === 'unlisted' || rawVis === 'private'
+      ? (rawVis as VisibilityKey)
+      : 'private';
+  const vis = VISIBILITY_STYLES[visibilityKey];
+  const VisIcon = vis.Icon;
+
+  const days = dayCount(trip.startDate, trip.endDate);
+  const stopCount = trip.waypoints?.length ?? 0;
+  // Clamp so "7/5 riders" can't surface — happens if backend race lets extras in.
+  const maxRiders = Math.max(1, trip.maxRiders ?? 1);
+  const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
+
+  const scale = useSharedValue(1);
+  const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const handlePressIn = () => {
+    scale.value = withTiming(0.97, { duration: 120 });
+  };
+  const handlePressOut = () => {
+    scale.value = withTiming(1, { duration: 160 });
+  };
+  const handlePress = () => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onPress();
+  };
+
+  const a11yLabel = `${trip.title}, a ${diffLabel.toLowerCase()} ${days}-${days === 1 ? 'day' : 'day'} trip with ${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}. ${participantCount} of ${maxRiders} riders signed up, led by ${trip.organiser.displayName}. ${vis.label}.`;
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 60).duration(250)}>
-      <Pressable
-        onPress={onPress}
-        style={{
-          backgroundColor: cardBg,
-          borderRadius: 16,
-          borderCurve: 'continuous',
-          padding: 16,
-          marginHorizontal: 16,
-          marginBottom: 12,
-          gap: 10,
-          shadowColor: '#000',
-          shadowOpacity: isDark ? 0.3 : 0.08,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 2 },
-        }}
-      >
-        {/* Type badge */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 4,
-            alignSelf: 'flex-start',
-            backgroundColor: palette.indigo500,
-            paddingHorizontal: 8,
-            paddingVertical: 3,
-            borderRadius: 6,
+    <Animated.View entering={FadeInUp.delay(index * 50).duration(250)}>
+      <AnimatedPressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        accessibilityRole="button"
+        accessibilityLabel={a11yLabel}
+        accessibilityHint="Opens trip details"
+        style={[
+          {
+            width: 296,
+            minHeight: 196,
+            backgroundColor: cardBg,
+            borderRadius: 16,
             borderCurve: 'continuous',
-          }}
-        >
-          <MapIcon size={10} color={palette.white} />
-          <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>Trip</Text>
-        </View>
-
-        {/* Title + difficulty badge */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text
-            style={{ flex: 1, fontSize: 17, fontWeight: '700', color: titleColor }}
-            numberOfLines={1}
+            borderWidth: 1,
+            borderColor: cardBorder,
+            padding: 14,
+            marginRight: 12,
+            gap: 10,
+          },
+          pressStyle,
+        ]}
+      >
+        {/* Badge row — visibility + difficulty (Trip badge dropped; section header already says so) */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 8,
+              borderCurve: 'continuous',
+            }}
+            accessibilityLabel={`Visibility: ${vis.label}`}
           >
-            {trip.title}
-          </Text>
+            <VisIcon size={10} color={vis.tint} />
+            <Text style={{ fontSize: 11, fontWeight: '700', color: vis.tint }}>{vis.label}</Text>
+          </View>
+
+          <View style={{ flex: 1 }} />
+
           <View
             style={{
               paddingHorizontal: 8,
-              paddingVertical: 3,
+              paddingVertical: 4,
               borderRadius: 8,
               borderCurve: 'continuous',
               backgroundColor: diffColor,
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>
-              {trip.difficulty.charAt(0).toUpperCase() + trip.difficulty.slice(1)}
+              {diffLabel}
             </Text>
           </View>
         </View>
 
-        {/* Description */}
-        <Text style={{ fontSize: 13, color: subtextColor, lineHeight: 18 }} numberOfLines={2}>
-          {trip.description}
+        {/* Title */}
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '800',
+            color: titleColor,
+            letterSpacing: -0.3,
+          }}
+          numberOfLines={1}
+        >
+          {trip.title}
         </Text>
 
-        {/* Meta row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        {/* Description (single line, filler only) */}
+        {trip.description ? (
+          <Text
+            style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }}
+            numberOfLines={1}
+          >
+            {trip.description}
+          </Text>
+        ) : null}
+
+        {/* Stats strip */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 14,
+            marginTop: 2,
+          }}
+        >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Calendar size={14} color={subtextColor} />
-            <Text style={{ fontSize: 12, color: subtextColor }}>
-              {formatDateRange(trip.startDate, trip.endDate)}
+            <Calendar size={12} color={palette.accent500} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+              {days}
+              <Text style={{ fontWeight: '500', color: metaColor }}>d</Text>
             </Text>
           </View>
+          {stopCount > 0 && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <MapPin size={12} color={palette.accent500} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+                {stopCount}
+                <Text style={{ fontWeight: '500', color: metaColor }}>
+                  {stopCount === 1 ? ' stop' : ' stops'}
+                </Text>
+              </Text>
+            </View>
+          )}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Users size={14} color={subtextColor} />
-            <Text style={{ fontSize: 12, color: subtextColor }}>
-              {trip.participantCount}/{trip.maxRiders}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <MapPin size={14} color={subtextColor} />
-            <Text style={{ fontSize: 12, color: subtextColor }}>
-              by {trip.organiser.displayName}
+            <Users size={12} color={palette.accent500} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+              {participantCount}
+              <Text style={{ fontWeight: '500', color: metaColor }}>/{maxRiders}</Text>
             </Text>
           </View>
         </View>
-      </Pressable>
+
+        {/* Meta row — dates + organiser */}
+        <View
+          style={{
+            marginTop: 'auto',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            paddingTop: 4,
+          }}
+        >
+          <Text style={{ fontSize: 12, color: metaColor, fontWeight: '500' }} numberOfLines={1}>
+            {formatDateRange(trip.startDate, trip.endDate)}
+          </Text>
+          <View
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: metaColor,
+              opacity: 0.6,
+            }}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              flexShrink: 1,
+            }}
+          >
+            {trip.organiser.avatarUrl ? (
+              <Image
+                source={{ uri: trip.organiser.avatarUrl }}
+                style={{ width: 16, height: 16, borderRadius: 8 }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 8,
+                  backgroundColor: avatarFallbackBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <User size={10} color={metaColor} />
+              </View>
+            )}
+            <Text
+              style={{ fontSize: 12, color: metaColor, flexShrink: 1 }}
+              numberOfLines={1}
+            >
+              {trip.organiser.displayName}
+            </Text>
+          </View>
+        </View>
+      </AnimatedPressable>
     </Animated.View>
   );
 }

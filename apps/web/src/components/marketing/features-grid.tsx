@@ -1,9 +1,11 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
-type FeatureKey = 'maintenance' | 'expenses' | 'rides' | 'diag' | 'garage';
+type FeatureKey = 'trip' | 'maintenance' | 'expenses' | 'rides' | 'diag' | 'garage';
 
 const GRID_CLASSES: Record<FeatureKey, string> = {
+  trip:
+    'md:col-span-2 lg:col-span-3 lg:[grid-area:trip] border-warm-500/40 bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-neutral-900/30',
   maintenance:
     'md:col-span-2 lg:[grid-area:maintenance] border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40',
   expenses: 'lg:row-span-2 lg:[grid-area:expenses]',
@@ -13,6 +15,7 @@ const GRID_CLASSES: Record<FeatureKey, string> = {
 };
 
 const ICON_HOVER: Record<FeatureKey, string> = {
+  trip: 'icon-rev-hover', // route animates
   maintenance: 'icon-spin-hover', // wrench turns
   expenses: 'icon-rev-hover', // chart pops
   rides: 'icon-rev-hover', // map pulses
@@ -21,11 +24,32 @@ const ICON_HOVER: Record<FeatureKey, string> = {
 };
 
 const FEATURE_LINKS: Partial<Record<FeatureKey, string>> = {
+  trip: '/features/trip-planning',
   diag: '/features/ai-diagnostics',
   garage: '/features/garage-management',
 };
 
 const FEATURES = [
+  {
+    key: 'trip' as const,
+    accentClass: 'text-warm-400',
+    glowColor: 'oklch(0.70 0.16 150 / 0.10)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        aria-hidden="true"
+      >
+        <path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z" />
+        <circle cx="12" cy="9" r="2.5" />
+      </svg>
+    ),
+  },
   {
     key: 'maintenance' as const,
     accentClass: 'text-warm-400',
