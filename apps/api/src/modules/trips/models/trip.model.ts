@@ -1,5 +1,4 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
-import { TripShareLink } from './trip-share-link.model';
 
 @ObjectType()
 export class TripOrganiser {
@@ -123,12 +122,6 @@ export class Trip {
 
   @Field(() => [TripParticipant], { nullable: true })
   participants?: TripParticipant[];
-
-  // Trip share links feature: always null on the base Trip resolver because
-  // tokens are hashed at rest. Organisers mint a fresh link via the
-  // rotateTripShareToken mutation.
-  @Field(() => TripShareLink, { nullable: true })
-  shareLink?: TripShareLink | null;
 }
 
 @ObjectType()

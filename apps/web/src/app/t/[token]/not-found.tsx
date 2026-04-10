@@ -2,7 +2,8 @@ export default function SharedTripNotFound() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4">
       <div className="max-w-md text-center">
-        <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-gradient-to-br from-[#0a1540] to-[#3366e6]" />
+        {/* Brand gradient from design-system primary scale (tokens.css) */}
+        <div className="mx-auto mb-6 h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-950 to-primary-500" />
         <h1 className="text-2xl font-bold text-neutral-900">This trip isn't available</h1>
         <p className="mt-3 text-sm text-neutral-500">
           The rider may have made it private or the link has been revoked.

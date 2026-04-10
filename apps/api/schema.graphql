@@ -1250,7 +1250,6 @@ type Trip {
   organiser: TripOrganiser!
   participantCount: Int!
   participants: [TripParticipant!]
-  shareLink: TripShareLink
   startDate: String!
   status: String!
   title: String!
@@ -1297,11 +1296,6 @@ type TripParticipant {
   publicUsername: String
   role: String!
   status: String!
-}
-
-type TripShareLink {
-  token: String!
-  url: String!
 }
 
 type TripWaypoint {

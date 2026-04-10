@@ -122,11 +122,15 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
 
   const handleShareSystem = useCallback(async () => {
     if (!shareUrl) return;
-    await Share.share({
+    const result = await Share.share({
       message: 'Trip on MotoVault',
       url: shareUrl,
     });
-    trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'system_share' });
+    // Only fire analytics when the user actually completes the share —
+    // dismissing the system sheet should not count as a share event.
+    if (result.action === Share.sharedAction) {
+      trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'system_share' });
+    }
   }, [shareUrl, tripId]);
 
   const handleStopSharing = useCallback(() => {

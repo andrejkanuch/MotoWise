@@ -144,6 +144,12 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     // unlisted trip/ride share previews without being redirected to login.
     const inPublicShareRoute = segments[0] === 't' || segments[0] === 'r';
 
+    // Public share-link routes bypass the entire auth/onboarding gate.
+    // Anonymous AND authenticated users (even mid-onboarding) must be able
+    // to view shared trip/ride previews. Resolving the token is independent
+    // of any session state.
+    if (inPublicShareRoute) return;
+
     let target: string | null = null;
 
     if (!session && !inAuthGroup && !inPublicShareRoute) {

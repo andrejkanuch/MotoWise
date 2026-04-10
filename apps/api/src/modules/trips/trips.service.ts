@@ -346,7 +346,7 @@ export class TripsService {
   // ==========================================
 
   async resolveTripByShareToken(shareToken: string): Promise<SharedTrip> {
-    const { data, error } = await this.supabaseAdmin.rpc(
+    const { data, error } = await this.supabase.rpc(
       'resolve_trip_by_token' as never,
       {
         p_token: shareToken,

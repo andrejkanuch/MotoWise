@@ -10,6 +10,50 @@ const isDev = process.env.NODE_ENV === 'development';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
 
+// H2 trip/ride share links: lock down headers to capability-URL conventions.
+// Preview-bot UAs get a head-only teaser response so they never fire the
+// resolve_trip_by_token RPC (keeps audit noise low + scraper caches static).
+const PREVIEW_BOT_RE =
+  /(Slackbot|WhatsApp|facebookexternalhit|Twitterbot|Discordbot|LinkedInBot|TelegramBot)/i;
+
+const SHARE_LINK_CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' https://*.mapbox.com https://api.mapbox.com https://*.supabase.co data:",
+  "font-src 'self'",
+  "connect-src 'self' https://api.mapbox.com",
+  "frame-ancestors 'none'",
+].join('; ');
+
+const SHARE_LINK_TEASER_HTML = `<!DOCTYPE html><html><head>
+<title>Shared on MotoVault</title>
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta property="og:title" content="Shared on MotoVault">
+<meta property="og:description" content="Open MotoVault to view this ride.">
+<meta name="referrer" content="no-referrer">
+</head><body></body></html>`;
+
+function isShareLinkRoute(pathname: string): boolean {
+  return pathname.startsWith('/t/') || pathname.startsWith('/r/');
+}
+
+function applyShareLinkHeaders(response: NextResponse) {
+  // Overrides applySecurityHeaders for /t/* and /r/* — stricter CSP, no
+  // referrer, no edge caching. These headers take precedence over the
+  // default security headers because share tokens must not leak via
+  // Referer, must not be cached by any shared cache, and must not be
+  // indexed by search engines.
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+  response.headers.set('Referrer-Policy', 'no-referrer');
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+  response.headers.set('Content-Security-Policy', SHARE_LINK_CSP);
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+}
+
 function buildCspHeader(nonce: string): string {
   const connectSources = [
     "'self'",
@@ -172,6 +216,25 @@ async function communityAuth(request: NextRequest) {
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
+
+  // H2: share-link routes (/t/:token, /r/:token) — run FIRST, before any
+  // other branch. Preview-bot UAs get a head-only teaser and never reach
+  // the SSR route. Regular viewers get the page with locked-down headers.
+  if (isShareLinkRoute(pathname)) {
+    const ua = request.headers.get('user-agent') ?? '';
+    if (PREVIEW_BOT_RE.test(ua)) {
+      return new NextResponse(SHARE_LINK_TEASER_HTML, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300, s-maxage=300',
+          'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
+        },
+      });
+    }
+    const response = NextResponse.next({ request });
+    applyShareLinkHeaders(response);
+    return response;
+  }
 
   // Pass nonce to Next.js so it can apply it to inline scripts
   request.headers.set('x-nonce', nonce);

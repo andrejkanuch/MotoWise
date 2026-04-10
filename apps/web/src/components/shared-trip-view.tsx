@@ -14,8 +14,8 @@ export function SharedTripView({ data }: { data: ResolveTripByTokenResponse }) {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Hero */}
-      <div className="h-20 w-full bg-gradient-to-br from-[#0a1540] to-[#3366e6]" />
+      {/* Hero — brand gradient from design-system primary scale (tokens.css) */}
+      <div className="h-20 w-full bg-gradient-to-br from-primary-950 to-primary-500" />
 
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
         <h1 className="text-2xl font-bold text-neutral-900">{trip.title}</h1>
