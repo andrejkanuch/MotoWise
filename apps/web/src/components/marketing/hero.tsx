@@ -1,7 +1,6 @@
 'use client';
 import { useTranslations } from 'next-intl';
 import posthog from 'posthog-js';
-import { trackEvent } from '@/lib/meta-pixel';
 import { AppPreview } from './app-preview';
 import { HeroCarousel } from './hero-carousel';
 import { STORE_LINKS } from './store-buttons';
@@ -119,7 +118,6 @@ export function Hero() {
             <a
               href={STORE_LINKS.appStore}
               onClick={() => {
-                trackEvent('Lead', { content_name: 'App Download', content_category: 'ios' });
                 posthog.capture('app_download_clicked', { platform: 'ios', location: 'hero' });
               }}
               aria-label="Download on the App Store"
@@ -146,7 +144,6 @@ export function Hero() {
             <a
               href={STORE_LINKS.googlePlay}
               onClick={() => {
-                trackEvent('Lead', { content_name: 'App Download', content_category: 'android' });
                 posthog.capture('app_download_clicked', { platform: 'android', location: 'hero' });
               }}
               aria-label="Get it on Google Play"
