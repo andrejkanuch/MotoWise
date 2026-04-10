@@ -20,9 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GroupRideSection } from '../../../components/discover/group-ride-section';
 import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];

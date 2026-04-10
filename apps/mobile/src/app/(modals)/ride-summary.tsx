@@ -18,7 +18,17 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Switch,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -26,7 +36,11 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
-import { cycleMapStyle as cycleMapStyleFn, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import {
+  cycleMapStyle as cycleMapStyleFn,
+  getDefaultMapStyle,
+  MAP_STYLES,
+} from '../../utils/map-styles';
 import {
   formatDistance,
   formatDuration,

@@ -43,7 +43,11 @@ import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypo
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { cycleMapStyle as cycleMapStyleFn, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import {
+  cycleMapStyle as cycleMapStyleFn,
+  getDefaultMapStyle,
+  MAP_STYLES,
+} from '../../utils/map-styles';
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
 import type { GeocodingResult } from '../../utils/mapbox-geocoding';
 
