@@ -18,6 +18,17 @@ export interface PdfTask {
   targetMileage?: number;
   notes?: string;
   photoCount: number;
+  cost?: number;
+  currency?: string;
+}
+
+export interface PdfExportOptions {
+  /** YYYY-MM-DD inclusive start filter. If undefined, no lower bound. */
+  dateFrom?: string;
+  /** YYYY-MM-DD inclusive end filter. If undefined, no upper bound. */
+  dateTo?: string;
+  /** Human label shown in the PDF header (e.g. "Last 12 months"). */
+  dateRangeLabel?: string;
 }
 
 function escapeHtml(str: string): string {
@@ -112,6 +123,19 @@ function statusLabel(status: string): string {
   }
 }
 
+function formatCost(amount: number, currency?: string): string {
+  const c = currency ?? 'USD';
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: c,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${c} ${amount.toFixed(2)}`;
+  }
+}
+
 function renderTaskRow(task: PdfTask, mileageUnit: string): string {
   const date = task.completedAt
     ? formatDate(task.completedAt)
@@ -128,6 +152,8 @@ function renderTaskRow(task: PdfTask, mileageUnit: string): string {
 
   const pColor = priorityColor(task.priority);
 
+  const costCell = task.cost != null ? formatCost(task.cost, task.currency) : '—';
+
   const notesCell = [
     task.notes ? escapeHtml(task.notes) : '',
     task.photoCount > 0 ? `${task.photoCount} photo${task.photoCount > 1 ? 's' : ''}` : '',
@@ -142,11 +168,16 @@ function renderTaskRow(task: PdfTask, mileageUnit: string): string {
       <td>${mileage}</td>
       <td><span class="priority-badge" style="background:${pColor}20;color:${pColor}">${escapeHtml(task.priority)}</span></td>
       <td>${escapeHtml(statusLabel(task.status))}</td>
+      <td class="cost-cell">${costCell}</td>
       <td class="notes-cell">${notesCell || '—'}</td>
     </tr>`;
 }
 
-export function generateMaintenanceHistoryHTML(bike: PdfBike, tasks: PdfTask[]): string {
+export function generateMaintenanceHistoryHTML(
+  bike: PdfBike,
+  tasks: PdfTask[],
+  options: PdfExportOptions = {},
+): string {
   const bikeName = `${bike.year} ${bike.make} ${bike.model}`;
   const displayName = bike.nickname ? `${bikeName} ("${bike.nickname}")` : bikeName;
   const generatedDate = new Date().toLocaleDateString('en-US', {
@@ -156,8 +187,22 @@ export function generateMaintenanceHistoryHTML(bike: PdfBike, tasks: PdfTask[]):
   });
   const unit = bike.mileageUnit || 'mi';
 
-  const completedTasks = tasks.filter((t) => t.status === 'completed');
-  const activeTasks = tasks.filter((t) => t.status !== 'completed');
+  // Apply optional date range filter (matches on completedAt || dueDate)
+  const filtered = tasks.filter((t) => {
+    const ref = t.completedAt ?? t.dueDate;
+    if (!ref) return true; // no date means always include
+    if (options.dateFrom && ref < options.dateFrom) return false;
+    if (options.dateTo && ref > options.dateTo) return false;
+    return true;
+  });
+
+  const completedTasks = filtered.filter((t) => t.status === 'completed');
+  const activeTasks = filtered.filter((t) => t.status !== 'completed');
+
+  // Cost summary (completed tasks only — these are the resale-documentation value)
+  const totalCost = completedTasks.reduce((sum, t) => sum + (t.cost ?? 0), 0);
+  const costCurrency = completedTasks.find((t) => t.currency)?.currency ?? 'USD';
+  const hasCosts = completedTasks.some((t) => (t.cost ?? 0) > 0);
 
   const renderSection = (title: string, sectionTasks: PdfTask[]): string => {
     if (sectionTasks.length === 0) return '';
@@ -171,6 +216,7 @@ export function generateMaintenanceHistoryHTML(bike: PdfBike, tasks: PdfTask[]):
             <th>Mileage</th>
             <th>Priority</th>
             <th>Status</th>
+            <th>Cost</th>
             <th>Notes</th>
           </tr>
         </thead>
@@ -292,6 +338,41 @@ export function generateMaintenanceHistoryHTML(bike: PdfBike, tasks: PdfTask[]):
       color: #525252;
       font-size: 10px;
     }
+    .cost-cell {
+      font-weight: 600;
+      color: #1a1a1a;
+      white-space: nowrap;
+    }
+    .cost-summary {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: #f8f9fa;
+      border-left: 3px solid #FF6B35;
+      border-radius: 4px;
+    }
+    .cost-summary-label {
+      font-size: 11px;
+      color: #737373;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 700;
+    }
+    .cost-summary-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-top: 4px;
+    }
+    .date-range {
+      display: inline-block;
+      padding: 3px 10px;
+      background: #FF6B3515;
+      color: #FF6B35;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -324,11 +405,23 @@ export function generateMaintenanceHistoryHTML(bike: PdfBike, tasks: PdfTask[]):
     ${bikeInfoRows ? `<div class="meta">${bikeInfoRows}</div>` : ''}
   </div>
 
-  <div class="generated-date">Generated on ${generatedDate}</div>
+  <div class="generated-date">
+    Generated on ${generatedDate}
+    ${options.dateRangeLabel ? `<span class="date-range">${escapeHtml(options.dateRangeLabel)}</span>` : ''}
+  </div>
 
   ${emptyState}
   ${renderSection('Completed', completedTasks)}
   ${renderSection('Active / Pending', activeTasks)}
+
+  ${
+    hasCosts
+      ? `<div class="cost-summary">
+           <div class="cost-summary-label">Total documented maintenance spend</div>
+           <div class="cost-summary-value">${formatCost(totalCost, costCurrency)}</div>
+         </div>`
+      : ''
+  }
 
   <div class="footer">Generated by MotoVault &mdash; motovault.app</div>
 </body>

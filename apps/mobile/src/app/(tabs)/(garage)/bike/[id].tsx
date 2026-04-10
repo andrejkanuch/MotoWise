@@ -324,9 +324,9 @@ export default function BikeDetailScreen() {
     );
   };
 
-  const handleExportPdf = async () => {
+  // MOT-141: Maintenance history PDF export with optional date range filter.
+  const runPdfExport = async (dateFrom?: string, dateRangeLabel?: string) => {
     if (!bike) return;
-    triggerImpact();
     try {
       const pdfBike: PdfBike = {
         make: bike.make,
@@ -344,13 +344,60 @@ export default function BikeDetailScreen() {
         completedMileage: task.completedMileage ?? undefined,
         targetMileage: task.targetMileage ?? undefined,
         notes: task.notes ?? undefined,
-        photoCount: 0,
+        photoCount: task.photos?.length ?? 0,
+        cost: task.cost ?? undefined,
+        currency: task.currency ?? undefined,
       }));
-      await exportMaintenanceHistory(pdfBike, pdfTasks);
+      await exportMaintenanceHistory(pdfBike, pdfTasks, { dateFrom, dateRangeLabel });
     } catch (_e) {
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
         t('maintenance.exportError', { defaultValue: 'Failed to export PDF. Please try again.' }),
+      );
+    }
+  };
+
+  const handleExportPdf = () => {
+    if (!bike) return;
+    triggerImpact();
+    const labelAll = t('maintenance.exportAllTime', { defaultValue: 'All time' });
+    const labelYear = t('maintenance.exportLastYear', { defaultValue: 'Last 12 months' });
+    const labelSix = t('maintenance.exportLast6Months', { defaultValue: 'Last 6 months' });
+    const labelCancel = t('common.cancel', { defaultValue: 'Cancel' });
+
+    const nowIso = new Date();
+    const yearAgo = new Date(nowIso);
+    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+    const sixMonthsAgo = new Date(nowIso);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+    if (process.env.EXPO_OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: t('maintenance.exportTitle', { defaultValue: 'Export History' }),
+          message: t('maintenance.exportMessage', {
+            defaultValue: 'Choose the date range to include',
+          }),
+          options: [labelAll, labelYear, labelSix, labelCancel],
+          cancelButtonIndex: 3,
+        },
+        (index) => {
+          if (index === 0) runPdfExport(undefined, labelAll);
+          else if (index === 1) runPdfExport(isoDate(yearAgo), labelYear);
+          else if (index === 2) runPdfExport(isoDate(sixMonthsAgo), labelSix);
+        },
+      );
+    } else {
+      Alert.alert(
+        t('maintenance.exportTitle', { defaultValue: 'Export History' }),
+        t('maintenance.exportMessage', { defaultValue: 'Choose the date range to include' }),
+        [
+          { text: labelAll, onPress: () => runPdfExport(undefined, labelAll) },
+          { text: labelYear, onPress: () => runPdfExport(isoDate(yearAgo), labelYear) },
+          { text: labelSix, onPress: () => runPdfExport(isoDate(sixMonthsAgo), labelSix) },
+          { text: labelCancel, style: 'cancel' },
+        ],
       );
     }
   };
