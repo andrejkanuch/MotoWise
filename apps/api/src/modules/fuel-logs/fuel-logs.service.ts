@@ -6,12 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { KM_PER_MILE, LITRES_PER_US_GALLON } from '@motovault/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { FuelLog } from './models/fuel-log.model';
-
-const LITRES_PER_US_GALLON = 3.785411784;
-const KM_PER_MILE = 1.609344;
 
 interface FuelLogRow {
   id: string;

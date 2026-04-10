@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { CreateFuelLogDocument, FuelLogsDocument } from '@motovault/graphql';
+import { KM_PER_MILE, LITRES_PER_US_GALLON } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -33,8 +34,7 @@ import { triggerImpact, triggerNotification } from '../../../utils/haptics';
  * system.
  */
 
-const KM_PER_MILE = 1.609344;
-const LITRES_PER_US_GALLON = 3.785411784;
+// P2-109: constants imported from @motovault/types
 
 export default function AddFuelLogScreen() {
   const { t } = useTranslation();

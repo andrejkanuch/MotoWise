@@ -20,5 +20,6 @@ export * from './validators/quiz';
 export * from './validators/ride';
 export * from './validators/ride-summary';
 export * from './validators/share-link';
+export * from './units';
 export * from './validators/user';
 export * from './validators/user-preferences';

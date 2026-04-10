@@ -96,6 +96,9 @@ const RECALLS_TTL = MS_PER_DAY; // 24 hours (per MOT-142 spec)
 @Injectable()
 export class NhtsaService implements OnModuleInit {
   private static readonly MAX_MODELS_CACHE = 500;
+  // P2-112: Cap recall cache to prevent unbounded memory growth from
+  // attackers spraying unique VINs through the motorcycleRecalls query.
+  private static readonly MAX_RECALLS_CACHE = 1_000;
 
   private readonly logger = new Logger(NhtsaService.name);
   private makesCache: CacheEntry<MotorcycleMakeDto[]> | null = null;
@@ -270,6 +273,11 @@ export class NhtsaService implements OnModuleInit {
       remedy: r.Remedy ?? '',
     }));
 
+    // P2-112: Enforce cache size cap before adding new entries
+    if (this.recallsCache.size >= NhtsaService.MAX_RECALLS_CACHE) {
+      const oldestKey = this.recallsCache.keys().next().value;
+      if (oldestKey) this.recallsCache.delete(oldestKey);
+    }
     this.recallsCache.set(cacheKey, { data: recalls, expiresAt: Date.now() + RECALLS_TTL });
     return recalls;
   }

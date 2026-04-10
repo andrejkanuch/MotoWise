@@ -107,6 +107,16 @@ export class MotorcyclesService {
     if (input.purchaseDate !== undefined) updates.purchase_date = input.purchaseDate;
     if (input.vin !== undefined) updates.vin = input.vin ? input.vin.toUpperCase() : null;
 
+    // P2-111: Any manual mileage edit must reset the odometer provenance so
+    // the garage UI's "Auto-updated · today" label doesn't lie after a user
+    // override. The ride-sync path (endRide) sets these explicitly; here we
+    // clear them to 'manual' whenever current_mileage changes.
+    if (input.currentMileage != null) {
+      updates.odometer_sync_source = 'manual';
+      updates.odometer_last_ride_id = null;
+      updates.mileage_updated_at = new Date().toISOString();
+    }
+
     const { data, error } = await this.supabase
       .from('motorcycles')
       .update(updates)

@@ -7,6 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { type MileageUnit, metersToUnit } from '@motovault/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -113,9 +114,10 @@ export class RidesService {
         // MOT-140 bug fix: current_mileage is stored in the user's preferred
         // unit (km or mi). Previously distanceM (meters) was added directly,
         // producing wildly inflated odometer readings on every ride.
-        const unit = (bike?.mileage_unit as string | null) ?? 'mi';
-        const distanceInUnit = unit === 'km' ? distanceM / 1000 : distanceM / 1609.344; // mi conversion
-        const roundedDelta = Math.round(distanceInUnit);
+        // P2-109: Uses metersToUnit from @motovault/types so this conversion
+        // lives in exactly one place across the whole codebase.
+        const unit: MileageUnit = (bike?.mileage_unit as MileageUnit | null) ?? 'mi';
+        const roundedDelta = Math.round(metersToUnit(distanceM, unit));
         const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
 
         const nowIso = new Date().toISOString();
