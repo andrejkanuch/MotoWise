@@ -181,7 +181,7 @@ export default function GroupRideDetailScreen() {
       {/* Map */}
       <MapboxGL.MapView
         style={{ flex: 1 }}
-        styleURL={MAP_STYLES.dark}
+        styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
         compassEnabled={false}
         logoEnabled={false}
         attributionEnabled={false}

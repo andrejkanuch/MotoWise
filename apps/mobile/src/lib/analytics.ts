@@ -135,6 +135,18 @@ export const AnalyticsEvent = {
   RIDE_STARTED: 'ride_started',
   RIDE_COMPLETED: 'ride_completed',
   RIDE_SHARED: 'ride_shared',
+  RIDE_VIEWED: 'ride_viewed',
+  RIDE_DELETED: 'ride_deleted',
+
+  // Routes (discovery)
+  ROUTE_VIEWED: 'route_viewed',
+  ROUTE_SAVED: 'route_saved',
+  ROUTE_UNSAVED: 'route_unsaved',
+  ROUTE_SHARED: 'route_shared',
+  ROUTE_GPX_EXPORTED: 'route_gpx_exported',
+
+  // Discovery
+  DISCOVER_TAB_VIEWED: 'discover_tab_viewed',
 
   // Community
   GROUP_RIDE_CREATED: 'group_ride_created',

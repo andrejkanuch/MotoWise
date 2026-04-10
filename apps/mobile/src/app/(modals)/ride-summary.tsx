@@ -18,7 +18,7 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -26,7 +26,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
-import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import { cycleMapStyle as cycleMapStyleFn, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import {
   formatDistance,
   formatDuration,
@@ -76,7 +76,8 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
 
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const isDark = useColorScheme() === 'dark';
+  const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));
   const [isSaving, setIsSaving] = useState(false);
   const [shareToDiscover, setShareToDiscover] = useState(false);
@@ -252,11 +253,9 @@ export default function RideSummaryScreen() {
     ]);
   }, [rideId, router]);
 
-  const cycleMapStyle = useCallback(() => {
-    const styles: MapStyle[] = ['dark', 'outdoors', 'satellite'];
-    const idx = styles.indexOf(mapStyle);
-    setMapStyle(styles[(idx + 1) % styles.length]);
-  }, [mapStyle]);
+  const handleCycleMapStyle = useCallback(() => {
+    setMapStyle((prev) => cycleMapStyleFn(prev));
+  }, []);
 
   const stats = [
     { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
@@ -445,7 +444,7 @@ export default function RideSummaryScreen() {
             }}
           >
             <Pressable
-              onPress={cycleMapStyle}
+              onPress={handleCycleMapStyle}
               accessibilityRole="button"
               accessibilityLabel="Change map style"
               style={{

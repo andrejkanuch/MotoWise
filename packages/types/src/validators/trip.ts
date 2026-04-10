@@ -135,6 +135,7 @@ export const UpdateTripInputSchema = z.object({
   endDate: z.string().date().optional(),
   difficulty: TripDifficultySchema.optional(),
   maxRiders: z.number().int().min(2).max(50).optional(),
+  waypoints: z.array(InlineWaypointSchema).min(0).max(25).optional(),
 });
 
 export type UpdateTripInput = z.infer<typeof UpdateTripInputSchema>;

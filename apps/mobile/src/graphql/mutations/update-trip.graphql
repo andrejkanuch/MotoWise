@@ -8,5 +8,16 @@ mutation UpdateTrip($input: UpdateTripInput!) {
     difficulty
     maxRiders
     status
+    waypoints {
+      id
+      tripId
+      sortOrder
+      dayIndex
+      type
+      name
+      notes
+      lat
+      lng
+    }
   }
 }

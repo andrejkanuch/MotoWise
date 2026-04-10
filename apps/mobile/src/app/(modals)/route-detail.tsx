@@ -15,7 +15,7 @@ import {
   Share2,
   User,
 } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -32,9 +32,10 @@ import { PremiumWaitlistModal } from '../../components/discover/premium-waitlist
 import { ReviewForm } from '../../components/discover/review-form';
 import { ReviewList } from '../../components/discover/review-list';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -78,7 +79,7 @@ export default function RouteDetailScreen() {
   const system = useMeasurementSystem();
   const { routeId } = useLocalSearchParams<{ routeId: string }>();
   const sheetRef = useRef<BottomSheet>(null);
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [isSaved, setIsSaved] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -92,6 +93,9 @@ export default function RouteDetailScreen() {
       }
     },
     onSuccess: () => {
+      trackEvent(isSaved ? AnalyticsEvent.ROUTE_UNSAVED : AnalyticsEvent.ROUTE_SAVED, {
+        route_id: routeId,
+      });
       setIsSaved((prev) => !prev);
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     },
@@ -110,6 +114,16 @@ export default function RouteDetailScreen() {
   });
 
   const route = data?.routeDetail;
+
+  const routeLoaded = route?.id;
+  useEffect(() => {
+    if (route && routeLoaded) {
+      trackEvent(AnalyticsEvent.ROUTE_VIEWED, {
+        route_id: routeId,
+        is_motovault_pick: route.isMotovaultPick ?? false,
+      });
+    }
+  }, [routeLoaded, routeId, route]);
 
   const coordinates = useMemo(() => {
     if (!route?.polyline) return [];
@@ -143,16 +157,15 @@ export default function RouteDetailScreen() {
     };
   }, [coordinates]);
 
-  const cycleMapStyle = useCallback(() => {
-    setMapStyle((prev) =>
-      prev === 'dark' ? 'outdoors' : prev === 'outdoors' ? 'satellite' : 'dark',
-    );
+  const handleCycleMapStyle = useCallback(() => {
+    setMapStyle((prev) => cycleMapStyle(prev));
   }, []);
 
   const handleExportGPX = useCallback(async () => {
     if (!routeId) return;
     const url = `${API_URL}/routes/${routeId}/export.gpx`;
     await Linking.openURL(url);
+    trackEvent(AnalyticsEvent.ROUTE_GPX_EXPORTED, { route_id: routeId });
   }, [routeId]);
 
   const handleShare = useCallback(async () => {
@@ -161,6 +174,7 @@ export default function RouteDetailScreen() {
       message: `Check out this route on MotoVault: ${route.name ?? 'A great ride'}`,
       url: `https://motovault.app/routes/${routeId}`,
     });
+    trackEvent(AnalyticsEvent.ROUTE_SHARED, { route_id: routeId });
   }, [route, routeId]);
 
   const surfaceLabel =
@@ -287,7 +301,7 @@ export default function RouteDetailScreen() {
         }}
       >
         <Pressable
-          onPress={cycleMapStyle}
+          onPress={handleCycleMapStyle}
           style={{
             width: 40,
             height: 40,

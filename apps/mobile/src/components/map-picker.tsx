@@ -72,7 +72,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
   const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
   const dropdownBg = isDark ? palette.cardDark : palette.white;
   const dropdownBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const mapStyle = isDark ? MAP_STYLES.dark : MAP_STYLES.outdoors;
+  const mapStyle = isDark ? MAP_STYLES.dark : MAP_STYLES.light;
 
   const handleSearch = useCallback((text: string) => {
     setQuery(text);

@@ -47,6 +47,7 @@ interface MapboxDirectionsResponse {
  */
 export async function getRouteSegments(
   coordinates: Array<{ lat: number; lng: number }>,
+  signal?: AbortSignal,
 ): Promise<RouteResult | null> {
   if (coordinates.length < MIN_WAYPOINTS) {
     if (__DEV__) {
@@ -76,7 +77,7 @@ export async function getRouteSegments(
   const url = `${MAPBOX_BASE_URL}/${coords}?access_token=${token}&geometries=geojson&overview=full`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, signal ? { signal } : undefined);
 
     if (!response.ok) {
       if (__DEV__) {

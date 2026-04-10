@@ -400,6 +400,15 @@ export class TripsService {
       endDate?: string;
       difficulty?: string;
       maxRiders?: number;
+      waypoints?: Array<{
+        type: string;
+        name: string;
+        lat: number;
+        lng: number;
+        notes?: string;
+        sortOrder: number;
+        dayIndex?: number;
+      }>;
     },
   ): Promise<Trip> {
     await this.verifyOrganiser(userId, tripId);
@@ -424,7 +433,43 @@ export class TripsService {
       throw new InternalServerErrorException('Failed to update trip');
     }
 
-    return mapRowToTrip(data as unknown as TripRow);
+    const trip = mapRowToTrip(data as unknown as TripRow);
+
+    // Replace waypoints if provided (delete existing + insert new)
+    if (input.waypoints) {
+      await this.supabase.from('trip_waypoints').delete().eq('trip_id', tripId);
+
+      if (input.waypoints.length > 0) {
+        const waypointRows = input.waypoints.map((wp) => ({
+          trip_id: tripId,
+          type: wp.type,
+          name: wp.name,
+          lat: wp.lat,
+          lng: wp.lng,
+          notes: wp.notes ?? null,
+          sort_order: wp.sortOrder,
+          day_index: wp.dayIndex ?? 0,
+        }));
+
+        const { data: waypointData, error: wpError } = await this.supabase
+          .from('trip_waypoints')
+          .insert(waypointRows)
+          .select('*');
+
+        if (wpError) {
+          this.logger.error(`updateTrip waypoints failed: ${wpError.message} (${wpError.code})`);
+          throw new InternalServerErrorException('Failed to update trip waypoints');
+        }
+
+        if (waypointData) {
+          trip.waypoints = (waypointData as unknown as WaypointRow[]).map(mapRowToWaypoint);
+        }
+      } else {
+        trip.waypoints = [];
+      }
+    }
+
+    return trip;
   }
 
   async deleteTrip(userId: string, tripId: string): Promise<boolean> {

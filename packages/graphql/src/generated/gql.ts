@@ -69,7 +69,7 @@ type Documents = {
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": typeof types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": typeof types.UpdateParticipantStatusDocument,
     "mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}": typeof types.UpdateRideDocument,
-    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n  }\n}": typeof types.UpdateTripDocument,
+    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": typeof types.UpdateTripDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n    measurementSystem\n    currency\n  }\n}": typeof types.UpdateUserDocument,
     "mutation UpdateWaypoint($input: UpdateWaypointInput!) {\n  updateWaypoint(input: $input) {\n    id\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n  }\n}": typeof types.UpdateWaypointDocument,
     "mutation UploadWaypoints($input: UploadWaypointsInput!) {\n  uploadWaypoints(input: $input)\n}": typeof types.UploadWaypointsDocument,
@@ -167,7 +167,7 @@ const documents: Documents = {
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": types.UpdateParticipantStatusDocument,
     "mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}": types.UpdateRideDocument,
-    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n  }\n}": types.UpdateTripDocument,
+    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": types.UpdateTripDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n    measurementSystem\n    currency\n  }\n}": types.UpdateUserDocument,
     "mutation UpdateWaypoint($input: UpdateWaypointInput!) {\n  updateWaypoint(input: $input) {\n    id\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n  }\n}": types.UpdateWaypointDocument,
     "mutation UploadWaypoints($input: UploadWaypointsInput!) {\n  uploadWaypoints(input: $input)\n}": types.UploadWaypointsDocument,
@@ -447,7 +447,7 @@ export function graphql(source: "mutation UpdateRide($input: UpdateRideInput!) {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n  }\n}"): (typeof documents)["mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n  }\n}"];
+export function graphql(source: "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"): (typeof documents)["mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

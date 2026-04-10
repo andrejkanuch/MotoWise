@@ -39,9 +39,10 @@ import { CommentList } from '../../components/comments/comment-list';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import {
   formatDistance,
   formatDuration,
@@ -102,7 +103,7 @@ export default function RideDetailScreen() {
   const queryClient = useQueryClient();
   const { rideId } = useLocalSearchParams<{ rideId: string }>();
   const system = useMeasurementSystem();
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [activeChart, setActiveChart] = useState<ChartType | null>(null);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
@@ -123,6 +124,17 @@ export default function RideDetailScreen() {
 
   const ride = (data as GetRideQuery | undefined)?.ride;
   const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+
+  const rideLoaded = ride?.id;
+  useEffect(() => {
+    if (ride && rideLoaded) {
+      trackEvent(AnalyticsEvent.RIDE_VIEWED, {
+        ride_id: rideId ?? '',
+        distance_m: ride.distanceM ?? 0,
+        duration_s: ride.durationS ?? 0,
+      });
+    }
+  }, [rideLoaded, rideId, ride]);
 
   // Decode polyline for map
   const routeData = useMemo(() => {
@@ -185,10 +197,11 @@ export default function RideDetailScreen() {
       await Share.share({
         message: `${ride.name || 'My Ride'} — ${dist} in ${dur} with MotoVault!`,
       });
+      trackEvent(AnalyticsEvent.RIDE_SHARED, { ride_id: rideId ?? '' });
     } catch {
       // cancelled
     }
-  }, [ride, system]);
+  }, [ride, system, rideId]);
 
   const handleDelete = useCallback(() => {
     if (!rideId) return;
@@ -198,6 +211,7 @@ export default function RideDetailScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
+          trackEvent(AnalyticsEvent.RIDE_DELETED, { ride_id: rideId ?? '' });
           enqueue('deleteRide', {
             variables: { id: rideId },
           });
@@ -208,11 +222,9 @@ export default function RideDetailScreen() {
     ]);
   }, [rideId, queryClient, router]);
 
-  const cycleMapStyle = useCallback(() => {
-    const styles: MapStyle[] = ['dark', 'outdoors', 'satellite'];
-    const idx = styles.indexOf(mapStyle);
-    setMapStyle(styles[(idx + 1) % styles.length]);
-  }, [mapStyle]);
+  const handleCycleMapStyle = useCallback(() => {
+    setMapStyle((prev) => cycleMapStyle(prev));
+  }, []);
 
   const handleStatTap = useCallback((chart: ChartType) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -402,7 +414,7 @@ export default function RideDetailScreen() {
       >
         {routeData && (
           <Pressable
-            onPress={cycleMapStyle}
+            onPress={handleCycleMapStyle}
             accessibilityRole="button"
             accessibilityLabel="Change map style"
             style={{

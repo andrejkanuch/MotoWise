@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -1239,6 +1243,7 @@ input UpdateTripInput {
   startDate: String
   title: String
   tripId: ID!
+  waypoints: [InlineWaypointInput!]
 }
 
 input UpdateUserInput {

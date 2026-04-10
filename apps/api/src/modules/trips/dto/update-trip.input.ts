@@ -1,4 +1,5 @@
 import { Field, ID, InputType, Int } from '@nestjs/graphql';
+import { InlineWaypointInput } from './create-trip-with-waypoints.input';
 
 @InputType()
 export class UpdateTripInput {
@@ -22,4 +23,7 @@ export class UpdateTripInput {
 
   @Field(() => Int, { nullable: true })
   maxRiders?: number;
+
+  @Field(() => [InlineWaypointInput], { nullable: true })
+  waypoints?: InlineWaypointInput[];
 }

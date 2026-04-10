@@ -2,7 +2,8 @@ import { palette } from '@motovault/design-system';
 import type { Waypoint } from '@motovault/types';
 import MapboxGL, { UserTrackingMode } from '@rnmapbox/maps';
 import { useMemo } from 'react';
-import { View } from 'react-native';
+import { useColorScheme, View } from 'react-native';
+import { MAP_STYLES } from '../../utils/map-styles';
 
 interface HudMapProps {
   waypoints: Waypoint[];
@@ -40,6 +41,7 @@ function buildRouteGeoJSON(waypoints: Waypoint[]): GeoJSON.FeatureCollection {
 }
 
 export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
+  const isDark = useColorScheme() === 'dark';
   const routeGeoJSON = useMemo(() => buildRouteGeoJSON(waypoints), [waypoints]);
   const gpsColor = getGpsColor(gpsAccuracy);
 
@@ -47,7 +49,7 @@ export function HudMap({ waypoints, gpsAccuracy }: HudMapProps) {
     <View style={{ flex: 1, backgroundColor: palette.neutral950 }}>
       <MapboxGL.MapView
         style={{ flex: 1 }}
-        styleURL="mapbox://styles/mapbox/dark-v11"
+        styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
         logoEnabled={false}
         attributionEnabled={false}
         scaleBarEnabled={false}

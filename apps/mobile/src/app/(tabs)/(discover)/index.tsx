@@ -4,7 +4,7 @@ import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Compass, Map as MapIcon, Plus, Users } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -22,7 +22,8 @@ import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { MAP_STYLES, type MapStyle } from '../../../utils/map-styles';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
@@ -30,8 +31,12 @@ export default function DiscoverScreen() {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [mapStyle] = useState<MapStyle>('dark');
+  const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
   const mapRef = useRef<MapboxGL.MapView>(null);
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
+  }, []);
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const headerColor = isDark ? palette.white : palette.neutral950;

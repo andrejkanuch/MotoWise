@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Calendar,
   Map as MapIcon,
+  Plus,
   Save,
   Send,
   X,
@@ -42,7 +43,7 @@ import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypo
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import { cycleMapStyle as cycleMapStyleFn, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
 import type { GeocodingResult } from '../../utils/mapbox-geocoding';
 
@@ -128,36 +129,35 @@ export default function CreateTripScreen() {
   const sheetBg = isDark ? palette.cardDark : palette.white;
 
   // Map state
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
 
   // Waypoints
   const [waypoints, setWaypoints] = useState<LocalWaypoint[]>([]);
   const [routeLegs, setRouteLegs] = useState<RouteLeg[]>([]);
   const [routeGeometry, setRouteGeometry] = useState<GeoJSON.LineString | null>(null);
-  const routeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Recalculate route segments when waypoints change
+  // Recalculate route segments when waypoints change (with cancellation)
   useEffect(() => {
-    if (routeDebounceRef.current) clearTimeout(routeDebounceRef.current);
-
     if (waypoints.length < 2) {
       setRouteLegs([]);
       setRouteGeometry(null);
       return;
     }
 
-    routeDebounceRef.current = setTimeout(async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
       const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
       const coords = sorted.map((wp) => ({ lat: wp.lat, lng: wp.lng }));
-      const result = await getRouteSegments(coords);
-      if (result) {
+      const result = await getRouteSegments(coords, controller.signal);
+      if (!controller.signal.aborted && result) {
         setRouteLegs(result.legs);
         setRouteGeometry(result.geometry);
       }
     }, 800);
 
     return () => {
-      if (routeDebounceRef.current) clearTimeout(routeDebounceRef.current);
+      clearTimeout(timer);
+      controller.abort();
     };
   }, [waypoints]);
 
@@ -302,6 +302,12 @@ export default function CreateTripScreen() {
   }, []);
 
   // Geocoding search result handler
+  // Default day for new waypoints: last day that has waypoints, or last day overall
+  const defaultDayIndex = useMemo(() => {
+    if (waypoints.length === 0) return 0;
+    return Math.max(...waypoints.map((w) => w.dayIndex));
+  }, [waypoints]);
+
   const handleGeocodingSelect = useCallback(
     (result: GeocodingResult) => {
       addWaypoint({
@@ -311,10 +317,10 @@ export default function CreateTripScreen() {
         lng: result.lng,
         notes: '',
         sortOrder: waypoints.length,
-        dayIndex: 0,
+        dayIndex: defaultDayIndex,
       });
     },
-    [addWaypoint, waypoints.length],
+    [addWaypoint, waypoints.length, defaultDayIndex],
   );
 
   // Map long-press handler — adds a scenic waypoint directly
@@ -329,10 +335,10 @@ export default function CreateTripScreen() {
         lng,
         notes: '',
         sortOrder: waypoints.length,
-        dayIndex: 0,
+        dayIndex: defaultDayIndex,
       });
     },
-    [addWaypoint, waypoints.length],
+    [addWaypoint, waypoints.length, defaultDayIndex],
   );
 
   // Reorder waypoints
@@ -370,9 +376,16 @@ export default function CreateTripScreen() {
 
   // Cycle map style
   const cycleMapStyle = useCallback(() => {
-    setMapStyle((prev) =>
-      prev === 'dark' ? 'outdoors' : prev === 'outdoors' ? 'satellite' : 'dark',
-    );
+    setMapStyle((prev) => cycleMapStyleFn(prev));
+  }, []);
+
+  const handleAddDay = useCallback(() => {
+    setEndDate((prev) => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + 1);
+      return d;
+    });
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, []);
 
   // Build the batch input shared by save and publish
@@ -448,18 +461,14 @@ export default function CreateTripScreen() {
     },
   });
 
-  // Update mutation (edit mode)
+  // Update mutation (edit mode) — includes waypoints
   const updateMutation = useMutation({
     mutationFn: async () => {
+      const tripInput = buildTripInput();
       await gqlFetcher(UpdateTripDocument, {
         input: {
           tripId: params.tripId!,
-          title: title.trim(),
-          description: description.trim(),
-          startDate: startDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
-          difficulty,
-          maxRiders: Number.parseInt(maxRiders, 10) || 10,
+          ...tripInput,
         },
       });
     },
@@ -828,6 +837,35 @@ export default function CreateTripScreen() {
                 );
               })}
             </View>
+          )}
+
+          {/* Add Day button */}
+          {numDays < 14 && (
+            <Pressable
+              onPress={handleAddDay}
+              accessibilityLabel="Add another day to trip"
+              accessibilityRole="button"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                marginHorizontal: 20,
+                marginTop: 12,
+                marginBottom: 16,
+                paddingVertical: 14,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                borderWidth: 1.5,
+                borderStyle: 'dashed',
+                borderColor: palette.accent500,
+              }}
+            >
+              <Plus size={18} color={palette.accent500} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                Add Day
+              </Text>
+            </Pressable>
           )}
 
           {/* Metadata form */}
