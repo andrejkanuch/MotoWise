@@ -1,0 +1,11 @@
+mutation AddExpensePhoto($input: AddExpensePhotoInput!) {
+  addExpensePhoto(input: $input) {
+    id
+    expenseId
+    storagePath
+    publicUrl
+    fileSizeBytes
+    mimeType
+    createdAt
+  }
+}

@@ -69,3 +69,31 @@ export async function uploadMaintenancePhoto(
     fileSizeBytes: arrayBuffer.byteLength,
   };
 }
+
+/**
+ * Upload a receipt photo for an expense.
+ *
+ * Reuses the existing 'maintenance-photos' bucket with an `expenses/` path prefix
+ * so we inherit the same RLS policies (uid must match the first folder segment).
+ * MOT-143
+ */
+export async function uploadExpensePhoto(
+  uri: string,
+  userId: string,
+  expenseId: string,
+): Promise<{ storagePath: string; fileSizeBytes: number }> {
+  const compressedUri = await compressImage(uri);
+  const arrayBuffer = await fetch(compressedUri).then((res) => res.arrayBuffer());
+  const filePath = `${userId}/expenses/${expenseId}/${Date.now()}.webp`;
+  const { error } = await supabase.storage
+    .from('maintenance-photos')
+    .upload(filePath, arrayBuffer, {
+      contentType: 'image/webp',
+      upsert: false,
+    });
+  if (error) throw error;
+  return {
+    storagePath: filePath,
+    fileSizeBytes: arrayBuffer.byteLength,
+  };
+}

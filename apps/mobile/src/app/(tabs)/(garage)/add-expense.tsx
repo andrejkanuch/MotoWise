@@ -1,15 +1,16 @@
 import { palette } from '@motovault/design-system';
-import { LogExpenseDocument } from '@motovault/graphql';
+import { ExpensePhotosDocument, LogExpenseDocument } from '@motovault/graphql';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Check, ChevronDown, DollarSign, Plus, Tag } from 'lucide-react-native';
+import { Calendar, Camera, Check, ChevronDown, DollarSign, Plus, Tag } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { ExpensePhotoGallery } from '../../../components/ExpensePhotoGallery';
 import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import {
@@ -19,6 +20,7 @@ import {
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useAuthStore } from '../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const CATEGORIES = [
@@ -54,6 +56,7 @@ export default function AddExpenseScreen() {
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
+  const userId = useAuthStore((s) => s.session?.user?.id);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<Category>('fuel');
   const [date, setDate] = useState(new Date());
@@ -61,6 +64,16 @@ export default function AddExpenseScreen() {
   const [description, setDescription] = useState('');
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [saved, setSaved] = useState(false);
+  // MOT-143: Receipt photos. Populated after the expense is saved so we have an ID.
+  const [savedExpenseId, setSavedExpenseId] = useState<string | null>(null);
+
+  // Fetch photos for the newly-created expense (enabled once we have an id)
+  const photosQuery = useQuery({
+    queryKey: ['expense-photos', savedExpenseId ?? ''],
+    queryFn: () => gqlFetcher(ExpensePhotosDocument, { expenseId: savedExpenseId! }),
+    enabled: !!savedExpenseId,
+  });
+  const photos = photosQuery.data?.expensePhotos ?? [];
 
   const parsedAmount = Number.parseFloat(amount) || 0;
   const isValid = parsedAmount > 0 && parsedAmount <= 99999.99 && date <= new Date();
@@ -77,14 +90,16 @@ export default function AddExpenseScreen() {
           currency,
         },
       }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       trackEvent(AnalyticsEvent.EXPENSE_ADDED, { category, amount: parsedAmount, currency });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
       });
       setSaved(true);
+      // MOT-143: keep the screen open so the user can attach receipt photos.
+      // The expense id is now available from the mutation result.
+      setSavedExpenseId(result.logExpense.id);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
-      setTimeout(() => router.back(), 600);
     },
     onError: () => {
       Alert.alert(
@@ -485,14 +500,59 @@ export default function AddExpenseScreen() {
         </View>
       </Animated.View>
 
-      {/* Save Button */}
+      {/* Receipt Photos (MOT-143) — only available after the expense is saved */}
+      {savedExpenseId && userId && (
+        <Animated.View entering={FadeInDown.duration(250)}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              marginBottom: 8,
+              marginLeft: 4,
+            }}
+          >
+            <Camera size={14} color={palette.neutral500} strokeWidth={2} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+              {t('expenses.receipts', { defaultValue: 'Receipts' })}
+              <Text style={{ fontWeight: '400' }}>
+                {' '}
+                ({t('common.optional', { defaultValue: 'optional' })})
+              </Text>
+            </Text>
+          </View>
+          <View
+            style={{
+              backgroundColor: cardBg,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              padding: 12,
+              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            }}
+          >
+            <ExpensePhotoGallery
+              expenseId={savedExpenseId}
+              userId={userId}
+              motorcycleId={motorcycleId}
+              photos={photos}
+              isDark={isDark}
+            />
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Save / Done Button */}
       <Animated.View entering={FadeInDown.delay(200).duration(250)}>
         <Pressable
           onPress={() => {
             triggerImpact();
-            logMutation.mutate();
+            if (saved) {
+              router.back();
+            } else {
+              logMutation.mutate();
+            }
           }}
-          disabled={logMutation.isPending || !isValid || saved}
+          disabled={logMutation.isPending || (!isValid && !saved)}
           style={{
             backgroundColor: saved
               ? palette.success500
@@ -517,7 +577,7 @@ export default function AddExpenseScreen() {
           )}
           <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
             {saved
-              ? t('expenses.saved', { defaultValue: 'Expense Logged!' })
+              ? t('common.done', { defaultValue: 'Done' })
               : logMutation.isPending
                 ? t('common.saving', { defaultValue: 'Saving...' })
                 : t('expenses.save', { defaultValue: 'Log Expense' })}

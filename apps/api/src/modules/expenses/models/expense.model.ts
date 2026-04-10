@@ -1,4 +1,5 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
+import { ExpensePhoto } from './expense-photo.model';
 
 @ObjectType()
 export class Expense {
@@ -28,4 +29,8 @@ export class Expense {
 
   @Field()
   createdAt: string;
+
+  // Resolved in ExpensesResolver.photos (MOT-143)
+  @Field(() => [ExpensePhoto], { nullable: true })
+  photos?: ExpensePhoto[];
 }

@@ -14,6 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddExpensePhotoDocument,
     "mutation AddTaskPhoto($input: AddTaskPhotoInput!) {\n  addTaskPhoto(input: $input) {\n    id\n    taskId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.AddTaskPhotoDocument,
     "mutation AddWaypoint($input: CreateWaypointInput!) {\n  addWaypoint(input: $input) {\n    id\n    tripId\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n    createdAt\n  }\n}": typeof types.AddWaypointDocument,
     "mutation CancelGroupRide($groupRideId: ID!) {\n  cancelGroupRide(groupRideId: $groupRideId)\n}": typeof types.CancelGroupRideDocument,
@@ -31,6 +32,7 @@ type Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": typeof types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": typeof types.DeleteCommentDocument,
+    "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": typeof types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": typeof types.DeleteExpenseDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": typeof types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": typeof types.DeleteMotorcycleDocument,
@@ -78,6 +80,7 @@ type Documents = {
     "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.DiagnosticByIdDocument,
     "query DiscoverRoutes($filter: DiscoverRoutesFilterInput, $first: Int, $after: String) {\n  discoverRoutes(filter: $filter, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        name\n        polyline\n        distanceM\n        elevationGainM\n        surfaceType\n        curvatureIndex\n        isMotovaultPick\n        editorialDescription\n        ratingAvg\n        ratingCount\n        commentCount\n        createdAt\n        startLat\n        startLng\n        contributor {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": typeof types.DiscoverRoutesDocument,
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": typeof types.ExpenseDashboardDocument,
+    "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": typeof types.ExpensesByMotorcycleDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": typeof types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": typeof types.GetCommentsDocument,
@@ -112,6 +115,7 @@ type Documents = {
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
 };
 const documents: Documents = {
+    "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddExpensePhotoDocument,
     "mutation AddTaskPhoto($input: AddTaskPhotoInput!) {\n  addTaskPhoto(input: $input) {\n    id\n    taskId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddTaskPhotoDocument,
     "mutation AddWaypoint($input: CreateWaypointInput!) {\n  addWaypoint(input: $input) {\n    id\n    tripId\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n    createdAt\n  }\n}": types.AddWaypointDocument,
     "mutation CancelGroupRide($groupRideId: ID!) {\n  cancelGroupRide(groupRideId: $groupRideId)\n}": types.CancelGroupRideDocument,
@@ -129,6 +133,7 @@ const documents: Documents = {
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": types.DeleteCommentDocument,
+    "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": types.DeleteExpenseDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": types.DeleteMotorcycleDocument,
@@ -176,6 +181,7 @@ const documents: Documents = {
     "query DiagnosticById($id: String!) {\n  diagnosticById(id: $id) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.DiagnosticByIdDocument,
     "query DiscoverRoutes($filter: DiscoverRoutesFilterInput, $first: Int, $after: String) {\n  discoverRoutes(filter: $filter, first: $first, after: $after) {\n    edges {\n      node {\n        id\n        name\n        polyline\n        distanceM\n        elevationGainM\n        surfaceType\n        curvatureIndex\n        isMotovaultPick\n        editorialDescription\n        ratingAvg\n        ratingCount\n        commentCount\n        createdAt\n        startLat\n        startLng\n        contributor {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}": types.DiscoverRoutesDocument,
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": types.ExpenseDashboardDocument,
+    "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": types.ExpensesByMotorcycleDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": types.GetCommentsDocument,
@@ -224,6 +230,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"): (typeof documents)["mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -292,6 +302,10 @@ export function graphql(source: "mutation DeleteAccount {\n  deleteAccount\n}"):
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"): (typeof documents)["mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}"): (typeof documents)["mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -480,6 +494,10 @@ export function graphql(source: "query DiscoverRoutes($filter: DiscoverRoutesFil
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}"): (typeof documents)["query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"): (typeof documents)["query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

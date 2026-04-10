@@ -4,8 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
 import type {
@@ -13,7 +16,10 @@ import type {
   ExpenseDashboardSummary,
   MonthlyBucket,
 } from './models/expense-dashboard.model';
+import type { ExpensePhoto } from './models/expense-photo.model';
 import type { ExpenseCategory, ExpenseSummary } from './models/expense-summary.model';
+
+const MAX_PHOTOS_PER_EXPENSE = 3;
 
 /** Mirrors the selected columns from the expenses table (not yet in generated database.types.ts). */
 interface ExpenseRow {
@@ -32,8 +38,15 @@ interface ExpenseRow {
 @Injectable()
 export class ExpensesService {
   private readonly logger = new Logger(ExpensesService.name);
+  private readonly supabaseUrl: string;
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    configService: ConfigService,
+  ) {
+    this.supabaseUrl = configService.get<string>('SUPABASE_URL') ?? '';
+  }
 
   async findByMotorcycle(
     userId: string,
@@ -293,6 +306,152 @@ export class ExpensesService {
       expenseCount: rows.length,
       monthlyBuckets,
       categoryTotals,
+    };
+  }
+
+  // ==========================================
+  // Expense Photos (MOT-143)
+  // ==========================================
+
+  async addPhoto(
+    userId: string,
+    expenseId: string,
+    storagePath: string,
+    fileSizeBytes?: number,
+  ): Promise<ExpensePhoto> {
+    this.logger.log(`addPhoto: userId=${userId}, expenseId=${expenseId}`);
+
+    // Verify expense ownership
+    const { data: expense, error: expenseError } = await this.adminClient
+      .from('expenses')
+      .select('id')
+      .eq('id', expenseId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .single();
+
+    if (expenseError || !expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    // Check photo count limit
+    const { count, error: countError } = await this.adminClient
+      .from('expense_photos')
+      .select('id', { count: 'exact', head: true })
+      .eq('expense_id', expenseId);
+
+    if (countError) throw new InternalServerErrorException('Failed to check photo count');
+    if ((count ?? 0) >= MAX_PHOTOS_PER_EXPENSE) {
+      throw new BadRequestException(`Maximum of ${MAX_PHOTOS_PER_EXPENSE} photos per expense`);
+    }
+
+    // Determine mime type from storage path
+    const ext = storagePath.split('.').pop()?.toLowerCase() ?? 'webp';
+    const mimeMap: Record<string, string> = {
+      webp: 'image/webp',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      heic: 'image/heic',
+    };
+    const mimeType = mimeMap[ext] ?? 'image/webp';
+
+    const { data, error } = await this.adminClient
+      .from('expense_photos')
+      .insert({
+        expense_id: expenseId,
+        user_id: userId,
+        storage_path: storagePath,
+        file_size_bytes: fileSizeBytes ?? null,
+        mime_type: mimeType,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to add photo');
+    }
+    return this.mapPhotoRow(data);
+  }
+
+  async deletePhoto(userId: string, photoId: string): Promise<boolean> {
+    this.logger.log(`deletePhoto: userId=${userId}, photoId=${photoId}`);
+
+    const { data: photo, error: photoError } = await this.adminClient
+      .from('expense_photos')
+      .select('id, expense_id, user_id, storage_path')
+      .eq('id', photoId)
+      .single();
+
+    if (photoError || !photo) throw new NotFoundException('Photo not found');
+    if (photo.user_id !== userId) throw new NotFoundException('Photo not found');
+
+    // Delete from storage (best-effort)
+    const { error: storageError } = await this.adminClient.storage
+      .from('maintenance-photos')
+      .remove([photo.storage_path]);
+
+    if (storageError) {
+      this.logger.warn(
+        `deletePhoto: storage deletion failed for ${photo.storage_path}: ${storageError.message}`,
+      );
+    }
+
+    const { error: deleteError } = await this.adminClient
+      .from('expense_photos')
+      .delete()
+      .eq('id', photoId);
+
+    if (deleteError) throw new InternalServerErrorException('Failed to delete photo');
+    return true;
+  }
+
+  async findPhotosByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpensePhoto[]>> {
+    if (expenseIds.length === 0) return new Map();
+
+    const { data, error } = await this.adminClient
+      .from('expense_photos')
+      .select('*')
+      .in('expense_id', expenseIds)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new InternalServerErrorException('Failed to fetch photos');
+
+    const map = new Map<string, ExpensePhoto[]>();
+    for (const expenseId of expenseIds) {
+      map.set(expenseId, []);
+    }
+    for (const row of data ?? []) {
+      const expenseId = row.expense_id as string;
+      const photos = map.get(expenseId) ?? [];
+      photos.push(this.mapPhotoRow(row));
+      map.set(expenseId, photos);
+    }
+    return map;
+  }
+
+  async findPhotosByExpenseId(expenseId: string): Promise<ExpensePhoto[]> {
+    const { data, error } = await this.adminClient
+      .from('expense_photos')
+      .select('*')
+      .eq('expense_id', expenseId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new InternalServerErrorException('Failed to fetch photos');
+    return (data ?? []).map((row) => this.mapPhotoRow(row));
+  }
+
+  private mapPhotoRow(row: Record<string, unknown>): ExpensePhoto {
+    const storagePath = row.storage_path as string;
+    return {
+      id: row.id as string,
+      expenseId: row.expense_id as string,
+      storagePath,
+      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/maintenance-photos/${storagePath}`,
+      fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
+      mimeType: (row.mime_type as string) ?? 'image/webp',
+      createdAt: row.created_at as string,
     };
   }
 

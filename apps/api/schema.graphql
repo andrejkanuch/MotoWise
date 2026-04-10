@@ -2,6 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddExpensePhotoInput {
+  expenseId: String!
+  fileSizeBytes: Int
+  storagePath: String!
+}
+
 input AddTaskPhotoInput {
   fileSizeBytes: Int
   storagePath: String!
@@ -329,6 +335,7 @@ type Expense {
   id: ID!
   maintenanceTaskId: String
   motorcycleId: String!
+  photos: [ExpensePhoto!]
 }
 
 type ExpenseCategory {
@@ -344,6 +351,16 @@ type ExpenseDashboardSummary {
   expenseCount: Int!
   monthlyBuckets: [MonthlyBucket!]!
   previousYearTotal: Float!
+}
+
+type ExpensePhoto {
+  createdAt: String!
+  expenseId: String!
+  fileSizeBytes: Int
+  id: ID!
+  mimeType: String!
+  publicUrl: String!
+  storagePath: String!
 }
 
 type ExpenseSummary {
@@ -691,6 +708,7 @@ enum MotorcycleType {
 }
 
 type Mutation {
+  addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   addWaypoint(input: CreateWaypointInput!): TripWaypoint!
   cancelGroupRide(groupRideId: ID!): Boolean!
@@ -709,6 +727,7 @@ type Mutation {
   deleteAccount: Boolean!
   deleteComment(commentId: ID!): Boolean!
   deleteExpense(id: String!): Boolean!
+  deleteExpensePhoto(photoId: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
@@ -826,6 +845,7 @@ type Query {
   diagnosticById(id: String!): Diagnostic
   discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
+  expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
