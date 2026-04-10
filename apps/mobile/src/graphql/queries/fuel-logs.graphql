@@ -1,0 +1,17 @@
+query FuelLogs($motorcycleId: String!) {
+  fuelLogs(motorcycleId: $motorcycleId) {
+    id
+    motorcycleId
+    odometerKm
+    fuelLitres
+    totalCost
+    currency
+    fuelType
+    isPartial
+    notes
+    filledAt
+    kmSincePrevious
+    litresPer100Km
+    mpgUs
+  }
+}

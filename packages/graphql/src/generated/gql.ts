@@ -23,6 +23,7 @@ type Documents = {
     "mutation CreateComment($input: CreateCommentInput!) {\n  createComment(input: $input) {\n    id\n    text\n    createdAt\n    flaggedCount\n    parentCommentId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.CreateCommentDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": typeof types.CreateDiagnosticDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": typeof types.CreateFlagDocument,
+    "mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}": typeof types.CreateFuelLogDocument,
     "mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}": typeof types.CreateGroupRideDocument,
     "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    remind30d\n    remind7d\n    remind1d\n    createdAt\n  }\n}": typeof types.CreateMaintenanceTaskDocument,
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": typeof types.CreateMotorcycleDocument,
@@ -34,6 +35,7 @@ type Documents = {
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": typeof types.DeleteCommentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": typeof types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": typeof types.DeleteExpenseDocument,
+    "mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}": typeof types.DeleteFuelLogDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": typeof types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": typeof types.DeleteMotorcycleDocument,
     "mutation DeleteRide($id: String!) {\n  deleteRide(id: $id)\n}": typeof types.DeleteRideDocument,
@@ -82,6 +84,7 @@ type Documents = {
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": typeof types.ExpenseDashboardDocument,
     "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": typeof types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": typeof types.ExpensesByMotorcycleDocument,
+    "query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}": typeof types.FuelLogsDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": typeof types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": typeof types.GetCommentsDocument,
     "query GetFollowers($userId: String!, $first: Int, $after: String) {\n  getFollowers(userId: $userId, first: $first, after: $after) {\n    edges {\n      node {\n        followerId\n        followingId\n        createdAt\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": typeof types.GetFollowersDocument,
@@ -125,6 +128,7 @@ const documents: Documents = {
     "mutation CreateComment($input: CreateCommentInput!) {\n  createComment(input: $input) {\n    id\n    text\n    createdAt\n    flaggedCount\n    parentCommentId\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.CreateCommentDocument,
     "mutation CreateDiagnostic($input: CreateDiagnosticInput!) {\n  createDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    status\n    dataSharingOptedIn\n    createdAt\n  }\n}": types.CreateDiagnosticDocument,
     "mutation CreateFlag($input: CreateFlagInput!) {\n  createFlag(input: $input) {\n    id\n    articleId\n    userId\n    sectionReference\n    comment\n    status\n    createdAt\n  }\n}": types.CreateFlagDocument,
+    "mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}": types.CreateFuelLogDocument,
     "mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}": types.CreateGroupRideDocument,
     "mutation CreateMaintenanceTask($input: CreateMaintenanceTaskInput!) {\n  createMaintenanceTask(input: $input) {\n    id\n    title\n    priority\n    status\n    dueDate\n    targetMileage\n    isRecurring\n    intervalKm\n    intervalDays\n    remind30d\n    remind7d\n    remind1d\n    createdAt\n  }\n}": types.CreateMaintenanceTaskDocument,
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": types.CreateMotorcycleDocument,
@@ -136,6 +140,7 @@ const documents: Documents = {
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": types.DeleteCommentDocument,
     "mutation DeleteExpensePhoto($photoId: String!) {\n  deleteExpensePhoto(photoId: $photoId)\n}": types.DeleteExpensePhotoDocument,
     "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}": types.DeleteExpenseDocument,
+    "mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}": types.DeleteFuelLogDocument,
     "mutation DeleteMaintenanceTask($id: String!) {\n  deleteMaintenanceTask(id: $id)\n}": types.DeleteMaintenanceTaskDocument,
     "mutation DeleteMotorcycle($id: String!) {\n  deleteMotorcycle(id: $id)\n}": types.DeleteMotorcycleDocument,
     "mutation DeleteRide($id: String!) {\n  deleteRide(id: $id)\n}": types.DeleteRideDocument,
@@ -184,6 +189,7 @@ const documents: Documents = {
     "query ExpenseDashboard($motorcycleId: String!) {\n  expenseDashboard(motorcycleId: $motorcycleId) {\n    currentYearTotal\n    previousYearTotal\n    allTimeTotal\n    expenseCount\n    monthlyBuckets {\n      month\n      year\n      fuel\n      maintenance\n      parts\n      gear\n      tires\n      insurance\n      registration\n      tolls\n      parking\n      modifications\n      training\n      total\n    }\n    categoryTotals {\n      category\n      total\n    }\n  }\n}": types.ExpenseDashboardDocument,
     "query ExpensePhotos($expenseId: String!) {\n  expensePhotos(expenseId: $expenseId) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.ExpensePhotosDocument,
     "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}": types.ExpensesByMotorcycleDocument,
+    "query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}": types.FuelLogsDocument,
     "query GetArticleBySlug($slug: String!) {\n  articleBySlug(slug: $slug) {\n    id\n    slug\n    title\n    difficulty\n    category\n    viewCount\n    isSafetyCritical\n    generatedAt\n    updatedAt\n  }\n}": types.GetArticleBySlugDocument,
     "query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {\n  getComments(\n    rideId: $rideId\n    routeId: $routeId\n    groupRideId: $groupRideId\n    tripId: $tripId\n    first: $first\n    after: $after\n  ) {\n    comments {\n      id\n      text\n      createdAt\n      flaggedCount\n      parentCommentId\n      author {\n        id\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      replies {\n        id\n        text\n        createdAt\n        flaggedCount\n        parentCommentId\n        author {\n          id\n          displayName\n          publicUsername\n          avatarUrl\n        }\n      }\n    }\n    hasNextPage\n    endCursor\n    totalCount\n  }\n}": types.GetCommentsDocument,
     "query GetFollowers($userId: String!, $first: Int, $after: String) {\n  getFollowers(userId: $userId, first: $first, after: $after) {\n    edges {\n      node {\n        followerId\n        followingId\n        createdAt\n        displayName\n        publicUsername\n        avatarUrl\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": types.GetFollowersDocument,
@@ -271,6 +277,10 @@ export function graphql(source: "mutation CreateFlag($input: CreateFlagInput!) {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}"): (typeof documents)["mutation CreateFuelLog($input: CreateFuelLogInput!) {\n  createFuelLog(input: $input) {\n    id\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    filledAt\n    litresPer100Km\n    mpgUs\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}"): (typeof documents)["mutation CreateGroupRide($input: CreateGroupRideInput!) {\n  createGroupRide(input: $input) {\n    id\n    title\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -312,6 +322,10 @@ export function graphql(source: "mutation DeleteExpensePhoto($photoId: String!) 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}"): (typeof documents)["mutation DeleteExpense($id: String!) {\n  deleteExpense(id: $id)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}"): (typeof documents)["mutation DeleteFuelLog($id: String!) {\n  deleteFuelLog(id: $id)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -504,6 +518,10 @@ export function graphql(source: "query ExpensePhotos($expenseId: String!) {\n  e
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}"): (typeof documents)["query ExpensesByMotorcycle($motorcycleId: String!, $year: Int!) {\n  expenses(motorcycleId: $motorcycleId, year: $year) {\n    ytdTotal\n    categories {\n      category\n      total\n      expenses {\n        id\n        amount\n        category\n        currency\n        description\n        date\n        createdAt\n      }\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}"): (typeof documents)["query FuelLogs($motorcycleId: String!) {\n  fuelLogs(motorcycleId: $motorcycleId) {\n    id\n    motorcycleId\n    odometerKm\n    fuelLitres\n    totalCost\n    currency\n    fuelType\n    isPartial\n    notes\n    filledAt\n    kmSincePrevious\n    litresPer100Km\n    mpgUs\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

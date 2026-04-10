@@ -9,6 +9,7 @@ export * from './validators/diagnostic';
 export * from './validators/diagnostic-ai-response';
 export * from './validators/expense';
 export * from './validators/follow';
+export * from './validators/fuel-log';
 export * from './validators/health-report';
 export * from './validators/locale';
 export * from './validators/maintenance-task';

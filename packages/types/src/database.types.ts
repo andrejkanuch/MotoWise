@@ -758,6 +758,62 @@ export type Database = {
           },
         ]
       }
+      fuel_logs: {
+        Row: {
+          created_at: string
+          currency: string | null
+          deleted_at: string | null
+          filled_at: string
+          fuel_litres: number
+          fuel_type: string | null
+          id: string
+          is_partial: boolean
+          motorcycle_id: string
+          notes: string | null
+          odometer_km: number
+          total_cost: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          filled_at?: string
+          fuel_litres: number
+          fuel_type?: string | null
+          id?: string
+          is_partial?: boolean
+          motorcycle_id: string
+          notes?: string | null
+          odometer_km: number
+          total_cost?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          deleted_at?: string | null
+          filled_at?: string
+          fuel_litres?: number
+          fuel_type?: string | null
+          id?: string
+          is_partial?: boolean
+          motorcycle_id?: string
+          notes?: string | null
+          odometer_km?: number
+          total_cost?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fuel_logs_motorcycle_id_fkey"
+            columns: ["motorcycle_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_ride_participants: {
         Row: {
           group_ride_id: string

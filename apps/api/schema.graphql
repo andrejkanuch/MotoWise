@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -183,6 +179,18 @@ input CreateFlagInput {
   articleId: String!
   comment: String!
   sectionReference: String
+}
+
+input CreateFuelLogInput {
+  currency: String
+  filledAt: String
+  fuelLitres: Float!
+  fuelType: String
+  isPartial: Boolean
+  motorcycleId: String!
+  notes: String
+  odometerKm: Float!
+  totalCost: Float
 }
 
 input CreateGroupRideInput {
@@ -437,6 +445,23 @@ type FollowEdge {
 
 input FollowRiderInput {
   targetUserId: String!
+}
+
+type FuelLog {
+  createdAt: String!
+  currency: String!
+  filledAt: String!
+  fuelLitres: Float!
+  fuelType: String!
+  id: ID!
+  isPartial: Boolean!
+  kmSincePrevious: Float
+  litresPer100Km: Float
+  motorcycleId: String!
+  mpgUs: Float
+  notes: String
+  odometerKm: Float!
+  totalCost: Float
 }
 
 input GenerateArticleInput {
@@ -725,6 +750,7 @@ type Mutation {
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
   createFlag(input: CreateFlagInput!): ContentFlag!
+  createFuelLog(input: CreateFuelLogInput!): FuelLog!
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
@@ -736,6 +762,7 @@ type Mutation {
   deleteComment(commentId: ID!): Boolean!
   deleteExpense(id: String!): Boolean!
   deleteExpensePhoto(photoId: String!): Boolean!
+  deleteFuelLog(id: String!): Boolean!
   deleteMaintenanceTask(id: String!): Boolean!
   deleteMotorcycle(id: String!): Boolean!
   deleteRide(id: String!): Boolean!
@@ -855,6 +882,7 @@ type Query {
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
+  fuelLogs(motorcycleId: String!): [FuelLog!]!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!

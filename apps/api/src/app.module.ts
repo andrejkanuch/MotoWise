@@ -22,6 +22,7 @@ import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { EmailModule } from './modules/email/email.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
+import { FuelLogsModule } from './modules/fuel-logs/fuel-logs.module';
 import { FollowsModule } from './modules/follows/follows.module';
 import { GroupRidesModule } from './modules/group-rides/group-rides.module';
 import { HealthModule } from './modules/health/health.module';
@@ -86,6 +87,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     QuizzesModule,
     DiagnosticsModule,
     ExpensesModule,
+    FuelLogsModule,
     FeedModule,
     FollowsModule,
     GroupRidesModule,
