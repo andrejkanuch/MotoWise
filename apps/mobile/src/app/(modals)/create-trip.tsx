@@ -71,6 +71,26 @@ const DIFFICULTIES: { key: Difficulty; label: string }[] = [
   { key: 'expert', label: 'Expert' },
 ];
 
+type Visibility = 'private' | 'unlisted' | 'public';
+
+const VISIBILITY_OPTIONS: { key: Visibility; label: string; description: string }[] = [
+  {
+    key: 'private',
+    label: 'Private',
+    description: 'Only you and invited riders can see this trip',
+  },
+  {
+    key: 'unlisted',
+    label: 'Unlisted',
+    description: 'Anyone with the link — not shown on Discover',
+  },
+  {
+    key: 'public',
+    label: 'Public',
+    description: 'Listed in Discover for everyone to find',
+  },
+];
+
 const DIFFICULTY_COLORS = {
   easy: palette.success500,
   moderate: palette.warning500,
@@ -181,6 +201,7 @@ export default function CreateTripScreen() {
     return d;
   });
   const [difficulty, setDifficulty] = useState<Difficulty>('moderate');
+  const [visibility, setVisibility] = useState<Visibility>('private');
   const [maxRiders, setMaxRiders] = useState('10');
 
   // Pre-populate state from fetched trip in edit mode
@@ -194,6 +215,9 @@ export default function CreateTripScreen() {
     setMaxRiders(String(trip.maxRiders));
     setStartDate(new Date(`${trip.startDate}T09:00:00`));
     setEndDate(new Date(`${trip.endDate}T18:00:00`));
+    if (trip.visibility) {
+      setVisibility(trip.visibility as Visibility);
+    }
     if (trip.waypoints) {
       const mapped: LocalWaypoint[] = trip.waypoints.map((wp) => ({
         id: wp.id,
@@ -402,6 +426,7 @@ export default function CreateTripScreen() {
       endDate: endDate.toISOString().split('T')[0],
       difficulty,
       maxRiders: Number.parseInt(maxRiders, 10) || 10,
+      visibility,
       waypoints: sorted.map((wp) => ({
         sortOrder: wp.sortOrder,
         type: wp.type,
@@ -412,7 +437,7 @@ export default function CreateTripScreen() {
         dayIndex: wp.dayIndex,
       })),
     };
-  }, [title, description, startDate, endDate, difficulty, maxRiders, waypoints]);
+  }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);
 
   // Save draft mutation
   const saveMutation = useMutation({
@@ -1001,6 +1026,63 @@ export default function CreateTripScreen() {
                         }}
                       >
                         {d.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Animated.View>
+
+            {/* Visibility — privacy feature */}
+            <Animated.View entering={FadeInUp.delay(225).duration(250)}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+                Who can see this trip
+              </Text>
+              <View style={{ gap: 8 }}>
+                {VISIBILITY_OPTIONS.map((opt) => {
+                  const isSelected = visibility === opt.key;
+                  return (
+                    <Pressable
+                      key={opt.key}
+                      onPress={() => setVisibility(opt.key)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? palette.accent500 : inputBorder,
+                        backgroundColor: isSelected ? chipSelectedBg : chipBg,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '700',
+                            color: isSelected ? palette.accent500 : inputTextColor,
+                          }}
+                        >
+                          {opt.label}
+                        </Text>
+                        {isSelected && (
+                          <View
+                            style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 8,
+                              backgroundColor: palette.accent500,
+                            }}
+                          />
+                        )}
+                      </View>
+                      <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 4 }}>
+                        {opt.description}
                       </Text>
                     </Pressable>
                   );

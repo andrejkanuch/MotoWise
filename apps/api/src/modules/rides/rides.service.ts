@@ -279,6 +279,89 @@ export class RidesService {
     return true;
   }
 
+  // ==========================================
+  // Ride visibility + sharing (privacy feature)
+  // ==========================================
+
+  /** Update a ride's visibility setting. Owner-only via RLS. */
+  async updateRideVisibility(
+    userId: string,
+    rideId: string,
+    visibility: 'private' | 'unlisted' | 'public',
+  ): Promise<Ride> {
+    const { data, error } = await this.supabase
+      .from('rides')
+      .update({ visibility })
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .select()
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundException('Ride not found');
+    }
+    return this.mapRow(data);
+  }
+
+  /** Grant a specific user read access to a private ride. */
+  async shareRide(userId: string, rideId: string, sharedWithUserId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('ride_shares')
+      .insert({
+        ride_id: rideId,
+        shared_with_user_id: sharedWithUserId,
+        shared_by_user_id: userId,
+      });
+
+    if (error) {
+      // Idempotent on duplicate — already shared
+      if (error.code === '23505') return true;
+      this.logger.error(`shareRide failed: ${error.message}`);
+      throw new BadRequestException('Failed to share ride');
+    }
+    return true;
+  }
+
+  /** Revoke a user's access to a previously shared private ride. */
+  async unshareRide(userId: string, rideId: string, sharedWithUserId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('ride_shares')
+      .delete()
+      .eq('ride_id', rideId)
+      .eq('shared_with_user_id', sharedWithUserId)
+      .eq('shared_by_user_id', userId);
+
+    if (error) {
+      this.logger.error(`unshareRide failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to unshare ride');
+    }
+    return true;
+  }
+
+  /** List users the ride has been shared with. Owner-only (or admin via RLS). */
+  async listRideShares(
+    userId: string,
+    rideId: string,
+  ): Promise<Array<{ sharedWithUserId: string; sharedAt: string }>> {
+    const { data, error } = await this.supabase
+      .from('ride_shares')
+      .select('shared_with_user_id, created_at')
+      .eq('ride_id', rideId)
+      .eq('shared_by_user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.logger.error(`listRideShares failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to list ride shares');
+    }
+
+    return (data ?? []).map((row) => ({
+      sharedWithUserId: row.shared_with_user_id as string,
+      sharedAt: row.created_at as string,
+    }));
+  }
+
   async myRides(
     userId: string,
     first: number,
@@ -465,6 +548,7 @@ export class RidesService {
       gpsQuality: (row.gps_quality as number) ?? undefined,
       mileageApplied: (row.mileage_applied as boolean) ?? false,
       isPublic: (row.is_public as boolean) ?? false,
+      visibility: (row.visibility as string) ?? 'private',
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
       createdAt: row.created_at as string,

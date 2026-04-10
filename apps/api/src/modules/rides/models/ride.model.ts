@@ -63,6 +63,10 @@ export class Ride {
   @Field()
   isPublic: boolean;
 
+  // Privacy feature: 'private' | 'unlisted' | 'public'
+  @Field()
+  visibility: string;
+
   @Field({ nullable: true })
   region?: string;
 

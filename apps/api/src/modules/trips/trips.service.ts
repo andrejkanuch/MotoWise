@@ -23,6 +23,7 @@ interface TripRow {
   max_riders: number;
   participant_count: number;
   status: string;
+  visibility: string;
   cover_image_url: string | null;
   created_at: string;
   organiser_user_id: string;
@@ -64,7 +65,7 @@ interface ParticipantRow {
 }
 
 const TRIP_SELECT =
-  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url)';
+  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url)';
 
 function mapRowToTrip(row: TripRow): Trip {
   return {
@@ -77,6 +78,7 @@ function mapRowToTrip(row: TripRow): Trip {
     maxRiders: row.max_riders,
     participantCount: row.participant_count,
     status: row.status,
+    visibility: row.visibility ?? 'private',
     coverImageUrl: row.cover_image_url ?? undefined,
     createdAt: row.created_at,
     organiser: {
@@ -320,6 +322,7 @@ export class TripsService {
       endDate: string;
       difficulty: string;
       maxRiders: number;
+      visibility?: string;
       waypoints: Array<{
         type: string;
         name: string;
@@ -342,6 +345,9 @@ export class TripsService {
         end_date: input.endDate,
         difficulty: input.difficulty,
         max_riders: input.maxRiders,
+        // Privacy feature: default 'private' when not specified. The organizer
+        // must explicitly opt in to unlisted/public visibility.
+        ...(input.visibility && { visibility: input.visibility }),
       })
       .select(TRIP_SELECT)
       .single();
@@ -400,6 +406,7 @@ export class TripsService {
       endDate?: string;
       difficulty?: string;
       maxRiders?: number;
+      visibility?: string;
       waypoints?: Array<{
         type: string;
         name: string;
@@ -420,6 +427,7 @@ export class TripsService {
     if (input.endDate !== undefined) update.end_date = input.endDate;
     if (input.difficulty !== undefined) update.difficulty = input.difficulty;
     if (input.maxRiders !== undefined) update.max_riders = input.maxRiders;
+    if (input.visibility !== undefined) update.visibility = input.visibility;
 
     const { data, error } = await this.supabase
       .from('trips')
@@ -707,6 +715,113 @@ export class TripsService {
     }
 
     return true;
+  }
+
+  // ==========================================
+  // Trip Invites (privacy feature)
+  // ==========================================
+
+  async inviteToTrip(
+    userId: string,
+    tripId: string,
+    invitedUserId: string,
+  ): Promise<boolean> {
+    // Only the organizer may invite
+    await this.verifyOrganiser(userId, tripId);
+
+    const { error } = await this.supabase
+      .from('trip_invites')
+      .insert({
+        trip_id: tripId,
+        invited_user_id: invitedUserId,
+        invited_by_user_id: userId,
+      });
+
+    if (error) {
+      if (error.code === '23505') {
+        // Already invited — idempotent success
+        return true;
+      }
+      this.logger.error(`inviteToTrip failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to send trip invite');
+    }
+    return true;
+  }
+
+  async respondToTripInvite(
+    userId: string,
+    inviteId: string,
+    accept: boolean,
+  ): Promise<boolean> {
+    const { data: invite, error: fetchError } = await this.supabase
+      .from('trip_invites')
+      .select('trip_id, invited_user_id')
+      .eq('id', inviteId)
+      .eq('invited_user_id', userId)
+      .single();
+
+    if (fetchError || !invite) {
+      throw new NotFoundException('Invite not found');
+    }
+
+    const nowIso = new Date().toISOString();
+    const { error: updateError } = await this.supabase
+      .from('trip_invites')
+      .update(accept ? { accepted_at: nowIso } : { declined_at: nowIso })
+      .eq('id', inviteId);
+
+    if (updateError) {
+      this.logger.error(`respondToTripInvite failed: ${updateError.message}`);
+      throw new InternalServerErrorException('Failed to update invite');
+    }
+
+    // On accept, add them to trip_participants via the existing join_trip RPC
+    if (accept) {
+      const { error: joinError } = await this.supabase.rpc('join_trip', {
+        p_trip_id: invite.trip_id,
+        p_user_id: userId,
+        p_status: 'going',
+        p_bike_id: null,
+      });
+      if (joinError) {
+        this.logger.warn(`Accepted invite but join_trip failed: ${joinError.message}`);
+      }
+    }
+    return true;
+  }
+
+  async listTripInvites(
+    userId: string,
+    tripId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      invitedUserId: string;
+      invitedAt: string;
+      acceptedAt?: string;
+      declinedAt?: string;
+    }>
+  > {
+    // Organizer can list all invites on their trip; admins can see everything
+    // via RLS (is_admin() bypass)
+    const { data, error } = await this.supabase
+      .from('trip_invites')
+      .select('id, invited_user_id, created_at, accepted_at, declined_at')
+      .eq('trip_id', tripId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.logger.error(`listTripInvites failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to list trip invites');
+    }
+
+    return (data ?? []).map((row) => ({
+      id: row.id as string,
+      invitedUserId: row.invited_user_id as string,
+      invitedAt: row.created_at as string,
+      acceptedAt: (row.accepted_at as string) ?? undefined,
+      declinedAt: (row.declined_at as string) ?? undefined,
+    }));
   }
 
   // ==========================================

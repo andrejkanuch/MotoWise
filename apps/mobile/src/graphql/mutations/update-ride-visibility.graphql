@@ -1,0 +1,7 @@
+mutation UpdateRideVisibility($rideId: String!, $visibility: String!) {
+  updateRideVisibility(rideId: $rideId, visibility: $visibility) {
+    id
+    visibility
+    isPublic
+  }
+}

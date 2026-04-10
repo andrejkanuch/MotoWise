@@ -26,4 +26,8 @@ export class UpdateTripInput {
 
   @Field(() => [InlineWaypointInput], { nullable: true })
   waypoints?: InlineWaypointInput[];
+
+  // Privacy feature
+  @Field({ nullable: true })
+  visibility?: string;
 }

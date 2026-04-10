@@ -102,4 +102,44 @@ export class RidesResolver {
   ): Promise<Waypoint[]> {
     return this.ridesService.findWaypoints(user.id, rideId, maxPoints);
   }
+
+  // ==========================================
+  // Ride visibility + sharing (privacy feature)
+  // ==========================================
+
+  @Mutation(() => Ride)
+  async updateRideVisibility(
+    @CurrentUser() user: AuthUser,
+    @Args('rideId', ParseUUIDPipe) rideId: string,
+    @Args('visibility') visibility: string,
+  ): Promise<Ride> {
+    // Validate the enum at the resolver boundary — DTO would be heavier
+    // than a 3-value union check here.
+    if (!['private', 'unlisted', 'public'].includes(visibility)) {
+      throw new Error(`Invalid visibility: ${visibility}`);
+    }
+    return this.ridesService.updateRideVisibility(
+      user.id,
+      rideId,
+      visibility as 'private' | 'unlisted' | 'public',
+    );
+  }
+
+  @Mutation(() => Boolean)
+  async shareRide(
+    @CurrentUser() user: AuthUser,
+    @Args('rideId', ParseUUIDPipe) rideId: string,
+    @Args('sharedWithUserId', ParseUUIDPipe) sharedWithUserId: string,
+  ): Promise<boolean> {
+    return this.ridesService.shareRide(user.id, rideId, sharedWithUserId);
+  }
+
+  @Mutation(() => Boolean)
+  async unshareRide(
+    @CurrentUser() user: AuthUser,
+    @Args('rideId', ParseUUIDPipe) rideId: string,
+    @Args('sharedWithUserId', ParseUUIDPipe) sharedWithUserId: string,
+  ): Promise<boolean> {
+    return this.ridesService.unshareRide(user.id, rideId, sharedWithUserId);
+  }
 }

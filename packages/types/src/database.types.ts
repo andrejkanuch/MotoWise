@@ -1511,6 +1511,38 @@ export type Database = {
           },
         ]
       }
+      ride_shares: {
+        Row: {
+          created_at: string
+          id: string
+          ride_id: string
+          shared_by_user_id: string
+          shared_with_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ride_id: string
+          shared_by_user_id: string
+          shared_with_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ride_id?: string
+          shared_by_user_id?: string
+          shared_with_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_shares_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_summaries: {
         Row: {
           created_at: string
@@ -1632,6 +1664,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+          visibility: Database["public"]["Enums"]["content_visibility"]
           weather_snapshot: Json | null
         }
         Insert: {
@@ -1663,6 +1696,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id: string
+          visibility?: Database["public"]["Enums"]["content_visibility"]
           weather_snapshot?: Json | null
         }
         Update: {
@@ -1694,6 +1728,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+          visibility?: Database["public"]["Enums"]["content_visibility"]
           weather_snapshot?: Json | null
         }
         Relationships: [
@@ -1978,6 +2013,44 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          declined_at: string | null
+          id: string
+          invited_by_user_id: string
+          invited_user_id: string
+          trip_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          declined_at?: string | null
+          id?: string
+          invited_by_user_id: string
+          invited_user_id: string
+          trip_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          declined_at?: string | null
+          id?: string
+          invited_by_user_id?: string
+          invited_user_id?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_invites_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_participants: {
         Row: {
           bike_id: string | null
@@ -2096,6 +2169,7 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          visibility: Database["public"]["Enums"]["content_visibility"]
         }
         Insert: {
           cover_image_url?: string | null
@@ -2111,6 +2185,7 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["content_visibility"]
         }
         Update: {
           cover_image_url?: string | null
@@ -2126,6 +2201,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["content_visibility"]
         }
         Relationships: [
           {
@@ -3321,6 +3397,7 @@ export type Database = {
         | "fuel"
         | "general"
       article_difficulty: "beginner" | "intermediate" | "advanced"
+      content_visibility: "private" | "unlisted" | "public"
       diagnostic_severity: "low" | "medium" | "high" | "critical"
       flag_status: "pending" | "reviewed" | "resolved" | "dismissed"
       motorcycle_type:
@@ -3479,6 +3556,7 @@ export const Constants = {
         "general",
       ],
       article_difficulty: ["beginner", "intermediate", "advanced"],
+      content_visibility: ["private", "unlisted", "public"],
       diagnostic_severity: ["low", "medium", "high", "critical"],
       flag_status: ["pending", "reviewed", "resolved", "dismissed"],
       motorcycle_type: [

@@ -1,0 +1,9 @@
+query TripInvites($tripId: ID!) {
+  tripInvites(tripId: $tripId) {
+    id
+    invitedUserId
+    invitedAt
+    acceptedAt
+    declinedAt
+  }
+}

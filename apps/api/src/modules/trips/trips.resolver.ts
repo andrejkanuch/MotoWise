@@ -26,6 +26,7 @@ import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
+import { TripInvite } from './models/trip-invite.model';
 import { Trip, TripConnection, TripWaypoint } from './models/trip.model';
 import { TripsService } from './trips.service';
 
@@ -183,5 +184,35 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
     return this.tripsService.leaveTrip(user.id, tripId);
+  }
+
+  // ==========================================
+  // Trip invites (privacy feature)
+  // ==========================================
+
+  @Mutation(() => Boolean)
+  async inviteToTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @Args('invitedUserId', { type: () => ID }, ParseUUIDPipe) invitedUserId: string,
+  ): Promise<boolean> {
+    return this.tripsService.inviteToTrip(user.id, tripId, invitedUserId);
+  }
+
+  @Mutation(() => Boolean)
+  async respondToTripInvite(
+    @CurrentUser() user: AuthUser,
+    @Args('inviteId', { type: () => ID }, ParseUUIDPipe) inviteId: string,
+    @Args('accept') accept: boolean,
+  ): Promise<boolean> {
+    return this.tripsService.respondToTripInvite(user.id, inviteId, accept);
+  }
+
+  @Query(() => [TripInvite])
+  async tripInvites(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<TripInvite[]> {
+    return this.tripsService.listTripInvites(user.id, tripId);
   }
 }

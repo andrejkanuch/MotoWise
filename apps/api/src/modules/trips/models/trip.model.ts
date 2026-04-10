@@ -104,6 +104,10 @@ export class Trip {
   @Field()
   status: string;
 
+  // Trip/Ride visibility feature
+  @Field()
+  visibility: string;
+
   @Field({ nullable: true })
   coverImageUrl?: string;
 

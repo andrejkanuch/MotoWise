@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -263,6 +259,7 @@ input CreateTripWithWaypointsInput {
   maxRiders: Int!
   startDate: String!
   title: String!
+  visibility: String
   waypoints: [InlineWaypointInput!]!
 }
 
@@ -782,6 +779,7 @@ type Mutation {
   generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
   importOemSchedule(motorcycleId: String!): Int!
+  inviteToTrip(invitedUserId: ID!, tripId: ID!): Boolean!
   joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
   joinTrip(input: JoinTripInput!): Boolean!
@@ -798,8 +796,10 @@ type Mutation {
   reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
+  respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   saveRoute(routeId: ID!): Boolean!
+  shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
@@ -808,6 +808,7 @@ type Mutation {
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unsaveRoute(routeId: ID!): Boolean!
+  unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
@@ -815,6 +816,7 @@ type Mutation {
   updateMyProfile(input: UpdateProfileInput!): User!
   updateParticipantStatus(input: UpdateParticipantStatusInput!): Boolean!
   updateRide(input: UpdateRideInput!): Ride!
+  updateRideVisibility(rideId: String!, visibility: String!): Ride!
   updateTrip(input: UpdateTripInput!): Trip!
   updateUser(input: UpdateUserInput!): User!
   updateWaypoint(input: UpdateWaypointInput!): TripWaypoint!
@@ -925,6 +927,7 @@ type Query {
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   tripDetail(tripId: ID!): Trip!
+  tripInvites(tripId: ID!): [TripInvite!]!
   user: User!
 }
 
@@ -995,6 +998,7 @@ type Ride {
   status: RideStatus!
   updatedAt: String!
   userId: String!
+  visibility: String!
 }
 
 type RideConnection {
@@ -1209,6 +1213,7 @@ type Trip {
   startDate: String!
   status: String!
   title: String!
+  visibility: String!
   waypoints: [TripWaypoint!]
 }
 
@@ -1220,6 +1225,14 @@ type TripConnection {
 type TripEdge {
   cursor: String!
   node: Trip!
+}
+
+type TripInvite {
+  acceptedAt: String
+  declinedAt: String
+  id: ID!
+  invitedAt: String!
+  invitedUserId: String!
 }
 
 type TripOrganiser {
@@ -1328,6 +1341,7 @@ input UpdateTripInput {
   startDate: String
   title: String
   tripId: ID!
+  visibility: String
   waypoints: [InlineWaypointInput!]
 }
 

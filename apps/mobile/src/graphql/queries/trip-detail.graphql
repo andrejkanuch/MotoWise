@@ -9,6 +9,7 @@ query TripDetail($tripId: ID!) {
     maxRiders
     participantCount
     status
+    visibility
     coverImageUrl
     createdAt
     organiser {

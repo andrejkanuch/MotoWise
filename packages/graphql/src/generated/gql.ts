@@ -29,7 +29,7 @@ type Documents = {
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": typeof types.CreateMotorcycleDocument,
     "mutation CreateRouteReview($input: CreateRouteReviewInput!) {\n  createRouteReview(input: $input) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.CreateRouteReviewDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": typeof types.CreateShareLinkDocument,
-    "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": typeof types.CreateTripWithWaypointsDocument,
+    "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": typeof types.CreateTripWithWaypointsDocument,
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": typeof types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": typeof types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": typeof types.DeleteCommentDocument,
@@ -48,6 +48,7 @@ type Documents = {
     "mutation GenerateBikeHealthReport($input: GenerateReportInput!) {\n  generateBikeHealthReport(input: $input) {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": typeof types.GenerateBikeHealthReportDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": typeof types.GenerateOnboardingInsightsDocument,
     "mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}": typeof types.ImportOemScheduleDocument,
+    "mutation InviteToTrip($tripId: ID!, $invitedUserId: ID!) {\n  inviteToTrip(tripId: $tripId, invitedUserId: $invitedUserId)\n}": typeof types.InviteToTripDocument,
     "mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}": typeof types.JoinGroupRideDocument,
     "mutation JoinPremiumWaitlist($feature: String!) {\n  joinPremiumWaitlist(feature: $feature)\n}": typeof types.JoinPremiumWaitlistDocument,
     "mutation JoinTrip($input: JoinTripInput!) {\n  joinTrip(input: $input)\n}": typeof types.JoinTripDocument,
@@ -60,21 +61,25 @@ type Documents = {
     "mutation RemoveWaypoint($waypointId: ID!) {\n  removeWaypoint(waypointId: $waypointId)\n}": typeof types.RemoveWaypointDocument,
     "mutation ReorderWaypoints($input: ReorderWaypointsInput!) {\n  reorderWaypoints(input: $input)\n}": typeof types.ReorderWaypointsDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
+    "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": typeof types.RespondToTripInviteDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRoute(routeId: $routeId)\n}": typeof types.SaveRouteDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": typeof types.ShareRideToDiscoverDocument,
+    "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.ShareRideDocument,
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": typeof types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": typeof types.SubmitDiagnosticDocument,
     "mutation ToggleKudos($rideId: String!) {\n  toggleKudos(rideId: $rideId) {\n    hasKudos\n    kudosCount\n  }\n}": typeof types.ToggleKudosDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": typeof types.TrackAffiliateClickDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": typeof types.UnfollowRiderDocument,
     "mutation UnsaveRoute($routeId: ID!) {\n  unsaveRoute(routeId: $routeId)\n}": typeof types.UnsaveRouteDocument,
+    "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.UnshareRideDocument,
     "mutation UnshareRoute($routeId: ID!) {\n  unshareRoute(routeId: $routeId)\n}": typeof types.UnshareRouteDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}": typeof types.UpdateMotorcycleDocument,
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": typeof types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": typeof types.UpdateParticipantStatusDocument,
+    "mutation UpdateRideVisibility($rideId: String!, $visibility: String!) {\n  updateRideVisibility(rideId: $rideId, visibility: $visibility) {\n    id\n    visibility\n    isPublic\n  }\n}": typeof types.UpdateRideVisibilityDocument,
     "mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}": typeof types.UpdateRideDocument,
-    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": typeof types.UpdateTripDocument,
+    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": typeof types.UpdateTripDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n    measurementSystem\n    currency\n  }\n}": typeof types.UpdateUserDocument,
     "mutation UpdateWaypoint($input: UpdateWaypointInput!) {\n  updateWaypoint(input: $input) {\n    id\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n  }\n}": typeof types.UpdateWaypointDocument,
     "mutation UploadWaypoints($input: UploadWaypointsInput!) {\n  uploadWaypoints(input: $input)\n}": typeof types.UploadWaypointsDocument,
@@ -116,7 +121,8 @@ type Documents = {
     "query RouteDetail($routeId: ID!) {\n  routeDetail(routeId: $routeId) {\n    id\n    name\n    description\n    polyline\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    status\n    createdAt\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.RouteDetailDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": typeof types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": typeof types.SpendingSummaryDocument,
-    "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": typeof types.TripDetailDocument,
+    "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": typeof types.TripDetailDocument,
+    "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": typeof types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
 };
 const documents: Documents = {
@@ -135,7 +141,7 @@ const documents: Documents = {
     "mutation CreateMotorcycle($input: CreateMotorcycleInput!) {\n  createMotorcycle(input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    createdAt\n  }\n}": types.CreateMotorcycleDocument,
     "mutation CreateRouteReview($input: CreateRouteReviewInput!) {\n  createRouteReview(input: $input) {\n    id\n    rating\n    text\n    conditionTags\n    createdAt\n    author {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.CreateRouteReviewDocument,
     "mutation CreateShareLink($input: CreateShareLinkInput!) {\n  createShareLink(input: $input) {\n    id\n    token\n    motorcycleId\n    expiresAt\n    createdAt\n    url\n  }\n}": types.CreateShareLinkDocument,
-    "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": types.CreateTripWithWaypointsDocument,
+    "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": types.CreateTripWithWaypointsDocument,
     "mutation CreateTrip($input: CreateTripInput!) {\n  createTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n  }\n}": types.CreateTripDocument,
     "mutation DeleteAccount {\n  deleteAccount\n}": types.DeleteAccountDocument,
     "mutation DeleteComment($commentId: ID!) {\n  deleteComment(commentId: $commentId)\n}": types.DeleteCommentDocument,
@@ -154,6 +160,7 @@ const documents: Documents = {
     "mutation GenerateBikeHealthReport($input: GenerateReportInput!) {\n  generateBikeHealthReport(input: $input) {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": types.GenerateBikeHealthReportDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": types.GenerateOnboardingInsightsDocument,
     "mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}": types.ImportOemScheduleDocument,
+    "mutation InviteToTrip($tripId: ID!, $invitedUserId: ID!) {\n  inviteToTrip(tripId: $tripId, invitedUserId: $invitedUserId)\n}": types.InviteToTripDocument,
     "mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}": types.JoinGroupRideDocument,
     "mutation JoinPremiumWaitlist($feature: String!) {\n  joinPremiumWaitlist(feature: $feature)\n}": types.JoinPremiumWaitlistDocument,
     "mutation JoinTrip($input: JoinTripInput!) {\n  joinTrip(input: $input)\n}": types.JoinTripDocument,
@@ -166,21 +173,25 @@ const documents: Documents = {
     "mutation RemoveWaypoint($waypointId: ID!) {\n  removeWaypoint(waypointId: $waypointId)\n}": types.RemoveWaypointDocument,
     "mutation ReorderWaypoints($input: ReorderWaypointsInput!) {\n  reorderWaypoints(input: $input)\n}": types.ReorderWaypointsDocument,
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
+    "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": types.RespondToTripInviteDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRoute(routeId: $routeId)\n}": types.SaveRouteDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": types.ShareRideToDiscoverDocument,
+    "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.ShareRideDocument,
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": types.StartRideDocument,
     "mutation SubmitDiagnostic($input: SubmitDiagnosticInput!) {\n  submitDiagnostic(input: $input) {\n    id\n    userId\n    motorcycleId\n    severity\n    confidence\n    relatedArticleId\n    resultJson\n    description\n    photoUrl\n    status\n    createdAt\n  }\n}": types.SubmitDiagnosticDocument,
     "mutation ToggleKudos($rideId: String!) {\n  toggleKudos(rideId: $rideId) {\n    hasKudos\n    kudosCount\n  }\n}": types.ToggleKudosDocument,
     "mutation TrackAffiliateClick($input: TrackClickInput!) {\n  trackAffiliateClick(input: $input) {\n    partner\n    affiliateUrl\n    productUrl\n    tracked\n  }\n}": types.TrackAffiliateClickDocument,
     "mutation UnfollowRider($input: UnfollowRiderInput!) {\n  unfollowRider(input: $input)\n}": types.UnfollowRiderDocument,
     "mutation UnsaveRoute($routeId: ID!) {\n  unsaveRoute(routeId: $routeId)\n}": types.UnsaveRouteDocument,
+    "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.UnshareRideDocument,
     "mutation UnshareRoute($routeId: ID!) {\n  unshareRoute(routeId: $routeId)\n}": types.UnshareRouteDocument,
     "mutation UpdateMotorcycle($id: String!, $input: UpdateMotorcycleInput!) {\n  updateMotorcycle(id: $id, input: $input) {\n    id\n    make\n    model\n    year\n    nickname\n    isPrimary\n    primaryPhotoUrl\n    currentMileage\n    mileageUnit\n    mileageUpdatedAt\n    purchasePrice\n    purchaseDate\n    vin\n    recallCount\n    recallLastCheckedAt\n  }\n}": types.UpdateMotorcycleDocument,
     "mutation UpdateMyProfile($input: UpdateProfileInput!) {\n  updateMyProfile(input: $input) {\n    id\n    fullName\n    publicUsername\n    displayName\n    bio\n    city\n    isPublic\n    followerCount\n    followingCount\n  }\n}": types.UpdateMyProfileDocument,
     "mutation UpdateParticipantStatus($input: UpdateParticipantStatusInput!) {\n  updateParticipantStatus(input: $input)\n}": types.UpdateParticipantStatusDocument,
+    "mutation UpdateRideVisibility($rideId: String!, $visibility: String!) {\n  updateRideVisibility(rideId: $rideId, visibility: $visibility) {\n    id\n    visibility\n    isPublic\n  }\n}": types.UpdateRideVisibilityDocument,
     "mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}": types.UpdateRideDocument,
-    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": types.UpdateTripDocument,
+    "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}": types.UpdateTripDocument,
     "mutation UpdateUser($input: UpdateUserInput!) {\n  updateUser(input: $input) {\n    id\n    fullName\n    preferences\n    measurementSystem\n    currency\n  }\n}": types.UpdateUserDocument,
     "mutation UpdateWaypoint($input: UpdateWaypointInput!) {\n  updateWaypoint(input: $input) {\n    id\n    sortOrder\n    dayIndex\n    type\n    name\n    notes\n    lat\n    lng\n  }\n}": types.UpdateWaypointDocument,
     "mutation UploadWaypoints($input: UploadWaypointsInput!) {\n  uploadWaypoints(input: $input)\n}": types.UploadWaypointsDocument,
@@ -222,7 +233,8 @@ const documents: Documents = {
     "query RouteDetail($routeId: ID!) {\n  routeDetail(routeId: $routeId) {\n    id\n    name\n    description\n    polyline\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    status\n    createdAt\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.RouteDetailDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": types.SpendingSummaryDocument,
-    "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": types.TripDetailDocument,
+    "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": types.TripDetailDocument,
+    "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
 };
 
@@ -303,7 +315,7 @@ export function graphql(source: "mutation CreateShareLink($input: CreateShareLin
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"): (typeof documents)["mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"];
+export function graphql(source: "mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"): (typeof documents)["mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {\n  createTripWithWaypoints(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    createdAt\n    organiser {\n      id\n      displayName\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -379,6 +391,10 @@ export function graphql(source: "mutation ImportOemSchedule($motorcycleId: Strin
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation InviteToTrip($tripId: ID!, $invitedUserId: ID!) {\n  inviteToTrip(tripId: $tripId, invitedUserId: $invitedUserId)\n}"): (typeof documents)["mutation InviteToTrip($tripId: ID!, $invitedUserId: ID!) {\n  inviteToTrip(tripId: $tripId, invitedUserId: $invitedUserId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}"): (typeof documents)["mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -427,6 +443,10 @@ export function graphql(source: "mutation RequestDataExport {\n  requestDataExpo
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}"): (typeof documents)["mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}"): (typeof documents)["mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -436,6 +456,10 @@ export function graphql(source: "mutation SaveRoute($routeId: ID!) {\n  saveRout
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}"): (typeof documents)["mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}"): (typeof documents)["mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -463,6 +487,10 @@ export function graphql(source: "mutation UnsaveRoute($routeId: ID!) {\n  unsave
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}"): (typeof documents)["mutation UnshareRide($rideId: String!, $sharedWithUserId: String!) {\n  unshareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation UnshareRoute($routeId: ID!) {\n  unshareRoute(routeId: $routeId)\n}"): (typeof documents)["mutation UnshareRoute($routeId: ID!) {\n  unshareRoute(routeId: $routeId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -479,11 +507,15 @@ export function graphql(source: "mutation UpdateParticipantStatus($input: Update
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation UpdateRideVisibility($rideId: String!, $visibility: String!) {\n  updateRideVisibility(rideId: $rideId, visibility: $visibility) {\n    id\n    visibility\n    isPublic\n  }\n}"): (typeof documents)["mutation UpdateRideVisibility($rideId: String!, $visibility: String!) {\n  updateRideVisibility(rideId: $rideId, visibility: $visibility) {\n    id\n    visibility\n    isPublic\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}"): (typeof documents)["mutation UpdateRide($input: UpdateRideInput!) {\n  updateRide(input: $input) {\n    id\n    name\n    mileageApplied\n    isPublic\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"): (typeof documents)["mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"];
+export function graphql(source: "mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"): (typeof documents)["mutation UpdateTrip($input: UpdateTripInput!) {\n  updateTrip(input: $input) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    status\n    visibility\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -651,7 +683,11 @@ export function graphql(source: "query SpendingSummary($motorcycleId: String!) {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}"): (typeof documents)["query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}"];
+export function graphql(source: "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}"): (typeof documents)["query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}"): (typeof documents)["query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

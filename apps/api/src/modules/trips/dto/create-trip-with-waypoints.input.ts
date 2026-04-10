@@ -46,4 +46,8 @@ export class CreateTripWithWaypointsInput {
 
   @Field(() => [InlineWaypointInput])
   waypoints: InlineWaypointInput[];
+
+  // Privacy feature: 'private' | 'unlisted' | 'public'. Defaults to 'private'.
+  @Field({ nullable: true })
+  visibility?: string;
 }
