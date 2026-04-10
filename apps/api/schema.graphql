@@ -220,6 +220,9 @@ input CreateMaintenanceTaskInput {
   notes: String
   partsNeeded: [String!]
   priority: MaintenancePriority = medium
+  remind1d: Boolean
+  remind7d: Boolean
+  remind30d: Boolean
   targetMileage: Int
   title: String!
 }
@@ -1276,6 +1279,9 @@ input UpdateMaintenanceTaskInput {
   notes: String
   partsNeeded: [String!]
   priority: MaintenancePriority
+  remind1d: Boolean
+  remind7d: Boolean
+  remind30d: Boolean
   targetMileage: Int
   title: String
 }

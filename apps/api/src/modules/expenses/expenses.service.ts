@@ -321,8 +321,20 @@ export class ExpensesService {
   ): Promise<ExpensePhoto> {
     this.logger.log(`addPhoto: userId=${userId}, expenseId=${expenseId}`);
 
-    // Verify expense ownership
-    const { data: expense, error: expenseError } = await this.adminClient
+    // P1-103: Enforce storage path prefix server-side. Prevents a caller from
+    // registering someone else's storage file as their own expense photo.
+    const expectedPrefix = `${userId}/expenses/${expenseId}/`;
+    if (!storagePath.startsWith(expectedPrefix)) {
+      this.logger.warn(
+        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, expenseId=${expenseId}`,
+      );
+      throw new BadRequestException('Invalid storage path');
+    }
+
+    // P1-102: Use the RLS-enforcing user client. The expense_photos RLS policy
+    // restricts all ops to rows where user_id = auth.uid() — ownership is
+    // verified by Postgres, not by a JS equality check.
+    const { data: expense, error: expenseError } = await this.supabase
       .from('expenses')
       .select('id')
       .eq('id', expenseId)
@@ -335,7 +347,7 @@ export class ExpensesService {
     }
 
     // Check photo count limit
-    const { count, error: countError } = await this.adminClient
+    const { count, error: countError } = await this.supabase
       .from('expense_photos')
       .select('id', { count: 'exact', head: true })
       .eq('expense_id', expenseId);
@@ -356,7 +368,7 @@ export class ExpensesService {
     };
     const mimeType = mimeMap[ext] ?? 'image/webp';
 
-    const { data, error } = await this.adminClient
+    const { data, error } = await this.supabase
       .from('expense_photos')
       .insert({
         expense_id: expenseId,
@@ -378,16 +390,29 @@ export class ExpensesService {
   async deletePhoto(userId: string, photoId: string): Promise<boolean> {
     this.logger.log(`deletePhoto: userId=${userId}, photoId=${photoId}`);
 
-    const { data: photo, error: photoError } = await this.adminClient
+    // P1-102: Use user client — RLS enforces ownership via the user_id column
+    // on expense_photos. No need for a JS equality check.
+    const { data: photo, error: photoError } = await this.supabase
       .from('expense_photos')
       .select('id, expense_id, user_id, storage_path')
       .eq('id', photoId)
       .single();
 
     if (photoError || !photo) throw new NotFoundException('Photo not found');
-    if (photo.user_id !== userId) throw new NotFoundException('Photo not found');
 
-    // Delete from storage (best-effort)
+    // P1-103: Defense-in-depth check on the storage path prefix before we
+    // hand it to the admin client's storage.remove. Prevents an attacker who
+    // bypasses RLS (e.g. future bug) from deleting arbitrary bucket files.
+    if (!photo.storage_path.startsWith(`${userId}/`)) {
+      this.logger.warn(
+        `deletePhoto: rejected removal of storage path outside user prefix. userId=${userId}`,
+      );
+      throw new NotFoundException('Photo not found');
+    }
+
+    // Delete from storage using admin client — Storage RLS is separate from
+    // table RLS and the admin client is legitimate here (service-level op,
+    // path has already been validated against the authenticated user).
     const { error: storageError } = await this.adminClient.storage
       .from('maintenance-photos')
       .remove([photo.storage_path]);
@@ -398,7 +423,7 @@ export class ExpensesService {
       );
     }
 
-    const { error: deleteError } = await this.adminClient
+    const { error: deleteError } = await this.supabase
       .from('expense_photos')
       .delete()
       .eq('id', photoId);
@@ -407,10 +432,14 @@ export class ExpensesService {
     return true;
   }
 
+  /**
+   * P1-102 + 107: Batched lookup used by the DataLoader in the resolver.
+   * Relies on RLS on expense_photos to filter to the authenticated user's rows.
+   */
   async findPhotosByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpensePhoto[]>> {
     if (expenseIds.length === 0) return new Map();
 
-    const { data, error } = await this.adminClient
+    const { data, error } = await this.supabase
       .from('expense_photos')
       .select('*')
       .in('expense_id', expenseIds)
@@ -431,11 +460,19 @@ export class ExpensesService {
     return map;
   }
 
-  async findPhotosByExpenseId(expenseId: string): Promise<ExpensePhoto[]> {
-    const { data, error } = await this.adminClient
+  /**
+   * Single-expense photo lookup. Use `findPhotosByExpenseIds` from resolver
+   * code paths that iterate over multiple expenses (DataLoader batches there).
+   */
+  async findPhotosByExpenseId(userId: string, expenseId: string): Promise<ExpensePhoto[]> {
+    // P1-102: Use user client. RLS restricts to the current user's photos.
+    // We also filter by user_id explicitly as defense-in-depth per
+    // docs/solutions/integration-issues/ride-hud-reanimated-charts-mileage-patterns.md
+    const { data, error } = await this.supabase
       .from('expense_photos')
       .select('*')
       .eq('expense_id', expenseId)
+      .eq('user_id', userId)
       .order('created_at', { ascending: true });
 
     if (error) throw new InternalServerErrorException('Failed to fetch photos');

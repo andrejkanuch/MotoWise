@@ -35,4 +35,14 @@ export class CreateMaintenanceTaskInput {
 
   @Field(() => Int, { nullable: true })
   intervalDays?: number;
+
+  // MOT-139 multi-stage reminder flags
+  @Field({ nullable: true })
+  remind30d?: boolean;
+
+  @Field({ nullable: true })
+  remind7d?: boolean;
+
+  @Field({ nullable: true })
+  remind1d?: boolean;
 }

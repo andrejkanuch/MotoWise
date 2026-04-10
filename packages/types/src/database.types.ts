@@ -646,6 +646,7 @@ export type Database = {
           date: string
           deleted_at: string | null
           description: string | null
+          fuel_log_id: string | null
           id: string
           maintenance_task_id: string | null
           motorcycle_id: string
@@ -660,6 +661,7 @@ export type Database = {
           date: string
           deleted_at?: string | null
           description?: string | null
+          fuel_log_id?: string | null
           id?: string
           maintenance_task_id?: string | null
           motorcycle_id: string
@@ -674,6 +676,7 @@ export type Database = {
           date?: string
           deleted_at?: string | null
           description?: string | null
+          fuel_log_id?: string | null
           id?: string
           maintenance_task_id?: string | null
           motorcycle_id?: string
@@ -681,6 +684,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_fuel_log_id_fkey"
+            columns: ["fuel_log_id"]
+            isOneToOne: false
+            referencedRelation: "fuel_logs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_maintenance_task_id_fkey"
             columns: ["maintenance_task_id"]

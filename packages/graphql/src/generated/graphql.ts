@@ -246,6 +246,9 @@ export type CreateMaintenanceTaskInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   partsNeeded?: InputMaybe<Array<Scalars['String']['input']>>;
   priority?: InputMaybe<MaintenancePriority>;
+  remind1d?: InputMaybe<Scalars['Boolean']['input']>;
+  remind7d?: InputMaybe<Scalars['Boolean']['input']>;
+  remind30d?: InputMaybe<Scalars['Boolean']['input']>;
   targetMileage?: InputMaybe<Scalars['Int']['input']>;
   title: Scalars['String']['input'];
 };
@@ -1910,6 +1913,9 @@ export type UpdateMaintenanceTaskInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   partsNeeded?: InputMaybe<Array<Scalars['String']['input']>>;
   priority?: InputMaybe<MaintenancePriority>;
+  remind1d?: InputMaybe<Scalars['Boolean']['input']>;
+  remind7d?: InputMaybe<Scalars['Boolean']['input']>;
+  remind30d?: InputMaybe<Scalars['Boolean']['input']>;
   targetMileage?: InputMaybe<Scalars['Int']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };

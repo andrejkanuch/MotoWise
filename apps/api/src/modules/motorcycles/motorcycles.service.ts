@@ -117,6 +117,14 @@ export class MotorcyclesService {
 
     if (error || !data) {
       this.logger.error(`update failed: ${error?.message} (${error?.code}) ${error?.details}`);
+      // P1-106: VIN uniqueness violation — the existing unique index
+      // idx_motorcycles_user_vin_active from migration 00005 throws 23505
+      // when a user tries to assign the same VIN to two bikes.
+      if (error?.code === '23505' && error?.message?.includes('vin')) {
+        throw new BadRequestException(
+          'That VIN is already registered on another motorcycle in your garage.',
+        );
+      }
       throw new BadRequestException('Failed to update motorcycle');
     }
     return this.mapRow(data);

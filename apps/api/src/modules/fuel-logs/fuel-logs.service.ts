@@ -114,31 +114,16 @@ export class FuelLogsService {
       throw new BadRequestException('Failed to create fuel log');
     }
 
-    // Auto-create an expense entry so the dashboard reflects fuel spend
-    // without requiring a second manual step. Non-fatal — if the expense
-    // insert fails, the fuel log still succeeds.
-    if (input.totalCost != null && input.totalCost > 0) {
-      try {
-        const dateOnly = (input.filledAt ?? new Date().toISOString()).slice(0, 10);
-        await this.supabase.from('expenses').insert({
-          user_id: userId,
-          motorcycle_id: input.motorcycleId,
-          amount: input.totalCost,
-          category: 'fuel',
-          date: dateOnly,
-          description: input.notes ?? `${input.fuelLitres}L ${input.fuelType ?? 'regular'} fill-up`,
-          currency: input.currency ?? 'USD',
-        });
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        this.logger.warn(`Auto-expense for fuel_log failed: ${msg}`);
-      }
-    }
-
-    // Return the new log with economy attached (last element — single-item list)
-    const all = await this.listByMotorcycle(userId, input.motorcycleId);
-    const created = all.find((log) => log.id === (data as FuelLogRow).id);
-    return created ?? this.attachEconomy([data as FuelLogRow])[0];
+    // P1-105: The expense is now created atomically by the DB trigger
+    // trg_fuel_log_auto_expense (migration 00081). No application-layer
+    // expense insert is needed; the trigger looks up users.currency, so
+    // non-USD users get correct currency denomination.
+    //
+    // P3-119: Return the raw new row without economy. The mobile client
+    // invalidates the fuel-logs list query after the mutation (per
+    // add-fuel-log.tsx onSuccess), so the computed fields land on the
+    // next refetch. Avoids the previous full-history SELECT on every create.
+    return this.mapRow(data as FuelLogRow);
   }
 
   async softDelete(userId: string, id: string): Promise<boolean> {

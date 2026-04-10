@@ -40,9 +40,10 @@ export class ExpensesResolver {
   @Query(() => [ExpensePhoto])
   @UseGuards(GqlAuthGuard)
   async expensePhotos(
+    @CurrentUser() user: AuthUser,
     @Args('expenseId', ParseUUIDPipe) expenseId: string,
   ): Promise<ExpensePhoto[]> {
-    return this.expensesService.findPhotosByExpenseId(expenseId);
+    return this.expensesService.findPhotosByExpenseId(user.id, expenseId);
   }
 
   @Mutation(() => Expense)
@@ -92,7 +93,13 @@ export class ExpensesResolver {
   }
 
   @ResolveField(() => [ExpensePhoto])
-  async photos(@Parent() expense: Expense): Promise<ExpensePhoto[]> {
-    return this.expensesService.findPhotosByExpenseId(expense.id);
+  @UseGuards(GqlAuthGuard)
+  async photos(
+    @CurrentUser() user: AuthUser,
+    @Parent() expense: Expense,
+  ): Promise<ExpensePhoto[]> {
+    // TODO todo-107: Replace with DataLoader to batch photo fetches across a
+    // list query to avoid N+1 when listing many expenses with photos.
+    return this.expensesService.findPhotosByExpenseId(user.id, expense.id);
   }
 }
