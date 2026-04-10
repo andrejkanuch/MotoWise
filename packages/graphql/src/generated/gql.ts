@@ -47,6 +47,7 @@ type Documents = {
     "mutation GenerateArticle($input: GenerateArticleInput!) {\n  generateArticle(input: $input) {\n    id\n    slug\n    title\n    difficulty\n    category\n    contentJson\n    readTime\n    generatedAt\n  }\n}": typeof types.GenerateArticleDocument,
     "mutation GenerateBikeHealthReport($input: GenerateReportInput!) {\n  generateBikeHealthReport(input: $input) {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": typeof types.GenerateBikeHealthReportDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": typeof types.GenerateOnboardingInsightsDocument,
+    "mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}": typeof types.ImportOemScheduleDocument,
     "mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}": typeof types.JoinGroupRideDocument,
     "mutation JoinPremiumWaitlist($feature: String!) {\n  joinPremiumWaitlist(feature: $feature)\n}": typeof types.JoinPremiumWaitlistDocument,
     "mutation JoinTrip($input: JoinTripInput!) {\n  joinTrip(input: $input)\n}": typeof types.JoinTripDocument,
@@ -152,6 +153,7 @@ const documents: Documents = {
     "mutation GenerateArticle($input: GenerateArticleInput!) {\n  generateArticle(input: $input) {\n    id\n    slug\n    title\n    difficulty\n    category\n    contentJson\n    readTime\n    generatedAt\n  }\n}": types.GenerateArticleDocument,
     "mutation GenerateBikeHealthReport($input: GenerateReportInput!) {\n  generateBikeHealthReport(input: $input) {\n    id\n    userId\n    motorcycleId\n    status\n    pdfUrl\n    iapTransactionId\n    createdAt\n    completedAt\n  }\n}": types.GenerateBikeHealthReportDocument,
     "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}": types.GenerateOnboardingInsightsDocument,
+    "mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}": types.ImportOemScheduleDocument,
     "mutation JoinGroupRide($groupRideId: ID!) {\n  joinGroupRide(groupRideId: $groupRideId)\n}": types.JoinGroupRideDocument,
     "mutation JoinPremiumWaitlist($feature: String!) {\n  joinPremiumWaitlist(feature: $feature)\n}": types.JoinPremiumWaitlistDocument,
     "mutation JoinTrip($input: JoinTripInput!) {\n  joinTrip(input: $input)\n}": types.JoinTripDocument,
@@ -370,6 +372,10 @@ export function graphql(source: "mutation GenerateBikeHealthReport($input: Gener
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}"): (typeof documents)["mutation GenerateOnboardingInsights($input: GenerateInsightsInput!) {\n  generateOnboardingInsights(input: $input) {\n    icon\n    title\n    body\n    type\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}"): (typeof documents)["mutation ImportOemSchedule($motorcycleId: String!) {\n  importOemSchedule(motorcycleId: $motorcycleId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

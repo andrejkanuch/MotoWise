@@ -49,6 +49,7 @@ import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
+import { ImportOemScheduleDocument } from '@motovault/graphql';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
@@ -415,31 +416,69 @@ export default function BikeDetailScreen() {
     });
   };
 
+  // MOT-138: Manually re-import the OEM maintenance schedule for this bike
+  const importOemMutation = useMutation({
+    mutationFn: () =>
+      gqlFetcher(ImportOemScheduleDocument, { motorcycleId: id }),
+    onSuccess: (data) => {
+      const count = data?.importOemSchedule ?? 0;
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
+      });
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        t('oem.importedTitle', { defaultValue: 'OEM schedule imported' }),
+        count > 0
+          ? t('oem.importedCount', {
+              defaultValue: `Added ${count} maintenance task${count === 1 ? '' : 's'} from the manufacturer schedule.`,
+              count,
+            })
+          : t('oem.importedNone', {
+              defaultValue: 'No new tasks to import — your schedule is already up to date.',
+            }),
+      );
+    },
+    onError: () => {
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        t('oem.importFailed', { defaultValue: 'Failed to import OEM schedule. Please try again.' }),
+      );
+    },
+  });
+
+  const handleImportOem = () => {
+    triggerImpact();
+    importOemMutation.mutate();
+  };
+
   const handleMoreActions = () => {
     triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
       recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
+      importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
       export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [labels.cancel, labels.recalls, labels.export, labels.delete],
+          options: [labels.cancel, labels.recalls, labels.importOem, labels.export, labels.delete],
           cancelButtonIndex: 0,
-          destructiveButtonIndex: 3,
+          destructiveButtonIndex: 4,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) handleCheckRecalls();
-          else if (buttonIndex === 2) handleExportPdf();
-          else if (buttonIndex === 3) handleDeleteBike();
+          else if (buttonIndex === 2) handleImportOem();
+          else if (buttonIndex === 3) handleExportPdf();
+          else if (buttonIndex === 4) handleDeleteBike();
         },
       );
     } else {
       Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
         { text: labels.cancel, style: 'cancel' },
         { text: labels.recalls, onPress: handleCheckRecalls },
+        { text: labels.importOem, onPress: handleImportOem },
         { text: labels.export, onPress: handleExportPdf },
         { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
       ]);

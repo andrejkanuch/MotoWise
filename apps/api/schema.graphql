@@ -774,6 +774,7 @@ type Mutation {
   generateArticle(input: GenerateArticleInput!): Article!
   generateBikeHealthReport(input: GenerateReportInput!): HealthReport!
   generateOnboardingInsights(input: GenerateInsightsInput!): [OnboardingInsight!]!
+  importOemSchedule(motorcycleId: String!): Int!
   joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
   joinTrip(input: JoinTripInput!): Boolean!
