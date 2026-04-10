@@ -29,9 +29,13 @@ describe('ExpensesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mock = createSupabaseMock();
-    // The service constructor takes the injected SUPABASE_USER client
+    // MOT-143: ExpensesService now takes SUPABASE_USER + SUPABASE_ADMIN + ConfigService.
+    // Tests use the same chainable mock for both clients — no test exercises
+    // admin-only behaviour here, so pointing them at the same mock is fine.
+    const adminMock = createSupabaseMock();
+    const configMock = { get: vi.fn().mockReturnValue('https://example.supabase.co') };
     // biome-ignore lint/suspicious/noExplicitAny: test mock instantiation
-    service = new (ExpensesService as any)(mock as never);
+    service = new (ExpensesService as any)(mock, adminMock, configMock);
     // Suppress logger output during tests
     // biome-ignore lint/suspicious/noExplicitAny: accessing private logger for test suppression
     (service as any).logger = { debug: vi.fn(), log: vi.fn(), warn: vi.fn(), error: vi.fn() };
