@@ -696,6 +696,7 @@ export default function BikeDetailScreen() {
             currentMileage={bike.currentMileage ?? undefined}
             mileageUnit={bike.mileageUnit ?? 'mi'}
             mileageUpdatedAt={bike.mileageUpdatedAt ?? undefined}
+            odometerSyncSource={bike.odometerSyncSource ?? undefined}
             isDark={isDark}
             onUpdate={handleMileageUpdate}
           />

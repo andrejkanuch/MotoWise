@@ -9,6 +9,8 @@ interface MileageDisplayProps {
   currentMileage?: number;
   mileageUnit?: string;
   mileageUpdatedAt?: string;
+  /** MOT-140: 'manual' or 'gps_ride' — drives the Auto-updated label. */
+  odometerSyncSource?: string;
   isDark: boolean;
   onUpdate: (newMileage: number) => void;
 }
@@ -17,18 +19,36 @@ export function MileageDisplay({
   currentMileage,
   mileageUnit = 'mi',
   mileageUpdatedAt,
+  odometerSyncSource,
   isDark,
   onUpdate,
 }: MileageDisplayProps) {
   const { t } = useTranslation();
 
   const getLastUpdatedText = () => {
-    if (!mileageUpdatedAt) return t('bikeHub.neverUpdated', { defaultValue: 'Never updated' });
+    const sourceLabel =
+      odometerSyncSource === 'gps_ride'
+        ? t('bikeHub.autoUpdated', { defaultValue: 'Auto-updated' })
+        : t('bikeHub.manualEntry', { defaultValue: 'Manual entry' });
+    if (!mileageUpdatedAt)
+      return t('bikeHub.neverUpdated', { defaultValue: 'Never updated' });
     const diff = Date.now() - new Date(mileageUpdatedAt).getTime();
     const days = Math.floor(diff / 86400000);
-    if (days === 0) return t('bikeHub.updatedToday', { defaultValue: 'Updated today' });
-    if (days === 1) return t('bikeHub.updatedYesterday', { defaultValue: 'Updated yesterday' });
-    return t('bikeHub.updatedDaysAgo', { defaultValue: 'Updated {{days}}d ago', days });
+    if (days === 0)
+      return t('bikeHub.updatedTodayFrom', {
+        defaultValue: `${sourceLabel} · today`,
+        sourceLabel,
+      });
+    if (days === 1)
+      return t('bikeHub.updatedYesterdayFrom', {
+        defaultValue: `${sourceLabel} · yesterday`,
+        sourceLabel,
+      });
+    return t('bikeHub.updatedDaysAgoFrom', {
+      defaultValue: `${sourceLabel} · ${days}d ago`,
+      sourceLabel,
+      days,
+    });
   };
 
   const handlePress = () => {

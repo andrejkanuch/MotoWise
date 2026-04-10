@@ -96,23 +96,38 @@ export class RidesService {
     const motorcycleId = data.motorcycle_id;
     const distanceM = input.distanceM ?? 0;
 
-    if (motorcycleId && distanceM > 0) {
+    // MOT-140: Idempotency — only sync each ride into the odometer once.
+    // The existing rides.mileage_applied flag already exists from 00047 and
+    // is reused here as the sync guard so re-running endRide (e.g. after a
+    // network retry) cannot double-count.
+    if (motorcycleId && distanceM > 0 && !data.mileage_applied) {
       try {
         // Defense-in-depth: filter by user_id alongside RLS
         const { data: bike } = await this.supabase
           .from('motorcycles')
-          .select('current_mileage')
+          .select('current_mileage, mileage_unit')
           .eq('id', motorcycleId)
           .eq('user_id', userId)
           .single();
 
-        const newMileage = (bike?.current_mileage ?? 0) + distanceM;
+        // MOT-140 bug fix: current_mileage is stored in the user's preferred
+        // unit (km or mi). Previously distanceM (meters) was added directly,
+        // producing wildly inflated odometer readings on every ride.
+        const unit = (bike?.mileage_unit as string | null) ?? 'mi';
+        const distanceInUnit =
+          unit === 'km' ? distanceM / 1000 : distanceM / 1609.344; // mi conversion
+        const roundedDelta = Math.round(distanceInUnit);
+        const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
+
+        const nowIso = new Date().toISOString();
 
         await this.supabase
           .from('motorcycles')
           .update({
             current_mileage: newMileage,
-            mileage_updated_at: new Date().toISOString(),
+            mileage_updated_at: nowIso,
+            odometer_sync_source: 'gps_ride',
+            odometer_last_ride_id: input.rideId,
           })
           .eq('id', motorcycleId)
           .eq('user_id', userId);
@@ -124,10 +139,11 @@ export class RidesService {
           .eq('user_id', userId);
 
         this.logger.log(
-          `Mileage applied: +${distanceM}m to motorcycle ${motorcycleId} (total: ${newMileage}m)`,
+          `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
 
-        // Check for maintenance tasks that are now due
+        // Check for maintenance tasks that are now due (target_mileage is in
+        // the same user-unit as current_mileage, so the new total is valid here)
         const { data: dueTasks } = await this.supabase
           .from('maintenance_tasks')
           .select('id, title, priority')

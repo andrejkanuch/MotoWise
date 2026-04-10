@@ -672,6 +672,8 @@ type Motorcycle {
   mileageUpdatedAt: String
   model: String!
   nickname: String
+  odometerLastRideId: String
+  odometerSyncSource: String
   primaryPhotoUrl: String
   purchaseDate: String
   purchasePrice: Float

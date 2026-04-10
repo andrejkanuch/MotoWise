@@ -1100,6 +1100,8 @@ export type Database = {
           mileage_updated_at: string | null
           model: string
           nickname: string | null
+          odometer_last_ride_id: string | null
+          odometer_sync_source: string
           primary_photo_url: string | null
           purchase_date: string | null
           purchase_price: number | null
@@ -1124,6 +1126,8 @@ export type Database = {
           mileage_updated_at?: string | null
           model: string
           nickname?: string | null
+          odometer_last_ride_id?: string | null
+          odometer_sync_source?: string
           primary_photo_url?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
@@ -1148,6 +1152,8 @@ export type Database = {
           mileage_updated_at?: string | null
           model?: string
           nickname?: string | null
+          odometer_last_ride_id?: string | null
+          odometer_sync_source?: string
           primary_photo_url?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
@@ -1160,6 +1166,13 @@ export type Database = {
           year?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "motorcycles_odometer_last_ride_id_fkey"
+            columns: ["odometer_last_ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "motorcycles_user_id_fkey"
             columns: ["user_id"]

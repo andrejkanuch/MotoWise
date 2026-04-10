@@ -18,6 +18,8 @@ query MyMotorcycles {
     vin
     recallCount
     recallLastCheckedAt
+    odometerSyncSource
+    odometerLastRideId
     createdAt
   }
 }
