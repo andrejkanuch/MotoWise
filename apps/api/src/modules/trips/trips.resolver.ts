@@ -4,6 +4,7 @@ import {
   CreateWaypointInputSchema,
   JoinTripInputSchema,
   ReorderWaypointsInputSchema,
+  TripShareTokenSchema,
   UpdateParticipantStatusInputSchema,
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
@@ -26,6 +27,8 @@ import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
+import { TripShareTokenError } from './errors/trip-share-token.errors';
+import { SharedTrip } from './models/shared-trip.model';
 import { Trip, TripConnection, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
 import { TripsService } from './trips.service';
@@ -65,6 +68,15 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
     return this.tripsService.tripDetail(tripId);
+  }
+
+  @Query(() => SharedTrip, { nullable: true })
+  @Public()
+  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
+  async tripByShareToken(@Args('shareToken') shareToken: string): Promise<SharedTrip | null> {
+    const parsed = TripShareTokenSchema.safeParse(shareToken);
+    if (!parsed.success) throw new TripShareTokenError('INVALID_FORMAT');
+    return this.tripsService.resolveTripByShareToken(parsed.data);
   }
 
   // ==========================================
@@ -108,6 +120,15 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
     return this.tripsService.deleteTrip(user.id, tripId);
+  }
+
+  @Mutation(() => String)
+  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
+  async rotateTripShareToken(
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @CurrentUser() user: AuthUser,
+  ): Promise<string> {
+    return this.tripsService.rotateTripShareToken(user.id, tripId);
   }
 
   @Mutation(() => Trip)

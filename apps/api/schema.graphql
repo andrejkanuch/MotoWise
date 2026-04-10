@@ -802,6 +802,7 @@ type Mutation {
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   revokeShareLink(linkId: ID!): Boolean!
+  rotateTripShareToken(tripId: ID!): String!
   saveRoute(routeId: ID!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
@@ -930,6 +931,7 @@ type Query {
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
+  tripByShareToken(shareToken: String!): SharedTrip
   tripDetail(tripId: ID!): Trip!
   tripInvites(tripId: ID!): [TripInvite!]!
   user: User!
@@ -1153,6 +1155,40 @@ type SharedTaskInfo {
   title: String!
 }
 
+type SharedTrip {
+  coverImageUrl: String
+  description: String
+  difficulty: String!
+  endDate: String!
+  id: ID!
+  maxRiders: Int!
+  participantCount: Int!
+  participants: [SharedTripParticipant!]!
+  startDate: String!
+  status: String!
+  title: String!
+  waypoints: [SharedTripWaypoint!]!
+}
+
+type SharedTripParticipant {
+  anonId: String!
+  avatarUrl: String
+  displayName: String!
+  role: String!
+  status: String!
+}
+
+type SharedTripWaypoint {
+  dayIndex: Int
+  id: ID!
+  lat: Float!
+  lng: Float!
+  name: String!
+  notes: String
+  sortOrder: Int!
+  type: String!
+}
+
 type SpendingSummary {
   allTime: Float!
   thisYear: Float!
@@ -1214,6 +1250,7 @@ type Trip {
   organiser: TripOrganiser!
   participantCount: Int!
   participants: [TripParticipant!]
+  shareLink: TripShareLink
   startDate: String!
   status: String!
   title: String!
@@ -1260,6 +1297,11 @@ type TripParticipant {
   publicUsername: String
   role: String!
   status: String!
+}
+
+type TripShareLink {
+  token: String!
+  url: String!
 }
 
 type TripWaypoint {

@@ -1,3 +1,4 @@
+import { ResolveTripByTokenResponseSchema } from '@motovault/types/validators';
 import {
   BadRequestException,
   ForbiddenException,
@@ -10,6 +11,8 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { TripShareTokenError } from './errors/trip-share-token.errors';
+import type { SharedTrip } from './models/shared-trip.model';
 import type { Trip, TripConnection, TripWaypoint } from './models/trip.model';
 
 /** Shape returned by trips + users join */
@@ -336,6 +339,78 @@ export class TripsService {
     }
 
     return trip;
+  }
+
+  // ==========================================
+  // Share Links
+  // ==========================================
+
+  async resolveTripByShareToken(shareToken: string): Promise<SharedTrip> {
+    const { data, error } = await this.supabaseAdmin.rpc(
+      'resolve_trip_by_token' as never,
+      {
+        p_token: shareToken,
+      } as never,
+    );
+
+    if (error || !data) {
+      throw new TripShareTokenError('NOT_FOUND');
+    }
+
+    const parsed = ResolveTripByTokenResponseSchema.safeParse(data);
+    if (!parsed.success) {
+      this.logger.error(
+        `resolve_trip_by_token payload shape drifted: ${JSON.stringify(parsed.error.format())}`,
+      );
+      throw new TripShareTokenError('NOT_FOUND');
+    }
+
+    const { trip, waypoints, participants } = parsed.data;
+    return {
+      id: trip.id,
+      title: trip.title,
+      description: trip.description ?? null,
+      status: trip.status,
+      difficulty: trip.difficulty,
+      startDate: trip.start_date,
+      endDate: trip.end_date,
+      maxRiders: trip.max_riders,
+      participantCount: trip.participant_count,
+      coverImageUrl: trip.cover_image_url ?? null,
+      waypoints: waypoints.map((w) => ({
+        id: w.id,
+        sortOrder: w.sort_order,
+        dayIndex: w.day_index ?? null,
+        type: w.type,
+        name: w.name,
+        notes: w.notes ?? null,
+        lat: w.lat,
+        lng: w.lng,
+      })),
+      participants: participants.map((p) => ({
+        anonId: p.anon_id,
+        role: p.role,
+        status: p.status,
+        displayName: p.display_name,
+        avatarUrl: p.avatar_url ?? null,
+      })),
+    };
+  }
+
+  async rotateTripShareToken(userId: string, tripId: string): Promise<string> {
+    await this.verifyOrganiser(userId, tripId);
+    const { data, error } = await this.supabase.rpc(
+      'rotate_trip_share_token' as never,
+      {
+        p_trip_id: tripId,
+      } as never,
+    );
+
+    if (error || !data) {
+      this.logger.error(`rotate_trip_share_token failed: ${error?.message}`);
+      throw new InternalServerErrorException('Failed to rotate share token');
+    }
+    return data as unknown as string;
   }
 
   // ==========================================

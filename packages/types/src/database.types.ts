@@ -2132,6 +2132,38 @@ export type Database = {
           },
         ]
       }
+      trip_share_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          rotated_at: string
+          token_hash: string
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rotated_at?: string
+          token_hash: string
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rotated_at?: string
+          token_hash?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_share_tokens_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: true
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_waypoints: {
         Row: {
           created_at: string
@@ -2797,6 +2829,8 @@ export type Database = {
         Args: { p_trip_id: string; p_waypoint_ids: string[] }
         Returns: undefined
       }
+      resolve_trip_by_token: { Args: { p_token: string }; Returns: Json }
+      rotate_trip_share_token: { Args: { p_trip_id: string }; Returns: string }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_maintenance_task: {

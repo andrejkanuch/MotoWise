@@ -39,7 +39,6 @@ import {
   Linking,
   Platform,
   Pressable,
-  Share,
   Text,
   useColorScheme,
   View,
@@ -48,6 +47,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
+import { TripShareSheet } from '../../components/trip-share-sheet';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -106,6 +106,7 @@ export default function TripDetailScreen() {
   const sheetRef = useRef<BottomSheet>(null);
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [actionLoading, setActionLoading] = useState(false);
+  const [shareSheetVisible, setShareSheetVisible] = useState(false);
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
@@ -296,14 +297,11 @@ export default function TripDetailScreen() {
     }
   }, [waypoints, tripId]);
 
-  const handleShare = useCallback(async () => {
+  const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
-    await Share.share({
-      message: `${trip.title} — riding this on MotoVault. Come along:`,
-      url: `https://motovault.app/trips/${tripId}`,
-    });
-    trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId });
-  }, [trip, tripId]);
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShareSheetVisible(true);
+  }, [trip]);
 
   const handleExportGPX = useCallback(async () => {
     if (!trip) return;
@@ -495,20 +493,22 @@ ${rteptElements}
             <Pencil size={18} color={palette.white} />
           </Pressable>
         )}
-        <Pressable
-          onPress={handleShare}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: palette.neutral950,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Share2 size={18} color={palette.white} />
-        </Pressable>
+        {isOrganiser && (
+          <Pressable
+            onPress={handleOpenShareSheet}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              backgroundColor: palette.neutral950,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Share2 size={18} color={palette.white} />
+          </Pressable>
+        )}
       </View>
 
       {/* Bottom sheet */}
@@ -1019,6 +1019,14 @@ ${rteptElements}
           <CommentList tripId={tripId} />
         </BottomSheetScrollView>
       </BottomSheet>
+
+      {isOrganiser && (
+        <TripShareSheet
+          tripId={tripId}
+          visible={shareSheetVisible}
+          onClose={() => setShareSheetVisible(false)}
+        />
+      )}
     </View>
   );
 }

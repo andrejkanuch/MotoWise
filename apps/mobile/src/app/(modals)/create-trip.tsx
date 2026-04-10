@@ -84,7 +84,7 @@ const VISIBILITY_OPTIONS: { key: Visibility; label: string; description: string 
   {
     key: 'unlisted',
     label: 'Unlisted',
-    description: 'Anyone with the link — not shown on Discover',
+    description: 'Anyone with the link can view (and forward it). Not shown on Discover.',
   },
   {
     key: 'public',

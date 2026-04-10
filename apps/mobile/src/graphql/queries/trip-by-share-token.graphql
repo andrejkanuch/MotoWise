@@ -1,0 +1,31 @@
+query TripByShareToken($shareToken: String!) {
+  tripByShareToken(shareToken: $shareToken) {
+    id
+    title
+    description
+    status
+    difficulty
+    startDate
+    endDate
+    maxRiders
+    participantCount
+    coverImageUrl
+    waypoints {
+      id
+      sortOrder
+      dayIndex
+      type
+      name
+      notes
+      lat
+      lng
+    }
+    participants {
+      anonId
+      role
+      status
+      displayName
+      avatarUrl
+    }
+  }
+}

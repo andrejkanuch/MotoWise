@@ -63,6 +63,7 @@ type Documents = {
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": typeof types.RequestDataExportDocument,
     "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": typeof types.RespondToTripInviteDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
+    "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": typeof types.RotateTripShareTokenDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRoute(routeId: $routeId)\n}": typeof types.SaveRouteDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": typeof types.ShareRideToDiscoverDocument,
     "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.ShareRideDocument,
@@ -121,6 +122,7 @@ type Documents = {
     "query RouteDetail($routeId: ID!) {\n  routeDetail(routeId: $routeId) {\n    id\n    name\n    description\n    polyline\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    status\n    createdAt\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.RouteDetailDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": typeof types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": typeof types.SpendingSummaryDocument,
+    "query TripByShareToken($shareToken: String!) {\n  tripByShareToken(shareToken: $shareToken) {\n    id\n    title\n    description\n    status\n    difficulty\n    startDate\n    endDate\n    maxRiders\n    participantCount\n    coverImageUrl\n    waypoints {\n      id\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n    participants {\n      anonId\n      role\n      status\n      displayName\n      avatarUrl\n    }\n  }\n}": typeof types.TripByShareTokenDocument,
     "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": typeof types.TripDetailDocument,
     "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": typeof types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
@@ -175,6 +177,7 @@ const documents: Documents = {
     "mutation RequestDataExport {\n  requestDataExport {\n    id\n    status\n    requestedAt\n  }\n}": types.RequestDataExportDocument,
     "mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {\n  respondToTripInvite(inviteId: $inviteId, accept: $accept)\n}": types.RespondToTripInviteDocument,
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
+    "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": types.RotateTripShareTokenDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRoute(routeId: $routeId)\n}": types.SaveRouteDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": types.ShareRideToDiscoverDocument,
     "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.ShareRideDocument,
@@ -233,6 +236,7 @@ const documents: Documents = {
     "query RouteDetail($routeId: ID!) {\n  routeDetail(routeId: $routeId) {\n    id\n    name\n    description\n    polyline\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    status\n    createdAt\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.RouteDetailDocument,
     "query SearchArticles($input: SearchArticlesInput!) {\n  searchArticles(input: $input) {\n    edges {\n      node {\n        id\n        slug\n        title\n        difficulty\n        category\n        viewCount\n        isSafetyCritical\n        generatedAt\n        updatedAt\n        keywords\n      }\n      cursor\n    }\n    pageInfo {\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}": types.SearchArticlesDocument,
     "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}": types.SpendingSummaryDocument,
+    "query TripByShareToken($shareToken: String!) {\n  tripByShareToken(shareToken: $shareToken) {\n    id\n    title\n    description\n    status\n    difficulty\n    startDate\n    endDate\n    maxRiders\n    participantCount\n    coverImageUrl\n    waypoints {\n      id\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n    participants {\n      anonId\n      role\n      status\n      displayName\n      avatarUrl\n    }\n  }\n}": types.TripByShareTokenDocument,
     "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": types.TripDetailDocument,
     "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
@@ -448,6 +452,10 @@ export function graphql(source: "mutation RespondToTripInvite($inviteId: ID!, $a
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}"): (typeof documents)["mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}"): (typeof documents)["mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -680,6 +688,10 @@ export function graphql(source: "query SearchArticles($input: SearchArticlesInpu
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}"): (typeof documents)["query SpendingSummary($motorcycleId: String!) {\n  spendingSummary(motorcycleId: $motorcycleId) {\n    thisYear\n    allTime\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query TripByShareToken($shareToken: String!) {\n  tripByShareToken(shareToken: $shareToken) {\n    id\n    title\n    description\n    status\n    difficulty\n    startDate\n    endDate\n    maxRiders\n    participantCount\n    coverImageUrl\n    waypoints {\n      id\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n    participants {\n      anonId\n      role\n      status\n      displayName\n      avatarUrl\n    }\n  }\n}"): (typeof documents)["query TripByShareToken($shareToken: String!) {\n  tripByShareToken(shareToken: $shareToken) {\n    id\n    title\n    description\n    status\n    difficulty\n    startDate\n    endDate\n    maxRiders\n    participantCount\n    coverImageUrl\n    waypoints {\n      id\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n    }\n    participants {\n      anonId\n      role\n      status\n      displayName\n      avatarUrl\n    }\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -140,10 +140,13 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
+    // Public share-link routes — anonymous recipients must be able to view
+    // unlisted trip/ride share previews without being redirected to login.
+    const inPublicShareRoute = segments[0] === 't' || segments[0] === 'r';
 
     let target: string | null = null;
 
-    if (!session && !inAuthGroup) {
+    if (!session && !inAuthGroup && !inPublicShareRoute) {
       target = '/(auth)/login';
     } else if (session && inAuthGroup) {
       target = onboardingCompleted ? '/(tabs)/(home)' : '/(onboarding)';

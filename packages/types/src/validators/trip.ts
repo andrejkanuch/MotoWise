@@ -291,3 +291,67 @@ export const UpdateParticipantStatusInputSchema = z.object({
 });
 
 export type UpdateParticipantStatusInput = z.infer<typeof UpdateParticipantStatusInputSchema>;
+
+// ==========================================
+// Trip share link (H2 capability URLs)
+// ==========================================
+
+// Branded type — forces callers through the schema via .parse() or .safeParse()
+export const TripShareTokenSchema = z
+  .string()
+  .regex(/^[a-fA-F0-9]{64}$/, 'Invalid share token format')
+  .transform((s) => s.toLowerCase())
+  .brand<'TripShareToken'>();
+export type TripShareToken = z.infer<typeof TripShareTokenSchema>;
+
+// Shape of the RPC `resolve_trip_by_token` JSONB response. Service boundary
+// must safeParse() against this schema — never cast raw RPC output.
+export const SharedTripRowSchema = z
+  .object({
+    id: z.string().uuid(),
+    title: z.string(),
+    description: z.string().nullable(),
+    status: z.enum(['published', 'active', 'completed']),
+    difficulty: z.string(),
+    start_date: z.string(),
+    end_date: z.string(),
+    max_riders: z.number().int(),
+    participant_count: z.number().int(),
+    cover_image_url: z.string().nullable(),
+  })
+  .strict();
+export type SharedTripRow = z.infer<typeof SharedTripRowSchema>;
+
+export const SharedTripWaypointSchema = z
+  .object({
+    id: z.string().uuid(),
+    sort_order: z.number().int(),
+    day_index: z.number().int().nullable(),
+    type: z.string(),
+    name: z.string(),
+    notes: z.string().nullable(),
+    lat: z.number(),
+    lng: z.number(),
+  })
+  .strict();
+export type SharedTripWaypoint = z.infer<typeof SharedTripWaypointSchema>;
+
+export const SharedTripParticipantSchema = z
+  .object({
+    anon_id: z.string(),
+    role: z.string(),
+    status: z.string(),
+    display_name: z.string(),
+    avatar_url: z.string().nullable(),
+  })
+  .strict();
+export type SharedTripParticipant = z.infer<typeof SharedTripParticipantSchema>;
+
+export const ResolveTripByTokenResponseSchema = z
+  .object({
+    trip: SharedTripRowSchema,
+    waypoints: z.array(SharedTripWaypointSchema),
+    participants: z.array(SharedTripParticipantSchema),
+  })
+  .strict();
+export type ResolveTripByTokenResponse = z.infer<typeof ResolveTripByTokenResponseSchema>;
