@@ -26,8 +26,8 @@ import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
-import { TripInvite } from './models/trip-invite.model';
 import { Trip, TripConnection, TripWaypoint } from './models/trip.model';
+import { TripInvite } from './models/trip-invite.model';
 import { TripsService } from './trips.service';
 
 @Resolver(() => Trip)

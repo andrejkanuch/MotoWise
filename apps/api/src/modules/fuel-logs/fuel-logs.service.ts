@@ -1,3 +1,4 @@
+import { KM_PER_MILE, LITRES_PER_US_GALLON } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -6,7 +7,6 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { KM_PER_MILE, LITRES_PER_US_GALLON } from '@motovault/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { FuelLog } from './models/fuel-log.model';

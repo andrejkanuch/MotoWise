@@ -166,7 +166,10 @@ export async function scheduleMaintenanceReminder(
 // us a compile error if a new stage is added without matching copy.
 type Stage = '30d' | '7d' | '1d';
 
-const STAGE_COPY: Record<Stage, (taskTitle: string, bikeName: string) => { title: string; body: string }> = {
+const STAGE_COPY: Record<
+  Stage,
+  (taskTitle: string, bikeName: string) => { title: string; body: string }
+> = {
   '30d': (taskTitle, bikeName) => ({
     title: `${taskTitle} in 30 days`,
     body: `${bikeName} — time to order parts if needed`,

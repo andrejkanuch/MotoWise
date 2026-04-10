@@ -721,21 +721,15 @@ export class TripsService {
   // Trip Invites (privacy feature)
   // ==========================================
 
-  async inviteToTrip(
-    userId: string,
-    tripId: string,
-    invitedUserId: string,
-  ): Promise<boolean> {
+  async inviteToTrip(userId: string, tripId: string, invitedUserId: string): Promise<boolean> {
     // Only the organizer may invite
     await this.verifyOrganiser(userId, tripId);
 
-    const { error } = await this.supabase
-      .from('trip_invites')
-      .insert({
-        trip_id: tripId,
-        invited_user_id: invitedUserId,
-        invited_by_user_id: userId,
-      });
+    const { error } = await this.supabase.from('trip_invites').insert({
+      trip_id: tripId,
+      invited_user_id: invitedUserId,
+      invited_by_user_id: userId,
+    });
 
     if (error) {
       if (error.code === '23505') {
@@ -748,11 +742,7 @@ export class TripsService {
     return true;
   }
 
-  async respondToTripInvite(
-    userId: string,
-    inviteId: string,
-    accept: boolean,
-  ): Promise<boolean> {
+  async respondToTripInvite(userId: string, inviteId: string, accept: boolean): Promise<boolean> {
     const { data: invite, error: fetchError } = await this.supabase
       .from('trip_invites')
       .select('trip_id, invited_user_id')

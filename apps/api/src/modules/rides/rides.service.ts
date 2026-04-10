@@ -1,3 +1,4 @@
+import { type MileageUnit, metersToUnit } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -7,7 +8,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type MileageUnit, metersToUnit } from '@motovault/types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { QUERY_LIMITS } from '../../config/constants';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -306,13 +306,11 @@ export class RidesService {
 
   /** Grant a specific user read access to a private ride. */
   async shareRide(userId: string, rideId: string, sharedWithUserId: string): Promise<boolean> {
-    const { error } = await this.supabase
-      .from('ride_shares')
-      .insert({
-        ride_id: rideId,
-        shared_with_user_id: sharedWithUserId,
-        shared_by_user_id: userId,
-      });
+    const { error } = await this.supabase.from('ride_shares').insert({
+      ride_id: rideId,
+      shared_with_user_id: sharedWithUserId,
+      shared_by_user_id: userId,
+    });
 
     if (error) {
       // Idempotent on duplicate — already shared

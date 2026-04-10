@@ -94,10 +94,7 @@ export class ExpensesResolver {
 
   @ResolveField(() => [ExpensePhoto])
   @UseGuards(GqlAuthGuard)
-  async photos(
-    @CurrentUser() user: AuthUser,
-    @Parent() expense: Expense,
-  ): Promise<ExpensePhoto[]> {
+  async photos(@CurrentUser() user: AuthUser, @Parent() expense: Expense): Promise<ExpensePhoto[]> {
     // TODO todo-107: Replace with DataLoader to batch photo fetches across a
     // list query to avoid N+1 when listing many expenses with photos.
     return this.expensesService.findPhotosByExpenseId(user.id, expense.id);
