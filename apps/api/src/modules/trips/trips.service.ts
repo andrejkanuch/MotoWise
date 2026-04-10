@@ -32,6 +32,7 @@ interface TripRow {
     display_name: string | null;
     public_username: string | null;
     avatar_url: string | null;
+    is_public: boolean | null;
   } | null;
 }
 
@@ -65,9 +66,37 @@ interface ParticipantRow {
 }
 
 const TRIP_SELECT =
-  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url)';
+  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
-function mapRowToTrip(row: TripRow): Trip {
+/**
+ * Redact organiser PII fields when the organiser has is_public=false
+ * and the caller is neither the organiser nor a participant.
+ * displayName is preserved; publicUsername and avatarUrl are cleared.
+ */
+function redactOrganiser(
+  organiser: Trip['organiser'],
+  isPublic: boolean,
+  callerUserId: string | undefined,
+  isParticipant: boolean,
+): Trip['organiser'] {
+  if (isPublic) return organiser;
+  if (callerUserId && callerUserId === organiser.id) return organiser;
+  if (isParticipant) return organiser;
+  return {
+    ...organiser,
+    publicUsername: undefined,
+    avatarUrl: undefined,
+  };
+}
+
+function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant = false): Trip {
+  const organiser = {
+    id: row.users?.id ?? row.organiser_user_id,
+    displayName: row.users?.display_name ?? 'Rider',
+    publicUsername: row.users?.public_username ?? undefined,
+    avatarUrl: row.users?.avatar_url ?? undefined,
+  };
+  const isPublic = row.users?.is_public !== false;
   return {
     id: row.id,
     title: row.title,
@@ -81,12 +110,7 @@ function mapRowToTrip(row: TripRow): Trip {
     visibility: row.visibility ?? 'private',
     coverImageUrl: row.cover_image_url ?? undefined,
     createdAt: row.created_at,
-    organiser: {
-      id: row.users?.id ?? row.organiser_user_id,
-      displayName: row.users?.display_name ?? 'Rider',
-      publicUsername: row.users?.public_username ?? undefined,
-      avatarUrl: row.users?.avatar_url ?? undefined,
-    },
+    organiser: redactOrganiser(organiser, isPublic, callerUserId, isParticipant),
   };
 }
 
@@ -121,16 +145,27 @@ export class TripsService {
   async getTrips(first: number, after?: string): Promise<TripConnection> {
     const limit = Math.min(first, 50);
 
-    let query = this.supabaseAdmin
+    // Use per-request user client so RLS enforces visibility. Explicit
+    // visibility='public' filter is defense-in-depth for the Discover feed.
+    let query = this.supabase
       .from('trips')
       .select(TRIP_SELECT)
       .in('status', ['published', 'active'])
+      .eq('visibility', 'public')
       .order('start_date', { ascending: true })
+      .order('id', { ascending: true })
       .limit(limit + 1);
 
     if (after) {
       const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      query = query.gt('start_date', decoded);
+      const [startDate, id] = decoded.split('|');
+      if (startDate && id) {
+        // Composite cursor: rows strictly after (start_date, id)
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
+      } else if (startDate) {
+        // Back-compat for legacy single-column cursors
+        query = query.gt('start_date', startDate);
+      }
     }
 
     const { data, error } = await query;
@@ -148,7 +183,7 @@ export class TripsService {
       const node = mapRowToTrip(row);
       return {
         node,
-        cursor: Buffer.from(row.start_date).toString('base64'),
+        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
       };
     });
 
@@ -172,13 +207,21 @@ export class TripsService {
       .select('trip_id')
       .eq('user_id', userId);
 
-    const participantTripIds = (participatingIds ?? []).map((r) => r.trip_id as string);
+    // Defense-in-depth: only allow well-formed UUIDs into the .or() string
+    // below. participantTripIds come from the DB so should already be safe,
+    // but we filter anyway to remove any chance of SQL injection via the
+    // string-interpolated PostgREST filter.
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const participantTripIds = (participatingIds ?? [])
+      .map((r) => r.trip_id as string)
+      .filter((id) => UUID_RE.test(id));
 
     // Use supabase (user JWT) — RLS enforces visibility
     let query = this.supabase
       .from('trips')
       .select(TRIP_SELECT)
       .order('start_date', { ascending: false })
+      .order('id', { ascending: false })
       .limit(limit + 1);
 
     // Filter: organiser OR participant
@@ -190,7 +233,14 @@ export class TripsService {
 
     if (after) {
       const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      query = query.lt('start_date', decoded);
+      const [startDate, id] = decoded.split('|');
+      if (startDate && id) {
+        // myTrips is ordered DESC, so "after" means strictly before
+        // (start_date, id).
+        query = query.or(`start_date.lt.${startDate},and(start_date.eq.${startDate},id.lt.${id})`);
+      } else if (startDate) {
+        query = query.lt('start_date', startDate);
+      }
     }
 
     const { data, error } = await query;
@@ -205,8 +255,10 @@ export class TripsService {
     const sliced = hasNextPage ? rows.slice(0, limit) : rows;
 
     const edges = sliced.map((row) => ({
-      node: mapRowToTrip(row),
-      cursor: Buffer.from(row.start_date).toString('base64'),
+      // Caller is always organiser or participant of their own trips — no
+      // organiser redaction needed.
+      node: mapRowToTrip(row, userId, true),
+      cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
     }));
 
     const lastEdge = edges[edges.length - 1];
@@ -220,7 +272,7 @@ export class TripsService {
     };
   }
 
-  async tripDetail(tripId: string): Promise<Trip> {
+  async tripDetail(tripId: string, callerUserId?: string): Promise<Trip> {
     // Use the per-request user client so RLS enforces visibility:
     // - Organiser sees their own trips in any status (incl. drafts)
     // - Everyone else sees trips allowed by the visibility policy
@@ -240,16 +292,17 @@ export class TripsService {
     }
 
     const row = tripData as unknown as TripRow;
-    const trip = mapRowToTrip(row);
 
-    // Fetch waypoints + participants in parallel (no data dependency)
+    // Fetch waypoints + participants in parallel via the per-request user
+    // client so RLS enforces visibility (defence-in-depth alongside the
+    // trip-row RLS check above).
     const [waypointResult, participantResult] = await Promise.all([
-      this.supabaseAdmin
+      this.supabase
         .from('trip_waypoints')
         .select('*')
         .eq('trip_id', tripId)
         .order('sort_order', { ascending: true }),
-      this.supabaseAdmin
+      this.supabase
         .from('trip_participants')
         .select(
           'user_id, role, status, bike_id, joined_at, users:user_id(id, display_name, public_username, avatar_url)',
@@ -258,12 +311,19 @@ export class TripsService {
         .order('joined_at', { ascending: true }),
     ]);
 
+    const participantRows = (participantResult.data ?? []) as unknown as ParticipantRow[];
+    const isCallerParticipant = callerUserId
+      ? participantRows.some((p) => p.user_id === callerUserId)
+      : false;
+
+    const trip = mapRowToTrip(row, callerUserId, isCallerParticipant);
+
     if (waypointResult.data) {
       trip.waypoints = (waypointResult.data as unknown as WaypointRow[]).map(mapRowToWaypoint);
     }
 
     if (participantResult.data) {
-      trip.participants = (participantResult.data as unknown as ParticipantRow[]).map((p) => ({
+      trip.participants = participantRows.map((p) => ({
         id: p.users?.id ?? p.user_id,
         displayName: p.users?.display_name ?? 'Rider',
         publicUsername: p.users?.public_username ?? undefined,
@@ -363,6 +423,30 @@ export class TripsService {
 
     const trip = mapRowToTrip(tripData as unknown as TripRow);
 
+    // Auto-enrol the organiser as the first rider (going). The
+    // trg_update_trip_participant_count trigger bumps participant_count to 1
+    // so the UI can always say "1/N riders" on a fresh trip instead of "0/N".
+    const { error: organiserParticipantError } = await this.supabase
+      .from('trip_participants')
+      .insert({
+        trip_id: trip.id,
+        user_id: userId,
+        role: 'organizer',
+        status: 'going',
+      });
+
+    if (organiserParticipantError) {
+      this.logger.error(
+        `createTripWithWaypoints organiser participant failed: ${organiserParticipantError.message} (${organiserParticipantError.code})`,
+      );
+      // Roll back the trip so we don't leak an orphaned row.
+      await this.supabase.from('trips').delete().eq('id', trip.id);
+      throw new InternalServerErrorException('Failed to create trip');
+    }
+    // Reflect the trigger's bump in the returned object so callers don't
+    // refetch just to see a count of 1.
+    trip.participantCount = (trip.participantCount ?? 0) + 1;
+
     // Insert all waypoints in one batch
     if (input.waypoints.length > 0) {
       const waypointRows = input.waypoints.map((wp) => ({
@@ -422,6 +506,17 @@ export class TripsService {
   ): Promise<Trip> {
     await this.verifyOrganiser(userId, tripId);
 
+    // Snapshot current visibility for audit logging if it changes.
+    let oldVisibility: string | undefined;
+    if (input.visibility !== undefined) {
+      const { data: existingVis } = await this.supabase
+        .from('trips')
+        .select('visibility')
+        .eq('id', tripId)
+        .single();
+      oldVisibility = (existingVis?.visibility as string | undefined) ?? undefined;
+    }
+
     const update: Record<string, unknown> = {};
     if (input.title !== undefined) update.title = input.title;
     if (input.description !== undefined) update.description = input.description;
@@ -430,6 +525,21 @@ export class TripsService {
     if (input.difficulty !== undefined) update.difficulty = input.difficulty;
     if (input.maxRiders !== undefined) update.max_riders = input.maxRiders;
     if (input.visibility !== undefined) update.visibility = input.visibility;
+
+    if (
+      input.visibility !== undefined &&
+      oldVisibility !== undefined &&
+      oldVisibility !== input.visibility
+    ) {
+      this.logger.warn(
+        `Trip visibility changed: ${JSON.stringify({
+          tripId,
+          oldVisibility,
+          newVisibility: input.visibility,
+          organiserUserId: userId,
+        })}`,
+      );
+    }
 
     const { data, error } = await this.supabase
       .from('trips')
@@ -660,6 +770,21 @@ export class TripsService {
     status: string = 'going',
     bikeId?: string,
   ): Promise<boolean> {
+    // Defense-in-depth: if a bike is provided, verify it belongs to the
+    // caller before entering the RPC. RLS on motorcycles will also block a
+    // cross-user reference, but failing fast here produces a cleaner error.
+    if (bikeId) {
+      const { data: bike, error: bikeError } = await this.supabase
+        .from('motorcycles')
+        .select('id')
+        .eq('id', bikeId)
+        .eq('user_id', userId)
+        .single();
+      if (bikeError || !bike) {
+        throw new ForbiddenException('Bike does not belong to caller');
+      }
+    }
+
     // Use atomic RPC with row-level locking to prevent race conditions
     const { error } = await this.supabase.rpc('join_trip', {
       p_trip_id: tripId,
@@ -726,6 +851,24 @@ export class TripsService {
   async inviteToTrip(userId: string, tripId: string, invitedUserId: string): Promise<boolean> {
     // Only the organizer may invite
     await this.verifyOrganiser(userId, tripId);
+
+    // H5: cap total invites per trip at max_riders * 3 to prevent a
+    // single organiser from fan-out spamming invites.
+    const { data: tripRow } = await this.supabase
+      .from('trips')
+      .select('max_riders')
+      .eq('id', tripId)
+      .single();
+    const maxRiders = (tripRow?.max_riders as number | undefined) ?? 0;
+    if (maxRiders > 0) {
+      const { count: existingInvitesCount } = await this.supabase
+        .from('trip_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('trip_id', tripId);
+      if ((existingInvitesCount ?? 0) >= maxRiders * 3) {
+        throw new BadRequestException('Invite limit reached');
+      }
+    }
 
     const { error } = await this.supabase.from('trip_invites').insert({
       trip_id: tripId,
@@ -794,6 +937,11 @@ export class TripsService {
       declinedAt?: string;
     }>
   > {
+    // Defense-in-depth: require the caller to be the organiser. RLS also
+    // enforces this on trip_invites, but an explicit check produces a clean
+    // 403 instead of an empty list when a non-organiser calls this.
+    await this.verifyOrganiser(userId, tripId);
+
     // Organizer can list all invites on their trip; admins can see everything
     // via RLS (is_admin() bypass)
     const { data, error } = await this.supabase

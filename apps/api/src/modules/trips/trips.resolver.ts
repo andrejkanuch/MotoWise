@@ -92,6 +92,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Trip)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateTrip(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateTripInputSchema))
@@ -101,6 +102,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async deleteTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -109,6 +111,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Trip)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async publishTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -121,6 +124,7 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => TripWaypoint)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async addWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateWaypointInputSchema))
@@ -130,6 +134,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => TripWaypoint)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateWaypointInputSchema))
@@ -139,6 +144,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async removeWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('waypointId', { type: () => ID }, ParseUUIDPipe) waypointId: string,
@@ -147,6 +153,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async reorderWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ReorderWaypointsInputSchema))
@@ -170,6 +177,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateParticipantStatus(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateParticipantStatusInputSchema))
@@ -179,6 +187,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async leaveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -191,6 +200,7 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Boolean)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async inviteToTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -200,6 +210,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async respondToTripInvite(
     @CurrentUser() user: AuthUser,
     @Args('inviteId', { type: () => ID }, ParseUUIDPipe) inviteId: string,

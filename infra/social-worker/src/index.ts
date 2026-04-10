@@ -50,8 +50,8 @@ export default {
         default:
           return json({ error: 'Not found' }, 404);
       }
-    } catch (err: any) {
-      return json({ error: err.message || 'Internal error' }, 500);
+    } catch (err: unknown) {
+      return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
     }
   },
 };
@@ -68,7 +68,7 @@ async function handlePublishPost(request: Request, env: Env): Promise<Response> 
   }>();
 
   const platform = body.platform || 'both';
-  const results: Record<string, any> = {};
+  const results: Record<string, unknown> = {};
 
   // Upload image to Supabase for public URL (needed by Instagram)
   const imageBytes = base64ToUint8Array(body.image_base64);
@@ -125,7 +125,7 @@ async function handlePublishStory(request: Request, env: Env): Promise<Response>
   }>();
 
   const platform = body.platform || 'both';
-  const results: Record<string, any> = {};
+  const results: Record<string, unknown> = {};
 
   const imageBytes = base64ToUint8Array(body.image_base64);
   const filename = `publish/${Date.now()}-story.png`;
@@ -209,11 +209,11 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
     }),
   });
 
-  const data = await res.json<any>();
+  const data = await res.json<unknown>();
 
   if (res.ok) {
     const parts = data.candidates?.[0]?.content?.parts || [];
-    const imagePart = parts.find((p: any) => p.inlineData);
+    const imagePart = parts.find((p: unknown) => p.inlineData);
 
     if (imagePart) {
       return json({
@@ -243,11 +243,11 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
     }),
   });
 
-  const data2 = await res2.json<any>();
+  const data2 = await res2.json<unknown>();
 
   if (res2.ok) {
     const parts2 = data2.candidates?.[0]?.content?.parts || [];
-    const imagePart2 = parts2.find((p: any) => p.inlineData);
+    const imagePart2 = parts2.find((p: unknown) => p.inlineData);
 
     if (imagePart2) {
       return json({
@@ -281,7 +281,7 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
     }),
   });
 
-  const data3 = await res3.json<any>();
+  const data3 = await res3.json<unknown>();
 
   if (res3.ok && data3.predictions?.length > 0) {
     return json({
@@ -309,7 +309,7 @@ async function handleGenerateImage(request: Request, env: Env): Promise<Response
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function graphPost(endpoint: string, params: Record<string, string>): Promise<any> {
+async function graphPost(endpoint: string, params: Record<string, string>): Promise<unknown> {
   const res = await fetch(`${GRAPH_API}/${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -325,7 +325,7 @@ async function waitForIgProcessing(
 ): Promise<void> {
   for (let i = 0; i < maxWait; i++) {
     const res = await fetch(`${GRAPH_API}/${containerId}?fields=status_code&access_token=${token}`);
-    const data = await res.json<any>();
+    const data = await res.json<unknown>();
     if (data.status_code === 'FINISHED') return;
     if (data.status_code === 'ERROR') throw new Error('Instagram processing failed');
     await new Promise((r) => setTimeout(r, 1000));
@@ -370,7 +370,7 @@ function _uint8ArrayToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function json(data: any, status = 200): Response {
+function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: { 'Content-Type': 'application/json' },

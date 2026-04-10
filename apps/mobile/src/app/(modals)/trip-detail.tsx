@@ -52,8 +52,8 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
-import { getRouteSegments } from '../../utils/mapbox-directions';
 import { MAP_STYLES } from '../../utils/map-styles';
+import { getRouteSegments } from '../../utils/mapbox-directions';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -689,7 +689,7 @@ ${rteptElements}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <User size={13} color={subtitleColor} />
               <Text style={{ fontSize: 13, color: subtitleColor }}>
-                {trip.organiser.displayName}
+                Led by {trip.organiser.displayName}
               </Text>
             </View>
           </View>

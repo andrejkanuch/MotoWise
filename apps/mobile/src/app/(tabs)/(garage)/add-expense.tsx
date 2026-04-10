@@ -70,7 +70,7 @@ export default function AddExpenseScreen() {
   // Fetch photos for the newly-created expense (enabled once we have an id)
   const photosQuery = useQuery({
     queryKey: ['expense-photos', savedExpenseId ?? ''],
-    queryFn: () => gqlFetcher(ExpensePhotosDocument, { expenseId: savedExpenseId! }),
+    queryFn: () => gqlFetcher(ExpensePhotosDocument, { expenseId: savedExpenseId ?? '' }),
     enabled: !!savedExpenseId,
   });
   const photos = photosQuery.data?.expensePhotos ?? [];

@@ -4,8 +4,7 @@ import { Link } from '@/i18n/navigation';
 type FeatureKey = 'trip' | 'maintenance' | 'expenses' | 'rides' | 'diag' | 'garage';
 
 const GRID_CLASSES: Record<FeatureKey, string> = {
-  trip:
-    'md:col-span-2 lg:col-span-3 lg:[grid-area:trip] border-warm-500/40 bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-neutral-900/30',
+  trip: 'md:col-span-2 lg:col-span-3 lg:[grid-area:trip] border-warm-500/40 bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-neutral-900/30',
   maintenance:
     'md:col-span-2 lg:[grid-area:maintenance] border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40',
   expenses: 'lg:row-span-2 lg:[grid-area:expenses]',

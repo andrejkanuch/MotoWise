@@ -107,7 +107,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      { '@type': 'ListItem', position: 2, name: 'Features', item: getCanonicalUrl(locale, '/features') },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Features',
+        item: getCanonicalUrl(locale, '/features'),
+      },
       { '@type': 'ListItem', position: 3, name: t('title'), item: canonical },
     ],
   };
@@ -213,11 +218,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </svg>
           </li>
           <li>
-            <Link
-              href="/features/trip-planning"
-              className="text-neutral-300"
-              aria-current="page"
-            >
+            <Link href="/features/trip-planning" className="text-neutral-300" aria-current="page">
               {t('title')}
             </Link>
           </li>
@@ -227,10 +228,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
       {/* Hero — distinctive: map backdrop + hand-drawn route SVG */}
       <section className="relative px-6 pb-16 pt-8 md:pb-28 md:pt-14">
         {/* Layered topo + route motif */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
           {/* soft radial glow */}
           <div
             className="absolute inset-0"

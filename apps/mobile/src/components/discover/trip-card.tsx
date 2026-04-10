@@ -113,7 +113,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
     onPress();
   };
 
-  const a11yLabel = `${trip.title}, a ${diffLabel.toLowerCase()} ${days}-${days === 1 ? 'day' : 'day'} trip with ${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}. ${participantCount} of ${maxRiders} riders signed up, led by ${trip.organiser.displayName}. ${vis.label}.`;
+  const a11yLabel = `${trip.title}, a ${diffLabel.toLowerCase()} ${days}-day trip with ${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}. ${participantCount} of ${maxRiders} riders signed up, led by ${trip.organiser.displayName}. ${vis.label}.`;
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(250)}>
@@ -191,10 +191,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
 
         {/* Description (single line, filler only) */}
         {trip.description ? (
-          <Text
-            style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }}
-            numberOfLines={1}
-          >
+          <Text style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }} numberOfLines={1}>
             {trip.description}
           </Text>
         ) : null}
@@ -284,10 +281,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
                 <User size={10} color={metaColor} />
               </View>
             )}
-            <Text
-              style={{ fontSize: 12, color: metaColor, flexShrink: 1 }}
-              numberOfLines={1}
-            >
+            <Text style={{ fontSize: 12, color: metaColor, flexShrink: 1 }} numberOfLines={1}>
               {trip.organiser.displayName}
             </Text>
           </View>

@@ -25,7 +25,7 @@ export default function FollowersPage() {
     queryKey: ['followers', userId],
     queryFn: ({ pageParam }) =>
       gqlFetcher(GetFollowersDocument, {
-        userId: userId!,
+        userId: userId ?? '',
         first: 20,
         after: pageParam ?? undefined,
       }),
@@ -41,7 +41,7 @@ export default function FollowersPage() {
     queryKey: ['following', userId],
     queryFn: ({ pageParam }) =>
       gqlFetcher(GetFollowingDocument, {
-        userId: userId!,
+        userId: userId ?? '',
         first: 20,
         after: pageParam ?? undefined,
       }),

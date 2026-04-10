@@ -41,6 +41,7 @@ export function MetaPixel() {
         }}
       />
       <noscript>
+        {/* biome-ignore lint/performance/noImgElement: noscript fallback requires a plain img tag */}
         <img
           height="1"
           width="1"

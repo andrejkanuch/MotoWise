@@ -9,18 +9,9 @@ import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Compass, Map as MapIcon, Plus, Users } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActionSheetIOS,
-  ActivityIndicator,
-  FlatList,
-  Platform,
-  Pressable,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Compass, Plus } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -31,8 +22,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GroupRideSection } from '../../../components/discover/group-ride-section';
 import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
@@ -47,7 +38,6 @@ export default function DiscoverScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
-  const mapRef = useRef<MapboxGL.MapView>(null);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
@@ -104,24 +94,23 @@ export default function DiscoverScreen() {
 
   // Plot trip starting waypoints so riders see WHERE trips are geographically.
   const tripGeoJSON = useMemo(() => {
-    const features = trips
-      .flatMap((t) => {
-        const wps = t.waypoints ?? [];
-        if (wps.length === 0) return [];
-        const sorted = [...wps].sort((a, b) => a.sortOrder - b.sortOrder);
-        const origin = sorted.find((w) => w.lat != null && w.lng != null);
-        if (!origin) return [];
-        return [
-          {
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [origin.lng, origin.lat],
-            },
-            properties: { id: t.id, title: t.title, kind: 'trip' },
+    const features = trips.flatMap((t) => {
+      const wps = t.waypoints ?? [];
+      if (wps.length === 0) return [];
+      const sorted = [...wps].sort((a, b) => a.sortOrder - b.sortOrder);
+      const origin = sorted.find((w) => w.lat != null && w.lng != null);
+      if (!origin) return [];
+      return [
+        {
+          type: 'Feature' as const,
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [origin.lng, origin.lat],
           },
-        ];
-      });
+          properties: { id: t.id, title: t.title, kind: 'trip' },
+        },
+      ];
+    });
     return { type: 'FeatureCollection' as const, features };
   }, [trips]);
 
@@ -138,32 +127,17 @@ export default function DiscoverScreen() {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const [showCreateSheet, setShowCreateSheet] = useState(false);
-
   // FAB press animation
   const fabScale = useSharedValue(1);
   const fabStyle = useAnimatedStyle(() => ({ transform: [{ scale: fabScale.value }] }));
 
+  // Group rides are temporarily removed from Discover; the FAB goes straight
+  // to the trip planner. Keep it a single action until rides come back.
   const handleCreatePress = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Group ride', 'Multi-day trip', 'Cancel'],
-          cancelButtonIndex: 2,
-          title: 'New ride',
-          message: 'One-day meetup or multi-day trip?',
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 0) router.push('/(modals)/create-group-ride');
-          if (buttonIndex === 1) router.push('/(modals)/create-trip');
-        },
-      );
-    } else {
-      setShowCreateSheet(true);
-    }
+    router.push('/(modals)/create-trip');
   }, [router]);
 
   const renderItem = useCallback(
@@ -178,7 +152,6 @@ export default function DiscoverScreen() {
       {/* Map */}
       <View style={{ height: 280, position: 'relative' }}>
         <MapboxGL.MapView
-          ref={mapRef}
           style={{ flex: 1 }}
           styleURL={MAP_STYLES[mapStyle]}
           compassEnabled={false}
@@ -333,7 +306,6 @@ export default function DiscoverScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <View>
-            <GroupRideSection />
             <TripSection />
             <View style={{ paddingVertical: 12 }}>
               <Text
@@ -420,7 +392,8 @@ export default function DiscoverScreen() {
           fabScale.value = withTiming(1, { duration: 200 });
         }}
         accessibilityRole="button"
-        accessibilityLabel="Plan a new ride"
+        accessibilityLabel="Plan a new trip"
+        accessibilityHint="Opens the multi-day trip planner"
         style={[
           {
             position: 'absolute',
@@ -444,155 +417,6 @@ export default function DiscoverScreen() {
       >
         <Plus size={24} color={palette.white} />
       </AnimatedPressable>
-
-      {/* Android create sheet */}
-      {showCreateSheet && Platform.OS !== 'ios' && (
-        <Pressable
-          onPress={() => setShowCreateSheet(false)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: palette.neutral950,
-            opacity: 0.5,
-            justifyContent: 'flex-end',
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: isDark ? palette.neutral900 : palette.white,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              borderCurve: 'continuous',
-              paddingTop: 20,
-              paddingBottom: insets.bottom + 16,
-              paddingHorizontal: 20,
-              gap: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: '800',
-                color: headerColor,
-                letterSpacing: -0.3,
-                marginBottom: 4,
-              }}
-            >
-              New ride
-            </Text>
-
-            <Pressable
-              onPress={() => {
-                setShowCreateSheet(false);
-                router.push('/(modals)/create-group-ride');
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-                paddingVertical: 14,
-                paddingHorizontal: 12,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-              }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: palette.signature500,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Users size={20} color={palette.white} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: headerColor }}>
-                  Group ride
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: isDark ? palette.neutral400 : palette.neutral500,
-                  }}
-                >
-                  One meetup point, one day out
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                setShowCreateSheet(false);
-                router.push('/(modals)/create-trip');
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 14,
-                paddingVertical: 14,
-                paddingHorizontal: 12,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-              }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: palette.indigo500,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <MapIcon size={20} color={palette.white} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: headerColor }}>
-                  Multi-day trip
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: isDark ? palette.neutral400 : palette.neutral500,
-                  }}
-                >
-                  Days on the road, stops along the way
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={() => setShowCreateSheet(false)}
-              style={{
-                alignItems: 'center',
-                paddingVertical: 14,
-                marginTop: 4,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral400 : palette.neutral500,
-                }}
-              >
-                Cancel
-              </Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      )}
     </View>
   );
 }

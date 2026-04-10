@@ -137,7 +137,7 @@ export default function CreateTripScreen() {
   // Fetch existing trip data when in edit mode
   const tripQuery = useQuery({
     queryKey: ['trip-edit', params.tripId],
-    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: params.tripId! }),
+    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: params.tripId ?? '' }),
     enabled: isEditMode,
   });
 
@@ -397,7 +397,7 @@ export default function CreateTripScreen() {
   }, []);
 
   // Delete waypoint
-  const handleDelete = useCallback((id: string) => {
+  const handleDeleteWaypoint = useCallback((id: string) => {
     setWaypoints((prev) => {
       const filtered = prev.filter((wp) => wp.id !== id);
       return filtered.map((wp, i) => ({ ...wp, sortOrder: i }));
@@ -498,7 +498,7 @@ export default function CreateTripScreen() {
       const tripInput = buildTripInput();
       await gqlFetcher(UpdateTripDocument, {
         input: {
-          tripId: params.tripId!,
+          tripId: params.tripId ?? '',
           ...tripInput,
         },
       });
@@ -508,7 +508,7 @@ export default function CreateTripScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       router.back();
     },
     onError: () => {
@@ -519,14 +519,14 @@ export default function CreateTripScreen() {
   // Delete mutation (edit mode only) — permanently removes the trip.
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await gqlFetcher(DeleteTripDocument, { tripId: params.tripId! });
+      await gqlFetcher(DeleteTripDocument, { tripId: params.tripId ?? '' });
     },
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.removeQueries({ queryKey: queryKeys.trips.detail(params.tripId!) });
+      queryClient.removeQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       // Pop both the edit modal AND the trip-detail modal underneath it.
       router.dismissAll();
     },
@@ -535,7 +535,7 @@ export default function CreateTripScreen() {
     },
   });
 
-  const handleDelete = useCallback(() => {
+  const handleDeleteTrip = useCallback(() => {
     Alert.alert(
       'Delete this trip?',
       "The route, every stop, and all the riders on it will be gone. Can't be undone.",
@@ -868,7 +868,7 @@ export default function CreateTripScreen() {
                             isLast={globalIdx === sortedWaypoints.length - 1}
                             onMoveUp={() => handleMoveUp(globalIdx)}
                             onMoveDown={() => handleMoveDown(globalIdx)}
-                            onDelete={() => handleDelete(wp.id)}
+                            onDelete={() => handleDeleteWaypoint(wp.id)}
                             onPress={() => openEditModal(wp)}
                             onMoveDay={() => handleMoveDay(wp.id)}
                             distance={
@@ -1250,7 +1250,7 @@ export default function CreateTripScreen() {
                 {/* Delete — full width, danger outlined. Lives here (edit mode)
                     so the view screen stays read-only. */}
                 <Pressable
-                  onPress={handleDelete}
+                  onPress={handleDeleteTrip}
                   disabled={isSaving}
                   accessibilityRole="button"
                   accessibilityLabel="Delete trip"

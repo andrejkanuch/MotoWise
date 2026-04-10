@@ -136,7 +136,9 @@ export function Hero() {
                 <path d="M17.05 12.536c-.02-2.13 1.738-3.153 1.816-3.202-.99-1.449-2.532-1.647-3.081-1.672-1.313-.133-2.56.774-3.228.774-.667 0-1.693-.754-2.783-.733-1.433.021-2.754.834-3.49 2.117-1.49 2.583-.381 6.406 1.069 8.503.71 1.026 1.555 2.18 2.662 2.14 1.069-.042 1.474-.693 2.767-.693 1.293 0 1.657.693 2.79.67 1.152-.02 1.881-1.046 2.584-2.075.813-1.191 1.148-2.347 1.17-2.406-.026-.012-2.255-.865-2.276-3.423zm-2.1-6.297c.595-.716.994-1.714.886-2.706-.856.035-1.89.57-2.5 1.285-.55.633-1.029 1.645-.9 2.618.954.074 1.924-.485 2.514-1.197z" />
               </svg>
               <span className="flex flex-col items-start leading-tight">
-                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">Download on the</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">
+                  Download on the
+                </span>
                 <span className="text-lg font-bold">App Store</span>
               </span>
             </a>
@@ -172,7 +174,9 @@ export function Hero() {
                 />
               </svg>
               <span className="flex flex-col items-start leading-tight">
-                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">Get it on</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">
+                  Get it on
+                </span>
                 <span className="text-lg font-bold">Google Play</span>
               </span>
             </a>

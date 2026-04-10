@@ -18,7 +18,7 @@ export function TripSection() {
 
   const headerColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const emptyIconColor = isDark ? palette.neutral600 : palette.neutral300;
+  const _emptyIconColor = isDark ? palette.neutral600 : palette.neutral300;
   const createBg = isDark ? palette.cardDark : palette.white;
   const createBorder = isDark ? palette.surfaceElevated : palette.neutral200;
 

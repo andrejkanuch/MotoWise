@@ -91,9 +91,9 @@ export function useHomeData() {
 
   // Map rides for the widget
   const recentRides = useMemo(() => {
-    return ridesEdges.map((edge: any) => {
+    return ridesEdges.map((edge) => {
       const node = edge.node;
-      const bikeName = bikeNames[node.motorcycleId] ?? null;
+      const bikeName = node.motorcycleId ? (bikeNames[node.motorcycleId] ?? null) : null;
       return {
         id: node.id,
         userId: '',
@@ -123,7 +123,7 @@ export function useHomeData() {
   }, [ridesEdges, bikeNames]);
 
   const ridesTotalDistance = useMemo(() => {
-    return recentRides.reduce((sum: number, r: any) => sum + (r.distanceM ?? 0), 0);
+    return recentRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0);
   }, [recentRides]);
 
   const fleetHealth: FleetHealth | null = useMemo(() => {
