@@ -12,6 +12,7 @@ import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
 import { Motorcycle } from './models/motorcycle.model';
 import { MotorcycleMake } from './models/motorcycle-make.model';
 import { MotorcycleModelResult } from './models/motorcycle-model-result.model';
+import { RecallResult } from './models/recall.model';
 import { MotorcyclesService } from './motorcycles.service';
 import { NhtsaService } from './nhtsa.service';
 
@@ -89,5 +90,15 @@ export class MotorcyclesResolver {
     @Args('id', ParseUUIDPipe) id: string,
   ): Promise<boolean> {
     return this.motorcyclesService.softDelete(user.id, id);
+  }
+
+  // MOT-142: Check open NHTSA safety recalls for a motorcycle.
+  @Query(() => RecallResult, { name: 'motorcycleRecalls' })
+  @UseGuards(GqlAuthGuard)
+  async motorcycleRecalls(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
+  ): Promise<RecallResult> {
+    return this.motorcyclesService.checkRecalls(user.id, motorcycleId);
   }
 }

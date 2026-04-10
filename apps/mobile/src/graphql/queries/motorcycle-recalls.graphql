@@ -1,0 +1,15 @@
+query MotorcycleRecalls($motorcycleId: String!) {
+  motorcycleRecalls(motorcycleId: $motorcycleId) {
+    count
+    checkedAt
+    vinUsed
+    recalls {
+      campaignNumber
+      reportDate
+      component
+      summary
+      consequence
+      remedy
+    }
+  }
+}

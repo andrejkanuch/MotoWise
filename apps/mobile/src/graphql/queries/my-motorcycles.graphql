@@ -15,6 +15,9 @@ query MyMotorcycles {
     purchaseDate
     type
     engineCc
+    vin
+    recallCount
+    recallLastCheckedAt
     createdAt
   }
 }

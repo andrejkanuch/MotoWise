@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -679,8 +675,11 @@ type Motorcycle {
   primaryPhotoUrl: String
   purchaseDate: String
   purchasePrice: Float
+  recallCount: Int
+  recallLastCheckedAt: String
   type: MotorcycleType
   userId: String!
+  vin: String
   year: Int!
 }
 
@@ -863,6 +862,7 @@ type Query {
   me: User!
   motorcycleMakes: [MotorcycleMake!]!
   motorcycleModels(makeId: Int!, year: Int!): [MotorcycleModelResult!]!
+  motorcycleRecalls(motorcycleId: String!): RecallResult!
   myDiagnostics: [Diagnostic!]!
   myMotorcycles: [Motorcycle!]!
   myProgress: [LearningProgress!]!
@@ -902,6 +902,22 @@ type QuizQuestion {
   explanation: String!
   options: [String!]!
   question: String!
+}
+
+type Recall {
+  campaignNumber: String!
+  component: String!
+  consequence: String!
+  remedy: String!
+  reportDate: String!
+  summary: String!
+}
+
+type RecallResult {
+  checkedAt: String!
+  count: Int!
+  recalls: [Recall!]!
+  vinUsed: String
 }
 
 input ReorderWaypointsInput {
@@ -1232,6 +1248,7 @@ input UpdateMotorcycleInput {
   primaryPhotoUrl: String
   purchaseDate: String
   purchasePrice: Float
+  vin: String
   year: Int
 }
 

@@ -40,6 +40,10 @@ export default function ModalsLayout() {
         name="trip-detail"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
+      <Stack.Screen
+        name="recalls"
+        options={{ presentation: 'formSheet', gestureEnabled: true, headerShown: false }}
+      />
     </Stack>
   );
 }

@@ -1103,6 +1103,8 @@ export type Database = {
           primary_photo_url: string | null
           purchase_date: string | null
           purchase_price: number | null
+          recall_count: number | null
+          recall_last_checked_at: string | null
           type: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at: string
           user_id: string
@@ -1125,6 +1127,8 @@ export type Database = {
           primary_photo_url?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          recall_count?: number | null
+          recall_last_checked_at?: string | null
           type?: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at?: string
           user_id: string
@@ -1147,6 +1151,8 @@ export type Database = {
           primary_photo_url?: string | null
           purchase_date?: string | null
           purchase_price?: number | null
+          recall_count?: number | null
+          recall_last_checked_at?: string | null
           type?: Database["public"]["Enums"]["motorcycle_type"] | null
           updated_at?: string
           user_id?: string

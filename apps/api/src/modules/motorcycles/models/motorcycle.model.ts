@@ -48,6 +48,16 @@ export class Motorcycle {
   @Field({ nullable: true })
   purchaseDate?: string;
 
+  // MOT-142 fields
+  @Field({ nullable: true })
+  vin?: string;
+
+  @Field(() => Int, { nullable: true })
+  recallCount?: number;
+
+  @Field({ nullable: true })
+  recallLastCheckedAt?: string;
+
   @Field()
   createdAt: string;
 }

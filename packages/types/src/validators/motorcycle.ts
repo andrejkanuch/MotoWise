@@ -9,6 +9,10 @@ export const CreateMotorcycleSchema = z.object({
 });
 export type CreateMotorcycle = z.infer<typeof CreateMotorcycleSchema>;
 
+// MOT-142: VIN format per ISO 3779 / SAE J853. 17 chars, excluding I, O, Q to avoid
+// confusion with 1, 0, and 0. Matches the CHECK constraint in the migration.
+const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
+
 export const UpdateMotorcycleSchema = z.object({
   make: z.string().min(1).max(100).optional(),
   model: z.string().min(1).max(100).optional(),
@@ -22,6 +26,11 @@ export const UpdateMotorcycleSchema = z.object({
   purchaseDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format')
+    .nullable()
+    .optional(),
+  vin: z
+    .string()
+    .regex(VIN_REGEX, 'VIN must be 17 uppercase characters (no I, O, or Q)')
     .nullable()
     .optional(),
 });

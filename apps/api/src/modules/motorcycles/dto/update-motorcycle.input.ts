@@ -31,4 +31,8 @@ export class UpdateMotorcycleInput {
 
   @Field(() => String, { nullable: true })
   purchaseDate?: string;
+
+  // MOT-142: optional VIN (17 chars, validated by Zod)
+  @Field(() => String, { nullable: true })
+  vin?: string;
 }

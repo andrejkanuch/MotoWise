@@ -402,28 +402,44 @@ export default function BikeDetailScreen() {
     }
   };
 
+  // MOT-142: Navigate to safety recalls modal
+  const handleCheckRecalls = () => {
+    if (!bike) return;
+    triggerImpact();
+    router.push({
+      pathname: '/(modals)/recalls',
+      params: {
+        motorcycleId: bike.id,
+        bikeName: `${bike.year} ${bike.make} ${bike.model}`,
+      },
+    });
+  };
+
   const handleMoreActions = () => {
     triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
+      recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
       export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [labels.cancel, labels.export, labels.delete],
+          options: [labels.cancel, labels.recalls, labels.export, labels.delete],
           cancelButtonIndex: 0,
-          destructiveButtonIndex: 2,
+          destructiveButtonIndex: 3,
         },
         (buttonIndex) => {
-          if (buttonIndex === 1) handleExportPdf();
-          else if (buttonIndex === 2) handleDeleteBike();
+          if (buttonIndex === 1) handleCheckRecalls();
+          else if (buttonIndex === 2) handleExportPdf();
+          else if (buttonIndex === 3) handleDeleteBike();
         },
       );
     } else {
       Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
         { text: labels.cancel, style: 'cancel' },
+        { text: labels.recalls, onPress: handleCheckRecalls },
         { text: labels.export, onPress: handleExportPdf },
         { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
       ]);

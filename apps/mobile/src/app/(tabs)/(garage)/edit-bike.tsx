@@ -71,6 +71,7 @@ export default function EditBikeScreen() {
   const [isPrimary, setIsPrimary] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [purchasePrice, setPurchasePrice] = useState('');
+  const [vin, setVin] = useState('');
   const [initialized, setInitialized] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -85,6 +86,7 @@ export default function EditBikeScreen() {
     isPrimary: false,
     photoUrl: null as string | null,
     purchasePrice: '',
+    vin: '',
   });
 
   // --- NHTSA queries ---
@@ -129,6 +131,7 @@ export default function EditBikeScreen() {
         isPrimary: bike.isPrimary,
         photoUrl: bike.primaryPhotoUrl ?? null,
         purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
+        vin: bike.vin ?? '',
       };
       initialValues.current = vals;
       setNickname(vals.nickname);
@@ -138,6 +141,7 @@ export default function EditBikeScreen() {
       setIsPrimary(vals.isPrimary);
       setPhotoUrl(vals.photoUrl);
       setPurchasePrice(vals.purchasePrice);
+      setVin(vals.vin);
       setInitialized(true);
     }
   }, [bike, initialized]);
@@ -182,7 +186,8 @@ export default function EditBikeScreen() {
       mileageUnit !== init.mileageUnit ||
       isPrimary !== init.isPrimary ||
       photoUrl !== init.photoUrl ||
-      purchasePrice !== init.purchasePrice
+      purchasePrice !== init.purchasePrice ||
+      vin !== init.vin
     );
   }, [
     nickname,
@@ -194,10 +199,15 @@ export default function EditBikeScreen() {
     isPrimary,
     photoUrl,
     purchasePrice,
+    vin,
     initialized,
   ]);
 
-  const isValid = makeName.length > 0 && modelName.length > 0;
+  // MOT-142: VIN is 17 chars from {A-H,J-N,P-R,0-9} (no I, O, Q)
+  const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
+  const vinTrimmed = vin.trim().toUpperCase();
+  const vinIsValid = vinTrimmed.length === 0 || VIN_REGEX.test(vinTrimmed);
+  const isValid = makeName.length > 0 && modelName.length > 0 && vinIsValid;
 
   // --- Unsaved changes guard ---
   const navigation = useNavigation();
@@ -250,6 +260,9 @@ export default function EditBikeScreen() {
             ? {
                 purchasePrice: purchasePrice.trim() ? Number.parseFloat(purchasePrice) : null,
               }
+            : {}),
+          ...(vinTrimmed !== initialValues.current.vin
+            ? { vin: vinTrimmed.length === 17 ? vinTrimmed : null }
             : {}),
         },
       });
@@ -921,6 +934,45 @@ export default function EditBikeScreen() {
                   style={[inputStyle, { flex: 1 }]}
                 />
               </View>
+            </View>
+
+            {/* VIN — MOT-142 */}
+            <View>
+              <Text style={labelStyle}>
+                {t('garage.vin', { defaultValue: 'VIN' })}
+                <Text style={{ fontWeight: '400', color: secondaryText }}>
+                  {' '}
+                  ({t('common.optional', { defaultValue: 'optional' })})
+                </Text>
+              </Text>
+              <TextInput
+                value={vin}
+                onChangeText={(text) => setVin(text.toUpperCase().slice(0, 17))}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                placeholder="17-character VIN"
+                placeholderTextColor={palette.neutral400}
+                style={inputStyle}
+                maxLength={17}
+              />
+              {!vinIsValid && (
+                <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 6 }}>
+                  {t('garage.vinInvalid', {
+                    defaultValue: 'VIN must be 17 uppercase characters (no I, O, or Q)',
+                  })}
+                </Text>
+              )}
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: secondaryText,
+                  marginTop: 6,
+                }}
+              >
+                {t('garage.vinHelp', {
+                  defaultValue: 'Used for NHTSA safety recall lookups.',
+                })}
+              </Text>
             </View>
           </Animated.View>
 
