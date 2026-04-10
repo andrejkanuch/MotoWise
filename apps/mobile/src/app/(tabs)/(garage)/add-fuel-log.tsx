@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { CreateFuelLogDocument, FuelLogsDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Droplets, Gauge, Plus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -22,7 +23,6 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
-import * as Haptics from 'expo-haptics';
 
 /**
  * MOT-137: Fuel fill-up entry + history screen.
@@ -394,9 +394,7 @@ export default function AddFuelLogScreen() {
           }}
         >
           <Droplets size={32} color={mutedText} strokeWidth={1.5} />
-          <Text
-            style={{ fontSize: 14, color: mutedText, marginTop: 10, textAlign: 'center' }}
-          >
+          <Text style={{ fontSize: 14, color: mutedText, marginTop: 10, textAlign: 'center' }}>
             {t('fuel.emptyState', {
               defaultValue: 'No fill-ups yet. Log your next fill to start tracking MPG.',
             })}

@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
+  ImportOemScheduleDocument,
   MaintenanceTasksByMotorcycleDocument,
   type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
@@ -49,7 +50,6 @@ import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
-import { ImportOemScheduleDocument } from '@motovault/graphql';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
@@ -418,8 +418,7 @@ export default function BikeDetailScreen() {
 
   // MOT-138: Manually re-import the OEM maintenance schedule for this bike
   const importOemMutation = useMutation({
-    mutationFn: () =>
-      gqlFetcher(ImportOemScheduleDocument, { motorcycleId: id }),
+    mutationFn: () => gqlFetcher(ImportOemScheduleDocument, { motorcycleId: id }),
     onSuccess: (data) => {
       const count = data?.importOemSchedule ?? 0;
       queryClient.invalidateQueries({

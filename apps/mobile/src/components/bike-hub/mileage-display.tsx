@@ -30,8 +30,7 @@ export function MileageDisplay({
       odometerSyncSource === 'gps_ride'
         ? t('bikeHub.autoUpdated', { defaultValue: 'Auto-updated' })
         : t('bikeHub.manualEntry', { defaultValue: 'Manual entry' });
-    if (!mileageUpdatedAt)
-      return t('bikeHub.neverUpdated', { defaultValue: 'Never updated' });
+    if (!mileageUpdatedAt) return t('bikeHub.neverUpdated', { defaultValue: 'Never updated' });
     const diff = Date.now() - new Date(mileageUpdatedAt).getTime();
     const days = Math.floor(diff / 86400000);
     if (days === 0)

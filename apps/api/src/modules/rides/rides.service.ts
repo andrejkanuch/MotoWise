@@ -114,8 +114,7 @@ export class RidesService {
         // unit (km or mi). Previously distanceM (meters) was added directly,
         // producing wildly inflated odometer readings on every ride.
         const unit = (bike?.mileage_unit as string | null) ?? 'mi';
-        const distanceInUnit =
-          unit === 'km' ? distanceM / 1000 : distanceM / 1609.344; // mi conversion
+        const distanceInUnit = unit === 'km' ? distanceM / 1000 : distanceM / 1609.344; // mi conversion
         const roundedDelta = Math.round(distanceInUnit);
         const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
 

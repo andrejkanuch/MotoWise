@@ -82,7 +82,11 @@ export default function RecallsScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 32, gap: 12 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: insets.bottom + 32,
+          gap: 12,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {bikeName && (

@@ -126,8 +126,7 @@ export class FuelLogsService {
           amount: input.totalCost,
           category: 'fuel',
           date: dateOnly,
-          description:
-            input.notes ?? `${input.fuelLitres}L ${input.fuelType ?? 'regular'} fill-up`,
+          description: input.notes ?? `${input.fuelLitres}L ${input.fuelType ?? 'regular'} fill-up`,
           currency: input.currency ?? 'USD',
         });
       } catch (e) {
