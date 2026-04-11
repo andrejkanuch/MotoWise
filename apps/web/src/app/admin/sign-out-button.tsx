@@ -2,6 +2,7 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useState } from 'react';
 
 export function SignOutButton() {
@@ -15,6 +16,7 @@ export function SignOutButton() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
     );
     await supabase.auth.signOut();
+    posthog.reset();
     router.push('/');
   };
 

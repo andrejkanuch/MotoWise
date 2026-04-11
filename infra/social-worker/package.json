@@ -1,0 +1,20 @@
+{
+  "name": "@motovault/social-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker that publishes MotoVault social media posts on a cron schedule",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail --format pretty",
+    "fill-queue": "tsx scripts/fill-queue.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250401.0",
+    "@types/node": "^25.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "~5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}

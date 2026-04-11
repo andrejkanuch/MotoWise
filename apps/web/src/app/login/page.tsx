@@ -33,7 +33,7 @@ export default function LoginPage() {
       posthog.capture('sign_in_error', { method: 'email', error_message: error.message });
     } else {
       if (data.user) {
-        posthog.identify(data.user.id, { email: data.user.email });
+        posthog.identify(data.user.id);
       }
       // Hard navigation to ensure middleware re-runs with new cookies
       const params = new URLSearchParams(window.location.search);

@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
+import { CookieConsentProvider } from '@/components/cookie-consent';
+import { PostHogPageView } from '@/components/posthog-pageview';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
 
@@ -53,9 +55,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="apple-itunes-app" content="app-id=6745417382" />
       </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
-        <QueryProvider>{children}</QueryProvider>
-        <Analytics />
-        <AnalyticsWithConsent />
+        <CookieConsentProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <Analytics />
+          <AnalyticsWithConsent />
+          <PostHogPageView />
+        </CookieConsentProvider>
       </body>
     </html>
   );

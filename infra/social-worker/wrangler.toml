@@ -1,0 +1,31 @@
+name = "motovault-social-api"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cron triggers replace the claude.ai scheduled tasks. These run on Cloudflare
+# infrastructure — no Claude Code sandbox, no egress allowlist.
+#
+# Slots map 1:1 to social_post_queue.slot values:
+#   afternoon      -> 14:00 UTC (Europe afternoon / Americas morning)
+#   evening        -> 19:00 UTC (Europe evening)
+#   night-americas -> 00:00 UTC (Americas evening)
+[triggers]
+crons = [
+  "0 14 * * *",
+  "0 19 * * *",
+  "0 0 * * *",
+]
+
+[observability]
+enabled = true
+
+# Secrets (set via `npx wrangler secret put <NAME>`, never commit):
+#   META_API_KEY
+#   META_PAGE_ID
+#   META_IG_USER_ID
+#   SUPABASE_URL
+#   SUPABASE_ANON_KEY
+#   SUPABASE_SERVICE_ROLE_KEY   <-- NEW: required for social_post_queue RLS bypass
+#   GOOGLE_AI_STUDIO_KEY
+#   WORKER_AUTH_KEY

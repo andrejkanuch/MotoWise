@@ -15,7 +15,7 @@ import { Settings } from 'react-native-fbsdk-next';
 
 const SENTRY_DSN = Constants.expoConfig?.extra?.sentryDsn ?? '';
 const POSTHOG_API_KEY = Constants.expoConfig?.extra?.posthogApiKey ?? '';
-const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://us.i.posthog.com';
+const POSTHOG_HOST = Constants.expoConfig?.extra?.posthogHost ?? 'https://eu.i.posthog.com';
 
 // Eagerly initialize PostHog so the instance can be passed to PostHogProvider.
 // The client is disabled when no API key is configured, so events are no-ops.

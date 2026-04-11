@@ -168,6 +168,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     sentryDsn: process.env.SENTRY_DSN ?? '',
     posthogApiKey: process.env.POSTHOG_API_KEY ?? '',
-    posthogHost: process.env.POSTHOG_HOST ?? 'https://us.i.posthog.com',
+    posthogHost: process.env.POSTHOG_HOST ?? 'https://eu.i.posthog.com',
   },
 });

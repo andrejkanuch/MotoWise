@@ -38,12 +38,12 @@ export default function SignUpPage() {
       setLoading(false);
       posthog.capture('sign_up_error', { method: 'email', error_message: error.message });
     } else if (data.user && !data.session) {
-      posthog.identify(data.user.id, { email: data.user.email });
+      posthog.identify(data.user.id);
       setSuccess(true);
       setLoading(false);
     } else {
       if (data.user) {
-        posthog.identify(data.user.id, { email: data.user.email });
+        posthog.identify(data.user.id);
       }
       // Auto-confirmed — redirect to feed
       window.location.href = '/feed';
