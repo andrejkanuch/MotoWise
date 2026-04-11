@@ -90,6 +90,38 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
   response.headers.set('Content-Security-Policy', buildCspHeader(nonce));
 }
 
+// Public marketing paths that are safe to cache at the edge. Excludes admin,
+// community (feed/garage/profile), auth, and share-link routes which are
+// user-specific or token-scoped.
+const MARKETING_CACHEABLE_RE =
+  /^\/($|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+
+function isMarketingCacheable(pathname: string): boolean {
+  if (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/rider/') ||
+    pathname.startsWith('/ride/') ||
+    pathname.startsWith('/feed') ||
+    pathname.startsWith('/garage') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/t/') ||
+    pathname.startsWith('/r/')
+  ) {
+    return false;
+  }
+  return MARKETING_CACHEABLE_RE.test(pathname);
+}
+
+function applyMarketingCacheHeader(response: NextResponse) {
+  // Edge cache for 1 hour, serve stale for up to 24 hours while revalidating.
+  // Matches the route segment `revalidate = 3600` hint used by (marketing) pages.
+  response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+}
+
 const intlMiddleware = createIntlMiddleware(routing);
 
 async function adminAuth(request: NextRequest) {
@@ -265,6 +297,9 @@ export async function proxy(request: NextRequest) {
   // Apply nonce-based CSP and security headers to all responses
   if (!response.headers.has('Location')) {
     applySecurityHeaders(response, nonce);
+    if (isMarketingCacheable(pathname)) {
+      applyMarketingCacheHeader(response);
+    }
   }
 
   return response;
