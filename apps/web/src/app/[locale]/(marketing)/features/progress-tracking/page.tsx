@@ -2,10 +2,18 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -20,10 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/progress-tracking'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/progress-tracking')]),
-        ['x-default', getCanonicalUrl('en', '/features/progress-tracking')],
-      ]),
+      languages: getHreflangMap('/features/progress-tracking'),
     },
   };
 }
@@ -42,40 +47,48 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('FeaturesProgress');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Features',
-        item: getCanonicalUrl(locale, '/features'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: t('title'),
-        item: getCanonicalUrl(locale, '/features/progress-tracking'),
-      },
-    ],
-  };
+  const canonical = getCanonicalUrl(locale, '/features/progress-tracking');
 
   const faqItems = [0, 1, 2, 3].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
-  };
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features/progress-tracking',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features/progress-tracking',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+      feature: {
+        subCategory: 'Motorcycle Progress Tracking',
+        url: canonical,
+        description: t('description'),
+        featureList: [
+          'GPS ride recording',
+          'Elevation and speed analytics',
+          'Monthly mileage trends',
+          'Cost-per-mile over time',
+          'Ride streaks',
+        ],
+      },
+    }),
+    buildFAQPage(faqItems, `${locale}/features/progress-tracking/faq`),
+  );
 
   const features = [
     { titleKey: 'badgesTitle', descKey: 'badgesDesc' },
@@ -85,8 +98,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={faqSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">

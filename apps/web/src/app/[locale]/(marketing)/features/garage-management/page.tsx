@@ -3,11 +3,19 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot';
 import { FeatureShowcase } from '@/components/marketing/feature-showcase';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
 import { GarageManagementFaq } from './faq';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -22,10 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/garage-management'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/garage-management')]),
-        ['x-default', getCanonicalUrl('en', '/features/garage-management')],
-      ]),
+      languages: getHreflangMap('/features/garage-management'),
     },
   };
 }
@@ -133,71 +138,52 @@ export default async function GarageManagementPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('FeaturesGarage');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: getCanonicalUrl(locale),
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Features',
-        item: getCanonicalUrl(locale, '/features'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: t('title'),
-        item: getCanonicalUrl(locale, '/features/garage-management'),
-      },
-    ],
-  };
-
-  const softwareAppSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'MobileApplication',
-    name: 'MotoVault',
-    applicationCategory: 'UtilitiesApplication',
-    applicationSubCategory: 'Motorcycle Maintenance',
-    operatingSystem: ['iOS', 'Android'],
-    description: t('description'),
-    url: BASE_URL,
-    featureList: [t('multiBikeTitle'), t('nhtsaTitle'), t('historyTitle'), t('remindersTitle')],
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD',
-    },
-  };
+  const canonical = getCanonicalUrl(locale, '/features/garage-management');
 
   const faqItems = [0, 1, 2, 3, 4].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: answer,
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features/garage-management',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features/garage-management',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+      feature: {
+        subCategory: 'Motorcycle Garage Management',
+        url: canonical,
+        description: t('description'),
+        featureList: [
+          'Unlimited bikes per garage',
+          'VIN decode via NHTSA vPIC',
+          'Service intervals by mileage and time',
+          'Expense tracking with cost-per-mile analytics',
+          'Per-bike service history',
+        ],
       },
-    })),
-  };
+    }),
+    buildFAQPage(faqItems, `${locale}/features/garage-management/faq`),
+  );
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={softwareAppSchema} />
-      <JsonLd data={faqSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">

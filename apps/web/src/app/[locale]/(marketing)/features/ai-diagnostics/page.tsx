@@ -3,11 +3,19 @@ import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { DiagnosticFlowStepper } from '@/components/marketing/diagnostic-flow-stepper';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
 import { DiagnosticsFaq } from './diagnostics-faq';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -22,10 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/ai-diagnostics'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/ai-diagnostics')]),
-        ['x-default', getCanonicalUrl('en', '/features/ai-diagnostics')],
-      ]),
+      languages: getHreflangMap('/features/ai-diagnostics'),
     },
   };
 }
@@ -35,40 +40,49 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('FeaturesDiagnostics');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Features',
-        item: getCanonicalUrl(locale, '/features'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: t('title'),
-        item: getCanonicalUrl(locale, '/features/ai-diagnostics'),
-      },
-    ],
-  };
+  const canonical = getCanonicalUrl(locale, '/features/ai-diagnostics');
 
   const faqItems = [0, 1, 2, 3, 4].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
-  };
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features/ai-diagnostics',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features/ai-diagnostics',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+      feature: {
+        subCategory: 'Motorcycle AI Diagnostics',
+        url: canonical,
+        description: t('description'),
+        featureList: [
+          'Photo-based diagnostic assessment',
+          'Claude AI vision model',
+          'Covers 18,000+ motorcycle models (per internal telemetry, 2026-Q1)',
+          'No OBD hardware required',
+          'Severity grading and next-step guidance',
+          'Service reminders from detected issues',
+        ],
+      },
+    }),
+    buildFAQPage(faqItems, `${locale}/features/ai-diagnostics/faq`),
+  );
 
   const issues = [
     'issue1',
@@ -102,8 +116,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={faqSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
@@ -171,6 +184,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
             {t('heroSubtitle')}
           </p>
+          <p className="mx-auto mt-4 max-w-2xl text-xs text-neutral-600">{t('statsSourceNote')}</p>
         </div>
       </section>
 

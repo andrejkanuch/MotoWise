@@ -2,11 +2,19 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { FeatureScreenshot } from '@/components/marketing/feature-screenshot';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
 import { LearningFaq } from './faq';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -21,10 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/learning-paths'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/learning-paths')]),
-        ['x-default', getCanonicalUrl('en', '/features/learning-paths')],
-      ]),
+      languages: getHreflangMap('/features/learning-paths'),
     },
   };
 }
@@ -41,82 +46,54 @@ export default async function LearningPathsPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('FeaturesLearning');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      {
-        '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: getCanonicalUrl(locale),
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Features',
-        item: getCanonicalUrl(locale, '/features'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: t('title'),
-        item: getCanonicalUrl(locale, '/features/learning-paths'),
-      },
-    ],
-  };
-
-  const courseSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Course',
-    name: t('title'),
-    description: t('description'),
-    provider: {
-      '@type': 'Organization',
-      name: 'MotoVault',
-      url: BASE_URL,
-    },
-    educationalLevel: 'Beginner to Advanced',
-    inLanguage: locale,
-    isAccessibleForFree: true,
-    hasCourseInstance: {
-      '@type': 'CourseInstance',
-      courseMode: 'Online',
-      courseWorkload: 'PT20H',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'USD',
-        availability: 'https://schema.org/InStock',
-      },
-    },
-  };
+  const canonical = getCanonicalUrl(locale, '/features/learning-paths');
 
   const faqItems = [0, 1, 2, 3, 4].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: answer,
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features/learning-paths',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features/learning-paths',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+      feature: {
+        subCategory: 'Motorcycle Learning',
+        url: canonical,
+        description: t('description'),
+        featureList: [
+          'Curated articles tailored to rider level',
+          'First-year-rider curriculum',
+          'Warning-light guides',
+          'Maintenance checklists',
+          'Progress badges',
+        ],
       },
-    })),
-  };
+    }),
+    buildFAQPage(faqItems, `${locale}/features/learning-paths/faq`),
+  );
 
   const courses = ['course1', 'course2', 'course3', 'course4'] as const;
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={courseSchema} />
-      <JsonLd data={faqSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
