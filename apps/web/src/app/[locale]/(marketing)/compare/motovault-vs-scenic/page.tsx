@@ -65,18 +65,22 @@ function Cross() {
   );
 }
 
-const FEATURES = [
+// Scenic is an iOS-only solo route planner with excellent offline maps bundled in the one-time
+// purchase (no Pro tier). No community, no friend tracker, no maintenance/expense features.
+// `rv` is typed as `boolean | 'pro'` so the shared `'pro'` render branch keeps typechecking
+// even when no row uses it on this specific competitor.
+const FEATURES: ReadonlyArray<{ key: string; mv: boolean; rv: boolean | 'pro' }> = [
   { key: 'featureMaintenance', mv: true, rv: false },
   { key: 'featureExpenses', mv: true, rv: false },
   { key: 'featureRides', mv: true, rv: true },
   { key: 'featureRoutes', mv: false, rv: true },
   { key: 'featureDiagnostics', mv: true, rv: false },
   { key: 'featureLearning', mv: true, rv: false },
-  { key: 'featureCommunity', mv: false, rv: true },
-  { key: 'featureOfflineMaps', mv: false, rv: 'pro' },
-  { key: 'featureFriendTracker', mv: false, rv: true },
+  { key: 'featureCommunity', mv: false, rv: false },
+  { key: 'featureOfflineMaps', mv: false, rv: true },
+  { key: 'featureFriendTracker', mv: false, rv: false },
   { key: 'featureReminders', mv: true, rv: false },
-] as const;
+];
 
 const PARITY_ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const PRICING_ROWS = [0, 1, 2] as const;
@@ -492,14 +496,14 @@ export default async function VsScenicPage({ params }: PageProps) {
               </p>
             </Link>
             <Link
-              href="/compare/motovault-vs-calimoto"
+              href="/compare/motovault-vs-kurviger"
               className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
             >
               <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                MotoVault vs Calimoto
+                MotoVault vs Kurviger
               </p>
               <p className="mt-1 text-sm text-neutral-500">
-                Navigation app vs all-in-one companion for riders.
+                Two curvy-road route planners compared side-by-side.
               </p>
             </Link>
             <Link

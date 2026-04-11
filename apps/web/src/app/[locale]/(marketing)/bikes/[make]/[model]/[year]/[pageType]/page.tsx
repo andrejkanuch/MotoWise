@@ -68,7 +68,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonical = getCanonicalUrl(p.locale, pageUrl(page));
 
   return {
-    title: page.title,
+    // Fixture titles already include "| MotoVault". Use `absolute` to bypass the
+    // root layout's "%s | MotoVault" template and avoid double-suffixing.
+    title: { absolute: page.title },
     description: page.description,
     alternates: {
       canonical,

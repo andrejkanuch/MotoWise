@@ -65,18 +65,22 @@ function Cross() {
   );
 }
 
-const FEATURES = [
+// EatSleepRIDE is community-first: social feed, group-ride events, live friend tracking, and
+// CRASH Light crash detection. It's not a route planner and has no offline maps or reminders.
+// `rv` is typed as `boolean | 'pro'` so the shared `'pro'` render branch keeps typechecking
+// even when no row uses it on this specific competitor.
+const FEATURES: ReadonlyArray<{ key: string; mv: boolean; rv: boolean | 'pro' }> = [
   { key: 'featureMaintenance', mv: true, rv: false },
   { key: 'featureExpenses', mv: true, rv: false },
   { key: 'featureRides', mv: true, rv: true },
-  { key: 'featureRoutes', mv: false, rv: true },
+  { key: 'featureRoutes', mv: false, rv: false },
   { key: 'featureDiagnostics', mv: true, rv: false },
   { key: 'featureLearning', mv: true, rv: false },
   { key: 'featureCommunity', mv: false, rv: true },
-  { key: 'featureOfflineMaps', mv: false, rv: 'pro' },
+  { key: 'featureOfflineMaps', mv: false, rv: false },
   { key: 'featureFriendTracker', mv: false, rv: true },
   { key: 'featureReminders', mv: true, rv: false },
-] as const;
+];
 
 const PARITY_ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const PRICING_ROWS = [0, 1, 2] as const;
@@ -503,14 +507,14 @@ export default async function VsEatSleepRidePage({ params }: PageProps) {
               </p>
             </Link>
             <Link
-              href="/compare/motovault-vs-ridelog"
+              href="/compare/motovault-vs-motoscan"
               className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
             >
               <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                MotoVault vs RideLog
+                MotoVault vs MotoScan
               </p>
               <p className="mt-1 text-sm text-neutral-500">
-                Maintenance-focused apps compared head to head.
+                AI diagnostics with no hardware vs OBD dongle reader.
               </p>
             </Link>
           </div>

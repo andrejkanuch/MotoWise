@@ -22,7 +22,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   setRequestLocale(locale);
   const canonical = getCanonicalUrl(locale, '/bikes');
   return {
-    title: `${PAGE_TITLE} | MotoVault`,
+    // `absolute` bypasses the root layout's "%s | MotoVault" template so we don't
+    // double-suffix. The root title.default is "MotoVault" so a single suffix is enough.
+    title: { absolute: `${PAGE_TITLE} | MotoVault` },
     description: PAGE_DESCRIPTION,
     alternates: {
       canonical,

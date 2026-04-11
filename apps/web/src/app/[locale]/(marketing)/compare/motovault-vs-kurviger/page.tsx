@@ -65,6 +65,8 @@ function Cross() {
   );
 }
 
+// Kurviger is a focused curvy-road route planner; most non-routing features are absent.
+// DE/AT/CH forum community exists but there is no community-routes or friend-tracking platform.
 const FEATURES = [
   { key: 'featureMaintenance', mv: true, rv: false },
   { key: 'featureExpenses', mv: true, rv: false },
@@ -72,9 +74,9 @@ const FEATURES = [
   { key: 'featureRoutes', mv: false, rv: true },
   { key: 'featureDiagnostics', mv: true, rv: false },
   { key: 'featureLearning', mv: true, rv: false },
-  { key: 'featureCommunity', mv: false, rv: true },
+  { key: 'featureCommunity', mv: false, rv: false },
   { key: 'featureOfflineMaps', mv: false, rv: 'pro' },
-  { key: 'featureFriendTracker', mv: false, rv: true },
+  { key: 'featureFriendTracker', mv: false, rv: false },
   { key: 'featureReminders', mv: true, rv: false },
 ] as const;
 
@@ -503,14 +505,14 @@ export default async function VsKurvigerPage({ params }: PageProps) {
               </p>
             </Link>
             <Link
-              href="/compare/motovault-vs-calimoto"
+              href="/compare/motovault-vs-scenic"
               className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
             >
               <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                MotoVault vs Calimoto
+                MotoVault vs Scenic
               </p>
               <p className="mt-1 text-sm text-neutral-500">
-                Navigation app vs all-in-one companion for riders.
+                iOS-only route planner vs cross-platform companion.
               </p>
             </Link>
           </div>

@@ -65,18 +65,23 @@ function Cross() {
   );
 }
 
-const FEATURES = [
+// MotoScan is a hardware OBD-II diagnostic tool — it reads ECU fault codes via a paid adapter
+// and does nothing else. No rides, no routes, no community, no maps, no maintenance tracking.
+// Diagnostics is marked true for both because MotoScan does real hardware ECU reads while
+// MotoVault does AI-based symptom analysis — different mechanisms, same product category.
+// `rv` is typed as `boolean | 'pro'` so the shared `'pro'` render branch keeps typechecking.
+const FEATURES: ReadonlyArray<{ key: string; mv: boolean; rv: boolean | 'pro' }> = [
   { key: 'featureMaintenance', mv: true, rv: false },
   { key: 'featureExpenses', mv: true, rv: false },
-  { key: 'featureRides', mv: true, rv: true },
-  { key: 'featureRoutes', mv: false, rv: true },
-  { key: 'featureDiagnostics', mv: true, rv: false },
+  { key: 'featureRides', mv: true, rv: false },
+  { key: 'featureRoutes', mv: false, rv: false },
+  { key: 'featureDiagnostics', mv: true, rv: true },
   { key: 'featureLearning', mv: true, rv: false },
-  { key: 'featureCommunity', mv: false, rv: true },
-  { key: 'featureOfflineMaps', mv: false, rv: 'pro' },
-  { key: 'featureFriendTracker', mv: false, rv: true },
+  { key: 'featureCommunity', mv: false, rv: false },
+  { key: 'featureOfflineMaps', mv: false, rv: false },
+  { key: 'featureFriendTracker', mv: false, rv: false },
   { key: 'featureReminders', mv: true, rv: false },
-] as const;
+];
 
 const PARITY_ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const PRICING_ROWS = [0, 1, 2] as const;
@@ -492,14 +497,14 @@ export default async function VsMotoScanPage({ params }: PageProps) {
               </p>
             </Link>
             <Link
-              href="/compare/motovault-vs-ridelog"
+              href="/compare/motovault-vs-eatsleepride"
               className="group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5 transition-colors hover:border-warm-500/40"
             >
               <p className="font-semibold text-neutral-200 transition-colors group-hover:text-warm-400">
-                MotoVault vs RideLog
+                MotoVault vs EatSleepRIDE
               </p>
               <p className="mt-1 text-sm text-neutral-500">
-                Maintenance-focused apps compared head to head.
+                Ownership management vs community and crash detection.
               </p>
             </Link>
             <Link
