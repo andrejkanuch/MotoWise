@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export const runtime = 'edge';
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 /**
  * Apple App Site Association (AASA) file for Universal Links.
