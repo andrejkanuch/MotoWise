@@ -5,13 +5,7 @@ import { FeatureScreenshot } from '@/components/marketing/feature-screenshot';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { LearningFaq } from './faq';
 
 export const revalidate = 3600;
@@ -70,22 +64,6 @@ export default async function LearningPathsPage({ params }: PageProps) {
       locale,
       '/features/learning-paths',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-      feature: {
-        subCategory: 'Motorcycle Learning',
-        url: canonical,
-        description: t('description'),
-        featureList: [
-          'Curated articles tailored to rider level',
-          'First-year-rider curriculum',
-          'Warning-light guides',
-          'Maintenance checklists',
-          'Progress badges',
-        ],
-      },
-    }),
     buildFAQPage(faqItems, `${locale}/features/learning-paths/faq`),
   );
 

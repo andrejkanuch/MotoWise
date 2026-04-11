@@ -23,7 +23,13 @@ function parseConsent(): Decision | null {
 function writeConsent(decision: Decision) {
   const epoch = Math.floor(Date.now() / 1000);
   const value = `v1:${decision}:${epoch}:EU`;
-  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+  // Use runtime protocol detection so `Secure` is added for any HTTPS origin
+  // (production, Vercel previews, staging) and omitted for plain http://
+  // (local `next start`, docker dev) where the flag would silently reject
+  // the cookie. `location.protocol` is preferred over `NODE_ENV` which is
+  // `'production'` even in preview + local HTTPS builds.
+  const secure =
+    typeof location !== 'undefined' && location.protocol === 'https:' ? '; Secure' : '';
   // biome-ignore lint/suspicious/noDocumentCookie: this IS the consent primitive itself
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
@@ -192,6 +198,11 @@ function PreferencesDialog({
   useEffect(() => {
     firstButtonRef.current?.focus();
 
+    // Lock body scroll while the dialog is open so background content doesn't
+    // scroll behind the modal on mobile.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -205,6 +216,13 @@ function PreferencesDialog({
         if (focusable.length === 0) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        // If focus has escaped the dialog (e.g. onto the backdrop), pull it
+        // back in rather than cycling past.
+        if (!dialogRef.current.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault();
           last.focus();
@@ -216,13 +234,17 @@ function PreferencesDialog({
     }
 
     document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [onClose]);
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4">
       <button
         type="button"
+        tabIndex={-1}
         aria-label="Close cookie preferences"
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-neutral-950/80 backdrop-blur-sm"

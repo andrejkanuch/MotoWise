@@ -5,13 +5,7 @@ import { FeatureScreenshotPair } from '@/components/marketing/feature-screenshot
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 3600;
 
@@ -71,22 +65,6 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
       locale,
       '/features/progress-tracking',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-      feature: {
-        subCategory: 'Motorcycle Progress Tracking',
-        url: canonical,
-        description: t('description'),
-        featureList: [
-          'GPS ride recording',
-          'Elevation and speed analytics',
-          'Monthly mileage trends',
-          'Cost-per-mile over time',
-          'Ride streaks',
-        ],
-      },
-    }),
     buildFAQPage(faqItems, `${locale}/features/progress-tracking/faq`),
   );
 

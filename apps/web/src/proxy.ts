@@ -122,6 +122,18 @@ function applyMarketingCacheHeader(response: NextResponse) {
   response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
 }
 
+// Returns true if the request carries a Supabase auth cookie, meaning the
+// page may render user-specific server components (nav avatar, CTA variants,
+// etc.) and must NOT be served from a shared edge cache.
+function hasSupabaseSession(request: NextRequest): boolean {
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')) {
+      return true;
+    }
+  }
+  return false;
+}
+
 const intlMiddleware = createIntlMiddleware(routing);
 
 async function adminAuth(request: NextRequest) {
@@ -297,7 +309,10 @@ export async function proxy(request: NextRequest) {
   // Apply nonce-based CSP and security headers to all responses
   if (!response.headers.has('Location')) {
     applySecurityHeaders(response, nonce);
-    if (isMarketingCacheable(pathname)) {
+    // Only emit the shared-cache header when the request is anonymous.
+    // Authenticated requests may render user-specific server content, which
+    // must never land in a shared edge cache keyed by URL alone.
+    if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
     }
   }

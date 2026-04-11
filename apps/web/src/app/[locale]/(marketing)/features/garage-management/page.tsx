@@ -6,13 +6,7 @@ import { FeatureShowcase } from '@/components/marketing/feature-showcase';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { GarageManagementFaq } from './faq';
 
 export const revalidate = 3600;
@@ -162,22 +156,6 @@ export default async function GarageManagementPage({ params }: PageProps) {
       locale,
       '/features/garage-management',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-      feature: {
-        subCategory: 'Motorcycle Garage Management',
-        url: canonical,
-        description: t('description'),
-        featureList: [
-          'Unlimited bikes per garage',
-          'VIN decode via NHTSA vPIC',
-          'Service intervals by mileage and time',
-          'Expense tracking with cost-per-mile analytics',
-          'Per-bike service history',
-        ],
-      },
-    }),
     buildFAQPage(faqItems, `${locale}/features/garage-management/faq`),
   );
 

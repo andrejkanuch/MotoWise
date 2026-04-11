@@ -47,14 +47,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          rel="preload"
-          href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_qWhpz5g.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {/* next/font/google already emits a content-hashed preload for the
+            primary Plus Jakarta Sans weight — don't duplicate it with a
+            hand-pinned URL that will drift when Google rotates file hashes. */}
         <link
           rel="alternate"
           type="application/rss+xml"

@@ -6,13 +6,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { DiagnosticsFaq } from './diagnostics-faq';
 
 export const revalidate = 3600;
@@ -64,23 +58,6 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       locale,
       '/features/ai-diagnostics',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-      feature: {
-        subCategory: 'Motorcycle AI Diagnostics',
-        url: canonical,
-        description: t('description'),
-        featureList: [
-          'Photo-based diagnostic assessment',
-          'Claude AI vision model',
-          'Covers 18,000+ motorcycle models (per internal telemetry, 2026-Q1)',
-          'No OBD hardware required',
-          'Severity grading and next-step guidance',
-          'Service reminders from detected issues',
-        ],
-      },
-    }),
     buildFAQPage(faqItems, `${locale}/features/ai-diagnostics/faq`),
   );
 

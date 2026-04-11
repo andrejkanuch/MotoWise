@@ -6,13 +6,7 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TripPlanningFlowStepper } from '@/components/marketing/trip-planning-flow-stepper';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { TripPlanningFaq } from './trip-planning-faq';
 
 export const revalidate = 3600;
@@ -129,25 +123,6 @@ export default async function TripPlanningPage({ params }: PageProps) {
       locale,
       '/features/trip-planning',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-      feature: {
-        subCategory: 'Motorcycle Trip Planning',
-        url: canonical,
-        description: t('description'),
-        featureList: [
-          'Multi-day motorcycle routes with day-by-day grouping',
-          '11 typed waypoints — fuel, food, scenic, overnight, ferry, pass summit, and more',
-          'Real road routing via Mapbox Directions — no straight-line approximations',
-          'Rider RSVPs (Going / Maybe / Declined) with per-rider bike selection',
-          'Draft trips before publishing',
-          'Private, Unlisted, and Public visibility controls',
-          'Difficulty tags (Easy, Moderate, Challenging, Expert)',
-          'Shareable canonical URLs with route previews',
-        ],
-      },
-    }),
     buildFAQPage(faqItems, `${locale}/features/trip-planning/faq`),
   );
 

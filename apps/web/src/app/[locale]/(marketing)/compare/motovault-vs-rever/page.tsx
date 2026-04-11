@@ -4,13 +4,7 @@ import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import {
-  buildBreadcrumbList,
-  buildFAQPage,
-  buildGraph,
-  buildSoftwareApplication,
-  buildWebPage,
-} from '@/lib/seo/schema';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 3600;
 
@@ -116,10 +110,6 @@ export default async function VsReverPage({ params }: PageProps) {
       locale,
       '/compare/motovault-vs-rever',
     ),
-    buildSoftwareApplication({
-      name: 'MotoVault',
-      description: t('description'),
-    }),
     buildFAQPage(faqItems, `${locale}/compare/motovault-vs-rever/faq`),
   );
 
