@@ -1,5 +1,6 @@
 'use client';
 
+import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
 
 const CONSENT_COOKIE = 'motovault_cookie_consent';
@@ -17,21 +18,39 @@ function setConsent(granted: boolean) {
   document.cookie = `${CONSENT_COOKIE}=${granted ? 'granted' : 'denied'}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
+// PostHog is initialized with `opt_out_capturing_by_default: true` +
+// `persistence: 'memory'` in instrumentation-client.ts. These helpers flip
+// capture on/off based on the user's cookie-banner choice and are the
+// single source of truth for PostHog consent on the web.
+function applyPostHogConsent(granted: boolean) {
+  if (typeof window === 'undefined') return;
+  if (granted) {
+    posthog.set_config({ persistence: 'localStorage+cookie' });
+    posthog.opt_in_capturing();
+  } else {
+    posthog.opt_out_capturing();
+  }
+}
+
 export function useCookieConsent() {
   const [consent, setConsentState] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setConsentState(getConsent());
+    const current = getConsent();
+    setConsentState(current);
+    if (current !== null) applyPostHogConsent(current);
   }, []);
 
   const accept = () => {
     setConsent(true);
     setConsentState(true);
+    applyPostHogConsent(true);
   };
 
   const deny = () => {
     setConsent(false);
     setConsentState(false);
+    applyPostHogConsent(false);
   };
 
   return { consent, accept, deny };
