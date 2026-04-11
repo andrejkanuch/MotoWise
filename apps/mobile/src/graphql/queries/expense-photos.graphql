@@ -1,0 +1,11 @@
+query ExpensePhotos($expenseId: String!) {
+  expensePhotos(expenseId: $expenseId) {
+    id
+    expenseId
+    storagePath
+    publicUrl
+    fileSizeBytes
+    mimeType
+    createdAt
+  }
+}

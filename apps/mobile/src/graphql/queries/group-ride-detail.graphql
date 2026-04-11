@@ -1,0 +1,31 @@
+query GroupRideDetail($groupRideId: ID!) {
+  groupRideDetail(groupRideId: $groupRideId) {
+    id
+    title
+    description
+    dateTime
+    meetingPointLat
+    meetingPointLng
+    meetingPointName
+    routeId
+    routeDescription
+    difficulty
+    maxRiders
+    participantCount
+    status
+    createdAt
+    organiser {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+    participants {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+      joinedAt
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
+  ImportOemScheduleDocument,
   MaintenanceTasksByMotorcycleDocument,
   type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
@@ -43,6 +44,7 @@ import { ExpensesSection } from '../../../../components/bike-hub/expenses-sectio
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
 import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
@@ -150,6 +152,7 @@ export default function BikeDetailScreen() {
     mutationFn: () => gqlFetcher(DeleteMotorcycleDocument, { id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
+      trackEvent(AnalyticsEvent.GARAGE_BIKE_REMOVED, { motorcycle_id: id });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
   });
@@ -171,8 +174,9 @@ export default function BikeDetailScreen() {
 
   const deleteMutation = useMutation({
     mutationFn: (taskId: string) => gqlFetcher(DeleteMaintenanceTaskDocument, { id: taskId }),
-    onSuccess: () => {
+    onSuccess: (_data, taskId) => {
       invalidateTasks();
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_DELETED, { motorcycle_id: id, task_id: taskId });
       triggerNotification(Haptics.NotificationFeedbackType.Warning);
     },
     onError: (_err: Error) => {
@@ -321,9 +325,9 @@ export default function BikeDetailScreen() {
     );
   };
 
-  const handleExportPdf = async () => {
+  // MOT-141: Maintenance history PDF export with optional date range filter.
+  const runPdfExport = async (dateFrom?: string, dateRangeLabel?: string) => {
     if (!bike) return;
-    triggerImpact();
     try {
       const pdfBike: PdfBike = {
         make: bike.make,
@@ -341,9 +345,11 @@ export default function BikeDetailScreen() {
         completedMileage: task.completedMileage ?? undefined,
         targetMileage: task.targetMileage ?? undefined,
         notes: task.notes ?? undefined,
-        photoCount: 0,
+        photoCount: task.photos?.length ?? 0,
+        cost: task.cost ?? undefined,
+        currency: task.currency ?? undefined,
       }));
-      await exportMaintenanceHistory(pdfBike, pdfTasks);
+      await exportMaintenanceHistory(pdfBike, pdfTasks, { dateFrom, dateRangeLabel });
     } catch (_e) {
       Alert.alert(
         t('common.error', { defaultValue: 'Error' }),
@@ -352,28 +358,126 @@ export default function BikeDetailScreen() {
     }
   };
 
+  const handleExportPdf = () => {
+    if (!bike) return;
+    triggerImpact();
+    const labelAll = t('maintenance.exportAllTime', { defaultValue: 'All time' });
+    const labelYear = t('maintenance.exportLastYear', { defaultValue: 'Last 12 months' });
+    const labelSix = t('maintenance.exportLast6Months', { defaultValue: 'Last 6 months' });
+    const labelCancel = t('common.cancel', { defaultValue: 'Cancel' });
+
+    const nowIso = new Date();
+    const yearAgo = new Date(nowIso);
+    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+    const sixMonthsAgo = new Date(nowIso);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+    if (process.env.EXPO_OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: t('maintenance.exportTitle', { defaultValue: 'Export History' }),
+          message: t('maintenance.exportMessage', {
+            defaultValue: 'Choose the date range to include',
+          }),
+          options: [labelAll, labelYear, labelSix, labelCancel],
+          cancelButtonIndex: 3,
+        },
+        (index) => {
+          if (index === 0) runPdfExport(undefined, labelAll);
+          else if (index === 1) runPdfExport(isoDate(yearAgo), labelYear);
+          else if (index === 2) runPdfExport(isoDate(sixMonthsAgo), labelSix);
+        },
+      );
+    } else {
+      Alert.alert(
+        t('maintenance.exportTitle', { defaultValue: 'Export History' }),
+        t('maintenance.exportMessage', { defaultValue: 'Choose the date range to include' }),
+        [
+          { text: labelAll, onPress: () => runPdfExport(undefined, labelAll) },
+          { text: labelYear, onPress: () => runPdfExport(isoDate(yearAgo), labelYear) },
+          { text: labelSix, onPress: () => runPdfExport(isoDate(sixMonthsAgo), labelSix) },
+          { text: labelCancel, style: 'cancel' },
+        ],
+      );
+    }
+  };
+
+  // MOT-142: Navigate to safety recalls modal
+  const handleCheckRecalls = () => {
+    if (!bike) return;
+    triggerImpact();
+    router.push({
+      pathname: '/(modals)/recalls',
+      params: {
+        motorcycleId: bike.id,
+        bikeName: `${bike.year} ${bike.make} ${bike.model}`,
+      },
+    });
+  };
+
+  // MOT-138: Manually re-import the OEM maintenance schedule for this bike
+  const importOemMutation = useMutation({
+    mutationFn: () => gqlFetcher(ImportOemScheduleDocument, { motorcycleId: id }),
+    onSuccess: (data) => {
+      const count = data?.importOemSchedule ?? 0;
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.maintenanceTasks.byMotorcycle(id),
+      });
+      triggerNotification(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        t('oem.importedTitle', { defaultValue: 'OEM schedule imported' }),
+        count > 0
+          ? t('oem.importedCount', {
+              defaultValue: `Added ${count} maintenance task${count === 1 ? '' : 's'} from the manufacturer schedule.`,
+              count,
+            })
+          : t('oem.importedNone', {
+              defaultValue: 'No new tasks to import — your schedule is already up to date.',
+            }),
+      );
+    },
+    onError: () => {
+      Alert.alert(
+        t('common.error', { defaultValue: 'Error' }),
+        t('oem.importFailed', { defaultValue: 'Failed to import OEM schedule. Please try again.' }),
+      );
+    },
+  });
+
+  const handleImportOem = () => {
+    triggerImpact();
+    importOemMutation.mutate();
+  };
+
   const handleMoreActions = () => {
     triggerImpact();
     const labels = {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
+      recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
+      importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
       export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [labels.cancel, labels.export, labels.delete],
+          options: [labels.cancel, labels.recalls, labels.importOem, labels.export, labels.delete],
           cancelButtonIndex: 0,
-          destructiveButtonIndex: 2,
+          destructiveButtonIndex: 4,
         },
         (buttonIndex) => {
-          if (buttonIndex === 1) handleExportPdf();
-          else if (buttonIndex === 2) handleDeleteBike();
+          if (buttonIndex === 1) handleCheckRecalls();
+          else if (buttonIndex === 2) handleImportOem();
+          else if (buttonIndex === 3) handleExportPdf();
+          else if (buttonIndex === 4) handleDeleteBike();
         },
       );
     } else {
       Alert.alert(t('common.actions', { defaultValue: 'Actions' }), undefined, [
         { text: labels.cancel, style: 'cancel' },
+        { text: labels.recalls, onPress: handleCheckRecalls },
+        { text: labels.importOem, onPress: handleImportOem },
         { text: labels.export, onPress: handleExportPdf },
         { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
       ]);
@@ -630,6 +734,7 @@ export default function BikeDetailScreen() {
             currentMileage={bike.currentMileage ?? undefined}
             mileageUnit={bike.mileageUnit ?? 'mi'}
             mileageUpdatedAt={bike.mileageUpdatedAt ?? undefined}
+            odometerSyncSource={bike.odometerSyncSource ?? undefined}
             isDark={isDark}
             onUpdate={handleMileageUpdate}
           />

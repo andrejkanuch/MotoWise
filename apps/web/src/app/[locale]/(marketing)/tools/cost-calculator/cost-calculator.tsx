@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import posthog from 'posthog-js';
 import { useCallback, useMemo } from 'react';
 import { Link } from '@/i18n/navigation';
 
@@ -303,7 +304,14 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                   <p className="mb-3 text-sm text-neutral-400">{labels.shareResults}</p>
                   <button
                     type="button"
-                    onClick={() => navigator.clipboard.writeText(window.location.href)}
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      posthog.capture('cost_calculator_result_shared', {
+                        bike_type: bikeType,
+                        annual_mileage: mileage,
+                        maintenance_tier: maintenance,
+                      });
+                    }}
                     className="rounded-full bg-neutral-800 px-6 py-2 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-700"
                   >
                     {labels.copyLink}

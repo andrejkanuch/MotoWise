@@ -1,84 +1,99 @@
 {
   "Metadata": {
-    "title": "MotoVault — Diagnóstico e Aprendizado de Motos com IA",
+    "title": "MotoVault — Manutenção de Motos, Despesas e Rastreador de Percursos",
     "titleTemplate": "%s | MotoVault",
-    "description": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android.",
-    "ogDescription": "Domine a manutenção de motos, diagnostique problemas com uma foto e acompanhe a saúde da sua moto. Em breve — grátis no iOS e Android."
+    "description": "Gerencie tarefas de manutenção, registre gastos com combustível e equipamentos, grave percursos e diagnostique problemas com IA. Grátis no iOS e Android.",
+    "ogDescription": "Gerencie tarefas de manutenção, registre gastos com combustível e equipamentos, grave percursos e diagnostique problemas com IA. Grátis no iOS e Android."
   },
   "Navbar": {
     "features": "Recursos",
-    "diagnostics": "Diagnóstico IA",
     "learning": "Aprendizado",
     "garage": "Garagem",
     "faq": "FAQ",
     "download": "Baixar o App",
     "login": "Entrar",
     "openMenu": "Abrir menu de navegação",
-    "closeMenu": "Fechar menu de navegação"
+    "closeMenu": "Fechar menu de navegação",
+    "signup": "Cadastrar",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnóstico IA",
+    "maintenance": "Manutenção",
+    "expenses": "Despesas",
+    "rides": "Percursos",
+    "tripPlanning": "Trip Planning",
+    "progress": "Progress Tracking",
+    "viewAllFeatures": "View all features",
+    "blog": "Blog"
   },
   "Hero": {
-    "line1": "APRENDA SUA MOTO.",
-    "line2": "CONSERTE",
-    "line3": "SUA MOTO.",
-    "subtitle": "Diagnóstico e aprendizado de motos com IA — em breve.",
-    "downloadCta": "Baixar o App",
+    "line1": "ACOMPANHE SUA MOTO.",
+    "line2": "DOMINE",
+    "line3": "SEU PERCURSO.",
+    "subtitle": "Registros de manutenção, controle de despesas e gravação de percursos — tudo em um só app.",
+    "downloadCta": "Comece a Rastrear Grátis",
     "exploreFeatures": "Explorar Recursos",
     "scrollDown": "Rolar para baixo",
-    "seoTitle": "App de Diagnóstico e Aprendizado de Motos com IA"
+    "seoTitle": "Rastreador de Manutenção de Motos e Gerenciador de Despesas"
   },
   "Features": {
     "sectionLabel": "Recursos",
     "sectionTitle": "Tudo que Sua Moto Precisa",
-    "sectionSubtitle": "Aprenda, mantenha e domine sua moto — tudo em um app.",
+    "sectionSubtitle": "Acompanhe despesas, gerencie manutenção, registre percursos e diagnostique problemas — tudo em um só app.",
     "diag": {
       "title": "Diagnóstico IA",
       "tagline": "Tire uma foto. Receba respostas.",
       "description": "Aponte sua câmera para qualquer peça, luz de aviso ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções — tudo em segundos.",
       "badge": "< 5 seg"
     },
-    "learn": {
-      "title": "Habilidades Mecânicas",
-      "tagline": "De troca de óleo a reconstrução de motor.",
-      "description": "Aprenda como seu motor, suspensão e sistema elétrico realmente funcionam — com aulas práticas, quizzes e tarefas de garagem.",
-      "badge": "50+ aulas"
-    },
     "garage": {
-      "title": "Gerenciamento de Garagem",
-      "tagline": "Acompanhe suas motos.",
-      "description": "Armazene cada moto por marca, modelo e ano. Registre manutenções, defina lembretes de serviço e mantenha um histórico completo para não perder nada.",
+      "title": "Garagem Digital",
+      "tagline": "Todas as suas motos, um só lugar.",
+      "description": "Salve cada moto por marca, modelo e ano. Especificações carregadas automaticamente. Um toque para ver manutenção, despesas e percursos de qualquer moto.",
       "badge": "Motos ilimitadas"
     },
-    "progress": {
-      "title": "Rastreador de Habilidades",
-      "tagline": "Veja o quanto você evoluiu.",
-      "description": "Suba de nível conforme aprende. Ganhe badges, acompanhe suas notas nos quizzes e veja sua evolução — da primeira troca de óleo a expert em motos.",
-      "badge": "Suba de nível"
+    "trip": {
+      "title": "Trip Planning",
+      "tagline": "Plan every mile of the ride.",
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
+      "badge": "New · Founding feature"
     },
-    "community": {
-      "title": "Comunidade",
-      "tagline": "Junte-se a outros pilotos.",
-      "description": "Compartilhe sua garagem, compare progresso e aprenda junto com pilotos de todos os níveis. Conhecimento sobre motos é melhor junto.",
-      "badge": "Novo"
+    "maintenance": {
+      "title": "Rastreador de Manutenção",
+      "tagline": "Nunca mais perca uma revisão.",
+      "description": "Registre cada troca de óleo, lubrificação de corrente e troca de pneu. Configure lembretes por quilometragem ou tempo que avisam antes do vencimento. Histórico completo de serviços em uma olhada.",
+      "badge": "Lembretes inteligentes"
+    },
+    "expenses": {
+      "title": "Gerenciador de Despesas",
+      "tagline": "Saiba quanto sua moto realmente custa.",
+      "description": "Acompanhe combustível, equipamentos, peças, seguro e todos os custos de propriedade. Veja tendências de gastos por categoria com análises mensais e custo por quilômetro.",
+      "badge": "Análise de custos"
+    },
+    "rides": {
+      "title": "Registro de Percursos",
+      "tagline": "Cada percurso, mapeado e salvo.",
+      "description": "Grave rotas GPS com velocidade, elevação e distância. Revise estatísticas de percursos, compartilhe destaques e construa um histórico completo de pilotagem.",
+      "badge": "Rastreamento GPS"
     }
   },
   "SocialProof": {
     "riders": "Pilotos Ativos",
     "ridersCount": "2.400+",
-    "diagnostics": "Diagnósticos de IA Realizados",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Motos no Banco de Dados",
+    "maintenance": "Diagnósticos de IA Realizados",
+    "maintenanceCount": "8.500+",
+    "bikes": "Motos Rastreadas",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Como Funciona",
-    "sectionTitle": "Como Funciona",
-    "sectionSubtitle": "Três passos. Só isso.",
+    "sectionTitle": "Três Passos para o Controle Total",
+    "sectionSubtitle": "Configure em minutos. Rastreie por anos.",
     "step1Title": "Adicione Sua Moto",
     "step1Desc": "Busque por marca, modelo e ano. As especificações da sua moto são carregadas automaticamente de bancos de dados oficiais.",
-    "step2Title": "Receba Insights da IA",
-    "step2Desc": "Tire uma foto de qualquer peça ou problema. Nossa IA identifica componentes, diagnostica problemas e sugere correções.",
-    "step3Title": "Pilote com Mais Inteligência",
-    "step3Desc": "Fique em dia com a manutenção usando lembretes inteligentes e desenvolva habilidades reais com aulas guiadas."
+    "step2Title": "Rastreie Tudo",
+    "step2Desc": "Registre manutenção, anote despesas e rastreie percursos. Cada dado constrói o histórico completo da sua moto.",
+    "step3Title": "Fique Sempre à Frente",
+    "step3Desc": "Receba lembretes inteligentes de serviço, análises de custo por quilômetro e diagnósticos com IA — para que nada te pegue de surpresa."
   },
   "Testimonials": {
     "sectionLabel": "Depoimentos",
@@ -120,21 +135,21 @@
   "AppShowcase": {
     "sectionLabel": "Veja em Ação",
     "sectionTitle": "Seu Centro de Comando para Motos",
-    "cap1Title": "Diagnóstico IA",
-    "cap1Desc": "Aponte sua câmera para qualquer problema. Receba identificação de peças, nível de gravidade e correções passo a passo em segundos.",
-    "cap1Alt": "Tela de resultado do diagnóstico IA do MotoVault",
-    "cap2Title": "Manutenção Inteligente",
-    "cap2Desc": "Registre cada serviço, defina lembretes por quilometragem e nunca mais esqueça uma troca de óleo ou lubrificação de corrente.",
-    "cap2Alt": "Tela de acompanhamento de manutenção do MotoVault",
-    "cap3Title": "Aprenda e Evolua",
-    "cap3Desc": "Cursos estruturados sobre internos do motor, ajuste de suspensão e sistemas elétricos — com quizzes para testar seu conhecimento.",
-    "cap3Alt": "Painel de aprendizado do MotoVault",
+    "cap1Title": "Rastreador de Manutenção",
+    "cap1Desc": "Registre cada serviço com datas, quilometragem e custos. Lembretes inteligentes avisam antes da próxima troca de óleo, lubrificação de corrente ou verificação de freios.",
+    "cap1Alt": "Tela de rastreamento de manutenção do MotoVault",
+    "cap2Title": "Rastreador de Despesas",
+    "cap2Desc": "Veja exatamente quanto custa sua moto. Acompanhe combustível, peças, equipamentos e seguro com análises mensais e custo por quilômetro.",
+    "cap2Alt": "Tela de rastreamento de despesas do MotoVault",
+    "cap3Title": "Diagnóstico com IA",
+    "cap3Desc": "Aponte a câmera para qualquer problema. Obtenha identificação de peças, avaliação de gravidade e soluções passo a passo em segundos.",
+    "cap3Alt": "Tela de resultado do diagnóstico IA do MotoVault",
     "learnMore": "Saiba mais"
   },
   "Cta": {
     "socialProof": "Confiado por milhares de pilotos no mundo todo",
-    "headline": "Conheça Sua Moto Por Dentro",
-    "subtitle": "Grátis no iOS e Android. Comece a acompanhar sua moto hoje.",
+    "headline": "Pare de Adivinhar. Comece a Rastrear.",
+    "subtitle": "Grátis no iOS e Android. Manutenção, despesas e percursos da sua moto — finalmente em um só lugar.",
     "trustFree": "Grátis para começar",
     "trustNoCard": "Sem spam, nunca",
     "disclaimer": "Disponível agora no iOS e Android.",
@@ -152,7 +167,7 @@
     "items": [
       {
         "question": "O que é o MotoVault?",
-        "answer": "MotoVault é uma plataforma com IA feita para motociclistas. Ela ajuda você a aprender manutenção, diagnosticar problemas tirando uma foto, acompanhar suas motos em uma garagem digital e desenvolver habilidades mecânicas reais com aulas e quizzes."
+        "answer": "MotoVault é um app de gerenciamento de motos feito para motociclistas. Rastreie tarefas de manutenção com lembretes inteligentes, registre cada despesa (combustível, equipamentos, peças), grave seus percursos e diagnostique problemas com análise fotográfica por IA — tudo em um só app."
       },
       {
         "question": "O MotoVault é gratuito?",
@@ -179,7 +194,7 @@
   "Footer": {
     "product": "Produto",
     "company": "Empresa",
-    "tagline": "Aprenda sua moto. Conserte sua moto.",
+    "tagline": "Rastreie cada quilômetro. Conheça cada custo.",
     "copyright": "© 2026 MotoVault. Todos os direitos reservados.",
     "features": "Recursos",
     "learning": "Trilhas de Aprendizado",
@@ -675,5 +690,97 @@
     "pdfFooter": "Gerado pelo MotoVault — Diagnósticos e manutenção de motos com IA",
     "pdfCta": "Baixe o MotoVault para lembretes automáticos pré-viagem, diagnósticos com IA e acompanhamento de manutenção.",
     "pdfWebsite": "motovault.app"
+  },
+  "FeaturesIndex": {
+    "title": "Recursos",
+    "description": "Tudo o que o MotoVault faz — planejamento de viagens, diagnóstico com IA, gestão da garagem, aprendizado e progresso.",
+    "sectionLabel": "O que o MotoVault faz",
+    "heroTitle": "Um app. Cada parte da pilotagem.",
+    "heroSubtitle": "Do planejamento do próximo roteiro de três dias ao diagnóstico de um barulho misterioso, o MotoVault acompanha cada fase da vida com a sua moto.",
+    "learnMore": "Saiba mais",
+    "tripPlanningTitle": "Planejamento de viagens",
+    "tripPlanningDesc": "Trace rotas de vários dias, adicione waypoints tipados, fixe pernoites e paradas para abastecer, e convide outros pilotos — tudo em um mapa vivo.",
+    "diagnosticsTitle": "Diagnóstico com IA",
+    "diagnosticsDesc": "Tire uma foto de uma luz de alerta, vazamento de óleo ou peça desgastada. Receba um diagnóstico estruturado com gravidade, confiança e próximos passos.",
+    "garageTitle": "Gestão da garagem",
+    "garageDesc": "Acompanhe cada moto que você possui — quilometragem, histórico de serviço, combustível e despesas — em uma única linha do tempo por moto.",
+    "learningTitle": "Trilhas de aprendizado",
+    "learningDesc": "Módulos estruturados e artigos gerados por IA, feitos para a sua moto, do serviço de freios à hibernação de inverno.",
+    "progressTitle": "Acompanhamento de progresso",
+    "progressDesc": "Cada pilotagem, cada tarefa, cada gasto registrados automaticamente para você sempre saber como a sua moto está."
+  },
+  "FeaturesTripPlanning": {
+    "title": "Planejador de viagens de moto — Construtor de rota e itinerário",
+    "description": "O planejador de viagens do MotoVault permite criar rotas de vários dias, adicionar waypoints tipados e pilotar com amigos. Mapa ao vivo, roteamento real, itinerários compartilháveis.",
+    "heroEyebrow": "O recurso fundador",
+    "heroTitle": "Planeje cada quilômetro da pilotagem",
+    "heroSubtitle": "Rotas de vários dias, waypoints tipados, roteamento real por estrada, e um mapa que se move com você. O primeiro recurso que construímos — e o que ainda molda todo o resto do MotoVault.",
+    "heroCtaPrimary": "Começar a planejar",
+    "heroCtaSecondary": "Ver uma viagem real",
+    "positioningTitle": "Por que construímos isso primeiro",
+    "positioningBody": "Todo piloto com quem conversamos tinha o mesmo problema: planejar uma viagem de moto de verdade significa fazer malabarismo com cinco apps. Google Maps para estradas, um app de notas para as paradas, um app de clima para a serra, uma conversa para os amigos, uma planilha para o orçamento de combustível. Fricção em cada passo. O planejamento de viagens foi o primeiro recurso que entregamos porque é o que a maioria dos pilotos mais precisa — e porque se conseguíssemos acertar isso, tudo o mais no MotoVault viria junto.",
+    "howItWorksLabel": "Como funciona",
+    "howItWorksTitle": "De um mapa em branco a uma pilotagem salva em quatro passos",
+    "step1Label": "Abrir a tela",
+    "step1Title": "Comece com um mapa em branco",
+    "step1Desc": "Toque no botão + em Discover e um mapa escuro em tela cheia se abre, pronto para a sua próxima aventura. Pressione e segure em qualquer ponto para adicionar uma parada, ou pesquise por uma cidade, uma serra, um café ou um posto.",
+    "step2Label": "Adicionar waypoints",
+    "step2Title": "Adicione waypoints tipados ao longo da rota",
+    "step2Desc": "Cada parada é mais do que um pino. Escolha entre 11 tipos — start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — e adicione notas. O stepper agrupa os waypoints por dia automaticamente.",
+    "step3Label": "Definir detalhes",
+    "step3Title": "Dê um nome à pilotagem, escolha o clima",
+    "step3Desc": "Título, descrição, datas de início e fim, dificuldade (Easy, Moderate, Challenging, Expert), máximo de pilotos e visibilidade (Private, Unlisted, Public). Todos os campos são opcionais no início — você pode voltar e polir antes de publicar.",
+    "step4Label": "Salvar ou publicar",
+    "step4Title": "Mantenha como rascunho ou compartilhe o link",
+    "step4Desc": "Salve como rascunho para continuar iterando. Publique para convidar amigos, ou deixe público para a comunidade descobrir e se juntar. Rascunhos ficam em My Trips, visíveis só para você.",
+    "galleryLabel": "Viagem real, dados reais",
+    "galleryTitle": "O circuito das Dolomitas — 3 dias",
+    "galleryBody": "Essa é uma viagem real feita com o MotoVault: Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano. Oito waypoints tipados, três dias, renderizados em um mapa ao vivo com roteamento real por estrada. Cada captura abaixo é tirada do app em produção.",
+    "gallery1Label": "Visão geral da rota",
+    "gallery1Subtitle": "Mapa, datas, organizador, dificuldade",
+    "gallery2Label": "Itinerário dia a dia",
+    "gallery2Subtitle": "Waypoints tipados com notas",
+    "gallery3Label": "Visão completa multi-dias",
+    "gallery3Subtitle": "Dias 1 e 2 lado a lado",
+    "featuresLabel": "Tudo no pacote",
+    "featuresTitle": "Os detalhes que fazem uma viagem de verdade funcionar",
+    "f1Title": "Itinerários de vários dias",
+    "f1Desc": "Agrupe waypoints por dia. Dia 1: Bolzano até Cortina. Dia 2: as grandes serras. Dia 3: voltar para casa. O app sabe quais paradas pertencem a qual dia.",
+    "f2Title": "11 tipos de waypoint",
+    "f2Desc": "Start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — cada um com seu ícone no mapa e na lista do itinerário.",
+    "f3Title": "Roteamento real por estrada",
+    "f3Desc": "O Mapbox Directions calcula a rota real favorável à moto entre as paradas. Sem aproximações em linha reta — asfalto real, quilômetros reais.",
+    "f4Title": "Controles de privacidade",
+    "f4Desc": "Três níveis de visibilidade. Private significa só você. Unlisted significa qualquer um com o link. Public significa descobrível no feed Discover.",
+    "f5Title": "Convidar pilotos",
+    "f5Desc": "O organizador convida pilotos específicos ou abre uma viagem pública até um limite. Cada piloto pode responder Going, Maybe ou Declined — e escolher qual moto vai levar.",
+    "f6Title": "Rascunhos antes da tinta",
+    "f6Desc": "Salve viagens pela metade como rascunho. Só você as vê. Volte, adicione as últimas três paradas e publique quando estiver pronto para compartilhar.",
+    "f7Title": "Tags de dificuldade",
+    "f7Desc": "Easy, Moderate, Challenging, Expert. Para ninguém entrar numa rota expert achando que é passeio de domingo.",
+    "f8Title": "Compartilhe em qualquer lugar",
+    "f8Desc": "Toda viagem publicada tem uma URL canônica. Mande no chat do grupo, poste no Discord, tuíte — ela aparece com a rota como preview.",
+    "walkthroughLabel": "Por trás dos panos",
+    "walkthroughTitle": "A história de uma viagem, da ideia à tinta",
+    "walkthroughP1": "Um piloto acorda no sábado e pensa no feriado que vem. Três dias livres, moto na garagem, e uma ideia vaga — \"as Dolomitas, talvez\". Ele abre o MotoVault, toca em Discover, depois no + para planejar uma nova viagem. Um mapa escuro se abre na localização dele.",
+    "walkthroughP2": "Ele dá zoom em Bolzano e pressiona para adicionar um waypoint Start — \"Bolzano — Start, checagem do equipamento e café antes de partir\". Depois busca Passo Sella e toca no resultado — ele cai como parada Scenic com a nota \"Iconic Dolomite pass, photo stop\". Ele continua: Cortina d'Ampezzo como Overnight, Passo Pordoi como Pass Summit, Canazei como Fuel, Ortisei como Overnight, Passo Gardena como Scenic, Bolzano como End. O app agrupa tudo automaticamente em Dia 1, Dia 2, Dia 3.",
+    "walkthroughP3": "Ele dá um nome — \"Dolomites Loop — 3 Days\" — escreve uma descrição, escolhe dificuldade Moderate, define max riders em 8 e deixa a visibilidade em Private. Salva como rascunho. Volta para o jardim tomar um café. Mais tarde ele lembra de um pernoite melhor em Ortisei, troca, muda a visibilidade para Public e aperta Publish. A viagem já está no Discover; dois amigos motociclistas entram antes do fim da noite.",
+    "walkthroughP4": "Esse é o arco inteiro — do mapa em branco à viagem com amigos — e roda em cima de roteamento real do Mapbox, linhas reais de Postgres e um bottom sheet que sobe para mostrar o itinerário sem perder o mapa. Sem planilhas, sem correntes de capturas, sem pinos perdidos.",
+    "faqLabel": "Perguntas frequentes",
+    "faqTitle": "Planejamento de viagens, perguntas que pilotos fazem",
+    "faq0Question": "O app realmente faz o roteamento em estradas reais, ou desenha linhas retas?",
+    "faq0Answer": "Estradas reais. Entre dois waypoints chamamos o Mapbox Directions com roteamento favorável à moto e renderizamos a polilinha real que você pilotaria. Dê zoom em qualquer trecho do circuito das Dolomitas acima — dá para ver as curvas fechadas.",
+    "faq1Question": "Posso planejar uma viagem antes de convidar alguém?",
+    "faq1Answer": "Sim. Toda viagem começa como rascunho, visível só para você. Você pode construí-la e editá-la em várias sessões e só publicar quando estiver pronto para compartilhar.",
+    "faq2Question": "E se eu convidar gente e só metade puder ir?",
+    "faq2Answer": "Cada piloto responde Going, Maybe ou Declined, e escolhe qual moto vai levar. Você vê a contagem no header da viagem (por exemplo, 0/8 riders) e a lista completa de participantes abaixo.",
+    "faq3Question": "Posso planejar uma viagem que passe por vários países ou travessias?",
+    "faq3Answer": "Sim. Não há fronteiras no mapa — adicione um waypoint Ferry para uma travessia do Mediterrâneo ou um Pass Summit para uma passagem de montanha. O motor de rota lida com tudo que o Mapbox consegue rotear.",
+    "faq4Question": "Quantos waypoints uma viagem pode ter?",
+    "faq4Answer": "Não há um teto rígido que você bata no uso normal. A restrição real é a legibilidade — passando de 15 ou 16 paradas num único dia o itinerário fica pesado. Divida em vários dias para manter limpo.",
+    "faq5Question": "Posso exportar a viagem para outro app?",
+    "faq5Answer": "Toda viagem publicada tem uma URL canônica com preview da rota. Você também pode compartilhar pela tela de detalhe da viagem; o compartilhamento nativo permite colar em Mensagens, Slack, Discord ou suas notas.",
+    "ctaTitle": "Seu próximo roteiro de três dias começa aqui.",
+    "ctaBody": "O planejamento de viagens é o recurso fundador do MotoVault. Baixe o app, adicione seu primeiro waypoint e veja por que construímos isso antes de tudo."
   }
 }

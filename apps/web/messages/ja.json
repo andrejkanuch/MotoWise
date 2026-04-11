@@ -1,84 +1,99 @@
 {
   "Metadata": {
-    "title": "MotoVault — AIバイク診断・学習アプリ",
+    "title": "MotoVault — バイクメンテナンス・費用・ライド記録アプリ",
     "titleTemplate": "%s | MotoVault",
-    "description": "バイクのメンテナンスをマスターし、写真で問題を診断し、バイクの状態を追跡しましょう。まもなくリリース — iOS・Androidで無料。",
-    "ogDescription": "バイクのメンテナンスをマスターし、写真で問題を診断し、バイクの状態を追跡しましょう。まもなくリリース — iOS・Androidで無料。"
+    "description": "メンテナンス作業を管理し、燃料やギアの費用を記録し、ライドを記録し、AIで問題を診断。iOS・Androidで無料。",
+    "ogDescription": "メンテナンス作業を管理し、燃料やギアの費用を記録し、ライドを記録し、AIで問題を診断。iOS・Androidで無料。"
   },
   "Navbar": {
     "features": "機能",
-    "diagnostics": "AI診断",
     "learning": "学習",
     "garage": "ガレージ",
     "faq": "FAQ",
     "download": "アプリを入手",
     "login": "ログイン",
     "openMenu": "ナビゲーションメニューを開く",
-    "closeMenu": "ナビゲーションメニューを閉じる"
+    "closeMenu": "ナビゲーションメニューを閉じる",
+    "signup": "サインアップ",
+    "dashboard": "My Garage",
+    "diagnostics": "AI診断",
+    "maintenance": "メンテナンス",
+    "expenses": "費用",
+    "rides": "ライド",
+    "tripPlanning": "Trip Planning",
+    "progress": "Progress Tracking",
+    "viewAllFeatures": "View all features",
+    "blog": "Blog"
   },
   "Hero": {
-    "line1": "バイクを学ぼう。",
-    "line2": "バイクを",
-    "line3": "直そう。",
-    "subtitle": "AI搭載のバイク診断・学習 — まもなくリリース。",
-    "downloadCta": "アプリを入手",
+    "line1": "バイクを管理しよう。",
+    "line2": "ライドを",
+    "line3": "自分のものに。",
+    "subtitle": "メンテナンス記録、費用管理、ライド記録 — すべて1つのアプリで。",
+    "downloadCta": "無料で管理を始める",
     "exploreFeatures": "機能を見る",
     "scrollDown": "下にスクロール",
-    "seoTitle": "AI搭載のバイク診断・学習アプリ"
+    "seoTitle": "バイクメンテナンストラッカー＆費用管理アプリ"
   },
   "Features": {
     "sectionLabel": "機能",
     "sectionTitle": "あなたのバイクに必要なすべて",
-    "sectionSubtitle": "学んで、メンテして、バイクをマスター — 1つのアプリで。",
+    "sectionSubtitle": "費用を管理し、メンテナンスを追跡し、ライドを記録し、問題を診断 — すべて1つのアプリで。",
     "diag": {
       "title": "AI診断",
       "tagline": "写真を撮って、答えをもらう。",
       "description": "カメラをどんなパーツ、警告灯、問題に向けてください。AIがコンポーネントを特定し、問題を診断し、修理方法を提案します — すべて数秒で。",
       "badge": "< 5秒"
     },
-    "learn": {
-      "title": "メカニックスキル",
-      "tagline": "オイル交換からエンジン組み直しまで。",
-      "description": "エンジン、サスペンション、電装系が実際にどう動くか学びましょう — 手軽なレッスン、クイズ、実践的なガレージタスクで。",
-      "badge": "50以上のレッスン"
-    },
     "garage": {
-      "title": "ガレージ管理",
-      "tagline": "バイクを管理しよう。",
-      "description": "メーカー、モデル、年式でバイクを保存。メンテナンスを記録し、サービスリマインダーを設定し、完全な履歴を管理して見落としをなくしましょう。",
+      "title": "デジタルガレージ",
+      "tagline": "すべてのバイクを一箇所に。",
+      "description": "メーカー、モデル、年式でバイクを保存。スペックは自動読み込み。ワンタップでどのバイクのメンテナンス、費用、ライドも確認。",
       "badge": "台数無制限"
     },
-    "progress": {
-      "title": "スキルトラッカー",
-      "tagline": "成長を実感しよう。",
-      "description": "学ぶほどレベルアップ。バッジを獲得し、クイズスコアを追跡し、成長を確認 — 初めてのオイル交換からバイクマスターまで。",
-      "badge": "レベルアップ"
+    "trip": {
+      "title": "Trip Planning",
+      "tagline": "Plan every mile of the ride.",
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
+      "badge": "New · Founding feature"
     },
-    "community": {
-      "title": "コミュニティ",
-      "tagline": "仲間のライダーと繋がろう。",
-      "description": "ガレージを共有し、進捗を比較し、あらゆるレベルのライダーと一緒に学びましょう。バイクの知識はみんなで高めるもの。",
-      "badge": "新機能"
+    "maintenance": {
+      "title": "メンテナンストラッカー",
+      "tagline": "サービスを見逃さない。",
+      "description": "すべてのオイル交換、チェーン注油、タイヤ交換を記録。走行距離ベースまたは時間ベースのリマインダーを設定し、期日前に通知を受け取れます。サービス履歴を一目で確認。",
+      "badge": "スマートリマインダー"
+    },
+    "expenses": {
+      "title": "費用マネージャー",
+      "tagline": "バイクの本当のコストを知ろう。",
+      "description": "燃料、ギア、パーツ、保険、すべての所有コストを追跡。カテゴリ別の支出トレンドを月次分析とキロ当たりコストで確認。",
+      "badge": "コスト分析"
+    },
+    "rides": {
+      "title": "ライドロガー",
+      "tagline": "すべてのライドをマップに記録。",
+      "description": "速度、標高、距離付きのGPSルートを記録。ライド統計の確認、ハイライトの共有、完全なライディング履歴の作成。",
+      "badge": "GPSトラッキング"
     }
   },
   "SocialProof": {
     "riders": "アクティブライダー",
     "ridersCount": "2,400+",
-    "diagnostics": "AI診断実行数",
-    "diagnosticsCount": "8,500+",
-    "bikes": "データベース内のバイク",
+    "maintenance": "AI診断実行数",
+    "maintenanceCount": "8,500+",
+    "bikes": "管理中のバイク",
     "bikesCount": "18,000+"
   },
   "HowItWorks": {
     "sectionLabel": "使い方",
-    "sectionTitle": "使い方",
-    "sectionSubtitle": "3ステップ。それだけです。",
+    "sectionTitle": "完全管理への3ステップ",
+    "sectionSubtitle": "数分で設定。何年も管理。",
     "step1Title": "バイクを追加",
     "step1Desc": "メーカー、モデル、年式で検索。公式データベースからバイクのスペックが自動的に読み込まれます。",
-    "step2Title": "AIインサイトを取得",
-    "step2Desc": "パーツや問題の写真を撮りましょう。AIがコンポーネントを特定し、問題を診断し、修理方法を提案します。",
-    "step3Title": "もっとスマートに走ろう",
-    "step3Desc": "スマートリマインダーでメンテナンスを管理し、ガイド付きレッスンで実践的なスキルを身につけましょう。"
+    "step2Title": "すべてを記録",
+    "step2Desc": "メンテナンスを記録し、費用を管理し、ライドを追跡。すべてのデータがバイクの完全な履歴を作ります。",
+    "step3Title": "常に先を行く",
+    "step3Desc": "スマートなサービスリマインダー、キロ当たりコスト分析、AI診断で — 何事にも備えましょう。"
   },
   "Testimonials": {
     "sectionLabel": "ユーザーの声",
@@ -120,21 +135,21 @@
   "AppShowcase": {
     "sectionLabel": "実際に見てみよう",
     "sectionTitle": "あなたのバイクコマンドセンター",
-    "cap1Title": "AI診断",
-    "cap1Desc": "カメラを問題箇所に向けるだけ。パーツの特定、重大度の評価、ステップバイステップの修理方法が数秒で得られます。",
-    "cap1Alt": "MotoVault AI診断結果画面",
-    "cap2Title": "スマートメンテナンス",
-    "cap2Desc": "すべてのサービスを記録し、走行距離ベースのリマインダーを設定。オイル交換やチェーン注油を忘れることはもうありません。",
-    "cap2Alt": "MotoVaultメンテナンス管理画面",
-    "cap3Title": "学んでレベルアップ",
-    "cap3Desc": "エンジン内部、サスペンションチューニング、電装システムの構造化されたコース — 知識を試すクイズ付き。",
-    "cap3Alt": "MotoVault学習ダッシュボード",
+    "cap1Title": "メンテナンストラッカー",
+    "cap1Desc": "日付、走行距離、コスト付きですべてのサービスを記録。スマートリマインダーが次のオイル交換、チェーン注油、ブレーキチェックの前に通知します。",
+    "cap1Alt": "MotoVaultメンテナンス管理画面",
+    "cap2Title": "費用トラッカー",
+    "cap2Desc": "バイクのコストを正確に把握。燃料、パーツ、ギア、保険を月次分析とキロ当たりコストで管理。",
+    "cap2Alt": "MotoVault費用管理画面",
+    "cap3Title": "AI診断",
+    "cap3Desc": "問題箇所にカメラを向けるだけ。パーツの特定、重大度評価、ステップバイステップの修理方法が数秒で得られます。",
+    "cap3Alt": "MotoVault AI診断結果画面",
     "learnMore": "詳しく見る"
   },
   "Cta": {
     "socialProof": "世界中の何千人ものライダーに信頼されています",
-    "headline": "バイクを隅々まで知ろう",
-    "subtitle": "iOS・Androidで無料。今すぐバイクの管理を始めましょう。",
+    "headline": "推測はやめよう。管理を始めよう。",
+    "subtitle": "iOS・Androidで無料。バイクのメンテナンス、費用、ライド — ついに一箇所に。",
     "trustFree": "無料で開始",
     "trustNoCard": "スパムは一切なし",
     "disclaimer": "iOS・Androidで今すぐ利用可能。",
@@ -152,7 +167,7 @@
     "items": [
       {
         "question": "MotoVaultとは何ですか？",
-        "answer": "MotoVaultは、バイクライダー向けに構築されたAI搭載プラットフォームです。メンテナンスを学び、写真を撮って問題を診断し、デジタルガレージでバイクを管理し、レッスンやクイズで実践的なメカニックスキルを身につけることができます。"
+        "answer": "MotoVaultはライダーのために作られたバイク管理アプリです。スマートリマインダー付きのメンテナンス管理、すべての費用（燃料、ギア、パーツ）の記録、ライドの記録、AI写真分析による問題診断 — すべてが1つのアプリに。"
       },
       {
         "question": "MotoVaultは無料ですか？",
@@ -179,7 +194,7 @@
   "Footer": {
     "product": "製品",
     "company": "会社情報",
-    "tagline": "バイクを学ぼう。バイクを直そう。",
+    "tagline": "すべての走行を記録。すべてのコストを把握。",
     "copyright": "© 2026 MotoVault. All rights reserved.",
     "features": "機能",
     "learning": "学習パス",
@@ -675,5 +690,97 @@
     "pdfFooter": "MotoVault が生成 — AI搭載バイク診断＆メンテナンス",
     "pdfCta": "MotoVault をダウンロードして、乗車前リマインダー、AI診断、メンテナンス管理を自動化しましょう。",
     "pdfWebsite": "motovault.app"
+  },
+  "FeaturesIndex": {
+    "title": "機能",
+    "description": "MotoVaultができることすべて — ツーリング計画、AI診断、ガレージ管理、学習、そして進捗。",
+    "sectionLabel": "MotoVaultができること",
+    "heroTitle": "アプリ一つで。ライドのすべてを。",
+    "heroSubtitle": "次の3日間ループの計画から、謎の異音の診断まで。MotoVaultはバイクライフのあらゆる段階をカバーします。",
+    "learnMore": "詳しく見る",
+    "tripPlanningTitle": "ツーリング計画",
+    "tripPlanningDesc": "複数日のルートを引き、種類別のウェイポイントを置き、宿泊と給油を決め、ライダーを招待 — すべて生きた地図の上で。",
+    "diagnosticsTitle": "AI診断",
+    "diagnosticsDesc": "警告灯やオイル漏れ、摩耗した部品の写真を撮るだけ。重大度・信頼度・次のステップを含む構造化された診断が返ってきます。",
+    "garageTitle": "ガレージ管理",
+    "garageDesc": "所有するすべてのバイクを — 走行距離、整備履歴、燃料、支出まで — 車両ごとの一本のタイムラインで追跡。",
+    "learningTitle": "学習パス",
+    "learningDesc": "自分のバイクに合わせた構造化モジュールとAI生成記事。ブレーキ整備から冬季保管まで。",
+    "progressTitle": "進捗トラッキング",
+    "progressDesc": "ライドも、タスクも、支出も自動で記録。バイクの状態がいつでも手に取るように分かります。"
+  },
+  "FeaturesTripPlanning": {
+    "title": "バイクツーリング計画 — ルートビルダー&行程表",
+    "description": "MotoVaultのツーリングプランナーなら、複数日のルートを組み、種類別のウェイポイントを配置し、仲間とライドできます。生きた地図、本物のルーティング、共有可能な行程表。",
+    "heroEyebrow": "創業の機能",
+    "heroTitle": "ライドの一マイルを、計画する",
+    "heroSubtitle": "複数日のルート、種類別のウェイポイント、本物の道路ルーティング、そしてあなたと一緒に動く地図。私たちが最初に作った機能 — そして今もMotoVaultのすべてを形作る機能です。",
+    "heroCtaPrimary": "計画を始める",
+    "heroCtaSecondary": "実際のツーリングを見る",
+    "positioningTitle": "なぜこれを最初に作ったのか",
+    "positioningBody": "話を聞いたライダーはみんな同じ悩みを抱えていました。本物のバイクツーリングを計画するには、5つのアプリを使い分けなければならない。道はGoogleマップ、休憩ポイントはメモアプリ、峠は天気アプリ、仲間とのやり取りはチャット、燃料予算はスプレッドシート。一歩ごとに摩擦があります。ツーリング計画を最初にリリースしたのは、これが最も多くのライダーに必要な機能だから — そしてこれを決められれば、MotoVaultの残りすべてがここから続くからです。",
+    "howItWorksLabel": "使い方",
+    "howItWorksTitle": "空の地図から保存されたライドまで、4ステップ",
+    "step1Label": "キャンバスを開く",
+    "step1Title": "白紙の地図から始める",
+    "step1Desc": "Discoverの+ボタンをタップすると、フルスクリーンの暗い地図が開き、次の冒険の準備が整います。任意の場所を長押しして停車地を追加するか、都市・峠・カフェ・ガソリンスタンドを検索します。",
+    "step2Label": "ウェイポイントを置く",
+    "step2Title": "ルートに沿って種類別のウェイポイントを追加",
+    "step2Desc": "どの停車地も単なるピンではありません。11種類 — start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — から選んでメモを追加。ステッパーは自動的にウェイポイントを日ごとにグループ化します。",
+    "step3Label": "詳細を設定",
+    "step3Title": "ライドに名前を付け、ムードを選ぶ",
+    "step3Desc": "タイトル、説明、開始・終了日、難易度 (Easy, Moderate, Challenging, Expert)、最大ライダー数、可視性 (Private, Unlisted, Public)。どのフィールドも最初は任意 — 後で戻って仕上げてから公開できます。",
+    "step4Label": "保存または公開",
+    "step4Title": "下書きとして残す、またはリンクを共有",
+    "step4Desc": "反復を続けるなら下書きとして保存。友人を招待するなら公開し、コミュニティに見つけてもらいたいならPublicに。下書きはMy Tripsにあり、自分だけに見えます。",
+    "galleryLabel": "実際のツーリング、実際のデータ",
+    "galleryTitle": "ドロミテループ — 3日間",
+    "galleryBody": "これはMotoVaultで実際に作られたツーリングです：Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano。種類別ウェイポイント8か所、3日間、実際の道路ルーティングで生きた地図上に描画。以下のスクリーンショットはすべて本番アプリから取得したものです。",
+    "gallery1Label": "ルート概要",
+    "gallery1Subtitle": "地図、日付、主催者、難易度",
+    "gallery2Label": "日ごとの行程",
+    "gallery2Subtitle": "種類別ウェイポイントとメモ",
+    "gallery3Label": "複数日の全体ビュー",
+    "gallery3Subtitle": "1日目と2日目を並べて",
+    "featuresLabel": "全部入り",
+    "featuresTitle": "本物のツーリングを動かす細部",
+    "f1Title": "複数日の行程",
+    "f1Desc": "日ごとにウェイポイントをグループ化。1日目：ボルツァーノからコルティナ。2日目：大きな峠。3日目：帰路。アプリはどの停車地がどの日に属するかを把握しています。",
+    "f2Title": "11種類のウェイポイント",
+    "f2Desc": "Start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — それぞれに地図と行程リスト上の専用アイコンがあります。",
+    "f3Title": "本物の道路ルーティング",
+    "f3Desc": "Mapbox Directionsが停車地間の実際のバイク向きルートを計算します。直線の近似ではなく、本物のアスファルトと本物の距離。",
+    "f4Title": "プライバシー制御",
+    "f4Desc": "3段階の可視性。Privateは自分だけ。Unlistedはリンクを知る人だけ。PublicはDiscoverフィードで見つけられます。",
+    "f5Title": "ライダーを招待",
+    "f5Desc": "主催者は特定のライダーを招待するか、上限付きで公開ツーリングを開きます。各ライダーはGoing・Maybe・DeclinedでRSVPでき、どのバイクで参加するかを選べます。",
+    "f6Title": "本公開前の下書き",
+    "f6Desc": "途中のツーリングを下書きとして保存。自分だけが見られます。戻って最後の3停車地を追加し、準備ができたら公開を。",
+    "f7Title": "難易度タグ",
+    "f7Desc": "Easy, Moderate, Challenging, Expert。誰もexpertの峠ルートに日曜のツーリング気分で参加しないように。",
+    "f8Title": "どこでもシェア",
+    "f8Desc": "公開されたツーリングにはすべて正規URLがあります。グループチャットに送信、Discordに投稿、ツイート — ルートのプレビュー付きで表示されます。",
+    "walkthroughLabel": "舞台裏",
+    "walkthroughTitle": "一本のツーリングの物語 — アイデアから公開まで",
+    "walkthroughP1": "土曜の朝、あるライダーが目覚めて、これから来る連休のことを考えます。3日間の休み、ガレージのバイク、そして漠然としたアイデア — 「たぶんドロミテ」。MotoVaultを開き、Discoverをタップ、+で新しいツーリングを計画します。暗い地図が現在地で開きます。",
+    "walkthroughP2": "ボルツァーノにズームし、長押しでStartウェイポイントを置きます — 「Bolzano — Start, gear check & coffee before departure」。次にPasso Sellaを検索して結果をタップ — 「Iconic Dolomite pass, photo stop」のメモ付きでScenicな停車地として落ちます。続けて：コルティナ・ダンペッツォはOvernight、パッソ・ポルドイはPass Summit、カナツェイはFuel、オルティゼイはOvernight、パッソ・ガルデナはScenic、ボルツァーノはEnd。アプリは自動的に1日目、2日目、3日目にグループ化します。",
+    "walkthroughP3": "彼はそれに名前を付けます — 「Dolomites Loop — 3 Days」 — 説明を書き、難易度をModerateに、max ridersを8に、visibilityはPrivateのまま。下書きとして保存。庭に戻ってコーヒー。その夜、オルティゼイの別のいい宿を思い出し、入れ替え、可視性をPublicに変え、Publishを押します。ツーリングはDiscoverにライブで公開され、夜が終わる頃には2人のライダー仲間が参加します。",
+    "walkthroughP4": "これが全体の弧 — 空の地図から仲間と行くツーリングまで — です。動いているのは本物のMapboxルーティング、本物のPostgresの行、そして地図を失わずに行程を表示するために上にスライドするボトムシートです。スプレッドシートなし、スクリーンショットの連鎖なし、失われたピンなし。",
+    "faqLabel": "よくある質問",
+    "faqTitle": "ツーリング計画、ライダーが尋ねる質問",
+    "faq0Question": "アプリは本当に実際の道路でルーティングするのですか? それとも直線を描くだけですか?",
+    "faq0Answer": "本物の道路です。2つのウェイポイント間で、バイク向きルーティングのMapbox Directionsを呼び出し、実際に走ることになるポリラインを描画します。上のドロミテループの任意の区間にズームしてみてください — ヘアピンが見えます。",
+    "faq1Question": "誰かを招待する前にツーリングを計画できますか?",
+    "faq1Answer": "はい。すべてのツーリングは下書きとして始まり、あなただけに表示されます。複数セッションにわたって作成・編集でき、共有する準備ができたときだけ公開できます。",
+    "faq2Question": "招待して半分しか来られない場合はどうなりますか?",
+    "faq2Answer": "各ライダーはGoing, Maybe, DeclinedのいずれかでRSVPし、どのバイクを持って来るかを選びます。ツーリングヘッダーでカウントを確認でき (例: 0/8 riders)、下には参加者の完全なリストが表示されます。",
+    "faq3Question": "複数の国や渡航を含むツーリングを計画できますか?",
+    "faq3Answer": "はい。地図に国境はありません — 地中海横断にはFerryウェイポイント、山越えにはPass Summitを追加してください。ルーティングエンジンはMapboxがルーティングできるものなら何でも処理します。",
+    "faq4Question": "1つのツーリングに何個のウェイポイントを含められますか?",
+    "faq4Answer": "通常の使用では出会うことのない厳密な上限はありません。本当の制約は可読性です — 1日で15〜16停車地を超えると行程が混雑します。複数日に分けるときれいに保てます。",
+    "faq5Question": "ツーリングを他のアプリにエクスポートできますか?",
+    "faq5Answer": "公開されたツーリングはすべて、ルートプレビュー付きの正規URLを持ちます。ツーリング詳細画面から共有することもでき、ネイティブ共有でMessages、Slack、Discord、メモに貼り付けできます。",
+    "ctaTitle": "次の3日間ループはここから。",
+    "ctaBody": "ツーリング計画はMotoVaultの創業機能です。アプリをダウンロードし、最初のウェイポイントを置いて、なぜ私たちが何よりも先にこれを作ったのかを確かめてください。"
   }
 }

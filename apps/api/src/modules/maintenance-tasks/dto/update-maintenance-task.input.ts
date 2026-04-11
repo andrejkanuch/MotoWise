@@ -23,4 +23,14 @@ export class UpdateMaintenanceTaskInput {
 
   @Field(() => [String], { nullable: true })
   partsNeeded?: string[];
+
+  // MOT-139 multi-stage reminder flags
+  @Field({ nullable: true })
+  remind30d?: boolean;
+
+  @Field({ nullable: true })
+  remind7d?: boolean;
+
+  @Field({ nullable: true })
+  remind1d?: boolean;
 }

@@ -48,6 +48,23 @@ export class Motorcycle {
   @Field({ nullable: true })
   purchaseDate?: string;
 
+  // MOT-142 fields
+  @Field({ nullable: true })
+  vin?: string;
+
+  @Field(() => Int, { nullable: true })
+  recallCount?: number;
+
+  @Field({ nullable: true })
+  recallLastCheckedAt?: string;
+
+  // MOT-140 fields — odometer sync provenance
+  @Field({ nullable: true })
+  odometerSyncSource?: string;
+
+  @Field({ nullable: true })
+  odometerLastRideId?: string;
+
   @Field()
   createdAt: string;
 }

@@ -1,0 +1,44 @@
+query TripDetail($tripId: ID!) {
+  tripDetail(tripId: $tripId) {
+    id
+    title
+    description
+    startDate
+    endDate
+    difficulty
+    maxRiders
+    participantCount
+    status
+    visibility
+    coverImageUrl
+    createdAt
+    organiser {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+    waypoints {
+      id
+      tripId
+      sortOrder
+      dayIndex
+      type
+      name
+      notes
+      lat
+      lng
+      createdAt
+    }
+    participants {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+      role
+      status
+      bikeId
+      joinedAt
+    }
+  }
+}

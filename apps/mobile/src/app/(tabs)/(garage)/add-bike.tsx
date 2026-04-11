@@ -23,6 +23,7 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
@@ -130,6 +131,7 @@ export default function AddBikeScreen() {
         nickname: nickname.trim() || undefined,
       });
       MetaAnalytics.trackAddToGarage(make, model, yearNum);
+      trackEvent(AnalyticsEvent.GARAGE_BIKE_ADDED, { make, model, year: yearNum });
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

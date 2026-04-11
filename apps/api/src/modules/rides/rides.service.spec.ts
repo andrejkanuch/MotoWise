@@ -96,7 +96,11 @@ describe('RidesService', () => {
     vi.clearAllMocks();
     mockUserClient = createMockClient();
 
-    service = new RidesService(mockUserClient as never);
+    service = new RidesService(
+      mockUserClient as never,
+      mockUserClient as never,
+      { emit: vi.fn() } as never,
+    );
   });
 
   describe('startRide', () => {

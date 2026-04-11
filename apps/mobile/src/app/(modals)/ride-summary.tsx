@@ -7,6 +7,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Check,
   Clock,
+  Compass,
   Gauge,
   Map as MapIcon,
   Mountain,
@@ -17,14 +18,29 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Switch,
+  Text,
+  TextInput,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
-import { MAP_STYLES, type MapStyle } from '../../utils/map-styles';
+import {
+  cycleMapStyle as cycleMapStyleFn,
+  getDefaultMapStyle,
+  MAP_STYLES,
+} from '../../utils/map-styles';
 import {
   formatDistance,
   formatDuration,
@@ -74,9 +90,11 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
 
-  const [mapStyle, setMapStyle] = useState<MapStyle>('dark');
+  const isDark = useColorScheme() === 'dark';
+  const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));
   const [isSaving, setIsSaving] = useState(false);
+  const [shareToDiscover, setShareToDiscover] = useState(false);
   const [showCelebration, setShowCelebration] = useState(true);
   const mapRef = useRef<MapboxGL.MapView>(null);
 
@@ -178,6 +196,10 @@ export default function RideSummaryScreen() {
       await Share.share({
         message: `Just completed a ${formatDistance(distanceM, system)} ride in ${formatDuration(durationS)} with MotoVault!`,
       });
+      trackEvent(AnalyticsEvent.RIDE_SHARED, {
+        distance_m: distanceM,
+        duration_s: durationS,
+      });
     } catch {
       // User cancelled
     }
@@ -199,9 +221,27 @@ export default function RideSummaryScreen() {
 
       clearRideData(rideId);
 
+      trackEvent(AnalyticsEvent.RIDE_COMPLETED, {
+        distance_m: distanceM,
+        duration_s: durationS,
+        shared_to_discover: shareToDiscover,
+      });
       MetaAnalytics.trackLogRide(distanceM / 1000);
       incrementRideCount();
       maybeRequestReview();
+
+      // Share to Discover (fire-and-forget, non-blocking)
+      if (shareToDiscover) {
+        import('@motovault/graphql').then(({ ShareRideToDiscoverDocument }) => {
+          import('../../lib/graphql-client').then(({ gqlFetcher: fetcher }) => {
+            fetcher(ShareRideToDiscoverDocument, {
+              input: { rideId, name: rideName || undefined },
+            }).catch((err: unknown) =>
+              console.warn('[RideSummary] Share to Discover failed:', err),
+            );
+          });
+        });
+      }
 
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.replace('/(tabs)/(profile)' as any);
@@ -210,7 +250,7 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router, distanceM]);
+  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
@@ -227,11 +267,9 @@ export default function RideSummaryScreen() {
     ]);
   }, [rideId, router]);
 
-  const cycleMapStyle = useCallback(() => {
-    const styles: MapStyle[] = ['dark', 'outdoors', 'satellite'];
-    const idx = styles.indexOf(mapStyle);
-    setMapStyle(styles[(idx + 1) % styles.length]);
-  }, [mapStyle]);
+  const handleCycleMapStyle = useCallback(() => {
+    setMapStyle((prev) => cycleMapStyleFn(prev));
+  }, []);
 
   const stats = [
     { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
@@ -420,7 +458,7 @@ export default function RideSummaryScreen() {
             }}
           >
             <Pressable
-              onPress={cycleMapStyle}
+              onPress={handleCycleMapStyle}
               accessibilityRole="button"
               accessibilityLabel="Change map style"
               style={{
@@ -607,6 +645,35 @@ export default function RideSummaryScreen() {
                 </Text>
               </LinearGradient>
             </Pressable>
+
+            {/* Share to Discover toggle */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 12,
+                paddingHorizontal: 4,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                <Compass size={18} color={palette.accent500} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+                    Share on Discover
+                  </Text>
+                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                    Other riders can find and ride this route
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={shareToDiscover}
+                onValueChange={setShareToDiscover}
+                trackColor={{ false: palette.neutral700, true: palette.accent500 }}
+                thumbColor={palette.white}
+              />
+            </View>
 
             {/* Discard option */}
             <Pressable

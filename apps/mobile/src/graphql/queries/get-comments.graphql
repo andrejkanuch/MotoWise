@@ -1,0 +1,33 @@
+query GetComments($rideId: ID, $routeId: ID, $groupRideId: ID, $tripId: ID, $first: Int, $after: String) {
+  getComments(rideId: $rideId, routeId: $routeId, groupRideId: $groupRideId, tripId: $tripId, first: $first, after: $after) {
+    comments {
+      id
+      text
+      createdAt
+      flaggedCount
+      parentCommentId
+      author {
+        id
+        displayName
+        publicUsername
+        avatarUrl
+      }
+      replies {
+        id
+        text
+        createdAt
+        flaggedCount
+        parentCommentId
+        author {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+    }
+    hasNextPage
+    endCursor
+    totalCount
+  }
+}

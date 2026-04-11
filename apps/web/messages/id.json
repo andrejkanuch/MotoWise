@@ -1,84 +1,99 @@
 {
   "Metadata": {
-    "title": "MotoVault — Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI",
+    "title": "MotoVault — Perawatan Motor, Pengeluaran & Pelacak Perjalanan",
     "titleTemplate": "%s | MotoVault",
-    "description": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android.",
-    "ogDescription": "Kuasai perawatan motor, diagnosis masalah dengan foto, dan lacak kesehatan motor kamu. Segera hadir — gratis di iOS & Android."
+    "description": "Lacak tugas perawatan, catat pengeluaran bahan bakar dan perlengkapan, rekam perjalanan, dan diagnosis masalah dengan AI. Gratis di iOS & Android.",
+    "ogDescription": "Lacak tugas perawatan, catat pengeluaran bahan bakar dan perlengkapan, rekam perjalanan, dan diagnosis masalah dengan AI. Gratis di iOS & Android."
   },
   "Navbar": {
     "features": "Fitur",
-    "diagnostics": "Diagnostik AI",
     "learning": "Pembelajaran",
     "garage": "Garasi",
     "faq": "FAQ",
     "download": "Unduh Aplikasi",
     "login": "Masuk",
     "openMenu": "Buka menu navigasi",
-    "closeMenu": "Tutup menu navigasi"
+    "closeMenu": "Tutup menu navigasi",
+    "signup": "Daftar",
+    "dashboard": "My Garage",
+    "diagnostics": "Diagnostik AI",
+    "maintenance": "Perawatan",
+    "expenses": "Pengeluaran",
+    "rides": "Perjalanan",
+    "tripPlanning": "Trip Planning",
+    "progress": "Progress Tracking",
+    "viewAllFeatures": "View all features",
+    "blog": "Blog"
   },
   "Hero": {
-    "line1": "PELAJARI MOTORMU.",
-    "line2": "PERBAIKI",
-    "line3": "MOTORMU.",
-    "subtitle": "Diagnostik & pembelajaran motor berbasis AI — segera hadir.",
-    "downloadCta": "Unduh Aplikasi",
+    "line1": "LACAK MOTORMU.",
+    "line2": "KUASAI",
+    "line3": "PERJALANANMU.",
+    "subtitle": "Log perawatan, pelacakan pengeluaran, dan pencatatan perjalanan — semua dalam satu aplikasi.",
+    "downloadCta": "Mulai Lacak Gratis",
     "exploreFeatures": "Jelajahi Fitur",
     "scrollDown": "Gulir ke bawah",
-    "seoTitle": "Aplikasi Diagnostik & Pembelajaran Motor Berbasis AI"
+    "seoTitle": "Pelacak Perawatan Motor & Manajer Pengeluaran"
   },
   "Features": {
     "sectionLabel": "Fitur",
     "sectionTitle": "Semua yang Motor Kamu Butuhkan",
-    "sectionSubtitle": "Belajar, rawat, dan kuasai motormu — semua dalam satu aplikasi.",
+    "sectionSubtitle": "Lacak pengeluaran, kelola perawatan, catat perjalanan, dan diagnosis masalah — semua dalam satu aplikasi.",
     "diag": {
       "title": "Diagnostik AI",
       "tagline": "Foto. Dapat jawaban.",
       "description": "Arahkan kamera ke komponen, lampu peringatan, atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan — semua dalam hitungan detik.",
       "badge": "< 5 detik"
     },
-    "learn": {
-      "title": "Keahlian Mekanik",
-      "tagline": "Dari ganti oli hingga rebuild mesin.",
-      "description": "Pelajari cara kerja mesin, suspensi, dan kelistrikan — dengan pelajaran singkat, kuis, dan tugas bengkel nyata.",
-      "badge": "50+ pelajaran"
-    },
     "garage": {
-      "title": "Manajemen Garasi",
-      "tagline": "Lacak motor kamu.",
-      "description": "Simpan setiap motor berdasarkan merek, model, dan tahun. Catat perawatan, atur pengingat servis, dan simpan riwayat lengkap agar tidak ada yang terlewat.",
+      "title": "Garasi Digital",
+      "tagline": "Semua motormu, satu tempat.",
+      "description": "Simpan setiap motor berdasarkan merek, model, dan tahun. Spesifikasi dimuat otomatis. Satu ketukan untuk melihat perawatan, pengeluaran, dan perjalanan untuk motor mana pun.",
       "badge": "Motor tak terbatas"
     },
-    "progress": {
-      "title": "Pelacak Keahlian",
-      "tagline": "Lihat sejauh mana kamu sudah maju.",
-      "description": "Naik level saat belajar. Kumpulkan lencana, lacak skor kuis, dan lihat perkembanganmu — dari ganti oli pertama hingga mekanik handal.",
-      "badge": "Naik level"
+    "trip": {
+      "title": "Trip Planning",
+      "tagline": "Plan every mile of the ride.",
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
+      "badge": "New · Founding feature"
     },
-    "community": {
-      "title": "Komunitas",
-      "tagline": "Bergabung dengan sesama pengendara.",
-      "description": "Bagikan garasi, bandingkan kemajuan, dan belajar bersama pengendara di setiap level. Pengetahuan motor lebih baik bersama-sama.",
-      "badge": "Baru"
+    "maintenance": {
+      "title": "Pelacak Perawatan",
+      "tagline": "Jangan pernah lewatkan servis lagi.",
+      "description": "Catat setiap ganti oli, pelumasan rantai, dan penggantian ban. Atur pengingat berdasarkan jarak tempuh atau waktu yang memberi tahu sebelum jadwal terlewat. Riwayat servis lengkap dalam sekali pandang.",
+      "badge": "Pengingat pintar"
+    },
+    "expenses": {
+      "title": "Manajer Pengeluaran",
+      "tagline": "Ketahui biaya sebenarnya dari motormu.",
+      "description": "Lacak bahan bakar, perlengkapan, suku cadang, asuransi, dan setiap biaya kepemilikan. Lihat tren pengeluaran berdasarkan kategori dengan rincian bulanan dan analisis biaya per kilometer.",
+      "badge": "Wawasan biaya"
+    },
+    "rides": {
+      "title": "Pencatat Perjalanan",
+      "tagline": "Setiap perjalanan, dipetakan dan disimpan.",
+      "description": "Rekam rute GPS dengan kecepatan, ketinggian, dan jarak. Tinjau statistik perjalanan, bagikan momen terbaik, dan bangun riwayat berkendara yang lengkap.",
+      "badge": "Pelacakan GPS"
     }
   },
   "SocialProof": {
     "riders": "Pengendara Aktif",
     "ridersCount": "2.400+",
-    "diagnostics": "Diagnosis AI Dijalankan",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Motor di Database",
+    "maintenance": "Diagnosis AI Dijalankan",
+    "maintenanceCount": "8.500+",
+    "bikes": "Motor Terlacak",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "Cara Kerja",
-    "sectionTitle": "Cara Kerja",
-    "sectionSubtitle": "Tiga langkah. Itu saja.",
+    "sectionTitle": "Tiga Langkah Menuju Kontrol Penuh",
+    "sectionSubtitle": "Siapkan dalam hitungan menit. Lacak selama bertahun-tahun.",
     "step1Title": "Tambahkan Motormu",
     "step1Desc": "Cari berdasarkan merek, model, dan tahun. Spesifikasi motor dimuat otomatis dari database resmi.",
-    "step2Title": "Dapatkan Insight AI",
-    "step2Desc": "Foto komponen atau masalah apa pun. AI kami mengidentifikasi komponen, mendiagnosis masalah, dan menyarankan perbaikan.",
-    "step3Title": "Berkendara Lebih Cerdas",
-    "step3Desc": "Pantau perawatan dengan pengingat pintar dan bangun keahlian nyata dengan pelajaran terpandu."
+    "step2Title": "Lacak Semuanya",
+    "step2Desc": "Catat perawatan, rekam pengeluaran, dan lacak perjalanan. Setiap data membangun riwayat lengkap motormu.",
+    "step3Title": "Selalu Selangkah di Depan",
+    "step3Desc": "Dapatkan pengingat servis pintar, analisis biaya per kilometer, dan diagnosis AI — agar tidak ada yang mengejutkanmu."
   },
   "Testimonials": {
     "sectionLabel": "Testimoni",
@@ -120,21 +135,21 @@
   "AppShowcase": {
     "sectionLabel": "Lihat Aksinya",
     "sectionTitle": "Pusat Komando Motor Kamu",
-    "cap1Title": "Diagnostik AI",
-    "cap1Desc": "Arahkan kamera ke masalah apa pun. Dapatkan identifikasi komponen, tingkat keparahan, dan perbaikan langkah demi langkah dalam hitungan detik.",
-    "cap1Alt": "Layar hasil diagnosis AI MotoVault",
-    "cap2Title": "Perawatan Pintar",
-    "cap2Desc": "Lacak setiap servis, atur pengingat berbasis jarak tempuh, dan jangan pernah lewatkan ganti oli atau pelumasan rantai lagi.",
-    "cap2Alt": "Layar pelacakan perawatan MotoVault",
-    "cap3Title": "Belajar & Tingkatkan",
-    "cap3Desc": "Kursus terstruktur tentang mesin internal, tuning suspensi, dan sistem kelistrikan — dengan kuis untuk menguji pengetahuanmu.",
-    "cap3Alt": "Dashboard pembelajaran MotoVault",
+    "cap1Title": "Pelacak Perawatan",
+    "cap1Desc": "Catat setiap servis dengan tanggal, jarak tempuh, dan biaya. Pengingat pintar memberi tahu sebelum ganti oli, pelumasan rantai, atau pemeriksaan rem berikutnya.",
+    "cap1Alt": "Layar pelacakan perawatan MotoVault",
+    "cap2Title": "Pelacak Pengeluaran",
+    "cap2Desc": "Lihat persis berapa biaya motormu. Lacak bahan bakar, suku cadang, perlengkapan, dan asuransi dengan rincian bulanan dan analisis biaya per kilometer.",
+    "cap2Alt": "Layar pelacakan pengeluaran MotoVault",
+    "cap3Title": "Diagnosis AI",
+    "cap3Desc": "Arahkan kamera ke masalah apa pun. Dapatkan identifikasi komponen, penilaian tingkat keparahan, dan perbaikan langkah demi langkah dalam hitungan detik.",
+    "cap3Alt": "Layar hasil diagnosis AI MotoVault",
     "learnMore": "Pelajari lebih lanjut"
   },
   "Cta": {
     "socialProof": "Dipercaya oleh ribuan pengendara di seluruh dunia",
-    "headline": "Kenali Motormu Luar Dalam",
-    "subtitle": "Gratis di iOS dan Android. Mulai lacak motormu hari ini.",
+    "headline": "Berhenti Menebak. Mulai Melacak.",
+    "subtitle": "Gratis di iOS dan Android. Perawatan, pengeluaran, dan perjalanan motormu — akhirnya dalam satu tempat.",
     "trustFree": "Gratis untuk mulai",
     "trustNoCard": "Tanpa spam, selamanya",
     "disclaimer": "Tersedia sekarang di iOS dan Android.",
@@ -152,7 +167,7 @@
     "items": [
       {
         "question": "Apa itu MotoVault?",
-        "answer": "MotoVault adalah platform berbasis AI untuk pengendara motor. Membantu kamu belajar perawatan, mendiagnosis masalah dengan foto, melacak motor di garasi digital, dan membangun keahlian mekanik nyata melalui pelajaran dan kuis."
+        "answer": "MotoVault adalah aplikasi manajemen motor yang dibuat untuk pengendara. Lacak tugas perawatan dengan pengingat pintar, catat setiap pengeluaran (bahan bakar, perlengkapan, suku cadang), rekam perjalananmu, dan diagnosis masalah dengan analisis foto AI — semua dalam satu aplikasi."
       },
       {
         "question": "Apakah MotoVault gratis?",
@@ -179,7 +194,7 @@
   "Footer": {
     "product": "Produk",
     "company": "Perusahaan",
-    "tagline": "Pelajari motormu. Perbaiki motormu.",
+    "tagline": "Lacak setiap kilometer. Ketahui setiap biaya.",
     "copyright": "© 2026 MotoVault. Hak cipta dilindungi.",
     "features": "Fitur",
     "learning": "Jalur Pembelajaran",
@@ -675,5 +690,97 @@
     "pdfFooter": "Dibuat oleh MotoVault — Diagnostik & perawatan motor bertenaga AI",
     "pdfCta": "Unduh MotoVault untuk pengingat pra-berkendara otomatis, diagnostik AI, dan pelacakan perawatan.",
     "pdfWebsite": "motovault.app"
+  },
+  "FeaturesIndex": {
+    "title": "Fitur",
+    "description": "Semua yang MotoVault lakukan — perencanaan perjalanan, diagnosis AI, manajemen garasi, pembelajaran, dan kemajuan.",
+    "sectionLabel": "Apa yang MotoVault lakukan",
+    "heroTitle": "Satu aplikasi. Setiap bagian dari perjalanan.",
+    "heroSubtitle": "Dari merencanakan rute tiga hari berikutnya hingga mendiagnosis suara misterius, MotoVault menangani setiap tahap kepemilikan motor.",
+    "learnMore": "Pelajari lebih lanjut",
+    "tripPlanningTitle": "Perencanaan Perjalanan",
+    "tripPlanningDesc": "Susun rute beberapa hari, letakkan waypoint bertipe, tetapkan penginapan dan pom bensin, dan undang rider lain — semua di peta yang hidup.",
+    "diagnosticsTitle": "Diagnosis AI",
+    "diagnosticsDesc": "Foto lampu peringatan, kebocoran oli, atau bagian yang aus. Dapatkan diagnosis terstruktur dengan tingkat keparahan, keyakinan, dan langkah selanjutnya.",
+    "garageTitle": "Manajemen Garasi",
+    "garageDesc": "Lacak setiap motor yang kamu miliki — kilometer, riwayat servis, bahan bakar, dan pengeluaran — dalam satu linimasa per motor.",
+    "learningTitle": "Jalur Pembelajaran",
+    "learningDesc": "Modul terstruktur dan artikel yang dihasilkan AI, disesuaikan dengan motor spesifikmu, dari servis rem hingga penyimpanan musim dingin.",
+    "progressTitle": "Pelacakan Kemajuan",
+    "progressDesc": "Setiap perjalanan, setiap tugas, setiap pengeluaran dicatat otomatis sehingga kamu selalu tahu kondisi motormu."
+  },
+  "FeaturesTripPlanning": {
+    "title": "Perencana Perjalanan Motor — Pembuat Rute & Itinerari",
+    "description": "Perencana perjalanan motor MotoVault memungkinkan kamu membuat rute beberapa hari, meletakkan waypoint bertipe, dan riding bersama teman. Peta langsung, rute nyata, itinerari yang bisa dibagikan.",
+    "heroEyebrow": "Fitur Pendiri",
+    "heroTitle": "Rencanakan Setiap Kilometer Perjalanan",
+    "heroSubtitle": "Rute beberapa hari, waypoint bertipe, routing jalan sungguhan, dan peta yang bergerak bersamamu. Fitur pertama yang kami bangun — dan yang masih membentuk seluruh MotoVault.",
+    "heroCtaPrimary": "Mulai Merencanakan",
+    "heroCtaSecondary": "Lihat Perjalanan Nyata",
+    "positioningTitle": "Kenapa kami membangun ini terlebih dahulu",
+    "positioningBody": "Setiap rider yang kami ajak bicara punya masalah yang sama: merencanakan perjalanan motor sungguhan berarti menyulap lima aplikasi sekaligus. Google Maps untuk jalan, aplikasi catatan untuk tempat berhenti, aplikasi cuaca untuk tanjakan, chat untuk teman, spreadsheet untuk anggaran bensin. Gesekan di setiap langkah. Perencanaan perjalanan adalah fitur pertama yang kami rilis karena itulah yang paling dibutuhkan kebanyakan rider — dan karena jika kami bisa menaklukkan ini, semua hal lain di MotoVault akan mengikuti.",
+    "howItWorksLabel": "Cara Kerjanya",
+    "howItWorksTitle": "Dari peta kosong ke perjalanan tersimpan dalam empat langkah",
+    "step1Label": "Buka Kanvas",
+    "step1Title": "Mulai dengan peta kosong",
+    "step1Desc": "Ketuk tombol + di Discover dan peta gelap layar penuh terbuka, siap untuk petualangan berikutnya. Tekan lama di mana saja untuk menambahkan perhentian, atau cari kota, tanjakan, kedai kopi, atau SPBU.",
+    "step2Label": "Tambah Waypoint",
+    "step2Title": "Tambahkan waypoint bertipe di sepanjang rute",
+    "step2Desc": "Setiap perhentian bukan sekadar pin. Pilih dari 11 tipe — start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — dan tambahkan catatan. Stepper otomatis mengelompokkan waypoint per hari.",
+    "step3Label": "Atur Detail",
+    "step3Title": "Beri nama perjalanan, pilih vibenya",
+    "step3Desc": "Judul, deskripsi, tanggal mulai dan selesai, tingkat kesulitan (Easy, Moderate, Challenging, Expert), maksimal rider, dan visibility (Private, Unlisted, Public). Setiap kolom opsional di awal — kamu bisa kembali dan memolesnya sebelum publikasi.",
+    "step4Label": "Simpan atau Publikasikan",
+    "step4Title": "Simpan sebagai draft atau bagikan tautannya",
+    "step4Desc": "Simpan sebagai draft untuk terus mengiterasi. Publikasikan untuk mengundang teman, atau buat publik supaya komunitas bisa menemukan dan bergabung. Draft ada di My Trips, hanya terlihat olehmu.",
+    "galleryLabel": "Perjalanan Nyata, Data Nyata",
+    "galleryTitle": "Dolomites Loop — 3 Hari",
+    "galleryBody": "Ini adalah perjalanan nyata yang dibuat dengan MotoVault: Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano. Delapan waypoint bertipe, tiga hari, dirender di peta langsung dengan routing jalan nyata. Setiap screenshot di bawah diambil dari aplikasi produksi.",
+    "gallery1Label": "Ikhtisar Rute",
+    "gallery1Subtitle": "Peta, tanggal, organiser, kesulitan",
+    "gallery2Label": "Itinerari Harian",
+    "gallery2Subtitle": "Waypoint bertipe dengan catatan",
+    "gallery3Label": "Tampilan Multi-Hari Lengkap",
+    "gallery3Subtitle": "Hari 1 dan 2 berdampingan",
+    "featuresLabel": "Semua dalam satu paket",
+    "featuresTitle": "Detail yang membuat perjalanan nyata berhasil",
+    "f1Title": "Itinerari beberapa hari",
+    "f1Desc": "Kelompokkan waypoint per hari. Hari 1: Bolzano ke Cortina. Hari 2: tanjakan besar. Hari 3: pulang. Aplikasi tahu perhentian mana masuk hari mana.",
+    "f2Title": "11 tipe waypoint",
+    "f2Desc": "Start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — masing-masing dengan ikonnya sendiri di peta dan daftar itinerari.",
+    "f3Title": "Routing jalan nyata",
+    "f3Desc": "Mapbox Directions menghitung rute yang benar-benar ramah motor antar perhentian. Tidak ada aproksimasi garis lurus — aspal nyata, jarak nyata.",
+    "f4Title": "Kontrol privasi",
+    "f4Desc": "Tiga level visibility. Private berarti hanya kamu. Unlisted berarti siapa saja dengan tautan. Public berarti dapat ditemukan di feed Discover.",
+    "f5Title": "Undang rider",
+    "f5Desc": "Organiser mengundang rider tertentu atau membuka perjalanan publik hingga batas tertentu. Setiap rider bisa RSVP Going, Maybe, atau Declined — dan memilih motor mana yang dibawa.",
+    "f6Title": "Draft sebelum tinta",
+    "f6Desc": "Simpan perjalanan setengah jadi sebagai draft. Hanya kamu yang lihat. Kembali, tambahkan tiga perhentian terakhir, lalu publikasikan saat siap dibagikan.",
+    "f7Title": "Tag kesulitan",
+    "f7Desc": "Easy, Moderate, Challenging, Expert. Supaya tidak ada yang ikut rute expert kira itu jalan santai hari Minggu.",
+    "f8Title": "Bagikan di mana saja",
+    "f8Desc": "Setiap perjalanan yang dipublikasikan punya URL kanonik. Kirim ke grup chat, posting di Discord, tweet — rendering menampilkan rute sebagai preview.",
+    "walkthroughLabel": "Di Balik Layar",
+    "walkthroughTitle": "Kisah sebuah perjalanan, dari ide hingga tinta",
+    "walkthroughP1": "Seorang rider bangun Sabtu pagi dan memikirkan libur panjang yang akan datang. Tiga hari bebas, motor di garasi, dan ide samar — \"Dolomites, mungkin\". Ia membuka MotoVault, mengetuk Discover, lalu + untuk merencanakan perjalanan baru. Peta gelap terbuka di lokasinya saat ini.",
+    "walkthroughP2": "Ia zoom ke Bolzano dan tekan lama untuk meletakkan waypoint Start — \"Bolzano — Start, gear check & coffee before departure\". Lalu ia cari Passo Sella dan mengetuk hasilnya — jatuh sebagai perhentian Scenic dengan catatan \"Iconic Dolomite pass, photo stop\". Ia lanjut: Cortina d'Ampezzo sebagai Overnight, Passo Pordoi sebagai Pass Summit, Canazei sebagai Fuel, Ortisei sebagai Overnight, Passo Gardena sebagai Scenic, Bolzano sebagai End. Aplikasi mengelompokkannya otomatis ke Hari 1, Hari 2, Hari 3.",
+    "walkthroughP3": "Ia menamainya — \"Dolomites Loop — 3 Days\" — menulis deskripsi, memilih kesulitan Moderate, mengatur max riders jadi 8, dan membiarkan visibility Private. Simpan sebagai draft. Ia kembali ke kebun untuk kopi. Malamnya ia ingat penginapan yang lebih baik di Ortisei, menggantinya, mengubah visibility ke Public, dan menekan Publish. Perjalanannya kini live di Discover; dua teman riding ikut sebelum malam berakhir.",
+    "walkthroughP4": "Itulah keseluruhan busur — dari peta kosong ke perjalanan yang diikuti — dan berjalan di atas routing Mapbox sungguhan, baris Postgres sungguhan, dan bottom sheet yang naik untuk menampilkan itinerari tanpa kehilangan peta. Tidak ada spreadsheet, tidak ada rantai screenshot, tidak ada pin yang hilang.",
+    "faqLabel": "Pertanyaan Umum",
+    "faqTitle": "Perencanaan perjalanan, pertanyaan yang ditanyakan rider",
+    "faq0Question": "Apakah aplikasi benar-benar routing di jalan nyata, atau hanya menggambar garis lurus?",
+    "faq0Answer": "Jalan nyata. Di antara dua waypoint, kami memanggil Mapbox Directions dengan routing ramah motor dan merender polyline sesungguhnya yang akan kamu lewati. Zoom ke segmen Dolomites Loop di atas — kamu bisa melihat kelokan-kelokannya.",
+    "faq1Question": "Bisakah saya merencanakan perjalanan sebelum mengundang siapa pun?",
+    "faq1Answer": "Ya. Setiap perjalanan dimulai sebagai draft, hanya terlihat olehmu. Kamu bisa membangunnya dan mengeditnya lintas sesi, dan hanya mempublikasikannya saat siap dibagikan.",
+    "faq2Question": "Bagaimana jika saya mengundang orang dan hanya setengahnya yang bisa datang?",
+    "faq2Answer": "Setiap rider memberi RSVP Going, Maybe, atau Declined, dan memilih motor yang akan dibawa. Kamu lihat hitungannya di header perjalanan (misalnya 0/8 riders) dan daftar peserta lengkap di bawahnya.",
+    "faq3Question": "Bisakah saya merencanakan perjalanan lintas negara atau penyeberangan?",
+    "faq3Answer": "Ya. Tidak ada batas di peta — tambahkan waypoint Ferry untuk penyeberangan Mediterania atau Pass Summit untuk tanjakan gunung. Mesin routing menangani apa pun yang bisa di-routing oleh Mapbox.",
+    "faq4Question": "Berapa banyak waypoint yang bisa dimiliki satu perjalanan?",
+    "faq4Answer": "Tidak ada batas keras yang akan kamu temui dalam penggunaan normal. Kendala sebenarnya adalah keterbacaan — lewat 15 atau 16 perhentian dalam satu hari, itinerari jadi padat. Bagi menjadi beberapa hari agar tetap rapi.",
+    "faq5Question": "Bisakah saya mengekspor perjalanan ke aplikasi lain?",
+    "faq5Answer": "Setiap perjalanan yang dipublikasikan memiliki URL kanonik dengan preview rute. Kamu juga bisa berbagi dari layar detail perjalanan; share native memungkinkan kamu menempelkannya di Messages, Slack, Discord, atau catatanmu.",
+    "ctaTitle": "Perjalanan tiga harimu berikutnya dimulai di sini.",
+    "ctaBody": "Perencanaan perjalanan adalah fitur pendiri MotoVault. Unduh aplikasinya, letakkan waypoint pertamamu, dan lihat mengapa kami membangunnya sebelum hal lain."
   }
 }

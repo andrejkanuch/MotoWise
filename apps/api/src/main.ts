@@ -28,6 +28,7 @@ async function bootstrap() {
     credentials: true,
   });
 
+  // biome-ignore lint/correctness/useHookAtTopLevel: NestJS bootstrap, not a React component
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const port = process.env.PORT ?? 4000;

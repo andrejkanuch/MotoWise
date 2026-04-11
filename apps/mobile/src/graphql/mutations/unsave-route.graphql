@@ -1,0 +1,3 @@
+mutation UnsaveRoute($routeId: ID!) {
+  unsaveRoute(routeId: $routeId)
+}

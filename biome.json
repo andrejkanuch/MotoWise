@@ -21,7 +21,7 @@
       "!**/src/generated",
       "!**/database.types.ts",
       "!**/next-env.d.ts",
-      "!marketing/video/**",
+      "!marketing/video",
       "!figma-paywall-v3.js",
       "!figma-paywall-script.js"
     ]

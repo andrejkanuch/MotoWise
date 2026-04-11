@@ -1,0 +1,8 @@
+mutation TrackAffiliateClick($input: TrackClickInput!) {
+  trackAffiliateClick(input: $input) {
+    partner
+    affiliateUrl
+    productUrl
+    tracked
+  }
+}

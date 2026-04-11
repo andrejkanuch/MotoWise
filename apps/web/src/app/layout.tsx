@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
+import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     default: 'MotoVault',
     template: '%s | MotoVault',
   },
-  description: 'AI-powered motorcycle learning & diagnostics platform',
+  description: 'Motorcycle maintenance, expense tracking & ride logging platform',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="apple-itunes-app" content="app-id=6745417382" />
       </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
         <Analytics />
         <AnalyticsWithConsent />
       </body>

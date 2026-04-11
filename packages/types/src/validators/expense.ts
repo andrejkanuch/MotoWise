@@ -37,3 +37,11 @@ export const UpdateExpenseSchema = z.object({
   description: z.string().max(200).nullable().optional(),
 });
 export type UpdateExpense = z.infer<typeof UpdateExpenseSchema>;
+
+// MOT-143: Receipt photo attachments on expenses
+export const AddExpensePhotoSchema = z.object({
+  expenseId: z.string().uuid(),
+  storagePath: z.string().min(1).max(500),
+  fileSizeBytes: z.number().int().positive().optional(),
+});
+export type AddExpensePhoto = z.infer<typeof AddExpensePhotoSchema>;

@@ -21,6 +21,9 @@ query MaintenanceTasksByMotorcycle($motorcycleId: String!) {
     isRecurring
     intervalKm
     intervalDays
+    remind30d
+    remind7d
+    remind1d
     photos {
       id
       storagePath

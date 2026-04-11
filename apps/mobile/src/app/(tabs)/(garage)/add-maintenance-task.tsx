@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
@@ -73,7 +74,10 @@ export default function AddMaintenanceTaskScreen() {
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
 
-      // Schedule a notification reminder if the task has a due date
+      // Schedule notification reminders if the task has a due date.
+      // MOT-139: pass the multi-stage flags from the server response so the
+      // scheduler fires 30d/7d/1d stages based on whatever defaults the API
+      // applied (or explicit per-task overrides in a future iteration).
       if (dueDate) {
         const createdTask = data?.createMaintenanceTask;
         if (createdTask?.id) {
@@ -83,12 +87,20 @@ export default function AddMaintenanceTaskScreen() {
               title: title.trim(),
               dueDate: formatDate(dueDate),
               motorcycleId,
+              remind30d: createdTask.remind30d ?? false,
+              remind7d: createdTask.remind7d ?? false,
+              remind1d: createdTask.remind1d ?? true,
             },
             bikeName ?? 'Your bike',
           );
         }
       }
 
+      trackEvent(AnalyticsEvent.MAINTENANCE_TASK_CREATED, {
+        priority,
+        is_recurring: isRecurring,
+        has_due_date: !!dueDate,
+      });
       MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
       triggerImpact();

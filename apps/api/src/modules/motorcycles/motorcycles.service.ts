@@ -7,11 +7,17 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { Motorcycle } from './models/motorcycle.model';
+import { RecallResult } from './models/recall.model';
+import { NhtsaService } from './nhtsa.service';
+
+const MOTORCYCLE_SELECT =
+  'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, vin, recall_count, recall_last_checked_at, odometer_sync_source, odometer_last_ride_id, created_at';
 
 @Injectable()
 export class MotorcyclesService {
@@ -20,15 +26,14 @@ export class MotorcyclesService {
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    private readonly nhtsaService: NhtsaService,
   ) {}
 
   async findByUser(userId: string): Promise<Motorcycle[]> {
     this.logger.debug(`findByUser: userId=${userId}`);
     const { data, error } = await this.supabase
       .from('motorcycles')
-      .select(
-        'id, user_id, make, model, year, nickname, is_primary, primary_photo_url, current_mileage, mileage_unit, mileage_updated_at, type, engine_cc, purchase_price, purchase_date, created_at',
-      )
+      .select(MOTORCYCLE_SELECT)
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20);
@@ -83,6 +88,7 @@ export class MotorcyclesService {
       mileageUnit?: string;
       purchasePrice?: number | null;
       purchaseDate?: string | null;
+      vin?: string | null;
     },
   ): Promise<Motorcycle> {
     this.logger.log(
@@ -99,17 +105,36 @@ export class MotorcyclesService {
     if (input.mileageUnit != null) updates.mileage_unit = input.mileageUnit;
     if (input.purchasePrice !== undefined) updates.purchase_price = input.purchasePrice;
     if (input.purchaseDate !== undefined) updates.purchase_date = input.purchaseDate;
+    if (input.vin !== undefined) updates.vin = input.vin ? input.vin.toUpperCase() : null;
+
+    // P2-111: Any manual mileage edit must reset the odometer provenance so
+    // the garage UI's "Auto-updated · today" label doesn't lie after a user
+    // override. The ride-sync path (endRide) sets these explicitly; here we
+    // clear them to 'manual' whenever current_mileage changes.
+    if (input.currentMileage != null) {
+      updates.odometer_sync_source = 'manual';
+      updates.odometer_last_ride_id = null;
+      updates.mileage_updated_at = new Date().toISOString();
+    }
 
     const { data, error } = await this.supabase
       .from('motorcycles')
       .update(updates)
       .eq('id', motorcycleId)
       .eq('user_id', userId)
-      .select()
+      .select(MOTORCYCLE_SELECT)
       .single();
 
     if (error || !data) {
       this.logger.error(`update failed: ${error?.message} (${error?.code}) ${error?.details}`);
+      // P1-106: VIN uniqueness violation — the existing unique index
+      // idx_motorcycles_user_vin_active from migration 00005 throws 23505
+      // when a user tries to assign the same VIN to two bikes.
+      if (error?.code === '23505' && error?.message?.includes('vin')) {
+        throw new BadRequestException(
+          'That VIN is already registered on another motorcycle in your garage.',
+        );
+      }
       throw new BadRequestException('Failed to update motorcycle');
     }
     return this.mapRow(data);
@@ -163,6 +188,49 @@ export class MotorcyclesService {
     }
   }
 
+  // ==========================================
+  // Safety recall check (MOT-142)
+  // ==========================================
+
+  async checkRecalls(userId: string, motorcycleId: string): Promise<RecallResult> {
+    const { data: bike, error: bikeError } = await this.supabase
+      .from('motorcycles')
+      .select(MOTORCYCLE_SELECT)
+      .eq('id', motorcycleId)
+      .eq('user_id', userId)
+      .single();
+
+    if (bikeError || !bike) {
+      throw new NotFoundException('Motorcycle not found');
+    }
+
+    const recalls = await this.nhtsaService.getRecalls({
+      vin: bike.vin ?? undefined,
+      make: bike.make,
+      model: bike.model,
+      year: bike.year,
+    });
+
+    const checkedAt = new Date().toISOString();
+
+    // Persist the latest count so the garage card can show a badge without
+    // hitting the NHTSA API on every list render.
+    await this.adminClient
+      .from('motorcycles')
+      .update({
+        recall_count: recalls.length,
+        recall_last_checked_at: checkedAt,
+      })
+      .eq('id', motorcycleId);
+
+    return {
+      count: recalls.length,
+      recalls,
+      checkedAt,
+      vinUsed: bike.vin ?? undefined,
+    };
+  }
+
   private mapRow(
     row: Pick<
       Tables<'motorcycles'>,
@@ -181,6 +249,11 @@ export class MotorcyclesService {
       | 'engine_cc'
       | 'purchase_price'
       | 'purchase_date'
+      | 'vin'
+      | 'recall_count'
+      | 'recall_last_checked_at'
+      | 'odometer_sync_source'
+      | 'odometer_last_ride_id'
       | 'created_at'
     >,
   ): Motorcycle {
@@ -200,6 +273,11 @@ export class MotorcyclesService {
       engineCc: row.engine_cc ?? undefined,
       purchasePrice: row.purchase_price ? Number(row.purchase_price) : undefined,
       purchaseDate: row.purchase_date ?? undefined,
+      vin: row.vin ?? undefined,
+      recallCount: row.recall_count ?? undefined,
+      recallLastCheckedAt: row.recall_last_checked_at ?? undefined,
+      odometerSyncSource: row.odometer_sync_source ?? undefined,
+      odometerLastRideId: row.odometer_last_ride_id ?? undefined,
       createdAt: row.created_at,
     };
   }

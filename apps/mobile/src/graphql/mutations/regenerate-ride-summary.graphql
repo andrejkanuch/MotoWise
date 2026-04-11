@@ -1,0 +1,11 @@
+mutation RegenerateRideSummary($rideId: String!) {
+  regenerateRideSummary(rideId: $rideId) {
+    id
+    rideId
+    summaryText
+    generationStatus
+    locale
+    createdAt
+    updatedAt
+  }
+}

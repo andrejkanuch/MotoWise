@@ -80,12 +80,11 @@ export default async function HomePage({ params }: PageProps) {
       },
     ],
     featureList: [
-      'AI motorcycle diagnostics from photos',
-      'Digital garage management',
-      'Structured learning paths and quizzes',
-      'Maintenance tracking and reminders',
+      'Maintenance tracking with smart service reminders',
       'Expense management with cost-per-mile analytics',
-      'GPS ride recording with route maps, max speed, elevation profiles, and interactive charts',
+      'GPS ride recording with route maps, speed, and elevation',
+      'AI motorcycle diagnostics from photos',
+      'Digital garage management for unlimited bikes',
     ],
     offers: [
       {
@@ -142,8 +141,8 @@ export default async function HomePage({ params }: PageProps) {
       <JsonLd data={faqSchema} />
       <Hero />
       <SocialProofBar />
-      <HowItWorks />
       <FeaturesGrid />
+      <HowItWorks />
       <AppShowcase />
       <CtaSection />
       <Faq />

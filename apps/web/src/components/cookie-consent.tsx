@@ -13,6 +13,7 @@ function getConsent(): boolean | null {
 
 function setConsent(granted: boolean) {
   const maxAge = 365 * 24 * 60 * 60; // 1 year
+  // biome-ignore lint/suspicious/noDocumentCookie: this IS the consent primitive itself
   document.cookie = `${CONSENT_COOKIE}=${granted ? 'granted' : 'denied'}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 

@@ -1,0 +1,8 @@
+query GetKudosList($rideId: String!, $first: Int, $after: String) {
+  kudosList(rideId: $rideId, first: $first, after: $after) {
+    id
+    displayName
+    avatarUrl
+    publicUsername
+  }
+}

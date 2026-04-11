@@ -1,0 +1,22 @@
+query GetFollowers($userId: String!, $first: Int, $after: String) {
+  getFollowers(userId: $userId, first: $first, after: $after) {
+    edges {
+      node {
+        followerId
+        followingId
+        createdAt
+        displayName
+        publicUsername
+        avatarUrl
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    totalCount
+  }
+}

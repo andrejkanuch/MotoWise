@@ -4,8 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Expense } from './models/expense.model';
 import type {
@@ -13,7 +16,10 @@ import type {
   ExpenseDashboardSummary,
   MonthlyBucket,
 } from './models/expense-dashboard.model';
+import type { ExpensePhoto } from './models/expense-photo.model';
 import type { ExpenseCategory, ExpenseSummary } from './models/expense-summary.model';
+
+const MAX_PHOTOS_PER_EXPENSE = 3;
 
 /** Mirrors the selected columns from the expenses table (not yet in generated database.types.ts). */
 interface ExpenseRow {
@@ -32,8 +38,15 @@ interface ExpenseRow {
 @Injectable()
 export class ExpensesService {
   private readonly logger = new Logger(ExpensesService.name);
+  private readonly supabaseUrl: string;
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
+    configService: ConfigService,
+  ) {
+    this.supabaseUrl = configService.get<string>('SUPABASE_URL') ?? '';
+  }
 
   async findByMotorcycle(
     userId: string,
@@ -293,6 +306,189 @@ export class ExpensesService {
       expenseCount: rows.length,
       monthlyBuckets,
       categoryTotals,
+    };
+  }
+
+  // ==========================================
+  // Expense Photos (MOT-143)
+  // ==========================================
+
+  async addPhoto(
+    userId: string,
+    expenseId: string,
+    storagePath: string,
+    fileSizeBytes?: number,
+  ): Promise<ExpensePhoto> {
+    this.logger.log(`addPhoto: userId=${userId}, expenseId=${expenseId}`);
+
+    // P1-103: Enforce storage path prefix server-side. Prevents a caller from
+    // registering someone else's storage file as their own expense photo.
+    const expectedPrefix = `${userId}/expenses/${expenseId}/`;
+    if (!storagePath.startsWith(expectedPrefix)) {
+      this.logger.warn(
+        `addPhoto: rejected storage path outside expected prefix. userId=${userId}, expenseId=${expenseId}`,
+      );
+      throw new BadRequestException('Invalid storage path');
+    }
+
+    // P1-102: Use the RLS-enforcing user client. The expense_photos RLS policy
+    // restricts all ops to rows where user_id = auth.uid() — ownership is
+    // verified by Postgres, not by a JS equality check.
+    const { data: expense, error: expenseError } = await this.supabase
+      .from('expenses')
+      .select('id')
+      .eq('id', expenseId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .single();
+
+    if (expenseError || !expense) {
+      throw new NotFoundException('Expense not found');
+    }
+
+    // Check photo count limit
+    const { count, error: countError } = await this.supabase
+      .from('expense_photos')
+      .select('id', { count: 'exact', head: true })
+      .eq('expense_id', expenseId);
+
+    if (countError) throw new InternalServerErrorException('Failed to check photo count');
+    if ((count ?? 0) >= MAX_PHOTOS_PER_EXPENSE) {
+      throw new BadRequestException(`Maximum of ${MAX_PHOTOS_PER_EXPENSE} photos per expense`);
+    }
+
+    // Determine mime type from storage path
+    const ext = storagePath.split('.').pop()?.toLowerCase() ?? 'webp';
+    const mimeMap: Record<string, string> = {
+      webp: 'image/webp',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      heic: 'image/heic',
+    };
+    const mimeType = mimeMap[ext] ?? 'image/webp';
+
+    const { data, error } = await this.supabase
+      .from('expense_photos')
+      .insert({
+        expense_id: expenseId,
+        user_id: userId,
+        storage_path: storagePath,
+        file_size_bytes: fileSizeBytes ?? null,
+        mime_type: mimeType,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      this.logger.error(`addPhoto failed: ${error?.message} (${error?.code})`);
+      throw new BadRequestException('Failed to add photo');
+    }
+    return this.mapPhotoRow(data);
+  }
+
+  async deletePhoto(userId: string, photoId: string): Promise<boolean> {
+    this.logger.log(`deletePhoto: userId=${userId}, photoId=${photoId}`);
+
+    // P1-102: Use user client — RLS enforces ownership via the user_id column
+    // on expense_photos. No need for a JS equality check.
+    const { data: photo, error: photoError } = await this.supabase
+      .from('expense_photos')
+      .select('id, expense_id, user_id, storage_path')
+      .eq('id', photoId)
+      .single();
+
+    if (photoError || !photo) throw new NotFoundException('Photo not found');
+
+    // P1-103: Defense-in-depth check on the storage path prefix before we
+    // hand it to the admin client's storage.remove. Prevents an attacker who
+    // bypasses RLS (e.g. future bug) from deleting arbitrary bucket files.
+    if (!photo.storage_path.startsWith(`${userId}/`)) {
+      this.logger.warn(
+        `deletePhoto: rejected removal of storage path outside user prefix. userId=${userId}`,
+      );
+      throw new NotFoundException('Photo not found');
+    }
+
+    // Delete from storage using admin client — Storage RLS is separate from
+    // table RLS and the admin client is legitimate here (service-level op,
+    // path has already been validated against the authenticated user).
+    const { error: storageError } = await this.adminClient.storage
+      .from('maintenance-photos')
+      .remove([photo.storage_path]);
+
+    if (storageError) {
+      this.logger.warn(
+        `deletePhoto: storage deletion failed for ${photo.storage_path}: ${storageError.message}`,
+      );
+    }
+
+    const { error: deleteError } = await this.supabase
+      .from('expense_photos')
+      .delete()
+      .eq('id', photoId);
+
+    if (deleteError) throw new InternalServerErrorException('Failed to delete photo');
+    return true;
+  }
+
+  /**
+   * P1-102 + 107: Batched lookup used by the DataLoader in the resolver.
+   * Relies on RLS on expense_photos to filter to the authenticated user's rows.
+   */
+  async findPhotosByExpenseIds(expenseIds: string[]): Promise<Map<string, ExpensePhoto[]>> {
+    if (expenseIds.length === 0) return new Map();
+
+    const { data, error } = await this.supabase
+      .from('expense_photos')
+      .select('*')
+      .in('expense_id', expenseIds)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new InternalServerErrorException('Failed to fetch photos');
+
+    const map = new Map<string, ExpensePhoto[]>();
+    for (const expenseId of expenseIds) {
+      map.set(expenseId, []);
+    }
+    for (const row of data ?? []) {
+      const expenseId = row.expense_id as string;
+      const photos = map.get(expenseId) ?? [];
+      photos.push(this.mapPhotoRow(row));
+      map.set(expenseId, photos);
+    }
+    return map;
+  }
+
+  /**
+   * Single-expense photo lookup. Use `findPhotosByExpenseIds` from resolver
+   * code paths that iterate over multiple expenses (DataLoader batches there).
+   */
+  async findPhotosByExpenseId(userId: string, expenseId: string): Promise<ExpensePhoto[]> {
+    // P1-102: Use user client. RLS restricts to the current user's photos.
+    // We also filter by user_id explicitly as defense-in-depth per
+    // docs/solutions/integration-issues/ride-hud-reanimated-charts-mileage-patterns.md
+    const { data, error } = await this.supabase
+      .from('expense_photos')
+      .select('*')
+      .eq('expense_id', expenseId)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new InternalServerErrorException('Failed to fetch photos');
+    return (data ?? []).map((row) => this.mapPhotoRow(row));
+  }
+
+  private mapPhotoRow(row: Record<string, unknown>): ExpensePhoto {
+    const storagePath = row.storage_path as string;
+    return {
+      id: row.id as string,
+      expenseId: row.expense_id as string,
+      storagePath,
+      publicUrl: `${this.supabaseUrl}/storage/v1/object/public/maintenance-photos/${storagePath}`,
+      fileSizeBytes: (row.file_size_bytes as number) ?? undefined,
+      mimeType: (row.mime_type as string) ?? 'image/webp',
+      createdAt: row.created_at as string,
     };
   }
 

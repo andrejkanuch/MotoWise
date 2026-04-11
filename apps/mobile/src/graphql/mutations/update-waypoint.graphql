@@ -1,0 +1,12 @@
+mutation UpdateWaypoint($input: UpdateWaypointInput!) {
+  updateWaypoint(input: $input) {
+    id
+    sortOrder
+    dayIndex
+    type
+    name
+    notes
+    lat
+    lng
+  }
+}

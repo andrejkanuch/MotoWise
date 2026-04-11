@@ -1,0 +1,12 @@
+query GetMyHealthReports {
+  getMyHealthReports {
+    id
+    userId
+    motorcycleId
+    status
+    pdfUrl
+    iapTransactionId
+    createdAt
+    completedAt
+  }
+}

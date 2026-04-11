@@ -14,9 +14,9 @@ export default function GarageLayout() {
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
 
-  const sheetContentStyle = {
-    backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-  };
+  const sheetSurface = isDark ? palette.neutral900 : palette.neutral50;
+  const sheetContentStyle = { backgroundColor: sheetSurface };
+  const sheetHeaderStyle = { backgroundColor: sheetSurface };
 
   return (
     <Stack
@@ -47,6 +47,7 @@ export default function GarageLayout() {
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
+          headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
           sheetAllowedDetents: [0.85, 1.0],
           contentStyle: sheetContentStyle,
@@ -59,6 +60,7 @@ export default function GarageLayout() {
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
+          headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
           sheetAllowedDetents: [0.85, 1.0],
           contentStyle: sheetContentStyle,
@@ -80,6 +82,7 @@ export default function GarageLayout() {
           presentation: 'formSheet',
           headerLargeTitle: false,
           headerTransparent: false,
+          headerStyle: sheetHeaderStyle,
           sheetGrabberVisible: true,
           sheetAllowedDetents: [0.7, 0.9],
           contentStyle: sheetContentStyle,

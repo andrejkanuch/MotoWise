@@ -1,0 +1,3 @@
+mutation CancelGroupRide($groupRideId: ID!) {
+  cancelGroupRide(groupRideId: $groupRideId)
+}

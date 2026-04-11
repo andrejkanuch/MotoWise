@@ -1,0 +1,6 @@
+mutation PublishTrip($tripId: ID!) {
+  publishTrip(tripId: $tripId) {
+    id
+    status
+  }
+}

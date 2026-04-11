@@ -47,6 +47,45 @@ export const queryKeys = {
     detail: (id: string) => ['rides', 'detail', id] as const,
     waypoints: (id: string) => ['rides', 'waypoints', id] as const,
   },
+  healthReports: {
+    all: ['healthReports'] as const,
+    byMotorcycle: (motorcycleId: string) =>
+      ['healthReports', 'byMotorcycle', motorcycleId] as const,
+  },
+  feed: {
+    all: ['feed'] as const,
+  },
+  kudos: {
+    list: (rideId: string) => ['kudos', 'list', rideId] as const,
+  },
+  routes: {
+    all: ['routes'] as const,
+    detail: (routeId: string) => ['routes', 'detail', routeId] as const,
+  },
+  comments: {
+    byRide: (rideId: string) => ['comments', 'ride', rideId] as const,
+    byRoute: (routeId: string) => ['comments', 'route', routeId] as const,
+    byGroupRide: (groupRideId: string) => ['comments', 'groupRide', groupRideId] as const,
+    byTrip: (tripId: string) => ['comments', 'trip', tripId] as const,
+  },
+  profiles: {
+    byUsername: (username: string) => ['profiles', 'byUsername', username] as const,
+  },
+  followers: {
+    list: (userId: string) => ['followers', 'list', userId] as const,
+  },
+  following: {
+    list: (userId: string) => ['following', 'list', userId] as const,
+  },
+  groupRides: {
+    all: ['groupRides'] as const,
+    detail: (id: string) => ['groupRides', 'detail', id] as const,
+  },
+  trips: {
+    all: ['trips'] as const,
+    detail: (id: string) => ['trips', 'detail', id] as const,
+    my: ['trips', 'my'] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },

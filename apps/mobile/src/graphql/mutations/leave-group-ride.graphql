@@ -1,0 +1,3 @@
+mutation LeaveGroupRide($groupRideId: ID!) {
+  leaveGroupRide(groupRideId: $groupRideId)
+}

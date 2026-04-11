@@ -12,6 +12,11 @@ export const CreateMaintenanceTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   notes: z.string().max(2000).optional(),
   partsNeeded: z.array(z.string().max(100)).max(20).optional(),
+  // MOT-139 multi-stage reminder flags. Defaults on the DB side preserve
+  // legacy behaviour (only 1d is enabled by default).
+  remind30d: z.boolean().optional(),
+  remind7d: z.boolean().optional(),
+  remind1d: z.boolean().optional(),
 });
 export type CreateMaintenanceTask = z.infer<typeof CreateMaintenanceTaskSchema>;
 
@@ -27,6 +32,10 @@ export const UpdateMaintenanceTaskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   notes: z.string().max(2000).nullable().optional(),
   partsNeeded: z.array(z.string().max(100)).max(20).nullable().optional(),
+  // MOT-139 multi-stage reminder flags
+  remind30d: z.boolean().optional(),
+  remind7d: z.boolean().optional(),
+  remind1d: z.boolean().optional(),
 });
 export type UpdateMaintenanceTask = z.infer<typeof UpdateMaintenanceTaskSchema>;
 

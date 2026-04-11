@@ -19,6 +19,31 @@ export default function ModalsLayout() {
         name="ride-detail"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
+      <Stack.Screen
+        name="route-detail"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen
+        name="group-ride-detail"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen
+        name="whats-new"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true }}
+      />
+      <Stack.Screen name="create-group-ride" />
+      <Stack.Screen
+        name="create-trip"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen
+        name="trip-detail"
+        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
+      />
+      <Stack.Screen
+        name="recalls"
+        options={{ presentation: 'formSheet', gestureEnabled: true, headerShown: false }}
+      />
     </Stack>
   );
 }

@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { captureException } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -37,6 +37,8 @@ export default function LoginScreen() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         Alert.alert(t('common.error'), error.message);
+      } else {
+        trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email' });
       }
     } catch (err) {
       captureException(err);
@@ -52,6 +54,7 @@ export default function LoginScreen() {
     }
     try {
       await signInWithApple();
+      trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'apple' });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);
@@ -64,6 +67,7 @@ export default function LoginScreen() {
     }
     try {
       await signInWithGoogle();
+      trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'google' });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);

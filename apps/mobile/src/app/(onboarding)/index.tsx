@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { TOTAL_SCREENS } from './_config';
 
 export default function WelcomeScreen() {
@@ -16,6 +17,7 @@ export default function WelcomeScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
     router.push('/(onboarding)/experience');
   };
 

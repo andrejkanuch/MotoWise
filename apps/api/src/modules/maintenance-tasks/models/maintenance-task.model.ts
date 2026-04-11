@@ -77,6 +77,16 @@ export class MaintenanceTask {
   @Field({ nullable: true })
   currency?: string;
 
+  // MOT-139: multi-stage reminders
+  @Field()
+  remind30d: boolean;
+
+  @Field()
+  remind7d: boolean;
+
+  @Field()
+  remind1d: boolean;
+
   @Field()
   createdAt: string;
 

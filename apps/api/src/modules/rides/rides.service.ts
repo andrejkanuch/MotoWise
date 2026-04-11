@@ -1,3 +1,4 @@
+import { type MileageUnit, metersToUnit } from '@motovault/types';
 import {
   BadRequestException,
   Inject,
@@ -6,8 +7,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { QUERY_LIMITS } from '../../config/constants';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { EndRideInput } from './dto/end-ride.input';
 import type { StartRideInput } from './dto/start-ride.input';
@@ -23,7 +26,11 @@ const MAX_WAYPOINTS_PER_RIDE = QUERY_LIMITS.MAX_WAYPOINTS_PER_RIDE;
 export class RidesService {
   private readonly logger = new Logger(RidesService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async startRide(userId: string, input: StartRideInput): Promise<Ride> {
     this.logger.log(`startRide: userId=${userId}, rideId=${input.rideId}`);
@@ -90,23 +97,38 @@ export class RidesService {
     const motorcycleId = data.motorcycle_id;
     const distanceM = input.distanceM ?? 0;
 
-    if (motorcycleId && distanceM > 0) {
+    // MOT-140: Idempotency — only sync each ride into the odometer once.
+    // The existing rides.mileage_applied flag already exists from 00047 and
+    // is reused here as the sync guard so re-running endRide (e.g. after a
+    // network retry) cannot double-count.
+    if (motorcycleId && distanceM > 0 && !data.mileage_applied) {
       try {
         // Defense-in-depth: filter by user_id alongside RLS
         const { data: bike } = await this.supabase
           .from('motorcycles')
-          .select('current_mileage')
+          .select('current_mileage, mileage_unit')
           .eq('id', motorcycleId)
           .eq('user_id', userId)
           .single();
 
-        const newMileage = (bike?.current_mileage ?? 0) + distanceM;
+        // MOT-140 bug fix: current_mileage is stored in the user's preferred
+        // unit (km or mi). Previously distanceM (meters) was added directly,
+        // producing wildly inflated odometer readings on every ride.
+        // P2-109: Uses metersToUnit from @motovault/types so this conversion
+        // lives in exactly one place across the whole codebase.
+        const unit: MileageUnit = (bike?.mileage_unit as MileageUnit | null) ?? 'mi';
+        const roundedDelta = Math.round(metersToUnit(distanceM, unit));
+        const newMileage = (bike?.current_mileage ?? 0) + roundedDelta;
+
+        const nowIso = new Date().toISOString();
 
         await this.supabase
           .from('motorcycles')
           .update({
             current_mileage: newMileage,
-            mileage_updated_at: new Date().toISOString(),
+            mileage_updated_at: nowIso,
+            odometer_sync_source: 'gps_ride',
+            odometer_last_ride_id: input.rideId,
           })
           .eq('id', motorcycleId)
           .eq('user_id', userId);
@@ -118,10 +140,11 @@ export class RidesService {
           .eq('user_id', userId);
 
         this.logger.log(
-          `Mileage applied: +${distanceM}m to motorcycle ${motorcycleId} (total: ${newMileage}m)`,
+          `Odometer sync: +${roundedDelta}${unit} to motorcycle ${motorcycleId} (total: ${newMileage}${unit}, ride=${input.rideId})`,
         );
 
-        // Check for maintenance tasks that are now due
+        // Check for maintenance tasks that are now due (target_mileage is in
+        // the same user-unit as current_mileage, so the new total is valid here)
         const { data: dueTasks } = await this.supabase
           .from('maintenance_tasks')
           .select('id, title, priority')
@@ -142,6 +165,13 @@ export class RidesService {
         // Non-fatal — ride is already saved
       }
     }
+
+    // Emit event for async AI ride summary generation
+    this.eventEmitter.emit('ride.completed', {
+      rideId: ride.id,
+      userId,
+      locale: 'en', // TODO: pass user's preferred locale
+    });
 
     return { ride, triggeredMaintenanceTasks };
   }
@@ -249,6 +279,87 @@ export class RidesService {
     return true;
   }
 
+  // ==========================================
+  // Ride visibility + sharing (privacy feature)
+  // ==========================================
+
+  /** Update a ride's visibility setting. Owner-only via RLS. */
+  async updateRideVisibility(
+    userId: string,
+    rideId: string,
+    visibility: 'private' | 'unlisted' | 'public',
+  ): Promise<Ride> {
+    const { data, error } = await this.supabase
+      .from('rides')
+      .update({ visibility })
+      .eq('id', rideId)
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .select()
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundException('Ride not found');
+    }
+    return this.mapRow(data);
+  }
+
+  /** Grant a specific user read access to a private ride. */
+  async shareRide(userId: string, rideId: string, sharedWithUserId: string): Promise<boolean> {
+    const { error } = await this.supabase.from('ride_shares').insert({
+      ride_id: rideId,
+      shared_with_user_id: sharedWithUserId,
+      shared_by_user_id: userId,
+    });
+
+    if (error) {
+      // Idempotent on duplicate — already shared
+      if (error.code === '23505') return true;
+      this.logger.error(`shareRide failed: ${error.message}`);
+      throw new BadRequestException('Failed to share ride');
+    }
+    return true;
+  }
+
+  /** Revoke a user's access to a previously shared private ride. */
+  async unshareRide(userId: string, rideId: string, sharedWithUserId: string): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('ride_shares')
+      .delete()
+      .eq('ride_id', rideId)
+      .eq('shared_with_user_id', sharedWithUserId)
+      .eq('shared_by_user_id', userId);
+
+    if (error) {
+      this.logger.error(`unshareRide failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to unshare ride');
+    }
+    return true;
+  }
+
+  /** List users the ride has been shared with. Owner-only (or admin via RLS). */
+  async listRideShares(
+    userId: string,
+    rideId: string,
+  ): Promise<Array<{ sharedWithUserId: string; sharedAt: string }>> {
+    const { data, error } = await this.supabase
+      .from('ride_shares')
+      .select('shared_with_user_id, created_at')
+      .eq('ride_id', rideId)
+      .eq('shared_by_user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.logger.error(`listRideShares failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to list ride shares');
+    }
+
+    return (data ?? []).map((row) => ({
+      sharedWithUserId: row.shared_with_user_id as string,
+      sharedAt: row.created_at as string,
+    }));
+  }
+
   async myRides(
     userId: string,
     first: number,
@@ -308,6 +419,25 @@ export class RidesService {
       },
       totalCount: count ?? 0,
     };
+  }
+
+  async getPublicRide(id: string): Promise<Ride> {
+    this.logger.debug(`getPublicRide: rideId=${id}`);
+
+    const { data, error } = await this.supabaseAdmin
+      .from('rides')
+      .select(
+        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, region, route_thumbnail_uri, created_at, updated_at',
+      )
+      .eq('id', id)
+      .eq('is_public', true)
+      .is('deleted_at', null)
+      .single();
+
+    if (error || !data) {
+      throw new NotFoundException('Ride not found');
+    }
+    return this.mapRow(data);
   }
 
   async findById(userId: string, id: string): Promise<Ride> {
@@ -416,6 +546,7 @@ export class RidesService {
       gpsQuality: (row.gps_quality as number) ?? undefined,
       mileageApplied: (row.mileage_applied as boolean) ?? false,
       isPublic: (row.is_public as boolean) ?? false,
+      visibility: (row.visibility as string) ?? 'private',
       region: (row.region as string) ?? undefined,
       routeThumbnailUri: (row.route_thumbnail_uri as string) ?? undefined,
       createdAt: row.created_at as string,

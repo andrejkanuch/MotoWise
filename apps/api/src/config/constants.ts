@@ -45,6 +45,13 @@ export const THROTTLE_PRESETS = {
   SHARE_LINK: { limit: 10, ttl: 60_000 },
   WAYPOINT_UPLOAD: { limit: 10, ttl: 60_000 },
   WAYPOINT_QUERY: { limit: 30, ttl: 60_000 },
+  STANDARD: { limit: 20, ttl: 60_000 },
+  FOLLOW: { limit: 50, ttl: 3_600_000 },
+  KUDOS: { limit: 200, ttl: 3_600_000 },
+  HEALTH_REPORT: { limit: 10, ttl: 3_600_000 },
+  RIDE_SUMMARY: { limit: 20, ttl: 3_600_000 },
+  COMMENT: { limit: 30, ttl: 60_000 },
+  GROUP_RIDE: { limit: 10, ttl: 60_000 },
 } as const;
 
 /** Query and data limits */

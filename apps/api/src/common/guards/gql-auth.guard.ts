@@ -36,11 +36,21 @@ export class GqlAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
-
     const ctx = GqlExecutionContext.create(context);
     const request = ctx.getContext().req;
     const authHeader = request.headers.authorization;
+
+    if (isPublic) {
+      // Attempt optional JWT extraction so @CurrentUser() works on public routes
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          await this.extractUser(request, authHeader.slice(7));
+        } catch {
+          // Invalid token on public route — proceed without user context
+        }
+      }
+      return true;
+    }
 
     if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedException('Missing authorization header');
@@ -49,35 +59,38 @@ export class GqlAuthGuard implements CanActivate {
     const token = authHeader.slice(7);
 
     try {
-      const { jwtVerify, decodeProtectedHeader } = await import('jose');
-
-      let payload: Record<string, unknown>;
-
-      const header = await decodeProtectedHeader(token);
-      if (header.kid) {
-        // ECC/asymmetric key — verify against Supabase JWKS
-        const jwks = await this.getJwks();
-        const result = await jwtVerify(token, jwks);
-        payload = result.payload as Record<string, unknown>;
-      } else {
-        // Legacy HS256 — verify with shared secret
-        const result = await jwtVerify(token, this.legacySecret);
-        payload = result.payload as Record<string, unknown>;
-      }
-
-      request.user = {
-        id: payload.sub,
-        email: payload.email,
-        // TODO 030 fix: prefer app_metadata.role (set by Supabase DB trigger, not user-editable)
-        // over user_role claim. This value is INFORMATIONAL ONLY — do NOT use for authorization
-        // decisions. All access control must go through RLS policies or a DB query on public.users.role.
-        role:
-          (payload.app_metadata as Record<string, unknown>)?.role ?? payload.user_role ?? 'user',
-      };
-      request.accessToken = token;
+      await this.extractUser(request, token);
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  private async extractUser(request: { user?: unknown; accessToken?: string }, token: string) {
+    const { jwtVerify, decodeProtectedHeader } = await import('jose');
+
+    let payload: Record<string, unknown>;
+
+    const header = await decodeProtectedHeader(token);
+    if (header.kid) {
+      // ECC/asymmetric key — verify against Supabase JWKS
+      const jwks = await this.getJwks();
+      const result = await jwtVerify(token, jwks);
+      payload = result.payload as Record<string, unknown>;
+    } else {
+      // Legacy HS256 — verify with shared secret
+      const result = await jwtVerify(token, this.legacySecret);
+      payload = result.payload as Record<string, unknown>;
+    }
+
+    request.user = {
+      id: payload.sub,
+      email: payload.email,
+      // TODO 030 fix: prefer app_metadata.role (set by Supabase DB trigger, not user-editable)
+      // over user_role claim. This value is INFORMATIONAL ONLY — do NOT use for authorization
+      // decisions. All access control must go through RLS policies or a DB query on public.users.role.
+      role: (payload.app_metadata as Record<string, unknown>)?.role ?? payload.user_role ?? 'user',
+    };
+    request.accessToken = token;
   }
 }

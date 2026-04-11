@@ -120,6 +120,10 @@ export class MaintenanceTasksService {
       isRecurring?: boolean;
       intervalKm?: number;
       intervalDays?: number;
+      // MOT-139 multi-stage reminder flags
+      remind30d?: boolean;
+      remind7d?: boolean;
+      remind1d?: boolean;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
@@ -140,6 +144,10 @@ export class MaintenanceTasksService {
         is_recurring: input.isRecurring ?? false,
         interval_km: input.intervalKm ?? null,
         interval_days: input.intervalDays ?? null,
+        // MOT-139 — only set when provided, let DB defaults apply otherwise
+        ...(input.remind30d !== undefined && { remind_30d: input.remind30d }),
+        ...(input.remind7d !== undefined && { remind_7d: input.remind7d }),
+        ...(input.remind1d !== undefined && { remind_1d: input.remind1d }),
       })
       .select()
       .single();
@@ -162,6 +170,10 @@ export class MaintenanceTasksService {
       priority?: string;
       notes?: string;
       partsNeeded?: string[];
+      // MOT-139 multi-stage reminder flags
+      remind30d?: boolean;
+      remind7d?: boolean;
+      remind1d?: boolean;
     },
   ): Promise<MaintenanceTask> {
     this.logger.log(
@@ -175,6 +187,10 @@ export class MaintenanceTasksService {
     if (input.priority !== undefined) updates.priority = input.priority;
     if (input.notes !== undefined) updates.notes = input.notes;
     if (input.partsNeeded !== undefined) updates.parts_needed = input.partsNeeded;
+    // MOT-139 reminder flags
+    if (input.remind30d !== undefined) updates.remind_30d = input.remind30d;
+    if (input.remind7d !== undefined) updates.remind_7d = input.remind7d;
+    if (input.remind1d !== undefined) updates.remind_1d = input.remind1d;
 
     const { data, error } = await this.supabase
       .from('maintenance_tasks')
@@ -549,6 +565,10 @@ export class MaintenanceTasksService {
       intervalDays: (row.interval_days as number) ?? undefined,
       isRecurring: (row.is_recurring as boolean) ?? false,
       photos: [],
+      // MOT-139: multi-stage reminder flags with legacy defaults
+      remind30d: (row.remind_30d as boolean) ?? false,
+      remind7d: (row.remind_7d as boolean) ?? false,
+      remind1d: (row.remind_1d as boolean) ?? true,
       createdAt: row.created_at as string,
       updatedAt: row.updated_at as string,
     };

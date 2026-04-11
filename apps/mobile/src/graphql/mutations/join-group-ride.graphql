@@ -1,0 +1,3 @@
+mutation JoinGroupRide($groupRideId: ID!) {
+  joinGroupRide(groupRideId: $groupRideId)
+}

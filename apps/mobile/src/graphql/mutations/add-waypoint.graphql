@@ -1,0 +1,14 @@
+mutation AddWaypoint($input: CreateWaypointInput!) {
+  addWaypoint(input: $input) {
+    id
+    tripId
+    sortOrder
+    dayIndex
+    type
+    name
+    notes
+    lat
+    lng
+    createdAt
+  }
+}

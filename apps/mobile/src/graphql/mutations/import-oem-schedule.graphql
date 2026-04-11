@@ -1,0 +1,3 @@
+mutation ImportOemSchedule($motorcycleId: String!) {
+  importOemSchedule(motorcycleId: $motorcycleId)
+}

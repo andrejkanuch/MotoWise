@@ -36,7 +36,7 @@ export function useNotificationDeepLink() {
     );
     if (!route) return;
     if (isReady) {
-      router.push(route as any);
+      router.push(route as never);
       Notifications.clearLastNotificationResponse();
     } else {
       pendingRoute.current = route;
@@ -48,7 +48,7 @@ export function useNotificationDeepLink() {
     if (isReady && pendingRoute.current) {
       const route = pendingRoute.current;
       pendingRoute.current = null;
-      router.push(route as any);
+      router.push(route as never);
     }
   }, [isReady, router]);
 
@@ -61,7 +61,7 @@ export function useNotificationDeepLink() {
         response.notification.request.content.data as Record<string, unknown> | undefined,
       );
       if (!route) return;
-      if (isReadyRef.current) router.push(route as any);
+      if (isReadyRef.current) router.push(route as never);
       else pendingRoute.current = route;
     });
     return () => sub.remove();

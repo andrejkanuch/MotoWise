@@ -1,8 +1,16 @@
-import { UserPreferencesSchema } from '@motovault/types';
+import { RESERVED_USERNAMES, USERNAME_REGEX, UserPreferencesSchema } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { SupabaseClient } from '@supabase/supabase-js';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../email/email.service';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
 import { DataExportService } from './data-export.service';
@@ -10,29 +18,76 @@ import type { CompleteOnboardingInput } from './dto/complete-onboarding.input';
 import { DataExportRequest } from './models/data-export-request.model';
 import { User } from './models/user.model';
 
+/** Community columns not yet in database.types.ts Tables<'users'> */
+interface UserCommunityColumns {
+  public_username: string | null;
+  display_name: string | null;
+  bio: string | null;
+  city: string | null;
+  is_public: boolean | null;
+  follower_count: number | null;
+  following_count: number | null;
+  avatar_url: string | null;
+}
+
+/** Shape returned by the public_profiles view */
+interface ProfileViewRow {
+  id: string;
+  public_username: string;
+  display_name: string | null;
+  bio: string | null;
+  city: string | null;
+  avatar_url: string | null;
+  follower_count: number;
+  following_count: number;
+}
+
+/** Shape returned by the motorcycles select for profile bikes */
+interface ProfileBikeRow {
+  make: string;
+  model: string;
+  year: number;
+  nickname: string | null;
+}
+
+/** Shape returned by the rides distance select */
+interface RideDistanceRow {
+  distance_m: number | null;
+}
+
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly dataExportService: DataExportService,
     private readonly revenueCatService: RevenueCatService,
     private readonly emailService: EmailService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
+    const r = row as unknown as Tables<'users'> & UserCommunityColumns;
     return {
-      id: row.id,
-      email: row.email,
-      fullName: row.full_name ?? undefined,
-      role: row.role,
-      preferences: (row.preferences as Record<string, unknown>) ?? undefined,
-      subscriptionTier: row.subscription_tier ?? undefined,
-      measurementSystem: row.measurement_system ?? undefined,
-      currency: row.currency,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: r.id,
+      email: r.email,
+      fullName: r.full_name ?? undefined,
+      role: r.role,
+      preferences: (r.preferences as Record<string, unknown>) ?? undefined,
+      subscriptionTier: r.subscription_tier ?? undefined,
+      measurementSystem: r.measurement_system ?? undefined,
+      currency: r.currency,
+      publicUsername: r.public_username ?? undefined,
+      displayName: r.display_name ?? undefined,
+      bio: r.bio ?? undefined,
+      city: r.city ?? undefined,
+      isPublic: r.is_public ?? undefined,
+      followerCount: r.follower_count ?? 0,
+      followingCount: r.following_count ?? 0,
+      avatarUrl: r.avatar_url ?? undefined,
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
     };
   }
 
@@ -163,5 +218,130 @@ export class UsersService {
     );
 
     return true;
+  }
+
+  async getRiderProfile(username: string, currentUserId?: string) {
+    // Query public_profiles VIEW (only exposes safe columns)
+    const { data: profile, error } = await this.supabase
+      .from('public_profiles' as never)
+      .select('*')
+      .eq('public_username', username)
+      .single();
+
+    if (error || !profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    const p = profile as unknown as ProfileViewRow;
+
+    // Fetch public bikes — use admin client (no user JWT on @Public() route)
+    const { data: bikes } = await this.supabaseAdmin
+      .from('motorcycles')
+      .select('make, model, year, nickname')
+      .eq('user_id', p.id)
+      .is('deleted_at', null);
+
+    const typedBikes = (bikes ?? []) as unknown as ProfileBikeRow[];
+
+    // Fetch ride stats — admin client, only count public rides
+    const { data: rides } = await this.supabaseAdmin
+      .from('rides')
+      .select('distance_m')
+      .eq('user_id', p.id)
+      .eq('is_public', true)
+      .is('deleted_at', null);
+
+    const typedRides = (rides ?? []) as unknown as RideDistanceRow[];
+    const totalRides = typedRides.length;
+    const totalDistance = typedRides.reduce((sum, r) => sum + (r.distance_m ?? 0), 0);
+
+    // Check if current user follows this profile
+    let isFollowing = false;
+    if (currentUserId && currentUserId !== p.id) {
+      const { data: follow } = await this.supabase
+        .from('follows')
+        .select('follower_id')
+        .eq('follower_id', currentUserId)
+        .eq('following_id', p.id)
+        .maybeSingle();
+      isFollowing = !!follow;
+    }
+
+    return {
+      id: p.id,
+      publicUsername: p.public_username,
+      displayName: p.display_name ?? undefined,
+      bio: p.bio ?? undefined,
+      city: p.city ?? undefined,
+      avatarUrl: p.avatar_url ?? undefined,
+      followerCount: p.follower_count ?? 0,
+      followingCount: p.following_count ?? 0,
+      isFollowing,
+      bikes: typedBikes.map((b) => ({
+        make: b.make,
+        model: b.model,
+        year: b.year,
+        nickname: b.nickname ?? undefined,
+      })),
+      rideStats: {
+        totalRides,
+        totalDistance,
+        joinDate: undefined,
+      },
+    };
+  }
+
+  async updateProfile(
+    userId: string,
+    input: {
+      publicUsername?: string;
+      displayName?: string;
+      bio?: string;
+      city?: string;
+      isPublic?: boolean;
+    },
+  ) {
+    const updates: Record<string, unknown> = {};
+
+    if (input.publicUsername !== undefined) {
+      const username = input.publicUsername.toLowerCase();
+      if (!USERNAME_REGEX.test(username)) {
+        throw new BadRequestException(
+          'Username must be 3-20 characters, lowercase alphanumeric and underscores only',
+        );
+      }
+      if (RESERVED_USERNAMES.includes(username as never)) {
+        throw new BadRequestException('This username is reserved');
+      }
+      // Check uniqueness
+      const { data: existing } = await this.supabase
+        .from('users')
+        .select('id')
+        .eq('public_username', username)
+        .neq('id', userId)
+        .maybeSingle();
+      if (existing) {
+        throw new ConflictException('Username is already taken');
+      }
+      updates.public_username = username;
+    }
+
+    if (input.displayName !== undefined) updates.display_name = input.displayName;
+    if (input.bio !== undefined) updates.bio = input.bio;
+    if (input.city !== undefined) updates.city = input.city;
+    if (input.isPublic !== undefined) updates.is_public = input.isPublic;
+
+    if (Object.keys(updates).length === 0) {
+      return this.findById(userId);
+    }
+
+    const { error } = await this.supabase.from('users').update(updates).eq('id', userId);
+
+    if (error) {
+      this.logger.error(`Failed to update profile for ${userId}: ${error.message}`);
+      throw new BadRequestException('Failed to update profile');
+    }
+
+    return this.findById(userId);
   }
 }

@@ -1,0 +1,7 @@
+mutation FollowRider($input: FollowRiderInput!) {
+  followRider(input: $input) {
+    followerId
+    followingId
+    createdAt
+  }
+}

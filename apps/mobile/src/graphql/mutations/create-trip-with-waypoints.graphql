@@ -1,0 +1,29 @@
+mutation CreateTripWithWaypoints($input: CreateTripWithWaypointsInput!) {
+  createTripWithWaypoints(input: $input) {
+    id
+    title
+    description
+    startDate
+    endDate
+    difficulty
+    maxRiders
+    status
+    visibility
+    createdAt
+    organiser {
+      id
+      displayName
+    }
+    waypoints {
+      id
+      tripId
+      sortOrder
+      dayIndex
+      type
+      name
+      notes
+      lat
+      lng
+    }
+  }
+}

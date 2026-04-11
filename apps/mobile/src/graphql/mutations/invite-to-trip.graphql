@@ -1,0 +1,3 @@
+mutation InviteToTrip($tripId: ID!, $invitedUserId: ID!) {
+  inviteToTrip(tripId: $tripId, invitedUserId: $invitedUserId)
+}

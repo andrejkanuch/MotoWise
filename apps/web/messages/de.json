@@ -1,84 +1,99 @@
 {
   "Metadata": {
-    "title": "MotoVault — KI-Motorraddiagnose & Lern-App",
+    "title": "MotoVault — Motorrad-Wartung, Ausgaben & Fahrt-Tracker",
     "titleTemplate": "%s | MotoVault",
-    "description": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android.",
-    "ogDescription": "Meistere die Motorradwartung, diagnostiziere Probleme mit KI-Fotos und verfolge den Zustand deines Motorrads. Kostenlos für iOS & Android."
+    "description": "Verfolge Wartungsaufgaben, protokolliere Kraftstoff- und Ausrüstungskosten, zeichne Fahrten auf und diagnostiziere Probleme mit KI. Kostenlos auf iOS & Android.",
+    "ogDescription": "Verfolge Wartungsaufgaben, protokolliere Kraftstoff- und Ausrüstungskosten, zeichne Fahrten auf und diagnostiziere Probleme mit KI. Kostenlos auf iOS & Android."
   },
   "Navbar": {
     "features": "Funktionen",
-    "diagnostics": "KI-Diagnose",
     "learning": "Lernen",
     "garage": "Garage",
     "faq": "Häufige Fragen",
     "download": "App holen",
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
-    "closeMenu": "Navigationsmenü schließen"
+    "closeMenu": "Navigationsmenü schließen",
+    "signup": "Registrieren",
+    "dashboard": "My Garage",
+    "diagnostics": "KI-Diagnose",
+    "maintenance": "Wartung",
+    "expenses": "Ausgaben",
+    "rides": "Fahrten",
+    "tripPlanning": "Trip Planning",
+    "progress": "Progress Tracking",
+    "viewAllFeatures": "View all features",
+    "blog": "Blog"
   },
   "Hero": {
-    "line1": "LERNE DEIN BIKE.",
-    "line2": "REPARIERE",
-    "line3": "DEIN BIKE.",
-    "subtitle": "KI-gestützte Motorraddiagnose & Lernen — bald verfügbar.",
-    "downloadCta": "App holen",
+    "line1": "VERFOLGE DEIN BIKE.",
+    "line2": "BESTIMME",
+    "line3": "DEINE FAHRT.",
+    "subtitle": "Wartungsprotokolle, Ausgabenverfolgung und Fahrtaufzeichnung — alles in einer App.",
+    "downloadCta": "Kostenlos starten",
     "exploreFeatures": "Funktionen Entdecken",
     "scrollDown": "Nach unten scrollen",
-    "seoTitle": "KI-gestützte Motorraddiagnose & Lern-App"
+    "seoTitle": "Motorrad-Wartungstracker & Ausgabenmanager"
   },
   "Features": {
     "sectionLabel": "Funktionen",
     "sectionTitle": "Motorraddiagnose- und Wartungsfunktionen",
-    "sectionSubtitle": "Alles, was du brauchst, um dein Motorrad zu lernen, zu warten und zu meistern.",
+    "sectionSubtitle": "Verfolge Ausgaben, verwalte Wartung, protokolliere Fahrten und diagnostiziere Probleme — alles in einer App.",
     "diag": {
       "title": "KI-Diagnose",
       "tagline": "Mach ein Foto. Erhalte Antworten.",
       "description": "Richte deine Kamera auf ein beliebiges Teil, eine Warnleuchte oder ein Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor — alles in Sekunden.",
       "badge": "< 5 Sek."
     },
-    "learn": {
-      "title": "Lernpfade",
-      "tagline": "Strukturierte Kurse für jedes Niveau.",
-      "description": "Tauche ein in Motorinterna, Fahrwerkseinstellung, Elektrik und Routinewartung — jeweils mit Lektionen, Quizzen und praktischen Herausforderungen.",
-      "badge": "50+ Lektionen"
-    },
     "garage": {
-      "title": "Garagenverwaltung",
-      "tagline": "Verwalte deine Bikes.",
-      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Protokolliere Wartungen, stelle Serviceerinnerungen ein und führe eine vollständige Historie, damit nichts vergessen wird.",
+      "title": "Digitale Garage",
+      "tagline": "Alle deine Bikes, ein Ort.",
+      "description": "Speichere jedes Bike nach Marke, Modell und Baujahr. Spezifikationen werden automatisch geladen. Ein Tipp, um Wartung, Ausgaben und Fahrten für jedes Bike zu sehen.",
       "badge": "Unbegrenzte Bikes"
     },
-    "progress": {
-      "title": "Fortschrittsverfolgung",
-      "tagline": "Meistere dein Wissen.",
-      "description": "Steige auf, wenn du Lektionen abschließt und Quizze bestehst. Verdiene Abzeichen, verfolge Punkte über alle Module hinweg und beobachte, wie dein Fachwissen mit der Zeit wächst.",
-      "badge": "Fortschritt verfolgen"
+    "trip": {
+      "title": "Trip Planning",
+      "tagline": "Plan every mile of the ride.",
+      "description": "Build multi-day routes on a live map, drop typed waypoints (fuel, scenic, overnight, pass summit), and invite riders. Real road routing, not straight lines.",
+      "badge": "New · Founding feature"
     },
-    "community": {
-      "title": "Community",
-      "tagline": "Schließe dich anderen Fahrern an.",
-      "description": "Teile deine Garage, vergleiche deinen Fortschritt und lerne gemeinsam mit Fahrern auf jedem Niveau. Motorradwissen ist gemeinsam besser.",
-      "badge": "Neu"
+    "maintenance": {
+      "title": "Wartungs-Tracker",
+      "tagline": "Verpasse nie wieder einen Service.",
+      "description": "Protokolliere jeden Ölwechsel, jede Kettenpflege und jeden Reifenwechsel. Stelle kilometerbasierte oder zeitbasierte Erinnerungen ein, die dich benachrichtigen, bevor du überfällig bist. Die komplette Servicehistorie auf einen Blick.",
+      "badge": "Smarte Erinnerungen"
+    },
+    "expenses": {
+      "title": "Ausgabenmanager",
+      "tagline": "Wisse, was dein Bike wirklich kostet.",
+      "description": "Verfolge Kraftstoff, Ausrüstung, Teile, Versicherung und alle Besitzkosten. Sieh Ausgabentrends nach Kategorie mit monatlichen Aufschlüsselungen und Kosten-pro-Kilometer-Analysen.",
+      "badge": "Kosteneinblicke"
+    },
+    "rides": {
+      "title": "Fahrten-Logger",
+      "tagline": "Jede Fahrt, kartiert und gespeichert.",
+      "description": "Zeichne GPS-Routen mit Geschwindigkeit, Höhe und Entfernung auf. Überprüfe Fahrtstatistiken, teile Highlights und erstelle eine vollständige Fahrthistorie.",
+      "badge": "GPS-Tracking"
     }
   },
   "SocialProof": {
     "riders": "Aktive Fahrer",
     "ridersCount": "2.400+",
-    "diagnostics": "Durchgeführte KI-Diagnosen",
-    "diagnosticsCount": "8.500+",
-    "bikes": "Unterstützte Bikes",
+    "maintenance": "Durchgeführte KI-Diagnosen",
+    "maintenanceCount": "8.500+",
+    "bikes": "Verfolgte Bikes",
     "bikesCount": "18.000+"
   },
   "HowItWorks": {
     "sectionLabel": "So funktioniert's",
-    "sectionTitle": "So funktioniert die KI-Motorraddiagnose",
-    "sectionSubtitle": "Drei einfache Schritte zur Motorrad-Meisterschaft.",
+    "sectionTitle": "Drei Schritte zur vollen Kontrolle",
+    "sectionSubtitle": "In Minuten einrichten. Jahrelang verfolgen.",
     "step1Title": "Füge Dein Bike Hinzu",
     "step1Desc": "Suche nach Marke, Modell und Baujahr. Die Spezifikationen deines Bikes werden automatisch aus offiziellen Datenbanken geladen.",
-    "step2Title": "Erhalte KI-Einblicke",
-    "step2Desc": "Mach ein Foto von jedem Teil oder Problem. Unsere KI erkennt Komponenten, diagnostiziert Probleme und schlägt Lösungen vor.",
-    "step3Title": "Verfolge & Lerne",
-    "step3Desc": "Folge personalisierten Wartungsplänen und strukturierten Lernpfaden, um dein Motorrad zu meistern."
+    "step2Title": "Alles verfolgen",
+    "step2Desc": "Protokolliere Wartung, erfasse Ausgaben und verfolge Fahrten. Jeder Datenpunkt vervollständigt die Geschichte deines Bikes.",
+    "step3Title": "Immer voraus sein",
+    "step3Desc": "Erhalte smarte Service-Erinnerungen, Kosten-pro-Kilometer-Einblicke und KI-Diagnosen — damit dich nichts überrascht."
   },
   "Testimonials": {
     "sectionLabel": "Erfahrungen",
@@ -120,21 +135,21 @@
   "AppShowcase": {
     "sectionLabel": "In Aktion erleben",
     "sectionTitle": "Deine Motorrad-Kommandozentrale",
-    "cap1Title": "KI-Diagnose",
-    "cap1Desc": "Richte deine Kamera auf ein beliebiges Problem. Erhalte Teilerkennung, Schweregrad-Bewertung und Schritt-für-Schritt-Lösungen in Sekunden.",
-    "cap1Alt": "MotoVault KI-Diagnose-Ergebnisbildschirm",
-    "cap2Title": "Intelligente Wartung",
-    "cap2Desc": "Protokolliere jeden Service, stelle kilometerbasierte Erinnerungen ein und vergiss nie wieder einen Ölwechsel oder eine Kettenpflege.",
-    "cap2Alt": "MotoVault Wartungs-Tracking-Bildschirm",
-    "cap3Title": "Lerne & steige auf",
-    "cap3Desc": "Strukturierte Kurse zu Motorinterna, Fahrwerkseinstellung und Elektrik — mit Quizzen zum Wissenstest.",
-    "cap3Alt": "MotoVault Lern-Dashboard",
+    "cap1Title": "Wartungs-Tracker",
+    "cap1Desc": "Protokolliere jeden Service mit Datum, Kilometerstand und Kosten. Smarte Erinnerungen benachrichtigen dich, bevor der nächste Ölwechsel, die Kettenpflege oder die Bremsprüfung fällig ist.",
+    "cap1Alt": "MotoVault Wartungsverfolgungsbildschirm",
+    "cap2Title": "Ausgaben-Tracker",
+    "cap2Desc": "Sieh genau, was dein Bike kostet. Verfolge Kraftstoff, Teile, Ausrüstung und Versicherung mit monatlichen Aufschlüsselungen und Kosten-pro-Kilometer-Analysen.",
+    "cap2Alt": "MotoVault Ausgabenverfolgungsbildschirm",
+    "cap3Title": "KI-Diagnose",
+    "cap3Desc": "Richte deine Kamera auf ein beliebiges Problem. Erhalte Teilerkennung, Schweregrad-Bewertung und Schritt-für-Schritt-Lösungen in Sekunden.",
+    "cap3Alt": "MotoVault KI-Diagnose-Ergebnisbildschirm",
     "learnMore": "Mehr erfahren"
   },
   "Cta": {
     "socialProof": "Vertraut von tausenden Fahrern weltweit",
-    "headline": "Starte heute mit der Motorradwartung",
-    "subtitle": "Kostenlos auf iOS und Android. Starte heute mit dem Tracking deines Bikes.",
+    "headline": "Schluss mit Raten. Fang an zu verfolgen.",
+    "subtitle": "Kostenlos auf iOS und Android. Wartung, Ausgaben und Fahrten deines Bikes — endlich an einem Ort.",
     "trustFree": "Kostenlos beim Start",
     "trustNoCard": "Keine Kreditkarte",
     "disclaimer": "Jetzt verfügbar auf iOS und Android.",
@@ -152,7 +167,7 @@
     "items": [
       {
         "question": "Was ist MotoVault?",
-        "answer": "MotoVault ist eine KI-gestützte Plattform für Motorradbegeisterte. Sie hilft dir, Wartung zu lernen, Probleme mittels fotobasierter KI-Analyse zu diagnostizieren, deine Bikes in einer digitalen Garage zu verfolgen und dein Wissen durch strukturierte Kurse und Quizze aufzubauen."
+        "answer": "MotoVault ist eine Motorrad-Management-App für Fahrer. Verfolge Wartungsaufgaben mit smarten Erinnerungen, protokolliere jede Ausgabe (Kraftstoff, Ausrüstung, Teile), zeichne deine Fahrten auf und diagnostiziere Probleme mit KI-Fotoanalyse — alles in einer App."
       },
       {
         "question": "Ist MotoVault kostenlos?",
@@ -179,7 +194,7 @@
   "Footer": {
     "product": "Produkt",
     "company": "Unternehmen",
-    "tagline": "Lerne dein Bike. Repariere dein Bike.",
+    "tagline": "Jede Meile verfolgen. Jede Kosten kennen.",
     "copyright": "© 2026 MotoVault. Alle Rechte vorbehalten.",
     "features": "Funktionen",
     "learning": "Lernpfade",
@@ -675,5 +690,97 @@
     "pdfFooter": "Erstellt von MotoVault — KI-gestützte Motorrad-Diagnose & Wartung",
     "pdfCta": "Lade MotoVault herunter für automatische Erinnerungen vor der Fahrt, KI-Diagnosen und Wartungsverfolgung.",
     "pdfWebsite": "motovault.app"
+  },
+  "FeaturesIndex": {
+    "title": "Funktionen",
+    "description": "Alles, was MotoVault kann — Tourenplanung, KI-Diagnose, Garagenverwaltung, Lernen und Fortschritt.",
+    "sectionLabel": "Was MotoVault leistet",
+    "heroTitle": "Eine App. Jeder Teil der Fahrt.",
+    "heroSubtitle": "Von der Planung der nächsten Drei-Tages-Tour bis zur Diagnose eines mysteriösen Klapperns — MotoVault begleitet dich durch jede Phase des Motorradlebens.",
+    "learnMore": "Mehr erfahren",
+    "tripPlanningTitle": "Tourenplanung",
+    "tripPlanningDesc": "Mehrtägige Routen planen, typisierte Wegpunkte setzen, Übernachtungen und Tankstopps festlegen und Mitfahrer einladen — alles auf einer lebendigen Karte.",
+    "diagnosticsTitle": "KI-Diagnose",
+    "diagnosticsDesc": "Fotografiere eine Warnleuchte, ein Ölleck oder ein verschlissenes Teil. Erhalte eine strukturierte Diagnose mit Schweregrad, Konfidenz und nächsten Schritten.",
+    "garageTitle": "Garagenverwaltung",
+    "garageDesc": "Verfolge jedes Motorrad, das du besitzt — Kilometerstand, Servicehistorie, Kraftstoff und Ausgaben — in einer einzigen Zeitleiste pro Bike.",
+    "learningTitle": "Lernpfade",
+    "learningDesc": "Strukturierte Module und KI-generierte Artikel, zugeschnitten auf dein Motorrad — vom Bremsenservice bis zur Wintereinlagerung.",
+    "progressTitle": "Fortschrittsverfolgung",
+    "progressDesc": "Jede Fahrt, jede Aufgabe, jede Ausgabe wird automatisch protokolliert, damit du immer weißt, wo dein Motorrad steht."
+  },
+  "FeaturesTripPlanning": {
+    "title": "Motorrad-Tourenplanung — Routenbuilder & Reiseplan",
+    "description": "Mit der MotoVault-Tourenplanung erstellst du mehrtägige Routen, setzt typisierte Wegpunkte und fährst mit Freunden. Live-Karte, echtes Routing, teilbare Reisepläne.",
+    "heroEyebrow": "Die Gründungsfunktion",
+    "heroTitle": "Plane jede Meile der Fahrt",
+    "heroSubtitle": "Mehrtägige Routen, typisierte Wegpunkte, echtes Straßen-Routing und eine Karte, die mit dir fährt. Die erste Funktion, die wir gebaut haben — und die bis heute alles andere in MotoVault prägt.",
+    "heroCtaPrimary": "Jetzt planen",
+    "heroCtaSecondary": "Eine echte Tour sehen",
+    "positioningTitle": "Warum wir das zuerst gebaut haben",
+    "positioningBody": "Jeder Fahrer, mit dem wir gesprochen haben, hatte dasselbe Problem: eine echte Motorradtour zu planen bedeutet, fünf Apps gleichzeitig zu nutzen. Google Maps für die Straßen, eine Notiz-App für Stopps, eine Wetter-App für den Pass, einen Messenger-Chat für Freunde, eine Tabelle für das Spritbudget. Reibung bei jedem Schritt. Tourenplanung war die erste Funktion, die wir ausgeliefert haben, weil sie das ist, was die meisten Fahrer wirklich brauchen — und weil alles andere an MotoVault daraus folgen würde, wenn wir das hinbekommen.",
+    "howItWorksLabel": "So funktioniert es",
+    "howItWorksTitle": "Von der leeren Karte zur gespeicherten Tour in vier Schritten",
+    "step1Label": "Leinwand öffnen",
+    "step1Title": "Mit einer leeren Karte beginnen",
+    "step1Desc": "Tippe auf den +-Button in Discover, und eine bildschirmfüllende dunkle Karte öffnet sich, bereit für dein nächstes Abenteuer. Halte eine Stelle gedrückt, um einen Stopp zu setzen, oder suche nach einer Stadt, einem Pass, einem Kaffee oder einer Tankstelle.",
+    "step2Label": "Wegpunkte setzen",
+    "step2Title": "Typisierte Wegpunkte entlang der Route hinzufügen",
+    "step2Desc": "Jeder Stopp ist mehr als nur eine Nadel. Wähle aus 11 Typen — start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — und füge Notizen hinzu. Der Stepper gruppiert die Wegpunkte automatisch nach Tag.",
+    "step3Label": "Details festlegen",
+    "step3Title": "Gib der Tour einen Namen, wähle den Vibe",
+    "step3Desc": "Titel, Beschreibung, Start- und Enddatum, Schwierigkeit (Easy, Moderate, Challenging, Expert), maximale Mitfahrer und Sichtbarkeit (Private, Unlisted, Public). Jedes Feld ist zunächst optional — du kannst später zurückkommen und feinschleifen, bevor du veröffentlichst.",
+    "step4Label": "Speichern oder veröffentlichen",
+    "step4Title": "Als Entwurf behalten oder Link teilen",
+    "step4Desc": "Speichere als Entwurf, um weiter zu iterieren. Veröffentliche, um Freunde einzuladen, oder mache die Tour öffentlich, damit die Community sie entdecken und mitfahren kann. Entwürfe liegen in deinen My Trips, nur für dich sichtbar.",
+    "galleryLabel": "Echte Tour, echte Daten",
+    "galleryTitle": "Der Dolomiten-Loop — 3 Tage",
+    "galleryBody": "Dies ist eine echte Tour, gebaut mit MotoVault: Bolzano → Passo Sella → Cortina d'Ampezzo → Passo Pordoi → Canazei → Ortisei → Passo Gardena → Bolzano. Acht typisierte Wegpunkte, drei Tage, dargestellt auf einer Live-Karte mit echtem Straßen-Routing. Jeder Screenshot unten stammt aus der Produktions-App.",
+    "gallery1Label": "Routenübersicht",
+    "gallery1Subtitle": "Karte, Daten, Organisator, Schwierigkeit",
+    "gallery2Label": "Tag-für-Tag-Reiseplan",
+    "gallery2Subtitle": "Typisierte Wegpunkte mit Notizen",
+    "gallery3Label": "Vollständige Mehrtages-Ansicht",
+    "gallery3Subtitle": "Tag 1 und 2 nebeneinander",
+    "featuresLabel": "Alles an Bord",
+    "featuresTitle": "Die Details, die eine echte Tour funktionieren lassen",
+    "f1Title": "Mehrtägige Reisepläne",
+    "f1Desc": "Gruppiere Wegpunkte nach Tag. Tag 1: Bolzano nach Cortina. Tag 2: die großen Pässe. Tag 3: nach Hause. Die App weiß, welche Stopps zu welchem Tag gehören.",
+    "f2Title": "11 Wegpunkt-Typen",
+    "f2Desc": "Start, end, fuel, food, scenic, overnight, photo, mechanical, ferry, pass summit, rally point — jeder mit eigenem Icon auf der Karte und in der Reiseplan-Liste.",
+    "f3Title": "Echtes Straßen-Routing",
+    "f3Desc": "Mapbox Directions berechnet die tatsächliche motorradfreundliche Route zwischen den Stopps. Keine Luftlinien-Näherungen — echter Asphalt, echte Kilometer.",
+    "f4Title": "Privatsphäre-Steuerung",
+    "f4Desc": "Drei Sichtbarkeitsstufen. Private heißt nur du. Unlisted heißt jeder mit dem Link. Public heißt auffindbar im Discover-Feed.",
+    "f5Title": "Mitfahrer einladen",
+    "f5Desc": "Der Organisator lädt bestimmte Fahrer ein oder öffnet eine Tour bis zu einer Obergrenze. Jeder Fahrer kann Going, Maybe oder Declined antworten — und auswählen, welches Bike er mitbringt.",
+    "f6Title": "Entwürfe vor der Tinte",
+    "f6Desc": "Speichere halbfertige Touren als Entwurf. Nur du siehst sie. Komm zurück, füge die letzten drei Stopps hinzu und veröffentliche, wenn du bereit bist zu teilen.",
+    "f7Title": "Schwierigkeits-Tags",
+    "f7Desc": "Easy, Moderate, Challenging, Expert. Damit niemand mit einer Expert-Pass-Tour rechnet, er sei auf einer Sonntagsausfahrt.",
+    "f8Title": "Überall teilen",
+    "f8Desc": "Jede veröffentlichte Tour hat eine kanonische URL. Schicke sie in einen Gruppenchat, poste sie auf Discord, twittere sie — sie wird mit der Route als Vorschau gerendert.",
+    "walkthroughLabel": "Unter der Haube",
+    "walkthroughTitle": "Die Geschichte einer Tour, von der Idee bis zur Tinte",
+    "walkthroughP1": "Ein Fahrer wacht am Samstag auf und denkt an das kommende lange Wochenende. Drei Tage frei, Bike in der Garage und eine grobe Idee — „die Dolomiten, vielleicht\". Er öffnet MotoVault, tippt auf Discover, dann auf +, um eine neue Tour zu planen. Eine dunkle Karte öffnet sich an seinem aktuellen Standort.",
+    "walkthroughP2": "Er zoomt auf Bolzano und setzt per Langdruck einen Start-Wegpunkt — „Bolzano — Start, Gear-Check & Kaffee vor der Abfahrt\". Dann sucht er Passo Sella und tippt das Ergebnis an — es wird als Scenic-Stop mit der Notiz „Iconic Dolomite pass, photo stop\" abgesetzt. Er macht weiter: Cortina d'Ampezzo als Overnight, Passo Pordoi als Pass Summit, Canazei als Fuel, Ortisei als Overnight, Passo Gardena als Scenic, Bolzano als End. Die App gruppiert sie automatisch in Tag 1, Tag 2, Tag 3.",
+    "walkthroughP3": "Er gibt ihr einen Namen — „Dolomites Loop — 3 Days\" — schreibt eine Beschreibung, wählt Moderate, setzt max riders auf 8 und lässt die Sichtbarkeit auf Private. Als Entwurf speichern. Er geht zurück in den Garten für einen Kaffee. Am Abend fällt ihm eine bessere Übernachtung in Ortisei ein, er tauscht sie aus, stellt die Sichtbarkeit auf Public und drückt auf Publish. Die Tour ist jetzt live auf Discover; zwei Fahrerfreunde treten bis zum Abend bei.",
+    "walkthroughP4": "Das ist der ganze Bogen — von der leeren Karte zur beigetretenen Tour — und er läuft auf echtem Mapbox-Routing, echten Postgres-Zeilen und einem Bottom Sheet, das hochgleitet, um den Reiseplan zu zeigen, ohne die Karte zu verlieren. Keine Tabellen, keine Screenshot-Ketten, keine verlorenen Pins.",
+    "faqLabel": "Häufige Fragen",
+    "faqTitle": "Tourenplanung, Fragen, die Fahrer stellen",
+    "faq0Question": "Routet die App wirklich auf echten Straßen oder zeichnet sie gerade Linien?",
+    "faq0Answer": "Echte Straßen. Zwischen je zwei Wegpunkten rufen wir Mapbox Directions mit motorradfreundlichem Routing auf und rendern die tatsächliche Polylinie, die du fahren würdest. Zoome in einen beliebigen Abschnitt des Dolomiten-Loops oben — du siehst die Kehren.",
+    "faq1Question": "Kann ich eine Tour planen, bevor ich jemanden einlade?",
+    "faq1Answer": "Ja. Jede Tour beginnt als Entwurf, nur für dich sichtbar. Du kannst sie über mehrere Sitzungen hinweg bauen und bearbeiten und erst veröffentlichen, wenn du bereit bist zu teilen.",
+    "faq2Question": "Was passiert, wenn ich Leute einlade und nur die Hälfte Zeit hat?",
+    "faq2Answer": "Jeder Fahrer antwortet mit Going, Maybe oder Declined und wählt, welches Bike er mitbringt. Du siehst die Zahl im Trip-Header (zum Beispiel 0/8 riders) und die vollständige Teilnehmerliste darunter.",
+    "faq3Question": "Kann ich eine Tour planen, die mehrere Länder oder Überfahrten umfasst?",
+    "faq3Answer": "Ja. Es gibt keine Grenzen auf der Karte — füge einen Ferry-Wegpunkt für eine Mittelmeerüberfahrt hinzu oder einen Pass Summit für einen Gebirgsübergang. Die Routing-Engine bewältigt alles, was Mapbox routen kann.",
+    "faq4Question": "Wie viele Wegpunkte kann eine Tour haben?",
+    "faq4Answer": "Es gibt keine harte Obergrenze, die du im normalen Gebrauch treffen würdest. Die eigentliche Begrenzung ist die Lesbarkeit — ab 15 oder 16 Stopps an einem einzigen Tag wird der Reiseplan unübersichtlich. Splitte auf mehrere Tage, um es sauber zu halten.",
+    "faq5Question": "Kann ich die Tour in eine andere App exportieren?",
+    "faq5Answer": "Jede veröffentlichte Tour hat eine kanonische URL mit Routenvorschau. Du kannst auch direkt aus der Trip-Detail-Ansicht teilen; die native Freigabe lässt dich sie in Nachrichten, Slack, Discord oder deine Notizen einfügen.",
+    "ctaTitle": "Dein nächster Drei-Tages-Loop beginnt hier.",
+    "ctaBody": "Tourenplanung ist die Gründungsfunktion von MotoVault. Lade die App herunter, setze deinen ersten Wegpunkt und sieh, warum wir sie vor allem anderen gebaut haben."
   }
 }

@@ -268,6 +268,7 @@ export default function UpgradeScreen() {
       const info = await Purchases.restorePurchases();
       const hasPro = info.entitlements.active[REVENUECAT_ENTITLEMENT_PRO] !== undefined;
       if (hasPro) {
+        trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED);
         router.back();
       } else {
         Alert.alert(t('paywall.noSubscriptionFound'), t('paywall.noSubscriptionFoundDesc'), [

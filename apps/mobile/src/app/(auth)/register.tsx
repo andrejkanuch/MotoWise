@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { captureException } from '../../lib/analytics';
+import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -43,7 +43,10 @@ export default function RegisterScreen() {
       if (error) {
         Alert.alert(t('common.error'), error.message);
       } else if (data.user && !data.session) {
+        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
         Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
+      } else if (data.user && data.session) {
+        trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
       }
     } catch (err) {
       captureException(err);
@@ -59,6 +62,7 @@ export default function RegisterScreen() {
     }
     try {
       await signInWithApple();
+      trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'apple' });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);
@@ -71,6 +75,7 @@ export default function RegisterScreen() {
     }
     try {
       await signInWithGoogle();
+      trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'google' });
     } catch (err) {
       captureException(err);
       Alert.alert(t('common.error'), (err as Error).message);

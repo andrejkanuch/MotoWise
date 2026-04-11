@@ -1,5 +1,5 @@
 import { Inject, UseGuards } from '@nestjs/common';
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -22,7 +22,6 @@ export class OemSchedulesResolver {
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
   ): Promise<OemSchedule[]> {
-    // Look up the motorcycle to get make/model/year
     const { data: motorcycle, error } = await this.supabase
       .from('motorcycles')
       .select('make, model, year')
@@ -39,6 +38,38 @@ export class OemSchedulesResolver {
       motorcycle.model ?? null,
       motorcycle.year ?? null,
       null,
+    );
+  }
+
+  /**
+   * MOT-138: Manually (re-)import the OEM maintenance schedule for a bike.
+   * Idempotent — existing tasks keyed by oem_schedule_id are skipped, so
+   * calling this repeatedly only inserts missing tasks. Returns the count
+   * of newly-created tasks so the UI can show "Imported N tasks".
+   */
+  @Mutation(() => Int, { name: 'importOemSchedule' })
+  @UseGuards(GqlAuthGuard)
+  async importOemSchedule(
+    @CurrentUser() user: AuthUser,
+    @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
+  ): Promise<number> {
+    const { data: motorcycle } = await this.supabase
+      .from('motorcycles')
+      .select('make, model, year, engine_cc, current_mileage')
+      .eq('id', motorcycleId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!motorcycle) return 0;
+
+    return this.oemSchedulesService.autoPopulateForBike(
+      user.id,
+      motorcycleId,
+      motorcycle.make,
+      motorcycle.model ?? null,
+      motorcycle.year ?? null,
+      motorcycle.engine_cc ?? null,
+      motorcycle.current_mileage ?? 0,
     );
   }
 }

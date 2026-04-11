@@ -1,0 +1,3 @@
+mutation RespondToTripInvite($inviteId: ID!, $accept: Boolean!) {
+  respondToTripInvite(inviteId: $inviteId, accept: $accept)
+}

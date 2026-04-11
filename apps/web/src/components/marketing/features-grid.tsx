@@ -1,36 +1,118 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 
-type FeatureKey = 'diag' | 'learn' | 'garage' | 'progress' | 'community';
+type FeatureKey = 'trip' | 'maintenance' | 'expenses' | 'rides' | 'diag' | 'garage';
 
 const GRID_CLASSES: Record<FeatureKey, string> = {
-  diag: 'md:col-span-2 lg:[grid-area:diag] border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40',
-  learn: 'lg:row-span-2 lg:[grid-area:learn]',
-  garage: 'lg:row-span-2 lg:[grid-area:garage]',
-  progress: 'lg:row-span-2 lg:[grid-area:progress]',
-  community: 'lg:[grid-area:community]',
+  trip: 'md:col-span-2 lg:col-span-3 lg:[grid-area:trip] border-warm-500/40 bg-gradient-to-br from-neutral-900/90 via-neutral-900/60 to-neutral-900/30',
+  maintenance:
+    'md:col-span-2 lg:[grid-area:maintenance] border-warm-500/30 bg-gradient-to-br from-neutral-900/80 to-neutral-900/40',
+  expenses: 'lg:row-span-2 lg:[grid-area:expenses]',
+  rides: 'lg:row-span-2 lg:[grid-area:rides]',
+  diag: 'lg:row-span-2 lg:[grid-area:diag]',
+  garage: 'lg:[grid-area:garage]',
 };
 
 const ICON_HOVER: Record<FeatureKey, string> = {
+  trip: 'icon-rev-hover', // route animates
+  maintenance: 'icon-spin-hover', // wrench turns
+  expenses: 'icon-rev-hover', // chart pops
+  rides: 'icon-rev-hover', // map pulses
   diag: 'icon-rev-hover', // scanner pulses
-  learn: 'icon-flip-hover', // book flips open
-  garage: 'icon-spin-hover', // wrench turns
-  progress: 'icon-rev-hover', // chart pops
-  community: '', // subtle default
+  garage: 'icon-rev-hover', // garage pulses
 };
 
 const FEATURE_LINKS: Partial<Record<FeatureKey, string>> = {
+  trip: '/features/trip-planning',
   diag: '/features/ai-diagnostics',
-  learn: '/features/learning-paths',
   garage: '/features/garage-management',
-  progress: '/features/progress-tracking',
 };
 
 const FEATURES = [
   {
-    key: 'diag' as const,
+    key: 'trip' as const,
+    accentClass: 'text-warm-400',
+    glowColor: 'oklch(0.70 0.16 150 / 0.10)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        aria-hidden="true"
+      >
+        <path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z" />
+        <circle cx="12" cy="9" r="2.5" />
+      </svg>
+    ),
+  },
+  {
+    key: 'maintenance' as const,
+    accentClass: 'text-warm-400',
+    glowColor: 'oklch(0.76 0.13 70 / 0.08)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        aria-hidden="true"
+      >
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.2a2 2 0 0 1-2.83 0l-.1-.1a2 2 0 0 1 0-2.83l6.73-6.73A6 6 0 0 1 18.47 2.53" />
+      </svg>
+    ),
+  },
+  {
+    key: 'expenses' as const,
+    accentClass: 'text-accent-400',
+    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        aria-hidden="true"
+      >
+        <path d="M12 2v20" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+  },
+  {
+    key: 'rides' as const,
     accentClass: 'text-primary-400',
     glowColor: 'oklch(0.65 0.14 230 / 0.08)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-6"
+        aria-hidden="true"
+      >
+        <path d="M3 6l6-3 6 3 6-3v14l-6 3-6-3-6 3V6z" />
+        <path d="M9 3v14" />
+        <path d="M15 6v14" />
+      </svg>
+    ),
+  },
+  {
+    key: 'diag' as const,
+    accentClass: 'text-signature-400',
+    glowColor: 'oklch(0.68 0.15 45 / 0.08)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -51,67 +133,7 @@ const FEATURES = [
     ),
   },
   {
-    key: 'learn' as const,
-    accentClass: 'text-accent-400',
-    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-6"
-        aria-hidden="true"
-      >
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-        <path d="M9 7h6" />
-        <path d="M9 11h4" />
-      </svg>
-    ),
-  },
-  {
     key: 'garage' as const,
-    accentClass: 'text-warm-400',
-    glowColor: 'oklch(0.76 0.13 70 / 0.08)',
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-6"
-        aria-hidden="true"
-      >
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94L6.73 20.2a2 2 0 0 1-2.83 0l-.1-.1a2 2 0 0 1 0-2.83l6.73-6.73A6 6 0 0 1 18.47 2.53" />
-      </svg>
-    ),
-  },
-  {
-    key: 'progress' as const,
-    accentClass: 'text-accent-400',
-    glowColor: 'oklch(0.65 0.15 160 / 0.08)',
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-6"
-        aria-hidden="true"
-      >
-        <path d="M3 3v18h18" />
-        <path d="M7 16l4-8 4 5 5-9" />
-      </svg>
-    ),
-  },
-  {
-    key: 'community' as const,
     accentClass: 'text-primary-300',
     glowColor: 'oklch(0.76 0.1 230 / 0.08)',
     icon: (
@@ -125,10 +147,8 @@ const FEATURES = [
         className="size-6"
         aria-hidden="true"
       >
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
     ),
   },
@@ -138,21 +158,21 @@ export async function FeaturesGrid() {
   const t = await getTranslations('Features');
 
   return (
-    <section id="features" className="px-6 py-36 lg:py-44">
+    <section id="features" className="px-6 py-28 lg:py-32">
       <div className="mx-auto max-w-7xl">
         {/* Section header */}
         <div className="reveal-on-scroll mb-16 text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
             {t('sectionLabel')}
           </p>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 text-balance sm:text-4xl lg:text-5xl">
             {t('sectionTitle')}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-400">{t('sectionSubtitle')}</p>
         </div>
 
         {/* Bento grid */}
-        <div className="features-bento grid auto-rows-[minmax(220px,auto)] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="features-bento grid auto-rows-[minmax(220px,auto)] grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
           {FEATURES.map((feature, index) => {
             const href = FEATURE_LINKS[feature.key];
             const cardClassName = `card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-8 backdrop-blur-sm transition-colors hover:border-warm-500/40 md:p-10 ${GRID_CLASSES[feature.key]}`;
@@ -167,6 +187,18 @@ export async function FeaturesGrid() {
                   }}
                 />
 
+                {/* Maintenance hero card — ambient glow ring */}
+                {feature.key === 'maintenance' && (
+                  <div
+                    className="maintenance-hero-glow pointer-events-none absolute -right-16 -top-16 size-64 rounded-full"
+                    aria-hidden="true"
+                    style={{
+                      background:
+                        'radial-gradient(circle, oklch(0.76 0.13 70 / 0.15), transparent 70%)',
+                    }}
+                  />
+                )}
+
                 {/* Bottom accent on hover */}
                 <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
 
@@ -180,7 +212,7 @@ export async function FeaturesGrid() {
                     </div>
 
                     {/* Metric badge */}
-                    <span className="rounded-full border border-warm-500/30 bg-warm-500/10 px-3 py-1 text-xs font-medium text-warm-400">
+                    <span className="badge-pop rounded-full border border-warm-500/30 bg-warm-500/10 px-3 py-1 text-xs font-medium text-warm-400">
                       {t(`${feature.key}.badge`)}
                     </span>
                   </div>

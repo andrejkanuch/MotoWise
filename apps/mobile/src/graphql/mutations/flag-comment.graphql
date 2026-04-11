@@ -1,0 +1,3 @@
+mutation FlagComment($commentId: ID!) {
+  flagComment(commentId: $commentId)
+}

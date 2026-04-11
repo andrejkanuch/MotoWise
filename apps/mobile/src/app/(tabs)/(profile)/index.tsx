@@ -333,42 +333,166 @@ export default function ProfileScreen() {
             {isPro && <ProBadge />}
           </View>
 
-          {/* Edit Profile button */}
-          <Pressable
-            onPress={() => {
-              haptic();
-              router.push('/(profile)/settings');
-            }}
-            style={{
-              marginTop: 14,
-              paddingHorizontal: 20,
-              paddingVertical: 8,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              borderWidth: 1.5,
-              borderColor: isDark ? palette.primary600 : palette.primary500,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <Pencil
-              size={14}
-              color={isDark ? palette.primary400 : palette.primary600}
-              strokeWidth={2}
-            />
+          {/* Public profile info */}
+          {user?.publicUsername && (
             <Text
               style={{
                 fontSize: 14,
-                fontWeight: '600',
-                color: isDark ? palette.primary400 : palette.primary600,
+                color: isDark ? palette.neutral400 : palette.neutral500,
+                marginTop: 4,
               }}
             >
-              {t('profile.editProfile', { defaultValue: 'Edit Profile' })}
+              @{user.publicUsername}
             </Text>
-          </Pressable>
+          )}
+
+          {/* Action buttons row */}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+            {/* Edit Public Profile */}
+            <Pressable
+              onPress={() => {
+                haptic();
+                router.push('/(profile)/edit-profile');
+              }}
+              style={{
+                paddingHorizontal: 20,
+                paddingVertical: 8,
+                borderRadius: 20,
+                borderCurve: 'continuous',
+                borderWidth: 1.5,
+                borderColor: isDark ? palette.primary600 : palette.primary500,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Pencil
+                size={14}
+                color={isDark ? palette.primary400 : palette.primary600}
+                strokeWidth={2}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: isDark ? palette.primary400 : palette.primary600,
+                }}
+              >
+                {t('community.editProfile')}
+              </Text>
+            </Pressable>
+
+            {/* Settings */}
+            <Pressable
+              onPress={() => {
+                haptic();
+                router.push('/(profile)/settings');
+              }}
+              style={{
+                paddingHorizontal: 20,
+                paddingVertical: 8,
+                borderRadius: 20,
+                borderCurve: 'continuous',
+                borderWidth: 1.5,
+                borderColor: isDark ? palette.neutral400 : palette.neutral500,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Settings
+                size={14}
+                color={isDark ? palette.neutral400 : palette.neutral500}
+                strokeWidth={2}
+              />
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: isDark ? palette.neutral400 : palette.neutral500,
+                }}
+              >
+                {t('settings.title', { defaultValue: 'Settings' })}
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </Animated.View>
+
+      {/* Follower / Following stats (only if public profile) */}
+      {user?.isPublic && (
+        <Animated.View entering={FadeInUp.delay(60).duration(400)}>
+          <View
+            style={{
+              flexDirection: 'row',
+              gap: 12,
+            }}
+          >
+            <Pressable
+              onPress={() => router.push('/(profile)/rider/followers')}
+              style={{
+                flex: 1,
+                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                alignItems: 'center',
+                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                }}
+              >
+                {user.followerCount ?? 0}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  marginTop: 2,
+                }}
+              >
+                {t('community.followers')}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/(profile)/rider/followers')}
+              style={{
+                flex: 1,
+                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                padding: 16,
+                alignItems: 'center',
+                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: '700',
+                  color: isDark ? palette.neutral50 : palette.neutral950,
+                }}
+              >
+                {user.followingCount ?? 0}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  marginTop: 2,
+                }}
+              >
+                {t('community.following')}
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+      )}
 
       {/* My Bikes */}
       <Animated.View entering={FadeInUp.delay(80).duration(400)}>

@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-02T14:45:32+00:00",
+  "last_updated": "2026-04-09T12:17:36.467190+00:00",
   "scrape_source": "Meta Business Suite - Published Posts (Last 90 days: 1 Jan 2026 - 31 Mar 2026)",
   "max_values_in_period": {
     "reach": 10484,
@@ -8,6 +8,318 @@
     "shares": 21
   },
   "posts": [
+    {
+      "id": "post_20260409_121736",
+      "caption_preview": "",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-09T12:17:36.467190+00:00",
+      "post_id": "1271863251073041",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "short",
+        "image_file": "story-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121724",
+      "caption_preview": "",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-09T12:17:24.621740+00:00",
+      "post_id": "17934438249211884",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "short",
+        "image_file": "story-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121710",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-09T12:17:10.024728+00:00",
+      "post_id": "18126859285603721",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "long",
+        "image_file": "post-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_121658",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-09T12:16:58.004391+00:00",
+      "post_id": "1041569589040415_122106917030957235",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "afternoon",
+        "caption_length": "long",
+        "image_file": "post-gemini31.jpg"
+      }
+    },
+    {
+      "id": "post_20260409_112640",
+      "caption_preview": "",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-09T11:26:40.928058+00:00",
+      "post_id": "964019112653130",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "short",
+        "image_file": "story.png"
+      }
+    },
+    {
+      "id": "post_20260409_112630",
+      "caption_preview": "",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-09T11:26:30.317052+00:00",
+      "post_id": "18102627115929178",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "short",
+        "image_file": "story.png"
+      }
+    },
+    {
+      "id": "post_20260409_112615",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-09T11:26:15.670090+00:00",
+      "post_id": "18057894068477991",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "long",
+        "image_file": "post-4x5.png"
+      }
+    },
+    {
+      "id": "post_20260409_112602",
+      "caption_preview": "86% of riders set maintenance reminders \u2014 but never actually complete them.\n\nIt'...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-09T11:26:02.472117+00:00",
+      "post_id": "1041569589040415_122106913232957235",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "long",
+        "image_file": "post-4x5.png"
+      }
+    },
+    {
+      "id": "post_20260408_113302",
+      "caption_preview": "Do you know what your bike really costs you?\n\nMost riders guess. Few actually tr...",
+      "platform": "instagram",
+      "post_type": "reel",
+      "published_at": "2026-04-08T11:33:02.170002+00:00",
+      "post_id": "18099770551789734",
+      "metrics": {},
+      "classification": {
+        "hook_type": "question",
+        "content_category": "educational",
+        "time_slot": "morning",
+        "caption_length": "medium",
+        "image_file": "reel-final.mp4"
+      }
+    },
+    {
+      "id": "post_20260408_110721",
+      "caption_preview": "",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-08T11:07:21.600882+00:00",
+      "post_id": "1633668434356611",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "short",
+        "image_file": "story.png"
+      }
+    },
+    {
+      "id": "post_20260408_110709",
+      "caption_preview": "Do you actually know what your motorcycle costs you per year?\n\nMost riders have ...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-08T11:07:09.160908+00:00",
+      "post_id": "1041569589040415_122106719336957235",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "long",
+        "image_file": "post-expense-tracking-data.png"
+      }
+    },
+    {
+      "id": "post_20260408_110656",
+      "caption_preview": "",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-08T11:06:56.688616+00:00",
+      "post_id": "18076615115429805",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "short",
+        "image_file": "story.png"
+      }
+    },
+    {
+      "id": "post_20260408_110642",
+      "caption_preview": "Do you know what your bike really costs you?\n\nMost riders guess. Few actually tr...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-08T11:06:42.543117+00:00",
+      "post_id": "17895965280431889",
+      "metrics": {},
+      "classification": {
+        "hook_type": "",
+        "content_category": "",
+        "time_slot": "morning",
+        "caption_length": "long",
+        "image_file": "post-expense-tracking-data.png"
+      }
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_ig_post",
+      "caption_preview": "What if your phone could diagnose your bike?\n\nMost riders only find out something's wrong when it's already too late...",
+      "platform": "instagram",
+      "post_type": "photo",
+      "published_at": "2026-04-07T16:30:00+00:00",
+      "post_id": "18367972387207404",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/slide-1-post.png",
+        "image_hosted": "https://i.ibb.co/84Sr90tg/motovault-ai-diagnostics-post-0407.jpg",
+        "generation_method": "gemini-2.5-flash-image + canvas-composite",
+        "hook_type": "question",
+        "content_category": "ai_diagnostics",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "Tuesday single post. Gemini AI hero image + canvas text overlay via Chrome JS. Disk-full workaround: composed in browser, hosted on imgBB."
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_fb_post",
+      "caption_preview": "What if your phone could diagnose your bike?\n\nMost riders only find out something's wrong when it's already too late...",
+      "platform": "facebook",
+      "post_type": "photo",
+      "published_at": "2026-04-07T16:30:00+00:00",
+      "post_id": "1041569589040415_122106588374957235",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/slide-1-post.png",
+        "image_hosted": "https://i.ibb.co/84Sr90tg/motovault-ai-diagnostics-post-0407.jpg",
+        "generation_method": "gemini-2.5-flash-image + canvas-composite",
+        "hook_type": "question",
+        "content_category": "ai_diagnostics",
+        "time_slot": "afternoon",
+        "caption_length": "medium"
+      },
+      "notes": "Tuesday single post. Same image as IG. imgBB hosted due to sandbox disk-full condition."
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_ig_story1",
+      "caption_preview": "Snap a photo. Get your answer. (story 1 \u2014 hero)",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-07T18:32:00+00:00",
+      "post_id": "18156908857443624",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/story-1-hero.html",
+        "image_hosted": "https://i.ibb.co/ksm6HkBz/motovault-story1-hero-0407.jpg",
+        "generation_method": "canvas-composite",
+        "hook_type": "question",
+        "content_category": "ai_diagnostics",
+        "time_slot": "evening"
+      }
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_ig_story2",
+      "caption_preview": "Your bike's personal AI mechanic. (story 2 \u2014 features + CTA)",
+      "platform": "instagram",
+      "post_type": "story",
+      "published_at": "2026-04-07T18:32:00+00:00",
+      "post_id": "18060768035691751",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/story-2-cta.html",
+        "image_hosted": "https://i.ibb.co/r2yV2MHR/motovault-story2-cta-0407.jpg",
+        "generation_method": "canvas-composite",
+        "hook_type": "feature_walkthrough",
+        "content_category": "ai_diagnostics",
+        "time_slot": "evening"
+      }
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_fb_story1",
+      "caption_preview": "Snap a photo. Get your answer. (story 1 \u2014 hero)",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-07T18:32:00+00:00",
+      "post_id": "1357291053086132",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/story-1-hero.html",
+        "image_hosted": "https://i.ibb.co/ksm6HkBz/motovault-story1-hero-0407.jpg",
+        "generation_method": "canvas-composite",
+        "content_category": "ai_diagnostics",
+        "time_slot": "evening"
+      }
+    },
+    {
+      "id": "post_20260407_ai_diagnostics_fb_story2",
+      "caption_preview": "Your bike's personal AI mechanic. (story 2 \u2014 features + CTA)",
+      "platform": "facebook",
+      "post_type": "story",
+      "published_at": "2026-04-07T18:32:00+00:00",
+      "post_id": "26130994326596226",
+      "metrics": {},
+      "classification": {
+        "image_file": "post-ai-diagnostics-0407/story-2-cta.html",
+        "image_hosted": "https://i.ibb.co/r2yV2MHR/motovault-story2-cta-0407.jpg",
+        "generation_method": "canvas-composite",
+        "content_category": "ai_diagnostics",
+        "time_slot": "evening"
+      }
+    },
     {
       "id": "post_20260402_ride_farther_ig_post",
       "caption_preview": "How far would you ride if you trusted your bike completely?\n\nNot hope. Not guesswork. Actual data...",

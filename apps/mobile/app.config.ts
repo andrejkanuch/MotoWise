@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '2.5.0',
+  version: '2.6.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',
@@ -122,6 +122,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.motovault.app',
     supportsTablet: true,
     usesAppleSignIn: true,
+    associatedDomains: ['applinks:motovault.app', 'applinks:www.motovault.app'],
     icon: {
       light: './src/assets/images/MotoVault.png',
       dark: './src/assets/images/MotoVaultDark.png',
@@ -147,6 +148,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#0F1B2D',
     },
     permissions: ['CAMERA', 'READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [
+          { scheme: 'https', host: 'motovault.app', pathPrefix: '/t/' },
+          { scheme: 'https', host: 'www.motovault.app', pathPrefix: '/t/' },
+          { scheme: 'https', host: 'motovault.app', pathPrefix: '/r/' },
+          { scheme: 'https', host: 'www.motovault.app', pathPrefix: '/r/' },
+        ],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
   },
   extra: {
     eas: {

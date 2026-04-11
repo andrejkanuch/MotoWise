@@ -1,0 +1,3 @@
+mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {
+  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)
+}

@@ -1,0 +1,3 @@
+mutation DeleteExpensePhoto($photoId: String!) {
+  deleteExpensePhoto(photoId: $photoId)
+}

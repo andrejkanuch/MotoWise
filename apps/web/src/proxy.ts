@@ -8,14 +8,75 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 const isDev = process.env.NODE_ENV === 'development';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
+
+// H2 trip/ride share links: lock down headers to capability-URL conventions.
+// Preview-bot UAs get a head-only teaser response so they never fire the
+// resolve_trip_by_token RPC (keeps audit noise low + scraper caches static).
+const PREVIEW_BOT_RE =
+  /(Slackbot|WhatsApp|facebookexternalhit|Twitterbot|Discordbot|LinkedInBot|TelegramBot)/i;
+
+const SHARE_LINK_CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' https://*.mapbox.com https://api.mapbox.com https://*.supabase.co data:",
+  "font-src 'self'",
+  "connect-src 'self' https://api.mapbox.com",
+  "frame-ancestors 'none'",
+].join('; ');
+
+const SHARE_LINK_TEASER_HTML = `<!DOCTYPE html><html><head>
+<title>Shared on MotoVault</title>
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta property="og:title" content="Shared on MotoVault">
+<meta property="og:description" content="Open MotoVault to view this ride.">
+<meta name="referrer" content="no-referrer">
+</head><body></body></html>`;
+
+function isShareLinkRoute(pathname: string): boolean {
+  return pathname.startsWith('/t/') || pathname.startsWith('/r/');
+}
+
+function applyShareLinkHeaders(response: NextResponse) {
+  // Overrides applySecurityHeaders for /t/* and /r/* — stricter CSP, no
+  // referrer, no edge caching. These headers take precedence over the
+  // default security headers because share tokens must not leak via
+  // Referer, must not be cached by any shared cache, and must not be
+  // indexed by search engines.
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+  response.headers.set('Referrer-Policy', 'no-referrer');
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
+  response.headers.set('Content-Security-Policy', SHARE_LINK_CSP);
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+}
+
 function buildCspHeader(nonce: string): string {
+  const connectSources = [
+    "'self'",
+    supabaseUrl,
+    apiUrl,
+    isDev ? 'http://localhost:4000' : '',
+    'https://www.google-analytics.com',
+    'https://*.analytics.google.com',
+    'https://*.googletagmanager.com',
+    'https://vitals.vercel-insights.com',
+    'https://connect.facebook.net',
+    'https://www.facebook.com',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://vitals.vercel-insights.com https://connect.facebook.net https://www.facebook.com",
+    `connect-src ${connectSources}`,
     "frame-ancestors 'none'",
   ].join('; ');
 }
@@ -32,7 +93,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 const intlMiddleware = createIntlMiddleware(routing);
 
 async function adminAuth(request: NextRequest) {
-  const response = NextResponse.next({ request });
+  let response = NextResponse.next({ request });
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -40,6 +101,10 @@ async function adminAuth(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
           response.cookies.set(name, value, options);
         }
@@ -88,9 +153,88 @@ async function adminAuth(request: NextRequest) {
   return response;
 }
 
+const PROTECTED_PREFIXES = ['/feed', '/garage', '/profile'];
+
+const PUBLIC_PREFIXES = [
+  '/rider/',
+  '/ride/',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/auth/callback',
+];
+
+function isProtectedRoute(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+async function communityAuth(request: NextRequest) {
+  // CRITICAL: supabaseResponse must be reassigned inside setAll
+  // so cookie updates from getUser() session refresh are preserved.
+  // See: https://supabase.com/docs/guides/getting-started/tutorials/with-nextjs
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet: Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]) {
+        for (const { name, value } of cookiesToSet) {
+          request.cookies.set(name, value);
+        }
+        supabaseResponse = NextResponse.next({ request });
+        for (const { name, value, options } of cookiesToSet) {
+          supabaseResponse.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
+  // Use getSession() to read from cookies (no network call).
+  // getUser() validates with Supabase Auth but can fail during the
+  // brief window after signInWithPassword before cookies propagate.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    const redirectUrl = new URL('/login', request.url);
+    redirectUrl.searchParams.set('redirect', request.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  return supabaseResponse;
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
+
+  // H2: share-link routes (/t/:token, /r/:token) — run FIRST, before any
+  // other branch. Preview-bot UAs get a head-only teaser and never reach
+  // the SSR route. Regular viewers get the page with locked-down headers.
+  if (isShareLinkRoute(pathname)) {
+    const ua = request.headers.get('user-agent') ?? '';
+    if (PREVIEW_BOT_RE.test(ua)) {
+      return new NextResponse(SHARE_LINK_TEASER_HTML, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300, s-maxage=300',
+          'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
+        },
+      });
+    }
+    const response = NextResponse.next({ request });
+    applyShareLinkHeaders(response);
+    return response;
+  }
 
   // Pass nonce to Next.js so it can apply it to inline scripts
   request.headers.set('x-nonce', nonce);
@@ -100,8 +244,18 @@ export async function proxy(request: NextRequest) {
   // Admin routes: run auth guard (no locale processing)
   if (pathname.startsWith('/admin')) {
     response = await adminAuth(request);
-  } else if (pathname.startsWith('/login')) {
-    // Login route: skip locale processing
+  } else if (isProtectedRoute(pathname) && !isPublicRoute(pathname)) {
+    // Community protected routes: require authenticated session
+    response = await communityAuth(request);
+  } else if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/rider/') ||
+    pathname.startsWith('/ride/')
+  ) {
+    // Auth + public community routes: skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing
