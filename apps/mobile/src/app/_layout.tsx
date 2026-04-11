@@ -6,7 +6,7 @@ LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is
 import { CompleteMaintenanceTaskDocument, MeDocument } from '@motovault/graphql';
 import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
-import { QueryClientProvider, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
 import * as Notifications from 'expo-notifications';
 
@@ -43,6 +43,7 @@ import {
   trackEvent,
   trackScreen,
 } from '../lib/analytics';
+import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
 import {
   cancelAllNotifications,
@@ -51,9 +52,11 @@ import {
   setupNotificationChannels,
   snoozeTaskNotification,
 } from '../lib/notifications';
+import { PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
+import { clearPersistedQueryCache } from '../lib/query-persist';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
@@ -244,6 +247,7 @@ export default function RootLayout() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      invalidateGqlAccessTokenCache();
       setSession(session);
       if (session?.user) {
         loginRevenueCat(session.user.id);
@@ -254,6 +258,7 @@ export default function RootLayout() {
       }
       if (!session) {
         queryClient.clear();
+        clearPersistedQueryCache();
         cancelAllNotifications();
       }
     });
@@ -400,11 +405,11 @@ export default function RootLayout() {
       >
         <AnimatedSplash isReady={appReady}>
           <KeyboardProvider>
-            <QueryClientProvider client={queryClient}>
+            <PersistedQueryClientBoundary>
               <NavigationGate>
                 <Stack screenOptions={{ headerShown: false }} />
               </NavigationGate>
-            </QueryClientProvider>
+            </PersistedQueryClientBoundary>
           </KeyboardProvider>
         </AnimatedSplash>
       </PostHogProvider>

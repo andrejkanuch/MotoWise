@@ -1,5 +1,3 @@
 {
-  "ios": {
-    "bundleIdentifier": "com.andykeny.motovault"
-  }
+  "expo": {}
 }

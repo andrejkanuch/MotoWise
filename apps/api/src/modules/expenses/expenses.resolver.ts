@@ -1,5 +1,5 @@
 import { AddExpensePhotoSchema, LogExpenseSchema } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
+import { Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -8,6 +8,7 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AddExpensePhotoInput } from './dto/add-expense-photo.input';
 import { LogExpenseInput } from './dto/log-expense.input';
+import { ExpensePhotosLoader } from './expense-photos.loader';
 import { ExpensesService } from './expenses.service';
 import { Expense } from './models/expense.model';
 import { ExpenseDashboardSummary } from './models/expense-dashboard.model';
@@ -15,8 +16,12 @@ import { ExpensePhoto } from './models/expense-photo.model';
 import { ExpenseSummary } from './models/expense-summary.model';
 
 @Resolver(() => Expense)
+@Injectable({ scope: Scope.REQUEST })
 export class ExpensesResolver {
-  constructor(private readonly expensesService: ExpensesService) {}
+  constructor(
+    private readonly expensesService: ExpensesService,
+    private readonly expensePhotosLoader: ExpensePhotosLoader,
+  ) {}
 
   @Query(() => ExpenseSummary)
   @UseGuards(GqlAuthGuard)
@@ -94,9 +99,7 @@ export class ExpensesResolver {
 
   @ResolveField(() => [ExpensePhoto])
   @UseGuards(GqlAuthGuard)
-  async photos(@CurrentUser() user: AuthUser, @Parent() expense: Expense): Promise<ExpensePhoto[]> {
-    // TODO todo-107: Replace with DataLoader to batch photo fetches across a
-    // list query to avoid N+1 when listing many expenses with photos.
-    return this.expensesService.findPhotosByExpenseId(user.id, expense.id);
+  async photos(@Parent() expense: Expense): Promise<ExpensePhoto[]> {
+    return this.expensePhotosLoader.load(expense.id);
   }
 }
