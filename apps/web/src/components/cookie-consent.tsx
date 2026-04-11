@@ -1,21 +1,31 @@
 'use client';
 
 import posthog from 'posthog-js';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
-const CONSENT_COOKIE = 'motovault_cookie_consent';
+// First-party consent cookie. Format: v1:{accepted|rejected}:{epoch}:EU
+// e.g. "v1:rejected:1744329600:EU" — 6 month lifetime (EDPB 03/2022).
+const CONSENT_COOKIE = 'mv_consent';
+const COOKIE_MAX_AGE = 15_552_000; // 6 months in seconds
 
-function getConsent(): boolean | null {
+type Decision = 'accepted' | 'rejected';
+
+function parseConsent(): Decision | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(new RegExp(`(?:^|; )${CONSENT_COOKIE}=([^;]*)`));
   if (!match) return null;
-  return match[1] === 'granted';
+  const parts = decodeURIComponent(match[1]).split(':');
+  if (parts.length < 2 || parts[0] !== 'v1') return null;
+  if (parts[1] === 'accepted' || parts[1] === 'rejected') return parts[1];
+  return null;
 }
 
-function setConsent(granted: boolean) {
-  const maxAge = 365 * 24 * 60 * 60; // 1 year
+function writeConsent(decision: Decision) {
+  const epoch = Math.floor(Date.now() / 1000);
+  const value = `v1:${decision}:${epoch}:EU`;
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
   // biome-ignore lint/suspicious/noDocumentCookie: this IS the consent primitive itself
-  document.cookie = `${CONSENT_COOKIE}=${granted ? 'granted' : 'denied'}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${secure}`;
 }
 
 // PostHog is initialized with `opt_out_capturing_by_default: true` +
@@ -27,6 +37,7 @@ function applyPostHogConsent(granted: boolean) {
   if (granted) {
     posthog.set_config({ persistence: 'localStorage+cookie' });
     posthog.opt_in_capturing();
+    posthog.capture('$consent_granted');
   } else {
     posthog.opt_out_capturing();
   }
@@ -42,26 +53,27 @@ const ConsentContext = createContext<ConsentContextValue | null>(null);
 
 // Shared consent state provider. Mount once near the root so every consumer
 // (cookie banner, analytics-consent gate) sees the same value and re-renders
-// together when the user clicks Accept or Decline. Without this, each
+// together when the user clicks Accept or Reject. Without this, each
 // `useCookieConsent()` call would have its own React state and downstream
 // gates would only pick up changes on the next reload.
 export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
   const [consent, setConsentState] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const current = getConsent();
-    setConsentState(current);
-    if (current !== null) applyPostHogConsent(current);
+    const current = parseConsent();
+    const asBool = current === null ? null : current === 'accepted';
+    setConsentState(asBool);
+    if (asBool !== null) applyPostHogConsent(asBool);
   }, []);
 
   const accept = useCallback(() => {
-    setConsent(true);
+    writeConsent('accepted');
     setConsentState(true);
     applyPostHogConsent(true);
   }, []);
 
   const deny = useCallback(() => {
-    setConsent(false);
+    writeConsent('rejected');
     setConsentState(false);
     applyPostHogConsent(false);
   }, []);
@@ -79,80 +91,173 @@ export function useCookieConsent(): ConsentContextValue {
   return ctx;
 }
 
+/**
+ * Slim, edge-anchored cookie consent bar.
+ *
+ * Design notes:
+ * - NOT a modal dialog — it is an `aria-live` region that the user can freely ignore.
+ * - Three buttons with identical visual weight (Reject / Preferences / Accept) per
+ *   EDPB Guidelines 03/2022 on deceptive design patterns.
+ * - 44×44 min tap target, visible focus ring, 2px offset per WCAG 2.2.
+ * - Mobile: floats 8px above the bottom edge, ~8vh tall on 390×844.
+ * - Desktop: pinned to bottom-center, max-w 720px.
+ */
 export function CookieConsentBanner() {
   const { consent, accept, deny } = useCookieConsent();
+  const [mounted, setMounted] = useState(false);
+  const [prefsOpen, setPrefsOpen] = useState(false);
 
-  // Don't render if consent already given (accepted or denied)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Avoid SSR hydration mismatch — render nothing until we've parsed the cookie.
+  if (!mounted) return null;
   if (consent !== null) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        backgroundColor: 'rgba(10, 10, 10, 0.95)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '16px 24px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '12px',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      <p
-        style={{
-          color: 'rgba(255, 255, 255, 0.8)',
-          fontSize: '14px',
-          margin: 0,
-          maxWidth: '600px',
-          lineHeight: 1.5,
-        }}
+    <>
+      <section
+        aria-label="Cookie consent"
+        aria-live="polite"
+        className="fixed inset-x-2 bottom-2 z-[9999] rounded-2xl border border-neutral-800 bg-neutral-950/95 px-4 py-3 shadow-2xl backdrop-blur-md sm:left-1/2 sm:right-auto sm:inset-x-auto sm:max-w-[720px] sm:-translate-x-1/2 sm:bottom-4 sm:px-5 sm:py-3.5"
       >
-        We use cookies for analytics and advertising measurement.{' '}
-        <a
-          href="/privacy"
-          style={{ color: 'rgba(255, 255, 255, 0.9)', textDecoration: 'underline' }}
-        >
-          Privacy Policy
-        </a>
-      </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button
-          type="button"
-          onClick={deny}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '8px',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            backgroundColor: 'transparent',
-            color: 'rgba(255, 255, 255, 0.7)',
-            fontSize: '14px',
-            cursor: 'pointer',
+        <div className="flex flex-col gap-2 min-[380px]:flex-row min-[380px]:items-center min-[380px]:gap-3">
+          <p className="flex-1 text-[13px] leading-snug text-neutral-300">
+            We use a cookie for privacy-friendly analytics (PostHog) to improve MotoVault. No ads,
+            no cross-site tracking.{' '}
+            <a href="/privacy" className="text-amber-400 underline hover:text-amber-300">
+              Privacy policy
+            </a>
+          </p>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={deny}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 text-[13px] font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              Reject all
+            </button>
+            <button
+              type="button"
+              onClick={() => setPrefsOpen(true)}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 text-[13px] font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              Preferences
+            </button>
+            <button
+              type="button"
+              onClick={accept}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 px-3 text-[13px] font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              Accept all
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {prefsOpen && (
+        <PreferencesDialog
+          onAcceptAll={() => {
+            setPrefsOpen(false);
+            accept();
           }}
-        >
-          Decline
-        </button>
-        <button
-          type="button"
-          onClick={accept}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: '#FF6B35',
-            color: '#fff',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
+          onRejectAll={() => {
+            setPrefsOpen(false);
+            deny();
           }}
-        >
-          Accept
-        </button>
+          onClose={() => setPrefsOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+// Minimal modal dialog stub. Intentionally lightweight — there's only a single
+// analytics category right now, so "Accept essential only" === reject, and
+// "Accept all" === accept. This is a real `role="dialog"` with focus trap
+// and Esc handling so it can be expanded into a full category picker later.
+function PreferencesDialog({
+  onAcceptAll,
+  onRejectAll,
+  onClose,
+}: {
+  onAcceptAll: () => void;
+  onRejectAll: () => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const firstButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    firstButtonRef.current?.focus();
+
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4">
+      <button
+        type="button"
+        aria-label="Close cookie preferences"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default bg-neutral-950/80 backdrop-blur-sm"
+      />
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cookie-prefs-title"
+        className="relative w-full max-w-md rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl"
+      >
+        <h2 id="cookie-prefs-title" className="text-lg font-semibold text-neutral-50">
+          Cookie preferences
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-400">
+          MotoVault uses one privacy-friendly analytics cookie (PostHog) to understand how visitors
+          use the site. No advertising, no cross-site tracking, no data sold.
+        </p>
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+          <button
+            ref={firstButtonRef}
+            type="button"
+            onClick={onAcceptAll}
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-800 px-4 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+          >
+            Accept all
+          </button>
+          <button
+            type="button"
+            onClick={onRejectAll}
+            className="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 px-4 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+          >
+            Accept essential only
+          </button>
+        </div>
       </div>
     </div>
   );

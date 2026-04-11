@@ -5,10 +5,13 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
+import { AuthorBio } from '@/components/marketing/author-bio';
+import { AuthorByline } from '@/components/marketing/author-byline';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
+import { getAuthor, getDefaultAuthor } from '@/lib/authors';
 import { getArticleBySlug, getArticleSlugs, getArticleUrl, getRelatedArticles } from '@/lib/blog';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
@@ -129,6 +132,7 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
   });
 
   const related = getRelatedArticles(slug, article.category, locale);
+  const author = getAuthor(article.author) ?? getDefaultAuthor();
 
   const wordCount = article.wordCount || article.content.split(/\s+/).length;
   const articleUrl = getArticleUrl(slug, locale);
@@ -241,20 +245,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
           <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
             {article.title}
           </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
-            <span>
-              {t('by')} {article.author}
-            </span>
-            <span aria-hidden="true">&middot;</span>
-            <time dateTime={article.date}>
-              {t('publishedOn')}{' '}
-              {new Date(article.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
-            <span aria-hidden="true">&middot;</span>
+          <div className="mt-5">
+            <AuthorByline author={author} date={article.date} locale={locale} />
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
             <span>
               {article.readingTime} {t('readingTime')}
             </span>
@@ -264,6 +258,10 @@ export default async function BlogArticlePage({ params }: BlogArticlePageProps) 
         <TableOfContents headings={headings} />
 
         <div className="prose prose-invert max-w-none">{content}</div>
+
+        <div className="mt-16">
+          <AuthorBio author={author} />
+        </div>
 
         <div className="mt-16 rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 text-center">
           <h2 className="mb-3 text-xl font-semibold text-neutral-100">
