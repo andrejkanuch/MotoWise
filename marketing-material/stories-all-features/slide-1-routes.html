@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1920px;overflow:hidden; }
+.slide { width:1080px;height:1920px;position:relative;overflow:hidden;background:#D4622E; }
+
+/* Top branding bar */
+.top-bar { position:absolute;top:0;left:0;width:1080px;height:200px;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:60px 52px 0; }
+.logo-wrap { display:flex;align-items:center;gap:14px; }
+.logo-icon { width:50px;height:50px;border-radius:13px;object-fit:cover; }
+.logo-text { color:#fff;font-size:24px;font-weight:800;letter-spacing:-0.3px; }
+.badge { padding:8px 20px;border-radius:100px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.9);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase; }
+
+/* Main image — full width, natural height centered */
+.main-img { position:absolute;top:160px;left:0;width:1080px;height:auto;z-index:2; }
+
+/* Bottom CTA section — sits below image */
+.bottom-cta { position:absolute;bottom:0;left:0;width:1080px;height:310px;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0 60px 50px;background:linear-gradient(to bottom,rgba(180,75,25,0) 0%,rgba(160,65,20,0.6) 30%,rgba(140,55,15,0.95) 100%); }
+.cta-btn { background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.6);color:#fff;font-size:22px;font-weight:800;padding:20px 80px;border-radius:100px;margin-bottom:18px;letter-spacing:0.3px; }
+.cta-sub { color:rgba(255,255,255,0.75);font-size:18px;font-weight:500;text-align:center; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <!-- Top branding -->
+  <div class="top-bar">
+    <div class="logo-wrap">
+      <img class="logo-icon" src="../MotoVault-logo.png" alt="MotoVault">
+      <span class="logo-text">MotoVault</span>
+    </div>
+    <div class="badge">Feature</div>
+  </div>
+
+  <!-- Feature image -->
+  <img class="main-img" src="../store-previews/aso-v2/iphone-6.7/01-discover-epic-routes.jpg" alt="Discover Epic Routes">
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <div class="cta-btn">Download Free</div>
+    <div class="cta-sub">Available on iOS & Android · motovault.app</div>
+  </div>
+</div>
+</body>
+</html>
