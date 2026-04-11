@@ -1,7 +1,7 @@
 'use client';
 
 import posthog from 'posthog-js';
-import { useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const CONSENT_COOKIE = 'motovault_cookie_consent';
 
@@ -32,7 +32,20 @@ function applyPostHogConsent(granted: boolean) {
   }
 }
 
-export function useCookieConsent() {
+type ConsentContextValue = {
+  consent: boolean | null;
+  accept: () => void;
+  deny: () => void;
+};
+
+const ConsentContext = createContext<ConsentContextValue | null>(null);
+
+// Shared consent state provider. Mount once near the root so every consumer
+// (cookie banner, analytics-consent gate) sees the same value and re-renders
+// together when the user clicks Accept or Decline. Without this, each
+// `useCookieConsent()` call would have its own React state and downstream
+// gates would only pick up changes on the next reload.
+export function CookieConsentProvider({ children }: { children: React.ReactNode }) {
   const [consent, setConsentState] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -41,19 +54,29 @@ export function useCookieConsent() {
     if (current !== null) applyPostHogConsent(current);
   }, []);
 
-  const accept = () => {
+  const accept = useCallback(() => {
     setConsent(true);
     setConsentState(true);
     applyPostHogConsent(true);
-  };
+  }, []);
 
-  const deny = () => {
+  const deny = useCallback(() => {
     setConsent(false);
     setConsentState(false);
     applyPostHogConsent(false);
-  };
+  }, []);
 
-  return { consent, accept, deny };
+  return (
+    <ConsentContext.Provider value={{ consent, accept, deny }}>{children}</ConsentContext.Provider>
+  );
+}
+
+export function useCookieConsent(): ConsentContextValue {
+  const ctx = useContext(ConsentContext);
+  if (!ctx) {
+    throw new Error('useCookieConsent must be used within a CookieConsentProvider');
+  }
+  return ctx;
 }
 
 export function CookieConsentBanner() {
