@@ -25,7 +25,7 @@ import {
   publishPost,
   publishStory,
 } from './publish';
-import { runScheduledPost } from './scheduled';
+import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
 
 export default {
   // -------------------------------------------------------------------------
@@ -70,6 +70,26 @@ export default {
           };
           const result = await generateImage(env, body.prompt, body.aspect_ratio);
           return json(result);
+        }
+
+        case '/run-slot': {
+          // Manually invoke the scheduled publishing pipeline for a given
+          // slot. Uses the exact same code path as the cron trigger — claims
+          // the next queued row, generates images, publishes, marks done.
+          // Useful for retries and end-to-end testing without waiting for the
+          // next cron tick.
+          const slot = url.searchParams.get('slot');
+          const cron = Object.entries(CRON_TO_SLOT).find(([, s]) => s === slot)?.[0];
+          if (!cron) {
+            return json(
+              {
+                error: 'slot must be one of: afternoon, evening, night-americas',
+              },
+              400,
+            );
+          }
+          await runScheduledPost(env, cron);
+          return json({ ok: true, slot, cron });
         }
 
         default:

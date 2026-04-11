@@ -58,12 +58,14 @@ export async function claimNextPost(env: Env, slot: SlotName): Promise<QueueRow 
     throw new Error(`claim_next_social_post failed (${res.status}): ${body}`);
   }
 
-  const data = (await res.json()) as QueueRow | null;
-  // PostgREST returns `null` body (with "null" text) when the function returns NULL.
-  if (data === null || (typeof data === 'object' && data !== null && !('id' in data))) {
+  // PostgREST serializes a NULL composite-type return as an object with all
+  // fields set to null (NOT as JSON `null`). Detect the empty-queue case by
+  // checking whether the primary key is null.
+  const data = (await res.json()) as (QueueRow & { id: string | null }) | null;
+  if (data === null || data.id === null) {
     return null;
   }
-  return data;
+  return data as QueueRow;
 }
 
 export interface MarkPublishedInput {

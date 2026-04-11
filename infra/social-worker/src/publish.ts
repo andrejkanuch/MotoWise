@@ -159,8 +159,13 @@ export async function publishPost(
   const results: PublishResult['results'] = {};
 
   const imageBytes = base64ToUint8Array(params.image_base64);
-  const filename = `publish/${Date.now()}-post.png`;
-  const imageUrl = await uploadToSupabase(env, filename, imageBytes);
+  const path = `publish/${Date.now()}-post.png`;
+  await uploadToSupabase(env, path, imageBytes);
+
+  // Instagram feed posts: exact 4:5 at 1080x1350 (Meta's recommended spec).
+  // Supabase Storage's render endpoint crops Gemini's near-4:5 output to the
+  // pixel-exact target.
+  const imageUrl = renderUrl(env, path, 1080, 1350);
 
   if (platform === 'both' || platform === 'facebook') {
     const fbRes = await graphPost(`${env.META_PAGE_ID}/photos`, {
@@ -198,7 +203,7 @@ export async function publishPost(
     }
   }
 
-  return { image_url: imageUrl, results };
+  return { image_url: publicUrl(env, path), results };
 }
 
 // ---------------------------------------------------------------------------
@@ -213,8 +218,14 @@ export async function publishStory(
   const results: PublishResult['results'] = {};
 
   const imageBytes = base64ToUint8Array(params.image_base64);
-  const filename = `publish/${Date.now()}-story.png`;
-  const imageUrl = await uploadToSupabase(env, filename, imageBytes);
+  const path = `publish/${Date.now()}-story.png`;
+  await uploadToSupabase(env, path, imageBytes);
+
+  // Instagram and Facebook stories: exact 9:16 at 1080x1920. Gemini's 9:16
+  // output lands close (~1536x2752) but not pixel-exact, which causes IG to
+  // letterbox. The render URL forces the exact target dimensions via cover
+  // crop so Meta receives a true 9:16 image.
+  const imageUrl = renderUrl(env, path, 1080, 1920);
 
   if (platform === 'both' || platform === 'instagram') {
     const container = await graphPost(`${env.META_IG_USER_ID}/media`, {
@@ -262,7 +273,7 @@ export async function publishStory(
     }
   }
 
-  return { image_url: imageUrl, results };
+  return { image_url: publicUrl(env, path), results };
 }
 
 // ---------------------------------------------------------------------------
@@ -300,6 +311,12 @@ async function waitForIgProcessing(
   throw new Error('Instagram processing timeout');
 }
 
+/**
+ * Upload bytes to Supabase Storage and return the storage path. Use
+ * `publicUrl()` for the raw image and `renderUrl()` for on-the-fly image
+ * transformations (needed to coerce Gemini output to exact aspect ratios
+ * that Instagram and Facebook accept without letterboxing).
+ */
 async function uploadToSupabase(env: Env, path: string, data: Uint8Array): Promise<string> {
   const url = `${env.SUPABASE_URL}/storage/v1/object/social-media/${path}`;
   const res = await fetch(url, {
@@ -317,7 +334,25 @@ async function uploadToSupabase(env: Env, path: string, data: Uint8Array): Promi
     throw new Error(`Supabase upload failed: ${err}`);
   }
 
+  return path;
+}
+
+function publicUrl(env: Env, path: string): string {
   return `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${path}`;
+}
+
+/**
+ * Supabase Storage on-the-fly image transform. Forces exact pixel dimensions
+ * with a cover resize, which Meta requires for feed posts (1080x1350 for 4:5)
+ * and stories (1080x1920 for 9:16). Gemini's image models return near-target
+ * ratios but not pixel-exact — passing the transformed URL to Meta guarantees
+ * Instagram and Facebook render the image without letterboxing.
+ */
+function renderUrl(env: Env, path: string, width: number, height: number): string {
+  return (
+    `${env.SUPABASE_URL}/storage/v1/render/image/public/social-media/${path}` +
+    `?width=${width}&height=${height}&resize=cover`
+  );
 }
 
 function base64ToUint8Array(base64: string): Uint8Array {

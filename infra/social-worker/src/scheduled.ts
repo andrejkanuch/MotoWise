@@ -16,7 +16,7 @@ import type { Env } from './env';
 import { generateImage, publishPost, publishStory } from './publish';
 import { claimNextPost, markFailed, markPublished, type SlotName } from './queue';
 
-const CRON_TO_SLOT: Record<string, SlotName> = {
+export const CRON_TO_SLOT: Record<string, SlotName> = {
   '0 14 * * *': 'afternoon',
   '0 19 * * *': 'evening',
   '0 0 * * *': 'night-americas',
