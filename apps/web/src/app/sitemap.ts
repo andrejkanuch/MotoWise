@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
+import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
+import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 
@@ -35,6 +37,10 @@ const pages = [
   '/compare/motovault-vs-ridelog',
   '/compare/motovault-vs-rever',
   '/compare/motovault-vs-calimoto',
+  '/compare/motovault-vs-kurviger',
+  '/compare/motovault-vs-eatsleepride',
+  '/compare/motovault-vs-scenic',
+  '/compare/motovault-vs-motoscan',
   '/press',
   '/about',
 ];
@@ -66,6 +72,10 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare/motovault-vs-ridelog': '2026-04-11',
   '/compare/motovault-vs-rever': '2026-04-11',
   '/compare/motovault-vs-calimoto': '2026-04-11',
+  '/compare/motovault-vs-kurviger': '2026-04-11',
+  '/compare/motovault-vs-eatsleepride': '2026-04-11',
+  '/compare/motovault-vs-scenic': '2026-04-11',
+  '/compare/motovault-vs-motoscan': '2026-04-11',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
 };
@@ -117,5 +127,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
-  return [...staticEntries, ...blogEntries];
+  // Bike pages: English-only per programmatic SEO plan. No hreflang alternates —
+  // translating 1500+ templated pages is deferred until tier-1 is traffic-proven.
+  // Only include pages that pass the quality gate so sitemap inclusion is a positive
+  // signal. The `/bikes` index itself is included here (not in the locale-mapped
+  // `pages` array) so it doesn't accidentally emit alternates for locales that
+  // don't have a translated version.
+  const bikeIndexEntry = {
+    url: `${host}/bikes`,
+    lastModified: new Date('2026-04-11'),
+  };
+  const bikeLeafEntries = BIKE_FIXTURES.filter(
+    (page) => scoreBikePage(page, BIKE_FIXTURES).passes,
+  ).map((page) => ({
+    url: `${host}/bikes/${page.makeSlug}/${page.modelSlug}/${page.year}/${page.pageType}`,
+    lastModified: new Date('2026-04-11'),
+  }));
+
+  return [...staticEntries, ...blogEntries, bikeIndexEntry, ...bikeLeafEntries];
 }

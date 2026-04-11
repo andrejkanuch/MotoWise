@@ -6,6 +6,13 @@ import { tap } from 'rxjs';
 
 const HEADER = 'x-request-id';
 
+/** Log at warn when a GraphQL field takes longer than this (ms). Set SLOW_RESOLVER_MS=0 to disable. */
+function slowResolverThresholdMs(): number {
+  if (process.env.SLOW_RESOLVER_MS === '0') return Number.POSITIVE_INFINITY;
+  const n = Number(process.env.SLOW_RESOLVER_MS ?? 2000);
+  return Number.isFinite(n) && n > 0 ? n : 2000;
+}
+
 @Injectable()
 export class CorrelationIdInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
@@ -24,10 +31,18 @@ export class CorrelationIdInterceptor implements NestInterceptor {
     const operationName = info?.fieldName ?? 'unknown';
     const start = Date.now();
 
+    const threshold = slowResolverThresholdMs();
+
     return next.handle().pipe(
       tap({
         next: () => {
-          this.logger.log(`[${requestId}] ${operationName} ${Date.now() - start}ms`);
+          const duration = Date.now() - start;
+          const line = `[${requestId}] ${operationName} ${duration}ms`;
+          if (duration >= threshold) {
+            this.logger.warn(`SLOW ${line}`);
+          } else {
+            this.logger.log(line);
+          }
         },
         error: (err) => {
           this.logger.error(

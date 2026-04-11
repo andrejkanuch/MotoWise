@@ -1,6 +1,19 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
+import { extractGraphQLMessage, hasGraphQLCode } from './graphql-errors';
 import { supabase } from './supabase';
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    queryMeta: {
+      /** When false, global query error UI is skipped (default: show on first-load failures only). */
+      showErrorAlert?: boolean;
+    };
+    mutationMeta: {
+      showErrorAlert?: boolean;
+    };
+  }
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,7 +26,6 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: (failureCount, error) => {
-        // Don't retry client errors (FORBIDDEN, BAD_REQUEST, etc.)
         if (hasGraphQLCode(error, 'FORBIDDEN') || hasGraphQLCode(error, 'BAD_USER_INPUT')) {
           return false;
         }
@@ -23,52 +35,22 @@ export const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error) => {
+    onError: (error, query) => {
       const isAuthError = hasGraphQLCode(error, 'UNAUTHENTICATED');
       if (isAuthError) {
         supabase.auth.refreshSession();
         return;
       }
+      if (query?.meta?.showErrorAlert === false) return;
+      if (query?.state.data !== undefined) return;
       Alert.alert('Error', extractGraphQLMessage(error));
     },
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
       if (mutation.options.onError) return;
+      if (mutation.meta?.showErrorAlert === false) return;
       Alert.alert('Error', extractGraphQLMessage(error));
     },
   }),
 });
-
-function extractGraphQLMessage(error: unknown): string {
-  if (
-    error &&
-    typeof error === 'object' &&
-    'response' in error &&
-    error.response &&
-    typeof error.response === 'object' &&
-    'errors' in error.response &&
-    Array.isArray(error.response.errors) &&
-    error.response.errors[0]?.message
-  ) {
-    return error.response.errors[0].message;
-  }
-  return error instanceof Error ? error.message : 'Something went wrong';
-}
-
-function hasGraphQLCode(error: unknown, code: string): boolean {
-  if (
-    error &&
-    typeof error === 'object' &&
-    'response' in error &&
-    error.response &&
-    typeof error.response === 'object' &&
-    'errors' in error.response &&
-    Array.isArray(error.response.errors)
-  ) {
-    return error.response.errors.some(
-      (e: { extensions?: { code?: string } }) => e.extensions?.code === code,
-    );
-  }
-  return false;
-}

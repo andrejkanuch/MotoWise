@@ -4,7 +4,7 @@ import {
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
+import { Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -20,10 +20,15 @@ import { CompleteTaskResult } from './models/complete-task-result.model';
 import { MaintenanceTask } from './models/maintenance-task.model';
 import { SpendingSummary } from './models/spending-summary.model';
 import { TaskPhoto } from './models/task-photo.model';
+import { TaskPhotosLoader } from './task-photos.loader';
 
 @Resolver(() => MaintenanceTask)
+@Injectable({ scope: Scope.REQUEST })
 export class MaintenanceTasksResolver {
-  constructor(private readonly maintenanceTasksService: MaintenanceTasksService) {}
+  constructor(
+    private readonly maintenanceTasksService: MaintenanceTasksService,
+    private readonly taskPhotosLoader: TaskPhotosLoader,
+  ) {}
 
   @Query(() => [MaintenanceTask])
   @UseGuards(GqlAuthGuard)
@@ -144,7 +149,6 @@ export class MaintenanceTasksResolver {
   @ResolveField(() => [TaskPhoto])
   async photos(@Parent() task: MaintenanceTask): Promise<TaskPhoto[]> {
     if (task.photos && task.photos.length > 0) return task.photos;
-    const map = await this.maintenanceTasksService.findPhotosByTaskIds([task.id]);
-    return map.get(task.id) ?? [];
+    return this.taskPhotosLoader.load(task.id);
   }
 }

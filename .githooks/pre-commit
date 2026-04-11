@@ -1,0 +1,20 @@
+#!/bin/sh
+# Verify GraphQL codegen is up to date when schema or operations change.
+set -e
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+STAGED=$(git diff --cached --name-only)
+if ! echo "$STAGED" | grep -qE '\.(graphql)$|apps/api/schema\.graphql'; then
+  exit 0
+fi
+
+echo "GraphQL files staged — checking codegen (packages/graphql)..."
+pnpm --filter @motovault/graphql exec graphql-codegen --config codegen.ts
+if ! git diff --quiet packages/graphql/src/generated; then
+  echo ""
+  echo "error: GraphQL codegen would modify packages/graphql/src/generated."
+  echo "Run: pnpm generate"
+  echo "Then stage: git add packages/graphql/src/generated"
+  exit 1
+fi

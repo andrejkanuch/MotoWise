@@ -32,4 +32,4 @@
 - Not handling loading/error states in TanStack Query hooks
 - Missing expo-camera permissions in app.json
 - Storing tokens in AsyncStorage instead of expo-secure-store
-- Using @expo/vector-icons or expo-symbols (use lucide-react-native)
+- Using @expo/vector-icons (use lucide-react-native). iOS quick actions may use `symbol:…` strings (SF Symbols) via expo-quick-actions — that is not the removed `expo-symbols` package.

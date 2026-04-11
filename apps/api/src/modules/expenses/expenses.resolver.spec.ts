@@ -33,6 +33,14 @@ describe('ExpensesResolver auth guard audit', () => {
     });
   });
 
+  describe('field resolvers', () => {
+    it('photos should have GqlAuthGuard', () => {
+      const guards = getGuards('photos');
+      expect(guards).toContain(GqlAuthGuard);
+      expect(isPublic('photos')).toBe(false);
+    });
+  });
+
   describe('protected mutations (authentication required)', () => {
     it('logExpense should have GqlAuthGuard without @Public()', () => {
       const guards = getGuards('logExpense');
