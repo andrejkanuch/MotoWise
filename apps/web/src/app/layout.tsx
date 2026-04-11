@@ -6,6 +6,7 @@ import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentProvider } from '@/components/cookie-consent';
 import { PostHogPageView } from '@/components/posthog-pageview';
+import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
 
@@ -46,6 +47,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        {/* next/font/google already emits a content-hashed preload for the
+            primary Plus Jakarta Sans weight — don't duplicate it with a
+            hand-pinned URL that will drift when Google rotates file hashes. */}
         <link
           rel="alternate"
           type="application/rss+xml"
@@ -60,6 +64,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Analytics />
           <AnalyticsWithConsent />
           <PostHogPageView />
+          <WebVitalsReporter />
         </CookieConsentProvider>
       </body>
     </html>

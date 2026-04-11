@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -63,10 +65,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features')]),
-        ['x-default', getCanonicalUrl('en', '/features')],
-      ]),
+      languages: getHreflangMap('/features'),
     },
   };
 }
@@ -76,23 +75,29 @@ export default async function FeaturesPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations('FeaturesIndex');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: t('title'),
-        item: getCanonicalUrl(locale, '/features'),
-      },
-    ],
-  };
+  const canonical = getCanonicalUrl(locale, '/features');
+
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features',
+    ),
+  );
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">

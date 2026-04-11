@@ -7,10 +7,11 @@ const host = BASE_URL;
 const locales = routing.locales;
 
 const featureImages: Record<string, string> = {
-  '/features/ai-diagnostics': `${host}/og-image.png`,
-  '/features/learning-paths': `${host}/og-image.png`,
-  '/features/garage-management': `${host}/og-image.png`,
-  '/features/progress-tracking': `${host}/og-image.png`,
+  '/features/trip-planning': `${host}/screenshots/trip-planning-new.png`,
+  '/features/ai-diagnostics': `${host}/screenshots/diagnose-hub.png`,
+  '/features/learning-paths': `${host}/screenshots/home-alerts-articles.png`,
+  '/features/garage-management': `${host}/screenshots/garage.png`,
+  '/features/progress-tracking': `${host}/screenshots/home-dashboard.png`,
 };
 
 const pages = [
@@ -19,6 +20,8 @@ const pages = [
   '/terms',
   '/support',
   '/account-deletion',
+  '/features',
+  '/features/trip-planning',
   '/features/ai-diagnostics',
   '/features/learning-paths',
   '/features/garage-management',
@@ -43,24 +46,26 @@ function getLocalizedUrl(locale: string, path: string): string {
 
 /** Approximate last-edit dates for static pages (avoids misleading crawlers with build timestamps). */
 const PAGE_LAST_EDITED: Record<string, string> = {
-  '/': '2026-03-18',
+  '/': '2026-04-11',
   '/privacy': '2026-03-14',
   '/terms': '2026-03-14',
   '/support': '2026-03-01',
   '/account-deletion': '2026-03-01',
-  '/features/ai-diagnostics': '2026-03-10',
-  '/features/learning-paths': '2026-03-10',
-  '/features/garage-management': '2026-03-10',
-  '/features/progress-tracking': '2026-03-10',
-  '/blog': '2026-03-16',
+  '/features': '2026-04-11',
+  '/features/trip-planning': '2026-04-11',
+  '/features/ai-diagnostics': '2026-04-11',
+  '/features/learning-paths': '2026-04-11',
+  '/features/garage-management': '2026-04-11',
+  '/features/progress-tracking': '2026-04-11',
+  '/blog': '2026-04-11',
   '/tools/cost-calculator': '2026-03-22',
   '/tools/tclocs-checklist': '2026-03-22',
-  '/compare': '2026-03-27',
-  '/compare/alternatives': '2026-03-27',
+  '/compare': '2026-04-11',
+  '/compare/alternatives': '2026-04-11',
   '/compare/maintenance-vs-ride-apps': '2026-03-27',
-  '/compare/motovault-vs-ridelog': '2026-03-28',
-  '/compare/motovault-vs-rever': '2026-03-28',
-  '/compare/motovault-vs-calimoto': '2026-03-28',
+  '/compare/motovault-vs-ridelog': '2026-04-11',
+  '/compare/motovault-vs-rever': '2026-04-11',
+  '/compare/motovault-vs-calimoto': '2026-04-11',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
 };
@@ -74,7 +79,7 @@ function getPageImages(path: string): string[] {
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticEntries = pages.map((path) => ({
     url: getLocalizedUrl('en', path),
-    lastModified: new Date(PAGE_LAST_EDITED[path] || '2026-03-01'),
+    lastModified: new Date(PAGE_LAST_EDITED[path] || '2026-04-11'),
     images: getPageImages(path),
     alternates: {
       languages: Object.fromEntries([
@@ -84,18 +89,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   }));
 
-  const articles = getArticles('en');
-  const blogEntries = articles.map((article) => ({
-    url: getLocalizedUrl('en', `/blog/${article.slug}`),
-    lastModified: new Date(article.date),
-    images: article.heroImage ? [`${host}${article.heroImage}`] : [`${host}/og-image.png`],
-    alternates: {
-      languages: Object.fromEntries([
-        ...locales.map((locale) => [locale, getLocalizedUrl(locale, `/blog/${article.slug}`)]),
-        ['x-default', getLocalizedUrl('en', `/blog/${article.slug}`)],
-      ]),
-    },
-  }));
+  // Blog posts: only emit hreflang alternates for locales that actually have
+  // a translated MDX file for the same slug. Prevents Google from seeing
+  // reciprocity errors for locales that fall back to English.
+  const articlesByLocale: Record<string, Set<string>> = Object.fromEntries(
+    locales.map((locale) => [locale, new Set(getArticles(locale).map((a) => a.slug))]),
+  );
+
+  const englishArticles = getArticles('en');
+  const blogEntries = englishArticles.map((article) => {
+    const localesWithTranslation = locales.filter((locale) =>
+      articlesByLocale[locale]?.has(article.slug),
+    );
+    return {
+      url: getLocalizedUrl('en', `/blog/${article.slug}`),
+      lastModified: new Date(article.dateModified ?? article.date),
+      images: article.heroImage ? [`${host}${article.heroImage}`] : [`${host}/og-image.png`],
+      alternates: {
+        languages: Object.fromEntries([
+          ...localesWithTranslation.map((locale) => [
+            locale,
+            getLocalizedUrl(locale, `/blog/${article.slug}`),
+          ]),
+          ['x-default', getLocalizedUrl('en', `/blog/${article.slug}`)],
+        ]),
+      },
+    };
+  });
 
   return [...staticEntries, ...blogEntries];
 }

@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TripPlanningFlowStepper } from '@/components/marketing/trip-planning-flow-stepper';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
 import { TripPlanningFaq } from './trip-planning-faq';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -22,10 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/features/trip-planning'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/features/trip-planning')]),
-        ['x-default', getCanonicalUrl('en', '/features/trip-planning')],
-      ]),
+      languages: getHreflangMap('/features/trip-planning'),
     },
   };
 }
@@ -102,35 +101,30 @@ export default async function TripPlanningPage({ params }: PageProps) {
 
   const canonical = getCanonicalUrl(locale, '/features/trip-planning');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Features',
-        item: getCanonicalUrl(locale, '/features'),
-      },
-      { '@type': 'ListItem', position: 3, name: t('title'), item: canonical },
-    ],
-  };
-
   const faqItems = [0, 1, 2, 3, 4, 5].map((i) => ({
     question: t(`faq${i}Question`),
     answer: t(`faq${i}Answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
-  };
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/features/trip-planning',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('title'), url: canonical },
+      ],
+      locale,
+      '/features/trip-planning',
+    ),
+    buildFAQPage(faqItems, `${locale}/features/trip-planning/faq`),
+  );
 
   const steps = [
     {
@@ -169,8 +163,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={faqSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
@@ -336,6 +329,41 @@ export default async function TripPlanningPage({ params }: PageProps) {
               {t('heroCtaSecondary')}
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* SEO-targeted H2 + keyword-rich intro + stat strip. Placed just below
+          the hero so search engines and LLMs see "motorcycle trip planner",
+          "multi-day motorcycle route planning" and the quantitative stats
+          near the top of the page. */}
+      <section className="relative px-6 py-14" aria-labelledby="trip-planning-seo-heading">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2
+            id="trip-planning-seo-heading"
+            className="text-2xl font-bold leading-tight tracking-tight text-neutral-50 sm:text-3xl"
+          >
+            {t('seoHeading')}
+          </h2>
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-neutral-400 md:text-lg">
+            {t('seoIntro')}
+          </p>
+        </div>
+
+        <div className="mx-auto mt-12 max-w-5xl">
+          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+            {t('statStripLabel')}
+          </p>
+          <dl className="grid grid-cols-2 gap-4 rounded-2xl border border-neutral-800/70 bg-neutral-900/60 p-6 text-center backdrop-blur sm:grid-cols-4 md:gap-6 md:p-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="space-y-1.5">
+                <dt className="sr-only">{t(`stat${i}Label`)}</dt>
+                <dd className="text-3xl font-bold text-warm-400 md:text-4xl">
+                  {t(`stat${i}Value`)}
+                </dd>
+                <p className="text-xs leading-snug text-neutral-500">{t(`stat${i}Label`)}</p>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 

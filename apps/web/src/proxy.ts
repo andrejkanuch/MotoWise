@@ -54,15 +54,45 @@ function applyShareLinkHeaders(response: NextResponse) {
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 }
 
+// Defense-in-depth: drop obviously-local hosts from CSP in production. If
+// `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_API_URL` get misconfigured to a
+// localhost/loopback value in a prod deploy, the string would otherwise leak
+// into `connect-src` (auditable as a misconfiguration signal) without ever
+// serving a useful request. Also guards against relative URLs that produce
+// invalid CSP directives.
+function sanitizeCspHost(url: string): string {
+  if (!url) return '';
+  if (isDev) return url;
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    if (
+      host === 'localhost' ||
+      host === '0.0.0.0' ||
+      host.startsWith('127.') ||
+      host.startsWith('10.') ||
+      host.startsWith('192.168.') ||
+      host.endsWith('.local')
+    ) {
+      return '';
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
 function buildCspHeader(nonce: string): string {
   const connectSources = [
     "'self'",
-    supabaseUrl,
-    apiUrl,
+    sanitizeCspHost(supabaseUrl),
+    sanitizeCspHost(apiUrl),
     isDev ? 'http://localhost:4000' : '',
     'https://www.google-analytics.com',
     'https://*.analytics.google.com',
     'https://*.googletagmanager.com',
+    // Vercel Analytics (@vercel/analytics is still mounted in layout.tsx
+    // alongside PostHog — remove this line when Vercel Analytics is retired).
     'https://vitals.vercel-insights.com',
     'https://connect.facebook.net',
     'https://www.facebook.com',
@@ -88,6 +118,50 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set('Content-Security-Policy', buildCspHeader(nonce));
+}
+
+// Public marketing paths that are safe to cache at the edge. Excludes admin,
+// community (feed/garage/profile), auth, and share-link routes which are
+// user-specific or token-scoped.
+const MARKETING_CACHEABLE_RE =
+  /^\/($|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+
+function isMarketingCacheable(pathname: string): boolean {
+  if (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/rider/') ||
+    pathname.startsWith('/ride/') ||
+    pathname.startsWith('/feed') ||
+    pathname.startsWith('/garage') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/t/') ||
+    pathname.startsWith('/r/')
+  ) {
+    return false;
+  }
+  return MARKETING_CACHEABLE_RE.test(pathname);
+}
+
+function applyMarketingCacheHeader(response: NextResponse) {
+  // Edge cache for 1 hour, serve stale for up to 24 hours while revalidating.
+  // Matches the route segment `revalidate = 3600` hint used by (marketing) pages.
+  response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+}
+
+// Returns true if the request carries a Supabase auth cookie, meaning the
+// page may render user-specific server components (nav avatar, CTA variants,
+// etc.) and must NOT be served from a shared edge cache.
+function hasSupabaseSession(request: NextRequest): boolean {
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')) {
+      return true;
+    }
+  }
+  return false;
 }
 
 const intlMiddleware = createIntlMiddleware(routing);
@@ -265,6 +339,12 @@ export async function proxy(request: NextRequest) {
   // Apply nonce-based CSP and security headers to all responses
   if (!response.headers.has('Location')) {
     applySecurityHeaders(response, nonce);
+    // Only emit the shared-cache header when the request is anonymous.
+    // Authenticated requests may render user-specific server content, which
+    // must never land in a shared edge cache keyed by URL alone.
+    if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
+      applyMarketingCacheHeader(response);
+    }
   }
 
   return response;

@@ -1,11 +1,11 @@
 # MotoVault — Full Content Reference
-Last-Updated: 2026-03-28
+Last-Updated: 2026-04-11
 
 > MotoVault is the only motorcycle app that combines maintenance tracking, expense logging, ride recording, AI-powered diagnostics, and structured learning in a single platform. Free on iOS and Android.
 
 ## What Is MotoVault?
 
-MotoVault is a free, AI-powered motorcycle companion app for iOS and Android that helps riders maintain their bikes, diagnose issues, track expenses, log rides, and learn motorcycle mechanics. Unlike other motorcycle apps that focus on a single feature (route planning, maintenance logging, or ride tracking), MotoVault is the only app that combines all five categories in one platform. It supports all motorcycle makes and models through the official NHTSA vehicle database, covering thousands of manufacturers and model years. MotoVault is available in 12 languages including English, Spanish, German, French, Italian, Portuguese, Czech, Slovak, Polish, Dutch, Japanese, and Korean.
+MotoVault is a free, AI-powered motorcycle companion app for iOS and Android that helps riders maintain their bikes, diagnose issues, track expenses, log rides, and learn motorcycle mechanics. Unlike other motorcycle apps that focus on a single feature (route planning, maintenance logging, or ride tracking), MotoVault is the only app that combines all five categories in one platform. It supports all motorcycle makes and models through the official NHTSA vehicle database, covering thousands of manufacturers and model years. MotoVault is available in 5 languages: English, German, French, Spanish, and Italian.
 
 ## AI Diagnostics — No OBD Hardware Needed
 
@@ -45,6 +45,10 @@ Riders can log all motorcycle-related expenses in four categories: fuel, mainten
 ## Ride Logging
 
 MotoVault records rides with full GPS tracking and detailed analytics. Each ride captures distance, duration (with moving time vs paused time), max speed, average speed, elevation gain, elevation loss, and a complete route polyline rendered as an interactive map. Per-waypoint data includes altitude, speed, and GPS accuracy. The ride detail screen shows an interactive speed profile chart and elevation profile chart — both plotted over distance with hover tooltips. Rides are linked to specific bikes in the garage, providing a complete picture of each motorcycle's usage alongside its maintenance history and expenses. All data supports both metric and imperial units.
+
+## Trip Planning — Multi-Day Motorcycle Routes
+
+MotoVault's trip planner lets riders design multi-day motorcycle trips with real road routing. Unlike simple waypoint lists, MotoVault supports 11 typed waypoint categories so trips can include every kind of stop a rider cares about: start, end, overnight stay, fuel, food, coffee, scenic viewpoint, rest break, mechanic, photo spot, and points of interest. Trips are routed along actual motorcycle-friendly roads rather than drawn as straight lines, and each leg shows distance, duration, and elevation profile. Riders can invite others to join, collect RSVPs, and share unlisted capability URLs that do not expose trip details in sitemaps or search indexes. Trip details include a hero map, itinerary view, full waypoint list, and a discover feed for publicly shared trips.
 
 ## Learning Paths & Quizzes
 
@@ -136,7 +140,7 @@ Full blog: https://motovault.app/blog
 - AI diagnostics powered by Anthropic's Claude
 - Motorcycle database from NHTSA vPIC API
 - Auth via Supabase (email, Google, Apple Sign-In)
-- Available in 12 languages
+- Available in 5 languages (English, German, French, Spanish, Italian)
 
 ## Contact
 
