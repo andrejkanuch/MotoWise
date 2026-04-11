@@ -1,10 +1,18 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -19,10 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/compare/motovault-vs-ridelog'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/compare/motovault-vs-ridelog')]),
-        ['x-default', getCanonicalUrl('en', '/compare/motovault-vs-ridelog')],
-      ]),
+      languages: getHreflangMap('/compare/motovault-vs-ridelog'),
     },
   };
 }
@@ -40,61 +45,48 @@ const FEATURES = [
   { key: 'featureFindBike', mv: false, rl: true },
 ] as const;
 
+const PARITY_ROWS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+const PRICING_ROWS = [0, 1, 2] as const;
+
 export default async function VsRideLogPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('VsRideLog');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Compare',
-        item: getCanonicalUrl(locale, '/compare'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: 'MotoVault vs RideLog',
-        item: getCanonicalUrl(locale, '/compare/motovault-vs-ridelog'),
-      },
-    ],
-  };
+  const canonical = getCanonicalUrl(locale, '/compare/motovault-vs-ridelog');
 
   const faqItems = [0, 1, 2, 3].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
-  };
-
-  const softwareAppSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'MobileApplication',
-    name: 'MotoVault',
-    applicationCategory: 'UtilitiesApplication',
-    operatingSystem: ['iOS', 'Android'],
-    url: BASE_URL,
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  };
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/compare/motovault-vs-ridelog',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Compare', url: getCanonicalUrl(locale, '/compare') },
+        { name: 'MotoVault vs RideLog', url: canonical },
+      ],
+      locale,
+      '/compare/motovault-vs-ridelog',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+    }),
+    buildFAQPage(faqItems, `${locale}/compare/motovault-vs-ridelog/faq`),
+  );
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={faqSchema} />
-      <JsonLd data={softwareAppSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
@@ -166,8 +158,28 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Quick Verdict */}
+      {/* Disambiguation */}
       <section className="px-6">
+        <div className="mx-auto max-w-3xl rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 md:p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.15em] text-amber-400">
+            {t('disambiguationTitle')}
+          </p>
+          <p className="mt-3 text-neutral-300 leading-relaxed">{t('disambiguationNote')}</p>
+        </div>
+      </section>
+
+      {/* Testing preamble */}
+      <section className="px-6 pt-8">
+        <div className="mx-auto max-w-3xl rounded-xl border border-neutral-800/60 bg-neutral-900/40 p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
+            How we tested
+          </p>
+          <p className="mt-3 text-neutral-300 leading-relaxed">{t('testingPreamble')}</p>
+        </div>
+      </section>
+
+      {/* Quick Verdict */}
+      <section className="px-6 pt-10">
         <div className="reveal-on-scroll mx-auto max-w-4xl rounded-xl border border-warm-500/20 bg-warm-500/5 p-6 md:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.15em] text-warm-400">
             Quick Verdict
@@ -176,13 +188,12 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto mt-16 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* Feature Comparison Table */}
+      {/* Feature Comparison Table (existing) */}
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-4xl">
           <div className="reveal-on-scroll mb-12 text-center">
@@ -243,65 +254,180 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* Where Each App Wins */}
+      {/* Where Each Wins */}
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-          {/* MotoVault Wins */}
           <div className="reveal-on-scroll">
-            <div className="mb-6">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-                {t('mvWins')}
-              </p>
-            </div>
-            <div className="space-y-4">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
+              {t('mvWins')}
+            </p>
+            <ul className="space-y-3">
               {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="rounded-xl border border-warm-500/20 bg-warm-500/5 p-5">
-                  <h3 className="font-semibold text-neutral-100">{t(`mvWin${i}.title`)}</h3>
-                  <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
-                    {t(`mvWin${i}.description`)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* RideLog Wins */}
-          <div className="reveal-on-scroll">
-            <div className="mb-6">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                {t('rlWins')}
-              </p>
-            </div>
-            <div className="space-y-4">
-              {[0, 1, 2, 3].map((i) => (
-                <div
+                <li
                   key={i}
-                  className="rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-5"
+                  className="rounded-xl border border-warm-500/20 bg-warm-500/5 p-4 text-sm leading-relaxed text-neutral-300"
                 >
-                  <h3 className="font-semibold text-neutral-100">{t(`rlWin${i}.title`)}</h3>
-                  <p className="mt-2 text-sm text-neutral-400 leading-relaxed">
-                    {t(`rlWin${i}.description`)}
-                  </p>
-                </div>
+                  {t(`mvWin${i}`)}
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
+          <div className="reveal-on-scroll">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
+              {t('rlWins')}
+            </p>
+            <ul className="space-y-3">
+              {[0, 1, 2, 3].map((i) => (
+                <li
+                  key={i}
+                  className="rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-4 text-sm leading-relaxed text-neutral-300"
+                >
+                  {t(`rlWin${i}`)}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
       />
 
-      {/* Pricing */}
+      {/* Pricing table */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-8 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('pricingTableTitle')}
+          </h2>
+          <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
+            <table className="w-full min-w-[640px]">
+              <thead>
+                <tr className="border-b border-neutral-800/60 bg-neutral-900/80">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderPlan')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderMv')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderCompetitor')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderNotes')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {PRICING_ROWS.map((i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30 align-top"
+                  >
+                    <td className="px-4 py-3 text-sm font-medium text-neutral-200 sm:px-6">
+                      {t(`pricingRow${i}Plan`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`pricingRow${i}Mv`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`pricingRow${i}Competitor`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-400 sm:px-6">
+                      {t(`pricingRow${i}Notes`)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Parity matrix */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="mb-8 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('parityMatrixTitle')}
+          </h2>
+          <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
+            <table className="w-full min-w-[720px]">
+              <thead>
+                <tr className="border-b border-neutral-800/60 bg-neutral-900/80">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('parityHeaderFeature')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('parityHeaderMv')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('parityHeaderCompetitor')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('parityHeaderNotes')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {PARITY_ROWS.map((i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30 align-top"
+                  >
+                    <td className="px-4 py-3 text-sm font-medium text-neutral-200 sm:px-6">
+                      {t(`parityRow${i}Feature`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`parityRow${i}Mv`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`parityRow${i}Competitor`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-400 sm:px-6">
+                      {t(`parityRow${i}Notes`)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* When to choose competitor */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('whenToChooseCompetitorTitle')}
+          </h2>
+          <p className="mt-6 text-lg text-neutral-300 leading-relaxed">
+            {t('whenToChooseCompetitor')}
+          </p>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Pricing narrative */}
       <section className="px-6 py-16 md:py-24">
         <div className="reveal-on-scroll mx-auto max-w-3xl">
           <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
@@ -311,7 +437,6 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -327,7 +452,6 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -377,7 +501,6 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -408,7 +531,6 @@ export default async function VsRideLogPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* CTA */}
       <FeatureCta />
     </>
   );

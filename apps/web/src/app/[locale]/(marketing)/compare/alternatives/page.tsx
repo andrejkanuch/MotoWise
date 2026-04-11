@@ -1,10 +1,18 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
-import { JsonLd } from '@/components/marketing/json-ld';
+import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  buildBreadcrumbList,
+  buildFAQPage,
+  buildGraph,
+  buildSoftwareApplication,
+  buildWebPage,
+} from '@/lib/seo/schema';
+
+export const revalidate = 3600;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -19,71 +27,54 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: t('description'),
     alternates: {
       canonical: getCanonicalUrl(locale, '/compare/alternatives'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/compare/alternatives')]),
-        ['x-default', getCanonicalUrl('en', '/compare/alternatives')],
-      ]),
+      languages: getHreflangMap('/compare/alternatives'),
     },
   };
 }
 
 const ALT_INDICES = [0, 1, 2, 3, 4, 5] as const;
+const BEST_FOR_INDICES = [0, 1, 2, 3, 4] as const;
+const PRICING_ROWS = [0, 1, 2, 3, 4] as const;
 
 export default async function AlternativesPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('CompareAlternatives');
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: getCanonicalUrl(locale) },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: 'Compare',
-        item: getCanonicalUrl(locale, '/compare'),
-      },
-      {
-        '@type': 'ListItem',
-        position: 3,
-        name: 'Alternatives',
-        item: getCanonicalUrl(locale, '/compare/alternatives'),
-      },
-    ],
-  };
+  const canonical = getCanonicalUrl(locale, '/compare/alternatives');
 
   const faqItems = [0, 1, 2, 3].map((i) => ({
     question: t(`faq.${i}.question`),
     answer: t(`faq.${i}.answer`),
   }));
 
-  const faqSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqItems.map(({ question, answer }) => ({
-      '@type': 'Question',
-      name: question,
-      acceptedAnswer: { '@type': 'Answer', text: answer },
-    })),
-  };
-
-  const softwareAppSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'MobileApplication',
-    name: 'MotoVault',
-    applicationCategory: 'UtilitiesApplication',
-    operatingSystem: ['iOS', 'Android'],
-    url: BASE_URL,
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-  };
+  const graph = buildGraph(
+    buildWebPage({
+      url: canonical,
+      name: t('title'),
+      description: t('description'),
+      locale,
+      pageKey: '/compare/alternatives',
+    }),
+    buildBreadcrumbList(
+      [
+        { name: 'Home', url: getCanonicalUrl(locale) },
+        { name: 'Compare', url: getCanonicalUrl(locale, '/compare') },
+        { name: 'Alternatives', url: canonical },
+      ],
+      locale,
+      '/compare/alternatives',
+    ),
+    buildSoftwareApplication({
+      name: 'MotoVault',
+      description: t('description'),
+    }),
+    buildFAQPage(faqItems, `${locale}/compare/alternatives/faq`),
+  );
 
   return (
     <>
-      <JsonLd data={breadcrumbSchema} />
-      <JsonLd data={faqSchema} />
-      <JsonLd data={softwareAppSchema} />
+      <JsonLdGraph nodes={graph} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
@@ -155,7 +146,97 @@ export default async function AlternativesPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Alternatives Cards */}
+      {/* Testing preamble */}
+      <section className="px-6">
+        <div className="mx-auto max-w-3xl rounded-xl border border-neutral-800/60 bg-neutral-900/40 p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
+            How we tested
+          </p>
+          <p className="mt-3 text-neutral-300 leading-relaxed">{t('testingPreamble')}</p>
+        </div>
+      </section>
+
+      {/* Best-for guide */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-10 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('bestForTitle')}
+          </h2>
+          <div className="space-y-6">
+            {BEST_FOR_INDICES.map((i) => (
+              <article
+                key={i}
+                className="reveal-on-scroll rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 md:p-8"
+              >
+                <h3 className="text-xl font-bold text-neutral-50">{t(`bestFor${i}Title`)}</h3>
+                <p className="mt-3 text-neutral-300 leading-relaxed">{t(`bestFor${i}Body`)}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Pricing table */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="mb-8 text-center text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('pricingTableTitle')}
+          </h2>
+          <div className="overflow-x-auto rounded-xl border border-neutral-800/60">
+            <table className="w-full min-w-[720px]">
+              <thead>
+                <tr className="border-b border-neutral-800/60 bg-neutral-900/80">
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderApp')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderFree')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderPaid')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-300 sm:px-6">
+                    {t('pricingHeaderNotes')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {PRICING_ROWS.map((i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/40 last:border-b-0 odd:bg-neutral-900/30 align-top"
+                  >
+                    <td className="px-4 py-3 text-sm font-medium text-neutral-200 sm:px-6">
+                      {t(`pricingRow${i}App`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`pricingRow${i}Free`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-300 sm:px-6">
+                      {t(`pricingRow${i}Paid`)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-neutral-400 sm:px-6">
+                      {t(`pricingRow${i}Notes`)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Existing Alternatives Cards */}
       <section className="px-6 py-16 md:py-24">
         <div className="mx-auto max-w-5xl">
           <div className="reveal-on-scroll mb-12 text-center">
@@ -188,7 +269,23 @@ export default async function AlternativesPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
+      <div
+        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* When to choose a specialist */}
+      <section className="px-6 py-16 md:py-24">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
+            {t('whenToChooseCompetitorTitle')}
+          </h2>
+          <p className="mt-6 text-lg text-neutral-300 leading-relaxed">
+            {t('whenToChooseCompetitor')}
+          </p>
+        </div>
+      </section>
+
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -226,7 +323,6 @@ export default async function AlternativesPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -265,7 +361,6 @@ export default async function AlternativesPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Decorative rule */}
       <div
         className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
         aria-hidden="true"
@@ -296,7 +391,6 @@ export default async function AlternativesPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* CTA */}
       <FeatureCta />
     </>
   );
