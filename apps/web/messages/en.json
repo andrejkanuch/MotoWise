@@ -734,11 +734,11 @@
     "appsSubtitle": "A quick overview of each app, what it does best, and where it falls short.",
     "app0": {
       "name": "MotoVault",
-      "tagline": "All-in-one: maintenance, expenses, rides, AI diagnostics, and learning",
+      "tagline": "All-in-one: maintenance, expenses, rides, trip planning, AI diagnostics, and learning",
       "best": "Best for: Riders who want one app for everything",
-      "description": "MotoVault combines maintenance tracking, expense logging, GPS ride recording (with route maps, max speed, avg speed, elevation profiles, and interactive charts), AI-powered photo diagnostics, and structured learning paths in a single app. It's the only motorcycle app that covers all five categories.",
-      "pros": "All-in-one platform, AI diagnostics without hardware, learning content with quizzes, multi-bike support, free tier available",
-      "cons": "Newer app — smaller community, no route planning/navigation",
+      "description": "MotoVault combines maintenance tracking, expense logging, GPS ride recording (with route maps, max speed, avg speed, elevation profiles, and interactive charts), multi-day trip planning with typed waypoints (fuel, food, hotels, passes, ferries) and rider RSVPs, AI-powered photo diagnostics, and structured learning paths in a single app.",
+      "pros": "All-in-one platform, multi-day trip planning with typed waypoints, AI diagnostics without hardware, learning content with quizzes, multi-bike support, free tier available",
+      "cons": "Newer app — smaller community, no bend-weighted curvy-road turn-by-turn navigation",
       "price": "Free / Pro from $4.99/mo",
       "platforms": "iOS, Android"
     },
@@ -836,8 +836,8 @@
     "verdictSubtitle": "Which app should you choose?",
     "verdict1Title": "Want one app for everything?",
     "verdict1": "MotoVault is the only app that combines maintenance, expenses, rides, AI diagnostics, and learning in one place. If you're tired of juggling multiple apps, this is it.",
-    "verdict2Title": "Focused on touring and routes?",
-    "verdict2": "REVER or Calimoto are purpose-built for route planning and curvy-road navigation. Pair them with MotoVault for maintenance and diagnostics.",
+    "verdict2Title": "Focused on curvy-road turn-by-turn?",
+    "verdict2": "MotoVault handles multi-day trip planning with typed waypoints and rider RSVPs, so for most tours it's all you need. If bend-weighted curvy-road navigation and live turn-by-turn are your headline feature, pair MotoVault with REVER or Calimoto.",
     "verdict3Title": "Just need a service log?",
     "verdict3": "Moto Shed or MotorManage are solid, focused maintenance trackers. Moto Shed is a one-time purchase; MotorManage has manufacturer specs.",
     "verdict4Title": "Need hardware diagnostics?",
@@ -849,7 +849,7 @@
       },
       "1": {
         "question": "Do I need multiple motorcycle apps?",
-        "answer": "It depends on your needs. If you want route planning with curvy-road navigation, you'll need a dedicated app like REVER or Calimoto. For everything else — maintenance, expenses, rides, diagnostics, and learning — MotoVault covers it all in one app."
+        "answer": "For most riders, no. MotoVault covers maintenance, expenses, rides, multi-day trip planning with typed waypoints, AI diagnostics, and learning in one app. The one job it doesn't do is bend-weighted curvy-road turn-by-turn navigation — if that's your headline feature, pair MotoVault with a dedicated navigator like REVER or Calimoto."
       },
       "2": {
         "question": "What's the difference between AI diagnostics and OBD diagnostics?",
@@ -916,8 +916,8 @@
     "alt0": {
       "appName": "REVER",
       "title": "REVER Alternatives",
-      "why": "REVER excels at route planning and community ride sharing, but lacks maintenance tracking, expense management, and diagnostics.",
-      "consider": "If you want route planning AND maintenance tracking, pair REVER with MotoVault — or switch entirely if routes aren't your priority.",
+      "why": "REVER excels at turn-by-turn navigation and community ride sharing, but lacks maintenance tracking, expense management, and diagnostics.",
+      "consider": "MotoVault now covers multi-day trip planning with typed waypoints and rider RSVPs alongside maintenance, expenses, and diagnostics — enough for most riders to switch entirely. Keep REVER on the side only if bend-weighted curvy-road turn-by-turn is your single biggest need.",
       "keywords": "REVER alternative, REVER replacement, app like REVER"
     },
     "alt1": {
@@ -1063,15 +1063,15 @@
       }
     },
     "verdictTitle": "Our Recommendation",
-    "verdict": "If you only use one motorcycle app, choose one that does both. MotoVault is the most complete option — maintenance, expenses, rides, AI diagnostics, and learning in a single app. For dedicated route planning and navigation, pair it with REVER or Calimoto.",
+    "verdict": "If you only use one motorcycle app, choose one that does both. MotoVault is the most complete option — maintenance, expenses, rides, multi-day trip planning with typed waypoints, AI diagnostics, and learning in a single app. For dedicated curvy-road turn-by-turn navigation, pair it with REVER or Calimoto.",
     "faq": {
       "0": {
         "question": "Can one app replace both a maintenance tracker and ride logger?",
-        "answer": "Yes. MotoVault and RideLog both combine maintenance tracking with ride logging. MotoVault goes further by adding AI diagnostics, expense analytics, and learning content."
+        "answer": "Yes. MotoVault and RideLog both combine maintenance tracking with ride logging. MotoVault goes further by adding AI diagnostics, multi-day trip planning, expense analytics, and learning content."
       },
       "1": {
         "question": "Do I need a separate route planning app?",
-        "answer": "If you frequently plan long touring routes with curvy-road optimization and turn-by-turn navigation, yes — apps like REVER and Calimoto specialize in this. For basic ride recording, MotoVault handles it without a separate app."
+        "answer": "For most rides, no — MotoVault now plans multi-day routes with typed waypoints (fuel, food, hotels, passes, ferries), real road routing, and rider RSVPs. The one job it doesn't do is bend-weighted curvy-road turn-by-turn navigation, so if that's your headline feature you'll still want REVER or Calimoto alongside it."
       },
       "2": {
         "question": "What's the best motorcycle app for a new rider?",
@@ -1271,7 +1271,7 @@
     "parityRow9Notes": "Roughly at parity.",
     "whenToChooseCompetitorTitle": "When to choose REVER instead",
     "whenToChooseCompetitor": "Pick REVER if route planning, curvy-road discovery, and offline turn-by-turn navigation are your single biggest needs and you don't care about maintenance tracking, expense analytics, or AI diagnostics. REVER's Butler Maps integration, rider community, and battle-tested offline caching are legitimately best-in-class for touring. We'd also point riders there if they already pair a dedicated maintenance app on the side and only want REVER for the navigation half of the story.",
-    "quickVerdict": "These apps solve different problems. MotoVault is for maintenance, diagnostics, expenses, and learning. REVER is for route planning and community ride discovery. Many riders use both.",
+    "quickVerdict": "These apps solve different problems. MotoVault covers maintenance, expenses, multi-day trip planning, AI diagnostics, and learning. REVER specializes in curvy-road turn-by-turn navigation and community ride discovery. Many riders use both.",
     "featureMaintenance": "Maintenance Tracking",
     "featureExpenses": "Expense Tracking",
     "featureRides": "Ride Logging",
@@ -1297,7 +1297,7 @@
     "faq": {
       "0": {
         "question": "Can MotoVault replace REVER?",
-        "answer": "Not entirely. MotoVault doesn't offer route planning or turn-by-turn navigation, which is REVER's strength. However, MotoVault handles everything REVER can't: maintenance tracking, expense management, AI diagnostics, and learning content. Many riders use REVER for routes and MotoVault for bike care."
+        "answer": "For most riders, yes. MotoVault now plans multi-day trips with typed waypoints (fuel, food, hotels, passes, ferries), real road routing, and rider RSVPs — so the core planning job is covered. What it doesn't do is bend-weighted curvy-road turn-by-turn navigation, which is REVER's strength. If that's your headline feature, run both; otherwise MotoVault alone handles planning, maintenance, expenses, diagnostics, and learning in one app."
       },
       "1": {
         "question": "Does REVER track motorcycle maintenance?",

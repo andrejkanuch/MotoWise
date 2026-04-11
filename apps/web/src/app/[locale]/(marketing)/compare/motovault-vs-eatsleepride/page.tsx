@@ -73,7 +73,7 @@ const FEATURES: ReadonlyArray<{ key: string; mv: boolean; rv: boolean | 'pro' }>
   { key: 'featureMaintenance', mv: true, rv: false },
   { key: 'featureExpenses', mv: true, rv: false },
   { key: 'featureRides', mv: true, rv: true },
-  { key: 'featureRoutes', mv: false, rv: false },
+  { key: 'featureRoutes', mv: true, rv: false },
   { key: 'featureDiagnostics', mv: true, rv: false },
   { key: 'featureLearning', mv: true, rv: false },
   { key: 'featureCommunity', mv: false, rv: true },

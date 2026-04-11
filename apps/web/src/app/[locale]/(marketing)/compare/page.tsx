@@ -37,7 +37,11 @@ const APPS = [
     learning: true,
     multiBike: true,
     reminders: true,
-    routes: false,
+    // Trip planning (multi-day routes, 11 typed waypoints, rider RSVPs, real road
+    // routing) is a shipped feature — see /features/trip-planning. Treat it as
+    // route planning for the top-level matrix; the per-competitor pages surface
+    // the nuance that we don't do bend-weighted curvy-road turn-by-turn.
+    routes: true,
     free: true,
   },
   {
