@@ -54,15 +54,45 @@ function applyShareLinkHeaders(response: NextResponse) {
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 }
 
+// Defense-in-depth: drop obviously-local hosts from CSP in production. If
+// `NEXT_PUBLIC_SUPABASE_URL` or `NEXT_PUBLIC_API_URL` get misconfigured to a
+// localhost/loopback value in a prod deploy, the string would otherwise leak
+// into `connect-src` (auditable as a misconfiguration signal) without ever
+// serving a useful request. Also guards against relative URLs that produce
+// invalid CSP directives.
+function sanitizeCspHost(url: string): string {
+  if (!url) return '';
+  if (isDev) return url;
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname;
+    if (
+      host === 'localhost' ||
+      host === '0.0.0.0' ||
+      host.startsWith('127.') ||
+      host.startsWith('10.') ||
+      host.startsWith('192.168.') ||
+      host.endsWith('.local')
+    ) {
+      return '';
+    }
+    return `${parsed.protocol}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
 function buildCspHeader(nonce: string): string {
   const connectSources = [
     "'self'",
-    supabaseUrl,
-    apiUrl,
+    sanitizeCspHost(supabaseUrl),
+    sanitizeCspHost(apiUrl),
     isDev ? 'http://localhost:4000' : '',
     'https://www.google-analytics.com',
     'https://*.analytics.google.com',
     'https://*.googletagmanager.com',
+    // Vercel Analytics (@vercel/analytics is still mounted in layout.tsx
+    // alongside PostHog — remove this line when Vercel Analytics is retired).
     'https://vitals.vercel-insights.com',
     'https://connect.facebook.net',
     'https://www.facebook.com',
