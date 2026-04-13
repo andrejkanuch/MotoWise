@@ -69,7 +69,12 @@ For **stories**, create 1080x1920 vertical format instead of 1080x1080 square.
 
 ### 4. Write the HTML slides
 
-Each slide is a standalone HTML file sized at 1080×1080px (or 1080×1920 for stories).
+Each slide is a standalone HTML file sized at **1080×1350px (4:5)** for carousels and
+feed posts, or 1080×1920 for stories. 4:5 is Instagram's highest-performing feed ratio —
+it takes ~25% more vertical screen space than 1:1 and is the maximum height IG will show
+in-feed without cropping. All slides in a carousel must share the same aspect ratio
+(Instagram locks to the first slide), so start every carousel at 1080×1350.
+
 Follow the exact CSS patterns in `references/slide-templates.md` — these have been refined
 across multiple carousels and produce consistent, professional results.
 
@@ -91,12 +96,18 @@ Also write a short alternative caption for stories/reels (2-3 lines max).
 
 ### 6. Capture PNG screenshots
 
-After creating all HTML slides, use Playwright to capture them as 1080×1080 PNG files.
-Run the bundled capture script:
+After creating all HTML slides, use Playwright to capture them as 1080×1350 PNG files
+(or 1080×1920 for stories). Run the bundled capture script:
 
 ```bash
+# Carousel / feed post (4:5)
 python3 <skill-path>/scripts/capture_slides.py <carousel-directory>
+
+# Story (9:16)
+python3 <skill-path>/scripts/capture_slides.py <story-directory> --height 1920
 ```
+
+The script defaults to 1080×1350 (4:5) since that's the recommended feed format.
 
 This script finds all `slide-*.html` files in the directory, opens each in a headless browser,
 and saves a matching `.png` file. If Playwright isn't installed, install it first:
@@ -121,6 +132,35 @@ Save all files to `marketing-material/carousel-<feature-name>/` (for carousels) 
 
 Present the PNG files to the user so they can preview the visuals directly, along with a
 summary of the slide flow and caption.
+
+### 9. Publish (optional)
+
+Once the user approves the visuals, the carousel can be published directly to Instagram
+and Facebook via the social worker at `infra/social-worker/`. Three endpoints are
+available (all require `X-Auth-Key: $WORKER_AUTH_KEY`):
+
+- `POST /publish-post` — single-image feed post (1 image)
+- `POST /publish-carousel` — multi-image album (2–10 slides)
+- `POST /publish-story` — 9:16 story
+
+For a carousel, base64-encode each slide PNG in order and POST:
+
+```bash
+curl -X POST "$WORKER_URL/publish-carousel" \
+  -H "X-Auth-Key: $WORKER_AUTH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "images_base64": ["<slide-1>", "<slide-2>", "..."],
+    "caption": "<caption from caption.md>",
+    "platform": "both"
+  }'
+```
+
+The worker uploads each slide to Supabase Storage, forces pixel-exact 1080×1350 via the
+render endpoint, creates per-slide IG child containers, waits for each to finalize,
+assembles the parent CAROUSEL container, and publishes. Facebook gets the same images as
+a native multi-photo feed post. Always smoke-test with 2 throwaway slides and
+`"platform": "instagram"` before burning a real carousel on a bug.
 
 ## Content voice
 

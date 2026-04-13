@@ -5,18 +5,34 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 * { margin:0;padding:0;box-sizing:border-box; }
-body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1080px;overflow:hidden; }
-.slide { width:1080px;height:1080px;position:relative;overflow:hidden;background:#D4622E; }
-.slide-num { position:absolute;top:32px;right:38px;color:rgba(255,255,255,0.35);font-size:14px;font-weight:700;z-index:10;letter-spacing:1px; }
-.main-img { position:absolute;top:0;left:0;width:1080px;height:1080px;object-fit:cover;object-position:50% 18%; }
-/* Subtle dark vignette bottom so slide number is readable */
-.vignette { position:absolute;bottom:0;left:0;width:1080px;height:120px;background:linear-gradient(to top,rgba(0,0,0,0.18),transparent);z-index:5; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1350px;overflow:hidden; }
+.slide { width:1080px;height:1350px;position:relative;overflow:hidden;background:#D4622E; }
+
+/* Headline */
+.headline { position:absolute;top:48px;left:0;right:0;z-index:3;text-align:center; }
+.h1 { font-size:168px;font-weight:800;color:#fff;letter-spacing:-4px;line-height:0.92;text-transform:uppercase; }
+.h2 { font-size:86px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1;text-transform:uppercase;margin-top:4px; }
+
+/* Phone */
+.phone-wrap { position:absolute;bottom:-50px;left:50%;transform:translateX(-50%);width:660px;z-index:2; }
+.phone-wrap img { width:660px;height:auto;border-radius:62px;border:2px solid rgba(255,255,255,0.08);display:block; }
+
+/* Fade bottom */
+.fade { position:absolute;bottom:0;left:0;width:1080px;height:160px;background:linear-gradient(to top,rgba(180,70,20,0.65),transparent);z-index:4; }
+
+.slide-num { position:absolute;top:28px;right:36px;color:rgba(255,255,255,0.3);font-size:14px;font-weight:700;z-index:10;letter-spacing:1px; }
 </style>
 </head>
 <body>
 <div class="slide">
-  <img class="main-img" src="../store-previews/aso-v2/iphone-6.7/01-discover-epic-routes.jpg" alt="Discover Epic Routes">
-  <div class="vignette"></div>
+  <div class="headline">
+    <div class="h1">DISCOVER</div>
+    <div class="h2">EPIC ROUTES</div>
+  </div>
+  <div class="phone-wrap">
+    <img src="routes-phone.jpg" alt="Route map">
+  </div>
+  <div class="fade"></div>
   <div class="slide-num">2 / 7</div>
 </div>
 </body>

@@ -207,6 +207,156 @@ export async function publishPost(
 }
 
 // ---------------------------------------------------------------------------
+// Publish carousel (multi-image album)
+// ---------------------------------------------------------------------------
+
+export interface PublishCarouselResult {
+  image_urls: string[];
+  results: {
+    facebook?: { post_id?: string; success: boolean; error?: unknown };
+    instagram?: { media_id?: string; success: boolean; error?: unknown };
+  };
+}
+
+/**
+ * Publish a carousel post to Instagram (multi-image album) and Facebook
+ * (multi-photo feed post).
+ *
+ * Instagram carousel flow (per Meta Graph API v22):
+ *   1. For each image: POST /{ig-user-id}/media with is_carousel_item=true
+ *      → returns a child container id
+ *   2. POST /{ig-user-id}/media with media_type=CAROUSEL and
+ *      children=id1,id2,... plus the caption → parent container id
+ *   3. Wait for parent FINISHED, then POST /{ig-user-id}/media_publish
+ *
+ * Facebook multi-photo flow:
+ *   1. For each image: POST /{page-id}/photos with published=false
+ *      → returns photo ids
+ *   2. POST /{page-id}/feed with message + attached_media=[{media_fbid:...}]
+ *
+ * Meta allows 2–10 items per carousel. Caller must pass 2–10 images.
+ */
+export async function publishCarousel(
+  env: Env,
+  params: { images_base64: string[]; caption: string; platform?: Platform },
+): Promise<PublishCarouselResult> {
+  const platform = params.platform ?? 'both';
+  const results: PublishCarouselResult['results'] = {};
+
+  if (params.images_base64.length < 2 || params.images_base64.length > 10) {
+    throw new Error(`Carousel requires 2–10 images (got ${params.images_base64.length})`);
+  }
+
+  // Upload all slides to Supabase Storage and build the pixel-exact 1080x1350
+  // render URLs Meta expects for 4:5 feed posts. Using Promise.all keeps the
+  // worker request time bounded by the slowest upload rather than the sum.
+  const timestamp = Date.now();
+  const paths = await Promise.all(
+    params.images_base64.map(async (b64, i) => {
+      const path = `publish/${timestamp}-carousel-${i}.png`;
+      await uploadToSupabase(env, path, base64ToUint8Array(b64));
+      return path;
+    }),
+  );
+  const imageUrls = paths.map((p) => renderUrl(env, p, 1080, 1350));
+  const publicUrls = paths.map((p) => publicUrl(env, p));
+
+  // -- Instagram -----------------------------------------------------------
+  if (platform === 'both' || platform === 'instagram') {
+    try {
+      // Step 1: create a child container per slide.
+      const childIds: string[] = [];
+      for (const imageUrl of imageUrls) {
+        const child = await graphPost(`${env.META_IG_USER_ID}/media`, {
+          image_url: imageUrl,
+          is_carousel_item: 'true',
+          access_token: env.META_API_KEY,
+        });
+        if (!child.id) {
+          throw new Error(`IG child container failed: ${JSON.stringify(child.error ?? child)}`);
+        }
+        // Per Meta docs, children must also reach FINISHED before the parent
+        // can reference them. Skipping this causes sporadic "Media ID is not
+        // available" errors on media_publish.
+        await waitForIgProcessing(child.id, env.META_API_KEY);
+        childIds.push(child.id);
+      }
+
+      // Step 2: create the parent CAROUSEL container.
+      const parent = await graphPost(`${env.META_IG_USER_ID}/media`, {
+        media_type: 'CAROUSEL',
+        children: childIds.join(','),
+        caption: params.caption,
+        access_token: env.META_API_KEY,
+      });
+
+      if (!parent.id) {
+        throw new Error(`IG parent container failed: ${JSON.stringify(parent.error ?? parent)}`);
+      }
+
+      await waitForIgProcessing(parent.id, env.META_API_KEY);
+
+      // Step 3: publish the parent.
+      const pub = await graphPost(`${env.META_IG_USER_ID}/media_publish`, {
+        creation_id: parent.id,
+        access_token: env.META_API_KEY,
+      });
+
+      results.instagram = {
+        media_id: pub.id,
+        success: !pub.error,
+        ...(pub.error ? { error: pub.error } : {}),
+      };
+    } catch (err) {
+      results.instagram = {
+        success: false,
+        error: err instanceof Error ? err.message : err,
+      };
+    }
+  }
+
+  // -- Facebook ------------------------------------------------------------
+  if (platform === 'both' || platform === 'facebook') {
+    try {
+      // Step 1: upload each photo unpublished to get back photo ids.
+      const photoIds: string[] = [];
+      for (const imageUrl of imageUrls) {
+        const photo = await graphPost(`${env.META_PAGE_ID}/photos`, {
+          url: imageUrl,
+          published: 'false',
+          access_token: env.META_API_KEY,
+        });
+        if (!photo.id) {
+          throw new Error(`FB photo upload failed: ${JSON.stringify(photo.error ?? photo)}`);
+        }
+        photoIds.push(photo.id);
+      }
+
+      // Step 2: create a feed post that attaches all photos as a multi-photo
+      // post. `attached_media` must be a JSON-encoded array of {media_fbid}.
+      const feedRes = await graphPost(`${env.META_PAGE_ID}/feed`, {
+        message: params.caption,
+        attached_media: JSON.stringify(photoIds.map((id) => ({ media_fbid: id }))),
+        access_token: env.META_API_KEY,
+      });
+
+      results.facebook = {
+        post_id: feedRes.post_id ?? feedRes.id,
+        success: !feedRes.error,
+        ...(feedRes.error ? { error: feedRes.error } : {}),
+      };
+    } catch (err) {
+      results.facebook = {
+        success: false,
+        error: err instanceof Error ? err.message : err,
+      };
+    }
+  }
+
+  return { image_urls: publicUrls, results };
+}
+
+// ---------------------------------------------------------------------------
 // Publish story
 // ---------------------------------------------------------------------------
 

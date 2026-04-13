@@ -3,7 +3,10 @@
 Capture HTML slides as PNG screenshots using Playwright.
 
 Usage:
-    python3 capture_slides.py <carousel-directory> [--width 1080] [--height 1080]
+    python3 capture_slides.py <carousel-directory> [--width 1080] [--height 1350]
+
+Defaults to 1080x1350 (4:5) — Instagram's recommended feed / carousel ratio.
+Override with --height 1080 for square, --height 1920 for stories.
 
 Finds all slide-*.html files in the given directory, opens each in a headless
 browser at the specified dimensions, and saves a matching .png file.
@@ -19,7 +22,7 @@ def main():
     parser = argparse.ArgumentParser(description="Capture HTML slides as PNG screenshots")
     parser.add_argument("directory", help="Path to the carousel directory containing slide-*.html files")
     parser.add_argument("--width", type=int, default=1080, help="Viewport width (default: 1080)")
-    parser.add_argument("--height", type=int, default=1080, help="Viewport height (default: 1080)")
+    parser.add_argument("--height", type=int, default=1350, help="Viewport height (default: 1350 — 4:5 feed ratio; use 1080 for square, 1920 for stories)")
     args = parser.parse_args()
 
     directory = os.path.abspath(args.directory)
