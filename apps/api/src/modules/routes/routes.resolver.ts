@@ -111,6 +111,22 @@ export class RoutesResolver {
   }
 
   // ==========================================
+  // Public Saved Routes (by handle)
+  // ==========================================
+
+  @Query(() => RouteConnection)
+  @Public()
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
+  async publicSavedRoutes(
+    @Args('handle') handle: string,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<RouteConnection> {
+    return this.routesService.publicSavedRoutes(handle, first ?? 20, after);
+  }
+
+  // ==========================================
   // Premium Waitlist
   // ==========================================
 
