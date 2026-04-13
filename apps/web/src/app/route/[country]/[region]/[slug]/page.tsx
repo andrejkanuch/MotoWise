@@ -1,39 +1,106 @@
-import type { Metadata } from 'next';
-import dynamic from 'next/dynamic';
-import { notFound } from 'next/navigation';
 import { palette } from '@motovault/design-system';
-import { getSupabaseServerClient } from '@/lib/supabase-server';
-import { fetchRouteBySlug } from '@/lib/fetch-route';
+import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { GpxDownloadButton } from '@/components/gpx-download-button';
 
-/**
- * Dynamic import of the interactive Mapbox map — only loaded for authenticated
- * users. This keeps the ~200KB mapbox-gl bundle out of the anonymous path.
- */
-const MapHeroInteractive = dynamic(
-  () => import('@/components/map-hero-interactive'),
-  { ssr: false, loading: () => <MapSkeleton /> },
-);
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
-/* ------------------------------------------------------------------ */
-/*  Metadata                                                          */
-/* ------------------------------------------------------------------ */
+const ROUTE_DETAIL_QUERY = `
+  query RouteDetail($routeId: ID!) {
+    routeDetail(routeId: $routeId) {
+      id
+      name
+      description
+      polyline
+      distanceM
+      elevationGainM
+      surfaceType
+      curvatureIndex
+      isMotovaultPick
+      editorialDescription
+      ratingAvg
+      ratingCount
+      commentCount
+      status
+      createdAt
+      contributor {
+        id
+        displayName
+        publicUsername
+        avatarUrl
+      }
+    }
+  }
+`;
 
-interface PageProps {
-  params: Promise<{ country: string; region: string; slug: string }>;
+interface RouteData {
+  id: string;
+  name?: string | null;
+  description?: string | null;
+  distanceM: number;
+  elevationGainM?: number | null;
+  surfaceType?: string | null;
+  curvatureIndex?: number | null;
+  isMotovaultPick: boolean;
+  editorialDescription?: string | null;
+  ratingAvg?: number | null;
+  ratingCount: number;
+  commentCount: number;
+  createdAt: string;
+  contributor: {
+    id: string;
+    displayName: string;
+    publicUsername?: string | null;
+    avatarUrl?: string | null;
+  };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { country, region, slug } = await params;
-  const route = await fetchRouteBySlug(country, region, slug);
-
-  if (!route) {
-    return { title: 'Route Not Found' };
+/**
+ * The slug is the route UUID for now. Once the routes table gains a
+ * `slug` column, swap this to a slug-based lookup.
+ */
+async function fetchRoute(slug: string): Promise<RouteData | null> {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: ROUTE_DETAIL_QUERY,
+        variables: { routeId: slug },
+      }),
+      next: { revalidate: 300 },
+    });
+    const json = await res.json();
+    if (json.errors || !json.data?.routeDetail) return null;
+    return json.data.routeDetail;
+  } catch {
+    return null;
   }
+}
+
+function formatDistance(meters: number): string {
+  return meters >= 1000 ? `${(meters / 1000).toFixed(1)} km` : `${Math.round(meters)} m`;
+}
+
+function formatElevation(meters: number): string {
+  return `${Math.round(meters)} m`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ country: string; region: string; slug: string }>;
+}): Promise<Metadata> {
+  const { slug, country, region } = await params;
+  const route = await fetchRoute(slug);
+  if (!route) return { title: 'Route Not Found' };
 
   const title = route.name ?? 'Motorcycle Route';
-  const description = route.editorialDescription
-    ?? route.description
-    ?? `${formatDistance(route.distanceM)} motorcycle route`;
+  const description =
+    route.editorialDescription ??
+    route.description ??
+    `${formatDistance(route.distanceM)} motorcycle route in ${region.replace(/-/g, ' ')}, ${country.replace(/-/g, ' ')}`;
 
   return {
     title,
@@ -42,256 +109,141 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title,
       description,
       type: 'article',
-      url: `https://motovault.app/route/${country}/${region}/${slug}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
     },
   };
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                              */
-/* ------------------------------------------------------------------ */
-
-export default async function RouteDetailPage({ params }: PageProps) {
-  const { country, region, slug } = await params;
-  const route = await fetchRouteBySlug(country, region, slug);
+export default async function RouteDetailPage({
+  params,
+}: {
+  params: Promise<{ country: string; region: string; slug: string }>;
+}) {
+  const { slug } = await params;
+  const route = await fetchRoute(slug);
 
   if (!route) {
     notFound();
   }
 
-  // Check auth status server-side
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Check auth status from cookies (server-side)
+  const cookieStore = await cookies();
+  const hasSession = cookieStore.getAll().some((c) => c.name.includes('auth-token'));
 
-  const isAuthenticated = !!session;
+  const surfaceLabel =
+    route.surfaceType === 'paved'
+      ? 'Paved'
+      : route.surfaceType === 'mixed'
+        ? 'Mixed'
+        : route.surfaceType === 'off-road'
+          ? 'Off-road'
+          : null;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      {/* Map hero — interactive for auth users, static for anonymous */}
-      {isAuthenticated ? (
-        <MapHeroInteractive
-          route={{
-            id: route.id,
-            name: route.name,
-            polyline: route.polyline,
-            distanceM: route.distanceM,
-            elevationGainM: route.elevationGainM,
-            surfaceType: route.surfaceType,
-            curvatureIndex: route.curvatureIndex,
-            ratingAvg: route.ratingAvg,
-            ratingCount: route.ratingCount,
-          }}
-        />
-      ) : (
-        <StaticMapHero />
-      )}
+    <div className="min-h-screen" style={{ backgroundColor: palette.neutral50 }}>
+      {/* Header gradient */}
+      <div
+        className="h-32 w-full"
+        style={{
+          background: `linear-gradient(135deg, ${palette.gradientHeroStart}, ${palette.gradientHeroEnd})`,
+        }}
+      />
 
-      {/* Route details */}
-      <main id="route-details" className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        {/* Title & MotoVault Pick badge */}
-        <div className="flex items-start gap-3">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold" style={{ color: palette.neutral900 }}>
-              {route.name ?? 'Unnamed Route'}
-            </h1>
-            <p className="mt-1 text-sm capitalize" style={{ color: palette.neutral500 }}>
-              {[region.replace(/-/g, ' '), country.toUpperCase()].join(', ')}
-            </p>
-          </div>
-          {route.isMotovaultPick && (
-            <span
-              className="mt-1 shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-              style={{
-                backgroundColor: palette.signatureBgLight,
-                color: palette.signature500,
-              }}
-            >
-              MotoVault Pick
-            </span>
-          )}
-        </div>
+      <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6" style={{ marginTop: '-3rem' }}>
+        {/* Card */}
+        <div
+          className="rounded-2xl p-6 shadow-lg sm:p-8"
+          style={{ backgroundColor: palette.white }}
+        >
+          {/* Title row */}
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              {route.isMotovaultPick && (
+                <span
+                  className="mb-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  style={{
+                    backgroundColor: palette.signatureBgLight,
+                    color: palette.signature500,
+                  }}
+                >
+                  MotoVault Pick
+                </span>
+              )}
+              <h1
+                className="text-2xl font-bold sm:text-3xl"
+                style={{ color: palette.neutral950 }}
+              >
+                {route.name ?? 'Unnamed Route'}
+              </h1>
+              <p className="mt-1 text-sm" style={{ color: palette.neutral500 }}>
+                Shared by {route.contributor.displayName}
+              </p>
+            </div>
 
-        {/* Stats grid */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Distance" value={formatDistance(route.distanceM)} />
-          {route.elevationGainM != null && (
-            <StatCard label="Elevation Gain" value={`${Math.round(route.elevationGainM)} m`} />
-          )}
-          {route.surfaceType && (
-            <StatCard label="Surface" value={capitalize(route.surfaceType)} />
-          )}
-          {route.curvatureIndex != null && (
-            <StatCard label="Curvature" value={route.curvatureIndex.toFixed(1)} />
-          )}
-          {route.ratingAvg != null && (
-            <StatCard
-              label="Rating"
-              value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
+            <GpxDownloadButton
+              routeId={route.id}
+              routeName={route.name ?? 'MotoVault-Route'}
+              isAuthenticated={hasSession}
             />
-          )}
-          <StatCard label="Comments" value={String(route.commentCount)} />
-        </div>
+          </div>
 
-        {/* Description */}
-        {(route.editorialDescription ?? route.description) && (
-          <section className="mt-8">
-            <h2
-              className="text-sm font-semibold uppercase tracking-wide"
-              style={{ color: palette.neutral500 }}
-            >
-              About This Route
-            </h2>
-            <p className="mt-2 whitespace-pre-wrap text-base" style={{ color: palette.neutral800 }}>
+          {/* Description */}
+          {(route.editorialDescription || route.description) && (
+            <p className="mb-6 text-sm leading-relaxed" style={{ color: palette.neutral700 }}>
               {route.editorialDescription ?? route.description}
             </p>
-          </section>
-        )}
+          )}
 
-        {/* Contributor */}
-        {route.contributor && (
-          <section className="mt-8">
-            <h2
-              className="text-sm font-semibold uppercase tracking-wide"
-              style={{ color: palette.neutral500 }}
-            >
-              Contributed by
-            </h2>
-            <div className="mt-3 flex items-center gap-3">
-              {route.contributor.avatarUrl ? (
-                // biome-ignore lint/performance/noImgElement: avatar from storage
-                <img
-                  src={route.contributor.avatarUrl}
-                  alt={route.contributor.displayName}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-                  style={{ backgroundColor: palette.primary100, color: palette.primary600 }}
-                >
-                  {route.contributor.displayName.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-semibold" style={{ color: palette.neutral900 }}>
-                  {route.contributor.displayName}
-                </p>
-                {route.contributor.publicUsername && (
-                  <p className="text-xs" style={{ color: palette.neutral400 }}>
-                    @{route.contributor.publicUsername}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Sign-in CTA for anonymous users */}
-        {!isAuthenticated && (
-          <section
-            className="mt-8 rounded-xl p-6 text-center"
-            style={{ backgroundColor: palette.primary50 }}
+          {/* Stats grid */}
+          <div
+            className="mb-6 grid grid-cols-2 gap-4 rounded-xl p-4 sm:grid-cols-4"
+            style={{ backgroundColor: palette.neutral100 }}
           >
-            <p className="text-sm font-semibold" style={{ color: palette.primary700 }}>
-              Sign in to explore the interactive map
-            </p>
-            <p className="mt-1 text-xs" style={{ color: palette.primary500 }}>
-              Pan, zoom, rotate, and view the full route with start/end markers
-            </p>
-            <a
-              href="/login"
-              className="mt-4 inline-block rounded-lg px-6 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ backgroundColor: palette.primary500, color: palette.white }}
-            >
-              Sign In
-            </a>
-          </section>
-        )}
+            <div>
+              <span className="text-xs font-medium" style={{ color: palette.neutral500 }}>
+                Distance
+              </span>
+              <p className="text-lg font-bold" style={{ color: palette.neutral950 }}>
+                {formatDistance(route.distanceM)}
+              </p>
+            </div>
+            {route.elevationGainM != null && (
+              <div>
+                <span className="text-xs font-medium" style={{ color: palette.neutral500 }}>
+                  Elevation
+                </span>
+                <p className="text-lg font-bold" style={{ color: palette.neutral950 }}>
+                  {formatElevation(route.elevationGainM)}
+                </p>
+              </div>
+            )}
+            {surfaceLabel && (
+              <div>
+                <span className="text-xs font-medium" style={{ color: palette.neutral500 }}>
+                  Surface
+                </span>
+                <p className="text-lg font-bold" style={{ color: palette.neutral950 }}>
+                  {surfaceLabel}
+                </p>
+              </div>
+            )}
+            {route.ratingCount > 0 && route.ratingAvg != null && (
+              <div>
+                <span className="text-xs font-medium" style={{ color: palette.neutral500 }}>
+                  Rating
+                </span>
+                <p className="text-lg font-bold" style={{ color: palette.neutral950 }}>
+                  {route.ratingAvg.toFixed(1)} ({route.ratingCount})
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* CTA */}
+          <p className="text-center text-xs" style={{ color: palette.neutral400 }}>
+            Open the route in the MotoVault app for turn-by-turn navigation
+          </p>
+        </div>
       </main>
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                           */
-/* ------------------------------------------------------------------ */
-
-function formatDistance(meters: number): string {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
-  return `${Math.round(meters)} m`;
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-/* ------------------------------------------------------------------ */
-/*  Sub-components                                                    */
-/* ------------------------------------------------------------------ */
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      className="rounded-xl border p-3"
-      style={{ borderColor: palette.neutral200, backgroundColor: palette.white }}
-    >
-      <p className="text-xs" style={{ color: palette.neutral400 }}>
-        {label}
-      </p>
-      <p className="mt-0.5 text-sm font-semibold" style={{ color: palette.neutral900 }}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function StaticMapHero() {
-  return (
-    <div
-      className="flex h-[300px] w-full items-center justify-center sm:h-[400px]"
-      style={{
-        background: `linear-gradient(135deg, ${palette.gradientHeroStart}, ${palette.gradientHeroMid}, ${palette.gradientHeroEnd})`,
-      }}
-    >
-      <div className="text-center">
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={palette.primary200}
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="mx-auto mb-3"
-        >
-          <path d="M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13z" />
-          <circle cx="12" cy="9" r="2.5" />
-        </svg>
-        <p className="text-sm font-medium" style={{ color: palette.primary200 }}>
-          Sign in to explore the interactive map
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function MapSkeleton() {
-  return (
-    <div
-      className="flex h-[300px] w-full animate-pulse items-center justify-center sm:h-[400px] md:h-[500px]"
-      style={{ backgroundColor: palette.neutral200 }}
-    >
-      <p className="text-sm" style={{ color: palette.neutral400 }}>
-        Loading map...
-      </p>
     </div>
   );
 }

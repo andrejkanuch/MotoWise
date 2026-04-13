@@ -1,0 +1,7 @@
+query GetGPXQuotaStatus {
+  getGPXQuotaStatus {
+    remaining
+    limit
+    resetsAt
+  }
+}
