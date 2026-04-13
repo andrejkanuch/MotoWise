@@ -61,6 +61,7 @@ export const queryKeys = {
   routes: {
     all: ['routes'] as const,
     detail: (routeId: string) => ['routes', 'detail', routeId] as const,
+    saved: ['routes', 'saved'] as const,
   },
   comments: {
     byRide: (rideId: string) => ['comments', 'ride', rideId] as const,

@@ -928,6 +928,7 @@ type Query {
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   routeDetail(routeId: ID!): Route!
+  savedRoutes(after: String, first: Int = 20): RouteConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!

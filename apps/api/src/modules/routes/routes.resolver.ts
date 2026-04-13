@@ -110,6 +110,33 @@ export class RoutesResolver {
     return this.routesService.unsaveRoute(user.id, routeId);
   }
 
+  @Query(() => RouteConnection)
+  async savedRoutes(
+    @CurrentUser() user: AuthUser,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<RouteConnection> {
+    const result = await this.routesService.getSavedRoutes(user.id, first ?? 20, after);
+
+    const edges = result.saves
+      .filter((s) => s.route != null)
+      .map((s) => ({
+        node: s.route!,
+        cursor: Buffer.from(s.savedAt).toString('base64'),
+      }));
+
+    const lastEdge = edges[edges.length - 1];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage: result.hasNextPage,
+        endCursor: lastEdge?.cursor,
+      },
+    };
+  }
+
   // ==========================================
   // Premium Waitlist
   // ==========================================
