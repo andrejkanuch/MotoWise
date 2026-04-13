@@ -81,6 +81,15 @@ function formatTwistScore(curvatureIndex: number): string {
   return 'Straight';
 }
 
+function formatRideTime(distanceM: number, surfaceType?: string | null): string {
+  const avgSpeedKmh = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
+  const hours = distanceM / 1000 / avgSpeedKmh;
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export default async function RouteDetailPage({ params }: PageProps) {
   const { country, region, slug } = await params;
   const route = await fetchRoute(country, region, slug);
@@ -114,7 +123,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
 
       <main className="min-h-screen bg-neutral-950 text-neutral-50">
         {/* Hero Section */}
-        <section className="relative h-64 w-full overflow-hidden sm:h-80 md:h-96">
+        <section className="relative h-64 w-full overflow-hidden sm:h-80 md:h-96" aria-label="Route hero">
           <div
             className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-600"
             aria-hidden="true"
@@ -149,7 +158,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
               <StatItem label="Surface" value={formatSurfaceType(route.surfaceType)} />
             )}
             {route.curvatureIndex != null && (
-              <StatItem label="Twist Score" value={formatTwistScore(route.curvatureIndex)} />
+              <StatItem label="Twist" value={`${formatTwistScore(route.curvatureIndex)} (${Math.round(route.curvatureIndex)})`} />
             )}
             {route.ratingAvg != null && (
               <StatItem
@@ -157,6 +166,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
                 value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
               />
             )}
+            <StatItem label="Est. Time" value={formatRideTime(route.distanceM, route.surfaceType)} />
           </div>
         </section>
 
@@ -166,7 +176,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
           {(route.description || route.editorialDescription) && (
             <section className="mb-10">
               <h2 className="mb-3 text-lg font-semibold text-neutral-100">About this route</h2>
-              <p className="whitespace-pre-line leading-relaxed text-neutral-300">
+              <p className="max-w-prose whitespace-pre-line leading-relaxed text-neutral-300">
                 {route.editorialDescription ?? route.description}
               </p>
             </section>
@@ -175,12 +185,12 @@ export default async function RouteDetailPage({ params }: PageProps) {
           {/* Badges */}
           <div className="mb-10 flex flex-wrap gap-2">
             {route.isMotovaultPick && (
-              <span className="inline-flex items-center rounded-full bg-signature-500/15 px-3 py-1 text-xs font-medium text-signature-400">
+              <span className="inline-flex items-center rounded-full bg-signature-500/20 px-3 py-1.5 text-sm font-medium text-signature-300">
                 MotoVault Pick
               </span>
             )}
             {route.surfaceType && (
-              <span className="inline-flex items-center rounded-full bg-primary-500/15 px-3 py-1 text-xs font-medium text-primary-300">
+              <span className="inline-flex items-center rounded-full bg-primary-500/20 px-3 py-1.5 text-sm font-medium text-primary-200">
                 {formatSurfaceType(route.surfaceType)}
               </span>
             )}
@@ -190,21 +200,21 @@ export default async function RouteDetailPage({ params }: PageProps) {
           <section className="flex flex-wrap gap-3">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-primary-500"
-            >
-              <BookmarkIcon />
-              Save Route
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-neutral-800 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-700"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3.5 text-base font-medium text-neutral-50 transition-colors hover:bg-primary-500 active:scale-95 active:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <DownloadIcon />
               Download GPX
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-neutral-800 px-5 py-2.5 text-sm font-medium text-neutral-200 transition-colors hover:bg-neutral-700"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3.5 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+            >
+              <BookmarkIcon />
+              Save Route
+            </button>
+            <button
+              type="button"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3.5 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <ShareIcon />
               Share
@@ -219,8 +229,8 @@ export default async function RouteDetailPage({ params }: PageProps) {
 function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-xs font-medium uppercase tracking-wider text-neutral-400">{label}</span>
-      <span className="text-sm font-semibold text-neutral-100">{value}</span>
+      <span className="text-sm font-medium uppercase tracking-wider text-neutral-300">{label}</span>
+      <span className="text-lg font-bold text-neutral-50">{value}</span>
     </div>
   );
 }
@@ -228,7 +238,7 @@ function StatItem({ label, value }: { label: string; value: string }) {
 function BookmarkIcon() {
   return (
     <svg
-      className="h-4 w-4"
+      className="h-5 w-5"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={2}
@@ -249,7 +259,7 @@ function BookmarkIcon() {
 function DownloadIcon() {
   return (
     <svg
-      className="h-4 w-4"
+      className="h-5 w-5"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={2}
@@ -270,7 +280,7 @@ function DownloadIcon() {
 function ShareIcon() {
   return (
     <svg
-      className="h-4 w-4"
+      className="h-5 w-5"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={2}
