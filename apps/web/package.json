@@ -8,12 +8,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:e2e": "playwright test",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@motovault/analytics": "workspace:*",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
@@ -29,6 +27,7 @@
     "graphql-request": "^7.4.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.7.0",
+    "mapbox-gl": "^3.21.0",
     "next": "^16.0.0",
     "next-intl": "^4.8.3",
     "next-mdx-remote": "^6.0.0",
@@ -45,7 +44,7 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
-    "@playwright/test": "^1.59.1",
+    "@types/mapbox-gl": "^3.5.0",
     "@types/node": "^22.0.0",
     "@types/react": "~19.2.0",
     "@types/react-dom": "~19.2.0",
