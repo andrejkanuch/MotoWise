@@ -12,6 +12,7 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
+    "@motovault/analytics": "workspace:*",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",
     "@motovault/types": "workspace:*",
