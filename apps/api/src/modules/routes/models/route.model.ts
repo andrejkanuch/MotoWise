@@ -70,6 +70,18 @@ export class Route {
 
   @Field(() => Float, { nullable: true })
   startLng?: number;
+
+  @Field({ nullable: true })
+  slug?: string;
+
+  @Field({ nullable: true })
+  countryCode?: string;
+
+  @Field({ nullable: true })
+  regionCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
 }
 
 @ObjectType()

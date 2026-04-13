@@ -33,6 +33,10 @@ interface RouteRow {
   contributor_user_id: string;
   start_lat?: number;
   start_lng?: number;
+  slug?: string;
+  country_code?: string;
+  region_code?: string;
+  city?: string;
   users: {
     id: string;
     display_name: string | null;
@@ -186,6 +190,24 @@ export class RoutesService {
 
     if (error || !data) {
       throw new NotFoundException('Route not found');
+    }
+
+    return this.mapRouteRow(data as unknown as RouteRow);
+  }
+
+  async routeBySlug(regionCode: string, slug: string): Promise<Route | null> {
+    const { data, error } = await this.supabaseAdmin
+      .from('routes')
+      .select(
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+      )
+      .eq('status', 'published')
+      .eq('region_code', regionCode)
+      .eq('slug', slug)
+      .single();
+
+    if (error || !data) {
+      return null;
     }
 
     return this.mapRouteRow(data as unknown as RouteRow);
@@ -385,6 +407,10 @@ export class RoutesService {
       contributor,
       startLat: row.start_lat ?? undefined,
       startLng: row.start_lng ?? undefined,
+      slug: row.slug ?? undefined,
+      countryCode: row.country_code ?? undefined,
+      regionCode: row.region_code ?? undefined,
+      city: row.city ?? undefined,
     };
   }
 
