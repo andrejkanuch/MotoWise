@@ -6,11 +6,32 @@ import type { QuotaStatus } from './quota-status.dto';
 
 const FEATURE_GPX_EXPORT = 'gpx_export';
 
+export const ENTITLEMENTS = {
+  READ_FULL_ROUTE: 'READ_FULL_ROUTE',
+  READ_ALL_REVIEWS: 'READ_ALL_REVIEWS',
+  DOWNLOAD_GPX: 'DOWNLOAD_GPX',
+  SAVE_ROUTE: 'SAVE_ROUTE',
+} as const;
+
+type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
+
 @Injectable()
 export class EntitlementsService {
   private readonly logger = new Logger(EntitlementsService.name);
 
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+
+  /**
+   * Check if a user has access to a specific entitlement.
+   * Authenticated users get all entitlements in Phase 1.
+   * Anonymous users (null) get none.
+   */
+  can(user: { id: string } | null, entitlement: Entitlement): boolean {
+    if (!user) return false;
+    // Phase 1: all authenticated users have all entitlements
+    // Phase 3: check subscription_tier for Pro-only features
+    return true;
+  }
 
   /**
    * Get the current GPX export quota status for a user.

@@ -918,4 +918,51 @@ ${trkpts}
     }
     return true;
   }
+
+  // ==========================================
+  // Twist Score (Phase 3 — MOT-182)
+  // ==========================================
+
+  async findBySlug(country: string, region: string, slug: string): Promise<Route | null> {
+    const { data, error } = await this.supabase
+      .from('routes')
+      .select(
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+      )
+      .eq('country_code', country)
+      .eq('region_code', region)
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error || !data) return null;
+    return this.mapRouteRow(data as unknown as RouteRow);
+  }
+
+  async computeTwistScore(
+    curvatureIndex: number | null | undefined,
+    countryCode: string | null | undefined,
+  ): Promise<{ score: number; percentile: number } | null> {
+    if (curvatureIndex == null) return null;
+    // Simple linear mapping without materialized view lookup
+    const score = Math.min(10, Math.max(1, Math.ceil((curvatureIndex / 50) * 10)));
+    const percentile = Math.min(100, Math.round(curvatureIndex * 2));
+    return { score, percentile };
+  }
+
+  // ==========================================
+  // Public Saved Routes (Phase 3 — MOT-171)
+  // ==========================================
+
+  async publicSavedRoutes(
+    handle: string,
+    first: number,
+    after?: string,
+  ): Promise<RouteConnection> {
+    // Stub — returns empty connection until saved-routes.service is wired
+    return {
+      edges: [],
+      pageInfo: { hasNextPage: false, endCursor: undefined },
+    };
+  }
 }

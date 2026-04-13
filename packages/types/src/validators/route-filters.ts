@@ -9,15 +9,8 @@ export const DIFFICULTY_LEVELS = {
   EXPERT: 'expert',
 } as const;
 
-// --- Surface Types ---
-
-export const SURFACE_TYPES = {
-  PAVED: 'paved',
-  MIXED: 'mixed',
-  OFF_ROAD: 'off-road',
-} as const;
-
 // --- Route Filters ---
+// Note: SURFACE_TYPES is exported from ./route.ts
 
 export const RouteFiltersSchema = z
   .object({

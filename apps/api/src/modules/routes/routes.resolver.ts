@@ -12,7 +12,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
-import { ENTITLEMENTS, EntitlementService } from '../entitlements/entitlements.service';
+import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import {
@@ -33,7 +33,7 @@ const ANONYMOUS_REVIEW_LIMIT = 3;
 export class RoutesResolver {
   constructor(
     private readonly routesService: RoutesService,
-    private readonly entitlementService: EntitlementService,
+    private readonly entitlementService: EntitlementsService,
   ) {}
 
   // ==========================================
@@ -65,7 +65,7 @@ export class RoutesResolver {
   @Query(() => Route)
   @Public()
   async routeDetail(
-    @CurrentUser() user: AuthUser | undefined,
+    @CurrentUser() user: AuthUser | null,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
   ): Promise<Route> {
     const route = await this.routesService.routeDetail(routeId);
@@ -126,7 +126,7 @@ export class RoutesResolver {
   @Query(() => RouteReviewConnection)
   @Public()
   async getRouteReviews(
-    @CurrentUser() user: AuthUser | undefined,
+    @CurrentUser() user: AuthUser | null,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
     @Args('after', { nullable: true }) after?: string,

@@ -41,9 +41,6 @@ export class Route {
   @Field(() => Float, { nullable: true })
   curvatureIndex?: number;
 
-  @Field({ nullable: true })
-  countryCode?: string;
-
   @Field(() => Int, { nullable: true })
   twistScore?: number;
 
@@ -91,8 +88,6 @@ export class Route {
 
   @Field({ nullable: true })
   city?: string;
-=======
->>>>>>> feat/mot-195-198-unit-tests
 }
 
 @ObjectType()
