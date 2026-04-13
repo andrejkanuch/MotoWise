@@ -1,3 +1,4 @@
+import { GPX_EXPORT_LIMITS } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -11,6 +12,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
+import type { GPXExportError, GPXExportSuccess } from './dto/gpx-export.dto';
 import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 
 /** Row shape from routes + users join */
@@ -23,7 +25,6 @@ interface RouteRow {
   elevation_gain_m: number | null;
   surface_type: string | null;
   curvature_index: number | null;
-  country_code: string | null;
   is_motovault_pick: boolean;
   editorial_description: string | null;
   rating_avg: number | null;
@@ -32,17 +33,8 @@ interface RouteRow {
   status: string;
   created_at: string;
   contributor_user_id: string;
-  country_code?: string | null;
-  region_code?: string | null;
-  region_slug?: string | null;
-  slug?: string | null;
-  display_name?: string | null;
   start_lat?: number;
   start_lng?: number;
-  slug?: string | null;
-  country_code?: string | null;
-  region_code?: string | null;
-  city?: string | null;
   users: {
     id: string;
     display_name: string | null;
@@ -81,7 +73,7 @@ export class RoutesService {
     let query = this.supabase
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('status', 'published')
       .order('created_at', { ascending: false })
@@ -89,14 +81,6 @@ export class RoutesService {
 
     // Apply basic filters
     if (filter) {
-      // Country/region filters
-      if (filter.countryCode) {
-        query = query.eq('country_code', filter.countryCode.toUpperCase());
-      }
-      if (filter.regionCode) {
-        query = query.eq('region_slug', filter.regionCode);
-      }
-
       // Surface type filter
       if (filter.surfaceTypes && filter.surfaceTypes.length > 0) {
         query = query.in('surface_type', filter.surfaceTypes);
@@ -192,27 +176,11 @@ export class RoutesService {
     };
   }
 
-  async findBySlug(country: string, region: string, slug: string): Promise<Route | null> {
-    const { data, error } = await this.supabase
-      .from('routes')
-      .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
-      )
-      .eq('country_code', country)
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
-
-    if (error || !data) return null;
-    return this.mapRouteRow(data as unknown as RouteRow);
-  }
-
   async routeDetail(routeId: string): Promise<Route> {
     const { data, error } = await this.supabaseAdmin
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, country_code, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('id', routeId)
       .eq('status', 'published')
@@ -221,28 +189,6 @@ export class RoutesService {
     if (error || !data) {
       throw new NotFoundException('Route not found');
     }
-
-    return this.mapRouteRow(data as unknown as RouteRow);
-  }
-
-  async routeBySlug(country: string, region: string, slug: string): Promise<Route | null> {
-    const { data, error } = await this.supabaseAdmin
-      .from('routes')
-      .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_slug, users:contributor_user_id(id, display_name, public_username, avatar_url)',
-      )
-      .eq('country_code', country.toLowerCase())
-      .eq('region_slug', region)
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .maybeSingle();
-
-    if (error) {
-      this.logger.error(`routeBySlug failed: ${error.message} (${error.code})`);
-      return null;
-    }
-
-    if (!data) return null;
 
     return this.mapRouteRow(data as unknown as RouteRow);
   }
@@ -412,43 +358,121 @@ export class RoutesService {
     return { gpx, filename: `${sanitizedName}-motovault.gpx` };
   }
 
-  async computeTwistScore(
-    curvatureIndex: number | null | undefined,
-    countryCode: string | null | undefined,
-  ): Promise<{ score: number; percentile: number } | null> {
-    if (!curvatureIndex || !countryCode) return null;
+  // ==========================================
+  // GPX Export with Entitlement
+  // ==========================================
 
-    const { data: buckets } = await this.supabaseAdmin
-      .from('route_twist_buckets')
-      .select('*')
-      .eq('country_code', countryCode)
-      .single();
-
-    if (!buckets) return null;
-
-    // Find which percentile bucket the curvature falls into
-    const percentiles = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-    const values = [
-      buckets.p0,
-      buckets.p10,
-      buckets.p20,
-      buckets.p30,
-      buckets.p40,
-      buckets.p50,
-      buckets.p60,
-      buckets.p70,
-      buckets.p80,
-      buckets.p90,
-      buckets.p100,
-    ];
-
-    let percentile = 0;
-    for (let i = 0; i < values.length - 1; i++) {
-      if (curvatureIndex >= (values[i] as number)) percentile = percentiles[i];
+  async exportRouteGPXWithEntitlement(
+    userId: string,
+    routeId: string,
+  ): Promise<GPXExportSuccess | GPXExportError> {
+    // 1. Check entitlement
+    const entitlementCheck = await this.checkGpxEntitlement(userId);
+    if (!entitlementCheck.allowed) {
+      return {
+        code: 'QUOTA_EXCEEDED',
+        reason: entitlementCheck.reason,
+        quotaRemaining: 0,
+        upgradeUrl: 'https://motovault.app/upgrade',
+      };
     }
 
-    const score = Math.min(10, Math.max(1, Math.ceil(percentile / 10)));
-    return { score, percentile };
+    // 2. Generate GPX (reuse existing logic)
+    const { gpx, filename } = await this.exportRouteGPX(routeId);
+
+    // 3. Upload to Supabase Storage
+    const storagePath = `gpx-exports/${userId}/${routeId}/${filename}`;
+    const { error: uploadError } = await this.supabaseAdmin.storage
+      .from('route-exports')
+      .upload(storagePath, Buffer.from(gpx, 'utf-8'), {
+        contentType: 'application/gpx+xml',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      this.logger.error(`GPX upload failed: ${uploadError.message}`);
+      throw new InternalServerErrorException('Failed to upload GPX file');
+    }
+
+    // 4. Get signed URL (valid for 1 hour)
+    const { data: signedData, error: signError } = await this.supabaseAdmin.storage
+      .from('route-exports')
+      .createSignedUrl(storagePath, 3600);
+
+    if (signError || !signedData?.signedUrl) {
+      this.logger.error(`GPX signed URL failed: ${signError?.message}`);
+      throw new InternalServerErrorException('Failed to generate download URL');
+    }
+
+    // 5. Record quota consumption
+    await this.consumeGpxQuota(userId, routeId);
+
+    return {
+      fileUrl: signedData.signedUrl,
+      fileName: filename,
+      message: `GPX export ready. ${entitlementCheck.remaining !== undefined ? `${entitlementCheck.remaining - 1} exports remaining this month.` : 'Unlimited exports with Pro.'}`,
+    };
+  }
+
+  private async checkGpxEntitlement(
+    userId: string,
+  ): Promise<{ allowed: boolean; reason: string; remaining?: number }> {
+    // Look up subscription tier
+    const { data: userData } = await this.supabaseAdmin
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+
+    if (tier === 'pro') {
+      return { allowed: true, reason: 'Pro tier — unlimited exports' };
+    }
+
+    // Count this month's exports for free tier
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.supabaseAdmin
+      .from('user_gating_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('feature', 'DOWNLOAD_GPX')
+      .gte('created_at', monthStart.toISOString());
+
+    if (error) {
+      this.logger.error('Failed to check GPX export quota', error);
+      // Fail closed — deny access when we can't verify quota
+      return { allowed: false, reason: 'Unable to verify export quota. Please try again.' };
+    }
+
+    const used = count ?? 0;
+    const limit = GPX_EXPORT_LIMITS.FREE_MONTHLY_EXPORTS;
+
+    if (used >= limit) {
+      return {
+        allowed: false,
+        reason: `Free plan allows ${limit} GPX exports per month. Upgrade to Pro for unlimited exports.`,
+        remaining: 0,
+      };
+    }
+
+    return { allowed: true, reason: 'Within free tier quota', remaining: limit - used };
+  }
+
+  private async consumeGpxQuota(userId: string, routeId: string): Promise<void> {
+    const { error } = await this.supabaseAdmin.from('user_gating_events').insert({
+      user_id: userId,
+      feature: 'DOWNLOAD_GPX',
+      route_id: routeId,
+    });
+
+    if (error) {
+      this.logger.error(`Failed to record GPX quota consumption: ${error.message}`);
+      // Non-fatal — the user already got the file, just log and continue
+    }
   }
 
   // --- Private helpers ---
@@ -470,7 +494,6 @@ export class RoutesService {
       elevationGainM: row.elevation_gain_m ?? undefined,
       surfaceType: row.surface_type ?? undefined,
       curvatureIndex: row.curvature_index ?? undefined,
-      countryCode: row.country_code ?? undefined,
       isMotovaultPick: row.is_motovault_pick,
       editorialDescription: row.editorial_description ?? undefined,
       ratingAvg: row.rating_avg ?? undefined,
@@ -481,10 +504,6 @@ export class RoutesService {
       contributor,
       startLat: row.start_lat ?? undefined,
       startLng: row.start_lng ?? undefined,
-      slug: row.slug ?? undefined,
-      countryCode: row.country_code ?? undefined,
-      regionCode: row.region_code ?? undefined,
-      city: row.city ?? undefined,
     };
   }
 
@@ -811,77 +830,6 @@ ${trkpts}
       throw new InternalServerErrorException('Failed to unsave route');
     }
     return true;
-  }
-
-  async publicSavedRoutes(
-    handle: string,
-    first: number,
-    after?: string,
-  ): Promise<RouteConnection> {
-    // 1. Look up user by public_username — must be public
-    const { data: user, error: userError } = await this.supabaseAdmin
-      .from('users')
-      .select('id, is_public')
-      .eq('public_username', handle)
-      .single();
-
-    if (userError || !user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.is_public) {
-      throw new NotFoundException('User not found');
-    }
-
-    // 2. Fetch saved routes for that user
-    const limit = Math.min(first, 50);
-
-    let query = this.supabaseAdmin
-      .from('route_saves')
-      .select(
-        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url))',
-      )
-      .eq('user_id', user.id)
-      .order('saved_at', { ascending: false })
-      .limit(limit + 1);
-
-    if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      if (Number.isNaN(Date.parse(decoded))) {
-        throw new BadRequestException('Invalid cursor');
-      }
-      query = query.lt('saved_at', decoded);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      this.logger.error(`publicSavedRoutes failed: ${error.message}`);
-      throw new InternalServerErrorException('Failed to fetch saved routes');
-    }
-
-    const rows = data ?? [];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    const edges = sliced
-      .filter((row: Record<string, unknown>) => row.routes != null)
-      .map((row: Record<string, unknown>) => {
-        const node = this.mapRouteRow(row.routes as unknown as RouteRow);
-        return {
-          node,
-          cursor: Buffer.from(row.saved_at as string).toString('base64'),
-        };
-      });
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
   }
 
   async getSavedRoutes(userId: string, first: number, after?: string) {
