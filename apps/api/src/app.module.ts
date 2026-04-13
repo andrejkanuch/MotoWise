@@ -40,6 +40,7 @@ import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.mod
 import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
+import { SponsorshipsModule } from './modules/sponsorships/sponsorships.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
@@ -102,6 +103,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RidesModule,
     RoutesModule,
     ShareLinksModule,
+    SponsorshipsModule,
     TripsModule,
     WaitlistModule,
     WebhooksModule,

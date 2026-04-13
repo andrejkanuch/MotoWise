@@ -21,6 +21,7 @@ export * from './validators/quiz';
 export * from './validators/ride';
 export * from './validators/ride-summary';
 export * from './validators/share-link';
+export * from './validators/sponsorship';
 export * from './validators/trip';
 export * from './validators/user';
 export * from './validators/user-preferences';

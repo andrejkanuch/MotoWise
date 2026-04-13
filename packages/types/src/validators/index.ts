@@ -13,5 +13,6 @@ export * from './quiz';
 export * from './ride';
 export * from './route';
 export * from './route-review';
+export * from './sponsorship';
 export * from './trip';
 export * from './user';
