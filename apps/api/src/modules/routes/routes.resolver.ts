@@ -59,6 +59,9 @@ export class RoutesResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<Route | null> {
+    // Input validation — prevent excessively long or malformed params
+    if (country.length > 5 || region.length > 20 || slug.length > 200) return null;
+    if (!/^[a-z0-9-]+$/.test(country) || !/^[a-z0-9-]+$/.test(region) || !/^[a-z0-9-]+$/.test(slug)) return null;
     return this.routesService.findBySlug(country, region, slug);
   }
 

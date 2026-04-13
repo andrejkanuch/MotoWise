@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { Sponsorship } from './models/sponsorship.model';
 
 @Injectable()
@@ -9,7 +10,8 @@ export class SponsorshipsService {
   private readonly logger = new Logger(SponsorshipsService.name);
 
   constructor(
-    @Inject(SUPABASE_ADMIN) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
     private readonly configService: ConfigService,
   ) {}
 
