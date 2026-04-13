@@ -52,6 +52,12 @@ export class User {
   @Field({ nullable: true })
   avatarUrl?: string;
 
+  @Field({ nullable: true })
+  handle?: string;
+
+  @Field({ nullable: true })
+  showSavedPublicly?: boolean;
+
   @Field()
   createdAt: string;
 
