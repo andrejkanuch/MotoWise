@@ -58,7 +58,6 @@ export class RoutesResolver {
     return this.routesService.routeDetail(routeId);
   }
 
-<<<<<<< HEAD
   @ResolveField(() => Int, { nullable: true })
   async twistScore(@Parent() route: Route): Promise<number | null> {
     const result = await this.routesService.computeTwistScore(
@@ -75,16 +74,6 @@ export class RoutesResolver {
       route.countryCode,
     );
     return result?.percentile ?? null;
-=======
-  @Query(() => Route, { nullable: true })
-  @Public()
-  async routeBySlug(
-    @Args('country') country: string,
-    @Args('region') region: string,
-    @Args('slug') slug: string,
-  ): Promise<Route | null> {
-    return this.routesService.routeBySlug(country, region, slug);
->>>>>>> feat/mot-159-ssr-detail-page
   }
 
   @Mutation(() => Route)
