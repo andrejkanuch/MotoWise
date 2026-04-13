@@ -813,6 +813,77 @@ ${trkpts}
     return true;
   }
 
+  async publicSavedRoutes(
+    handle: string,
+    first: number,
+    after?: string,
+  ): Promise<RouteConnection> {
+    // 1. Look up user by public_username — must be public
+    const { data: user, error: userError } = await this.supabaseAdmin
+      .from('users')
+      .select('id, is_public')
+      .eq('public_username', handle)
+      .single();
+
+    if (userError || !user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.is_public) {
+      throw new NotFoundException('User not found');
+    }
+
+    // 2. Fetch saved routes for that user
+    const limit = Math.min(first, 50);
+
+    let query = this.supabaseAdmin
+      .from('route_saves')
+      .select(
+        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url))',
+      )
+      .eq('user_id', user.id)
+      .order('saved_at', { ascending: false })
+      .limit(limit + 1);
+
+    if (after) {
+      const decoded = Buffer.from(after, 'base64').toString('utf-8');
+      if (Number.isNaN(Date.parse(decoded))) {
+        throw new BadRequestException('Invalid cursor');
+      }
+      query = query.lt('saved_at', decoded);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      this.logger.error(`publicSavedRoutes failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to fetch saved routes');
+    }
+
+    const rows = data ?? [];
+    const hasNextPage = rows.length > limit;
+    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
+
+    const edges = sliced
+      .filter((row: Record<string, unknown>) => row.routes != null)
+      .map((row: Record<string, unknown>) => {
+        const node = this.mapRouteRow(row.routes as unknown as RouteRow);
+        return {
+          node,
+          cursor: Buffer.from(row.saved_at as string).toString('base64'),
+        };
+      });
+
+    const lastEdge = edges[edges.length - 1];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage,
+        endCursor: lastEdge?.cursor,
+      },
+    };
+  }
+
   async getSavedRoutes(userId: string, first: number, after?: string) {
     const limit = Math.min(first, 50);
 
