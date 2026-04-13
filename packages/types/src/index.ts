@@ -20,6 +20,7 @@ export * from './validators/profile';
 export * from './validators/quiz';
 export * from './validators/ride';
 export * from './validators/ride-summary';
+export * from './validators/route-filters';
 export * from './validators/share-link';
 export * from './validators/trip';
 export * from './validators/user';
