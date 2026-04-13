@@ -632,6 +632,55 @@
   animation: fade-in 0.35s ease-out 0.1s both;
 }
 
+/* ── Route page: hero entrance scale (GPU-composited, transform+opacity only) ── */
+@keyframes hero-scale {
+  from {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-hero-scale {
+  animation: hero-scale 0.6s var(--ease-out-expo) both;
+}
+
+/* ── Route page: hero text slide-up entrance ── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s var(--ease-out-expo) 0.15s both;
+}
+
+/* ── Route page: Editor's Pick badge single pulse ── */
+@keyframes pulse-once {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-pulse-once {
+  animation: pulse-once 0.5s var(--ease-out-quart) 0.3s both;
+}
+
 /* Paint containment for below-fold sections — avoids layout/paint work until visible */
 section:not(:first-child) {
   content-visibility: auto;

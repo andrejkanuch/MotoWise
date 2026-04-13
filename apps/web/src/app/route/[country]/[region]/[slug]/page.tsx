@@ -55,12 +55,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function formatDistance(meters: number): string {
+  if (!meters || meters <= 0) return '—';
   const km = meters / 1000;
   if (km >= 1) return `${km.toFixed(1)} km`;
   return `${Math.round(meters)} m`;
 }
 
 function formatElevation(meters: number): string {
+  if (meters == null || meters <= 0) return 'Flat';
   return `${Math.round(meters)} m`;
 }
 
@@ -82,6 +84,7 @@ function formatTwistScore(curvatureIndex: number): string {
 }
 
 function formatRideTime(distanceM: number, surfaceType?: string | null): string {
+  if (!distanceM || distanceM <= 0) return '—';
   const avgSpeedKmh = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
   const hours = distanceM / 1000 / avgSpeedKmh;
   if (hours < 1) return `${Math.round(hours * 60)} min`;
@@ -124,16 +127,18 @@ export default async function RouteDetailPage({ params }: PageProps) {
       <main className="min-h-screen bg-neutral-950 text-neutral-50">
         {/* Hero Section */}
         <section className="relative h-64 w-full overflow-hidden sm:h-80 md:h-96" aria-label="Route hero">
+          {/* Change 2: hero entrance — GPU-composited scale animation */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-600"
+            className="absolute inset-0 animate-hero-scale bg-gradient-to-br from-primary-900 via-primary-800 to-primary-600 motion-reduce:animate-none"
             aria-hidden="true"
           />
           <div
             className="absolute inset-0 bg-gradient-to-t from-neutral-950/80 to-transparent"
             aria-hidden="true"
           />
-          <div className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-8">
-            <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl md:text-4xl">
+          {/* Change 3: hero text fade-in-up entrance */}
+          <div className="absolute bottom-6 left-6 right-6 animate-fade-in-up motion-reduce:animate-none sm:bottom-8 sm:left-8 sm:right-8">
+            <h1 className="line-clamp-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
               {route.name ?? 'Unnamed Route'}
             </h1>
             {route.contributor && (
@@ -149,7 +154,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
 
         {/* Stats Bar */}
         <section className="border-b border-neutral-800 bg-neutral-900">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-6 py-4 sm:gap-6 sm:px-8">
+          <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 px-6 py-4 sm:grid-cols-3 sm:gap-6 sm:px-8 md:grid-cols-6">
             <StatItem label="Distance" value={formatDistance(route.distanceM)} />
             {route.elevationGainM != null && (
               <StatItem label="Climbing" value={formatElevation(route.elevationGainM)} />
@@ -162,7 +167,8 @@ export default async function RouteDetailPage({ params }: PageProps) {
             )}
             <StatItem
               label="Rating"
-              value={route.ratingAvg != null ? `${route.ratingAvg.toFixed(1)} · ${route.ratingCount} reviews` : 'Not yet rated'}
+              value={route.ratingAvg != null ? `${route.ratingAvg.toFixed(1)} / 5` : '—'}
+              detail={route.ratingCount ? `${route.ratingCount} reviews` : undefined}
             />
             <StatItem label="Ride Time" value={formatRideTime(route.distanceM, route.surfaceType)} />
           </div>
@@ -184,39 +190,34 @@ export default async function RouteDetailPage({ params }: PageProps) {
             )}
           </section>
 
-          {/* Badges */}
-          <div className="mb-8 flex flex-wrap gap-2">
-            {route.isMotovaultPick && (
-              <span className="inline-flex items-center rounded-full bg-signature-500/20 px-3 py-1 text-sm font-medium text-signature-300">
+          {/* Badges — Change 5: bg-signature-500/20 → /30 for sunlight; Change 6: pulse-once delight */}
+          {route.isMotovaultPick && (
+            <div className="mb-8">
+              <span className="inline-flex animate-pulse-once items-center rounded-full bg-signature-500/30 px-3 py-1 text-sm font-medium text-signature-300 motion-reduce:animate-none">
                 Editor's Pick
               </span>
-            )}
-            {route.surfaceType && (
-              <span className="inline-flex items-center rounded-full bg-primary-500/20 px-3 py-1 text-sm font-medium text-primary-200">
-                {formatSurfaceType(route.surfaceType)}
-              </span>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons — Change 4: GPU transitions; Change 7: hover lift on primary */}
           <section className="flex flex-wrap gap-4">
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-neutral-50 transition-colors hover:bg-primary-500 active:scale-95 active:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-neutral-50 transition-[transform,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary-500 active:scale-95 active:bg-primary-700 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <DownloadIcon />
               Download GPX
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,opacity] duration-200 ease-out hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <BookmarkIcon />
               Save Route
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,opacity] duration-200 ease-out hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <ShareIcon />
               Share Route
@@ -228,11 +229,13 @@ export default async function RouteDetailPage({ params }: PageProps) {
   );
 }
 
-function StatItem({ label, value }: { label: string; value: string }) {
+{/* Change 1: neutral-300 → neutral-200 for sunlight contrast; Change 8: detail sub-label */}
+function StatItem({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-sm font-medium uppercase tracking-wider text-neutral-300">{label}</span>
+      <span className="text-sm font-medium uppercase tracking-wider text-neutral-200">{label}</span>
       <span className="text-xl font-bold text-neutral-50">{value}</span>
+      {detail && <span className="text-xs text-neutral-400">{detail}</span>}
     </div>
   );
 }
