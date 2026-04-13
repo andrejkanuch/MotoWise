@@ -26,6 +26,7 @@ export interface QueueRow {
   post_results: unknown;
   story_results: unknown;
   error: string | null;
+  source: string | null; // 'manual' | 'gemini-autodraft' | null (migration 00090)
   created_at: string;
   updated_at: string;
 }
@@ -126,4 +127,90 @@ export async function markFailed(env: Env, id: string, error: string): Promise<v
       body: JSON.stringify({ status: 'ready' }),
     });
   }
+}
+
+/**
+ * Return the `angle` strings from rows scheduled within the last N days
+ * (any status). Used by the Gemini drafter to avoid repeating recent
+ * themes when the queue is empty and a fresh post needs to be drafted.
+ */
+export async function getRecentAngles(env: Env, days = 5): Promise<string[]> {
+  const cutoff = new Date();
+  cutoff.setUTCDate(cutoff.getUTCDate() - days);
+  const cutoffDate = cutoff.toISOString().slice(0, 10);
+
+  const url =
+    `${env.SUPABASE_URL}/rest/v1/social_post_queue` +
+    `?select=angle` +
+    `&scheduled_for=gte.${cutoffDate}` +
+    `&order=scheduled_for.desc`;
+
+  const res = await fetch(url, { headers: headers(env) });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`getRecentAngles failed (${res.status}): ${body}`);
+  }
+  const rows = (await res.json()) as Array<{ angle: string | null }>;
+  // Dedupe while preserving order — the most recent instance of each angle wins.
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const row of rows) {
+    if (row.angle && !seen.has(row.angle)) {
+      seen.add(row.angle);
+      result.push(row.angle);
+    }
+  }
+  return result;
+}
+
+/**
+ * Insert a Gemini-drafted row into social_post_queue with status='ready'
+ * and source='gemini-autodraft'. Returns the inserted row id.
+ *
+ * Uses `Prefer: return=headers-only` so PostgREST sends back the id via
+ * the `Location` header without transferring the full row body. Cheaper
+ * than return=representation for a single-id read.
+ *
+ * The row is inserted as 'ready' so the very next `claim_next_social_post`
+ * call can atomically pop it — keeping attempts/last_attempt_at on the
+ * same canonical update path as a manually-seeded row.
+ */
+export async function insertDraftedRow(
+  env: Env,
+  slot: SlotName,
+  draft: { angle: string; caption: string; postPrompt: string; storyPrompt: string },
+): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+  const url = `${env.SUPABASE_URL}/rest/v1/social_post_queue`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { ...headers(env), Prefer: 'return=headers-only' },
+    body: JSON.stringify({
+      slot,
+      scheduled_for: today,
+      angle: draft.angle,
+      caption: draft.caption,
+      post_prompt: draft.postPrompt,
+      story_prompt: draft.storyPrompt,
+      status: 'ready',
+      source: 'gemini-autodraft',
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`insertDraftedRow failed (${res.status}): ${body}`);
+  }
+
+  // PostgREST sets Location: /social_post_queue?id=eq.<uuid>
+  const location = res.headers.get('Location') ?? res.headers.get('location');
+  if (!location) {
+    throw new Error('insertDraftedRow: no Location header in response');
+  }
+  const match = location.match(/id=eq\.([0-9a-f-]+)/i);
+  if (!match) {
+    throw new Error(`insertDraftedRow: could not parse id from Location: ${location}`);
+  }
+  return match[1];
 }

@@ -6,9 +6,10 @@
  *
  * HTTP endpoints (all require X-Auth-Key: $WORKER_AUTH_KEY):
  *   GET  /health          — health check
- *   POST /publish-post    — publish photo to IG + FB
- *   POST /publish-story   — publish story to IG + FB
- *   POST /generate-image  — generate image via Gemini
+ *   POST /publish-post     — publish photo to IG + FB
+ *   POST /publish-carousel — publish multi-image album (2–10 slides) to IG + FB
+ *   POST /publish-story    — publish story to IG + FB
+ *   POST /generate-image   — generate image via Gemini
  *
  * Cron triggers (defined in wrangler.toml):
  *   0 14 * * *   — afternoon slot
@@ -17,14 +18,17 @@
  *
  * Both entrypoints share the same core functions in publish.ts.
  */
+import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   type AspectRatio,
   generateImage,
   type Platform,
+  publishCarousel,
   publishPost,
   publishStory,
 } from './publish';
+import { getRecentAngles, type SlotName } from './queue';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
 
 export default {
@@ -54,6 +58,16 @@ export default {
           return json(result);
         }
 
+        case '/publish-carousel': {
+          const body = (await request.json()) as {
+            images_base64: string[];
+            caption: string;
+            platform?: Platform;
+          };
+          const result = await publishCarousel(env, body);
+          return json(result);
+        }
+
         case '/publish-story': {
           const body = (await request.json()) as {
             image_base64: string;
@@ -78,7 +92,13 @@ export default {
           // the next queued row, generates images, publishes, marks done.
           // Useful for retries and end-to-end testing without waiting for the
           // next cron tick.
+          //
+          // Optional ?dry-run=1 generates a Gemini draft for the slot WITHOUT
+          // inserting, claiming, or publishing. Returns the drafted payload
+          // so prompts can be tuned against live API responses without
+          // burning Meta posts. Zero-cost smoke test.
           const slot = url.searchParams.get('slot');
+          const dryRun = url.searchParams.get('dry-run') === '1';
           const cron = Object.entries(CRON_TO_SLOT).find(([, s]) => s === slot)?.[0];
           if (!cron) {
             return json(
@@ -87,6 +107,16 @@ export default {
               },
               400,
             );
+          }
+          if (dryRun) {
+            const recentAngles = await getRecentAngles(env, 5);
+            const draft = await draftPost(env, slot as SlotName, recentAngles);
+            return json({
+              dry_run: true,
+              slot,
+              recent_angles_avoided: recentAngles,
+              draft,
+            });
           }
           await runScheduledPost(env, cron);
           return json({ ok: true, slot, cron });

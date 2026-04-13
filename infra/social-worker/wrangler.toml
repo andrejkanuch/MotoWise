@@ -20,6 +20,16 @@ crons = [
 [observability]
 enabled = true
 
+# Bundle markdown files as Text modules so src/content-references.ts can
+# import brand-voice reference docs at build time via `import md from "../../../path.md"`.
+# Wrangler's default loaders do NOT cover .md (only .txt/.html/.sql/.bin/.wasm).
+# fallthrough=true preserves the default rules alongside this one.
+# https://developers.cloudflare.com/workers/wrangler/configuration/#bundling
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
 # Secrets (set via `npx wrangler secret put <NAME>`, never commit):
 #   META_API_KEY
 #   META_PAGE_ID
