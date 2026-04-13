@@ -9,8 +9,12 @@
  * Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars.
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { type SupabaseClient, createClient } from '@supabase/supabase-js';
 import slugify from 'slugify';
+
+// Untyped client — this script runs standalone without database.types.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type UntypedClient = SupabaseClient<Record<string, unknown>>;
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const BATCH_SIZE = 100;
@@ -90,7 +94,7 @@ async function main() {
 
         // Find nearest city in places table
         // biome-ignore lint/suspicious/noExplicitAny: script uses untyped supabase client
-        const place = await findNearestPlace(supabase as any, route.lat, route.lng);
+        const place = await findNearestPlace(supabase as unknown as UntypedClient, route.lat, route.lng);
 
         const countryCode = place?.country_code ?? null;
         const regionCode = place?.region_code ?? null;
@@ -104,7 +108,7 @@ async function main() {
 
         // Resolve collisions within (country_code, region_code)
         const finalSlug = await resolveSlugCollision(
-          supabase as any,
+          supabase as unknown as UntypedClient,
           baseSlug,
           countryCode,
           regionCode,
@@ -168,13 +172,13 @@ async function main() {
  * Tries city first, then region, then country.
  */
 async function findNearestPlace(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedClient,
   lat: number,
   lng: number,
 ): Promise<PlaceRow | null> {
   for (const kind of ['city', 'region', 'country'] as const) {
-    // biome-ignore lint/suspicious/noExplicitAny: RPC params not typed without database.types.ts
-    const { data, error } = await (supabase.rpc as any)('find_nearest_place', {
+    // @ts-expect-error — RPC params not typed without database.types.ts in standalone script
+    const { data, error } = await supabase.rpc('find_nearest_place', {
       p_lat: lat,
       p_lng: lng,
       p_kind: kind,
@@ -198,7 +202,7 @@ async function findNearestPlace(
  * append -2, -3, etc. until unique.
  */
 async function resolveSlugCollision(
-  supabase: ReturnType<typeof createClient>,
+  supabase: UntypedClient,
   baseSlug: string,
   countryCode: string | null,
   regionCode: string | null,
