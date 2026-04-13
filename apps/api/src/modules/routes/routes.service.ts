@@ -1,3 +1,4 @@
+import { GPX_EXPORT_LIMITS } from '@motovault/types';
 import {
   BadRequestException,
   ForbiddenException,
@@ -11,6 +12,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
+import type { GPXExportError, GPXExportSuccess } from './dto/gpx-export.dto';
 import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 
 /** Row shape from routes + users join */
@@ -354,6 +356,123 @@ export class RoutesService {
     const gpx = this.buildGpxXml(routeName, croppedWaypoints);
 
     return { gpx, filename: `${sanitizedName}-motovault.gpx` };
+  }
+
+  // ==========================================
+  // GPX Export with Entitlement
+  // ==========================================
+
+  async exportRouteGPXWithEntitlement(
+    userId: string,
+    routeId: string,
+  ): Promise<GPXExportSuccess | GPXExportError> {
+    // 1. Check entitlement
+    const entitlementCheck = await this.checkGpxEntitlement(userId);
+    if (!entitlementCheck.allowed) {
+      return {
+        code: 'QUOTA_EXCEEDED',
+        reason: entitlementCheck.reason,
+        quotaRemaining: 0,
+        upgradeUrl: 'https://motovault.app/upgrade',
+      };
+    }
+
+    // 2. Generate GPX (reuse existing logic)
+    const { gpx, filename } = await this.exportRouteGPX(routeId);
+
+    // 3. Upload to Supabase Storage
+    const storagePath = `gpx-exports/${userId}/${routeId}/${filename}`;
+    const { error: uploadError } = await this.supabaseAdmin.storage
+      .from('route-exports')
+      .upload(storagePath, Buffer.from(gpx, 'utf-8'), {
+        contentType: 'application/gpx+xml',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      this.logger.error(`GPX upload failed: ${uploadError.message}`);
+      throw new InternalServerErrorException('Failed to upload GPX file');
+    }
+
+    // 4. Get signed URL (valid for 1 hour)
+    const { data: signedData, error: signError } = await this.supabaseAdmin.storage
+      .from('route-exports')
+      .createSignedUrl(storagePath, 3600);
+
+    if (signError || !signedData?.signedUrl) {
+      this.logger.error(`GPX signed URL failed: ${signError?.message}`);
+      throw new InternalServerErrorException('Failed to generate download URL');
+    }
+
+    // 5. Record quota consumption
+    await this.consumeGpxQuota(userId, routeId);
+
+    return {
+      fileUrl: signedData.signedUrl,
+      fileName: filename,
+      message: `GPX export ready. ${entitlementCheck.remaining !== undefined ? `${entitlementCheck.remaining - 1} exports remaining this month.` : 'Unlimited exports with Pro.'}`,
+    };
+  }
+
+  private async checkGpxEntitlement(
+    userId: string,
+  ): Promise<{ allowed: boolean; reason: string; remaining?: number }> {
+    // Look up subscription tier
+    const { data: userData } = await this.supabaseAdmin
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+
+    if (tier === 'pro') {
+      return { allowed: true, reason: 'Pro tier — unlimited exports' };
+    }
+
+    // Count this month's exports for free tier
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.supabaseAdmin
+      .from('user_gating_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('feature', 'DOWNLOAD_GPX')
+      .gte('created_at', monthStart.toISOString());
+
+    if (error) {
+      this.logger.error('Failed to check GPX export quota', error);
+      // Fail closed — deny access when we can't verify quota
+      return { allowed: false, reason: 'Unable to verify export quota. Please try again.' };
+    }
+
+    const used = count ?? 0;
+    const limit = GPX_EXPORT_LIMITS.FREE_MONTHLY_EXPORTS;
+
+    if (used >= limit) {
+      return {
+        allowed: false,
+        reason: `Free plan allows ${limit} GPX exports per month. Upgrade to Pro for unlimited exports.`,
+        remaining: 0,
+      };
+    }
+
+    return { allowed: true, reason: 'Within free tier quota', remaining: limit - used };
+  }
+
+  private async consumeGpxQuota(userId: string, routeId: string): Promise<void> {
+    const { error } = await this.supabaseAdmin.from('user_gating_events').insert({
+      user_id: userId,
+      feature: 'DOWNLOAD_GPX',
+      route_id: routeId,
+    });
+
+    if (error) {
+      this.logger.error(`Failed to record GPX quota consumption: ${error.message}`);
+      // Non-fatal — the user already got the file, just log and continue
+    }
   }
 
   // --- Private helpers ---

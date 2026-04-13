@@ -14,6 +14,11 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
+import {
+  GPXExportError,
+  GPXExportResult,
+  GPXExportSuccess,
+} from './dto/gpx-export.dto';
 import { ShareRideToDiscoverInput } from './dto/share-ride-to-discover.input';
 import { Route, RouteConnection } from './models/route.model';
 import { RouteReview, RouteReviewConnection } from './models/route-review.model';
@@ -108,6 +113,19 @@ export class RoutesResolver {
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
   ): Promise<boolean> {
     return this.routesService.unsaveRoute(user.id, routeId);
+  }
+
+  // ==========================================
+  // GPX Export
+  // ==========================================
+
+  @Mutation(() => GPXExportResult)
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
+  async exportRouteGPX(
+    @CurrentUser() user: AuthUser,
+    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
+  ): Promise<GPXExportSuccess | GPXExportError> {
+    return this.routesService.exportRouteGPXWithEntitlement(user.id, routeId);
   }
 
   // ==========================================

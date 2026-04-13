@@ -9,12 +9,20 @@ export const FREE_TIER_LIMITS = {
   MAX_MILEAGE: 999999,
 } as const;
 
+export const GPX_EXPORT_LIMITS = {
+  /** Free-tier users: GPX exports allowed per month */
+  FREE_MONTHLY_EXPORTS: 3,
+  /** Pro-tier users: unlimited (use -1 sentinel) */
+  PRO_MONTHLY_EXPORTS: -1,
+} as const;
+
 export const PRO_FEATURES = {
   UNLIMITED_BIKES: 'unlimited_bikes',
   UNLIMITED_ARTICLES: 'unlimited_articles',
   FULL_AI_DIAGNOSTICS: 'full_ai_diagnostics',
   MAINTENANCE_REMINDERS: 'maintenance_reminders',
   PDF_EXPORT: 'pdf_export',
+  GPX_EXPORT: 'gpx_export',
 } as const;
 
 export type ProFeature = (typeof PRO_FEATURES)[keyof typeof PRO_FEATURES];
