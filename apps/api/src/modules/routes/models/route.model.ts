@@ -91,6 +91,7 @@ export class Route {
 
   @Field({ nullable: true })
   city?: string;
+<<<<<<< HEAD
 =======
   @Field({ nullable: true, description: 'ISO 3166-1 alpha-2 country code' })
   countryCode?: string;
@@ -107,6 +108,8 @@ export class Route {
   @Field({ nullable: true, description: 'Region slug for URL building' })
   regionSlug?: string;
 >>>>>>> feat/mot-161-region-pages
+=======
+>>>>>>> feat/mot-195-198-unit-tests
 }
 
 @ObjectType()
