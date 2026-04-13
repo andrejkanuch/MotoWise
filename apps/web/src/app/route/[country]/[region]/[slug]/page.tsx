@@ -126,7 +126,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
 
       <main className="min-h-screen bg-neutral-950 text-neutral-50">
         {/* Hero Section */}
-        <section className="relative h-64 w-full overflow-hidden sm:h-80 md:h-96" aria-label="Route hero">
+        <section className="relative h-80 w-full overflow-hidden sm:h-[28rem] md:h-[32rem]" aria-label="Route hero">
           {/* Change 2: hero entrance — GPU-composited scale animation */}
           <div
             className="absolute inset-0 animate-hero-scale bg-gradient-to-br from-primary-900 via-primary-800 to-primary-600 motion-reduce:animate-none"
@@ -138,7 +138,7 @@ export default async function RouteDetailPage({ params }: PageProps) {
           />
           {/* Change 3: hero text fade-in-up entrance */}
           <div className="absolute bottom-6 left-6 right-6 animate-fade-in-up motion-reduce:animate-none sm:bottom-8 sm:left-8 sm:right-8">
-            <h1 className="line-clamp-3 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+            <h1 className="line-clamp-3 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
               {route.name ?? 'Unnamed Route'}
             </h1>
             {route.contributor && (
@@ -203,21 +203,21 @@ export default async function RouteDetailPage({ params }: PageProps) {
           <section className="flex flex-wrap gap-4">
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-neutral-50 transition-[transform,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:bg-primary-500 active:scale-95 active:bg-primary-700 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-neutral-50 shadow-[0_0_12px_rgba(var(--color-primary-600),0.3)] transition-[transform,background-color,box-shadow] duration-200 ease-[var(--ease-out-quart)] hover:-translate-y-0.5 hover:bg-primary-500 hover:shadow-[0_0_20px_rgba(var(--color-primary-500),0.4)] active:scale-95 active:bg-primary-700 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <DownloadIcon />
               Download GPX
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,opacity] duration-200 ease-out hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,background-color] duration-200 ease-[var(--ease-out-quart)] hover:-translate-y-0.5 hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <BookmarkIcon />
               Save Route
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,opacity] duration-200 ease-out hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-[transform,background-color] duration-200 ease-[var(--ease-out-quart)] hover:-translate-y-0.5 hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 motion-reduce:transform-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <ShareIcon />
               Share Route
@@ -233,8 +233,8 @@ export default async function RouteDetailPage({ params }: PageProps) {
 function StatItem({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
     <div className="flex flex-col">
-      <span className="text-sm font-medium uppercase tracking-wider text-neutral-200">{label}</span>
-      <span className="text-xl font-bold text-neutral-50">{value}</span>
+      <span className="text-sm font-medium uppercase tracking-wide text-neutral-200">{label}</span>
+      <span className="text-2xl font-extrabold tabular-nums text-neutral-50">{value}</span>
       {detail && <span className="text-xs text-neutral-400">{detail}</span>}
     </div>
   );

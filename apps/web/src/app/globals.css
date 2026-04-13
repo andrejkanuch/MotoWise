@@ -678,7 +678,7 @@
   }
 }
 .animate-pulse-once {
-  animation: pulse-once 0.5s var(--ease-out-quart) 0.3s both;
+  animation: pulse-once 0.5s var(--ease-out-expo) 0.3s both;
 }
 
 /* Paint containment for below-fold sections — avoids layout/paint work until visible */
