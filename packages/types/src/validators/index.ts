@@ -5,6 +5,7 @@ export * from './content-generation-log';
 export * from './diagnostic';
 export * from './expense';
 export * from './fuel-log';
+export * from './fuel-stops';
 export * from './group-ride';
 export * from './locale';
 export * from './maintenance-task';
