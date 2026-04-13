@@ -26,4 +26,5 @@ export * from './validators/route-filters';
 export * from './validators/share-link';
 export * from './validators/trip';
 export * from './validators/user';
+export * from './validators/paywall';
 export * from './validators/user-preferences';
