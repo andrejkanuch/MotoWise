@@ -14,4 +14,5 @@ export * from './ride';
 export * from './route';
 export * from './route-review';
 export * from './trip';
+export * from './surface-report';
 export * from './user';
