@@ -33,6 +33,13 @@ export const MAX_DIAGNOSTIC_IMAGE_BYTES = 5 * 1024 * 1024;
 /** Maximum base64 string length for diagnostic uploads (~6.7 MB base64 = ~5 MB decoded) */
 export const MAX_DIAGNOSTIC_IMAGE_BASE64_LENGTH = Math.ceil(MAX_DIAGNOSTIC_IMAGE_BYTES / 3) * 4;
 
+export const GPX_EXPORT_LIMITS = {
+  /** Maximum GPX exports per month for free-tier users */
+  FREE_MONTHLY_EXPORTS: 3,
+  /** Unlimited GPX exports for Pro-tier users (-1 = unlimited) */
+  PRO_MONTHLY_EXPORTS: -1,
+} as const;
+
 export const AI_BUDGET_LIMITS = {
   /** Maximum AI generations per day for free-tier users */
   FREE_DAILY_GENERATIONS: 50,
