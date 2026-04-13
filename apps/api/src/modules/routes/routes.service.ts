@@ -66,6 +66,24 @@ export class RoutesService {
   ): Promise<RouteConnection> {
     const limit = Math.min(first, 50);
 
+    // Surface recency pre-filter: fetch route IDs that have condition reports within N days
+    let surfaceRecencyRouteIds: string[] | undefined;
+    if (filter?.surfaceRecency != null && filter.surfaceRecency >= 1) {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - filter.surfaceRecency);
+      const { data: recentReviews } = await this.supabase
+        .from('route_reviews')
+        .select('route_id')
+        .gte('created_at', cutoffDate.toISOString())
+        .not('condition_tags', 'eq', '[]');
+      if (recentReviews && recentReviews.length > 0) {
+        surfaceRecencyRouteIds = [...new Set(recentReviews.map((r) => r.route_id))];
+      } else {
+        // No routes match — return empty result immediately
+        return { edges: [], pageInfo: { hasNextPage: false } };
+      }
+    }
+
     // Use raw SQL via RPC for spatial queries since Supabase client doesn't support PostGIS natively
     // For now, use the standard client with basic filters; PostGIS spatial filtering done via RPC
     let query = this.supabase
@@ -125,6 +143,15 @@ export class RoutesService {
         }
       }
 
+      // Twist score filter (maps 1-10 score to curvature_index thresholds)
+      // curvature_index = degrees of heading change per km
+      // Score 1 = any (>=0), 7 = curvy (>=50), 10 = extreme (>=120)
+      if (filter.minTwistScore != null && filter.minTwistScore >= 1 && filter.minTwistScore <= 10) {
+        // Linear mapping: score 1 -> 0 deg/km, score 10 -> ~120 deg/km
+        const minCurvature = ((filter.minTwistScore - 1) / 9) * 120;
+        query = query.gte('curvature_index', minCurvature);
+      }
+
       // Elevation ranges
       if (filter.elevationRanges && filter.elevationRanges.length === 1) {
         const e = filter.elevationRanges[0];
@@ -133,6 +160,11 @@ export class RoutesService {
           query = query.gte('elevation_gain_m', 200).lt('elevation_gain_m', 800);
         else if (e === 'mountainous') query = query.gte('elevation_gain_m', 800);
       }
+    }
+
+    // Apply surface recency pre-filter
+    if (surfaceRecencyRouteIds) {
+      query = query.in('id', surfaceRecencyRouteIds);
     }
 
     // Cursor pagination
