@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
+    "test:e2e": "playwright test",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@motovault/tsconfig": "workspace:*",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.0.0",
     "@types/react": "~19.2.0",
     "@types/react-dom": "~19.2.0",
