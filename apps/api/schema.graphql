@@ -1049,11 +1049,7 @@ type Route {
   polyline: String!
   ratingAvg: Float
   ratingCount: Int!
-<<<<<<< HEAD
   regionCode: String
-=======
-  regionSlug: String
->>>>>>> feat/mot-159-ssr-detail-page
   slug: String
   startLat: Float
   startLng: Float
