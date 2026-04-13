@@ -43,4 +43,10 @@ export class DiscoverRoutesFilterInput {
 
   @Field({ nullable: true })
   bikeCategory?: string;
+
+  @Field({ nullable: true, description: 'ISO 3166-1 alpha-2 country code' })
+  countryCode?: string;
+
+  @Field({ nullable: true, description: 'Region slug (kebab-case)' })
+  regionCode?: string;
 }

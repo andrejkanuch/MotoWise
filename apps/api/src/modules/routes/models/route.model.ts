@@ -80,6 +80,7 @@ export class Route {
   @Field(() => Float, { nullable: true })
   startLng?: number;
 
+<<<<<<< HEAD
   @Field({ nullable: true })
   slug?: string;
 
@@ -95,6 +96,22 @@ export class Route {
 =======
   regionSlug?: string;
 >>>>>>> feat/mot-159-ssr-detail-page
+=======
+  @Field({ nullable: true, description: 'ISO 3166-1 alpha-2 country code' })
+  countryCode?: string;
+
+  @Field({ nullable: true, description: 'Region slug (kebab-case)' })
+  regionCode?: string;
+
+  @Field({ nullable: true, description: 'URL-safe route slug' })
+  slug?: string;
+
+  @Field({ nullable: true, description: 'Human-readable display name' })
+  displayName?: string;
+
+  @Field({ nullable: true, description: 'Region slug for URL building' })
+  regionSlug?: string;
+>>>>>>> feat/mot-161-region-pages
 }
 
 @ObjectType()

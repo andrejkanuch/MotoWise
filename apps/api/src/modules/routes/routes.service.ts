@@ -32,6 +32,11 @@ interface RouteRow {
   status: string;
   created_at: string;
   contributor_user_id: string;
+  country_code?: string | null;
+  region_code?: string | null;
+  region_slug?: string | null;
+  slug?: string | null;
+  display_name?: string | null;
   start_lat?: number;
   start_lng?: number;
   slug?: string | null;
@@ -84,6 +89,14 @@ export class RoutesService {
 
     // Apply basic filters
     if (filter) {
+      // Country/region filters
+      if (filter.countryCode) {
+        query = query.eq('country_code', filter.countryCode.toUpperCase());
+      }
+      if (filter.regionCode) {
+        query = query.eq('region_slug', filter.regionCode);
+      }
+
       // Surface type filter
       if (filter.surfaceTypes && filter.surfaceTypes.length > 0) {
         query = query.in('surface_type', filter.surfaceTypes);

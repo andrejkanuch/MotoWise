@@ -43,6 +43,7 @@ const pages = [
   '/compare/motovault-vs-motoscan',
   '/press',
   '/about',
+  '/explore',
 ];
 
 function getLocalizedUrl(locale: string, path: string): string {
@@ -78,6 +79,7 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare/motovault-vs-motoscan': '2026-04-11',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
+  '/explore': '2026-04-13',
 };
 
 function getPageImages(path: string): string[] {
