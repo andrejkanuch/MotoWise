@@ -33,6 +33,10 @@ interface RouteRow {
   contributor_user_id: string;
   start_lat?: number;
   start_lng?: number;
+  slug?: string | null;
+  country_code?: string | null;
+  region_code?: string | null;
+  city?: string | null;
   users: {
     id: string;
     display_name: string | null;
@@ -71,7 +75,7 @@ export class RoutesService {
     let query = this.supabase
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('status', 'published')
       .order('created_at', { ascending: false })
@@ -172,6 +176,22 @@ export class RoutesService {
         endCursor: lastEdge?.cursor,
       },
     };
+  }
+
+  async findBySlug(country: string, region: string, slug: string): Promise<Route | null> {
+    const { data, error } = await this.supabase
+      .from('routes')
+      .select(
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+      )
+      .eq('country_code', country)
+      .eq('region_code', region)
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error || !data) return null;
+    return this.mapRouteRow(data as unknown as RouteRow);
   }
 
   async routeDetail(routeId: string): Promise<Route> {
@@ -385,6 +405,10 @@ export class RoutesService {
       contributor,
       startLat: row.start_lat ?? undefined,
       startLng: row.start_lng ?? undefined,
+      slug: row.slug ?? undefined,
+      countryCode: row.country_code ?? undefined,
+      regionCode: row.region_code ?? undefined,
+      city: row.city ?? undefined,
     };
   }
 

@@ -1356,6 +1356,7 @@ export type Query = {
   ride: Ride;
   rideFeed: FeedRideConnection;
   rideWaypoints: Array<Waypoint>;
+  routeBySlug?: Maybe<Route>;
   routeDetail: Route;
   searchArticles: ArticleConnection;
   sharedBikeHistory: SharedBikeHistory;
@@ -1550,6 +1551,13 @@ export type QueryRideWaypointsArgs = {
 };
 
 
+export type QueryRouteBySlugArgs = {
+  country: Scalars['String']['input'];
+  region: Scalars['String']['input'];
+  slug: Scalars['String']['input'];
+};
+
+
 export type QueryRouteDetailArgs = {
   routeId: Scalars['ID']['input'];
 };
@@ -1693,8 +1701,10 @@ export type RideSummary = {
 
 export type Route = {
   __typename?: 'Route';
+  city?: Maybe<Scalars['String']['output']>;
   commentCount: Scalars['Int']['output'];
   contributor: RouteContributor;
+  countryCode?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
   curvatureIndex?: Maybe<Scalars['Float']['output']>;
   description?: Maybe<Scalars['String']['output']>;
@@ -1707,6 +1717,8 @@ export type Route = {
   polyline: Scalars['String']['output'];
   ratingAvg?: Maybe<Scalars['Float']['output']>;
   ratingCount: Scalars['Int']['output'];
+  regionCode?: Maybe<Scalars['String']['output']>;
+  slug?: Maybe<Scalars['String']['output']>;
   startLat?: Maybe<Scalars['Float']['output']>;
   startLng?: Maybe<Scalars['Float']['output']>;
   status: Scalars['String']['output'];
@@ -1926,7 +1938,6 @@ export type Trip = {
   organiser: TripOrganiser;
   participantCount: Scalars['Int']['output'];
   participants?: Maybe<Array<TripParticipant>>;
-  shareLink?: Maybe<TripShareLink>;
   startDate: Scalars['String']['output'];
   status: Scalars['String']['output'];
   title: Scalars['String']['output'];
@@ -1979,12 +1990,6 @@ export type TripParticipant = {
   publicUsername?: Maybe<Scalars['String']['output']>;
   role: Scalars['String']['output'];
   status: Scalars['String']['output'];
-};
-
-export type TripShareLink = {
-  __typename?: 'TripShareLink';
-  token: Scalars['String']['output'];
-  url: Scalars['String']['output'];
 };
 
 export type TripWaypoint = {

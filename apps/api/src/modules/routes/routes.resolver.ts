@@ -40,6 +40,16 @@ export class RoutesResolver {
     return this.routesService.discoverRoutes(filter, first ?? 20, after);
   }
 
+  @Query(() => Route, { nullable: true })
+  @Public()
+  async routeBySlug(
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('slug') slug: string,
+  ): Promise<Route | null> {
+    return this.routesService.findBySlug(country, region, slug);
+  }
+
   @Query(() => Route)
   @Public()
   async routeDetail(
