@@ -124,7 +124,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 // community (feed/garage/profile), auth, and share-link routes which are
 // user-specific or token-scoped.
 const MARKETING_CACHEABLE_RE =
-  /^\/($|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
 
 function isMarketingCacheable(pathname: string): boolean {
   if (
@@ -327,9 +327,10 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
-    pathname.startsWith('/ride/')
+    pathname.startsWith('/ride/') ||
+    pathname.startsWith('/explore')
   ) {
-    // Auth + public community routes: skip locale processing
+    // Auth + public community routes + explore: skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing
