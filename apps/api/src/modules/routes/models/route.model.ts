@@ -70,6 +70,21 @@ export class Route {
 
   @Field(() => Float, { nullable: true })
   startLng?: number;
+
+  @Field({ nullable: true, description: 'ISO 3166-1 alpha-2 country code' })
+  countryCode?: string;
+
+  @Field({ nullable: true, description: 'Region slug (kebab-case)' })
+  regionCode?: string;
+
+  @Field({ nullable: true, description: 'URL-safe route slug' })
+  slug?: string;
+
+  @Field({ nullable: true, description: 'Human-readable display name' })
+  displayName?: string;
+
+  @Field({ nullable: true, description: 'Region slug for URL building' })
+  regionSlug?: string;
 }
 
 @ObjectType()

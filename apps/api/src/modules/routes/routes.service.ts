@@ -31,6 +31,11 @@ interface RouteRow {
   status: string;
   created_at: string;
   contributor_user_id: string;
+  country_code?: string | null;
+  region_code?: string | null;
+  region_slug?: string | null;
+  slug?: string | null;
+  display_name?: string | null;
   start_lat?: number;
   start_lng?: number;
   users: {
@@ -71,7 +76,7 @@ export class RoutesService {
     let query = this.supabase
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, country_code, region_code, region_slug, slug, display_name, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('status', 'published')
       .order('created_at', { ascending: false })
@@ -79,6 +84,14 @@ export class RoutesService {
 
     // Apply basic filters
     if (filter) {
+      // Country/region filters
+      if (filter.countryCode) {
+        query = query.eq('country_code', filter.countryCode.toUpperCase());
+      }
+      if (filter.regionCode) {
+        query = query.eq('region_slug', filter.regionCode);
+      }
+
       // Surface type filter
       if (filter.surfaceTypes && filter.surfaceTypes.length > 0) {
         query = query.in('surface_type', filter.surfaceTypes);
@@ -178,7 +191,7 @@ export class RoutesService {
     const { data, error } = await this.supabaseAdmin
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, country_code, region_code, region_slug, slug, display_name, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('id', routeId)
       .eq('status', 'published')
@@ -385,6 +398,11 @@ export class RoutesService {
       contributor,
       startLat: row.start_lat ?? undefined,
       startLng: row.start_lng ?? undefined,
+      countryCode: row.country_code ?? undefined,
+      regionCode: row.region_code ?? undefined,
+      regionSlug: row.region_slug ?? undefined,
+      slug: row.slug ?? undefined,
+      displayName: row.display_name ?? undefined,
     };
   }
 
