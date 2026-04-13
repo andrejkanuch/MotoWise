@@ -162,6 +162,19 @@ WAVE E ─┬─ MOT-188 (web checkout) ◄─ MOT-186, MOT-187
 └─────────────────────────────────────────────────┘
 ```
 
+## Research Corrections (from deepen-plan agents)
+
+1. **RevenueCat SDK**: Use `react-native-purchases` NOT `expo-revenue-cat` (doesn't exist). Requires dev client, not Expo Go.
+2. **RevenueCat webhooks**: Use Authorization header verification, NOT HMAC-SHA256. Respond within 60s or RC retries.
+3. **RevenueCat Web Billing**: `@revenuecat/purchases-js` is CLIENT-SIDE ONLY. Never import in API routes.
+4. **Mapbox GL JS v3**: Use `next/dynamic` with `ssr: false`. WebGL2 by default. CSP needs `'unsafe-inline'` for style-src.
+5. **@rnmapbox/maps**: Config plugin in `app.json`, needs `RNMAPBOX_MAPS_DOWNLOAD_TOKEN` env var for CocoaPods.
+6. **@gorhom/bottom-sheet v5**: `GestureHandlerRootView` must wrap root layout. Use `BottomSheetScrollView` inside sheets.
+7. **Expo Sharing**: Check `isAvailableAsync()` first. On web, must upload and share URL (local URI doesn't work).
+8. **Paywall timing**: Show after value moment (3rd ride, first diagnosis), NOT on launch. 23% of freemium conversions happen 6+ weeks post-install.
+9. **Pricing**: Weekly plans convert 7x > annual, but annual has higher LTV. Offer both, highlight annual.
+10. **Supabase sync**: Set `appUserID = auth.uid()` in `Purchases.configure()` so both systems share identity.
+
 ## Risk Analysis
 
 | Risk | Impact | Mitigation |
