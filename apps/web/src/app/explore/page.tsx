@@ -200,26 +200,14 @@ function RouteCard({ route, priority = false }: { route: RouteRow; priority?: bo
       href={`/route/${route.id}`}
       className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
-      {/* Photo placeholder — gradient simulating mountain road */}
+      {/* Route photo */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        <div
-          className="absolute inset-0 bg-gradient-to-br from-neutral-800 via-primary-950/40 to-neutral-900 transition-transform duration-500 group-hover:scale-105"
-          aria-hidden="true"
+        <img
+          src="/images/route-card-placeholder.jpg"
+          alt={route.name ?? 'Route'}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
         />
-        {/* Subtle road line decoration */}
-        <svg
-          className="absolute inset-0 h-full w-full opacity-[0.07]"
-          viewBox="0 0 400 300"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M0 280 C80 240 120 180 200 160 C280 140 320 100 400 40"
-            stroke="currentColor"
-            strokeWidth="3"
-            className="text-neutral-200"
-          />
-        </svg>
 
         {/* Save button overlay */}
         <button
@@ -417,16 +405,15 @@ export default async function ExplorePage() {
 
       {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden sm:min-h-[80vh]">
-        {/* Background — dramatic gradient simulating mountain road at golden hour */}
+        {/* Background — real hero photo with dark overlay */}
+        <img
+          src="/images/hero-explore.jpg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
         <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 120% 80% at 50% 20%, oklch(0.25 0.04 250) 0%, transparent 60%),
-              radial-gradient(ellipse 60% 40% at 80% 70%, oklch(0.20 0.06 40) 0%, transparent 50%),
-              oklch(0.08 0.01 250)
-            `,
-          }}
+          className="absolute inset-0 bg-neutral-950/50"
           aria-hidden="true"
         />
         {/* Subtle noise texture */}
