@@ -43,6 +43,8 @@ export const DiscoverRoutesFilterSchema = z.object({
   elevationRanges: z.array(ElevationRangeSchema).optional(),
   highlyRatedOnly: z.boolean().optional(),
   bikeCategory: z.string().optional(),
+  minTwistScore: z.number().int().min(1).max(10).optional(),
+  surfaceRecency: z.number().int().min(1).optional(),
 });
 
 export type DiscoverRoutesFilter = z.infer<typeof DiscoverRoutesFilterSchema>;

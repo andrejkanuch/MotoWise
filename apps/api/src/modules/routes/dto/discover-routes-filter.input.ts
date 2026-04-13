@@ -1,4 +1,4 @@
-import { Field, Float, InputType } from '@nestjs/graphql';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
 export class BoundsInput {
@@ -44,9 +44,9 @@ export class DiscoverRoutesFilterInput {
   @Field({ nullable: true })
   bikeCategory?: string;
 
-  @Field({ nullable: true, description: 'ISO 3166-1 alpha-2 country code' })
-  countryCode?: string;
+  @Field(() => Int, { nullable: true, description: 'Minimum twist score 1-10 (maps to curvature_index thresholds)' })
+  minTwistScore?: number;
 
-  @Field({ nullable: true, description: 'Region slug (kebab-case)' })
-  regionCode?: string;
+  @Field(() => Int, { nullable: true, description: 'Only routes with surface condition reports within the last N days' })
+  surfaceRecency?: number;
 }

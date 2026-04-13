@@ -1,227 +1,164 @@
 'use client';
 
-import { DIFFICULTY_LEVELS, type RouteFilters, SURFACE_TYPES } from '@motovault/types';
-import { useCallback, useMemo } from 'react';
-
-const DIFFICULTY_OPTIONS = [
-  { value: DIFFICULTY_LEVELS.EASY, label: 'Easy' },
-  { value: DIFFICULTY_LEVELS.MODERATE, label: 'Moderate' },
-  { value: DIFFICULTY_LEVELS.HARD, label: 'Hard' },
-  { value: DIFFICULTY_LEVELS.EXPERT, label: 'Expert' },
-] as const;
+import type { DiscoverRoutesFilter } from '@motovault/types/validators';
+import { useCallback, useState } from 'react';
+import { CurvyRoadsPreset } from './curvy-roads-preset';
 
 const SURFACE_OPTIONS = [
-  { value: SURFACE_TYPES.PAVED, label: 'Paved' },
-  { value: SURFACE_TYPES.MIXED, label: 'Mixed' },
-  { value: SURFACE_TYPES.OFF_ROAD, label: 'Off-road' },
+  { value: 'paved', label: 'Paved' },
+  { value: 'mixed', label: 'Mixed' },
+  { value: 'off-road', label: 'Off-road' },
 ] as const;
 
-type RouteFiltersSidebarProps = {
-  filters: RouteFilters;
-  onChangeFilters: (filters: RouteFilters) => void;
-};
+const LENGTH_OPTIONS = [
+  { value: 'under50', label: '< 50 km' },
+  { value: '50to100', label: '50-100 km' },
+  { value: '100to200', label: '100-200 km' },
+  { value: '200to500', label: '200-500 km' },
+  { value: 'over500', label: '500+ km' },
+] as const;
 
-export function RouteFiltersSidebar({ filters, onChangeFilters }: RouteFiltersSidebarProps) {
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (filters.minKm != null && filters.minKm > 0) count++;
-    if (filters.maxKm != null) count++;
-    if (filters.minElevationM != null && filters.minElevationM > 0) count++;
-    if (filters.maxElevationM != null) count++;
-    if (filters.difficulty?.length) count++;
-    if (filters.surface?.length) count++;
-    return count;
-  }, [filters]);
+const ELEVATION_OPTIONS = [
+  { value: 'flat', label: 'Flat' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'mountainous', label: 'Mountainous' },
+] as const;
 
-  const handleClearAll = useCallback(() => {
-    onChangeFilters({});
-  }, [onChangeFilters]);
+const SURFACE_RECENCY_OPTIONS = [
+  { value: undefined, label: 'Any time' },
+  { value: 7, label: 'Last 7 days' },
+  { value: 30, label: 'Last 30 days' },
+  { value: 90, label: 'Last 90 days' },
+] as const;
 
-  const update = useCallback(
-    (patch: Partial<RouteFilters>) => {
-      onChangeFilters({ ...filters, ...patch });
-    },
-    [filters, onChangeFilters],
-  );
+interface RouteFiltersProps {
+  filters: Partial<DiscoverRoutesFilter>;
+  onChange: (filters: Partial<DiscoverRoutesFilter>) => void;
+}
 
-  const toggleDifficulty = useCallback(
-    (value: (typeof DIFFICULTY_LEVELS)[keyof typeof DIFFICULTY_LEVELS]) => {
-      const current = filters.difficulty ?? [];
+export function RouteFilters({ filters, onChange }: RouteFiltersProps) {
+  const [twistScore, setTwistScore] = useState(filters.minTwistScore ?? 1);
+
+  const toggleArrayFilter = useCallback(
+    <K extends 'surfaceTypes' | 'lengthRanges' | 'elevationRanges'>(
+      key: K,
+      value: string,
+    ) => {
+      const current = (filters[key] as string[] | undefined) ?? [];
       const next = current.includes(value)
         ? current.filter((v) => v !== value)
         : [...current, value];
-      update({ difficulty: next.length > 0 ? next : undefined });
+      onChange({ ...filters, [key]: next.length > 0 ? next : undefined });
     },
-    [filters.difficulty, update],
+    [filters, onChange],
   );
 
-  const toggleSurface = useCallback(
-    (value: (typeof SURFACE_TYPES)[keyof typeof SURFACE_TYPES]) => {
-      const current = filters.surface ?? [];
-      const next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      update({ surface: next.length > 0 ? next : undefined });
+  const handleTwistScoreChange = useCallback(
+    (value: number) => {
+      setTwistScore(value);
+      onChange({
+        ...filters,
+        minTwistScore: value > 1 ? value : undefined,
+      });
     },
-    [filters.surface, update],
+    [filters, onChange],
   );
+
+  const handleCurvyPreset = useCallback(
+    (minTwistScore: number | undefined) => {
+      const score = minTwistScore ?? 1;
+      setTwistScore(score);
+      onChange({ ...filters, minTwistScore });
+    },
+    [filters, onChange],
+  );
+
+  const handleSurfaceRecency = useCallback(
+    (value: number | undefined) => {
+      onChange({ ...filters, surfaceRecency: value });
+    },
+    [filters, onChange],
+  );
+
+  const handleHighlyRated = useCallback(() => {
+    onChange({ ...filters, highlyRatedOnly: !filters.highlyRatedOnly || undefined });
+  }, [filters, onChange]);
+
+  const activeFilterCount = [
+    filters.surfaceTypes?.length ?? 0,
+    filters.lengthRanges?.length ?? 0,
+    filters.elevationRanges?.length ?? 0,
+    filters.highlyRatedOnly ? 1 : 0,
+    filters.minTwistScore ? 1 : 0,
+    filters.surfaceRecency ? 1 : 0,
+  ].reduce((sum, v) => sum + v, 0);
 
   return (
-    <aside className="sticky top-0 flex h-fit w-72 shrink-0 flex-col gap-6 rounded-xl border border-neutral-800 bg-neutral-950 p-5">
-      {/* Header */}
+    <aside className="flex flex-col gap-6 rounded-xl border border-neutral-800 bg-neutral-900/50 p-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-neutral-50">Filters</h2>
-          {activeFilterCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-600 px-1.5 text-xs font-medium text-white">
-              {activeFilterCount}
-            </span>
-          )}
-        </div>
+        <h3 className="text-sm font-semibold text-neutral-200">Filters</h3>
         {activeFilterCount > 0 && (
           <button
             type="button"
-            onClick={handleClearAll}
-            className="text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-200"
+            onClick={() => {
+              setTwistScore(1);
+              onChange({});
+            }}
+            className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
           >
-            Clear all
+            Clear all ({activeFilterCount})
           </button>
         )}
       </div>
 
-      {/* Length range */}
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Length (km)
-        </legend>
-        <div className="flex items-center gap-2">
-          <label className="sr-only" htmlFor="filter-min-km">
-            Minimum km
-          </label>
-          <input
-            id="filter-min-km"
-            type="number"
-            min={0}
-            max={500}
-            placeholder="0"
-            value={filters.minKm ?? ''}
-            onChange={(e) =>
-              update({
-                minKm: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-          <span className="text-xs text-neutral-500">to</span>
-          <label className="sr-only" htmlFor="filter-max-km">
-            Maximum km
-          </label>
-          <input
-            id="filter-max-km"
-            type="number"
-            min={0}
-            max={500}
-            placeholder="500"
-            value={filters.maxKm ?? ''}
-            onChange={(e) =>
-              update({
-                maxKm: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-        </div>
-      </fieldset>
+      {/* Quick preset */}
+      <CurvyRoadsPreset
+        active={filters.minTwistScore === 7}
+        onToggle={handleCurvyPreset}
+      />
 
-      {/* Elevation range */}
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Elevation gain (m)
-        </legend>
-        <div className="flex items-center gap-2">
-          <label className="sr-only" htmlFor="filter-min-elevation">
-            Minimum elevation
+      {/* Twist Score Slider */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <label htmlFor="twist-score" className="text-xs font-medium text-neutral-400">
+            Min. Twist Score
           </label>
-          <input
-            id="filter-min-elevation"
-            type="number"
-            min={0}
-            max={5000}
-            placeholder="0"
-            value={filters.minElevationM ?? ''}
-            onChange={(e) =>
-              update({
-                minElevationM: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
-          <span className="text-xs text-neutral-500">to</span>
-          <label className="sr-only" htmlFor="filter-max-elevation">
-            Maximum elevation
-          </label>
-          <input
-            id="filter-max-elevation"
-            type="number"
-            min={0}
-            max={5000}
-            placeholder="5000"
-            value={filters.maxElevationM ?? ''}
-            onChange={(e) =>
-              update({
-                maxElevationM: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-          />
+          <span className="text-xs font-mono text-neutral-500">
+            {twistScore === 1 ? 'Any' : `${twistScore}/10`}
+          </span>
         </div>
-      </fieldset>
-
-      {/* Difficulty chips */}
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Difficulty
-        </legend>
-        <div className="flex flex-wrap gap-2">
-          {DIFFICULTY_OPTIONS.map((opt) => {
-            const selected = filters.difficulty?.includes(opt.value) ?? false;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => toggleDifficulty(opt.value)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-neutral-950 ${
-                  selected
-                    ? 'bg-primary-600 text-white'
-                    : 'border border-neutral-700 bg-neutral-900 text-neutral-300 hover:border-neutral-500 hover:text-neutral-100'
-                }`}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+        <input
+          id="twist-score"
+          type="range"
+          min={1}
+          max={10}
+          step={1}
+          value={twistScore}
+          onChange={(e) => handleTwistScoreChange(Number(e.target.value))}
+          className="w-full accent-primary-500"
+        />
+        <div className="flex justify-between text-[10px] text-neutral-600">
+          <span>Straight</span>
+          <span>Twisty</span>
+          <span>Extreme</span>
         </div>
-      </fieldset>
+      </div>
 
-      {/* Surface chips */}
+      {/* Surface Type */}
       <fieldset className="flex flex-col gap-2">
-        <legend className="text-xs font-medium uppercase tracking-wider text-neutral-400">
-          Surface
-        </legend>
+        <legend className="text-xs font-medium text-neutral-400">Surface</legend>
         <div className="flex flex-wrap gap-2">
           {SURFACE_OPTIONS.map((opt) => {
-            const selected = filters.surface?.includes(opt.value) ?? false;
+            const isActive = filters.surfaceTypes?.includes(opt.value);
             return (
               <button
                 key={opt.value}
                 type="button"
-                aria-pressed={selected}
-                onClick={() => toggleSurface(opt.value)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-neutral-950 ${
-                  selected
-                    ? 'bg-primary-600 text-white'
-                    : 'border border-neutral-700 bg-neutral-900 text-neutral-300 hover:border-neutral-500 hover:text-neutral-100'
+                onClick={() => toggleArrayFilter('surfaceTypes', opt.value)}
+                className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'border-primary-500/50 bg-primary-500/10 text-primary-400'
+                    : 'border-neutral-700 text-neutral-500 hover:border-neutral-600 hover:text-neutral-400'
                 }`}
               >
                 {opt.label}
@@ -230,6 +167,98 @@ export function RouteFiltersSidebar({ filters, onChangeFilters }: RouteFiltersSi
           })}
         </div>
       </fieldset>
+
+      {/* Length */}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-xs font-medium text-neutral-400">Distance</legend>
+        <div className="flex flex-wrap gap-2">
+          {LENGTH_OPTIONS.map((opt) => {
+            const isActive = filters.lengthRanges?.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => toggleArrayFilter('lengthRanges', opt.value)}
+                className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'border-primary-500/50 bg-primary-500/10 text-primary-400'
+                    : 'border-neutral-700 text-neutral-500 hover:border-neutral-600 hover:text-neutral-400'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Elevation */}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-xs font-medium text-neutral-400">Elevation</legend>
+        <div className="flex flex-wrap gap-2">
+          {ELEVATION_OPTIONS.map((opt) => {
+            const isActive = filters.elevationRanges?.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => toggleArrayFilter('elevationRanges', opt.value)}
+                className={`rounded-md border px-2.5 py-1 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'border-primary-500/50 bg-primary-500/10 text-primary-400'
+                    : 'border-neutral-700 text-neutral-500 hover:border-neutral-600 hover:text-neutral-400'
+                }`}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {/* Surface Condition Recency */}
+      <div className="flex flex-col gap-2">
+        <label htmlFor="surface-recency" className="text-xs font-medium text-neutral-400">
+          Surface reports from
+        </label>
+        <select
+          id="surface-recency"
+          value={filters.surfaceRecency ?? ''}
+          onChange={(e) =>
+            handleSurfaceRecency(e.target.value ? Number(e.target.value) : undefined)
+          }
+          className="rounded-md border border-neutral-700 bg-neutral-800 px-2.5 py-1.5 text-xs text-neutral-300 outline-none transition-colors focus:border-primary-500"
+        >
+          {SURFACE_RECENCY_OPTIONS.map((opt) => (
+            <option key={opt.label} value={opt.value ?? ''}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Highly Rated */}
+      <button
+        type="button"
+        onClick={handleHighlyRated}
+        className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+          filters.highlyRatedOnly
+            ? 'border-warning-500/50 bg-warning-500/10 text-warning-500'
+            : 'border-neutral-700 text-neutral-500 hover:border-neutral-600 hover:text-neutral-400'
+        }`}
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <title>Star</title>
+          <path
+            d="M7 1l1.76 3.56L12.5 5.2l-2.75 2.68.65 3.78L7 9.84l-3.4 1.82.65-3.78L1.5 5.2l3.74-.64L7 1z"
+            fill={filters.highlyRatedOnly ? 'currentColor' : 'none'}
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Highly rated (4.0+)
+      </button>
     </aside>
   );
 }
