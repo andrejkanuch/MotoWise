@@ -4,7 +4,7 @@ import { BASE_URL } from '@/lib/constants';
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: '*', allow: '/', disallow: '/admin/' },
+      { userAgent: '*', allow: '/', disallow: ['/api/*', '/_next/*', '/admin/*'] },
       // Allow AI search crawlers explicitly. Google-Extended is allowed so
       // MotoVault can be grounded in Google AI Overviews + Gemini. Applebot
       // and Meta-ExternalAgent are allowed so Apple Intelligence / Meta AI
