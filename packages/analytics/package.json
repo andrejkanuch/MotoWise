@@ -1,0 +1,25 @@
+{
+  "name": "@motovault/analytics",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "posthog-js": "^1.366.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@motovault/tsconfig": "workspace:*",
+    "tsup": "^8.0.0"
+  }
+}

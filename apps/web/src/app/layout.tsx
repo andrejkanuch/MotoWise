@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
 import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentProvider } from '@/components/cookie-consent';
@@ -57,6 +58,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           href="/blog/feed.xml"
         />
         <meta name="apple-itunes-app" content="app-id=6745417382" />
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+          <Script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
       </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         <CookieConsentProvider>
