@@ -1,11 +1,20 @@
 import { Module } from '@nestjs/common';
+import { IsRouteSavedLoader } from './is-route-saved.loader';
 import { RoutesController } from './routes.controller';
 import { RoutesResolver } from './routes.resolver';
 import { RoutesService } from './routes.service';
+import { SavedRoutesResolver } from './saved-routes.resolver';
+import { SavedRoutesService } from './saved-routes.service';
 
 @Module({
   controllers: [RoutesController],
-  providers: [RoutesResolver, RoutesService],
-  exports: [RoutesService],
+  providers: [
+    RoutesResolver,
+    RoutesService,
+    SavedRoutesResolver,
+    SavedRoutesService,
+    IsRouteSavedLoader,
+  ],
+  exports: [RoutesService, SavedRoutesService],
 })
 export class RoutesModule {}
