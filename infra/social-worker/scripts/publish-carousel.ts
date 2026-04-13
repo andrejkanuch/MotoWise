@@ -17,15 +17,15 @@
  * Examples:
  *   # Smoke test: only first 2 slides, IG only — use this BEFORE publishing real
  *   tsx infra/social-worker/scripts/publish-carousel.ts \
- *     marketing-material/carousel-all-features --smoke-test
+ *     marketing/carousel-all-features --smoke-test
  *
  *   # Real publish to both IG + FB
  *   tsx infra/social-worker/scripts/publish-carousel.ts \
- *     marketing-material/carousel-all-features --platform=both
+ *     marketing/carousel-all-features --platform=both
  *
  *   # Dry run: prints what would be sent without hitting the worker
  *   tsx infra/social-worker/scripts/publish-carousel.ts \
- *     marketing-material/carousel-all-features --dry-run
+ *     marketing/carousel-all-features --dry-run
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';

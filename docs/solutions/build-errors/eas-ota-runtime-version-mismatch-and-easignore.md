@@ -55,7 +55,7 @@ useEffect(() => {
 # .easignore — exclude from EAS build archive
 ../../apps/api/          # API not needed for mobile
 ../../apps/web/          # Web app (~411MB)
-../../marketing-material/ # PNGs (~92MB)
+../../marketing/ # PNGs (~92MB)
 ../../marketing/          # More PNGs (~7.5MB)
 *.ipa                    # Old builds (~72MB)
 ../../scripts/

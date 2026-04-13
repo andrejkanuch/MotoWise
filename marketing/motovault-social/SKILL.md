@@ -42,12 +42,12 @@ If they provide an idea, confirm the feature focus and content type before divin
 
 Every post should use real app screenshots, not placeholder mockups. Screenshots live in two places:
 
-- `marketing-material/` — Simulator captures and existing carousel assets
+- `marketing/` — Simulator captures and existing carousel assets
 - `apps/web/public/images/features/` — Feature screenshots from the web app
 
 Check both locations. Run `ls` commands to find the most relevant screenshots for the chosen
 feature. Copy them into the output carousel directory with short descriptive names (e.g.,
-`garage.png`, `expenses.png`). Also copy the logo from `marketing-material/MotoVault-logo.png`.
+`garage.png`, `expenses.png`). Also copy the logo from `marketing/MotoVault-logo.png`.
 
 If no suitable screenshot exists for a particular screen, note it to the user and suggest they
 capture one, or use the closest available alternative.
@@ -127,8 +127,8 @@ Save a `caption.md` file in the carousel directory with:
 
 ### 8. Deliver
 
-Save all files to `marketing-material/carousel-<feature-name>/` (for carousels) or
-`marketing-material/post-<feature-name>/` (for single posts).
+Save all files to `marketing/carousel-<feature-name>/` (for carousels) or
+`marketing/post-<feature-name>/` (for single posts).
 
 Present the PNG files to the user so they can preview the visuals directly, along with a
 summary of the slide flow and caption.
@@ -176,7 +176,7 @@ per caption), filler phrases ("in today's world").
 ## Output directory structure
 
 ```
-marketing-material/carousel-<feature>/
+marketing/carousel-<feature>/
 ├── slide-1-cover.html
 ├── slide-1-cover.png
 ├── slide-2-problem.html
