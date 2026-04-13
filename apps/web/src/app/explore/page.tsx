@@ -124,9 +124,9 @@ async function fetchStaffPicks(): Promise<RouteRow[]> {
   return (data as RouteRow[]) ?? [];
 }
 
-async function fetchTopRoutes(limit = 8): Promise<RouteRow[]> {
+async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<RouteRow[]> {
   const supabase = getSupabaseAnon();
-  const { data } = await supabase
+  let query = supabase
     .from('routes')
     .select(
       'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description',
@@ -134,6 +134,10 @@ async function fetchTopRoutes(limit = 8): Promise<RouteRow[]> {
     .eq('status', 'published')
     .order('rating_avg', { ascending: false, nullsFirst: false })
     .limit(limit);
+  if (countryCode) {
+    query = query.eq('country_code', countryCode.toLowerCase());
+  }
+  const { data } = await query;
   return (data as RouteRow[]) ?? [];
 }
 
@@ -152,42 +156,56 @@ function renderStars(avg: number | null): string {
 /* ── Sub-components (server) ──────────────────────────────────── */
 
 function RouteCard({ route }: { route: RouteRow }) {
+  const curvatureLabel = route.curvature_index != null
+    ? route.curvature_index >= 50 ? 'Extreme curves' : route.curvature_index >= 30 ? 'Twisty' : route.curvature_index >= 15 ? 'Moderate curves' : 'Straight'
+    : null;
+
   return (
     <a
       href={`/route/${route.id}`}
-      className="card-lift group block rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition-colors hover:border-neutral-700"
+      className="card-lift group block overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 transition-all hover:border-primary-500/40 hover:bg-neutral-800/80"
     >
-      {/* Surface badge */}
-      {route.surface_type && route.surface_type !== 'unknown' && (
-        <span className="mb-3 inline-block rounded-full bg-neutral-800 px-2.5 py-0.5 text-xs font-medium capitalize text-neutral-300">
-          {route.surface_type}
-        </span>
-      )}
+      {/* Visual placeholder — gradient hero block */}
+      <div className="h-28 bg-gradient-to-br from-neutral-800 via-neutral-850 to-neutral-900 sm:h-32" aria-hidden="true" />
 
-      <h3 className="mb-1 text-lg font-semibold text-neutral-50 group-hover:text-primary-400 transition-colors">
-        {route.name ?? 'Unnamed Route'}
-      </h3>
+      <div className="p-5">
+        {/* Surface + curvature badges */}
+        <div className="mb-3 flex flex-wrap gap-2">
+          {route.surface_type && route.surface_type !== 'unknown' && (
+            <span className="inline-block rounded-full bg-primary-500/15 px-2.5 py-0.5 text-xs font-medium capitalize text-primary-300 ring-1 ring-primary-500/20">
+              {route.surface_type}
+            </span>
+          )}
+          {curvatureLabel && (
+            <span className="inline-block rounded-full bg-signature-500/15 px-2.5 py-0.5 text-xs font-medium text-signature-300">
+              {curvatureLabel}
+            </span>
+          )}
+        </div>
 
-      {route.editorial_description ? (
-        <p className="mb-3 line-clamp-2 text-sm text-neutral-400">
-          {route.editorial_description}
-        </p>
-      ) : route.description ? (
-        <p className="mb-3 line-clamp-2 text-sm text-neutral-400">{route.description}</p>
-      ) : null}
+        <h3 className="mb-1 text-lg font-semibold text-neutral-50 transition-colors group-hover:text-primary-400">
+          {route.name ?? 'Unnamed Route'}
+        </h3>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-400">
-        <span>{formatDistance(route.distance_m)}</span>
-        {route.elevation_gain_m != null && (
-          <span>{Math.round(route.elevation_gain_m)} m gain</span>
+        {(route.editorial_description || route.description) && (
+          <p className="mb-3 line-clamp-2 text-sm text-neutral-400">
+            {route.editorial_description ?? route.description}
+          </p>
         )}
-        {route.rating_avg != null && (
-          <span className="flex items-center gap-1 text-warm-400">
-            <StarIcon />
-            {renderStars(route.rating_avg)}
-            <span className="text-neutral-500">({route.rating_count})</span>
-          </span>
-        )}
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-300">
+          <span className="font-medium">{formatDistance(route.distance_m)}</span>
+          {route.elevation_gain_m != null && (
+            <span>{Math.round(route.elevation_gain_m)} m climb</span>
+          )}
+          {route.rating_avg != null && (
+            <span className="flex items-center gap-1 text-warm-400">
+              <StarIcon />
+              <span className="font-medium">{renderStars(route.rating_avg)}</span>
+              <span className="text-neutral-500">({route.rating_count})</span>
+            </span>
+          )}
+        </div>
       </div>
     </a>
   );
@@ -196,7 +214,7 @@ function RouteCard({ route }: { route: RouteRow }) {
 function StarIcon() {
   return (
     <svg
-      className="h-3.5 w-3.5"
+      className="h-4 w-4"
       viewBox="0 0 20 20"
       fill="currentColor"
       aria-hidden="true"
@@ -246,7 +264,14 @@ async function StaffPicksSection() {
 
 async function TopRoutesSection({ countryCode }: { countryCode: string }) {
   const routes = await fetchTopRoutes(8);
-  if (routes.length === 0) return null;
+  if (routes.length === 0) {
+    return (
+      <section>
+        <h2 className="mb-6 text-2xl font-bold text-neutral-50">Top Rated Routes</h2>
+        <p className="py-12 text-center text-neutral-500">No rated routes yet. Share your ride to get started.</p>
+      </section>
+    );
+  }
   const countryName = COUNTRY_NAMES[countryCode] ?? countryCode;
 
   return (
@@ -264,8 +289,15 @@ async function TopRoutesSection({ countryCode }: { countryCode: string }) {
 }
 
 async function NearYouSection({ countryCode }: { countryCode: string }) {
-  const routes = await fetchTopRoutes(6);
-  if (routes.length === 0) return null;
+  const routes = await fetchTopRoutes(6, countryCode);
+  if (routes.length === 0) {
+    return (
+      <section>
+        <h2 className="mb-6 text-2xl font-bold text-neutral-50">Near You</h2>
+        <p className="py-12 text-center text-neutral-500">No routes found in your area yet. Be the first to share one.</p>
+      </section>
+    );
+  }
   const countryName = COUNTRY_NAMES[countryCode] ?? countryCode;
 
   return (
@@ -362,13 +394,13 @@ export default async function ExplorePage() {
                 type="search"
                 name="q"
                 placeholder="Search routes..."
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900 py-3 pl-11 pr-4 text-neutral-50 placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
+                className="w-full rounded-xl border border-neutral-700 bg-neutral-900 py-3.5 pl-11 pr-4 text-base text-neutral-50 placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
                 aria-label="Search motorcycle routes"
               />
             </div>
             <button
               type="submit"
-              className="cta-primary rounded-xl bg-primary-500 px-6 py-3 font-semibold text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
+              className="cta-primary min-h-[48px] rounded-xl bg-primary-500 px-8 py-3.5 font-semibold text-white hover:bg-primary-600 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-transform"
             >
               Search
             </button>
@@ -401,7 +433,7 @@ export default async function ExplorePage() {
               <a
                 key={code}
                 href={`/explore/${code.toLowerCase()}`}
-                className="card-lift group flex flex-col items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-6 text-center transition-colors hover:border-neutral-700"
+                className="card-lift group flex flex-col items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-6 text-center transition-all hover:border-primary-500/40 hover:bg-neutral-800/80 active:scale-[0.97]"
               >
                 <span className="text-3xl" role="img" aria-label={COUNTRY_NAMES[code]}>
                   {emoji}
