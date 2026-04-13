@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:'Plus Jakarta Sans',sans-serif;width:1080px;height:1920px;overflow:hidden; }
+.slide { width:1080px;height:1920px;position:relative;overflow:hidden;background:#D4622E; }
+
+/* Subtle texture glows */
+.glow-tl { position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.07) 0%,transparent 60%);top:-200px;left:-150px; }
+.glow-br { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,0,0,0.15) 0%,transparent 60%);bottom:-100px;right:-100px; }
+
+/* Top bar */
+.topbar { position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:72px 64px 0; }
+.logo-wrap { display:flex;align-items:center;gap:14px; }
+.logo-img { width:52px;height:52px;border-radius:14px;object-fit:cover;box-shadow:0 4px 20px rgba(0,0,0,0.25); }
+.logo-name { color:#fff;font-size:26px;font-weight:800; }
+.feat-chip { padding:9px 22px;border-radius:100px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.25);color:rgba(255,255,255,0.92);font-size:13px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase; }
+
+/* Headline */
+.headline { position:absolute;top:210px;left:0;right:0;z-index:4;text-align:center; }
+.h1 { font-size:164px;font-weight:800;color:#fff;letter-spacing:-4px;line-height:0.9;text-transform:uppercase;text-shadow:0 4px 24px rgba(0,0,0,0.15); }
+.h2 { font-size:78px;font-weight:800;color:rgba(255,255,255,0.88);letter-spacing:-1px;line-height:1;text-transform:uppercase;margin-top:8px; }
+
+/* Phone */
+.phone-wrap { position:absolute;top:500px;left:50%;transform:translateX(-50%);width:900px;z-index:2; }
+.phone-wrap img { width:900px;height:auto;border-radius:84px;border:2px solid rgba(255,255,255,0.12);display:block;box-shadow:0 40px 120px rgba(0,0,0,0.4); }
+
+/* Bottom gradient + CTA */
+.bottom-fade { position:absolute;bottom:0;left:0;right:0;height:340px;z-index:6;background:linear-gradient(to top,rgba(160,60,15,0.98) 40%,rgba(160,60,15,0.7) 70%,transparent 100%); }
+.cta-wrap { position:absolute;bottom:0;left:0;right:0;z-index:7;display:flex;flex-direction:column;align-items:center;padding-bottom:80px;gap:20px; }
+.dl-btn { background:#fff;color:#D4622E;font-size:26px;font-weight:800;padding:24px 90px;border-radius:100px;letter-spacing:0.2px;box-shadow:0 8px 40px rgba(0,0,0,0.25); }
+.stores { display:flex;gap:18px; }
+.store-pill { display:flex;align-items:center;gap:8px;padding:11px 24px;border-radius:50px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:16px;font-weight:600; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="glow-tl"></div>
+  <div class="glow-br"></div>
+
+  <div class="topbar">
+    <div class="logo-wrap">
+      <img class="logo-img" src="../MotoVault-logo.png" alt="MotoVault">
+      <span class="logo-name">MotoVault</span>
+    </div>
+    <div class="feat-chip">Routes</div>
+  </div>
+
+  <div class="headline">
+    <div class="h1">DISCOVER</div>
+    <div class="h2">EPIC ROUTES</div>
+  </div>
+
+  <div class="phone-wrap">
+    <img src="../carousel-all-features/routes-phone.jpg" alt="Route map">
+  </div>
+
+  <div class="bottom-fade"></div>
+  <div class="cta-wrap">
+    <div class="dl-btn">Download Free</div>
+    <div class="stores">
+      <div class="store-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        App Store
+      </div>
+      <div class="store-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Google Play
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
