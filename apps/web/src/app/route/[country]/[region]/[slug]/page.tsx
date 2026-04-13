@@ -133,11 +133,11 @@ export default async function RouteDetailPage({ params }: PageProps) {
             aria-hidden="true"
           />
           <div className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-8">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl md:text-4xl">
               {route.name ?? 'Unnamed Route'}
             </h1>
             {route.contributor && (
-              <p className="mt-1 text-sm text-neutral-300">
+              <p className="mt-2 text-sm text-neutral-300">
                 Shared by{' '}
                 <span className="font-medium text-neutral-100">
                   {route.contributor.displayName}
@@ -149,75 +149,77 @@ export default async function RouteDetailPage({ params }: PageProps) {
 
         {/* Stats Bar */}
         <section className="border-b border-neutral-800 bg-neutral-900">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-6 px-6 py-4 sm:px-8">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-6 py-4 sm:gap-6 sm:px-8">
             <StatItem label="Distance" value={formatDistance(route.distanceM)} />
             {route.elevationGainM != null && (
-              <StatItem label="Elevation" value={formatElevation(route.elevationGainM)} />
+              <StatItem label="Climbing" value={formatElevation(route.elevationGainM)} />
             )}
             {route.surfaceType && (
               <StatItem label="Surface" value={formatSurfaceType(route.surfaceType)} />
             )}
             {route.curvatureIndex != null && (
-              <StatItem label="Twist" value={`${formatTwistScore(route.curvatureIndex)} (${Math.round(route.curvatureIndex)})`} />
+              <StatItem label="Curves" value={formatTwistScore(route.curvatureIndex)} />
             )}
-            {route.ratingAvg != null && (
-              <StatItem
-                label="Rating"
-                value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
-              />
-            )}
-            <StatItem label="Est. Time" value={formatRideTime(route.distanceM, route.surfaceType)} />
+            <StatItem
+              label="Rating"
+              value={route.ratingAvg != null ? `${route.ratingAvg.toFixed(1)} · ${route.ratingCount} reviews` : 'Not yet rated'}
+            />
+            <StatItem label="Ride Time" value={formatRideTime(route.distanceM, route.surfaceType)} />
           </div>
         </section>
 
         {/* Content */}
         <div className="mx-auto max-w-5xl px-6 py-8 sm:px-8 sm:py-12">
           {/* Description */}
-          {(route.description || route.editorialDescription) && (
-            <section className="mb-10">
-              <h2 className="mb-3 text-lg font-semibold text-neutral-100">About this route</h2>
-              <p className="max-w-prose whitespace-pre-line leading-relaxed text-neutral-300">
+          <section className="mb-8">
+            <h2 className="mb-3 text-lg font-semibold text-neutral-100">About this route</h2>
+            {route.description || route.editorialDescription ? (
+              <p className="max-w-prose whitespace-pre-line break-words leading-relaxed text-neutral-300">
                 {route.editorialDescription ?? route.description}
               </p>
-            </section>
-          )}
+            ) : (
+              <p className="text-neutral-400 italic">
+                No description yet. Ride it and share your experience.
+              </p>
+            )}
+          </section>
 
           {/* Badges */}
-          <div className="mb-10 flex flex-wrap gap-2">
+          <div className="mb-8 flex flex-wrap gap-2">
             {route.isMotovaultPick && (
-              <span className="inline-flex items-center rounded-full bg-signature-500/20 px-3 py-1.5 text-sm font-medium text-signature-300">
-                MotoVault Pick
+              <span className="inline-flex items-center rounded-full bg-signature-500/20 px-3 py-1 text-sm font-medium text-signature-300">
+                Editor's Pick
               </span>
             )}
             {route.surfaceType && (
-              <span className="inline-flex items-center rounded-full bg-primary-500/20 px-3 py-1.5 text-sm font-medium text-primary-200">
+              <span className="inline-flex items-center rounded-full bg-primary-500/20 px-3 py-1 text-sm font-medium text-primary-200">
                 {formatSurfaceType(route.surfaceType)}
               </span>
             )}
           </div>
 
           {/* CTA Buttons */}
-          <section className="flex flex-wrap gap-3">
+          <section className="flex flex-wrap gap-4">
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3.5 text-base font-medium text-neutral-50 transition-colors hover:bg-primary-500 active:scale-95 active:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-primary-600 px-6 py-3 text-base font-medium text-neutral-50 transition-colors hover:bg-primary-500 active:scale-95 active:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <DownloadIcon />
               Download GPX
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3.5 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <BookmarkIcon />
               Save Route
             </button>
             <button
               type="button"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3.5 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-lg bg-neutral-800 px-6 py-3 text-base font-medium text-neutral-200 transition-colors hover:bg-neutral-700 active:scale-95 active:bg-neutral-600 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
             >
               <ShareIcon />
-              Share
+              Share Route
             </button>
           </section>
         </div>
@@ -230,7 +232,7 @@ function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
       <span className="text-sm font-medium uppercase tracking-wider text-neutral-300">{label}</span>
-      <span className="text-lg font-bold text-neutral-50">{value}</span>
+      <span className="text-xl font-bold text-neutral-50">{value}</span>
     </div>
   );
 }
