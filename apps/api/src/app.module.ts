@@ -20,7 +20,6 @@ import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { EmailModule } from './modules/email/email.module';
-import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { FollowsModule } from './modules/follows/follows.module';
@@ -40,8 +39,8 @@ import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
-import { SearchModule } from './modules/search/search.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
+import { SurfaceReportsModule } from './modules/surface-reports/surface-reports.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
@@ -80,7 +79,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RedisModule,
     SupabaseModule,
     EmailModule,
-    EntitlementsModule,
     AiBudgetModule,
     AffiliatesModule,
     CommentsModule,
@@ -104,7 +102,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RideSummariesModule,
     RidesModule,
     RoutesModule,
-    SearchModule,
+    SurfaceReportsModule,
     ShareLinksModule,
     TripsModule,
     WaitlistModule,
