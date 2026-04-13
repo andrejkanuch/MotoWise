@@ -192,8 +192,17 @@ function estimateTime(distanceM: number, surfaceType?: string | null): string {
 
 /* ── Route Card ──────────────────────────────────────────────── */
 
+const ROUTE_IMAGES = [
+  '/images/route-card-placeholder.jpg',
+  '/images/route-coastal.jpg',
+  '/images/route-forest.jpg',
+];
+
 function RouteCard({ route, priority = false }: { route: RouteRow; priority?: boolean }) {
   const difficulty = getDifficulty(route);
+  // Deterministic image based on route ID hash
+  const imageIndex = route.id.charCodeAt(0) % ROUTE_IMAGES.length;
+  const imageSrc = ROUTE_IMAGES[imageIndex];
 
   return (
     <a
@@ -203,7 +212,7 @@ function RouteCard({ route, priority = false }: { route: RouteRow; priority?: bo
       {/* Route photo */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
-          src="/images/route-card-placeholder.jpg"
+          src={imageSrc}
           alt={route.name ?? 'Route'}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
