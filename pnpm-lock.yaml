@@ -431,6 +431,9 @@ importers:
       '@next/third-parties':
         specifier: ^16.1.6
         version: 16.1.6(next@16.1.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      '@revenuecat/purchases-js':
+        specifier: ^1.32.0
+        version: 1.32.0
       '@supabase/ssr':
         specifier: ^0.6.0
         version: 0.6.1(@supabase/supabase-js@2.98.0)
@@ -3481,6 +3484,9 @@ packages:
 
   '@revenuecat/purchases-js@1.27.0':
     resolution: {integrity: sha512-PRV5jbOyQ9ehNGyp0EeBV+Ri0T0QBTDJiftg7W0/eUFhGWs9irfw3ipQdjpmoikYxckrZQLzpsFhJ6zP/M+YgQ==}
+
+  '@revenuecat/purchases-js@1.32.0':
+    resolution: {integrity: sha512-NyXXlD7Ejl/aacnfY6KO3D3OX35rsUpRF6QZE+vglL+9Of1KYKHNatmhHE5R9V0ZaPcAsc36/naBoQe7soWeTw==}
 
   '@revenuecat/purchases-typescript-internal@17.46.1':
     resolution: {integrity: sha512-v0NEJfSk/mNkhREfjsFkMTDnu0o8hURKOstzqbjjruzg31MBhUrAyAsSPZsTQxpx0TmS6dnnKghFIZM5lQsUWg==}
@@ -13838,6 +13844,8 @@ snapshots:
       '@revenuecat/purchases-js': 1.27.0
 
   '@revenuecat/purchases-js@1.27.0': {}
+
+  '@revenuecat/purchases-js@1.32.0': {}
 
   '@revenuecat/purchases-typescript-internal@17.46.1': {}
 
