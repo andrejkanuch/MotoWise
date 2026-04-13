@@ -126,6 +126,7 @@ type Documents = {
     "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": typeof types.TripDetailDocument,
     "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": typeof types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": typeof types.JoinWaitlistDocument,
+    "query RouteBySlug($country: String!, $region: String!, $slug: String!) {\n  routeBySlug(country: $country, region: $region, slug: $slug) {\n    id\n    name\n    description\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    startLat\n    startLng\n    slug\n    countryCode\n    regionSlug\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": typeof types.RouteBySlugDocument,
 };
 const documents: Documents = {
     "mutation AddExpensePhoto($input: AddExpensePhotoInput!) {\n  addExpensePhoto(input: $input) {\n    id\n    expenseId\n    storagePath\n    publicUrl\n    fileSizeBytes\n    mimeType\n    createdAt\n  }\n}": types.AddExpensePhotoDocument,
@@ -240,6 +241,7 @@ const documents: Documents = {
     "query TripDetail($tripId: ID!) {\n  tripDetail(tripId: $tripId) {\n    id\n    title\n    description\n    startDate\n    endDate\n    difficulty\n    maxRiders\n    participantCount\n    status\n    visibility\n    coverImageUrl\n    createdAt\n    organiser {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n    waypoints {\n      id\n      tripId\n      sortOrder\n      dayIndex\n      type\n      name\n      notes\n      lat\n      lng\n      createdAt\n    }\n    participants {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n      role\n      status\n      bikeId\n      joinedAt\n    }\n  }\n}": types.TripDetailDocument,
     "query TripInvites($tripId: ID!) {\n  tripInvites(tripId: $tripId) {\n    id\n    invitedUserId\n    invitedAt\n    acceptedAt\n    declinedAt\n  }\n}": types.TripInvitesDocument,
     "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}": types.JoinWaitlistDocument,
+    "query RouteBySlug($country: String!, $region: String!, $slug: String!) {\n  routeBySlug(country: $country, region: $region, slug: $slug) {\n    id\n    name\n    description\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    startLat\n    startLng\n    slug\n    countryCode\n    regionSlug\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}": types.RouteBySlugDocument,
 };
 
 /**
@@ -704,6 +706,10 @@ export function graphql(source: "query TripInvites($tripId: ID!) {\n  tripInvite
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"): (typeof documents)["mutation JoinWaitlist($email: String!) {\n  joinWaitlist(email: $email)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query RouteBySlug($country: String!, $region: String!, $slug: String!) {\n  routeBySlug(country: $country, region: $region, slug: $slug) {\n    id\n    name\n    description\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    startLat\n    startLng\n    slug\n    countryCode\n    regionSlug\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}"): (typeof documents)["query RouteBySlug($country: String!, $region: String!, $slug: String!) {\n  routeBySlug(country: $country, region: $region, slug: $slug) {\n    id\n    name\n    description\n    distanceM\n    elevationGainM\n    surfaceType\n    curvatureIndex\n    isMotovaultPick\n    editorialDescription\n    ratingAvg\n    ratingCount\n    commentCount\n    startLat\n    startLng\n    slug\n    countryCode\n    regionSlug\n    contributor {\n      id\n      displayName\n      publicUsername\n      avatarUrl\n    }\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

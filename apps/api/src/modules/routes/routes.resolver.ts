@@ -48,6 +48,16 @@ export class RoutesResolver {
     return this.routesService.routeDetail(routeId);
   }
 
+  @Query(() => Route, { nullable: true })
+  @Public()
+  async routeBySlug(
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('slug') slug: string,
+  ): Promise<Route | null> {
+    return this.routesService.routeBySlug(country, region, slug);
+  }
+
   @Mutation(() => Route)
   @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async shareRideToDiscover(

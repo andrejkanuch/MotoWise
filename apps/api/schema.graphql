@@ -927,6 +927,7 @@ type Query {
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
+  routeBySlug(country: String!, region: String!, slug: String!): Route
   routeDetail(routeId: ID!): Route!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
@@ -1038,6 +1039,7 @@ type RideSummary {
 type Route {
   commentCount: Int!
   contributor: RouteContributor!
+  countryCode: String
   createdAt: String!
   curvatureIndex: Float
   description: String
@@ -1050,6 +1052,8 @@ type Route {
   polyline: String!
   ratingAvg: Float
   ratingCount: Int!
+  regionSlug: String
+  slug: String
   startLat: Float
   startLng: Float
   status: String!
