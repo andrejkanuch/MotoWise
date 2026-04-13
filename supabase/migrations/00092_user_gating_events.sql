@@ -19,9 +19,8 @@ create policy "Users can read own gating events"
   on public.user_gating_events for select
   using (auth.uid() = user_id);
 
--- Only service role inserts (API server)
-create policy "Service role inserts gating events"
-  on public.user_gating_events for insert
-  with check (true);
+-- Only service role inserts (API server) — no authenticated user insert policy
+-- Inserts are done via SUPABASE_ADMIN (service-role), which bypasses RLS.
+-- No insert policy for authenticated role prevents quota poisoning attacks.
 
 comment on table public.user_gating_events is 'Tracks quota-gated feature usage for entitlement enforcement';

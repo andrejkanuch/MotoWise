@@ -126,6 +126,9 @@ importers:
       rxjs:
         specifier: ^7.8.0
         version: 7.8.2
+      slugify:
+        specifier: ^1.6.9
+        version: 1.6.9
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -537,6 +540,22 @@ importers:
       vitest:
         specifier: ^3.0.0
         version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.15)(jiti@2.6.1)(jsdom@20.0.3)(lightningcss@1.30.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/analytics:
+    dependencies:
+      posthog-js:
+        specifier: ^1.366.0
+        version: 1.366.0
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+    devDependencies:
+      '@motovault/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(@swc/core@1.15.18)(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
 
   packages/design-system:
     devDependencies:
@@ -8781,8 +8800,8 @@ packages:
     resolution: {integrity: sha512-qMCMfhY040cVHT43K9BFygqYbUPFZKHOg7K73mtTWJRb8pyP3fzf4Ixd5SzdEJQ6MRUg/WBnOLxghZtKKurENQ==}
     engines: {node: '>=10'}
 
-  slugify@1.6.6:
-    resolution: {integrity: sha512-h+z7HKHYXj6wJU+AnS/+IH8Uh9fdcX1Lrhg1/VMdf9PwoBQXFcXiAdsy2tSK0P6gKwJLXp02r90ahUCqHk9rrw==}
+  slugify@1.6.9:
+    resolution: {integrity: sha512-vZ7rfeehZui7wQs438JXBckYLkIIdfHOXsaVEUMyS5fHo1483l1bMdo0EDSWYclY0yZKFOipDy4KHuKs6ssvdg==}
     engines: {node: '>=8.0.0'}
 
   snake-case@3.0.4:
@@ -10843,7 +10862,7 @@ snapshots:
       resolve.exports: 2.0.3
       semver: 7.7.4
       send: 0.19.2
-      slugify: 1.6.6
+      slugify: 1.6.9
       source-map-support: 0.5.21
       stacktrace-parser: 0.1.11
       structured-headers: 0.4.1
@@ -10918,7 +10937,7 @@ snapshots:
       resolve.exports: 2.0.3
       semver: 7.7.4
       send: 0.19.2
-      slugify: 1.6.6
+      slugify: 1.6.9
       source-map-support: 0.5.21
       stacktrace-parser: 0.1.11
       structured-headers: 0.4.1
@@ -10993,7 +11012,7 @@ snapshots:
       resolve.exports: 2.0.3
       semver: 7.7.4
       send: 0.19.2
-      slugify: 1.6.6
+      slugify: 1.6.9
       source-map-support: 0.5.21
       stacktrace-parser: 0.1.11
       structured-headers: 0.4.1
@@ -11028,7 +11047,7 @@ snapshots:
       resolve-from: 5.0.0
       semver: 7.7.4
       slash: 3.0.0
-      slugify: 1.6.6
+      slugify: 1.6.9
       xcode: 3.0.1
       xml2js: 0.6.0
     transitivePeerDependencies:
@@ -11046,7 +11065,7 @@ snapshots:
       glob: 13.0.6
       resolve-from: 5.0.0
       semver: 7.7.4
-      slugify: 1.6.6
+      slugify: 1.6.9
       xcode: 3.0.1
       xml2js: 0.6.0
     transitivePeerDependencies:
@@ -11069,7 +11088,7 @@ snapshots:
       resolve-from: 5.0.0
       resolve-workspace-root: 2.0.1
       semver: 7.7.4
-      slugify: 1.6.6
+      slugify: 1.6.9
       sucrase: 3.35.1
     transitivePeerDependencies:
       - supports-color
@@ -11086,7 +11105,7 @@ snapshots:
       resolve-from: 5.0.0
       resolve-workspace-root: 2.0.1
       semver: 7.7.4
-      slugify: 1.6.6
+      slugify: 1.6.9
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -11199,7 +11218,7 @@ snapshots:
       postcss: 8.4.49
       resolve-from: 5.0.0
     optionalDependencies:
-      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
@@ -11298,7 +11317,7 @@ snapshots:
       '@expo/json-file': 10.0.12
       '@react-native/normalize-colors': 0.81.5
       debug: 4.4.3
-      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       resolve-from: 5.0.0
       semver: 7.7.4
       xml2js: 0.6.0
@@ -15158,7 +15177,7 @@ snapshots:
       resolve-from: 5.0.0
     optionalDependencies:
       '@babel/runtime': 7.28.6
-      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - '@babel/core'
       - supports-color
@@ -16211,7 +16230,7 @@ snapshots:
 
   expo-keep-awake@15.0.8(expo@54.0.33)(react@19.1.0):
     dependencies:
-      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.1.0))(react@19.1.0)
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/dom-webview@55.0.3)(@expo/metro-runtime@5.0.4(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)))(expo-router@6.0.23)(graphql@16.13.1)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react: 19.1.0
 
   expo-linear-gradient@15.0.8(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
@@ -20538,7 +20557,7 @@ snapshots:
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
 
-  slugify@1.6.6: {}
+  slugify@1.6.9: {}
 
   snake-case@3.0.4:
     dependencies:

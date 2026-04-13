@@ -38,7 +38,11 @@ import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
+import { EntitlementsModule } from './modules/entitlements/entitlements.module';
+import { FuelStopsModule } from './modules/fuel-stops/fuel-stops.module';
 import { RoutesModule } from './modules/routes/routes.module';
+import { SearchModule } from './modules/search/search.module';
+import { SurfaceReportsModule } from './modules/surface-reports/surface-reports.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SponsorshipsModule } from './modules/sponsorships/sponsorships.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
@@ -102,6 +106,10 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RideSummariesModule,
     RidesModule,
     RoutesModule,
+    SearchModule,
+    EntitlementsModule,
+    FuelStopsModule,
+    SurfaceReportsModule,
     ShareLinksModule,
     SponsorshipsModule,
     TripsModule,

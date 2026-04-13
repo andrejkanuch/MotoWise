@@ -231,9 +231,12 @@ export class SearchService {
       .order('rating_avg', { ascending: false, nullsFirst: false })
       .limit(limit + 1);
 
-    // Text search via ilike fallback
+    // Text search via ilike — sanitize input to prevent PostgREST filter manipulation
     if (q) {
-      query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+      const sanitized = q.replace(/[%_.,()]/g, '');
+      if (sanitized.length > 0) {
+        query = query.ilike('name', `%${sanitized}%`);
+      }
     }
 
     if (filters?.surfaceTypes && filters.surfaceTypes.length > 0) {

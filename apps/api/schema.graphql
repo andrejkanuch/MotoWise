@@ -154,6 +154,11 @@ type CompleteTaskResult {
   nextOccurrence: MaintenanceTask
 }
 
+type ConditionAggregate {
+  condition: String!
+  count: Int!
+}
+
 type ContentFlag {
   articleId: String!
   comment: String!
@@ -483,6 +488,25 @@ type FuelLog {
   totalCost: Float
 }
 
+type FuelRangeResult {
+  fuelStops: [FuelStop!]!
+  rangeSummary: FuelRangeSummary!
+}
+
+type FuelRangeSummary {
+  effectiveRangeKm: Float!
+  stopsRequired: Int!
+  summary: String!
+}
+
+type FuelStop {
+  amenity: String!
+  lat: Float!
+  lng: Float!
+  name: String!
+  osmId: Int!
+}
+
 type GPXExportError {
   code: String!
   quotaRemaining: Int
@@ -630,6 +654,11 @@ type KudosUser {
   displayName: String
   id: ID!
   publicUsername: String
+}
+
+input LatLngInput {
+  lat: Float!
+  lng: Float!
 }
 
 type LearningProgress {
@@ -825,6 +854,7 @@ type Mutation {
   regenerateRideSummary(rideId: String!): RideSummary!
   removeWaypoint(waypointId: ID!): Boolean!
   reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
+  reportSurface(input: ReportSurfaceInput!): SurfaceReport!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
@@ -896,6 +926,15 @@ type PageInfo {
   startCursor: String
 }
 
+type PlaceSuggestion {
+  countryCode: String!
+  id: Int!
+  kind: String!
+  name: String!
+  population: Int!
+  regionCode: String
+}
+
 type PublicRideStats {
   joinDate: String
   totalDistance: Float!
@@ -934,6 +973,8 @@ type Query {
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   fuelLogs(motorcycleId: String!): [FuelLog!]!
+  fuelStops(radiusKm: Float = 5, routeId: ID!): [FuelStop!]!
+  fuelStopsNearRoute(bikeId: ID, radiusKm: Float = 5, routeId: ID!): FuelRangeResult!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
@@ -975,12 +1016,14 @@ type Query {
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   routeBySlug(country: String!, region: String!, slug: String!): Route
+  routeConditions(routeId: ID!): RouteConditions!
   routeDetail(routeId: ID!): Route!
   routeSponsorships(routeId: ID!): [Sponsorship!]!
 
   """Paginated list of the authenticated user's saved routes"""
   savedRoutes(after: String, first: Int = 20): RouteConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
+  searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   tripByShareToken(shareToken: String!): SharedTrip
@@ -1050,6 +1093,13 @@ type RecallResult {
 input ReorderWaypointsInput {
   tripId: ID!
   waypointIds: [ID!]!
+}
+
+input ReportSurfaceInput {
+  condition: String!
+  note: String
+  photoUrl: String
+  routeId: ID!
 }
 
 type Ride {
@@ -1137,6 +1187,11 @@ type Route {
   twistScore: Int
 }
 
+type RouteConditions {
+  aggregates: [ConditionAggregate!]!
+  recentReports: [SurfaceReport!]!
+}
+
 type RouteConnection {
   edges: [RouteEdge!]!
   pageInfo: RoutePageInfo!
@@ -1187,6 +1242,14 @@ type RouteReviewConnection {
   hasNextPage: Boolean!
   reviews: [RouteReview!]!
   totalCount: Int!
+}
+
+type RouteSuggestion {
+  countryCode: String!
+  id: ID!
+  name: String!
+  regionCode: String
+  slug: String!
 }
 
 input SearchArticlesInput {
@@ -1335,6 +1398,16 @@ input SubmitQuizInput {
   quizId: String!
 }
 
+type SurfaceReport {
+  condition: String!
+  id: ID!
+  note: String
+  photoUrl: String
+  reportedAt: String!
+  routeId: ID!
+  userId: ID!
+}
+
 type TaskPhoto {
   createdAt: String!
   fileSizeBytes: Int
@@ -1435,6 +1508,11 @@ type TripWaypoint {
   sortOrder: Int!
   tripId: ID!
   type: String!
+}
+
+type TypeaheadResult {
+  places: [PlaceSuggestion!]!
+  routes: [RouteSuggestion!]!
 }
 
 input UnfollowRiderInput {
