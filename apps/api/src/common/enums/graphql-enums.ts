@@ -15,6 +15,8 @@ import type {
   RideStatus,
   RidingFrequency,
   RidingGoal,
+  SponsorshipPlacementType,
+  SponsorshipStatus,
   SubscriptionTier,
   SummaryGenerationStatus,
   SupportedLocale,
@@ -392,3 +394,40 @@ const _generationStatusSync: Record<SummaryGenerationStatus, GqlGenerationStatus
   completed: GqlGenerationStatus.completed,
   failed: GqlGenerationStatus.failed,
 };
+
+export enum GqlSponsorshipStatus {
+  active = 'active',
+  paused = 'paused',
+  deactivated = 'deactivated',
+  expired = 'expired',
+}
+
+export enum GqlSponsorshipPlacementType {
+  banner = 'banner',
+  card = 'card',
+  pin = 'pin',
+}
+
+registerEnumType(GqlSponsorshipStatus, {
+  name: 'SponsorshipStatus',
+  description: 'Status of a sponsorship slot',
+});
+
+registerEnumType(GqlSponsorshipPlacementType, {
+  name: 'SponsorshipPlacementType',
+  description: 'Visual placement type for a sponsored slot',
+});
+
+const _sponsorshipStatusSync: Record<SponsorshipStatus, GqlSponsorshipStatus> = {
+  active: GqlSponsorshipStatus.active,
+  paused: GqlSponsorshipStatus.paused,
+  deactivated: GqlSponsorshipStatus.deactivated,
+  expired: GqlSponsorshipStatus.expired,
+};
+
+const _sponsorshipPlacementTypeSync: Record<SponsorshipPlacementType, GqlSponsorshipPlacementType> =
+  {
+    banner: GqlSponsorshipPlacementType.banner,
+    card: GqlSponsorshipPlacementType.card,
+    pin: GqlSponsorshipPlacementType.pin,
+  };

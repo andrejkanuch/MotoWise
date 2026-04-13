@@ -24,7 +24,6 @@ import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { FollowsModule } from './modules/follows/follows.module';
 import { FuelLogsModule } from './modules/fuel-logs/fuel-logs.module';
-import { FuelStopsModule } from './modules/fuel-stops/fuel-stops.module';
 import { GroupRidesModule } from './modules/group-rides/group-rides.module';
 import { HealthModule } from './modules/health/health.module';
 import { HealthReportsModule } from './modules/health-reports/health-reports.module';
@@ -41,7 +40,7 @@ import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.mod
 import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
-import { SurfaceReportsModule } from './modules/surface-reports/surface-reports.module';
+import { SponsorshipsModule } from './modules/sponsorships/sponsorships.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
@@ -90,7 +89,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     DiagnosticsModule,
     ExpensesModule,
     FuelLogsModule,
-    FuelStopsModule,
     FeedModule,
     FollowsModule,
     GroupRidesModule,
@@ -104,8 +102,8 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RideSummariesModule,
     RidesModule,
     RoutesModule,
-    SurfaceReportsModule,
     ShareLinksModule,
+    SponsorshipsModule,
     TripsModule,
     WaitlistModule,
     WebhooksModule,

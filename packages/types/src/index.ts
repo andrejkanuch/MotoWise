@@ -25,6 +25,7 @@ export * from './validators/ride-summary';
 export * from './validators/route';
 export * from './validators/route-filters';
 export * from './validators/share-link';
+export * from './validators/sponsorship';
 export * from './validators/trip';
 export * from './validators/user';
 export * from './validators/paywall';
