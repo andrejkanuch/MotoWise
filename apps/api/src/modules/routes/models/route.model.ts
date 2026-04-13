@@ -87,10 +87,14 @@ export class Route {
   countryCode?: string;
 
   @Field({ nullable: true })
+<<<<<<< HEAD
   regionCode?: string;
 
   @Field({ nullable: true })
   city?: string;
+=======
+  regionSlug?: string;
+>>>>>>> feat/mot-159-ssr-detail-page
 }
 
 @ObjectType()

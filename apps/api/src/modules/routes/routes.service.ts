@@ -212,6 +212,28 @@ export class RoutesService {
     return this.mapRouteRow(data as unknown as RouteRow);
   }
 
+  async routeBySlug(country: string, region: string, slug: string): Promise<Route | null> {
+    const { data, error } = await this.supabaseAdmin
+      .from('routes')
+      .select(
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_slug, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+      )
+      .eq('country_code', country.toLowerCase())
+      .eq('region_slug', region)
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .maybeSingle();
+
+    if (error) {
+      this.logger.error(`routeBySlug failed: ${error.message} (${error.code})`);
+      return null;
+    }
+
+    if (!data) return null;
+
+    return this.mapRouteRow(data as unknown as RouteRow);
+  }
+
   async shareRideToDiscover(
     userId: string,
     input: { rideId: string; name?: string; surfaceType?: string },
