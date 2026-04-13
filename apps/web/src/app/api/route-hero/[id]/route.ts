@@ -1,143 +1,74 @@
-import { createClient } from '@supabase/supabase-js';
 import { type NextRequest, NextResponse } from 'next/server';
-import { getFallbackHeroBuffer } from '@/lib/map/fallback-hero';
-import { getStaticImageProvider } from '@/lib/map/static-image-provider';
+import { buildStaticMapUrl } from '../../../../lib/map/static-image-provider';
 
-export const revalidate = 86400; // 24-hour ISR cache
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const STORAGE_BUCKET = 'route-heroes';
-
-const IMMUTABLE_HEADERS = {
-  'Cache-Control': 'public, max-age=31536000, immutable',
-} as const;
-
-function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceKey) {
-    throw new Error('Missing Supabase env vars for route-hero handler');
-  }
-
-  return createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
-
-function fallbackResponse(): NextResponse {
-  return new NextResponse(getFallbackHeroBuffer(), {
-    status: 200,
-    headers: {
-      'Content-Type': 'image/svg+xml',
-      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-    },
-  });
-}
-
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+/**
+ * GET /api/route-hero/[id]
+ *
+ * Returns a static map hero image for a route.
+ * Fetches the route polyline from Supabase, builds a Mapbox Static Image URL,
+ * proxies the image, and caches aggressively (route polylines are immutable).
+ */
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   const { id } = await params;
 
-  // 1. Validate UUID format
-  if (!UUID_RE.test(id)) {
+  if (!id || id.length < 10) {
     return NextResponse.json({ error: 'Invalid route ID' }, { status: 400 });
   }
 
-  const supabase = getSupabaseAdmin();
+  // Fetch route polyline from Supabase (admin/anon is fine — routes are public)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // 2. Check Supabase Storage for cached image
-  const storagePath = `${id}.png`;
+  if (!supabaseUrl || !supabaseKey) {
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+  }
 
-  const { data: existingFile } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .createSignedUrl(storagePath, 60);
-
-  // 3. If cached, redirect to the signed URL (301, immutable)
-  if (existingFile?.signedUrl) {
-    // Use the public URL instead if the bucket is public
-    const { data: publicUrl } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
-
-    if (publicUrl?.publicUrl) {
-      return NextResponse.redirect(publicUrl.publicUrl, {
-        status: 301,
-        headers: IMMUTABLE_HEADERS,
-      });
-    }
-
-    return NextResponse.redirect(existingFile.signedUrl, {
-      status: 302,
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/routes?id=eq.${id}&status=eq.published&select=polyline`,
+    {
       headers: {
-        'Cache-Control': 'public, max-age=86400',
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
       },
-    });
+      next: { revalidate: 86400 }, // Cache for 24h — polylines are immutable
+    },
+  );
+
+  if (!res.ok) {
+    return NextResponse.json({ error: 'Route fetch failed' }, { status: 502 });
   }
 
-  // 4. Fetch route polyline from database
-  const { data: route, error: routeError } = await supabase
-    .from('routes')
-    .select('polyline')
-    .eq('id', id)
-    .single();
-
-  if (routeError || !route?.polyline) {
-    console.error(`[route-hero] Route not found or missing polyline: ${id}`, routeError);
-    return fallbackResponse();
+  const rows = (await res.json()) as { polyline: string }[];
+  if (!rows.length || !rows[0].polyline) {
+    return NextResponse.json({ error: 'Route not found' }, { status: 404 });
   }
 
-  // 5. Build static map URL and fetch the image
-  const provider = getStaticImageProvider();
-  const mapUrl = provider.buildUrl({
-    polyline: route.polyline,
-    width: 1200,
-    height: 630,
+  const mapUrl = buildStaticMapUrl({
+    polyline: rows[0].polyline,
+    width: 1280,
+    height: 640,
+    strokeColor: '3366e6',
+    strokeWidth: 5,
+    retina: true,
   });
 
-  let imageBuffer: ArrayBuffer;
+  // Proxy the image from Mapbox
+  const imgRes = await fetch(mapUrl);
 
-  try {
-    const mapResponse = await fetch(mapUrl, { signal: AbortSignal.timeout(10_000) });
-
-    if (!mapResponse.ok) {
-      console.error(`[route-hero] Map provider returned ${mapResponse.status} for route ${id}`);
-      return fallbackResponse();
-    }
-
-    imageBuffer = await mapResponse.arrayBuffer();
-  } catch (err) {
-    console.error(`[route-hero] Failed to fetch map image for route ${id}`, err);
-    return fallbackResponse();
+  if (!imgRes.ok) {
+    return NextResponse.json({ error: 'Map image generation failed' }, { status: 502 });
   }
 
-  // 6. Upload to Supabase Storage for future cache hits
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(storagePath, imageBuffer, {
-      contentType: 'image/png',
-      upsert: true,
-    });
+  const imgBuffer = await imgRes.arrayBuffer();
 
-  if (uploadError) {
-    console.error(`[route-hero] Failed to cache image for route ${id}`, uploadError);
-    // Non-fatal — still serve the image we fetched
-  }
-
-  // 7. Redirect to the public/signed URL now that it exists
-  const { data: publicUrl } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(storagePath);
-
-  if (publicUrl?.publicUrl) {
-    return NextResponse.redirect(publicUrl.publicUrl, {
-      status: 301,
-      headers: IMMUTABLE_HEADERS,
-    });
-  }
-
-  // Final fallback: serve the image bytes directly
-  return new NextResponse(imageBuffer, {
+  return new NextResponse(imgBuffer, {
     status: 200,
     headers: {
-      'Content-Type': 'image/png',
-      ...IMMUTABLE_HEADERS,
+      'Content-Type': imgRes.headers.get('Content-Type') ?? 'image/png',
+      'Cache-Control': 'public, max-age=604800, stale-while-revalidate=86400',
     },
   });
 }

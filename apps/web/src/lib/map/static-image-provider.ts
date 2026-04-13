@@ -1,61 +1,50 @@
 /**
- * Provider abstraction for static map image generation.
- * Decouples route hero images from any single tile vendor (MOT-147 ADR pending).
+ * Static map image provider — builds URLs for Mapbox Static Images API.
+ * Used by the route-hero API to generate map images server-side.
  */
 
-export interface StaticImageParams {
+const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
+const BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static';
+
+export interface StaticMapOptions {
+  /** Encoded polyline (Google format) */
   polyline: string;
+  /** Image width in pixels */
   width: number;
+  /** Image height in pixels */
   height: number;
+  /** Stroke color as hex (without #) */
+  strokeColor?: string;
+  /** Stroke width in pixels */
+  strokeWidth?: number;
+  /** Stroke opacity 0-1 */
+  strokeOpacity?: number;
+  /** Retina (@2x) */
+  retina?: boolean;
+  /** Optional padding in percent */
   padding?: number;
 }
 
-export interface StaticImageProvider {
-  buildUrl(params: StaticImageParams): string;
-}
-
 /**
- * Stadia Maps Static API — free tier, no vendor lock-in.
- * Docs: https://docs.stadiamaps.com/guides/static-maps/
- *
- * Requires STADIA_API_KEY env var for production usage.
- * The path is rendered from a Google-encoded polyline.
+ * Build a Mapbox Static Images API URL with an encoded polyline overlay.
  */
-class StadiaStaticProvider implements StaticImageProvider {
-  private readonly apiKey: string;
+export function buildStaticMapUrl(opts: StaticMapOptions): string {
+  const {
+    polyline,
+    width,
+    height,
+    strokeColor = '3366e6',
+    strokeWidth = 4,
+    strokeOpacity = 0.9,
+    retina = true,
+    padding = 60,
+  } = opts;
 
-  constructor() {
-    this.apiKey = process.env.STADIA_API_KEY ?? '';
-  }
+  // Mapbox uses `enc:` prefix for Google-encoded polylines
+  const encodedPath = encodeURIComponent(polyline);
+  const overlay = `path-${strokeWidth}+${strokeColor}-${strokeOpacity}(${encodedPath})`;
+  const retinaFlag = retina ? '@2x' : '';
+  const paddingParam = padding > 0 ? `&padding=${padding}` : '';
 
-  buildUrl({ polyline, width, height, padding = 40 }: StaticImageParams): string {
-    const params = new URLSearchParams({
-      size: `${width}x${height}`,
-      padding: String(padding),
-    });
-
-    if (this.apiKey) {
-      params.set('api_key', this.apiKey);
-    }
-
-    // Stadia accepts encoded polyline via `path` param with `enc:` prefix
-    return `https://tiles.stadiamaps.com/static/osm_bright.png?path=enc:${encodeURIComponent(polyline)}&${params.toString()}`;
-  }
-}
-
-const MAP_TILE_PROVIDERS = {
-  stadia: 'stadia',
-} as const;
-
-type MapTileProvider = (typeof MAP_TILE_PROVIDERS)[keyof typeof MAP_TILE_PROVIDERS];
-
-export function getStaticImageProvider(): StaticImageProvider {
-  const provider = (process.env.MAP_TILE_PROVIDER || 'stadia') as MapTileProvider;
-
-  switch (provider) {
-    case MAP_TILE_PROVIDERS.stadia:
-      return new StadiaStaticProvider();
-    default:
-      return new StadiaStaticProvider();
-  }
+  return `${BASE}/${overlay}/auto/${width}x${height}${retinaFlag}?access_token=${MAPBOX_TOKEN}${paddingParam}`;
 }
