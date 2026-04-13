@@ -40,7 +40,6 @@ const COUNTRY_NAMES: Record<string, string> = {
   CA: 'Canada',
 };
 
-/** Countries featured in the "Top Countries" grid. Europe + Americas only. */
 const TOP_COUNTRIES = [
   { code: 'IT', emoji: '\u{1F1EE}\u{1F1F9}' },
   { code: 'ES', emoji: '\u{1F1EA}\u{1F1F8}' },
@@ -56,6 +55,32 @@ const TOP_COUNTRIES = [
   { code: 'US', emoji: '\u{1F1FA}\u{1F1F8}' },
 ] as const;
 
+const TOP_ROUTES_SEO = [
+  'Pacific Coast Highway',
+  'Transfagarasan',
+  'Stelvio Pass',
+  'Grossglockner',
+  'Tail of the Dragon',
+  'Route Napoleon',
+  'Trollstigen',
+  'Ruta 40',
+  'Furka Pass',
+  'Black Forest B500',
+];
+
+const TOP_REGIONS_SEO = [
+  'Dolomites, Italy',
+  'Black Forest, Germany',
+  'Andalusia, Spain',
+  'Scottish Highlands',
+  'Norwegian Fjords',
+  'Transylvania, Romania',
+  'Swiss Alps',
+  'Provence, France',
+  'Croatian Coast',
+  'Blue Ridge, USA',
+];
+
 /* ── Revalidation ─────────────────────────────────────────────── */
 
 export const revalidate = 3600;
@@ -64,14 +89,14 @@ export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Discover Motorcycle Routes',
+    title: 'Discover Motorcycle Routes | MotoVault',
     description:
-      'Browse the best motorcycle routes worldwide. Staff picks, top-rated rides, and routes near you — all curated by the MotoVault community.',
+      'Browse the best motorcycle routes worldwide. Editor\'s picks, top-rated rides, and routes near you — curated by riders, for riders.',
     alternates: { canonical: `${BASE_URL}/explore` },
     openGraph: {
       title: 'Discover Motorcycle Routes | MotoVault',
       description:
-        'Browse the best motorcycle routes worldwide. Staff picks, top-rated rides, and routes near you.',
+        'Browse the best motorcycle routes worldwide. Editor\'s picks, top-rated rides, and routes near you.',
       url: `${BASE_URL}/explore`,
       siteName: 'MotoVault',
       type: 'website',
@@ -79,13 +104,12 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: 'Discover Motorcycle Routes | MotoVault',
-      description:
-        'Browse the best motorcycle routes worldwide. Staff picks, top-rated rides, and routes near you.',
+      description: 'Browse the best motorcycle routes worldwide — curated by riders, for riders.',
     },
   };
 }
 
-/* ── Supabase admin client (service-role NOT needed — RLS allows public SELECT) ── */
+/* ── Supabase ─────────────────────────────────────────────────── */
 
 function getSupabaseAnon() {
   return createClient(
@@ -148,138 +172,161 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
-function renderStars(avg: number | null): string {
-  if (avg == null) return '--';
-  return `${avg.toFixed(1)}`;
+function getDifficulty(route: RouteRow): { label: string; color: string } {
+  const ci = route.curvature_index ?? 0;
+  const elev = route.elevation_gain_m ?? 0;
+  if (ci >= 50 || elev >= 2000) return { label: 'Expert', color: 'text-red-400' };
+  if (ci >= 30 || elev >= 1000) return { label: 'Hard', color: 'text-orange-400' };
+  if (ci >= 15 || elev >= 500) return { label: 'Moderate', color: 'text-yellow-400' };
+  return { label: 'Easy', color: 'text-green-400' };
 }
 
-/* ── Sub-components (server) ──────────────────────────────────── */
+function estimateTime(distanceM: number, surfaceType?: string | null): string {
+  const avgSpeed = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
+  const hours = distanceM / 1000 / avgSpeed;
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
 
-function RouteCard({ route }: { route: RouteRow }) {
-  const curvatureLabel = route.curvature_index != null
-    ? route.curvature_index >= 50 ? 'Extreme curves' : route.curvature_index >= 30 ? 'Twisty' : route.curvature_index >= 15 ? 'Moderate curves' : 'Straight'
-    : null;
+/* ── Route Card ──────────────────────────────────────────────── */
+
+function RouteCard({ route, priority = false }: { route: RouteRow; priority?: boolean }) {
+  const difficulty = getDifficulty(route);
 
   return (
     <a
       href={`/route/${route.id}`}
-      className="card-lift group block overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 transition-all hover:border-primary-500/40 hover:bg-neutral-800/80"
+      className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
-      {/* Visual placeholder — gradient hero block */}
-      <div className="h-28 bg-gradient-to-br from-neutral-800 via-neutral-850 to-neutral-900 sm:h-32" aria-hidden="true" />
+      {/* Photo placeholder — gradient simulating mountain road */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-neutral-800 via-primary-950/40 to-neutral-900 transition-transform duration-500 group-hover:scale-105"
+          aria-hidden="true"
+        />
+        {/* Subtle road line decoration */}
+        <svg
+          className="absolute inset-0 h-full w-full opacity-[0.07]"
+          viewBox="0 0 400 300"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M0 280 C80 240 120 180 200 160 C280 140 320 100 400 40"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-neutral-200"
+          />
+        </svg>
 
-      <div className="p-5">
-        {/* Surface + curvature badges */}
-        <div className="mb-3 flex flex-wrap gap-2">
-          {route.surface_type && route.surface_type !== 'unknown' && (
-            <span className="inline-block rounded-full bg-primary-500/15 px-2.5 py-0.5 text-xs font-medium capitalize text-primary-300 ring-1 ring-primary-500/20">
-              {route.surface_type}
-            </span>
-          )}
-          {curvatureLabel && (
-            <span className="inline-block rounded-full bg-signature-500/15 px-2.5 py-0.5 text-xs font-medium text-signature-300">
-              {curvatureLabel}
-            </span>
-          )}
-        </div>
+        {/* Save button overlay */}
+        <button
+          type="button"
+          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950/60 text-neutral-300 backdrop-blur-sm transition-colors hover:bg-neutral-950/80 hover:text-neutral-50"
+          aria-label={`Save ${route.name ?? 'route'}`}
+          onClick={(e) => e.preventDefault()}
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+        </button>
 
-        <h3 className="mb-1 text-lg font-semibold text-neutral-50 transition-colors group-hover:text-primary-400">
+        {/* Editor's Pick badge */}
+        {route.is_motovault_pick && (
+          <span className="absolute left-3 top-3 rounded-full bg-signature-500/90 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+            Editor&apos;s Pick
+          </span>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="mb-0.5 truncate text-base font-semibold text-neutral-50 group-hover:text-primary-300 transition-colors">
           {route.name ?? 'Unnamed Route'}
         </h3>
 
         {(route.editorial_description || route.description) && (
-          <p className="mb-3 line-clamp-2 text-sm text-neutral-400">
+          <p className="mb-2 line-clamp-1 text-sm text-neutral-500">
             {route.editorial_description ?? route.description}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-300">
-          <span className="font-medium">{formatDistance(route.distance_m)}</span>
-          {route.elevation_gain_m != null && (
-            <span>{Math.round(route.elevation_gain_m)} m climb</span>
-          )}
+        {/* Stats row — matching AllTrails pattern: ★ 4.8 · ◆ Hard · 27 km · Est. 3h */}
+        <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-400">
           {route.rating_avg != null && (
-            <span className="flex items-center gap-1 text-warm-400">
-              <StarIcon />
-              <span className="font-medium">{renderStars(route.rating_avg)}</span>
-              <span className="text-neutral-500">({route.rating_count})</span>
-            </span>
+            <>
+              <span className="flex items-center gap-0.5 text-signature-400">
+                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+                </svg>
+                <span className="font-medium text-neutral-200">{route.rating_avg.toFixed(1)}</span>
+              </span>
+              <span className="text-neutral-600">&middot;</span>
+            </>
           )}
+          <span className={difficulty.color}>{difficulty.label}</span>
+          <span className="text-neutral-600">&middot;</span>
+          <span>{formatDistance(route.distance_m)}</span>
+          <span className="text-neutral-600">&middot;</span>
+          <span>Est. {estimateTime(route.distance_m, route.surface_type)}</span>
         </div>
       </div>
     </a>
   );
 }
 
-function StarIcon() {
-  return (
-    <svg
-      className="h-4 w-4"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-    </svg>
-  );
-}
+/* ── Skeleton ────────────────────────────────────────────────── */
 
-function SectionSkeleton() {
+function SectionSkeleton({ cols = 4 }: { cols?: number }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-40 animate-pulse rounded-xl bg-neutral-800/60"
-        />
+    <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-${cols}`}>
+      {Array.from({ length: cols }).map((_, i) => (
+        <div key={i} className="animate-pulse overflow-hidden rounded-2xl bg-neutral-900">
+          <div className="aspect-[4/3] bg-neutral-800/60" />
+          <div className="space-y-2 p-4">
+            <div className="h-4 w-3/4 rounded bg-neutral-800" />
+            <div className="h-3 w-1/2 rounded bg-neutral-800/60" />
+          </div>
+        </div>
       ))}
     </div>
   );
 }
 
-/* ── Async section components (for Suspense boundaries) ───────── */
+/* ── Async sections ──────────────────────────────────────────── */
 
-async function StaffPicksSection() {
-  const picks = await fetchStaffPicks();
-  if (picks.length === 0) return null;
-
-  return (
-    <section className="reveal-on-scroll">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-signature-500/20 text-signature-400">
-          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-          </svg>
-        </span>
-        <h2 className="text-2xl font-bold text-neutral-50">Staff Picks</h2>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {picks.map((route) => (
-          <RouteCard key={route.id} route={route} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-async function TopRoutesSection({ countryCode }: { countryCode: string }) {
-  const routes = await fetchTopRoutes(8);
+async function NearYouSection({ countryCode }: { countryCode: string }) {
+  const routes = await fetchTopRoutes(4, countryCode);
   if (routes.length === 0) {
     return (
       <section>
-        <h2 className="mb-6 text-2xl font-bold text-neutral-50">Top Rated Routes</h2>
-        <p className="py-12 text-center text-neutral-500">No rated routes yet. Share your ride to get started.</p>
+        <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">
+          Routes near you
+        </h2>
+        <div className="rounded-2xl border border-dashed border-neutral-800 py-16 text-center">
+          <p className="text-neutral-500">No routes found in your area yet.</p>
+          <a href="/search" className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors">
+            Search all routes &rarr;
+          </a>
+        </div>
       </section>
     );
   }
   const countryName = COUNTRY_NAMES[countryCode] ?? countryCode;
 
   return (
-    <section className="reveal-on-scroll">
-      <h2 className="mb-6 text-2xl font-bold text-neutral-50">
-        Top Routes in {countryName}
-      </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
+          Routes near <span className="text-primary-400">{countryName}</span>
+        </h2>
+        <a href="/search" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+          View all &rarr;
+        </a>
+      </div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {routes.map((route) => (
           <RouteCard key={route.id} route={route} />
         ))}
@@ -288,24 +335,44 @@ async function TopRoutesSection({ countryCode }: { countryCode: string }) {
   );
 }
 
-async function NearYouSection({ countryCode }: { countryCode: string }) {
-  const routes = await fetchTopRoutes(6, countryCode);
-  if (routes.length === 0) {
-    return (
-      <section>
-        <h2 className="mb-6 text-2xl font-bold text-neutral-50">Near You</h2>
-        <p className="py-12 text-center text-neutral-500">No routes found in your area yet. Be the first to share one.</p>
-      </section>
-    );
-  }
-  const countryName = COUNTRY_NAMES[countryCode] ?? countryCode;
+async function StaffPicksSection() {
+  const picks = await fetchStaffPicks();
+  if (picks.length === 0) return null;
 
   return (
-    <section className="reveal-on-scroll">
-      <h2 className="mb-6 text-2xl font-bold text-neutral-50">
-        Near You &mdash; {countryName}
-      </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-signature-500/20">
+            <svg className="h-4 w-4 text-signature-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+            </svg>
+          </span>
+          <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Editor&apos;s Picks</h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {picks.map((route) => (
+          <RouteCard key={route.id} route={route} priority />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+async function TopRoutesSection({ countryCode }: { countryCode: string }) {
+  const routes = await fetchTopRoutes(8);
+  if (routes.length === 0) return null;
+
+  return (
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated routes</h2>
+        <a href="/search" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+          View all &rarr;
+        </a>
+      </div>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {routes.map((route) => (
           <RouteCard key={route.id} route={route} />
         ))}
@@ -338,7 +405,7 @@ export default async function ExplorePage() {
   const countryCode = hdrs.get('cf-ipcountry')?.toUpperCase() ?? 'US';
 
   return (
-    <div className="dark grain-overlay min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen bg-neutral-950 text-neutral-50">
       {/* JSON-LD */}
       <script
         type="application/ld+json"
@@ -348,103 +415,203 @@ export default async function ExplorePage() {
         }}
       />
 
-      {/* Hero + Search */}
-      <section className="relative overflow-hidden px-4 pb-16 pt-24 sm:px-6 lg:px-8">
-        {/* Gradient background */}
+      {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden sm:min-h-[80vh]">
+        {/* Background — dramatic gradient simulating mountain road at golden hour */}
         <div
-          className="pointer-events-none absolute inset-0 -z-10"
+          className="absolute inset-0"
           style={{
-            background:
-              'radial-gradient(ellipse 80% 60% at 50% 0%, var(--color-primary-950) 0%, transparent 70%)',
+            background: `
+              radial-gradient(ellipse 120% 80% at 50% 20%, oklch(0.25 0.04 250) 0%, transparent 60%),
+              radial-gradient(ellipse 60% 40% at 80% 70%, oklch(0.20 0.06 40) 0%, transparent 50%),
+              oklch(0.08 0.01 250)
+            `,
           }}
           aria-hidden="true"
         />
+        {/* Subtle noise texture */}
+        <div className="grain-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
+        {/* Bottom fade to content */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-950 to-transparent" aria-hidden="true" />
 
-        <div className="mx-auto max-w-3xl text-center">
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
-            Discover Motorcycle Routes
+        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-signature-400">
+            Curated by riders, for riders
+          </p>
+          <h1 className="mb-6 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-tight">
+            Discover your<br />next ride
           </h1>
-          <p className="mb-8 text-lg text-neutral-400 sm:text-xl">
-            Explore the best rides curated by the MotoVault community. Search by
-            name, region, or surface type.
+          <p className="mb-10 text-lg text-neutral-400 sm:text-xl">
+            Browse the best motorcycle routes worldwide &mdash; from alpine passes to coastal highways.
           </p>
 
-          {/* Search bar */}
-          <form
-            action="/search"
-            method="GET"
-            className="mx-auto flex max-w-xl items-center gap-2"
-          >
-            <div className="relative flex-1">
+          {/* Search bar — full-width, prominent */}
+          <form action="/search" method="GET" className="mx-auto max-w-2xl">
+            <div className="relative">
               <svg
-                className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                aria-hidden="true"
+                className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500"
+                fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
               <input
                 type="search"
                 name="q"
-                placeholder="Search routes..."
-                className="w-full rounded-xl border border-neutral-700 bg-neutral-900 py-3.5 pl-11 pr-4 text-base text-neutral-50 placeholder:text-neutral-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
+                placeholder="Search by country, region, or route name..."
+                className="w-full rounded-2xl border border-neutral-700/50 bg-neutral-900/80 py-4 pl-13 pr-32 text-base text-neutral-50 placeholder:text-neutral-500 backdrop-blur-xl focus:border-primary-500/50 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
                 aria-label="Search motorcycle routes"
               />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-400 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              >
+                Search
+              </button>
             </div>
-            <button
-              type="submit"
-              className="cta-primary min-h-[48px] rounded-xl bg-primary-500 px-8 py-3.5 font-semibold text-white hover:bg-primary-600 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-950 transition-transform"
-            >
-              Search
-            </button>
           </form>
+
+          <a href="/search" className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors">
+            Explore nearby routes
+          </a>
         </div>
       </section>
 
-      {/* Content sections */}
-      <div className="mx-auto max-w-7xl space-y-16 px-4 pb-24 sm:px-6 lg:px-8">
-        {/* Near You */}
-        <Suspense fallback={<SectionSkeleton />}>
-          <NearYouSection countryCode={countryCode} />
-        </Suspense>
+      {/* ━━━ CONTENT SECTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        {/* Staff Picks */}
-        <Suspense fallback={<SectionSkeleton />}>
-          <StaffPicksSection />
-        </Suspense>
+        {/* Near You — 20px top margin to connect with hero */}
+        <div className="mt-8">
+          <Suspense fallback={<SectionSkeleton cols={4} />}>
+            <NearYouSection countryCode={countryCode} />
+          </Suspense>
+        </div>
 
-        {/* Top Routes in Country */}
-        <Suspense fallback={<SectionSkeleton />}>
-          <TopRoutesSection countryCode={countryCode} />
-        </Suspense>
+        {/* Editor's Picks */}
+        <div className="mt-20">
+          <Suspense fallback={<SectionSkeleton cols={3} />}>
+            <StaffPicksSection />
+          </Suspense>
+        </div>
 
-        {/* Top Countries Grid */}
-        <section className="reveal-on-scroll">
-          <h2 className="mb-6 text-2xl font-bold text-neutral-50">Top Countries</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {/* App Promotion — breaks the card pattern */}
+        <div className="mt-24">
+          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-primary-950/30">
+            <div className="grid items-center gap-8 p-8 sm:grid-cols-2 sm:p-12 lg:p-16">
+              <div>
+                <p className="mb-2 text-sm font-medium uppercase tracking-widest text-signature-400">
+                  MotoVault App
+                </p>
+                <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Track every ride.<br />Share every road.
+                </h2>
+                <p className="mb-6 max-w-md text-neutral-400">
+                  Record rides with live GPS tracking, log expenses, diagnose issues with AI, and discover routes shared by riders worldwide.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="https://apps.apple.com/app/motovault"
+                    className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                    </svg>
+                    App Store
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=app.motovault"
+                    className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M3.18 23.73c-.5-.32-.68-.84-.68-1.43V1.7c0-.59.18-1.11.68-1.43L13.84 12 3.18 23.73zm1.8.6L16.92 13.6l-2.79-2.79L4.98 24.33zm17.28-11.37c.53.3.74.71.74 1.04s-.21.74-.74 1.04l-3.21 1.81-3.07-3.07 3.07-3.07 3.21 1.25zM4.98-.33L14.13 10.4l2.79-2.79L4.98-.33z" />
+                    </svg>
+                    Google Play
+                  </a>
+                </div>
+              </div>
+              <div className="relative mx-auto w-64 sm:w-72">
+                {/* Phone frame placeholder */}
+                <div className="aspect-[9/19] overflow-hidden rounded-[2.5rem] border-4 border-neutral-700 bg-neutral-800">
+                  <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+                    <div className="mb-4 h-16 w-16 rounded-2xl bg-primary-500/20" />
+                    <p className="text-sm font-medium text-neutral-400">App Preview</p>
+                    <p className="mt-1 text-xs text-neutral-600">Live ride tracking</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top Routes */}
+        <div className="mt-20">
+          <Suspense fallback={<SectionSkeleton cols={4} />}>
+            <TopRoutesSection countryCode={countryCode} />
+          </Suspense>
+        </div>
+
+        {/* Top Countries */}
+        <div className="mt-20">
+          <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">Explore by country</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {TOP_COUNTRIES.map(({ code, emoji }) => (
               <a
                 key={code}
                 href={`/explore/${code.toLowerCase()}`}
-                className="card-lift group flex flex-col items-center gap-2 rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-6 text-center transition-all hover:border-primary-500/40 hover:bg-neutral-800/80 active:scale-[0.97]"
+                className="group flex items-center gap-3 rounded-xl border border-neutral-800/50 bg-neutral-900/50 px-4 py-4 transition-all hover:border-neutral-700 hover:bg-neutral-800/50 active:scale-[0.98]"
               >
-                <span className="text-3xl" role="img" aria-label={COUNTRY_NAMES[code]}>
+                <span className="text-2xl" role="img" aria-label={COUNTRY_NAMES[code]}>
                   {emoji}
                 </span>
-                <span className="text-sm font-medium text-neutral-300 group-hover:text-neutral-50 transition-colors">
+                <span className="text-sm font-medium text-neutral-300 group-hover:text-neutral-100 transition-colors">
                   {COUNTRY_NAMES[code]}
                 </span>
               </a>
             ))}
           </div>
-        </section>
+        </div>
+
+        {/* ━━━ SEO FOOTER — "Ride anywhere" ━━━━━━━━━━━━━━━━━━━ */}
+        <div className="mt-24 border-t border-neutral-800/50 pt-16 pb-20">
+          <h2 className="mb-10 text-2xl font-bold tracking-tight sm:text-3xl">Ride anywhere</h2>
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top routes</h3>
+              <ul className="space-y-2">
+                {TOP_ROUTES_SEO.map((name) => (
+                  <li key={name}>
+                    <a href={`/search?q=${encodeURIComponent(name)}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                      {name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top regions</h3>
+              <ul className="space-y-2">
+                {TOP_REGIONS_SEO.map((name) => (
+                  <li key={name}>
+                    <a href={`/search?q=${encodeURIComponent(name)}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                      {name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top countries</h3>
+              <ul className="space-y-2">
+                {TOP_COUNTRIES.map(({ code }) => (
+                  <li key={code}>
+                    <a href={`/explore/${code.toLowerCase()}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                      {COUNTRY_NAMES[code]}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
