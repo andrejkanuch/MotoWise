@@ -925,6 +925,7 @@ type Query {
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
   routeBySlug(country: String!, region: String!, slug: String!): Route
   routeDetail(routeId: ID!): Route!
+  savedRoutes(after: String, first: Int = 20): RouteConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
