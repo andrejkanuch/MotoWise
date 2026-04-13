@@ -89,7 +89,8 @@ async function main() {
         }
 
         // Find nearest city in places table
-        const place = await findNearestPlace(supabase, route.lat, route.lng);
+        // biome-ignore lint/suspicious/noExplicitAny: script uses untyped supabase client
+        const place = await findNearestPlace(supabase as any, route.lat, route.lng);
 
         const countryCode = place?.country_code ?? null;
         const regionCode = place?.region_code ?? null;
@@ -103,7 +104,7 @@ async function main() {
 
         // Resolve collisions within (country_code, region_code)
         const finalSlug = await resolveSlugCollision(
-          supabase,
+          supabase as any,
           baseSlug,
           countryCode,
           regionCode,
@@ -172,7 +173,8 @@ async function findNearestPlace(
   lng: number,
 ): Promise<PlaceRow | null> {
   for (const kind of ['city', 'region', 'country'] as const) {
-    const { data, error } = await supabase.rpc('find_nearest_place', {
+    // biome-ignore lint/suspicious/noExplicitAny: RPC params not typed without database.types.ts
+    const { data, error } = await (supabase.rpc as any)('find_nearest_place', {
       p_lat: lat,
       p_lng: lng,
       p_kind: kind,
@@ -183,8 +185,8 @@ async function findNearestPlace(
       continue;
     }
 
-    if (data && data.length > 0) {
-      return data[0] as PlaceRow;
+    if (data && (data as PlaceRow[]).length > 0) {
+      return (data as PlaceRow[])[0];
     }
   }
 
