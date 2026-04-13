@@ -10,6 +10,7 @@ const navLinks = [
   { href: '/admin/users', label: 'Users' },
   { href: '/admin/diagnostics', label: 'Diagnostics' },
   { href: '/admin/flags', label: 'Content Flags' },
+  { href: '/admin/analytics', label: 'Analytics' },
 ];
 
 const linkClassName =
