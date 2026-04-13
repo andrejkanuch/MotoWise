@@ -39,6 +39,7 @@ import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
+import { SearchModule } from './modules/search/search.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { TripsModule } from './modules/trips/trips.module';
@@ -101,6 +102,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     RideSummariesModule,
     RidesModule,
     RoutesModule,
+    SearchModule,
     ShareLinksModule,
     TripsModule,
     WaitlistModule,
