@@ -41,6 +41,15 @@ export class Route {
   @Field(() => Float, { nullable: true })
   curvatureIndex?: number;
 
+  @Field({ nullable: true })
+  countryCode?: string;
+
+  @Field(() => Int, { nullable: true })
+  twistScore?: number;
+
+  @Field(() => Int, { nullable: true })
+  twistPercentile?: number;
+
   @Field()
   isMotovaultPick: boolean;
 

@@ -23,6 +23,7 @@ interface RouteRow {
   elevation_gain_m: number | null;
   surface_type: string | null;
   curvature_index: number | null;
+  country_code: string | null;
   is_motovault_pick: boolean;
   editorial_description: string | null;
   rating_avg: number | null;
@@ -198,7 +199,7 @@ export class RoutesService {
     const { data, error } = await this.supabaseAdmin
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, country_code, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('id', routeId)
       .eq('status', 'published')
@@ -376,6 +377,45 @@ export class RoutesService {
     return { gpx, filename: `${sanitizedName}-motovault.gpx` };
   }
 
+  async computeTwistScore(
+    curvatureIndex: number | null | undefined,
+    countryCode: string | null | undefined,
+  ): Promise<{ score: number; percentile: number } | null> {
+    if (!curvatureIndex || !countryCode) return null;
+
+    const { data: buckets } = await this.supabaseAdmin
+      .from('route_twist_buckets')
+      .select('*')
+      .eq('country_code', countryCode)
+      .single();
+
+    if (!buckets) return null;
+
+    // Find which percentile bucket the curvature falls into
+    const percentiles = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const values = [
+      buckets.p0,
+      buckets.p10,
+      buckets.p20,
+      buckets.p30,
+      buckets.p40,
+      buckets.p50,
+      buckets.p60,
+      buckets.p70,
+      buckets.p80,
+      buckets.p90,
+      buckets.p100,
+    ];
+
+    let percentile = 0;
+    for (let i = 0; i < values.length - 1; i++) {
+      if (curvatureIndex >= (values[i] as number)) percentile = percentiles[i];
+    }
+
+    const score = Math.min(10, Math.max(1, Math.ceil(percentile / 10)));
+    return { score, percentile };
+  }
+
   // --- Private helpers ---
 
   private mapRouteRow(row: RouteRow): Route {
@@ -395,6 +435,7 @@ export class RoutesService {
       elevationGainM: row.elevation_gain_m ?? undefined,
       surfaceType: row.surface_type ?? undefined,
       curvatureIndex: row.curvature_index ?? undefined,
+      countryCode: row.country_code ?? undefined,
       isMotovaultPick: row.is_motovault_pick,
       editorialDescription: row.editorial_description ?? undefined,
       ratingAvg: row.rating_avg ?? undefined,

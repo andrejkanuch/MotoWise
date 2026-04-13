@@ -3,7 +3,7 @@ import {
   ShareRideToDiscoverInputSchema,
 } from '@motovault/types/validators';
 import { BadRequestException, UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -56,6 +56,24 @@ export class RoutesResolver {
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
   ): Promise<Route> {
     return this.routesService.routeDetail(routeId);
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistScore(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.score ?? null;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistPercentile(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.percentile ?? null;
   }
 
   @Mutation(() => Route)
