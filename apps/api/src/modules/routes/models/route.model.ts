@@ -26,8 +26,8 @@ export class Route {
   @Field({ nullable: true })
   description?: string;
 
-  @Field()
-  polyline: string;
+  @Field({ nullable: true, description: 'Null for anonymous users (requires auth)' })
+  polyline?: string;
 
   @Field(() => Float)
   distanceM: number;
