@@ -5,10 +5,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
-import {
-  fetchCountryBySlug,
-  fetchRegionsByCountrySlug,
-} from '@/lib/fetch-places';
+import { fetchCountryBySlug, fetchRegionsByCountrySlug } from '@/lib/fetch-places';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 
 export const revalidate = 86400;
@@ -130,7 +127,12 @@ function estimateTime(distanceM: number, surfaceType?: string | null): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function routeHref(route: { countryCode: string | null; regionSlug: string | null; slug: string | null; id: string }): string {
+function routeHref(route: {
+  countryCode: string | null;
+  regionSlug: string | null;
+  slug: string | null;
+  id: string;
+}): string {
   return route.countryCode && route.regionSlug && route.slug
     ? `/route/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`
     : `/routes/${route.id}`;
@@ -288,10 +290,7 @@ function MapPlaceholder() {
 
 /* ── Route cards ─────────────────────────────────────────────── */
 
-function RouteCardFeatured({
-  route,
-  index,
-}: { route: RouteWithPolyline; index: number }) {
+function RouteCardFeatured({ route, index }: { route: RouteWithPolyline; index: number }) {
   const diff = getDifficulty(route.curvatureIndex, route.elevationGainM);
   const mapUrl = route.polyline ? buildThumbnailUrl(route.polyline, 800, 400) : '';
 
@@ -299,7 +298,7 @@ function RouteCardFeatured({
     <a
       href={routeHref(route)}
       className="route-card group relative block overflow-hidden rounded-2xl border border-neutral-800/40 bg-neutral-900/50 transition-all duration-300 hover:border-neutral-700/60 hover:ring-1 hover:ring-neutral-700/30"
-      style={{ animationDelay: `${index * 80}ms` }}
+      style={{ animationDelay: `${Math.min(index * 80, 500)}ms` }}
     >
       {/* Map thumbnail */}
       <div className="relative aspect-[16/9] w-full overflow-hidden">
@@ -341,13 +340,11 @@ function RouteCardFeatured({
         </h3>
 
         {route.description && (
-          <p className="mt-1.5 line-clamp-2 text-sm text-neutral-500">
-            {route.description}
-          </p>
+          <p className="mt-1.5 line-clamp-2 text-sm text-neutral-400">{route.description}</p>
         )}
 
         {/* Stats */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-neutral-400">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-neutral-300">
           {route.distanceM > 0 && (
             <span className="flex items-center gap-1.5">
               <DistanceIcon />
@@ -372,8 +369,12 @@ function RouteCardFeatured({
         {/* Rating + difficulty */}
         <div className="mt-3 flex items-center gap-3">
           {route.ratingAvg != null && route.ratingCount > 0 && (
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-0.5">
+            <div
+              className="flex items-center gap-1.5"
+              role="img"
+              aria-label={`Rated ${route.ratingAvg.toFixed(1)} out of 5 stars, ${route.ratingCount} reviews`}
+            >
+              <div className="flex items-center gap-0.5" aria-hidden="true">
                 {([0, 1, 2, 3, 4] as const).map((i) => (
                   <StarIcon
                     key={`${route.id}-star-${i}`}
@@ -381,15 +382,13 @@ function RouteCardFeatured({
                   />
                 ))}
               </div>
-              <span className="text-sm text-neutral-400">
+              <span className="text-sm text-neutral-300">
                 {route.ratingAvg.toFixed(1)}
-                <span className="text-neutral-500"> ({route.ratingCount})</span>
+                <span className="text-neutral-400"> ({route.ratingCount})</span>
               </span>
             </div>
           )}
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${diff.colorClass}`}
-          >
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${diff.colorClass}`}>
             {diff.label}
           </span>
         </div>
@@ -398,10 +397,7 @@ function RouteCardFeatured({
   );
 }
 
-function RouteCard({
-  route,
-  index,
-}: { route: RouteWithPolyline; index: number }) {
+function RouteCard({ route, index }: { route: RouteWithPolyline; index: number }) {
   const diff = getDifficulty(route.curvatureIndex, route.elevationGainM);
   const mapUrl = route.polyline ? buildThumbnailUrl(route.polyline, 400, 240) : '';
 
@@ -409,7 +405,7 @@ function RouteCard({
     <a
       href={routeHref(route)}
       className="route-card group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800/40 bg-neutral-900/40 transition-all duration-300 hover:border-neutral-700/60 hover:bg-neutral-900/60"
-      style={{ animationDelay: `${index * 80}ms` }}
+      style={{ animationDelay: `${Math.min(index * 80, 500)}ms` }}
     >
       {/* Map thumbnail */}
       <div className="relative aspect-[5/3] w-full overflow-hidden">
@@ -454,7 +450,7 @@ function RouteCard({
         </div>
 
         {/* Stats row */}
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-400">
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-300">
           {route.distanceM > 0 && (
             <span className="flex items-center gap-1">
               <DistanceIcon />
@@ -476,8 +472,12 @@ function RouteCard({
         {/* Rating + difficulty */}
         <div className="mt-auto flex items-center gap-2.5 pt-3">
           {route.ratingAvg != null && route.ratingCount > 0 && (
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-0.5">
+            <div
+              className="flex items-center gap-1"
+              role="img"
+              aria-label={`Rated ${route.ratingAvg.toFixed(1)} out of 5`}
+            >
+              <div className="flex items-center gap-0.5" aria-hidden="true">
                 {([0, 1, 2, 3, 4] as const).map((i) => (
                   <StarIcon
                     key={`${route.id}-star-${i}`}
@@ -485,20 +485,14 @@ function RouteCard({
                   />
                 ))}
               </div>
-              <span className="text-xs text-neutral-400">
-                {route.ratingAvg.toFixed(1)}
-              </span>
+              <span className="text-xs text-neutral-300">{route.ratingAvg.toFixed(1)}</span>
             </div>
           )}
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}
-          >
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
             {diff.label}
           </span>
           {route.surfaceType && route.surfaceType !== 'unknown' && (
-            <span className="text-xs text-neutral-500">
-              {surfaceLabel(route.surfaceType)}
-            </span>
+            <span className="text-xs text-neutral-400">{surfaceLabel(route.surfaceType)}</span>
           )}
         </div>
       </div>
@@ -524,8 +518,8 @@ export default async function CountryPage({ params }: PageProps) {
   return (
     <main className="min-h-screen text-neutral-50">
       {/* Stagger animation styles */}
-      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: animation CSS */}
       <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: CSS keyframe animations for card entrance
         dangerouslySetInnerHTML={{
           __html: `
         .route-card {
@@ -543,14 +537,24 @@ export default async function CountryPage({ params }: PageProps) {
         @keyframes pillIn {
           to { opacity: 1; }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .route-card, .region-pill {
+            opacity: 1;
+            transform: none;
+            animation: none;
+          }
+        }
       `,
         }}
       />
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 pt-10 pb-6 sm:px-6 sm:pt-14 sm:pb-8">
-        <nav className="mb-6 flex items-center gap-2 text-sm text-neutral-500">
-          <a href="/explore" className="transition-colors hover:text-neutral-300">
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-6 flex items-center gap-2 text-sm text-neutral-400"
+        >
+          <a href="/explore" className="transition-colors hover:text-neutral-200">
             Explore
           </a>
           <svg
@@ -575,10 +579,8 @@ export default async function CountryPage({ params }: PageProps) {
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-warm-500/15">
               <DistanceIcon />
             </span>
-            <strong className="font-semibold text-neutral-200">
-              {topRoutes.length}
-            </strong>{' '}
-            route{topRoutes.length !== 1 ? 's' : ''}
+            <strong className="font-semibold text-neutral-200">{topRoutes.length}</strong> route
+            {topRoutes.length !== 1 ? 's' : ''}
           </span>
           {regions.length > 0 && (
             <span className="flex items-center gap-2">
@@ -595,10 +597,8 @@ export default async function CountryPage({ params }: PageProps) {
                   <circle cx="12" cy="10" r="3" />
                 </svg>
               </span>
-              <strong className="font-semibold text-neutral-200">
-                {regions.length}
-              </strong>{' '}
-              region{regions.length !== 1 ? 's' : ''}
+              <strong className="font-semibold text-neutral-200">{regions.length}</strong> region
+              {regions.length !== 1 ? 's' : ''}
             </span>
           )}
         </div>
@@ -606,20 +606,22 @@ export default async function CountryPage({ params }: PageProps) {
 
       {/* Region pills */}
       {regions.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 pb-8 sm:px-6">
+        <section
+          aria-label={`Regions in ${country.name}`}
+          className="mx-auto max-w-6xl px-4 pb-8 sm:px-6"
+        >
+          <h2 className="sr-only">Regions</h2>
           <div className="flex flex-wrap gap-2">
             {regions.map((region, i) => (
               <a
                 key={region.id}
                 href={`/explore/${countrySlug}/${region.slug}`}
-                className="region-pill rounded-full border border-neutral-800/50 bg-neutral-900/30 px-4 py-2 text-sm text-neutral-300 transition-all hover:border-warm-500/40 hover:bg-neutral-900/60 hover:text-white"
-                style={{ animationDelay: `${i * 40}ms` }}
+                className="region-pill min-h-[44px] rounded-full border border-neutral-800/50 bg-neutral-900/30 px-4 py-2.5 text-sm text-neutral-300 transition-all hover:border-warm-500/40 hover:bg-neutral-900/60 hover:text-white"
+                style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
               >
                 {region.name}
                 {region.routeCount > 0 && (
-                  <span className="ml-1.5 text-neutral-600">
-                    {region.routeCount}
-                  </span>
+                  <span className="ml-1.5 text-neutral-500">{region.routeCount}</span>
                 )}
               </a>
             ))}
@@ -673,17 +675,13 @@ export default async function CountryPage({ params }: PageProps) {
               className="size-8 text-neutral-600"
               aria-hidden="true"
             >
-              <path
-                d="M3 12h4l3-9 4 18 3-9h4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M3 12h4l3-9 4 18 3-9h4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-neutral-300">No routes yet</h2>
           <p className="mt-2 text-neutral-500">
-            Routes in {country.name} are coming soon. Share your favorite ride from
-            the MotoVault app to be the first!
+            Routes in {country.name} are coming soon. Share your favorite ride from the MotoVault
+            app to be the first!
           </p>
           <a
             href="/explore"
@@ -698,11 +696,7 @@ export default async function CountryPage({ params }: PageProps) {
               className="size-4"
               aria-hidden="true"
             >
-              <path
-                d="M5 12h14M12 5l7 7-7 7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+              <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </a>
         </section>

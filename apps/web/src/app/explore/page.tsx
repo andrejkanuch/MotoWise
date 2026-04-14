@@ -33,15 +33,15 @@ const TOP_COUNTRIES = [
 
 const TOP_ROUTES_SEO = [
   { name: 'Pacific Coast Highway', href: '/route/us/ca/pacific-coast-highway' },
-  { name: 'Transfagarasan', href: '/route/ro/ag/transfagarasan' },
-  { name: 'Stelvio Pass', href: '/route/it/bz/stelvio-pass' },
-  { name: 'Grossglockner', href: '/route/at/ka/grossglockner-high-alpine-road' },
-  { name: 'Tail of the Dragon', href: '/route/us/nc/tail-of-the-dragon' },
-  { name: 'Route Napoleon', href: '/route/fr/paca/route-napoleon' },
+  { name: 'Transfagarasan', href: '/route/ro/ag/transfgran' },
+  { name: 'Stelvio Pass', href: '/route/it/taa/stelvio-pass' },
+  { name: 'Grossglockner', href: '/route/at/k/grossglockner-hochalpenstrae' },
+  { name: 'Tail of the Dragon', href: '/route/us/tn/tail-of-the-dragon' },
+  { name: 'Col du Galibier', href: '/route/fr/paca/col-du-galibier' },
   { name: 'Trollstigen', href: '/route/no/mr/trollstigen' },
-  { name: 'Ruta 40', href: '/route/ar/nq/ruta-40' },
-  { name: 'Furka Pass', href: '/route/ch/ur/furka-pass' },
-  { name: 'Black Forest B500', href: '/route/de/bw/black-forest-b500' },
+  { name: 'Sa Calobra', href: '/route/es/ib/sa-calobra' },
+  { name: 'Furka Pass', href: '/route/ch/vs/furka-pass' },
+  { name: 'Grimsel Pass', href: '/route/ch/vs/grimsel-pass' },
 ] as const;
 
 const SECTION_SKELETON_KEYS = ['a', 'b', 'c', 'd'] as const;
