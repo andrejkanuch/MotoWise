@@ -129,7 +129,7 @@ export default function RouteDetailScreen() {
   const { data: fuelData } = useQuery({
     queryKey: queryKeys.fuelStops.nearRoute(routeId, primaryBikeId),
     queryFn: () => gqlFetcher(FuelStopsNearRouteDocument, { routeId, bikeId: primaryBikeId }),
-    enabled: !!routeId,
+    enabled: !!routeId && primaryBikeId !== undefined,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -175,16 +175,18 @@ export default function RouteDetailScreen() {
     };
   }, [coordinates]);
 
+  const fuelStops = fuelData?.fuelStopsNearRoute.fuelStops;
+
   const fuelStopsGeoJSON = useMemo(
     () => ({
       type: 'FeatureCollection' as const,
-      features: (fuelData?.fuelStopsNearRoute.fuelStops ?? []).map((stop) => ({
+      features: (fuelStops ?? []).map((stop) => ({
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: [stop.lng, stop.lat] },
         properties: { name: stop.name, osmId: stop.osmId },
       })),
     }),
-    [fuelData],
+    [fuelStops],
   );
 
   const handleCycleMapStyle = useCallback(() => {

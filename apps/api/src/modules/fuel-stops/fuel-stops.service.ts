@@ -82,6 +82,8 @@ export class FuelStopsService {
    * Results are cached for 24h in Redis (when available).
    */
   async getFuelStopsNearRoute(routeId: string, radiusKm = 5): Promise<FuelStop[]> {
+    const clampedRadius = Math.min(Math.max(radiusKm, 0.5), 50);
+
     // 1. Fetch route polyline + start coordinates
     const { data: route, error } = await this.supabase
       .from('routes')
@@ -103,7 +105,7 @@ export class FuelStopsService {
     const sampledPoints = this.samplePoints(points, 10);
 
     // 4. Build cache key from route ID + radius
-    const cacheKey = `fuel-stops:${routeId}:${radiusKm}`;
+    const cacheKey = `fuel-stops:${routeId}:${clampedRadius}`;
 
     // 5. Check cache
     if (this.redis) {
@@ -115,7 +117,7 @@ export class FuelStopsService {
     }
 
     // 6. Query Overpass API
-    const fuelStops = await this.queryOverpass(sampledPoints, radiusKm * 1000);
+    const fuelStops = await this.queryOverpass(sampledPoints, clampedRadius * 1000);
 
     // 7. Cache results
     if (this.redis && fuelStops.length > 0) {
