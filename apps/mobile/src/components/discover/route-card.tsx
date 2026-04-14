@@ -45,7 +45,13 @@ export const RouteCard = memo(function RouteCard({
           : null;
 
   return (
-    <Animated.View entering={FadeInUp.delay(index * 40).duration(250)}>
+    <Animated.View
+      entering={
+        route.isMotovaultPick
+          ? FadeInUp.delay(index * 40 + 20).springify().damping(14)
+          : FadeInUp.delay(index * 40).duration(250)
+      }
+    >
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
@@ -59,6 +65,9 @@ export const RouteCard = memo(function RouteCard({
           padding: 14,
           marginBottom: 10,
           gap: 8,
+          ...(route.isMotovaultPick
+            ? { borderLeftWidth: 3, borderLeftColor: palette.accent500 }
+            : {}),
         })}
       >
         {/* Header row: name + badges */}
@@ -77,103 +86,104 @@ export const RouteCard = memo(function RouteCard({
                 alignItems: 'center',
                 gap: 3,
                 backgroundColor: badgeBg,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
                 borderRadius: 8,
                 borderCurve: 'continuous',
               }}
             >
               <Award size={12} color={badgeText} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: badgeText }}>Pick</Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: badgeText }}>Pick</Text>
             </View>
           )}
         </View>
 
-        {/* Stats row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: statColor,
-              fontVariant: ['tabular-nums'],
-            }}
-          >
-            {formatDistance(route.distanceM, system)}
-          </Text>
-
-          {(route.elevationGainM ?? 0) > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Mountain size={12} color={palette.accent500} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: statColor,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {Math.round(route.elevationGainM ?? 0)}m
-              </Text>
-            </View>
-          )}
-
-          {surfaceLabel && (
-            <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
-          )}
-
-          {/* Rating */}
-          {route.ratingAvg != null && route.ratingCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Star size={12} color={palette.warning500} fill={palette.warning500} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: statColor,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {route.ratingAvg.toFixed(1)}
-              </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor }}>({route.ratingCount})</Text>
-            </View>
-          )}
-
-          {/* Comment count */}
-          {route.commentCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <MessageCircle size={12} color={subtitleColor} />
-              <Text style={{ fontSize: 12, color: subtitleColor }}>{route.commentCount}</Text>
-            </View>
-          )}
-
-          {/* Fuel range indicator */}
-          {fuelStopsRequired != null && (
-            <View
+        {/* Stats */}
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <Text
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 3,
-                backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 8,
-                borderCurve: 'continuous',
+                fontSize: 13,
+                fontWeight: '600',
+                color: statColor,
+                fontVariant: ['tabular-nums'],
               }}
             >
-              <Fuel size={10} color={fuelBadgeColor(fuelStopsRequired)} />
-              <Text
+              {formatDistance(route.distanceM, system)}
+            </Text>
+
+            {(route.elevationGainM ?? 0) > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Mountain size={12} color={palette.accent500} />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: statColor,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {Math.round(route.elevationGainM ?? 0)}m
+                </Text>
+              </View>
+            )}
+
+            {surfaceLabel && (
+              <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
+            )}
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
+            {route.ratingAvg != null && route.ratingCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Star size={12} color={palette.warning500} fill={palette.warning500} />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: statColor,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
+                  {route.ratingAvg.toFixed(1)}
+                </Text>
+                <Text style={{ fontSize: 11, color: subtitleColor }}>({route.ratingCount})</Text>
+              </View>
+            )}
+
+            {route.commentCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <MessageCircle size={12} color={subtitleColor} />
+                <Text style={{ fontSize: 12, color: subtitleColor }}>{route.commentCount}</Text>
+              </View>
+            )}
+
+            {fuelStopsRequired != null && (
+              <View
                 style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: fuelBadgeColor(fuelStopsRequired),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 3,
+                  backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
                 }}
               >
-                {fuelBadgeLabel(fuelStopsRequired)}
-              </Text>
-            </View>
-          )}
+                <Fuel size={10} color={fuelBadgeColor(fuelStopsRequired)} />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: fuelBadgeColor(fuelStopsRequired),
+                  }}
+                >
+                  {fuelBadgeLabel(fuelStopsRequired)}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Contributor */}

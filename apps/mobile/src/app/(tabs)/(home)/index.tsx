@@ -119,6 +119,7 @@ export default function HomeScreen() {
           subtitleText={subtitleText}
           avatarInitial={avatarInitial}
           isDark={isDark}
+          healthScore={fleetHealth?.score}
           onAvatarPress={() => router.push('/(tabs)/(profile)')}
         />
 
@@ -160,7 +161,7 @@ export default function HomeScreen() {
         )}
 
         {hasMotorcycles && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
             <MileageOverview
               motorcycles={motorcycles}
               isDark={isDark}
@@ -175,7 +176,7 @@ export default function HomeScreen() {
         )}
 
         {/* Recent Rides */}
-        <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+        <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
           <RecentRidesWidget
             rides={recentRides}
             totalDistanceM={ridesTotalDistance}
@@ -185,7 +186,7 @@ export default function HomeScreen() {
         </View>
 
         {hasMotorcycles && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
             <ExpenseSummaryWidget
               isDark={isDark}
               motorcycles={motorcycles}
@@ -200,7 +201,7 @@ export default function HomeScreen() {
         )}
 
         {hasMotorcycles && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
             <NextServiceDue
               task={
                 nextService
@@ -231,7 +232,7 @@ export default function HomeScreen() {
         )}
 
         {hasMotorcycles && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
             <MaintenanceSummary
               tasks={sortedTasks}
               bikeNames={bikeNames}
@@ -252,7 +253,7 @@ export default function HomeScreen() {
         )}
 
         {articles.length > 0 && (
-          <View style={{ marginTop: 24 }}>
+          <View style={{ marginTop: 28 }}>
             <ArticleCarousel
               articles={articles}
               isDark={isDark}

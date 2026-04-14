@@ -11,10 +11,13 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Compass, Plus } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
-  FadeIn,
+  Extrapolation,
   FadeInUp,
+  interpolate,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -22,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteCard } from '../../../components/discover/route-card';
@@ -131,9 +135,20 @@ export default function DiscoverScreen() {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // FAB press animation
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+  const mapHeightStyle = useAnimatedStyle(() => ({
+    height: interpolate(scrollY.value, [0, 160], [280, 140], Extrapolation.CLAMP),
+  }));
+
   const fabScale = useSharedValue(1);
-  const fabStyle = useAnimatedStyle(() => ({ transform: [{ scale: fabScale.value }] }));
+  const fabStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: fabScale.value }],
+  }));
 
   // Group rides are temporarily removed from Discover; the FAB goes straight
   // to the trip planner. Keep it a single action until rides come back.
@@ -159,7 +174,7 @@ export default function DiscoverScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
       {/* Map */}
-      <View style={{ height: 280, position: 'relative' }}>
+      <Animated.View style={[{ height: 280, position: 'relative' }, mapHeightStyle]}>
         <MapboxGL.MapView
           style={{ flex: 1 }}
           styleURL={MAP_STYLES[mapStyle]}
@@ -251,7 +266,8 @@ export default function DiscoverScreen() {
         </MapboxGL.MapView>
 
         {/* Bottom scrim — fades the map into the list background */}
-        <View
+        <LinearGradient
+          colors={['transparent', bg]}
           pointerEvents="none"
           style={{
             position: 'absolute',
@@ -259,14 +275,11 @@ export default function DiscoverScreen() {
             left: 0,
             right: 0,
             height: 48,
-            backgroundColor: bg,
-            opacity: 0.85,
           }}
         />
 
         {/* Header overlay */}
-        <Animated.View
-          entering={FadeIn.duration(300)}
+        <View
           style={{
             position: 'absolute',
             top: insets.top + 8,
@@ -287,7 +300,7 @@ export default function DiscoverScreen() {
               paddingVertical: 6,
               borderRadius: 14,
               borderCurve: 'continuous',
-              opacity: 0.78,
+              opacity: 0.88,
             }}
           >
             <Compass size={20} color={palette.accent500} />
@@ -302,14 +315,16 @@ export default function DiscoverScreen() {
               Discover
             </Text>
           </View>
-        </Animated.View>
-      </View>
+        </View>
+      </Animated.View>
 
       {/* Route list */}
-      <FlatList
+      <AnimatedFlatList
         data={routes}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 160 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}

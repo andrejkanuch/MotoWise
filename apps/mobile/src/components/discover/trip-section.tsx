@@ -72,71 +72,45 @@ export function TripSection() {
       {isLoading ? (
         <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 24 }} />
       ) : trips.length === 0 ? (
-        <View
+        <Pressable
+          onPress={handleCreate}
+          accessibilityRole="button"
+          accessibilityLabel="Plan a multi-day trip"
+          accessibilityHint="Opens the trip planner"
           style={{
+            flexDirection: 'row',
             alignItems: 'center',
-            paddingVertical: 28,
-            gap: 10,
-            paddingHorizontal: 24,
+            justifyContent: 'space-between',
+            height: 48,
+            backgroundColor: isDark ? palette.cardDark : palette.white,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: createBorder,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
           }}
         >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <MapPin size={18} color={palette.accent500} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: headerColor }}>
+              Plan a multi-day trip
+            </Text>
+          </View>
           <View
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+              backgroundColor: palette.accent500,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MapPin size={26} color={palette.accent500} />
-          </View>
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '800',
-              color: headerColor,
-              textAlign: 'center',
-              letterSpacing: -0.3,
-            }}
-          >
-            Map your next long one
-          </Text>
-          <Text
-            style={{
-              fontSize: 13,
-              lineHeight: 18,
-              color: subtitleColor,
-              textAlign: 'center',
-            }}
-          >
-            Plot the stops, bring the crew, ride it.
-          </Text>
-          <Pressable
-            onPress={handleCreate}
-            accessibilityRole="button"
-            accessibilityLabel="Create a trip"
-            accessibilityHint="Opens the trip planner"
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              backgroundColor: palette.accent500,
-              paddingHorizontal: 18,
-              paddingVertical: 12,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              marginTop: 6,
-            }}
-          >
             <Plus size={16} color={palette.white} />
-            <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
-              Plan a trip
-            </Text>
-          </Pressable>
-        </View>
+          </View>
+        </Pressable>
       ) : (
         <ScrollView
           horizontal

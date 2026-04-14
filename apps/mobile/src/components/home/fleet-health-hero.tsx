@@ -5,13 +5,9 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
-  FadeInUp,
   useAnimatedProps,
-  useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { CardWrapper } from './card-wrapper';
@@ -67,19 +63,13 @@ export function FleetHealthHero({
   const circumference = 2 * Math.PI * radius;
 
   const progress = useSharedValue(0);
-  const glowOpacity = useSharedValue(0.1);
 
   useEffect(() => {
     progress.value = withSpring(hasData ? score / 100 : 0, { damping: 15, stiffness: 90 });
-    glowOpacity.value = withRepeat(withTiming(0.3, { duration: 2000 }), -1, true);
-  }, [score, hasData, progress, glowOpacity]);
+  }, [score, hasData, progress]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - progress.value),
-  }));
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
   }));
 
   const color = getScoreColor(score);
@@ -100,9 +90,8 @@ export function FleetHealthHero({
   ].filter(Boolean) as { label: string; color: string }[];
 
   return (
-    <Animated.View entering={FadeInUp.delay(50).duration(300)}>
-      <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
-        <Pressable
+    <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
+      <Pressable
           onPress={onPress}
           accessibilityRole="button"
           accessibilityLabel={
@@ -127,20 +116,7 @@ export function FleetHealthHero({
               minHeight: 180,
             }}
           >
-            {/* Ring with glow */}
             <View style={{ alignItems: 'center', justifyContent: 'center', marginRight: 20 }}>
-              <Animated.View
-                style={[
-                  {
-                    position: 'absolute',
-                    width: ringSize + 20,
-                    height: ringSize + 20,
-                    borderRadius: (ringSize + 20) / 2,
-                    backgroundColor: color,
-                  },
-                  glowStyle,
-                ]}
-              />
               <View
                 style={{
                   width: ringSize,
@@ -254,7 +230,6 @@ export function FleetHealthHero({
             />
           </LinearGradient>
         </Pressable>
-      </CardWrapper>
-    </Animated.View>
+    </CardWrapper>
   );
 }

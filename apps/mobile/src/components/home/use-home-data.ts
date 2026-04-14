@@ -8,6 +8,7 @@ import {
   SearchArticlesDocument,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
@@ -70,11 +71,17 @@ export function useHomeData() {
   const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
 
   const onRefresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-    queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.articles.all });
-    queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser });
-    queryClient.invalidateQueries({ queryKey: queryKeys.rides.list('home') });
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.articles.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.rides.list('home') }),
+    ]).then(() => {
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    });
   }, [queryClient]);
 
   const firstName = user?.fullName?.split(' ')[0];
