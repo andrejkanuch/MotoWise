@@ -37,9 +37,12 @@
       "@apollo/protobufjs",
       "@nestjs/core",
       "@parcel/watcher",
+      "@sentry-internal/node-cpu-profiler",
       "@sentry/cli",
       "@swc/core",
+      "core-js",
       "esbuild",
+      "protobufjs",
       "sharp"
     ],
     "overrides": {
