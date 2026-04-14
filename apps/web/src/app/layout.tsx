@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           title="MotoVault Blog"
           href="/blog/feed.xml"
         />
-        <meta name="apple-itunes-app" content="app-id=6745417382" />
+        <meta name="apple-itunes-app" content="app-id=6760291360" />
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
           <Script
             defer

@@ -2,7 +2,7 @@
 
 > Free AI-powered motorcycle companion app for iOS and Android combining maintenance tracking, expense logging, GPS ride recording, multi-day trip planning with typed waypoints, and Claude-powered photo diagnostics — no OBD hardware required.
 
-Last-Updated: 2026-04-11
+Last-Updated: 2026-04-14
 
 ## Core features
 
@@ -18,6 +18,10 @@ Last-Updated: 2026-04-11
 - [vs Calimoto](https://motovault.app/compare/motovault-vs-calimoto)
 - [vs RideLog](https://motovault.app/compare/motovault-vs-ridelog)
 - [Alternatives](https://motovault.app/compare/alternatives)
+
+## Route discovery (web)
+
+- [Explore motorcycle routes](https://motovault.app/explore): Browse by country and region; individual route pages with maps, GPX, and rider reviews
 
 ## Tools
 

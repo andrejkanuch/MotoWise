@@ -13,9 +13,9 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import type { GPXExportError, GPXExportSuccess } from './dto/gpx-export.dto';
+import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 import type { RouteCanonicalPath } from './models/route-canonical-path.model';
 import type { SitemapRouteEntry } from './models/sitemap-route-entry.model';
-import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 
 /** Row shape from routes + users join */
 interface RouteRow {

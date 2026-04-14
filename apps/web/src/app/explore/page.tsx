@@ -7,14 +7,13 @@ import Image from 'next/image';
 import { Suspense } from 'react';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { TypeaheadSearch } from '@/components/typeahead-search';
+import { BASE_URL } from '@/lib/constants';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
 type ExploreRouteNode = ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
 /* ── Constants ────────────────────────────────────────────────── */
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://motovault.app';
 
 const TOP_COUNTRIES = [
   { code: 'IT', emoji: '\u{1F1EE}\u{1F1F9}' },
@@ -65,24 +64,31 @@ export const revalidate = 3600;
 
 /* ── Metadata ─────────────────────────────────────────────────── */
 
+const EXPLORE_OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
+
 export async function generateMetadata(): Promise<Metadata> {
+  const title = 'Discover Motorcycle Routes | MotoVault';
+  const description =
+    "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you — curated by riders, for riders.";
+
   return {
-    title: 'Discover Motorcycle Routes | MotoVault',
-    description:
-      "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you — curated by riders, for riders.",
+    title: { absolute: title },
+    description,
     alternates: { canonical: `${BASE_URL}/explore` },
     openGraph: {
-      title: 'Discover Motorcycle Routes | MotoVault',
+      title,
       description:
         "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you.",
       url: `${BASE_URL}/explore`,
       siteName: 'MotoVault',
       type: 'website',
+      images: [{ url: EXPLORE_OG_IMAGE }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Discover Motorcycle Routes | MotoVault',
+      title,
       description: 'Browse the best motorcycle routes worldwide — curated by riders, for riders.',
+      images: [EXPLORE_OG_IMAGE],
     },
   };
 }
@@ -345,12 +351,6 @@ async function TopRoutesSection() {
     <section>
       <div className="mb-6 flex items-baseline justify-between">
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated routes</h2>
-        <a
-          href="/explore"
-          className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          View all &rarr;
-        </a>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {routes.map((route) => (
@@ -363,19 +363,12 @@ async function TopRoutesSection() {
 
 /* ── JSON-LD ──────────────────────────────────────────────────── */
 
+/** WebSite only — no SearchAction (explore has no URL-backed search results page). */
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  url: 'https://motovault.app',
+  url: BASE_URL,
   name: 'MotoVault',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: 'https://motovault.app/explore?q={search_term_string}',
-    },
-    'query-input': 'required name=search_term_string',
-  },
 };
 
 /* ── Page ─────────────────────────────────────────────────────── */

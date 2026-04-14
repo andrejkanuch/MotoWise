@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
 import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
@@ -8,18 +7,16 @@ import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { fetchRegionBySlug, fetchRoutesByRegion } from '@/lib/fetch-places';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
-export const revalidate = 3600; // 1 hour
-
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
+export const revalidate = 3600;
+
 interface PageProps {
-  params: Promise<{ locale: string; country: string; region: string }>;
+  params: Promise<{ country: string; region: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale, country: countrySlug, region: regionSlug } = await params;
-  setRequestLocale(locale);
-
+  const { country: countrySlug, region: regionSlug } = await params;
   const result = await fetchRegionBySlug(countrySlug, regionSlug);
   if (!result) return {};
 
@@ -28,10 +25,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const routeCount = region.routeCount;
   const description =
     routeCount > 0
-      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${region.name}, ${country.name}. Find the best twisty roads, scenic passes, and rides rated by the community.`
+      ? `Explore ${routeCount} motorcycle route${routeCount === 1 ? '' : 's'} in ${region.name}, ${country.name}. Twisty roads, scenic passes, and rides rated by the community.`
       : `Motorcycle routes in ${region.name}, ${country.name} are coming soon. Browse nearby regions on MotoVault.`;
 
-  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}/${regionSlug}`);
+  const canonical = getCanonicalUrl('en', `/explore/${countrySlug}/${regionSlug}`);
   const pagePath = `/explore/${countrySlug}/${regionSlug}` as const;
 
   const base: Metadata = {
@@ -65,8 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function RegionPage({ params }: PageProps) {
-  const { locale, country: countrySlug, region: regionSlug } = await params;
-  setRequestLocale(locale);
+  const { country: countrySlug, region: regionSlug } = await params;
 
   const result = await fetchRegionBySlug(countrySlug, regionSlug);
   if (!result) notFound();
@@ -76,27 +72,27 @@ export default async function RegionPage({ params }: PageProps) {
 
   const title = `Motorcycle Routes in ${region.name}, ${country.name}`;
   const description = `Explore ${region.routeCount} motorcycle routes in ${region.name}, ${country.name}.`;
-  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}/${regionSlug}`);
+  const canonical = getCanonicalUrl('en', `/explore/${countrySlug}/${regionSlug}`);
+  const pageKey = `/explore/${countrySlug}/${regionSlug}`;
 
   const graph = buildGraph(
     buildWebPage({
       url: canonical,
       name: title,
       description,
-      locale,
-      pageKey: `/explore/${countrySlug}/${regionSlug}`,
+      locale: 'en',
+      pageKey,
     }),
     buildBreadcrumbList(
       [
-        { name: 'Home', url: getCanonicalUrl(locale) },
-        { name: 'Explore', url: getCanonicalUrl(locale, '/explore') },
-        { name: country.name, url: getCanonicalUrl(locale, `/explore/${countrySlug}`) },
+        { name: 'Home', url: BASE_URL },
+        { name: 'Explore', url: getCanonicalUrl('en', '/explore') },
+        { name: country.name, url: getCanonicalUrl('en', `/explore/${countrySlug}`) },
         { name: region.name, url: canonical },
       ],
-      locale,
-      `/explore/${countrySlug}/${regionSlug}`,
+      'en',
+      pageKey,
     ),
-    // CollectionPage for rich results
     {
       '@type': 'CollectionPage',
       '@id': `${BASE_URL}/#/explore/${countrySlug}/${regionSlug}/collection`,
@@ -121,7 +117,6 @@ export default async function RegionPage({ params }: PageProps) {
         ]}
       />
 
-      {/* Hero */}
       <section className="px-6 pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
@@ -138,7 +133,6 @@ export default async function RegionPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Routes grid */}
       <section className="px-6 pb-24">
         <div className="mx-auto max-w-5xl">
           {routes.length === 0 ? (

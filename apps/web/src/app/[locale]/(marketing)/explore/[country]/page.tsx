@@ -5,7 +5,7 @@ import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
   fetchCountryBySlug,
   fetchRegionsByCountrySlug,
@@ -14,6 +14,8 @@ import {
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 86400; // 24 hours
+
+const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
 interface PageProps {
   params: Promise<{ locale: string; country: string }>;
@@ -27,17 +29,43 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!country) return {};
 
   const title = `Motorcycle Routes in ${country.name}`;
-  const description = `Discover the best motorcycle routes in ${country.name}. Browse ${country.routeCount} routes across regions — twisty roads, scenic passes, and epic rides.`;
-  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
+  const rc = country.routeCount;
+  const description =
+    rc > 0
+      ? `Discover the best motorcycle routes in ${country.name}. Browse ${rc} route${rc === 1 ? '' : 's'} across regions — twisty roads, scenic passes, and epic rides.`
+      : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault or share a ride from the app.`;
 
-  return {
+  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
+  const pagePath = `/explore/${countrySlug}` as const;
+
+  const base: Metadata = {
     title: { absolute: `${title} | MotoVault` },
     description,
     alternates: {
       canonical,
-      languages: { 'x-default': `${BASE_URL}/explore/${countrySlug}` },
+      languages: getHreflangMap(pagePath),
+    },
+    openGraph: {
+      title: `${title} | MotoVault`,
+      description,
+      url: canonical,
+      siteName: 'MotoVault',
+      type: 'website',
+      images: [{ url: OG_IMAGE }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | MotoVault`,
+      description,
+      images: [OG_IMAGE],
     },
   };
+
+  if (rc === 0) {
+    return { ...base, robots: { index: false, follow: true } };
+  }
+
+  return base;
 }
 
 export default async function CountryPage({ params }: PageProps) {
