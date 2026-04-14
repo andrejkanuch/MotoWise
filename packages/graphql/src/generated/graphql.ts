@@ -108,6 +108,25 @@ export type BoundsInput = {
   swLng: Scalars['Float']['input'];
 };
 
+export type BrowseExploreRegionResult = {
+  __typename?: 'BrowseExploreRegionResult';
+  country: BrowsePlace;
+  region: BrowsePlace;
+};
+
+/** Public place row for explore / browse (countries, regions) */
+export type BrowsePlace = {
+  __typename?: 'BrowsePlace';
+  countryCode: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  kind: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['String']['output']>;
+  regionCode?: Maybe<Scalars['String']['output']>;
+  routeCount: Scalars['Int']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type CategoryTotal = {
   __typename?: 'CategoryTotal';
   category: Scalars['String']['output'];
@@ -349,14 +368,22 @@ export enum DiagnosticSeverity {
 export type DiscoverRoutesFilterInput = {
   bikeCategory?: InputMaybe<Scalars['String']['input']>;
   bounds?: InputMaybe<BoundsInput>;
+  /** ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code */
+  countryCode?: InputMaybe<Scalars['String']['input']>;
   elevationRanges?: InputMaybe<Array<Scalars['String']['input']>>;
   highlyRatedOnly?: InputMaybe<Scalars['Boolean']['input']>;
   lengthRanges?: InputMaybe<Array<Scalars['String']['input']>>;
   /** Minimum twist score 1-10 (maps to curvature_index thresholds) */
   minTwistScore?: InputMaybe<Scalars['Int']['input']>;
+  /** When true, only routes flagged as MotoVault editor picks */
+  motovaultPicksOnly?: InputMaybe<Scalars['Boolean']['input']>;
   nearLat?: InputMaybe<Scalars['Float']['input']>;
   nearLng?: InputMaybe<Scalars['Float']['input']>;
   radiusKm?: InputMaybe<Scalars['Float']['input']>;
+  /** Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase */
+  regionCode?: InputMaybe<Scalars['String']['input']>;
+  /** When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort. */
+  sortByRating?: InputMaybe<Scalars['Boolean']['input']>;
   /** Only routes with surface condition reports within the last N days */
   surfaceRecency?: InputMaybe<Scalars['Int']['input']>;
   surfaceTypes?: InputMaybe<Array<Scalars['String']['input']>>;
@@ -1419,6 +1446,14 @@ export type Query = {
   allMaintenanceTasks: Array<MaintenanceTask>;
   articleBySlug?: Maybe<Article>;
   articleBySlugFull?: Maybe<Article>;
+  /** All countries in the places taxonomy (browse / explore) */
+  browseCountries: Array<BrowsePlace>;
+  /** Country by URL slug (lowercase ISO code, e.g. it, de) */
+  browseCountryBySlug?: Maybe<BrowsePlace>;
+  /** Country + region for /explore/:country/:region marketing pages */
+  browseExploreRegion?: Maybe<BrowseExploreRegionResult>;
+  /** Regions with population > 0 for a country slug */
+  browseRegionsByCountrySlug: Array<BrowsePlace>;
   diagnosticById?: Maybe<Diagnostic>;
   discoverRoutes: RouteConnection;
   expenseDashboard: ExpenseDashboardSummary;
@@ -1465,12 +1500,14 @@ export type Query = {
   routeBySlug?: Maybe<Route>;
   routeConditions: RouteConditions;
   routeDetail: Route;
+  routePathById?: Maybe<RouteCanonicalPath>;
   routeSponsorships: Array<Sponsorship>;
   /** Paginated list of the authenticated user's saved routes */
   savedRoutes: RouteConnection;
   searchArticles: ArticleConnection;
   searchTypeahead: TypeaheadResult;
   sharedBikeHistory: SharedBikeHistory;
+  sitemapPublishedRoutes: Array<SitemapRouteEntry>;
   spendingSummary: SpendingSummary;
   tripByShareToken?: Maybe<SharedTrip>;
   tripDetail: Trip;
@@ -1486,6 +1523,22 @@ export type QueryArticleBySlugArgs = {
 
 export type QueryArticleBySlugFullArgs = {
   slug: Scalars['String']['input'];
+};
+
+
+export type QueryBrowseCountryBySlugArgs = {
+  slug: Scalars['String']['input'];
+};
+
+
+export type QueryBrowseExploreRegionArgs = {
+  countrySlug: Scalars['String']['input'];
+  regionSlug: Scalars['String']['input'];
+};
+
+
+export type QueryBrowseRegionsByCountrySlugArgs = {
+  countrySlug: Scalars['String']['input'];
 };
 
 
@@ -1704,6 +1757,11 @@ export type QueryRouteDetailArgs = {
 };
 
 
+export type QueryRoutePathByIdArgs = {
+  routeId: Scalars['ID']['input'];
+};
+
+
 export type QueryRouteSponsorshipsArgs = {
   routeId: Scalars['ID']['input'];
 };
@@ -1911,6 +1969,13 @@ export type Route = {
   twistScore?: Maybe<Scalars['Int']['output']>;
 };
 
+export type RouteCanonicalPath = {
+  __typename?: 'RouteCanonicalPath';
+  countryCode: Scalars['String']['output'];
+  regionCode: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+};
+
 export type RouteConditions = {
   __typename?: 'RouteConditions';
   aggregates: Array<ConditionAggregate>;
@@ -2072,6 +2137,14 @@ export type SharedTripWaypoint = {
   notes?: Maybe<Scalars['String']['output']>;
   sortOrder: Scalars['Int']['output'];
   type: Scalars['String']['output'];
+};
+
+export type SitemapRouteEntry = {
+  __typename?: 'SitemapRouteEntry';
+  countryCode: Scalars['String']['output'];
+  regionCode: Scalars['String']['output'];
+  slug: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type SpendingSummary = {
@@ -3274,6 +3347,43 @@ export type PublicSavedRoutesQueryVariables = Exact<{
 
 export type PublicSavedRoutesQuery = { __typename?: 'Query', publicSavedRoutes: { __typename?: 'RouteConnection', edges: Array<{ __typename?: 'RouteEdge', cursor: string, node: { __typename?: 'Route', id: string, name?: string | null, distanceM: number, elevationGainM?: number | null, surfaceType?: string | null, isMotovaultPick: boolean, ratingAvg?: number | null, ratingCount: number, commentCount: number, contributor: { __typename?: 'RouteContributor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } }>, pageInfo: { __typename?: 'RoutePageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
+export type BrowsePlaceFieldsFragment = { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number };
+
+export type BrowseCountriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BrowseCountriesQuery = { __typename?: 'Query', browseCountries: Array<{ __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }> };
+
+export type BrowseCountryBySlugQueryVariables = Exact<{
+  slug: Scalars['String']['input'];
+}>;
+
+
+export type BrowseCountryBySlugQuery = { __typename?: 'Query', browseCountryBySlug?: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number } | null };
+
+export type BrowseRegionsByCountrySlugQueryVariables = Exact<{
+  countrySlug: Scalars['String']['input'];
+}>;
+
+
+export type BrowseRegionsByCountrySlugQuery = { __typename?: 'Query', browseRegionsByCountrySlug: Array<{ __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }> };
+
+export type BrowseExploreRegionQueryVariables = Exact<{
+  countrySlug: Scalars['String']['input'];
+  regionSlug: Scalars['String']['input'];
+}>;
+
+
+export type BrowseExploreRegionQuery = { __typename?: 'Query', browseExploreRegion?: { __typename?: 'BrowseExploreRegionResult', country: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number }, region: { __typename?: 'BrowsePlace', id: string, kind: string, name: string, countryCode: string, regionCode?: string | null, slug: string, parentId?: string | null, routeCount: number } } | null };
+
+export type ExploreDiscoverRoutesQueryVariables = Exact<{
+  filter?: InputMaybe<DiscoverRoutesFilterInput>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ExploreDiscoverRoutesQuery = { __typename?: 'Query', discoverRoutes: { __typename?: 'RouteConnection', edges: Array<{ __typename?: 'RouteEdge', node: { __typename?: 'Route', id: string, name?: string | null, description?: string | null, distanceM: number, elevationGainM?: number | null, surfaceType?: string | null, curvatureIndex?: number | null, isMotovaultPick: boolean, editorialDescription?: string | null, ratingAvg?: number | null, ratingCount: number, slug?: string | null, countryCode?: string | null, regionCode?: string | null } }>, pageInfo: { __typename?: 'RoutePageInfo', hasNextPage: boolean } } };
+
 export type GetGpxQuotaStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3288,6 +3398,13 @@ export type RouteBySlugQueryVariables = Exact<{
 
 export type RouteBySlugQuery = { __typename?: 'Query', routeBySlug?: { __typename?: 'Route', id: string, name?: string | null, description?: string | null, distanceM: number, elevationGainM?: number | null, surfaceType?: string | null, curvatureIndex?: number | null, isMotovaultPick: boolean, editorialDescription?: string | null, ratingAvg?: number | null, ratingCount: number, commentCount: number, startLat?: number | null, startLng?: number | null, slug?: string | null, countryCode?: string | null, regionCode?: string | null, contributor: { __typename?: 'RouteContributor', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null } } | null };
 
+export type RoutePathByIdQueryVariables = Exact<{
+  routeId: Scalars['ID']['input'];
+}>;
+
+
+export type RoutePathByIdQuery = { __typename?: 'Query', routePathById?: { __typename?: 'RouteCanonicalPath', countryCode: string, regionCode: string, slug: string } | null };
+
 export type SearchTypeaheadQueryVariables = Exact<{
   q?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -3296,7 +3413,12 @@ export type SearchTypeaheadQueryVariables = Exact<{
 
 export type SearchTypeaheadQuery = { __typename?: 'Query', searchTypeahead: { __typename?: 'TypeaheadResult', routes: Array<{ __typename?: 'RouteSuggestion', id: string, name: string, slug: string, countryCode: string, regionCode?: string | null }>, places: Array<{ __typename?: 'PlaceSuggestion', id: number, name: string, kind: string, countryCode: string, regionCode?: string | null, population: number }> } };
 
+export type SitemapPublishedRoutesQueryVariables = Exact<{ [key: string]: never; }>;
 
+
+export type SitemapPublishedRoutesQuery = { __typename?: 'Query', sitemapPublishedRoutes: Array<{ __typename?: 'SitemapRouteEntry', countryCode: string, regionCode: string, slug: string, updatedAt: string }> };
+
+export const BrowsePlaceFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowsePlaceFieldsFragment, unknown>;
 export const AddExpensePhotoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddExpensePhoto"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddExpensePhotoInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addExpensePhoto"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"expenseId"}},{"kind":"Field","name":{"kind":"Name","value":"storagePath"}},{"kind":"Field","name":{"kind":"Name","value":"publicUrl"}},{"kind":"Field","name":{"kind":"Name","value":"fileSizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddExpensePhotoMutation, AddExpensePhotoMutationVariables>;
 export const AddTaskPhotoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddTaskPhoto"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddTaskPhotoInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTaskPhoto"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"taskId"}},{"kind":"Field","name":{"kind":"Name","value":"storagePath"}},{"kind":"Field","name":{"kind":"Name","value":"publicUrl"}},{"kind":"Field","name":{"kind":"Name","value":"fileSizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddTaskPhotoMutation, AddTaskPhotoMutationVariables>;
 export const AddWaypointDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddWaypoint"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateWaypointInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addWaypoint"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tripId"}},{"kind":"Field","name":{"kind":"Name","value":"sortOrder"}},{"kind":"Field","name":{"kind":"Name","value":"dayIndex"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"lat"}},{"kind":"Field","name":{"kind":"Name","value":"lng"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddWaypointMutation, AddWaypointMutationVariables>;
@@ -3415,6 +3537,13 @@ export const TripInvitesDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const ExportRouteGpxDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ExportRouteGPX"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"exportRouteGPX"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"routeId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GPXExportSuccess"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fileUrl"}},{"kind":"Field","name":{"kind":"Name","value":"fileName"}},{"kind":"Field","name":{"kind":"Name","value":"message"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"GPXExportError"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"reason"}},{"kind":"Field","name":{"kind":"Name","value":"quotaRemaining"}},{"kind":"Field","name":{"kind":"Name","value":"upgradeUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ExportRouteGpxMutation, ExportRouteGpxMutationVariables>;
 export const JoinWaitlistDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"JoinWaitlist"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"joinWaitlist"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}]}}]} as unknown as DocumentNode<JoinWaitlistMutation, JoinWaitlistMutationVariables>;
 export const PublicSavedRoutesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicSavedRoutes"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"handle"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"after"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicSavedRoutes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"handle"},"value":{"kind":"Variable","name":{"kind":"Name","value":"handle"}}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}},{"kind":"Argument","name":{"kind":"Name","value":"after"},"value":{"kind":"Variable","name":{"kind":"Name","value":"after"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}},{"kind":"Field","name":{"kind":"Name","value":"elevationGainM"}},{"kind":"Field","name":{"kind":"Name","value":"surfaceType"}},{"kind":"Field","name":{"kind":"Name","value":"isMotovaultPick"}},{"kind":"Field","name":{"kind":"Name","value":"ratingAvg"}},{"kind":"Field","name":{"kind":"Name","value":"ratingCount"}},{"kind":"Field","name":{"kind":"Name","value":"commentCount"}},{"kind":"Field","name":{"kind":"Name","value":"contributor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"publicUsername"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"cursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}}]}}]}}]} as unknown as DocumentNode<PublicSavedRoutesQuery, PublicSavedRoutesQueryVariables>;
+export const BrowseCountriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BrowseCountries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browseCountries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BrowsePlaceFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowseCountriesQuery, BrowseCountriesQueryVariables>;
+export const BrowseCountryBySlugDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BrowseCountryBySlug"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"slug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browseCountryBySlug"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"slug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"slug"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BrowsePlaceFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowseCountryBySlugQuery, BrowseCountryBySlugQueryVariables>;
+export const BrowseRegionsByCountrySlugDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BrowseRegionsByCountrySlug"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"countrySlug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browseRegionsByCountrySlug"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"countrySlug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"countrySlug"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BrowsePlaceFields"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowseRegionsByCountrySlugQuery, BrowseRegionsByCountrySlugQueryVariables>;
+export const BrowseExploreRegionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BrowseExploreRegion"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"countrySlug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"regionSlug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"browseExploreRegion"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"countrySlug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"countrySlug"}}},{"kind":"Argument","name":{"kind":"Name","value":"regionSlug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"regionSlug"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"country"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BrowsePlaceFields"}}]}},{"kind":"Field","name":{"kind":"Name","value":"region"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BrowsePlaceFields"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BrowsePlaceFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BrowsePlace"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"routeCount"}}]}}]} as unknown as DocumentNode<BrowseExploreRegionQuery, BrowseExploreRegionQueryVariables>;
+export const ExploreDiscoverRoutesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ExploreDiscoverRoutes"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"DiscoverRoutesFilterInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"first"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"discoverRoutes"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}},{"kind":"Argument","name":{"kind":"Name","value":"first"},"value":{"kind":"Variable","name":{"kind":"Name","value":"first"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}},{"kind":"Field","name":{"kind":"Name","value":"elevationGainM"}},{"kind":"Field","name":{"kind":"Name","value":"surfaceType"}},{"kind":"Field","name":{"kind":"Name","value":"curvatureIndex"}},{"kind":"Field","name":{"kind":"Name","value":"isMotovaultPick"}},{"kind":"Field","name":{"kind":"Name","value":"editorialDescription"}},{"kind":"Field","name":{"kind":"Name","value":"ratingAvg"}},{"kind":"Field","name":{"kind":"Name","value":"ratingCount"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}}]}}]}}]}}]} as unknown as DocumentNode<ExploreDiscoverRoutesQuery, ExploreDiscoverRoutesQueryVariables>;
 export const GetGpxQuotaStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetGPXQuotaStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getGPXQuotaStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"feature"}},{"kind":"Field","name":{"kind":"Name","value":"limit"}},{"kind":"Field","name":{"kind":"Name","value":"used"}},{"kind":"Field","name":{"kind":"Name","value":"remaining"}},{"kind":"Field","name":{"kind":"Name","value":"resetDate"}},{"kind":"Field","name":{"kind":"Name","value":"isExhausted"}}]}}]}}]} as unknown as DocumentNode<GetGpxQuotaStatusQuery, GetGpxQuotaStatusQueryVariables>;
 export const RouteBySlugDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"RouteBySlug"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"country"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"region"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"slug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"routeBySlug"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"country"},"value":{"kind":"Variable","name":{"kind":"Name","value":"country"}}},{"kind":"Argument","name":{"kind":"Name","value":"region"},"value":{"kind":"Variable","name":{"kind":"Name","value":"region"}}},{"kind":"Argument","name":{"kind":"Name","value":"slug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"slug"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}},{"kind":"Field","name":{"kind":"Name","value":"elevationGainM"}},{"kind":"Field","name":{"kind":"Name","value":"surfaceType"}},{"kind":"Field","name":{"kind":"Name","value":"curvatureIndex"}},{"kind":"Field","name":{"kind":"Name","value":"isMotovaultPick"}},{"kind":"Field","name":{"kind":"Name","value":"editorialDescription"}},{"kind":"Field","name":{"kind":"Name","value":"ratingAvg"}},{"kind":"Field","name":{"kind":"Name","value":"ratingCount"}},{"kind":"Field","name":{"kind":"Name","value":"commentCount"}},{"kind":"Field","name":{"kind":"Name","value":"startLat"}},{"kind":"Field","name":{"kind":"Name","value":"startLng"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"contributor"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"publicUsername"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}}]}}]}}]} as unknown as DocumentNode<RouteBySlugQuery, RouteBySlugQueryVariables>;
+export const RoutePathByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"RoutePathById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"routePathById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"routeId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}}]}}]}}]} as unknown as DocumentNode<RoutePathByIdQuery, RoutePathByIdQueryVariables>;
 export const SearchTypeaheadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchTypeahead"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"q"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchTypeahead"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"q"},"value":{"kind":"Variable","name":{"kind":"Name","value":"q"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"routes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"places"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"population"}}]}}]}}]}}]} as unknown as DocumentNode<SearchTypeaheadQuery, SearchTypeaheadQueryVariables>;
+export const SitemapPublishedRoutesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SitemapPublishedRoutes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sitemapPublishedRoutes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<SitemapPublishedRoutesQuery, SitemapPublishedRoutesQueryVariables>;

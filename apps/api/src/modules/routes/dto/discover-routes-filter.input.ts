@@ -55,4 +55,30 @@ export class DiscoverRoutesFilterInput {
     description: 'Only routes with surface condition reports within the last N days',
   })
   surfaceRecency?: number;
+
+  @Field({
+    nullable: true,
+    description: 'ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code',
+  })
+  countryCode?: string;
+
+  @Field({
+    nullable: true,
+    description:
+      'Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase',
+  })
+  regionCode?: string;
+
+  @Field({
+    nullable: true,
+    description: 'When true, only routes flagged as MotoVault editor picks',
+  })
+  motovaultPicksOnly?: boolean;
+
+  @Field({
+    nullable: true,
+    description:
+      'When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort.',
+  })
+  sortByRating?: boolean;
 }

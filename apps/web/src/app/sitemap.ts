@@ -1,9 +1,11 @@
+import { SitemapPublishedRoutesDocument } from '@motovault/graphql';
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
 import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
+import { gqlServerFetcher } from '@/lib/graphql-server';
 import {
   canonicalCountry,
   canonicalExplore,
@@ -94,35 +96,12 @@ function getPageImages(path: string): string[] {
   return [];
 }
 
-/**
- * Fetch published routes that have been backfilled with country/region/slug.
- * Returns empty array if the columns don't exist yet (pre-backfill).
- */
-async function getPublishedRoutes(): Promise<
-  { country_code: string; region_slug: string; slug: string; updated_at: string }[]
-> {
+/** Published route rows for discover URLs (via API — same source as /explore). */
+async function getPublishedRoutes() {
   try {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    );
-    const { data, error } = await supabase
-      .from('routes')
-      .select('country_code, region_slug, slug, updated_at')
-      .eq('status', 'published')
-      .not('country_code', 'is', null)
-      .not('region_slug', 'is', null)
-      .not('slug', 'is', null);
-    if (error || !data) return [];
-    return data as {
-      country_code: string;
-      region_slug: string;
-      slug: string;
-      updated_at: string;
-    }[];
+    const data = await gqlServerFetcher(SitemapPublishedRoutesDocument);
+    return data.sitemapPublishedRoutes;
   } catch {
-    // Columns don't exist yet — return empty until backfill migration lands
     return [];
   }
 }
@@ -186,16 +165,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ---- Route Discovery pages ----
-  // Fetches published routes with country/region/slug backfilled.
-  // Returns empty until the backfill migration (E1-T2) lands.
   const routes = await getPublishedRoutes();
 
-  // Derive unique countries and regions from route data
+  // Derive unique countries and regions from route data (URLs use lowercase segments)
   const countrySet = new Set<string>();
   const regionSet = new Set<string>();
   for (const r of routes) {
-    countrySet.add(r.country_code);
-    regionSet.add(`${r.country_code}/${r.region_slug}`);
+    countrySet.add(r.countryCode.toLowerCase());
+    regionSet.add(`${r.countryCode.toLowerCase()}/${r.regionCode.toLowerCase()}`);
   }
 
   const exploreEntry =
@@ -212,8 +189,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const routeEntries = routes.map((r) => ({
-    url: canonicalRoute(r.country_code, r.region_slug, r.slug),
-    lastModified: new Date(r.updated_at),
+    url: canonicalRoute(
+      r.countryCode.toLowerCase(),
+      r.regionCode.toLowerCase(),
+      r.slug.toLowerCase(),
+    ),
+    lastModified: new Date(r.updatedAt),
   }));
 
   return [

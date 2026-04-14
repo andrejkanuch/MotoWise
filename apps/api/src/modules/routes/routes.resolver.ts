@@ -18,7 +18,9 @@ import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import { GPXExportError, GPXExportResult, GPXExportSuccess } from './dto/gpx-export.dto';
 import { ShareRideToDiscoverInput } from './dto/share-ride-to-discover.input';
 import { Route, RouteConnection } from './models/route.model';
+import { RouteCanonicalPath } from './models/route-canonical-path.model';
 import { RouteReview, RouteReviewConnection } from './models/route-review.model';
+import { SitemapRouteEntry } from './models/sitemap-route-entry.model';
 import { RoutesService } from './routes.service';
 
 /** Max reviews visible to anonymous users */
@@ -46,6 +48,20 @@ export class RoutesResolver {
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteConnection> {
     return this.routesService.discoverRoutes(filter, first ?? 20, after);
+  }
+
+  @Query(() => [SitemapRouteEntry])
+  @Public()
+  async sitemapPublishedRoutes(): Promise<SitemapRouteEntry[]> {
+    return this.routesService.sitemapPublishedRoutes();
+  }
+
+  @Query(() => RouteCanonicalPath, { nullable: true })
+  @Public()
+  async routePathById(
+    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
+  ): Promise<RouteCanonicalPath | null> {
+    return this.routesService.routePathById(routeId);
   }
 
   @Query(() => Route, { nullable: true })

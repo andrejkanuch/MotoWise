@@ -1,9 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-const key =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
-const supabase = url && key ? createClient(url, key) : null;
+import { RoutePathByIdDocument } from '@motovault/graphql';
+import { gqlServerFetcher } from '@/lib/graphql-server';
 
 // Simple in-memory LRU cache (works for single Vercel instance)
 const cache = new Map<string, { country: string; region: string; slug: string }>();
@@ -12,28 +8,27 @@ const MAX_CACHE = 10000;
 export async function resolveUuidToSlug(
   uuid: string,
 ): Promise<{ country: string; region: string; slug: string } | null> {
-  // Validate UUID format
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid)) {
     return null;
   }
 
-  if (!supabase) return null;
-
   const cached = cache.get(uuid);
   if (cached) return cached;
 
-  const { data, error } = await supabase
-    .from('routes')
-    .select('slug, country_code, region_code')
-    .eq('id', uuid)
-    .single();
+  let path: { countryCode: string; regionCode: string; slug: string } | null | undefined;
+  try {
+    const data = await gqlServerFetcher(RoutePathByIdDocument, { routeId: uuid });
+    path = data.routePathById;
+  } catch {
+    return null;
+  }
 
-  if (error || !data?.slug) return null;
+  if (!path?.slug || !path.countryCode || !path.regionCode) return null;
 
   const result = {
-    country: data.country_code,
-    region: data.region_code,
-    slug: data.slug,
+    country: path.countryCode.toLowerCase(),
+    region: path.regionCode.toLowerCase(),
+    slug: path.slug.toLowerCase(),
   };
 
   if (cache.size >= MAX_CACHE) {

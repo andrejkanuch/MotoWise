@@ -1,5 +1,6 @@
+import type { ExploreDiscoverRoutesQuery } from '@motovault/graphql';
+import { ExploreDiscoverRoutesDocument } from '@motovault/graphql';
 import type { ExploreRouteDbRow } from '@motovault/types';
-import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
@@ -7,6 +8,9 @@ import { Suspense } from 'react';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { TypeaheadSearch } from '@/components/typeahead-search';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
+import { gqlServerFetcher } from '@/lib/graphql-server';
+
+type ExploreRouteNode = ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
 /* ── Constants ────────────────────────────────────────────────── */
 
@@ -83,46 +87,52 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/* ── Supabase ─────────────────────────────────────────────────── */
+/* ── Data (GraphQL API — public discoverRoutes) ─────────────────── */
 
-function getSupabaseAnon() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-  );
+function nodeToExploreRow(node: ExploreRouteNode): ExploreRouteDbRow {
+  return {
+    id: node.id,
+    name: node.name ?? null,
+    description: node.description ?? null,
+    distance_m: node.distanceM,
+    elevation_gain_m: node.elevationGainM ?? null,
+    surface_type: node.surfaceType ?? null,
+    curvature_index: node.curvatureIndex ?? null,
+    rating_avg: node.ratingAvg ?? null,
+    rating_count: node.ratingCount,
+    is_motovault_pick: node.isMotovaultPick,
+    editorial_description: node.editorialDescription ?? null,
+    slug: node.slug ?? null,
+    country_code: node.countryCode ?? null,
+    region_code: node.regionCode ?? null,
+  };
 }
 
-/* ── Data fetchers ────────────────────────────────────────────── */
+async function fetchExploreRoutes(
+  first: number,
+  options: { countryCode?: string; motovaultPicksOnly?: boolean } = {},
+): Promise<ExploreRouteDbRow[]> {
+  try {
+    const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
+      filter: {
+        sortByRating: true,
+        ...(options.countryCode ? { countryCode: options.countryCode } : {}),
+        ...(options.motovaultPicksOnly ? { motovaultPicksOnly: true } : {}),
+      },
+      first,
+    });
+    return data.discoverRoutes.edges.map((e) => nodeToExploreRow(e.node));
+  } catch {
+    return [];
+  }
+}
 
 async function fetchStaffPicks(): Promise<ExploreRouteDbRow[]> {
-  const supabase = getSupabaseAnon();
-  const { data } = await supabase
-    .from('routes')
-    .select(
-      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description, slug, country_code, region_code',
-    )
-    .eq('status', 'published')
-    .eq('is_motovault_pick', true)
-    .order('rating_avg', { ascending: false, nullsFirst: false })
-    .limit(6);
-  return (data as ExploreRouteDbRow[]) ?? [];
+  return fetchExploreRoutes(6, { motovaultPicksOnly: true });
 }
 
 async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<ExploreRouteDbRow[]> {
-  const supabase = getSupabaseAnon();
-  let query = supabase
-    .from('routes')
-    .select(
-      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description, slug, country_code, region_code',
-    )
-    .eq('status', 'published')
-    .order('rating_avg', { ascending: false, nullsFirst: false })
-    .limit(limit);
-  if (countryCode) {
-    query = query.eq('country_code', countryCode.toLowerCase());
-  }
-  const { data } = await query;
-  return (data as ExploreRouteDbRow[]) ?? [];
+  return fetchExploreRoutes(limit, { countryCode });
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */

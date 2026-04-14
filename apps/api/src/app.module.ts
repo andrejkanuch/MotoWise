@@ -35,6 +35,7 @@ import { LearningProgressModule } from './modules/learning-progress/learning-pro
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
+import { PlacesModule } from './modules/places/places.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
@@ -88,6 +89,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     CommentsModule,
     UsersModule,
     MotorcyclesModule,
+    PlacesModule,
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
