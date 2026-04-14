@@ -1,0 +1,145 @@
+# ============================================
+# .easignore — replaces .gitignore for EAS Build
+# Must live at the git repo root.
+# ============================================
+
+# Git history (not needed for build)
+.git/
+
+# --- Everything from .gitignore ---
+
+# Build outputs
+dist/
+.next/
+.expo/
+ios/
+android/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Google Play service account key
+google-service-account.json
+
+# Turbo
+.turbo/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Testing
+coverage/
+
+# Supabase temp
+supabase/.temp/
+supabase/.branches/
+
+# Google Service Account keys
+gcloud-service-key*.json
+*-firebase-adminsdk-*.json
+motowise-*.json
+
+# Expo credentials
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Prototype files
+Ride-HUD-Prototype.jsx
+
+# Build artifacts
+apps/mobile/build-*.aab
+
+# Office lock files
+.~lock.*
+
+# Local docs/prototypes (case-insensitive dupes)
+Financial_Analysis.html
+MotoVault-*.html
+MotoVault-*.md
+motovault-*.html
+motovault-*.md
+PRD-*.html
+PRD-*.jsx
+Personal_Finance_Overview.xlsx
+Ride-*.jsx
+.claude/worktrees/
+
+# --- Additional exclusions for EAS Build ---
+
+# Apps/infra not needed for mobile builds (~1.2 GB)
+apps/api/
+apps/web/
+infra/
+
+# Documentation and plans
+docs/
+todos/
+*.docx
+*.xlsx
+
+# Marketing materials (~340 MB)
+marketing/
+screenshots/
+!apps/web/public/screenshots/
+!apps/web/public/screenshots/**
+
+# Scripts not needed for build
+scripts/
+
+# Supabase migrations (not needed in mobile bundle)
+supabase/
+
+# Claude / Cursor / tool config (~1.9 GB in worktrees)
+.claude/
+.cursor/
+.githooks/
+.xcodebuildmcp/
+
+# Other non-build directories
+instagram-strategy/
+marketing-material/
+outputs/
+
+# Root-level docs, PRDs, reports, marketing files
+PLAN-*
+MotoWise_*
+Architecture-*
+SEO-*
+Reddit-*
+motovault-*.png
+mw-logo-*.png
+HOMEPAGE_PROMPT.md
+*.html
+*.md
+!README.md
+*-report.md
+*-prd.md
+*-brief.md
+*-analysis*.md
+
+# Old build artifacts
+*.ipa
+*.apk
+*.aab
+*.xcarchive
+
+# Logs
+*.log
+
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
