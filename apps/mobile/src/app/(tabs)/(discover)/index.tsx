@@ -26,9 +26,11 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
+import { usePrimaryBikeFuelData } from '../../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { computeFuelStops } from '../../../utils/fuel-range';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
@@ -42,6 +44,8 @@ export default function DiscoverScreen() {
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
+
+  const { tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const headerColor = isDark ? palette.white : palette.neutral950;
@@ -142,9 +146,14 @@ export default function DiscoverScreen() {
 
   const renderItem = useCallback(
     ({ item, index }: { item: RouteNode; index: number }) => (
-      <RouteCard route={item} index={index} onPress={() => handleRoutePress(item.id)} />
+      <RouteCard
+        route={item}
+        index={index}
+        onPress={() => handleRoutePress(item.id)}
+        fuelStopsRequired={computeFuelStops(item.distanceM / 1000, tankLiters, kmPerLiter)}
+      />
     ),
-    [handleRoutePress],
+    [handleRoutePress, tankLiters, kmPerLiter],
   );
 
   return (

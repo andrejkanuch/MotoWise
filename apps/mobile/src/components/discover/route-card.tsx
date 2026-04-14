@@ -1,10 +1,11 @@
 import { palette } from '@motovault/design-system';
 import type { DiscoverRoutesQuery } from '@motovault/graphql';
-import { Award, MessageCircle, Mountain, Route, Star } from 'lucide-react-native';
+import { Award, Fuel, MessageCircle, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { fuelBadgeColor, fuelBadgeLabel } from '../../utils/fuel-range';
 import { formatDistance } from '../../utils/ride-formatters';
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
@@ -13,9 +14,15 @@ interface RouteCardProps {
   route: RouteNode;
   index: number;
   onPress: () => void;
+  fuelStopsRequired?: number;
 }
 
-export const RouteCard = memo(function RouteCard({ route, index, onPress }: RouteCardProps) {
+export const RouteCard = memo(function RouteCard({
+  route,
+  index,
+  onPress,
+  fuelStopsRequired,
+}: RouteCardProps) {
   const isDark = useColorScheme() === 'dark';
   const system = useMeasurementSystem();
 
@@ -138,6 +145,33 @@ export const RouteCard = memo(function RouteCard({ route, index, onPress }: Rout
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <MessageCircle size={12} color={subtitleColor} />
               <Text style={{ fontSize: 12, color: subtitleColor }}>{route.commentCount}</Text>
+            </View>
+          )}
+
+          {/* Fuel range indicator */}
+          {fuelStopsRequired != null && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 3,
+                backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 8,
+                borderCurve: 'continuous',
+              }}
+            >
+              <Fuel size={10} color={fuelBadgeColor(fuelStopsRequired)} />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: fuelBadgeColor(fuelStopsRequired),
+                }}
+              >
+                {fuelBadgeLabel(fuelStopsRequired)}
+              </Text>
             </View>
           )}
         </View>
