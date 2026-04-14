@@ -8,15 +8,12 @@ function createMockSupabase(rpcResults: Record<string, { data: unknown; error: u
   let resolveValue = { data: [] as unknown[], error: null as unknown };
   const fromChain: Record<string, unknown> = {};
 
-  const chainMethod = vi.fn(function (this: typeof fromChain) {
-    return this;
-  });
-
   for (const m of ['select', 'eq', 'ilike', 'in', 'gte', 'lte', 'lt', 'order', 'limit']) {
     fromChain[m] = vi.fn(() => fromChain);
   }
 
   // Make the chain thenable so `await query` resolves
+  // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
   fromChain.then = (resolve: (v: unknown) => void) => {
     resolve(resolveValue);
     return fromChain;

@@ -6,6 +6,7 @@ import type { RouteSearchConnection } from './models/search-result.model';
 import type { TypeaheadResult } from './models/typeahead-result.model';
 
 const MAX_TYPEAHEAD_LIMIT = 20;
+const MAX_QUERY_LENGTH = 100;
 
 interface SearchRouteRow {
   id: string;
@@ -377,7 +378,7 @@ export class SearchService {
       return { routes: [], places: [] };
     }
 
-    const sanitized = q.trim();
+    const sanitized = q.trim().slice(0, MAX_QUERY_LENGTH);
     const safeLimit = Math.min(Math.max(limit, 1), MAX_TYPEAHEAD_LIMIT);
 
     const { data, error } = await this.supabase.rpc('typeahead_search', {

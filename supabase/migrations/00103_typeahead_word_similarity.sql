@@ -18,6 +18,11 @@ RETURNS TABLE (
   sim         FLOAT
 ) AS $$
 BEGIN
+  -- Cap result_limit to prevent abuse via direct PostgREST calls
+  IF result_limit > 20 THEN
+    result_limit := 20;
+  END IF;
+
   RETURN QUERY
   (
     SELECT
@@ -67,4 +72,4 @@ BEGIN
     LIMIT result_limit
   );
 END;
-$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '';
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = 'public';
