@@ -1,0 +1,15 @@
+query FuelStopsNearRoute($routeId: ID!, $bikeId: ID) {
+  fuelStopsNearRoute(routeId: $routeId, bikeId: $bikeId) {
+    fuelStops {
+      osmId
+      name
+      lat
+      lng
+    }
+    rangeSummary {
+      effectiveRangeKm
+      stopsRequired
+      summary
+    }
+  }
+}

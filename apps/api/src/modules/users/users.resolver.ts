@@ -1,5 +1,6 @@
 import {
   CompleteOnboardingInputSchema,
+  UpdateHandleInputSchema,
   UpdateProfileInputSchema,
   UpdateUserSchema,
 } from '@motovault/types';
@@ -13,6 +14,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { CompleteOnboardingInput } from './dto/complete-onboarding.input';
+import { UpdateHandleInput } from './dto/update-handle.input';
 import { UpdateProfileInput } from './dto/update-profile.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { DataExportRequest } from './models/data-export-request.model';
@@ -85,5 +87,14 @@ export class UsersResolver {
     @Args('input', new ZodValidationPipe(UpdateProfileInputSchema)) input: UpdateProfileInput,
   ): Promise<User> {
     return this.usersService.updateProfile(authUser.id, input);
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async updateHandle(
+    @CurrentUser() authUser: AuthUser,
+    @Args('input', new ZodValidationPipe(UpdateHandleInputSchema)) input: UpdateHandleInput,
+  ): Promise<User> {
+    return this.usersService.updateHandle(authUser.id, input.handle);
   }
 }

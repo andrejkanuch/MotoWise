@@ -3,7 +3,7 @@ import {
   ShareRideToDiscoverInputSchema,
 } from '@motovault/types/validators';
 import { BadRequestException, UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -12,17 +12,25 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
+import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
+import { GPXExportError, GPXExportResult, GPXExportSuccess } from './dto/gpx-export.dto';
 import { ShareRideToDiscoverInput } from './dto/share-ride-to-discover.input';
 import { Route, RouteConnection } from './models/route.model';
 import { RouteReview, RouteReviewConnection } from './models/route-review.model';
 import { RoutesService } from './routes.service';
 
+/** Max reviews visible to anonymous users */
+const ANONYMOUS_REVIEW_LIMIT = 3;
+
 @Resolver(() => Route)
 @UseGuards(GqlAuthGuard)
 export class RoutesResolver {
-  constructor(private readonly routesService: RoutesService) {}
+  constructor(
+    private readonly routesService: RoutesService,
+    private readonly entitlementService: EntitlementsService,
+  ) {}
 
   // ==========================================
   // Route Discovery
@@ -40,12 +48,57 @@ export class RoutesResolver {
     return this.routesService.discoverRoutes(filter, first ?? 20, after);
   }
 
+  @Query(() => Route, { nullable: true })
+  @Public()
+  async routeBySlug(
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('slug') slug: string,
+  ): Promise<Route | null> {
+    // Input validation — prevent excessively long or malformed params
+    if (country.length > 5 || region.length > 20 || slug.length > 200) return null;
+    if (!/^[a-z0-9-]+$/.test(country) || !/^[a-z0-9-]+$/.test(region) || !/^[a-z0-9-]+$/.test(slug))
+      return null;
+    return this.routesService.findBySlug(country, region, slug);
+  }
+
   @Query(() => Route)
   @Public()
   async routeDetail(
+    @CurrentUser() user: AuthUser | null,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
   ): Promise<Route> {
-    return this.routesService.routeDetail(routeId);
+    const route = await this.routesService.routeDetail(routeId);
+
+    // Gate premium fields for anonymous users
+    const canReadFull = this.entitlementService.can(user, ENTITLEMENTS.READ_FULL_ROUTE);
+    if (!canReadFull) {
+      return {
+        ...route,
+        polyline: undefined,
+        editorialDescription: undefined,
+      };
+    }
+
+    return route;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistScore(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.score ?? null;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistPercentile(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.percentile ?? null;
   }
 
   @Mutation(() => Route)
@@ -73,11 +126,32 @@ export class RoutesResolver {
   @Query(() => RouteReviewConnection)
   @Public()
   async getRouteReviews(
+    @CurrentUser() user: AuthUser | null,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteReviewConnection> {
-    return this.routesService.getRouteReviews(routeId, first ?? 10, after);
+    const canReadAll = this.entitlementService.can(user, ENTITLEMENTS.READ_ALL_REVIEWS);
+
+    // Anonymous users: cap at ANONYMOUS_REVIEW_LIMIT, ignore pagination
+    const effectiveFirst = canReadAll ? (first ?? 10) : ANONYMOUS_REVIEW_LIMIT;
+    const effectiveAfter = canReadAll ? after : undefined;
+
+    const result = await this.routesService.getRouteReviews(
+      routeId,
+      effectiveFirst,
+      effectiveAfter,
+    );
+
+    // For anonymous: signal there are more reviews behind auth
+    if (!canReadAll) {
+      return {
+        ...result,
+        hasNextPage: result.totalCount > ANONYMOUS_REVIEW_LIMIT,
+      };
+    }
+
+    return result;
   }
 
   @Mutation(() => RouteReview)
@@ -91,23 +165,16 @@ export class RoutesResolver {
   }
 
   // ==========================================
-  // Route Saves (Bookmarks)
+  // GPX Export
   // ==========================================
 
-  @Mutation(() => Boolean)
-  async saveRoute(
+  @Mutation(() => GPXExportResult)
+  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
+  async exportRouteGPX(
     @CurrentUser() user: AuthUser,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
-  ): Promise<boolean> {
-    return this.routesService.saveRoute(user.id, routeId);
-  }
-
-  @Mutation(() => Boolean)
-  async unsaveRoute(
-    @CurrentUser() user: AuthUser,
-    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
-  ): Promise<boolean> {
-    return this.routesService.unsaveRoute(user.id, routeId);
+  ): Promise<GPXExportSuccess | GPXExportError> {
+    return this.routesService.exportRouteGPXWithEntitlement(user.id, routeId);
   }
 
   // ==========================================

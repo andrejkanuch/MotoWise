@@ -1,4 +1,9 @@
-import { RESERVED_USERNAMES, USERNAME_REGEX, UserPreferencesSchema } from '@motovault/types';
+import {
+  RESERVED_HANDLES,
+  RESERVED_USERNAMES,
+  USERNAME_REGEX,
+  UserPreferencesSchema,
+} from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
@@ -28,6 +33,8 @@ interface UserCommunityColumns {
   follower_count: number | null;
   following_count: number | null;
   avatar_url: string | null;
+  handle: string | null;
+  show_saved_publicly: boolean | null;
 }
 
 /** Shape returned by the public_profiles view */
@@ -86,6 +93,8 @@ export class UsersService {
       followerCount: r.follower_count ?? 0,
       followingCount: r.following_count ?? 0,
       avatarUrl: r.avatar_url ?? undefined,
+      handle: r.handle ?? undefined,
+      showSavedPublicly: r.show_saved_publicly ?? false,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     };
@@ -340,6 +349,38 @@ export class UsersService {
     if (error) {
       this.logger.error(`Failed to update profile for ${userId}: ${error.message}`);
       throw new BadRequestException('Failed to update profile');
+    }
+
+    return this.findById(userId);
+  }
+
+  async updateHandle(userId: string, handle: string): Promise<User> {
+    const normalized = handle.toLowerCase();
+
+    if ((RESERVED_HANDLES as readonly string[]).includes(normalized)) {
+      throw new BadRequestException('This handle is reserved');
+    }
+
+    // Check uniqueness
+    const { data: existing } = await this.supabase
+      .from('users')
+      .select('id')
+      .eq('handle', normalized)
+      .neq('id', userId)
+      .maybeSingle();
+
+    if (existing) {
+      throw new ConflictException('Handle is already taken');
+    }
+
+    const { error } = await this.supabase
+      .from('users')
+      .update({ handle: normalized })
+      .eq('id', userId);
+
+    if (error) {
+      this.logger.error(`Failed to update handle for ${userId}: ${error.message}`);
+      throw new BadRequestException('Failed to update handle');
     }
 
     return this.findById(userId);

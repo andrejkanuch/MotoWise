@@ -4,7 +4,33 @@ import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Bike, Calendar, CircleDollarSign, Gauge, PenTool, Settings, Wrench } from 'lucide-react';
 import Image from 'next/image';
+import { SaveRouteButton } from '@/components/save-route-button';
 import { gqlFetcher } from '@/lib/graphql-client';
+
+const SAVED_ROUTES_QUERY = /* GraphQL */ `
+  query SavedRoutes($first: Int) {
+    savedRoutes(first: $first) {
+      edges {
+        node {
+          id
+          name
+          distanceM
+          elevationGainM
+          surfaceType
+          ratingAvg
+          ratingCount
+          slug
+          countryCode
+          regionCode
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+      }
+    }
+  }
+` as never;
 
 export default function GaragePage() {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -57,6 +83,11 @@ export default function GaragePage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <h1 className="mb-8 text-2xl font-bold text-neutral-50">My Garage</h1>
+
+      {/* Saved Routes */}
+      <SavedRoutesSection />
+
+      <h2 className="mb-4 mt-12 text-lg font-semibold text-neutral-200">Motorcycles</h2>
 
       <div className="flex flex-col gap-6">
         {bikes.map((bike) => (
@@ -177,6 +208,103 @@ export default function GaragePage() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Saved Routes Section ────────────────────────────────────────
+
+interface SavedRoute {
+  id: string;
+  name?: string;
+  distanceM: number;
+  elevationGainM?: number;
+  surfaceType?: string;
+  ratingAvg?: number;
+  ratingCount: number;
+  slug?: string;
+  countryCode?: string;
+  regionCode?: string;
+}
+
+function SavedRoutesSection() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['garage', 'saved-routes'],
+    queryFn: () =>
+      gqlFetcher<
+        {
+          savedRoutes: {
+            edges: Array<{ node: SavedRoute; cursor: string }>;
+            pageInfo: { hasNextPage: boolean };
+          };
+        },
+        { first: number }
+      >(SAVED_ROUTES_QUERY, { first: 20 }),
+  });
+
+  const routes = data?.savedRoutes?.edges?.map((e) => e.node) ?? [];
+
+  if (isLoading) {
+    return (
+      <div>
+        <h2 className="mb-4 text-lg font-semibold text-neutral-200">Saved Routes</h2>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-800 border-t-neutral-400" />
+      </div>
+    );
+  }
+
+  if (routes.length === 0) {
+    return (
+      <div>
+        <h2 className="mb-3 text-lg font-semibold text-neutral-200">Saved Routes</h2>
+        <p className="text-sm text-neutral-500">
+          No saved routes yet.{' '}
+          <a
+            href="/explore"
+            className="text-neutral-300 underline underline-offset-2 hover:text-white"
+          >
+            Explore routes
+          </a>{' '}
+          and tap the heart to save them here.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-neutral-200">Saved Routes</h2>
+        <a
+          href="/explore"
+          className="text-sm text-neutral-500 transition-colors hover:text-neutral-300"
+        >
+          Browse more
+        </a>
+      </div>
+      <div className="divide-y divide-neutral-800/30">
+        {routes.map((route) => {
+          const href =
+            route.countryCode && route.regionCode && route.slug
+              ? `/route/${route.countryCode.toLowerCase()}/${route.regionCode.toLowerCase()}/${route.slug}`
+              : `/routes/${route.id}`;
+          return (
+            <div key={route.id} className="flex items-center justify-between py-3">
+              <a href={href} className="group min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-neutral-200 transition-colors group-hover:text-white">
+                  {route.name ?? 'Unnamed Route'}
+                </p>
+                <p className="mt-0.5 flex gap-x-3 text-xs text-neutral-500">
+                  {route.distanceM > 0 && <span>{(route.distanceM / 1000).toFixed(1)} km</span>}
+                  {route.elevationGainM != null && <span>{Math.round(route.elevationGainM)}m</span>}
+                  {route.ratingAvg != null && <span>★ {route.ratingAvg.toFixed(1)}</span>}
+                </p>
+              </a>
+              <SaveRouteButton routeId={route.id} />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

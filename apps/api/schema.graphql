@@ -154,6 +154,11 @@ type CompleteTaskResult {
   nextOccurrence: MaintenanceTask
 }
 
+type ConditionAggregate {
+  condition: String!
+  count: Int!
+}
+
 type ContentFlag {
   articleId: String!
   comment: String!
@@ -287,6 +292,11 @@ type DataExportRequest {
   userId: String!
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Diagnostic {
   confidence: Float
   createdAt: String!
@@ -316,9 +326,15 @@ input DiscoverRoutesFilterInput {
   elevationRanges: [String!]
   highlyRatedOnly: Boolean
   lengthRanges: [String!]
+
+  """Minimum twist score 1-10 (maps to curvature_index thresholds)"""
+  minTwistScore: Int
   nearLat: Float
   nearLng: Float
   radiusKm: Float
+
+  """Only routes with surface condition reports within the last N days"""
+  surfaceRecency: Int
   surfaceTypes: [String!]
 }
 
@@ -472,6 +488,40 @@ type FuelLog {
   totalCost: Float
 }
 
+type FuelRangeResult {
+  fuelStops: [FuelStop!]!
+  rangeSummary: FuelRangeSummary!
+}
+
+type FuelRangeSummary {
+  effectiveRangeKm: Float!
+  stopsRequired: Int!
+  summary: String!
+}
+
+type FuelStop {
+  amenity: String!
+  lat: Float!
+  lng: Float!
+  name: String!
+  osmId: Int!
+}
+
+type GPXExportError {
+  code: String!
+  quotaRemaining: Int
+  reason: String!
+  upgradeUrl: String
+}
+
+union GPXExportResult = GPXExportError | GPXExportSuccess
+
+type GPXExportSuccess {
+  fileName: String!
+  fileUrl: String!
+  message: String!
+}
+
 input GenerateArticleInput {
   category: ArticleCategory
   difficulty: ArticleDifficulty
@@ -604,6 +654,11 @@ type KudosUser {
   displayName: String
   id: ID!
   publicUsername: String
+}
+
+input LatLngInput {
+  lat: Float!
+  lng: Float!
 }
 
 type LearningProgress {
@@ -777,6 +832,7 @@ type Mutation {
   deleteTaskPhoto(photoId: ID!): Boolean!
   deleteTrip(tripId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
+  exportRouteGPX(routeId: ID!): GPXExportResult!
   flagComment(commentId: ID!): Boolean!
   followRider(input: FollowRiderInput!): Follow!
   generateArticle(input: GenerateArticleInput!): Article!
@@ -798,12 +854,15 @@ type Mutation {
   regenerateRideSummary(rideId: String!): RideSummary!
   removeWaypoint(waypointId: ID!): Boolean!
   reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
+  reportSurface(input: ReportSurfaceInput!): SurfaceReport!
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
-  saveRoute(routeId: ID!): Boolean!
+
+  """Save a route to your collection"""
+  saveRouteToCollection(routeId: ID!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
   startRide(input: StartRideInput!): Ride!
@@ -811,11 +870,16 @@ type Mutation {
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
   toggleKudos(rideId: String!): KudosResult!
   trackAffiliateClick(input: TrackClickInput!): AffiliateProduct!
+  trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
+  trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
-  unsaveRoute(routeId: ID!): Boolean!
+
+  """Remove a saved route from your collection"""
+  unsaveRouteFromCollection(routeId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
+  updateHandle(input: UpdateHandleInput!): User!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
   updateMotorcycle(id: String!, input: UpdateMotorcycleInput!): Motorcycle!
   updateMyProfile(input: UpdateProfileInput!): User!
@@ -860,6 +924,15 @@ type PageInfo {
   startCursor: String
 }
 
+type PlaceSuggestion {
+  countryCode: String!
+  id: Int!
+  kind: String!
+  name: String!
+  population: Int!
+  regionCode: String
+}
+
 type PublicRideStats {
   joinDate: String
   totalDistance: Float!
@@ -898,9 +971,16 @@ type Query {
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
   fuelLogs(motorcycleId: String!): [FuelLog!]!
+  fuelStops(radiusKm: Float = 5, routeId: ID!): [FuelStop!]!
+  fuelStopsNearRoute(bikeId: ID, radiusKm: Float = 5, routeId: ID!): FuelRangeResult!
   getComments(after: String, first: Int = 20, groupRideId: ID, rideId: ID, routeId: ID, tripId: ID): CommentConnection!
   getFollowers(after: String, first: Int = 20, userId: String!): FollowConnection!
   getFollowing(after: String, first: Int = 20, userId: String!): FollowConnection!
+
+  """
+  Returns current GPX export quota usage and limits for the authenticated user
+  """
+  getGPXQuotaStatus: QuotaStatus!
   getGroupRides(after: String, first: Int = 20, nearLat: Float, nearLng: Float, radiusKm: Float): GroupRideConnection!
   getMyHealthReports: [HealthReport!]!
   getPublicRide(id: String!): Ride!
@@ -908,6 +988,9 @@ type Query {
   getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
   getTrips(after: String, first: Int = 20): TripConnection!
   groupRideDetail(groupRideId: ID!): GroupRide!
+
+  """Check if the authenticated user has saved a specific route"""
+  isRouteSaved(routeId: ID!): Boolean!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
@@ -923,12 +1006,22 @@ type Query {
   myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
+
+  """Public saved routes for a user by handle (public_username)"""
+  publicSavedRoutes(after: String, first: Int = 20, handle: String!): RouteConnection!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
+  routeBySlug(country: String!, region: String!, slug: String!): Route
+  routeConditions(routeId: ID!): RouteConditions!
   routeDetail(routeId: ID!): Route!
+  routeSponsorships(routeId: ID!): [Sponsorship!]!
+
+  """Paginated list of the authenticated user's saved routes"""
+  savedRoutes(after: String, first: Int = 20): RouteConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
+  searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   tripByShareToken(shareToken: String!): SharedTrip
@@ -958,6 +1051,27 @@ type QuizQuestion {
   question: String!
 }
 
+"""Current quota usage for a gated feature"""
+type QuotaStatus {
+  """Feature identifier (e.g. gpx_export)"""
+  feature: String!
+
+  """True when remaining = 0 (and limit is not unlimited)"""
+  isExhausted: Boolean!
+
+  """Monthly limit (-1 = unlimited)"""
+  limit: Int!
+
+  """Remaining uses this month (-1 = unlimited)"""
+  remaining: Int!
+
+  """ISO date when quota resets (1st of next month)"""
+  resetDate: String!
+
+  """Number of uses this month"""
+  used: Int!
+}
+
 type Recall {
   campaignNumber: String!
   component: String!
@@ -977,6 +1091,13 @@ type RecallResult {
 input ReorderWaypointsInput {
   tripId: ID!
   waypointIds: [ID!]!
+}
+
+input ReportSurfaceInput {
+  condition: String!
+  note: String
+  photoUrl: String
+  routeId: ID!
 }
 
 type Ride {
@@ -1036,8 +1157,10 @@ type RideSummary {
 }
 
 type Route {
+  city: String
   commentCount: Int!
   contributor: RouteContributor!
+  countryCode: String
   createdAt: String!
   curvatureIndex: Float
   description: String
@@ -1047,13 +1170,24 @@ type Route {
   id: ID!
   isMotovaultPick: Boolean!
   name: String
-  polyline: String!
+
+  """Null for anonymous users (requires auth)"""
+  polyline: String
   ratingAvg: Float
   ratingCount: Int!
+  regionCode: String
+  slug: String
   startLat: Float
   startLng: Float
   status: String!
   surfaceType: String
+  twistPercentile: Int
+  twistScore: Int
+}
+
+type RouteConditions {
+  aggregates: [ConditionAggregate!]!
+  recentReports: [SurfaceReport!]!
 }
 
 type RouteConnection {
@@ -1106,6 +1240,14 @@ type RouteReviewConnection {
   hasNextPage: Boolean!
   reviews: [RouteReview!]!
   totalCount: Int!
+}
+
+type RouteSuggestion {
+  countryCode: String!
+  id: ID!
+  name: String!
+  regionCode: String
+  slug: String!
 }
 
 input SearchArticlesInput {
@@ -1194,6 +1336,43 @@ type SpendingSummary {
   thisYear: Float!
 }
 
+type Sponsorship {
+  clicksCount: Int!
+  costPerImpression: Float!
+  createdAt: DateTime!
+  ctaText: String
+  ctaUrl: String
+  description: String
+  endsAt: DateTime
+  id: ID!
+  imageUrl: String
+  impressionsCount: Int!
+  monthlyBudget: Float!
+  placementType: SponsorshipPlacementType!
+  routeId: ID!
+  spentThisMonth: Float!
+  sponsorId: ID!
+  startsAt: DateTime!
+  status: SponsorshipStatus!
+  title: String!
+  updatedAt: DateTime!
+}
+
+"""Visual placement type for a sponsored slot"""
+enum SponsorshipPlacementType {
+  banner
+  card
+  pin
+}
+
+"""Status of a sponsorship slot"""
+enum SponsorshipStatus {
+  active
+  deactivated
+  expired
+  paused
+}
+
 input StartRideInput {
   motorcycleId: String
   rideId: String!
@@ -1217,6 +1396,16 @@ input SubmitQuizInput {
   quizId: String!
 }
 
+type SurfaceReport {
+  condition: String!
+  id: ID!
+  note: String
+  photoUrl: String
+  reportedAt: String!
+  routeId: ID!
+  userId: ID!
+}
+
 type TaskPhoto {
   createdAt: String!
   fileSizeBytes: Int
@@ -1231,6 +1420,14 @@ input TrackClickInput {
   diagnosisType: String
   partner: AffiliatePartner!
   productUrl: String!
+}
+
+input TrackSponsorshipClickInput {
+  sponsorshipId: ID!
+}
+
+input TrackSponsorshipImpressionInput {
+  sponsorshipId: ID!
 }
 
 type TriggeredMaintenanceTask {
@@ -1311,6 +1508,11 @@ type TripWaypoint {
   type: String!
 }
 
+type TypeaheadResult {
+  places: [PlaceSuggestion!]!
+  routes: [RouteSuggestion!]!
+}
+
 input UnfollowRiderInput {
   targetUserId: String!
 }
@@ -1324,6 +1526,10 @@ input UpdateGroupRideInput {
   meetingPointLng: Float
   meetingPointName: String
   title: String
+}
+
+input UpdateHandleInput {
+  handle: String!
 }
 
 input UpdateMaintenanceTaskInput {
@@ -1426,12 +1632,14 @@ type User {
   followerCount: Float
   followingCount: Float
   fullName: String
+  handle: String
   id: ID!
   isPublic: Boolean
   measurementSystem: String
   preferences: JSON
   publicUsername: String
   role: UserRole!
+  showSavedPublicly: Boolean
   subscriptionTier: String
   updatedAt: String!
 }

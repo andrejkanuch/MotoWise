@@ -1,0 +1,25 @@
+query GetPublicRide($id: String!) {
+  getPublicRide(id: $id) {
+    id
+    userId
+    status
+    name
+    startedAt
+    endedAt
+    distanceM
+    maxSpeedMps
+    avgSpeedMps
+    elevationGain
+    elevationLoss
+    pausedDurationS
+    autoPausedDurationS
+    durationS
+    motorcycleId
+    routePolyline
+    routeThumbnailUri
+    gpsQuality
+    mileageApplied
+    isPublic
+    createdAt
+  }
+}

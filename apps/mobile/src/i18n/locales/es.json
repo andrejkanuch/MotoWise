@@ -608,10 +608,13 @@
     "maintenanceRemindersDesc": "Recibe recordatorios inteligentes para todas tus motos.",
     "pdfExportTitle": "Exportar PDF",
     "pdfExportDesc": "Exporta registros de mantenimiento como informes PDF.",
+    "gpxExportTitle": "Exportacion GPX",
+    "gpxExportDesc": "Exporta archivos GPX de rutas para apps de navegacion mas alla del limite mensual gratuito.",
     "featureUnlimitedBikes": "Motos ilimitadas en tu garaje",
     "featureFullDiagnostics": "Diagnosticos IA completos",
     "featureMaintenanceReminders": "Recordatorios de mantenimiento inteligentes",
     "featurePdfExport": "Exportacion PDF de registros",
+    "featureGpxExport": "Exportaciones GPX de rutas",
     "upgradeToPro": "Actualizar a Pro",
     "maybeLater": "Quizas despues"
   },

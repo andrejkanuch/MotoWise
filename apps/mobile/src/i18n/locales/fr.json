@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "Rappels d'entretien intelligents",
     "featurePdfExport": "Export PDF des historiques",
     "upgradeToPro": "Passer à Pro",
-    "maybeLater": "Peut-être plus tard"
+    "maybeLater": "Peut-être plus tard",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "Page introuvable",

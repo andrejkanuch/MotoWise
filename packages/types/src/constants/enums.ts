@@ -239,6 +239,22 @@ export const SummaryGenerationStatus = {
 export type SummaryGenerationStatus =
   (typeof SummaryGenerationStatus)[keyof typeof SummaryGenerationStatus];
 
+export const SponsorshipStatus = {
+  ACTIVE: 'active',
+  PAUSED: 'paused',
+  DEACTIVATED: 'deactivated',
+  EXPIRED: 'expired',
+} as const;
+export type SponsorshipStatus = (typeof SponsorshipStatus)[keyof typeof SponsorshipStatus];
+
+export const SponsorshipPlacementType = {
+  BANNER: 'banner',
+  CARD: 'card',
+  PIN: 'pin',
+} as const;
+export type SponsorshipPlacementType =
+  (typeof SponsorshipPlacementType)[keyof typeof SponsorshipPlacementType];
+
 export const SUPPORTED_LOCALES = [
   'en',
   'es',

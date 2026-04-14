@@ -1,0 +1,151 @@
+/**
+ * Human-readable display names for country and region codes used in route URLs.
+ * Codes are stored lowercase in URLs (e.g. /route/us/ca/…) and uppercase in DB.
+ */
+
+export const COUNTRY_NAMES: Record<string, string> = {
+  US: 'United States',
+  DE: 'Germany',
+  AT: 'Austria',
+  CH: 'Switzerland',
+  IT: 'Italy',
+  ES: 'Spain',
+  FR: 'France',
+  GB: 'United Kingdom',
+  PT: 'Portugal',
+  GR: 'Greece',
+  HR: 'Croatia',
+  NO: 'Norway',
+  SE: 'Sweden',
+  RO: 'Romania',
+  CZ: 'Czech Republic',
+  SK: 'Slovakia',
+  SI: 'Slovenia',
+  BA: 'Bosnia and Herzegovina',
+  ME: 'Montenegro',
+  AL: 'Albania',
+  MK: 'North Macedonia',
+  BG: 'Bulgaria',
+  RS: 'Serbia',
+  PL: 'Poland',
+  BR: 'Brazil',
+  AR: 'Argentina',
+  MX: 'Mexico',
+  CO: 'Colombia',
+  CL: 'Chile',
+  CA: 'Canada',
+};
+
+/** US state abbreviation → full name */
+const US_STATES: Record<string, string> = {
+  AL: 'Alabama',
+  AK: 'Alaska',
+  AZ: 'Arizona',
+  AR: 'Arkansas',
+  CA: 'California',
+  CO: 'Colorado',
+  CT: 'Connecticut',
+  DE: 'Delaware',
+  FL: 'Florida',
+  GA: 'Georgia',
+  HI: 'Hawaii',
+  ID: 'Idaho',
+  IL: 'Illinois',
+  IN: 'Indiana',
+  IA: 'Iowa',
+  KS: 'Kansas',
+  KY: 'Kentucky',
+  LA: 'Louisiana',
+  ME: 'Maine',
+  MD: 'Maryland',
+  MA: 'Massachusetts',
+  MI: 'Michigan',
+  MN: 'Minnesota',
+  MS: 'Mississippi',
+  MO: 'Missouri',
+  MT: 'Montana',
+  NE: 'Nebraska',
+  NV: 'Nevada',
+  NH: 'New Hampshire',
+  NJ: 'New Jersey',
+  NM: 'New Mexico',
+  NY: 'New York',
+  NC: 'North Carolina',
+  ND: 'North Dakota',
+  OH: 'Ohio',
+  OK: 'Oklahoma',
+  OR: 'Oregon',
+  PA: 'Pennsylvania',
+  RI: 'Rhode Island',
+  SC: 'South Carolina',
+  SD: 'South Dakota',
+  TN: 'Tennessee',
+  TX: 'Texas',
+  UT: 'Utah',
+  VT: 'Vermont',
+  VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
+  WI: 'Wisconsin',
+  WY: 'Wyoming',
+  DC: 'District of Columbia',
+};
+
+/** German Bundesländer */
+const DE_REGIONS: Record<string, string> = {
+  BY: 'Bavaria',
+  BW: 'Baden-Württemberg',
+  NW: 'North Rhine-Westphalia',
+  NI: 'Lower Saxony',
+  HE: 'Hesse',
+  SN: 'Saxony',
+  RP: 'Rhineland-Palatinate',
+  TH: 'Thuringia',
+  SH: 'Schleswig-Holstein',
+  ST: 'Saxony-Anhalt',
+  MV: 'Mecklenburg-Vorpommern',
+  BB: 'Brandenburg',
+  SL: 'Saarland',
+  BE: 'Berlin',
+  HH: 'Hamburg',
+  HB: 'Bremen',
+};
+
+/** Austrian Bundesländer */
+const AT_REGIONS: Record<string, string> = {
+  T: 'Tyrol',
+  SBG: 'Salzburg',
+  K: 'Carinthia',
+  ST: 'Styria',
+  OO: 'Upper Austria',
+  V: 'Vorarlberg',
+  NO: 'Lower Austria',
+  B: 'Burgenland',
+  W: 'Vienna',
+};
+
+/** Country → region code → region name */
+const REGION_NAMES: Record<string, Record<string, string>> = {
+  US: US_STATES,
+  DE: DE_REGIONS,
+  AT: AT_REGIONS,
+};
+
+function titleCase(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+/** Resolve a country URL slug (e.g. "us") to a display name (e.g. "United States") */
+export function countryDisplayName(slug: string): string {
+  return COUNTRY_NAMES[slug.toUpperCase()] ?? titleCase(slug);
+}
+
+/** Resolve a region URL slug (e.g. "ca") within a country to a display name (e.g. "California") */
+export function regionDisplayName(regionSlug: string, countrySlug: string): string {
+  const regionMap = REGION_NAMES[countrySlug.toUpperCase()];
+  if (regionMap) {
+    const name = regionMap[regionSlug.toUpperCase()];
+    if (name) return name;
+  }
+  return titleCase(regionSlug);
+}

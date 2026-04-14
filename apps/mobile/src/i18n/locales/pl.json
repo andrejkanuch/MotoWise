@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "Inteligentne przypomnienia serwisowe",
     "featurePdfExport": "Eksport rejestrow do PDF",
     "upgradeToPro": "Ulepsz do Pro",
-    "maybeLater": "Moze pozniej"
+    "maybeLater": "Moze pozniej",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "Nie znaleziono strony",

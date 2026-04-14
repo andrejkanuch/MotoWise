@@ -43,6 +43,17 @@ export const DiscoverRoutesFilterSchema = z.object({
   elevationRanges: z.array(ElevationRangeSchema).optional(),
   highlyRatedOnly: z.boolean().optional(),
   bikeCategory: z.string().optional(),
+  minTwistScore: z.number().int().min(1).max(10).optional(),
+  surfaceRecency: z.number().int().min(1).optional(),
 });
 
 export type DiscoverRoutesFilter = z.infer<typeof DiscoverRoutesFilterSchema>;
+
+// --- Route Slug Params (URL validation) ---
+
+export const RouteSlugParamsSchema = z.object({
+  country: z.string().min(2).max(2), // ISO 3166-1 alpha-2
+  region: z.string().min(1).max(10), // ISO 3166-2 subdivision
+  slug: z.string().min(1).max(200),
+});
+export type RouteSlugParams = z.infer<typeof RouteSlugParamsSchema>;

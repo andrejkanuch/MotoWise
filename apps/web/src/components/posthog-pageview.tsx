@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 
 /**
  * Next.js App Router does not auto-capture `$pageview` on soft navigation —
@@ -20,6 +20,7 @@ import { Suspense, useEffect } from 'react';
 function PostHogPageViewInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const lastTrackedUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!pathname) return;
@@ -28,6 +29,13 @@ function PostHogPageViewInner() {
       typeof window !== 'undefined'
         ? window.location.origin + pathname + (queryString ? `?${queryString}` : '')
         : pathname;
+    const previous = lastTrackedUrlRef.current;
+    if (previous !== null && previous !== url) {
+      // After client navigation, `window.location` is already the new URL; set the URL
+      // we are leaving so $pageleave matches the previous page (PostHog Installation Health + accurate paths).
+      posthog.capture('$pageleave', { $current_url: previous });
+    }
+    lastTrackedUrlRef.current = url;
     posthog.capture('$pageview', { $current_url: url });
   }, [pathname, searchParams]);
 

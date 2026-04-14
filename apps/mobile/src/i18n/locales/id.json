@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "Pengingat perawatan pintar",
     "featurePdfExport": "Ekspor catatan ke PDF",
     "upgradeToPro": "Upgrade ke Pro",
-    "maybeLater": "Nanti Saja"
+    "maybeLater": "Nanti Saja",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "Halaman tidak ditemukan",

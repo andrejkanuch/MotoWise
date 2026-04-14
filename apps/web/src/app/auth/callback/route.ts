@@ -5,6 +5,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;
   const code = searchParams.get('code');
+  const redirect = searchParams.get('redirect');
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login`);
@@ -36,5 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  return NextResponse.redirect(`${origin}/feed`);
+  // Redirect back to where the user came from, or fall back to /feed
+  const destination = redirect?.startsWith('/') ? redirect : '/feed';
+  return NextResponse.redirect(`${origin}${destination}`);
 }

@@ -21,6 +21,11 @@ const nextConfig: NextConfig = {
         hostname: 'tpsoneenbrmdwvzcbifw.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.mapbox.com',
+        pathname: '/**',
+      },
     ],
   },
   headers: async () => [

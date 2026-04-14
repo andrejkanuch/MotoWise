@@ -45,6 +45,7 @@ export const THROTTLE_PRESETS = {
   SHARE_LINK: { limit: 10, ttl: 60_000 },
   WAYPOINT_UPLOAD: { limit: 10, ttl: 60_000 },
   WAYPOINT_QUERY: { limit: 30, ttl: 60_000 },
+  TYPEAHEAD: { limit: 60, ttl: 60_000 },
   STANDARD: { limit: 20, ttl: 60_000 },
   FOLLOW: { limit: 50, ttl: 3_600_000 },
   KUDOS: { limit: 200, ttl: 3_600_000 },

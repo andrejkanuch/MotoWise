@@ -13,10 +13,105 @@ A systematic design review workflow that runs all Impeccable design commands thr
 ## Principles
 
 1. **Separate building from designing.** The feature should already work before this skill runs. We redesign what exists, not what we're building.
-2. **Multi-persona brainstorm before touching code.** 3-4 specialist agents discuss the design simultaneously. One person can't hold all perspectives.
-3. **One command = one lens.** Each Impeccable command forces you to look at the SAME code through a completely different filter.
-4. **Subtraction before addition.** Always run `/distill` before `/delight`. The highest-impact change is often a deletion.
-5. **Critique sandwich.** Critique at start → iterate → critique again to verify.
+2. **Anti-AI-slop first.** Before any refinement, audit against known AI-generated UI anti-patterns. Strip them out before iterating — polish on top of AI slop is still slop.
+3. **Multi-persona brainstorm before touching code.** 3-4 specialist agents discuss the design simultaneously. One person can't hold all perspectives.
+4. **One command = one lens.** Each Impeccable command forces you to look at the SAME code through a completely different filter.
+5. **Subtraction before addition.** Always run `/distill` before `/delight`. The highest-impact change is often a deletion.
+6. **Critique sandwich.** Critique at start → iterate → critique again to verify.
+
+## Anti-AI-Slop Protocol (MANDATORY — run before Step 2)
+
+Before any design iteration, audit the file against these known AI-generated UI tells. If ANY are found, fix them FIRST. Polish on top of AI slop is still slop.
+
+Sources: [Impeccable Anti-Patterns](https://impeccable.style/anti-patterns/), [BSWEN AI UI Guide](https://docs.bswen.com/blog/2026-03-20-ai-generated-ui-anti-patterns/), [Dark Mode Without AI Look](https://dev.to/raxxostudios/dark-mode-design-that-doesnt-look-ai-2cn3), [Escape AI Slop Guide](https://techbytes.app/posts/escape-ai-slop-frontend-design-guide/).
+
+### Layout — The Big Three Tells
+
+**1. Card Wrapping Everything**
+Every AI generator wraps content in `rounded-xl border bg-surface p-6`. A real page has 2-3 cards max — the rest uses spacing and typography.
+- FIX: Remove cards from sections that are just text + heading. Use `border-t` dividers or 64px+ gaps instead. Cards are for grouped interactive content only (forms, maps, data tables).
+
+**2. Identical Repeating Grids**
+Same-sized cards with icon-above-heading repeated 3-4x is the universal AI feature-card template.
+- FIX: Vary card sizes. Mix a wide card with two narrow ones. Or ditch the grid — use a simple list or definition list (`<dl>`).
+
+**3. Everything Centered**
+Center-aligned text on every element is the #1 AI layout tell.
+- FIX: Left-align all body content, stats, descriptions. Center ONLY hero headings and CTA buttons.
+
+### Typography — What Gives It Away
+
+**4. Flat Type Hierarchy**
+All section headings use the same `text-lg font-semibold`. Body text is uniformly `text-sm`.
+- FIX: Use 3-4 distinct sizes with 1.25x+ ratio between steps. E.g. `text-2xl` → `text-base` → `text-sm` → `text-xs`. Never two adjacent sizes.
+
+**5. Icon Tile Above Heading**
+Small rounded-square container (`h-10 w-10 rounded-lg bg-surface`) with an icon centered above text.
+- FIX: Place icons inline next to text, or remove the container. Nobody puts icons in boxes in real designs.
+
+**6. Hero Metric Pattern**
+Big number + small label underneath + optional gradient accent line. 90% of AI dashboards output this exact layout.
+- FIX: Vary metric presentation. Show some as inline text ("182 km long"), others as large display numbers. Mix number sizes. Left-align.
+
+**7. Inter/Roboto Everywhere**
+AI defaults to Inter because it's the most common font in training data. Inter has been called "the Comic Sans of AI."
+- FIX: Use a distinctive typeface. Pair a display font with a body font. Even system-ui with intentional weight contrast is better than generic Inter.
+
+### Color & Surface — Dead Giveaways
+
+**8. Pure Black Backgrounds**
+`#000000` or `bg-neutral-950` looks harsh and signals AI generation.
+- FIX: Use warm off-blacks: `#1f1f21`, `#161618`, or tint toward your brand hue. Surface hierarchy: base → raised → inset using 3-4 subtle shades.
+
+**9. Neon Accents on Dark**
+Purple/cyan gradients, `text-gradient`, colored glowing box-shadows — these are the #1 AI color tell.
+- FIX: Use your actual brand palette. Deploy ONE high-contrast accent per viewport. "If you put it on every button, link, and icon, you've spent all your currency in the first fold."
+
+**10. Glassmorphism Everywhere**
+`backdrop-filter: blur(20px)` used decoratively on every surface because AI learned "blur = premium."
+- FIX: Reserve blur for modals/dropdowns ONLY, and use blur(5px) not blur(20px). Never on static content cards.
+
+**11. Text Colors Too White**
+`#ffffff` on dark mode creates halation/eye strain.
+- FIX: Primary text `#F5F5F7`, secondary `rgba(245,245,247,0.6)`, tertiary `rgba(245,245,247,0.3)`.
+
+### Structure — Repetition = Robot
+
+**12. Duplicate Information Across Sections**
+Same data (distance, difficulty, surface) shown in stats bar + details card + quick facts sidebar.
+- FIX: Show each fact once. Choose the best location for it and remove all duplicates.
+
+**13. Decorative Pill Strips**
+Horizontal scroll of colored pill badges that add no interactivity.
+- FIX: Remove if they duplicate info in the header. If needed, limit to 2-3 and style as plain text with a dot separator.
+
+**14. Identical Sidebar Cards**
+Every sidebar block uses the same heading style + padding + border radius.
+- FIX: Vary sidebar treatments. CTA gets a solid background button. Facts get a bare list. Rating gets the only card. Share gets a plain link.
+
+**15. Colored Side-Border on Cards**
+A thick colored `border-left-4` is the most recognizable tell of AI-generated cards.
+- FIX: Remove entirely. Use content hierarchy, not decoration.
+
+### Spacing — The Subtle Signal
+
+**16. Monotonous Spacing**
+Same `space-y-8` or `gap-6` between every section signals no design thought.
+- FIX: Use a strict base-4 scale: 4, 8, 16, 32, 64px. Tight (8-16px) for related items within a section. Generous (48-64px) between major sections. The mathematical relationship creates rhythm.
+
+**17. Borders Instead of Space**
+Dark mode UIs use `border-b border-gray-800` between every section.
+- FIX: Replace most borders with 32-64px of whitespace. "On dark backgrounds, whitespace communicates 'new topic' more clearly than any divider line."
+
+### What Human-Designed Pages Do Instead
+- **Asymmetric layouts** — Content flows naturally, not in mirrored grids
+- **Varied visual density** — Some sections are spacious, others are compact data tables
+- **Typography does the heavy lifting** — Hierarchy through size contrast, not card borders
+- **Whitespace as structure** — 64px between major sections, 16px within
+- **Restraint** — One distinctive element per fold, not everything "designed"
+- **Left-aligned content** — Body text, stats, descriptions align left naturally
+- **Layered backgrounds** — Subtle texture/gradient overlays rather than flat solid colors
+- **Purposeful motion** — Staggered reveals, not bounce/elastic easing
 
 ## Workflow
 

@@ -26,8 +26,8 @@ export class Route {
   @Field({ nullable: true })
   description?: string;
 
-  @Field()
-  polyline: string;
+  @Field({ nullable: true, description: 'Null for anonymous users (requires auth)' })
+  polyline?: string;
 
   @Field(() => Float)
   distanceM: number;
@@ -40,6 +40,12 @@ export class Route {
 
   @Field(() => Float, { nullable: true })
   curvatureIndex?: number;
+
+  @Field(() => Int, { nullable: true })
+  twistScore?: number;
+
+  @Field(() => Int, { nullable: true })
+  twistPercentile?: number;
 
   @Field()
   isMotovaultPick: boolean;
@@ -70,6 +76,18 @@ export class Route {
 
   @Field(() => Float, { nullable: true })
   startLng?: number;
+
+  @Field({ nullable: true })
+  slug?: string;
+
+  @Field({ nullable: true })
+  countryCode?: string;
+
+  @Field({ nullable: true })
+  regionCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
 }
 
 @ObjectType()

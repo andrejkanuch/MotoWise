@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { ProFeature } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import type { LucideIcon } from 'lucide-react-native';
-import { Bell, Bike, BookOpen, Brain, FileText, X } from 'lucide-react-native';
+import { Bell, Bike, BookOpen, Brain, Download, FileText, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -38,6 +38,11 @@ const FEATURE_DETAILS: Record<
     descriptionKey: 'proGate.pdfExportDesc',
     icon: FileText,
   },
+  gpx_export: {
+    titleKey: 'proGate.gpxExportTitle',
+    descriptionKey: 'proGate.gpxExportDesc',
+    icon: Download,
+  },
 };
 
 const FEATURE_LIST: { key: ProFeature; icon: LucideIcon; labelKey: string }[] = [
@@ -45,6 +50,7 @@ const FEATURE_LIST: { key: ProFeature; icon: LucideIcon; labelKey: string }[] = 
   { key: 'full_ai_diagnostics', icon: Brain, labelKey: 'proGate.featureFullDiagnostics' },
   { key: 'maintenance_reminders', icon: Bell, labelKey: 'proGate.featureMaintenanceReminders' },
   { key: 'pdf_export', icon: FileText, labelKey: 'proGate.featurePdfExport' },
+  { key: 'gpx_export', icon: Download, labelKey: 'proGate.featureGpxExport' },
 ];
 
 function haptic() {

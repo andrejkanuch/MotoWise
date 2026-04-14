@@ -4,6 +4,12 @@ import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
 import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
+import {
+  canonicalCountry,
+  canonicalExplore,
+  canonicalRegion,
+  canonicalRoute,
+} from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -43,6 +49,7 @@ const pages = [
   '/compare/motovault-vs-motoscan',
   '/press',
   '/about',
+  '/explore',
 ];
 
 function getLocalizedUrl(locale: string, path: string): string {
@@ -78,6 +85,7 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare/motovault-vs-motoscan': '2026-04-11',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
+  '/explore': '2026-04-13',
 };
 
 function getPageImages(path: string): string[] {
@@ -86,7 +94,40 @@ function getPageImages(path: string): string[] {
   return [];
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+/**
+ * Fetch published routes that have been backfilled with country/region/slug.
+ * Returns empty array if the columns don't exist yet (pre-backfill).
+ */
+async function getPublishedRoutes(): Promise<
+  { country_code: string; region_slug: string; slug: string; updated_at: string }[]
+> {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    );
+    const { data, error } = await supabase
+      .from('routes')
+      .select('country_code, region_slug, slug, updated_at')
+      .eq('status', 'published')
+      .not('country_code', 'is', null)
+      .not('region_slug', 'is', null)
+      .not('slug', 'is', null);
+    if (error || !data) return [];
+    return data as {
+      country_code: string;
+      region_slug: string;
+      slug: string;
+      updated_at: string;
+    }[];
+  } catch {
+    // Columns don't exist yet — return empty until backfill migration lands
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries = pages.map((path) => ({
     url: getLocalizedUrl('en', path),
     lastModified: new Date(PAGE_LAST_EDITED[path] || '2026-04-11'),
@@ -144,5 +185,45 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date('2026-04-11'),
   }));
 
-  return [...staticEntries, ...blogEntries, bikeIndexEntry, ...bikeLeafEntries];
+  // ---- Route Discovery pages ----
+  // Fetches published routes with country/region/slug backfilled.
+  // Returns empty until the backfill migration (E1-T2) lands.
+  const routes = await getPublishedRoutes();
+
+  // Derive unique countries and regions from route data
+  const countrySet = new Set<string>();
+  const regionSet = new Set<string>();
+  for (const r of routes) {
+    countrySet.add(r.country_code);
+    regionSet.add(`${r.country_code}/${r.region_slug}`);
+  }
+
+  const exploreEntry =
+    routes.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
+
+  const countryEntries = [...countrySet].map((cc) => ({
+    url: canonicalCountry(cc),
+    lastModified: new Date(),
+  }));
+
+  const regionEntries = [...regionSet].map((key) => {
+    const [cc, rs] = key.split('/');
+    return { url: canonicalRegion(cc, rs), lastModified: new Date() };
+  });
+
+  const routeEntries = routes.map((r) => ({
+    url: canonicalRoute(r.country_code, r.region_slug, r.slug),
+    lastModified: new Date(r.updated_at),
+  }));
+
+  return [
+    ...staticEntries,
+    ...blogEntries,
+    bikeIndexEntry,
+    ...bikeLeafEntries,
+    ...exploreEntry,
+    ...countryEntries,
+    ...regionEntries,
+    ...routeEntries,
+  ];
 }

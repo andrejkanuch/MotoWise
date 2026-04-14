@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -102,11 +103,12 @@ function buildCspHeader(nonce: string): string {
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com${isDev ? " 'unsafe-eval'" : ''}`,
-    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com${isDev ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    `connect-src ${connectSources}`,
+    "worker-src 'self' blob:",
+    `connect-src ${connectSources} https://*.mapbox.com`,
     "frame-ancestors 'none'",
   ].join('; ');
 }
@@ -124,7 +126,7 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 // community (feed/garage/profile), auth, and share-link routes which are
 // user-specific or token-scoped.
 const MARKETING_CACHEABLE_RE =
-  /^\/($|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+  /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
 
 function isMarketingCacheable(pathname: string): boolean {
   if (
@@ -310,6 +312,24 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
+  // UUID→slug redirect: /routes/{uuid} → /route/{country}/{region}/{slug} when slug exists.
+  // If the route has no slug yet (or lookup fails), fall through to app/routes/[id]/page.tsx
+  // which loads by UUID via GraphQL — do NOT return a bare JSON 404 here.
+  const uuidMatch = pathname.match(/^\/routes\/([0-9a-f-]+)/i);
+  if (uuidMatch) {
+    const resolved = await resolveUuidToSlug(uuidMatch[1]);
+    if (resolved) {
+      const canonicalUrl = `/route/${resolved.country}/${resolved.region}/${resolved.slug}`;
+      return NextResponse.redirect(new URL(canonicalUrl, request.url), 301);
+    }
+  }
+
+  // Plural /rides/:id (old mobile share URL) → /ride/:id
+  const ridesPluralMatch = pathname.match(/^\/rides\/([0-9a-f-]+)\/?$/i);
+  if (ridesPluralMatch) {
+    return NextResponse.redirect(new URL(`/ride/${ridesPluralMatch[1]}`, request.url), 301);
+  }
+
   // Pass nonce to Next.js so it can apply it to inline scripts
   request.headers.set('x-nonce', nonce);
 
@@ -327,9 +347,13 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
-    pathname.startsWith('/ride/')
+    pathname.startsWith('/ride/') ||
+    pathname.startsWith('/explore') ||
+    pathname.startsWith('/route/') ||
+    pathname.startsWith('/routes/') ||
+    pathname.startsWith('/pro')
   ) {
-    // Auth + public community routes: skip locale processing
+    // Auth + public community routes + explore + route detail + pro: skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing

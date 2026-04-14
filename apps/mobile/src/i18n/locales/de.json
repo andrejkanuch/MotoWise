@@ -608,10 +608,13 @@
     "maintenanceRemindersDesc": "Erhalte intelligente Erinnerungen fuer alle deine Motorraeder.",
     "pdfExportTitle": "PDF-Export",
     "pdfExportDesc": "Exportiere Wartungsaufzeichnungen als PDF-Berichte.",
+    "gpxExportTitle": "GPX-Export",
+    "gpxExportDesc": "Exportiere Routen-GPX-Dateien fuer Navigations-Apps ueber das kostenlose Monatslimit hinaus.",
     "featureUnlimitedBikes": "Unbegrenzte Motorraeder in deiner Garage",
     "featureFullDiagnostics": "Volle KI-Diagnose",
     "featureMaintenanceReminders": "Intelligente Wartungserinnerungen",
     "featurePdfExport": "PDF-Export von Aufzeichnungen",
+    "featureGpxExport": "GPX-Routenexporte",
     "upgradeToPro": "Auf Pro upgraden",
     "maybeLater": "Vielleicht spaeter"
   },

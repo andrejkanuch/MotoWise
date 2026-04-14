@@ -43,6 +43,7 @@ const NAV_LINKS: readonly NavItem[] = [
       },
     ],
   },
+  { key: 'explore', href: '/explore' },
   { key: 'compare', href: '/compare' },
   { key: 'faq', href: '#faq' },
 ] as const;

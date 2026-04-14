@@ -10,46 +10,17 @@ export async function SocialProofBar() {
   const t = await getTranslations('SocialProof');
 
   return (
-    <section className="relative bg-neutral-950 px-6 py-20">
-      {/* Top gradient rule */}
-      <div
-        className="absolute inset-x-0 top-0 mx-auto h-px max-w-6xl"
-        style={{
-          background: 'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-6 md:flex-row md:gap-16">
-        {STATS.map((stat, index) => (
-          <div
-            key={stat.key}
-            className="reveal-on-scroll flex items-center gap-6 text-center md:gap-16"
-            style={{ animationDelay: `${index * 100}ms` }}
-          >
-            <div>
-              <p className="bg-gradient-to-b from-warm-300 to-warm-500 bg-clip-text text-6xl font-extrabold tabular-nums text-transparent md:text-7xl">
-                {t(stat.countKey)}
-              </p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                {t(stat.key)}
-              </p>
-            </div>
-            {index < STATS.length - 1 && (
-              <div className="hidden h-14 w-px bg-neutral-800 md:block" aria-hidden="true" />
-            )}
-          </div>
+    <section className="border-y border-neutral-800/30 px-6 py-12">
+      <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-x-16 gap-y-6">
+        {STATS.map((stat) => (
+          <p key={stat.key} className="text-sm text-neutral-400">
+            <span className="mr-1.5 text-2xl font-bold tabular-nums text-neutral-100">
+              {t(stat.countKey)}
+            </span>
+            {t(stat.key)}
+          </p>
         ))}
       </div>
-
-      {/* Bottom gradient rule */}
-      <div
-        className="absolute inset-x-0 bottom-0 mx-auto h-px max-w-6xl"
-        style={{
-          background: 'linear-gradient(90deg, transparent, oklch(0.76 0.13 70 / 0.4), transparent)',
-        }}
-        aria-hidden="true"
-      />
     </section>
   );
 }

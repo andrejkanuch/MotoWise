@@ -26,7 +26,10 @@ export async function GET() {
           appIDs: [`${teamId}.${bundle}`],
           components: [
             { '/': '/t/*', comment: 'Trip share URLs' },
-            { '/': '/r/*', comment: 'Ride share URLs' },
+            { '/': '/r/*', comment: 'Legacy ride capability URLs' },
+            { '/': '/ride/*', comment: 'Public ride pages → app' },
+            { '/': '/routes/*', comment: 'Route UUID pages → app' },
+            { '/': '/route/*', comment: 'Canonical route slug pages → app' },
           ],
         },
       ],

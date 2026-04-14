@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import {
   Bell,
   Bike,
+  Bookmark,
   BookOpen,
   Check,
   ChevronDown,
@@ -703,6 +704,56 @@ export default function ProfileScreen() {
               {t('profile.myRidesDescription', {
                 defaultValue: 'Ride history, stats & route maps',
               })}
+            </Text>
+          </View>
+          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+      </Animated.View>
+
+      {/* Saved Routes */}
+      <Animated.View entering={FadeInUp.delay(140).duration(400)}>
+        <Pressable
+          onPress={() => {
+            haptic();
+            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+            router.push('/(tabs)/(profile)/saved' as any);
+          }}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            padding: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? `${palette.signature500}25` : 'rgba(168,85,247,0.08)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <Bookmark size={22} color={palette.signature500} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              Saved Routes
+            </Text>
+            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              Routes you want to ride later
             </Text>
           </View>
           <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />

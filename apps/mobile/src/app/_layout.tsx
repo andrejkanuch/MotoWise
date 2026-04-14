@@ -145,7 +145,12 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     const inOnboarding = segments[0] === '(onboarding)';
     // Public share-link routes — anonymous recipients must be able to view
     // unlisted trip/ride share previews without being redirected to login.
-    const inPublicShareRoute = segments[0] === 't' || segments[0] === 'r';
+    const inPublicShareRoute =
+      segments[0] === 't' ||
+      segments[0] === 'r' ||
+      segments[0] === 'ride' ||
+      segments[0] === 'routes' ||
+      segments[0] === 'route';
 
     // Public share-link routes bypass the entire auth/onboarding gate.
     // Anonymous AND authenticated users (even mid-onboarding) must be able

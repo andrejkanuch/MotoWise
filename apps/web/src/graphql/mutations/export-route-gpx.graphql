@@ -1,0 +1,15 @@
+mutation ExportRouteGPX($routeId: ID!) {
+  exportRouteGPX(routeId: $routeId) {
+    ... on GPXExportSuccess {
+      fileUrl
+      fileName
+      message
+    }
+    ... on GPXExportError {
+      code
+      reason
+      quotaRemaining
+      upgradeUrl
+    }
+  }
+}
