@@ -283,7 +283,6 @@ export default function RootLayout() {
     return setupFocusManager();
   }, []);
 
-
   // Initialize RevenueCat SDK with cleanup
   useEffect(() => {
     let cancelled = false;

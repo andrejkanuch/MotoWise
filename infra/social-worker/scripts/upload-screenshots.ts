@@ -19,7 +19,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __scriptDir = typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
+const __scriptDir =
+  typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
 const SCREENSHOTS_DIR = resolve(__scriptDir, '../../../marketing/screenshots');
 const BUCKET = 'social-media';
 const PREFIX = 'screenshots';

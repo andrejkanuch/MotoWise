@@ -240,8 +240,6 @@ export default function UpgradeScreen() {
       trackEvent(AnalyticsEvent.PURCHASE_STARTED, { packageId: selectedPlan });
       await Purchases.purchasePackage(packageToBuy);
       trackEvent(AnalyticsEvent.PURCHASE_COMPLETED);
-      const price = packageToBuy.product.price ?? 0;
-      const currency = packageToBuy.product.currencyCode ?? 'USD';
       router.back();
     } catch (error) {
       if (isPurchaseCancellation(error)) {

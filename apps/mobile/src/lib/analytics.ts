@@ -2,6 +2,7 @@ import type { JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
+
 // -------------------------------------------------------------------
 // Analytics & Crash Reporting Wrapper
 // -------------------------------------------------------------------

@@ -25,7 +25,7 @@
  */
 import { draftPost } from './draft';
 import type { Env } from './env';
-import { type ReferenceImage, generateImage, publishPost, publishStory } from './publish';
+import { generateImage, publishPost, publishStory, type ReferenceImage } from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -120,9 +120,7 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
             continue;
           }
           const arrayBuffer = await screenshotRes.arrayBuffer();
-          const base64 = btoa(
-            String.fromCharCode(...new Uint8Array(arrayBuffer)),
-          );
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
           referenceImages.push({ data: base64, mimeType: 'image/png' });
         } catch (err) {
           console.warn(
@@ -130,9 +128,7 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
           );
         }
       }
-      console.log(
-        `[scheduled] id=${row.id} loaded ${referenceImages.length} reference image(s)`,
-      );
+      console.log(`[scheduled] id=${row.id} loaded ${referenceImages.length} reference image(s)`);
     }
 
     // Step 2b: generate ONE image at 9:16 and reuse for both post + story.
