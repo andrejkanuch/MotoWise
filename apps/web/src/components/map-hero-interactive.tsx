@@ -1,11 +1,11 @@
 'use client';
 
+import { palette } from '@motovault/design-system';
 import type mapboxglDefault from 'mapbox-gl';
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import Image from 'next/image';
 import Script from 'next/script';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { palette } from '@motovault/design-system';
 
 const MAPBOX_GL_VERSION = '3.21.0';
 const MAPBOX_CDN_JS = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.js`;
@@ -254,7 +254,7 @@ export function MapHeroInteractive({
 }: MapHeroInteractiveProps) {
   const token = readMapboxPublicToken();
   const [mapboxgl, setMapboxgl] = useState<MapboxGL | null>(
-    () => (globalThis as Record<string, unknown>).mapboxgl as MapboxGL | null ?? null,
+    () => ((globalThis as Record<string, unknown>).mapboxgl as MapboxGL | null) ?? null,
   );
 
   const onScriptReady = useCallback(() => {
@@ -288,7 +288,6 @@ export function MapHeroInteractive({
   if (!mapboxgl) {
     return (
       <>
-        {/* biome-ignore lint/style/useSelfClosingElements: next/script requires closing tag */}
         <link rel="stylesheet" href={MAPBOX_CDN_CSS} />
         <Script src={MAPBOX_CDN_JS} strategy="afterInteractive" onReady={onScriptReady} />
         <div

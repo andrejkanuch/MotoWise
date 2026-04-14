@@ -79,9 +79,7 @@ export async function FeaturesGrid() {
           <h2 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
             {t('sectionTitle')}
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base text-neutral-400">
-            {t('sectionSubtitle')}
-          </p>
+          <p className="mx-auto mt-4 max-w-xl text-base text-neutral-400">{t('sectionSubtitle')}</p>
         </div>
 
         {/* 3-column features */}
@@ -123,9 +121,7 @@ export async function FeaturesGrid() {
         </div>
 
         {/* Plus line — acknowledge other features without a full card */}
-        <p className="mt-12 text-center text-sm text-neutral-500">
-          {t('plusLine')}
-        </p>
+        <p className="mt-12 text-center text-sm text-neutral-500">{t('plusLine')}</p>
 
         {/* Single testimonial */}
         <blockquote className="reveal-on-scroll mx-auto mt-16 max-w-2xl border-l-2 border-warm-500 py-1 pl-6">

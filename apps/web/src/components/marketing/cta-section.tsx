@@ -16,9 +16,7 @@ export async function CtaSection() {
           <StoreButtons />
         </div>
 
-        <p className="mt-6 text-xs text-neutral-600">
-          {t('trustFree')}
-        </p>
+        <p className="mt-6 text-xs text-neutral-600">{t('trustFree')}</p>
       </div>
     </section>
   );
