@@ -105,9 +105,7 @@ export default async function CountryPage({ params }: PageProps) {
       {regions.length > 0 && (
         <section className="px-6 pb-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
-              Regions
-            </h2>
+            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">Regions</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {regions.map((region) => (
                 <Link

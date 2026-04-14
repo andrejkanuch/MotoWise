@@ -25,7 +25,7 @@ export class SavedRoutesResolver {
   // ==========================================
 
   @Query(() => RouteConnection, {
-    description: 'Paginated list of the authenticated user\'s saved routes',
+    description: "Paginated list of the authenticated user's saved routes",
   })
   async savedRoutes(
     @CurrentUser() user: AuthUser,

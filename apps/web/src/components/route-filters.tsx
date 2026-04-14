@@ -40,10 +40,7 @@ export function RouteFilters({ filters, onChange }: RouteFiltersProps) {
   const [twistScore, setTwistScore] = useState(filters.minTwistScore ?? 1);
 
   const toggleArrayFilter = useCallback(
-    <K extends 'surfaceTypes' | 'lengthRanges' | 'elevationRanges'>(
-      key: K,
-      value: string,
-    ) => {
+    <K extends 'surfaceTypes' | 'lengthRanges' | 'elevationRanges'>(key: K, value: string) => {
       const current = (filters[key] as string[] | undefined) ?? [];
       const next = current.includes(value)
         ? current.filter((v) => v !== value)
@@ -112,10 +109,7 @@ export function RouteFilters({ filters, onChange }: RouteFiltersProps) {
       </div>
 
       {/* Quick preset */}
-      <CurvyRoadsPreset
-        active={filters.minTwistScore === 7}
-        onToggle={handleCurvyPreset}
-      />
+      <CurvyRoadsPreset active={filters.minTwistScore === 7} onToggle={handleCurvyPreset} />
 
       {/* Twist Score Slider */}
       <div className="flex flex-col gap-2">

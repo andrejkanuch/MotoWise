@@ -15,10 +15,7 @@ const DIFFICULTY_LEVELS = {
 
 type DifficultyKey = keyof typeof DIFFICULTY_LEVELS;
 
-function deriveDifficulty(
-  curvatureIndex?: number,
-  elevationGainM?: number,
-): DifficultyKey {
+function deriveDifficulty(curvatureIndex?: number, elevationGainM?: number): DifficultyKey {
   const c = curvatureIndex ?? 0;
   const e = elevationGainM ?? 0;
 
@@ -67,13 +64,11 @@ export function MapHeroStatic({ route }: MapHeroStaticProps) {
       style={{ aspectRatio: '2 / 1' }}
     >
       {/* Skeleton loader */}
-      {!loaded && !error && (
-        <div className="absolute inset-0 animate-pulse bg-primary-900/60" />
-      )}
+      {!loaded && !error && <div className="absolute inset-0 animate-pulse bg-primary-900/60" />}
 
       {/* Hero image */}
       {!error ? (
-        /* biome-ignore lint/nursery/noImgElement: proxied static map from route-hero API */
+        /* biome-ignore lint/performance/noImgElement: dynamic proxied URL from route-hero API */
         <img
           src={heroSrc}
           alt="Route map overview"
@@ -91,9 +86,7 @@ export function MapHeroStatic({ route }: MapHeroStaticProps) {
       )}
 
       {/* Difficulty-coded gradient overlay */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-t ${difficultyMeta.gradient}`}
-      />
+      <div className={`absolute inset-0 bg-gradient-to-t ${difficultyMeta.gradient}`} />
 
       {/* Bottom fade for readability */}
       <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary-950/90 to-transparent" />
@@ -162,10 +155,7 @@ const BADGE_COLORS: Record<DifficultyKey, string> = {
   expert: 'bg-danger-500/20 text-danger-500 ring-danger-500/30',
 };
 
-function DifficultyBadge({
-  difficulty,
-  label,
-}: { difficulty: DifficultyKey; label: string }) {
+function DifficultyBadge({ difficulty, label }: { difficulty: DifficultyKey; label: string }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ring-1 ring-inset backdrop-blur-sm ${BADGE_COLORS[difficulty]}`}

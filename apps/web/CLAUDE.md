@@ -22,3 +22,4 @@
 - Forgetting 'use client' on components using hooks
 - Not checking admin role before rendering admin pages
 - Using client-side Supabase where server-side should be used
+- Mapbox: `MAPBOX_ACCESS_TOKEN` is server-only (static previews). **Interactive** `mapbox-gl` needs `NEXT_PUBLIC_MAPBOX_TOKEN` or `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` in `.env.local` — see root `CLAUDE.md` → **Repo maintenance**

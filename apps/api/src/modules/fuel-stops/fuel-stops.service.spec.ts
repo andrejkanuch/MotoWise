@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { FuelStopsService } from './fuel-stops.service';
 
 describe('FuelStopsService', () => {
@@ -43,9 +43,7 @@ describe('FuelStopsService', () => {
       const result = service.computeFuelRangeSummary(15, 25);
 
       expect(result.effectiveRangeKm).toBe(300);
-      expect(result.text).toBe(
-        'Estimated range: 300 km (15L tank, 25 km/L, 80% safety margin)',
-      );
+      expect(result.text).toBe('Estimated range: 300 km (15L tank, 25 km/L, 80% safety margin)');
     });
 
     it('rounds range in text', () => {

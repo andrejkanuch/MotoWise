@@ -9,7 +9,7 @@
  * Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY env vars.
  */
 
-import { type SupabaseClient, createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import slugify from 'slugify';
 
 // Untyped client — this script runs standalone without database.types.ts
@@ -93,8 +93,11 @@ async function main() {
         }
 
         // Find nearest city in places table
-        // biome-ignore lint/suspicious/noExplicitAny: script uses untyped supabase client
-        const place = await findNearestPlace(supabase as unknown as UntypedClient, route.lat, route.lng);
+        const place = await findNearestPlace(
+          supabase as unknown as UntypedClient,
+          route.lat,
+          route.lng,
+        );
 
         const countryCode = place?.country_code ?? null;
         const regionCode = place?.region_code ?? null;

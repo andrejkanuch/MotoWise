@@ -134,6 +134,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
         type="button"
         onClick={handleClick}
         disabled={isDownloading}
+        aria-label={`Download GPX for ${routeName}`}
         className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60"
         style={{
           backgroundColor: palette.accent500,
@@ -185,18 +186,12 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
             className="w-full max-w-md rounded-2xl p-6 shadow-xl"
             style={{ backgroundColor: palette.white }}
           >
-            <h3
-              className="mb-2 text-lg font-bold"
-              style={{ color: palette.neutral950 }}
-            >
+            <h3 className="mb-2 text-lg font-bold" style={{ color: palette.neutral950 }}>
               GPX Export Limit Reached
             </h3>
-            <p
-              className="mb-6 text-sm"
-              style={{ color: palette.neutral600 }}
-            >
-              You have used all your free GPX exports this month. Upgrade to MotoVault
-              Pro for unlimited exports and more premium features.
+            <p className="mb-6 text-sm" style={{ color: palette.neutral600 }}>
+              You have used all your free GPX exports this month. Upgrade to MotoVault Pro for
+              unlimited exports and more premium features.
             </p>
             <div className="flex gap-3">
               <button

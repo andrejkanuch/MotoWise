@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SearchService } from './search.service';
 
 /** Helper to build a mock Supabase client with configurable rpc results */
@@ -55,9 +55,12 @@ describe('SearchService', () => {
       expect(result.results).toHaveLength(2);
       expect(result.results[0].id).toBe('r1');
       expect(result.results[1].id).toBe('r2');
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('search_routes', expect.objectContaining({
-        search_query: 'pacific coast',
-      }));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'search_routes',
+        expect.objectContaining({
+          search_query: 'pacific coast',
+        }),
+      );
     });
 
     it('returns results with empty query (fallback to rating sort)', async () => {
@@ -67,9 +70,12 @@ describe('SearchService', () => {
       const result = await service.searchRoutes({});
 
       expect(result.results).toHaveLength(1);
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('search_routes', expect.objectContaining({
-        search_query: '',
-      }));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'search_routes',
+        expect.objectContaining({
+          search_query: '',
+        }),
+      );
     });
 
     it('applies AND semantics for surfaceTypes + countryCode filters', async () => {
@@ -81,10 +87,13 @@ describe('SearchService', () => {
         countryCode: 'us',
       });
 
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('search_routes', expect.objectContaining({
-        filter_surface_types: ['gravel', 'dirt'],
-        filter_country_code: 'us',
-      }));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'search_routes',
+        expect.objectContaining({
+          filter_surface_types: ['gravel', 'dirt'],
+          filter_country_code: 'us',
+        }),
+      );
     });
 
     it('paginates: first page then next page with cursor — no overlap', async () => {
@@ -92,7 +101,9 @@ describe('SearchService', () => {
         makeRouteRow({ id: `r${i}`, text_rank: 0.5, geo_rank: 0.5 }),
       );
       // 3 items + 1 extra = hasNextPage
-      mockSupabase.rpc = vi.fn().mockResolvedValue({ data: [...page1Rows, makeRouteRow({ id: 'r3' })], error: null });
+      mockSupabase.rpc = vi
+        .fn()
+        .mockResolvedValue({ data: [...page1Rows, makeRouteRow({ id: 'r3' })], error: null });
 
       const page1 = await service.searchRoutes({ first: 3 });
 
@@ -108,9 +119,12 @@ describe('SearchService', () => {
 
       expect(page2.results).toHaveLength(2);
       expect(page2.hasNextPage).toBe(false);
-      expect(mockSupabase.rpc).toHaveBeenCalledWith('search_routes', expect.objectContaining({
-        page_cursor: 'r2',
-      }));
+      expect(mockSupabase.rpc).toHaveBeenCalledWith(
+        'search_routes',
+        expect.objectContaining({
+          page_cursor: 'r2',
+        }),
+      );
 
       // No overlap between pages
       const page1Ids = page1.results.map((r) => r.id);
@@ -151,8 +165,20 @@ describe('SearchService', () => {
 
     it('returns fuzzy matches for a partial name', async () => {
       const routeRows = [
-        { id: 'r1', name: 'Pacific Coast Highway', slug: 'pacific-coast', country_code: 'us', region_code: 'ca' },
-        { id: 'r2', name: 'Pacific Rim', slug: 'pacific-rim', country_code: 'ca', region_code: 'bc' },
+        {
+          id: 'r1',
+          name: 'Pacific Coast Highway',
+          slug: 'pacific-coast',
+          country_code: 'us',
+          region_code: 'ca',
+        },
+        {
+          id: 'r2',
+          name: 'Pacific Rim',
+          slug: 'pacific-rim',
+          country_code: 'ca',
+          region_code: 'bc',
+        },
       ];
       const placeRows = [
         { place_id: 'p1', name: 'Pacific Beach', country_code: 'us', region_code: 'ca' },

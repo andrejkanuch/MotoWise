@@ -6,14 +6,7 @@ import {
 } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import {
-  ArrowLeft,
-  Bookmark,
-  Compass,
-  Mountain,
-  Route,
-  Star,
-} from 'lucide-react-native';
+import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import {
   ActionSheetIOS,

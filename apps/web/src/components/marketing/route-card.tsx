@@ -1,5 +1,5 @@
-import { Link } from '@/i18n/navigation';
 import type { RouteListItem } from '@motovault/types';
+import { Link } from '@/i18n/navigation';
 
 function formatDistance(meters: number): string {
   const km = meters / 1000;
@@ -128,12 +128,12 @@ export function RouteCard({ route }: { route: RouteListItem }) {
         {route.ratingAvg != null && route.ratingCount > 0 && (
           <div className="flex items-center gap-1.5 text-sm">
             <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
+              {([0, 1, 2, 3, 4] as const).map((starIndex) => (
                 <svg
-                  key={`star-${route.id}-${i}`}
+                  key={`${route.id}-star-${starIndex}`}
                   viewBox="0 0 20 20"
                   className={`size-3.5 ${
-                    i < Math.round(route.ratingAvg ?? 0)
+                    starIndex < Math.round(route.ratingAvg ?? 0)
                       ? 'fill-warm-400 text-warm-400'
                       : 'fill-neutral-700 text-neutral-700'
                   }`}

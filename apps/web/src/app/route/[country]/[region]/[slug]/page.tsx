@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { RouteMapSection } from '@/components/route-map-section';
 import { decodePolyline } from '@/lib/decode-polyline';
+import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
@@ -87,10 +88,14 @@ function getDifficulty(curvature: number | null | undefined): { label: string; c
 function getSurfaceLabel(type: string | null | undefined): string {
   if (!type) return 'Unknown';
   switch (type) {
-    case 'paved': return 'Paved';
-    case 'mixed': return 'Mixed';
-    case 'off-road': return 'Off-Road';
-    default: return type;
+    case 'paved':
+      return 'Paved';
+    case 'mixed':
+      return 'Mixed';
+    case 'off-road':
+      return 'Off-Road';
+    default:
+      return type;
   }
 }
 
@@ -143,6 +148,16 @@ export default async function RouteDetailPage({
   const countryName = prettifyCountry(country);
   const editorialText = route.editorialDescription ?? route.description;
   const decodedPolyline = route.polyline ? decodePolyline(route.polyline) : [];
+  const staticPreviewUrl =
+    route.polyline && route.polyline.length > 0
+      ? buildStaticMapUrl({
+          polyline: route.polyline,
+          width: 1280,
+          height: 800,
+          strokeColor: 'd97706',
+          retina: true,
+        }) || null
+      : null;
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50">
@@ -177,7 +192,14 @@ export default async function RouteDetailPage({
                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
                 style={{ backgroundColor: palette.signatureBgDark, color: palette.signature400 }}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <title>Editor&apos;s pick</title>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
                 Editor&apos;s Pick
@@ -185,11 +207,20 @@ export default async function RouteDetailPage({
             )}
             {route.ratingAvg != null && route.ratingCount > 0 && (
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-200">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill={palette.warning500} aria-hidden="true">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill={palette.warning500}
+                  aria-hidden="true"
+                >
+                  <title>Rating</title>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
                 {route.ratingAvg.toFixed(1)}
-                <span className="text-neutral-500">({route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'})</span>
+                <span className="text-neutral-500">
+                  ({route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'})
+                </span>
               </span>
             )}
             <span className="inline-flex items-center gap-1.5 text-sm">
@@ -202,13 +233,19 @@ export default async function RouteDetailPage({
             <span className="text-sm text-neutral-400">·</span>
             <span className="text-sm text-neutral-300">{surfaceLabel}</span>
             <span className="text-sm text-neutral-400">·</span>
-            <span className="text-sm text-neutral-400">{regionName}, {countryName}</span>
+            <span className="text-sm text-neutral-400">
+              {regionName}, {countryName}
+            </span>
           </div>
         </div>
 
         {/* Map hero + action bar */}
         <div className="relative mb-8 overflow-hidden rounded-2xl border border-neutral-800/60 bg-neutral-900">
-          <RouteMapSection polyline={decodedPolyline} />
+          <RouteMapSection
+            polyline={decodedPolyline}
+            staticPreviewUrl={staticPreviewUrl}
+            mapInstanceKey={route.id}
+          />
           {/* Action buttons — AllTrails-style top-right */}
           <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
             <GpxDownloadButton
@@ -228,7 +265,9 @@ export default async function RouteDetailPage({
               {formatDistance(route.distanceM)}
               <span className="ml-1 text-base font-normal text-neutral-500">km</span>
             </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">Length</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
+              Length
+            </p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
@@ -237,13 +276,17 @@ export default async function RouteDetailPage({
                 <span className="ml-1 text-base font-normal text-neutral-500">m</span>
               )}
             </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">Elevation gain</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
+              Elevation gain
+            </p>
           </div>
           <div className="text-center">
             <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
               {formatDuration(route.distanceM)}
             </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">Est. time</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
+              Est. time
+            </p>
           </div>
         </div>
       </div>
@@ -256,9 +299,7 @@ export default async function RouteDetailPage({
             {/* Description */}
             {editorialText && (
               <section>
-                <p className="text-base leading-relaxed text-neutral-300">
-                  {editorialText}
-                </p>
+                <p className="text-base leading-relaxed text-neutral-300">{editorialText}</p>
               </section>
             )}
 
@@ -268,7 +309,17 @@ export default async function RouteDetailPage({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={palette.neutral400} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={palette.neutral400}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <title>Surface</title>
                       <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
                   </div>
@@ -279,42 +330,80 @@ export default async function RouteDetailPage({
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={palette.neutral400} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={palette.neutral400}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <title>Difficulty</title>
                       <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                     </svg>
                   </div>
                   <div>
                     <p className="text-xs text-neutral-500">Difficulty</p>
-                    <p className="text-sm font-medium" style={{ color: difficulty.color }}>{difficulty.label}</p>
+                    <p className="text-sm font-medium" style={{ color: difficulty.color }}>
+                      {difficulty.label}
+                    </p>
                   </div>
                 </div>
                 {route.curvatureIndex != null && (
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={palette.neutral400} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={palette.neutral400}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <title>Curvature</title>
                         <path d="M2 12c2-4 5-6 10-6s8 2 10 6c-2 4-5 6-10 6s-8-2-10-6z" />
                       </svg>
                     </div>
                     <div>
                       <p className="text-xs text-neutral-500">Curvature</p>
                       <p className="text-sm font-medium text-neutral-200">
-                        {route.curvatureIndex >= 0.06 ? 'Very Twisty' :
-                         route.curvatureIndex >= 0.03 ? 'Twisty' :
-                         route.curvatureIndex >= 0.015 ? 'Some Curves' : 'Mostly Straight'}
+                        {route.curvatureIndex >= 0.06
+                          ? 'Very Twisty'
+                          : route.curvatureIndex >= 0.03
+                            ? 'Twisty'
+                            : route.curvatureIndex >= 0.015
+                              ? 'Some Curves'
+                              : 'Mostly Straight'}
                       </p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={palette.neutral400} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={palette.neutral400}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <title>Estimated riding time</title>
                       <circle cx="12" cy="12" r="10" />
                       <path d="M12 6v6l4 2" />
                     </svg>
                   </div>
                   <div>
                     <p className="text-xs text-neutral-500">Est. riding time</p>
-                    <p className="text-sm font-medium text-neutral-200">{formatDuration(route.distanceM)}</p>
+                    <p className="text-sm font-medium text-neutral-200">
+                      {formatDuration(route.distanceM)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -343,7 +432,12 @@ export default async function RouteDetailPage({
                   )}
                 </p>
                 <p className="text-xs text-neutral-500">
-                  Added {new Date(route.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  Added{' '}
+                  {new Date(route.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })}
                 </p>
               </div>
             </section>
@@ -361,13 +455,21 @@ export default async function RouteDetailPage({
                   <span className="text-5xl font-bold tracking-tight text-neutral-50">
                     {route.ratingAvg.toFixed(1)}
                   </span>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill={palette.warning500} aria-hidden="true">
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill={palette.warning500}
+                    aria-hidden="true"
+                  >
+                    <title>Rating</title>
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </div>
                 <p className="mt-2 text-sm text-neutral-400">
                   {route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'}
-                  {route.commentCount > 0 && ` · ${route.commentCount} ${route.commentCount === 1 ? 'comment' : 'comments'}`}
+                  {route.commentCount > 0 &&
+                    ` · ${route.commentCount} ${route.commentCount === 1 ? 'comment' : 'comments'}`}
                 </p>
               </div>
             )}
@@ -378,7 +480,8 @@ export default async function RouteDetailPage({
                 Ride this route
               </h3>
               <p className="mb-4 text-sm text-neutral-400">
-                Open in the MotoVault app for turn-by-turn navigation, live tracking, and fuel stops.
+                Open in the MotoVault app for turn-by-turn navigation, live tracking, and fuel
+                stops.
               </p>
               <div className="flex flex-col gap-2">
                 <a
@@ -386,7 +489,17 @@ export default async function RouteDetailPage({
                   className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
                   style={{ backgroundColor: palette.signature500, color: palette.white }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <title>Open in app</title>
                     <polygon points="5 3 19 12 5 21 5 3" />
                   </svg>
                   Open in App

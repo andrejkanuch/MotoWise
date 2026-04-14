@@ -17,6 +17,8 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - `pnpm dev` — start all apps (Expo :8081, NestJS :4000, Next.js :3000)
 - `pnpm build` — build all packages
 - `pnpm lint` / `pnpm lint:fix` — Biome lint/format
+- `pnpm precheck` — full lint + typecheck + test (match CI)
+- `pnpm precheck:push` — pre-push hook: Biome only on files changed since `merge-base` with `origin/main` (or `main`), then typecheck + test
 - `pnpm test` — run all tests
 - `pnpm generate` — regenerate DB types + GraphQL schema + client types
 - `pnpm db:migration <name>` — create new migration
@@ -82,6 +84,11 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
   - `GetMakesForVehicleType/motorcycle` — all motorcycle makes
   - `GetModelsForMakeIdYear/makeId/{id}/modelyear/{year}/vehicletype/motorcycle` — models
   - Free, no API key required
+
+## Repo maintenance (local + CI)
+- **Git hooks**: `core.hooksPath` → `.githooks`. **pre-commit** runs GraphQL codegen when `*.graphql` or `apps/api/schema.graphql` is staged — if `packages/graphql/src/generated` changes, run `pnpm generate`, then re-stage generated files. **pre-push** runs `pnpm precheck` (`lint` + `typecheck` + `test`) — keep `main` green so pushes are not blocked by unrelated debt; use `git push --no-verify` only when intentional.
+- **GraphQL changes**: After resolver/model/schema edits, run `pnpm generate` before commit. Every `.graphql` document must validate against the schema (mobile + web + any other app folders codegen scans).
+- **Web / Mapbox**: Interactive maps need a **public** token in the bundle: `NEXT_PUBLIC_MAPBOX_TOKEN` or `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN`. Static route previews on the server use **`MAPBOX_ACCESS_TOKEN`** (see `apps/web/.env.example`). Do not rely on server-only tokens for `mapbox-gl` in the browser.
 
 ## GraphQL Type Safety
 - ALWAYS use generated types from @motovault/graphql — NEVER use `any` for GraphQL data

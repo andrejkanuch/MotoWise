@@ -873,7 +873,7 @@ ${trkpts}
 
   async computeTwistScore(
     curvatureIndex: number | null | undefined,
-    countryCode: string | null | undefined,
+    _countryCode: string | null | undefined,
   ): Promise<{ score: number; percentile: number } | null> {
     if (curvatureIndex == null) return null;
     // Simple linear mapping without materialized view lookup
@@ -881,5 +881,4 @@ ${trkpts}
     const percentile = Math.min(100, Math.round(curvatureIndex * 2));
     return { score, percentile };
   }
-
 }

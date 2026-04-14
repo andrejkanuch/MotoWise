@@ -1,8 +1,7 @@
-import { useRef } from 'react';
-import { View, Text, Pressable, Linking } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { palette } from '@motovault/design-system';
+import * as Haptics from 'expo-haptics';
+import { Linking, Pressable, Text, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 interface RouteMapViewProps {
   polyline: string;
@@ -27,7 +26,7 @@ interface RouteMapViewProps {
  * Replace the placeholder View with MapboxGL.MapView when ready.
  */
 export default function RouteMapView({
-  polyline,
+  polyline: _polyline,
   startLat,
   startLng,
   distanceM,
@@ -58,21 +57,21 @@ export default function RouteMapView({
           overflow: 'hidden',
         }}
       >
-        <Text style={{ color: palette.textSecondary, fontSize: 14, marginBottom: 8 }}>
+        <Text style={{ color: palette.neutral400, fontSize: 14, marginBottom: 8 }}>
           Route Map
         </Text>
         {name && (
-          <Text style={{ color: palette.text, fontSize: 18, fontWeight: '600', marginBottom: 4 }}>
+          <Text style={{ color: palette.white, fontSize: 18, fontWeight: '600', marginBottom: 4 }}>
             {name}
           </Text>
         )}
-        <Text style={{ color: palette.textSecondary, fontSize: 12 }}>
+        <Text style={{ color: palette.neutral400, fontSize: 12 }}>
           {(distanceM / 1000).toFixed(1)} km | {elevationGainM?.toFixed(0) ?? '?'} m gain |{' '}
           {surfaceType ?? 'unknown'}
         </Text>
         <Text
           style={{
-            color: palette.textTertiary,
+            color: palette.neutral500,
             fontSize: 11,
             marginTop: 16,
             textAlign: 'center',

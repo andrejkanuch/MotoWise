@@ -1,6 +1,6 @@
-import { View, Text } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { palette } from '@motovault/design-system';
+import { Text, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 interface ElevationPoint {
   distance: number;
@@ -39,7 +39,7 @@ export default function ElevationChartMobile({ elevationData }: ElevationChartMo
         style={{
           fontSize: 14,
           fontWeight: '600',
-          color: palette.text,
+          color: palette.white,
           marginBottom: 8,
           paddingHorizontal: 16,
         }}
@@ -57,11 +57,11 @@ export default function ElevationChartMobile({ elevationData }: ElevationChartMo
           gap: 1,
         }}
       >
-        {sampled.map((point, i) => {
+        {sampled.map((point) => {
           const heightPct = ((point.elevation - minElev) / range) * 100;
           return (
             <View
-              key={`bar-${i}`}
+              key={`bar-${point.distance}-${point.elevation}`}
               style={{
                 flex: 1,
                 height: `${Math.max(2, heightPct)}%`,
@@ -85,26 +85,26 @@ export default function ElevationChartMobile({ elevationData }: ElevationChartMo
         }}
       >
         <View>
-          <Text style={{ fontSize: 11, color: palette.textSecondary }}>Min</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.text }}>
+          <Text style={{ fontSize: 11, color: palette.neutral400 }}>Min</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
             {minElev.toFixed(0)} m
           </Text>
         </View>
         <View>
-          <Text style={{ fontSize: 11, color: palette.textSecondary }}>Max</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.text }}>
+          <Text style={{ fontSize: 11, color: palette.neutral400 }}>Max</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
             {maxElev.toFixed(0)} m
           </Text>
         </View>
         <View>
-          <Text style={{ fontSize: 11, color: palette.textSecondary }}>Gain</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.text }}>
+          <Text style={{ fontSize: 11, color: palette.neutral400 }}>Gain</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
             {gain.toFixed(0)} m
           </Text>
         </View>
         <View>
-          <Text style={{ fontSize: 11, color: palette.textSecondary }}>Distance</Text>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.text }}>
+          <Text style={{ fontSize: 11, color: palette.neutral400 }}>Distance</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
             {elevationData[elevationData.length - 1]?.distance.toFixed(1) ?? '?'} km
           </Text>
         </View>

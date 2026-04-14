@@ -11,7 +11,7 @@ export class SponsorshipsService {
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
-    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) readonly _supabaseAdmin: SupabaseClient,
     private readonly configService: ConfigService,
   ) {}
 
@@ -31,7 +31,7 @@ export class SponsorshipsService {
       .eq('route_id', routeId)
       .eq('status', 'active')
       .lte('starts_at', new Date().toISOString())
-      .or('ends_at.is.null,ends_at.gte.' + new Date().toISOString())
+      .or(`ends_at.is.null,ends_at.gte.${new Date().toISOString()}`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -57,8 +57,7 @@ export class SponsorshipsService {
       throw new NotFoundException(`Sponsorship ${sponsorshipId} not found or inactive`);
     }
 
-    const newSpent =
-      Number(existing.spent_this_month) + Number(existing.cost_per_impression);
+    const newSpent = Number(existing.spent_this_month) + Number(existing.cost_per_impression);
 
     const { error } = await this.supabase
       .from('sponsorships')

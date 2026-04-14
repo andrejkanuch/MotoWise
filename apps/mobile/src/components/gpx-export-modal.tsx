@@ -42,7 +42,7 @@ export const GpxExportModal = memo(function GpxExportModal({
     staleTime: 30_000,
   });
 
-  const quota = quotaData?.getGpxQuotaStatus;
+  const quota = quotaData?.getGPXQuotaStatus;
   const quotaExhausted = !isPro && quota != null && quota.remaining <= 0;
 
   const handleExport = async () => {
@@ -149,9 +149,9 @@ export const GpxExportModal = memo(function GpxExportModal({
                     ? `You've used all ${quota.limit} free exports this month. Upgrade to Pro for unlimited exports.`
                     : `${quota.remaining} of ${quota.limit} free exports remaining this month.`}
                 </Text>
-                {quota.resetsAt && (
+                {quota.resetDate && (
                   <Text style={{ fontSize: 12, color: subtitleColor }}>
-                    Resets {formatResetDate(quota.resetsAt)}
+                    Resets {formatResetDate(quota.resetDate)}
                   </Text>
                 )}
               </View>

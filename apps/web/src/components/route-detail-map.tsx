@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { MapHeroInteractive } from './map-hero-interactive';
 import { ElevationChart, type ElevationDataPoint } from './elevation-chart';
+import { MapHeroInteractive } from './map-hero-interactive';
 
 export interface RouteDetailMapProps {
   /** GeoJSON LineString coordinates [[lng, lat], ...] */
@@ -20,11 +20,7 @@ export interface RouteDetailMapProps {
  * Desktop: side-by-side (map left, chart right)
  * Mobile: stacked (map top, chart bottom)
  */
-export function RouteDetailMap({
-  polyline,
-  elevationData,
-  className = '',
-}: RouteDetailMapProps) {
+export function RouteDetailMap({ polyline, elevationData, className = '' }: RouteDetailMapProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // Derive the highlighted map point from the hovered chart index

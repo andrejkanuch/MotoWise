@@ -1,4 +1,9 @@
-import type { BrowsePlace, BrowsePlaceDbRow, RouteListDbRow, RouteListItem } from '@motovault/types';
+import type {
+  BrowsePlace,
+  BrowsePlaceDbRow,
+  RouteListDbRow,
+  RouteListItem,
+} from '@motovault/types';
 import { createClient } from '@supabase/supabase-js';
 
 /**
@@ -35,10 +40,21 @@ export async function fetchCountries(): Promise<Place[]> {
 
 /** ISO country code → display name fallback (when places table is empty / not seeded). */
 const COUNTRY_FALLBACK: Record<string, string> = {
-  US: 'United States', DE: 'Germany', AT: 'Austria', CH: 'Switzerland',
-  IT: 'Italy', ES: 'Spain', FR: 'France', GB: 'United Kingdom',
-  PT: 'Portugal', GR: 'Greece', HR: 'Croatia', NO: 'Norway',
-  SE: 'Sweden', RO: 'Romania', CZ: 'Czech Republic',
+  US: 'United States',
+  DE: 'Germany',
+  AT: 'Austria',
+  CH: 'Switzerland',
+  IT: 'Italy',
+  ES: 'Spain',
+  FR: 'France',
+  GB: 'United Kingdom',
+  PT: 'Portugal',
+  GR: 'Greece',
+  HR: 'Croatia',
+  NO: 'Norway',
+  SE: 'Sweden',
+  RO: 'Romania',
+  CZ: 'Czech Republic',
 };
 
 /** Fetch a country by its slug (lowercase country code, e.g. "it"). */

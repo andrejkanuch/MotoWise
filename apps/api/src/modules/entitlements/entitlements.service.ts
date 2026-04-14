@@ -27,7 +27,7 @@ export class EntitlementsService {
    * Authenticated users get all entitlements in Phase 1.
    * Anonymous users (null) get none.
    */
-  can(user: { id: string } | null, entitlement: Entitlement): boolean {
+  can(user: { id: string } | null, _entitlement: Entitlement): boolean {
     if (!user) return false;
     // Phase 1: all authenticated users have all entitlements
     // Phase 3: check subscription_tier for Pro-only features

@@ -1,9 +1,9 @@
 'use client';
 
 import { palette } from '@motovault/design-system';
+import type { RouteReview } from '@motovault/types';
 import { useRouter } from 'next/navigation';
 import { ReviewSoftWall } from '@/components/review-soft-wall';
-import type { RouteReview } from '@motovault/types';
 
 interface RouteDetailReviewsProps {
   reviews: RouteReview[];

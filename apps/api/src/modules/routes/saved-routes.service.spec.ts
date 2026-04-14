@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RoutesService } from './routes.service';
 
 /** Helper to create a mock Supabase client */
@@ -16,10 +16,7 @@ describe('RoutesService — saved routes', () => {
   beforeEach(() => {
     mockUser = createMockSupabase();
     mockAdmin = createMockSupabase();
-    service = new RoutesService(
-      mockUser as never,
-      mockAdmin as never,
-    );
+    service = new RoutesService(mockUser as never, mockAdmin as never);
   });
 
   describe('saveRoute', () => {

@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SurfaceReportsService } from './surface-reports.service';
 
 /** Helper to build a mock Supabase client with chainable query builder */
@@ -31,10 +31,7 @@ describe('SurfaceReportsService', () => {
   beforeEach(() => {
     mockUser = createMockSupabase();
     mockAdmin = createMockSupabase();
-    service = new SurfaceReportsService(
-      mockUser.client as never,
-      mockAdmin.client as never,
-    );
+    service = new SurfaceReportsService(mockUser.client as never, mockAdmin.client as never);
   });
 
   describe('reportSurface', () => {
@@ -128,16 +125,16 @@ describe('SurfaceReportsService', () => {
 
       const wet = result.find((r) => r.condition === 'wet');
       expect(wet).toBeDefined();
-      expect(wet!.count).toBe(2);
-      expect(wet!.latestReportedAt).toBe('2026-04-13T10:00:00Z');
+      expect(wet?.count).toBe(2);
+      expect(wet?.latestReportedAt).toBe('2026-04-13T10:00:00Z');
 
       const gravel = result.find((r) => r.condition === 'gravel');
       expect(gravel).toBeDefined();
-      expect(gravel!.count).toBe(1);
+      expect(gravel?.count).toBe(1);
 
       const dry = result.find((r) => r.condition === 'dry');
       expect(dry).toBeDefined();
-      expect(dry!.count).toBe(1);
+      expect(dry?.count).toBe(1);
     });
 
     it('returns empty array when no reports exist', async () => {

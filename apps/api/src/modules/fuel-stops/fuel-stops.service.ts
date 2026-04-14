@@ -63,7 +63,7 @@ export class FuelStopsService {
 
     let summary: string;
     if (stopsRequired === 0) {
-      summary = "You can complete this route without refueling.";
+      summary = 'You can complete this route without refueling.';
     } else if (stopsRequired === 1) {
       summary = "You'll need to refuel 1 time along this route.";
     } else {

@@ -2,6 +2,7 @@ import type { ExploreRouteDbRow } from '@motovault/types';
 import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+import Image from 'next/image';
 import { Suspense } from 'react';
 
 /* ── Constants ────────────────────────────────────────────────── */
@@ -69,6 +70,8 @@ const TOP_ROUTES_SEO = [
   'Black Forest B500',
 ];
 
+const SECTION_SKELETON_KEYS = ['a', 'b', 'c', 'd'] as const;
+
 const TOP_REGIONS_SEO = [
   'Dolomites, Italy',
   'Black Forest, Germany',
@@ -92,12 +95,12 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Discover Motorcycle Routes | MotoVault',
     description:
-      'Browse the best motorcycle routes worldwide. Editor\'s picks, top-rated rides, and routes near you — curated by riders, for riders.',
+      "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you — curated by riders, for riders.",
     alternates: { canonical: `${BASE_URL}/explore` },
     openGraph: {
       title: 'Discover Motorcycle Routes | MotoVault',
       description:
-        'Browse the best motorcycle routes worldwide. Editor\'s picks, top-rated rides, and routes near you.',
+        "Browse the best motorcycle routes worldwide. Editor's picks, top-rated rides, and routes near you.",
       url: `${BASE_URL}/explore`,
       siteName: 'MotoVault',
       type: 'website',
@@ -193,18 +196,22 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
 
   return (
     <a
-      href={route.slug && route.country_code && route.region_code
-        ? `/route/${route.country_code}/${route.region_code}/${route.slug}`
-        : `/routes/${route.id}`}
+      href={
+        route.slug && route.country_code && route.region_code
+          ? `/route/${route.country_code}/${route.region_code}/${route.slug}`
+          : `/routes/${route.id}`
+      }
       className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
       {/* Route photo */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img
+        <Image
           src={imageSrc}
           alt={route.name ?? 'Route'}
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          priority={priority}
         />
 
         {/* Save icon overlay — decorative in server component, wired in client */}
@@ -212,8 +219,20 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950/60 text-neutral-300 backdrop-blur-sm"
           aria-hidden="true"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <title>Save route</title>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+            />
           </svg>
         </span>
 
@@ -242,7 +261,13 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
           {route.rating_avg != null && (
             <>
               <span className="flex items-center gap-0.5 text-signature-400">
-                <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <title>Rating</title>
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
                 </svg>
                 <span className="font-medium text-neutral-200">{route.rating_avg.toFixed(1)}</span>
@@ -266,8 +291,8 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
 function SectionSkeleton({ cols = 4 }: { cols?: number }) {
   return (
     <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-${cols}`}>
-      {Array.from({ length: cols }).map((_, i) => (
-        <div key={i} className="animate-pulse overflow-hidden rounded-2xl bg-neutral-900">
+      {SECTION_SKELETON_KEYS.slice(0, cols).map((slot) => (
+        <div key={slot} className="animate-pulse overflow-hidden rounded-2xl bg-neutral-900">
           <div className="aspect-[4/3] bg-neutral-800/60" />
           <div className="space-y-2 p-4">
             <div className="h-4 w-3/4 rounded bg-neutral-800" />
@@ -286,12 +311,13 @@ async function NearYouSection({ countryCode }: { countryCode: string }) {
   if (routes.length === 0) {
     return (
       <section>
-        <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">
-          Routes near you
-        </h2>
+        <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">Routes near you</h2>
         <div className="rounded-2xl border border-dashed border-neutral-800 py-16 text-center">
           <p className="text-neutral-500">No routes found in your area yet.</p>
-          <a href="/explore" className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors">
+          <a
+            href="/explore"
+            className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors"
+          >
             Search all routes &rarr;
           </a>
         </div>
@@ -306,7 +332,10 @@ async function NearYouSection({ countryCode }: { countryCode: string }) {
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
           Routes near <span className="text-primary-400">{countryName}</span>
         </h2>
-        <a href="/explore" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+        <a
+          href="/explore"
+          className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors"
+        >
           View all &rarr;
         </a>
       </div>
@@ -328,7 +357,13 @@ async function StaffPicksSection() {
       <div className="mb-6 flex items-baseline justify-between">
         <div className="flex items-center gap-3">
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-signature-500/20">
-            <svg className="h-4 w-4 text-signature-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg
+              className="h-4 w-4 text-signature-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <title>Editor&apos;s picks</title>
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
             </svg>
           </span>
@@ -344,7 +379,7 @@ async function StaffPicksSection() {
   );
 }
 
-async function TopRoutesSection({ countryCode }: { countryCode: string }) {
+async function TopRoutesSection() {
   const routes = await fetchTopRoutes(8);
   if (routes.length === 0) return null;
 
@@ -352,7 +387,10 @@ async function TopRoutesSection({ countryCode }: { countryCode: string }) {
     <section>
       <div className="mb-6 flex items-baseline justify-between">
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated routes</h2>
-        <a href="/explore" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+        <a
+          href="/explore"
+          className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors"
+        >
           View all &rarr;
         </a>
       </div>
@@ -402,30 +440,36 @@ export default async function ExplorePage() {
       {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden sm:min-h-[80vh]">
         {/* Background — real hero photo with dark overlay */}
-        <img
+        <Image
           src="/images/hero-explore.jpg"
           alt=""
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+          aria-hidden
         />
-        <div
-          className="absolute inset-0 bg-neutral-950/50"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 bg-neutral-950/50" aria-hidden="true" />
         {/* Subtle noise texture */}
         <div className="grain-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
         {/* Bottom fade to content */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-950 to-transparent" aria-hidden="true" />
+        <div
+          className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-950 to-transparent"
+          aria-hidden="true"
+        />
 
         <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
           <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-signature-400">
             Curated by riders, for riders
           </p>
           <h1 className="mb-6 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-tight">
-            Discover your<br />next ride
+            Discover your
+            <br />
+            next ride
           </h1>
           <p className="mb-10 text-lg text-neutral-400 sm:text-xl">
-            Browse the best motorcycle routes worldwide &mdash; from alpine passes to coastal highways.
+            Browse the best motorcycle routes worldwide &mdash; from alpine passes to coastal
+            highways.
           </p>
 
           {/* Search bar — full-width, prominent */}
@@ -433,9 +477,18 @@ export default async function ExplorePage() {
             <div className="relative">
               <svg
                 className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500"
-                fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                aria-hidden="true"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                <title>Search</title>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                />
               </svg>
               <input
                 type="search"
@@ -453,7 +506,10 @@ export default async function ExplorePage() {
             </div>
           </form>
 
-          <a href="/explore" className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors">
+          <a
+            href="/explore"
+            className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors"
+          >
             Explore nearby routes
           </a>
         </div>
@@ -461,7 +517,6 @@ export default async function ExplorePage() {
 
       {/* ━━━ CONTENT SECTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-
         {/* Near You — 20px top margin to connect with hero */}
         <div className="mt-8">
           <Suspense fallback={<SectionSkeleton cols={4} />}>
@@ -485,17 +540,26 @@ export default async function ExplorePage() {
                   MotoVault App
                 </p>
                 <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                  Track every ride.<br />Share every road.
+                  Track every ride.
+                  <br />
+                  Share every road.
                 </h2>
                 <p className="mb-6 max-w-md text-neutral-400">
-                  Record rides with live GPS tracking, log expenses, diagnose issues with AI, and discover routes shared by riders worldwide.
+                  Record rides with live GPS tracking, log expenses, diagnose issues with AI, and
+                  discover routes shared by riders worldwide.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a
                     href="https://apps.apple.com/us/app/motovault/id6760291360"
                     className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
                   >
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Apple App Store</title>
                       <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                     </svg>
                     App Store
@@ -504,7 +568,13 @@ export default async function ExplorePage() {
                     href="https://play.google.com/store/apps/details?id=com.motovault.app"
                     className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
                   >
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Google Play</title>
                       <path d="M3.18 23.73c-.5-.32-.68-.84-.68-1.43V1.7c0-.59.18-1.11.68-1.43L13.84 12 3.18 23.73zm1.8.6L16.92 13.6l-2.79-2.79L4.98 24.33zm17.28-11.37c.53.3.74.71.74 1.04s-.21.74-.74 1.04l-3.21 1.81-3.07-3.07 3.07-3.07 3.21 1.25zM4.98-.33L14.13 10.4l2.79-2.79L4.98-.33z" />
                     </svg>
                     Google Play
@@ -528,7 +598,7 @@ export default async function ExplorePage() {
         {/* Top Routes */}
         <div className="mt-20">
           <Suspense fallback={<SectionSkeleton cols={4} />}>
-            <TopRoutesSection countryCode={countryCode} />
+            <TopRoutesSection />
           </Suspense>
         </div>
 
@@ -558,11 +628,16 @@ export default async function ExplorePage() {
           <h2 className="mb-10 text-2xl font-bold tracking-tight sm:text-3xl">Ride anywhere</h2>
           <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top routes</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top routes
+              </h3>
               <ul className="space-y-2">
                 {TOP_ROUTES_SEO.map((name) => (
                   <li key={name}>
-                    <a href={`/explore`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                    <a
+                      href={`/explore`}
+                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                    >
                       {name}
                     </a>
                   </li>
@@ -570,11 +645,16 @@ export default async function ExplorePage() {
               </ul>
             </div>
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top regions</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top regions
+              </h3>
               <ul className="space-y-2">
                 {TOP_REGIONS_SEO.map((name) => (
                   <li key={name}>
-                    <a href={`/explore`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                    <a
+                      href={`/explore`}
+                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                    >
                       {name}
                     </a>
                   </li>
@@ -582,11 +662,16 @@ export default async function ExplorePage() {
               </ul>
             </div>
             <div>
-              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Top countries</h3>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top countries
+              </h3>
               <ul className="space-y-2">
                 {TOP_COUNTRIES.map(({ code }) => (
                   <li key={code}>
-                    <a href={`/explore/${code.toLowerCase()}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                    <a
+                      href={`/explore/${code.toLowerCase()}`}
+                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                    >
                       {COUNTRY_NAMES[code]}
                     </a>
                   </li>

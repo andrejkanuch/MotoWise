@@ -62,6 +62,7 @@ export const queryKeys = {
     all: ['routes'] as const,
     detail: (routeId: string) => ['routes', 'detail', routeId] as const,
     saved: ['routes', 'saved'] as const,
+    gpxQuota: ['routes', 'gpx-quota'] as const,
   },
   comments: {
     byRide: (rideId: string) => ['comments', 'ride', rideId] as const,

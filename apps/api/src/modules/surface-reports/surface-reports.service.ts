@@ -32,10 +32,7 @@ export class SurfaceReportsService {
     @Inject(REDIS) private readonly redis: Redis | null,
   ) {}
 
-  async reportSurface(
-    userId: string,
-    input: ReportSurfaceInput,
-  ): Promise<SurfaceReport> {
+  async reportSurface(userId: string, input: ReportSurfaceInput): Promise<SurfaceReport> {
     const { data, error } = await this.supabase
       .from('surface_reports')
       .insert({
@@ -100,9 +97,7 @@ export class SurfaceReportsService {
     }
 
     // 30-day aggregates via raw query
-    const thirtyDaysAgo = new Date(
-      Date.now() - 30 * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await this.supabase
       .from('surface_reports')

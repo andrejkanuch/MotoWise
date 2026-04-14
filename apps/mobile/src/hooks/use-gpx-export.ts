@@ -1,12 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system/next';
 import * as Haptics from 'expo-haptics';
 import { shareAsync } from 'expo-sharing';
 import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
-import { gqlFetcher } from '../lib/graphql-client';
-import { buildGqlRequestHeaders } from '../lib/gql-auth-session';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
+import { buildGqlRequestHeaders } from '../lib/gql-auth-session';
+import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
@@ -50,9 +50,7 @@ export function useGpxExport(): UseGpxExportResult {
           const match = disposition.match(/filename="?([^";\s]+)"?/);
           if (match) filename = match[1];
         } else if (routeName) {
-          const sanitized = routeName
-            .replace(/[^a-zA-Z0-9\s-]/g, '')
-            .replace(/\s+/g, '-');
+          const sanitized = routeName.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-');
           filename = `${sanitized}-motovault.gpx`;
         }
 
@@ -61,15 +59,6 @@ export function useGpxExport(): UseGpxExportResult {
         if (file.exists) file.delete();
         file.create();
         file.write(gpxContent);
-
-        // Record the export for quota tracking (fire-and-forget)
-        try {
-          // Dynamic import to avoid circular deps with generated types
-          const { RecordGpxExportDocument } = await import('@motovault/graphql');
-          await gqlFetcher(RecordGpxExportDocument, { routeId });
-        } catch {
-          // Non-fatal — don't block the share if tracking fails
-        }
 
         // Open native share sheet
         await shareAsync(file.uri, {
@@ -87,8 +76,7 @@ export function useGpxExport(): UseGpxExportResult {
 
         trackEvent(AnalyticsEvent.ROUTE_GPX_EXPORTED, { route_id: routeId });
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Something went wrong';
+        const message = error instanceof Error ? error.message : 'Something went wrong';
         Alert.alert('Export Failed', message);
       } finally {
         setIsExporting(false);

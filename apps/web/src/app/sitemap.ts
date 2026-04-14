@@ -4,7 +4,12 @@ import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
 import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
-import { canonicalCountry, canonicalExplore, canonicalRegion, canonicalRoute } from '@/lib/seo/canonical';
+import {
+  canonicalCountry,
+  canonicalExplore,
+  canonicalRegion,
+  canonicalRoute,
+} from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -110,7 +115,12 @@ async function getPublishedRoutes(): Promise<
       .not('region_slug', 'is', null)
       .not('slug', 'is', null);
     if (error || !data) return [];
-    return data as { country_code: string; region_slug: string; slug: string; updated_at: string }[];
+    return data as {
+      country_code: string;
+      region_slug: string;
+      slug: string;
+      updated_at: string;
+    }[];
   } catch {
     // Columns don't exist yet — return empty until backfill migration lands
     return [];
@@ -189,9 +199,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const exploreEntry =
-    routes.length > 0
-      ? [{ url: canonicalExplore(), lastModified: new Date() }]
-      : [];
+    routes.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
 
   const countryEntries = [...countrySet].map((cc) => ({
     url: canonicalCountry(cc),

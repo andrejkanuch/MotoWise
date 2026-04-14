@@ -1,39 +1,85 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { palette } from '@motovault/design-system';
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? '';
+function readMapboxPublicToken(): string {
+  return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
+}
+
+function StaticRoutePreview({ src, className }: { src: string; className: string }) {
+  return (
+    <div className={`relative h-full w-full ${className}`}>
+      <Image
+        src={src}
+        alt="Route map preview"
+        fill
+        className="rounded-xl object-cover"
+        sizes="(max-width: 1024px) 100vw, 1200px"
+        unoptimized
+      />
+    </div>
+  );
+}
 
 export interface MapHeroInteractiveProps {
   /** GeoJSON LineString coordinates [[lng, lat], ...] */
   polyline: [number, number][];
+  /**
+   * Server-built Mapbox Static Images URL (uses MAPBOX_ACCESS_TOKEN).
+   * Shown when no public token is available in the browser bundle.
+   */
+  staticPreviewUrl?: string | null;
   /** Optional highlighted point [lng, lat] synced from elevation chart */
   highlightedPoint?: { lng: number; lat: number } | null;
   /** Called when user hovers the route on the map, with index into polyline */
   onHoverIndex?: (index: number | null) => void;
   /** Additional CSS class name */
   className?: string;
+  /**
+   * When the viewed route changes, pass its id so the map re-inits (polyline arrays may be new
+   * references each render).
+   */
+  mapInstanceKey?: string;
 }
 
-export function MapHeroInteractive({
+function MapHeroMapInner({
   polyline,
   highlightedPoint,
   onHoverIndex,
   className = '',
-}: MapHeroInteractiveProps) {
+  accessToken,
+  mapInstanceKey,
+  staticPreviewFallback,
+}: Omit<MapHeroInteractiveProps, 'staticPreviewUrl'> & {
+  accessToken: string;
+  staticPreviewFallback?: string | null;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const onHoverIndexRef = useRef(onHoverIndex);
+  onHoverIndexRef.current = onHoverIndex;
   const [loaded, setLoaded] = useState(false);
+  const [webglBlocked, setWebglBlocked] = useState(false);
 
-  // Initialize map
+  const instanceKey = mapInstanceKey ?? `len:${polyline.length}`;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Re-init when route identity changes; `polyline` array identity is unstable across RSC passes.
   useEffect(() => {
-    if (!containerRef.current || !MAPBOX_TOKEN || polyline.length === 0) return;
+    setWebglBlocked(false);
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    if (!containerRef.current || polyline.length === 0) return;
+
+    if (!mapboxgl.supported()) {
+      setWebglBlocked(true);
+      return;
+    }
+
+    mapboxgl.accessToken = accessToken;
 
     const bounds = new mapboxgl.LngLatBounds();
     for (const coord of polyline) {
@@ -52,8 +98,11 @@ export function MapHeroInteractive({
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-right');
 
+    const line = polyline;
+
     map.on('load', () => {
-      // Route line source
+      map.resize();
+
       map.addSource('route', {
         type: 'geojson',
         data: {
@@ -61,12 +110,11 @@ export function MapHeroInteractive({
           properties: {},
           geometry: {
             type: 'LineString',
-            coordinates: polyline,
+            coordinates: line,
           },
         },
       });
 
-      // Route outline (wider, darker)
       map.addLayer({
         id: 'route-outline',
         type: 'line',
@@ -79,7 +127,6 @@ export function MapHeroInteractive({
         },
       });
 
-      // Route line (primary color)
       map.addLayer({
         id: 'route-line',
         type: 'line',
@@ -92,7 +139,6 @@ export function MapHeroInteractive({
         },
       });
 
-      // Invisible wide line for hover detection
       map.addLayer({
         id: 'route-hit',
         type: 'line',
@@ -107,30 +153,29 @@ export function MapHeroInteractive({
       setLoaded(true);
     });
 
-    // Hover interaction on the route
     map.on('mousemove', 'route-hit', (e) => {
-      if (!onHoverIndex || !e.lngLat) return;
+      const cb = onHoverIndexRef.current;
+      if (!cb || !e.lngLat) return;
       map.getCanvas().style.cursor = 'crosshair';
 
-      // Find nearest polyline point
       let minDist = Number.POSITIVE_INFINITY;
       let nearestIdx = 0;
       const { lng, lat } = e.lngLat;
-      for (let i = 0; i < polyline.length; i++) {
-        const dx = polyline[i][0] - lng;
-        const dy = polyline[i][1] - lat;
+      for (let i = 0; i < line.length; i++) {
+        const dx = line[i][0] - lng;
+        const dy = line[i][1] - lat;
         const dist = dx * dx + dy * dy;
         if (dist < minDist) {
           minDist = dist;
           nearestIdx = i;
         }
       }
-      onHoverIndex(nearestIdx);
+      cb(nearestIdx);
     });
 
     map.on('mouseleave', 'route-hit', () => {
       map.getCanvas().style.cursor = '';
-      onHoverIndex?.(null);
+      onHoverIndexRef.current?.(null);
     });
 
     mapRef.current = map;
@@ -139,13 +184,12 @@ export function MapHeroInteractive({
       map.remove();
       mapRef.current = null;
     };
-    // polyline is static for a given route, no need to re-init
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [polyline.length]);
+    // instanceKey (e.g. route id) must change when polyline geometry changes; avoid depending on
+    // polyline array identity, which can be unstable across renders.
+  }, [accessToken, instanceKey]);
 
-  // Sync highlighted point marker
   useEffect(() => {
-    if (!mapRef.current || !loaded) return;
+    if (webglBlocked || !mapRef.current || !loaded) return;
 
     if (highlightedPoint) {
       if (!markerRef.current) {
@@ -168,12 +212,71 @@ export function MapHeroInteractive({
       markerRef.current?.remove();
       markerRef.current = null;
     }
-  }, [highlightedPoint, loaded]);
+  }, [highlightedPoint, loaded, webglBlocked]);
+
+  if (webglBlocked) {
+    if (staticPreviewFallback) {
+      return <StaticRoutePreview src={staticPreviewFallback} className={className} />;
+    }
+    return (
+      <div
+        className={`flex h-full w-full items-center justify-center rounded-xl bg-neutral-900 px-4 text-center text-sm text-neutral-500 ${className}`}
+      >
+        <p>
+          Interactive maps need WebGL. This browser or device does not support it — try another
+          browser or update your graphics drivers.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className={`h-full w-full rounded-xl overflow-hidden ${className}`}
+    <div ref={containerRef} className={`h-full w-full overflow-hidden rounded-xl ${className}`} />
+  );
+}
+
+export function MapHeroInteractive({
+  polyline,
+  staticPreviewUrl,
+  highlightedPoint,
+  onHoverIndex,
+  className = '',
+  mapInstanceKey,
+}: MapHeroInteractiveProps) {
+  const token = readMapboxPublicToken();
+
+  if (polyline.length === 0) {
+    return null;
+  }
+
+  if (!token) {
+    if (staticPreviewUrl) {
+      return <StaticRoutePreview src={staticPreviewUrl} className={className} />;
+    }
+    return (
+      <div
+        className={`flex h-full w-full items-center justify-center rounded-xl bg-neutral-900 px-4 text-center text-sm text-neutral-500 ${className}`}
+      >
+        <p>
+          Set <code className="text-neutral-400">NEXT_PUBLIC_MAPBOX_TOKEN</code> (or{' '}
+          <code className="text-neutral-400">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN</code>) in{' '}
+          <code className="text-neutral-400">.env.local</code> for an interactive map, or{' '}
+          <code className="text-neutral-400">MAPBOX_ACCESS_TOKEN</code> so the server can render a
+          static preview.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <MapHeroMapInner
+      polyline={polyline}
+      highlightedPoint={highlightedPoint}
+      onHoverIndex={onHoverIndex}
+      className={className}
+      accessToken={token}
+      mapInstanceKey={mapInstanceKey}
+      staticPreviewFallback={staticPreviewUrl}
     />
   );
 }

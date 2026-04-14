@@ -10,18 +10,13 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { ReportSurfaceInput } from './dto/report-surface.input';
-import {
-  RouteConditions,
-  SurfaceReport,
-} from './models/surface-report.model';
+import { RouteConditions, SurfaceReport } from './models/surface-report.model';
 import { SurfaceReportsService } from './surface-reports.service';
 
 @Resolver(() => SurfaceReport)
 @UseGuards(GqlAuthGuard)
 export class SurfaceReportsResolver {
-  constructor(
-    private readonly surfaceReportsService: SurfaceReportsService,
-  ) {}
+  constructor(private readonly surfaceReportsService: SurfaceReportsService) {}
 
   @Mutation(() => SurfaceReport)
   @Throttle({ default: THROTTLE_PRESETS.STANDARD })

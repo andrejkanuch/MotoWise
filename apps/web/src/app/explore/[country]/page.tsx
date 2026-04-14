@@ -60,9 +60,7 @@ export default async function CountryPage({ params }: PageProps) {
       {regions.length > 0 && (
         <section className="px-6 pb-16">
           <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
-              Regions
-            </h2>
+            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">Regions</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {regions.map((region) => (
                 <a
@@ -101,15 +99,11 @@ export default async function CountryPage({ params }: PageProps) {
                     {route.displayName ?? route.name ?? 'Unnamed Route'}
                   </h3>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-400">
-                    {route.distanceM > 0 && (
-                      <span>{(route.distanceM / 1000).toFixed(1)} km</span>
-                    )}
+                    {route.distanceM > 0 && <span>{(route.distanceM / 1000).toFixed(1)} km</span>}
                     {route.elevationGainM != null && (
                       <span>↑ {Math.round(route.elevationGainM)} m</span>
                     )}
-                    {route.ratingAvg != null && (
-                      <span>★ {route.ratingAvg.toFixed(1)}</span>
-                    )}
+                    {route.ratingAvg != null && <span>★ {route.ratingAvg.toFixed(1)}</span>}
                   </div>
                 </a>
               ))}

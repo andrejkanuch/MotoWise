@@ -608,10 +608,13 @@
     "maintenanceRemindersDesc": "Get smart reminders for all your bikes.",
     "pdfExportTitle": "PDF Export",
     "pdfExportDesc": "Export maintenance records as PDF reports.",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
     "featureUnlimitedBikes": "Unlimited bikes in your garage",
     "featureFullDiagnostics": "Full AI diagnostics",
     "featureMaintenanceReminders": "Smart maintenance reminders",
     "featurePdfExport": "PDF export of records",
+    "featureGpxExport": "GPX route exports",
     "upgradeToPro": "Upgrade to Pro",
     "maybeLater": "Maybe Later"
   },

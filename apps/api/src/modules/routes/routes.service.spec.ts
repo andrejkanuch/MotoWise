@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RoutesService } from './routes.service';
 import { Route } from './models/route.model';
+import { RoutesService } from './routes.service';
 
 describe('RoutesService', () => {
   let service: RoutesService;
@@ -131,13 +131,13 @@ describe('RoutesService', () => {
       const result = await service.routeBySlug('IT-BZ', 'stelvio-pass');
 
       expect(result).not.toBeNull();
-      expect(result!.slug).toBe('stelvio-pass');
-      expect(result!.countryCode).toBe('IT');
-      expect(result!.regionCode).toBe('IT-BZ');
-      expect(result!.city).toBe('Bormio');
-      expect(result!.id).toBe('route-001');
-      expect(result!.name).toBe('Stelvio Pass');
-      expect(result!.contributor.displayName).toBe('Marco');
+      expect(result?.slug).toBe('stelvio-pass');
+      expect(result?.countryCode).toBe('IT');
+      expect(result?.regionCode).toBe('IT-BZ');
+      expect(result?.city).toBe('Bormio');
+      expect(result?.id).toBe('route-001');
+      expect(result?.name).toBe('Stelvio Pass');
+      expect(result?.contributor.displayName).toBe('Marco');
 
       expect(mockAdminClient.from).toHaveBeenCalledWith('routes');
       expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('status', 'published');

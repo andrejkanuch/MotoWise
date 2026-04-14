@@ -124,15 +124,12 @@ export function PaywallModal({ isOpen, config, onClose, onUpgradeClick }: Paywal
         </button>
 
         {/* Title */}
-        <h2
-          id="paywall-title"
-          className="pr-8 text-xl font-bold tracking-tight text-neutral-50"
-        >
+        <h2 id="paywall-title" className="pr-8 text-xl font-bold tracking-tight text-neutral-50">
           {config.title}
         </h2>
 
         {/* Value prop bullets */}
-        <ul className="mt-5 space-y-3" role="list">
+        <ul className="mt-5 space-y-3">
           {config.valuePropBullets.map((bullet) => (
             <li key={bullet} className="flex items-start gap-3 text-sm text-neutral-300">
               <svg
@@ -158,9 +155,7 @@ export function PaywallModal({ isOpen, config, onClose, onUpgradeClick }: Paywal
         </ul>
 
         {/* Price */}
-        <p className="mt-5 text-center text-sm text-neutral-400">
-          {config.price}
-        </p>
+        <p className="mt-5 text-center text-sm text-neutral-400">{config.price}</p>
 
         {/* CTA */}
         <button

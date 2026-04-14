@@ -263,7 +263,10 @@ export class SavedRoutesService {
   // ==========================================
 
   private mapSavedRouteRow(row: SavedRouteRow): Route {
-    const r = row.routes!;
+    const r = row.routes;
+    if (!r) {
+      throw new InternalServerErrorException('Saved route row missing joined route');
+    }
     const contributor: RouteContributor = {
       id: r.users?.id ?? r.contributor_user_id,
       displayName: r.users?.display_name ?? 'Rider',

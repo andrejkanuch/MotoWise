@@ -14,11 +14,7 @@
  *   `buildBreadcrumbList` from `./schema.ts`.
  */
 
-import type {
-  JsonLdBreadcrumbItem,
-  RegionForJsonLd,
-  RouteForJsonLd,
-} from '@motovault/types';
+import type { JsonLdBreadcrumbItem, RegionForJsonLd, RouteForJsonLd } from '@motovault/types';
 import { BASE_URL } from '@/lib/constants';
 import { SCHEMA_IDS } from './schema';
 

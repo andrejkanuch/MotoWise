@@ -15,11 +15,7 @@ import { THROTTLE_PRESETS } from '../../config/constants';
 import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
-import {
-  GPXExportError,
-  GPXExportResult,
-  GPXExportSuccess,
-} from './dto/gpx-export.dto';
+import { GPXExportError, GPXExportResult, GPXExportSuccess } from './dto/gpx-export.dto';
 import { ShareRideToDiscoverInput } from './dto/share-ride-to-discover.input';
 import { Route, RouteConnection } from './models/route.model';
 import { RouteReview, RouteReviewConnection } from './models/route-review.model';
@@ -61,7 +57,8 @@ export class RoutesResolver {
   ): Promise<Route | null> {
     // Input validation — prevent excessively long or malformed params
     if (country.length > 5 || region.length > 20 || slug.length > 200) return null;
-    if (!/^[a-z0-9-]+$/.test(country) || !/^[a-z0-9-]+$/.test(region) || !/^[a-z0-9-]+$/.test(slug)) return null;
+    if (!/^[a-z0-9-]+$/.test(country) || !/^[a-z0-9-]+$/.test(region) || !/^[a-z0-9-]+$/.test(slug))
+      return null;
     return this.routesService.findBySlug(country, region, slug);
   }
 

@@ -1,9 +1,9 @@
 import { palette } from '@motovault/design-system';
+import type { RouteReview } from '@motovault/types';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { BASE_URL } from '@/lib/constants';
-import type { RouteReview } from '@motovault/types';
 import { fetchRouteDetail, fetchRouteReviews } from '@/lib/fetch-route-detail';
 import { formatDate, formatDistance } from '@/lib/format-utils';
 import { getSupabaseServerClient } from '@/lib/supabase-server';

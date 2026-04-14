@@ -1,10 +1,10 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Query, Resolver } from '@nestjs/graphql';
+import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
-import { Public } from '../../common/decorators/public.decorator';
-import { FuelRangeResult, FuelStop } from './models/fuel-stop.model';
 import { FuelStopsService } from './fuel-stops.service';
+import { FuelRangeResult, FuelStop } from './models/fuel-stop.model';
 
 @Resolver()
 @UseGuards(GqlAuthGuard)
@@ -26,10 +26,7 @@ export class FuelStopsResolver {
     radiusKm?: number,
   ): Promise<FuelRangeResult> {
     // 1. Get fuel stops near the route
-    const fuelStops = await this.fuelStopsService.getFuelStopsNearRoute(
-      routeId,
-      radiusKm ?? 5,
-    );
+    const fuelStops = await this.fuelStopsService.getFuelStopsNearRoute(routeId, radiusKm ?? 5);
 
     // 2. Get route distance for range calculation
     const routeDistanceKm = await this.fuelStopsService.getRouteDistanceKm(routeId);

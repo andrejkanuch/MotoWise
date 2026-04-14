@@ -8,10 +8,7 @@ import { buildStaticMapUrl } from '../../../../lib/map/static-image-provider';
  * Fetches the route polyline from Supabase, builds a Mapbox Static Image URL,
  * proxies the image, and caches aggressively (route polylines are immutable).
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   if (!id || id.length < 10) {

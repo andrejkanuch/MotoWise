@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/constants', () => ({
   BASE_URL: 'https://motovault.app',
 }));
 
-import { canonicalRoute, canonicalRegion, canonicalCountry } from '../canonical';
+import { canonicalCountry, canonicalRegion, canonicalRoute } from '../canonical';
 
 describe('canonical URL builders', () => {
   it('canonicalRoute builds /route/{country}/{region}/{slug}', () => {
@@ -14,14 +14,10 @@ describe('canonical URL builders', () => {
   });
 
   it('canonicalRegion builds /explore/{country}/{region}', () => {
-    expect(canonicalRegion('us', 'ca')).toBe(
-      'https://motovault.app/explore/us/ca',
-    );
+    expect(canonicalRegion('us', 'ca')).toBe('https://motovault.app/explore/us/ca');
   });
 
   it('canonicalCountry builds /explore/{country}', () => {
-    expect(canonicalCountry('us')).toBe(
-      'https://motovault.app/explore/us',
-    );
+    expect(canonicalCountry('us')).toBe('https://motovault.app/explore/us');
   });
 });

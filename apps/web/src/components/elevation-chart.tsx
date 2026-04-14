@@ -1,18 +1,18 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { palette } from '@motovault/design-system';
+import type { ActiveElement, ChartEvent } from 'chart.js';
 import {
-  Chart as ChartJS,
   CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
+  Chart as ChartJS,
   Filler,
+  LinearScale,
+  LineElement,
+  PointElement,
   Tooltip,
 } from 'chart.js';
+import { useCallback, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
-import type { ChartEvent, ActiveElement } from 'chart.js';
-import { palette } from '@motovault/design-system';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -174,10 +174,8 @@ export function ElevationChart({
   };
 
   return (
-    <div
-      className={`relative ${className}`}
-      onMouseLeave={handleLeave}
-    >
+    // biome-ignore lint/a11y/noStaticElementInteractions: Chart.js hover state resets on pointer leave
+    <div className={`relative ${className}`} onMouseLeave={handleLeave}>
       <Line ref={chartRef} data={data} options={options} />
     </div>
   );

@@ -12,7 +12,9 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
       // Hero section visible
       await expect(page.locator('h1')).toBeVisible();
       // Search form exists
-      await expect(page.locator('form input[type="search"], form input[type="text"]').first()).toBeVisible();
+      await expect(
+        page.locator('form input[type="search"], form input[type="text"]').first(),
+      ).toBeVisible();
     });
 
     test('search bar triggers typeahead on input', async ({ page }) => {
@@ -22,7 +24,7 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
       // Wait for typeahead dropdown
       await page.waitForTimeout(500);
       // Check for dropdown/listbox
-      const dropdown = page.locator('[role="listbox"], [data-testid="typeahead-results"]');
+      const _dropdown = page.locator('[role="listbox"], [data-testid="typeahead-results"]');
       // Dropdown may or may not appear depending on data — just verify no crash
       await expect(page).not.toHaveTitle(/error/i);
     });
@@ -58,7 +60,10 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
         expect(canonical).toContain('/route/');
 
         // Verify JSON-LD present
-        const jsonLd = await page.locator('script[type="application/ld+json"]').first().textContent();
+        const jsonLd = await page
+          .locator('script[type="application/ld+json"]')
+          .first()
+          .textContent();
         expect(jsonLd).toBeTruthy();
         if (jsonLd) {
           const schema = JSON.parse(jsonLd);
@@ -86,7 +91,9 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
 
       if (status === 200) {
         // Breadcrumb should be present
-        const breadcrumb = page.locator('nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], [data-testid="breadcrumb"]');
+        const breadcrumb = page.locator(
+          'nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], [data-testid="breadcrumb"]',
+        );
         await expect(breadcrumb.first()).toBeVisible();
       }
     });
@@ -128,11 +135,16 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
 
     test('explore page has JSON-LD WebSite schema', async ({ page }) => {
       await page.goto('/explore');
-      const jsonLdScripts = await page.locator('script[type="application/ld+json"]').allTextContents();
+      const jsonLdScripts = await page
+        .locator('script[type="application/ld+json"]')
+        .allTextContents();
       const hasWebSite = jsonLdScripts.some((script) => {
         try {
           const data = JSON.parse(script);
-          return data['@type'] === 'WebSite' || (Array.isArray(data) && data.some((d: { '@type': string }) => d['@type'] === 'WebSite'));
+          return (
+            data['@type'] === 'WebSite' ||
+            (Array.isArray(data) && data.some((d: { '@type': string }) => d['@type'] === 'WebSite'))
+          );
         } catch {
           return false;
         }
@@ -151,7 +163,7 @@ test.describe('Routes Discovery Phase 1 — E2E Smoke Tests', () => {
       if (response?.status() === 200) {
         // Save button should exist but require auth
         const saveBtn = page.locator('button:has-text("Save"), [data-testid="save-route"]');
-        if (await saveBtn.count() > 0) {
+        if ((await saveBtn.count()) > 0) {
           // Button should be present (gating happens on click, not visibility in Phase 1)
           await expect(saveBtn.first()).toBeVisible();
         }

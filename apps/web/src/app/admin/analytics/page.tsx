@@ -86,8 +86,8 @@ export default async function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold text-neutral-50">Analytics</h1>
         <p className="mt-2 text-neutral-400">
-          Set <code className="text-neutral-300">SUPABASE_SERVICE_ROLE_KEY</code> (and Supabase URL) to
-          load analytics. Builds without this key still succeed.
+          Set <code className="text-neutral-300">SUPABASE_SERVICE_ROLE_KEY</code> (and Supabase URL)
+          to load analytics. Builds without this key still succeed.
         </p>
       </div>
     );

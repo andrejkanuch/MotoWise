@@ -44,9 +44,15 @@ export class DiscoverRoutesFilterInput {
   @Field({ nullable: true })
   bikeCategory?: string;
 
-  @Field(() => Int, { nullable: true, description: 'Minimum twist score 1-10 (maps to curvature_index thresholds)' })
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Minimum twist score 1-10 (maps to curvature_index thresholds)',
+  })
   minTwistScore?: number;
 
-  @Field(() => Int, { nullable: true, description: 'Only routes with surface condition reports within the last N days' })
+  @Field(() => Int, {
+    nullable: true,
+    description: 'Only routes with surface condition reports within the last N days',
+  })
   surfaceRecency?: number;
 }

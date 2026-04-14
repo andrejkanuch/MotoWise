@@ -1,15 +1,15 @@
 import type { RouteForJsonLd } from '@motovault/types';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/constants', () => ({
   BASE_URL: 'https://motovault.app',
 }));
 
 import {
-  routeToTouristAttraction,
-  regionToPlace,
-  websiteSchema,
   breadcrumbSchema,
+  regionToPlace,
+  routeToTouristAttraction,
+  websiteSchema,
 } from '../jsonld';
 
 describe('routeToTouristAttraction', () => {

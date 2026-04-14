@@ -20,9 +20,17 @@ function MapPlaceholder() {
 
 interface RouteMapSectionProps {
   polyline: [number, number][];
+  /** Server-rendered Mapbox Static Images URL when `MAPBOX_ACCESS_TOKEN` is set */
+  staticPreviewUrl?: string | null;
+  /** Stable id for the route geometry (e.g. route UUID) */
+  mapInstanceKey?: string;
 }
 
-export function RouteMapSection({ polyline }: RouteMapSectionProps) {
+export function RouteMapSection({
+  polyline,
+  staticPreviewUrl,
+  mapInstanceKey,
+}: RouteMapSectionProps) {
   if (polyline.length === 0) {
     return (
       <div className="flex h-[400px] items-center justify-center rounded-2xl bg-neutral-900 text-neutral-600 lg:h-[500px]">
@@ -33,7 +41,11 @@ export function RouteMapSection({ polyline }: RouteMapSectionProps) {
 
   return (
     <div className="h-[400px] w-full overflow-hidden rounded-2xl lg:h-[500px]">
-      <MapHeroInteractive polyline={polyline} />
+      <MapHeroInteractive
+        polyline={polyline}
+        staticPreviewUrl={staticPreviewUrl}
+        mapInstanceKey={mapInstanceKey}
+      />
     </div>
   );
 }
