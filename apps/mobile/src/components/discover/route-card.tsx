@@ -48,7 +48,9 @@ export const RouteCard = memo(function RouteCard({
     <Animated.View
       entering={
         route.isMotovaultPick
-          ? FadeInUp.delay(index * 40 + 20).springify().damping(14)
+          ? FadeInUp.delay(index * 40 + 20)
+              .springify()
+              .damping(14)
           : FadeInUp.delay(index * 40).duration(250)
       }
     >

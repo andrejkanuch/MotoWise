@@ -8,10 +8,10 @@ import {
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Compass, Plus } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   Extrapolation,

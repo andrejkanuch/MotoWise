@@ -1,6 +1,7 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Pressable, Text, View } from 'react-native';
+
 interface GreetingHeaderProps {
   greetingText: string;
   subtitleText: string;
