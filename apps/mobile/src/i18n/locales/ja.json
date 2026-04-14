@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "スマートメンテナンスリマインダー",
     "featurePdfExport": "記録のPDFエクスポート",
     "upgradeToPro": "Proにアップグレード",
-    "maybeLater": "後で検討する"
+    "maybeLater": "後で検討する",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "ページが見つかりません",

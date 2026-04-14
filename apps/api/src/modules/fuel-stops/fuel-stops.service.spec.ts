@@ -5,7 +5,8 @@ describe('FuelStopsService', () => {
   let service: FuelStopsService;
 
   beforeEach(() => {
-    service = new FuelStopsService();
+    // Pass null for DI deps — unit tests don't hit DB or Redis
+    service = new FuelStopsService(null as never, null);
   });
 
   describe('calculateEffectiveRange', () => {
@@ -39,27 +40,35 @@ describe('FuelStopsService', () => {
   });
 
   describe('computeFuelRangeSummary', () => {
-    it('returns correct text output', () => {
-      const result = service.computeFuelRangeSummary(15, 25);
+    it('returns no refuel needed when range exceeds distance', () => {
+      // Route: 100 km, range: 300 km — no stops
+      const result = service.computeFuelRangeSummary(100, 300);
 
       expect(result.effectiveRangeKm).toBe(300);
-      expect(result.text).toBe('Estimated range: 300 km (15L tank, 25 km/L, 80% safety margin)');
+      expect(result.stopsRequired).toBe(0);
+      expect(result.summary).toBe('You can complete this route without refueling.');
     });
 
-    it('rounds range in text', () => {
-      // 12.5L tank, 22.4 km/L => 224.0 km
-      const result = service.computeFuelRangeSummary(12.5, 22.4);
+    it('returns 1 stop when distance is up to 2x range', () => {
+      // Route: 500 km, range: 300 km — ceil(500/300)-1 = 1
+      const result = service.computeFuelRangeSummary(500, 300);
 
-      expect(result.effectiveRangeKm).toBeCloseTo(224);
-      expect(result.text).toContain('224 km');
+      expect(result.stopsRequired).toBe(1);
+      expect(result.summary).toContain('refuel 1 time');
     });
 
-    it('includes tank and efficiency in text', () => {
-      const result = service.computeFuelRangeSummary(20, 18);
+    it('returns multiple stops for long routes', () => {
+      // Route: 1000 km, range: 300 km — ceil(1000/300)-1 = 3
+      const result = service.computeFuelRangeSummary(1000, 300);
 
-      expect(result.text).toContain('20L tank');
-      expect(result.text).toContain('18 km/L');
-      expect(result.text).toContain('80% safety margin');
+      expect(result.stopsRequired).toBe(3);
+      expect(result.summary).toContain('refuel 3 times');
+    });
+
+    it('handles zero effective range gracefully', () => {
+      const result = service.computeFuelRangeSummary(100, 0);
+
+      expect(result.stopsRequired).toBe(0);
     });
   });
 });

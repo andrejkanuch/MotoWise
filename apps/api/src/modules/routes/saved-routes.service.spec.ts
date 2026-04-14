@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RoutesService } from './routes.service';
+import { SavedRoutesService } from './saved-routes.service';
 
 /** Helper to create a mock Supabase client */
 function createMockSupabase() {
@@ -8,15 +8,15 @@ function createMockSupabase() {
   };
 }
 
-describe('RoutesService — saved routes', () => {
-  let service: RoutesService;
+describe('SavedRoutesService', () => {
+  let service: SavedRoutesService;
   let mockUser: ReturnType<typeof createMockSupabase>;
   let mockAdmin: ReturnType<typeof createMockSupabase>;
 
   beforeEach(() => {
     mockUser = createMockSupabase();
     mockAdmin = createMockSupabase();
-    service = new RoutesService(mockUser as never, mockAdmin as never);
+    service = new SavedRoutesService(mockUser as never, mockAdmin as never);
   });
 
   describe('saveRoute', () => {

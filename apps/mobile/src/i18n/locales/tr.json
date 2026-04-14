@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "Akilli bakim hatirlatmalari",
     "featurePdfExport": "Kayitlarin PDF disa aktarimi",
     "upgradeToPro": "Pro'ya Yukselt",
-    "maybeLater": "Belki Sonra"
+    "maybeLater": "Belki Sonra",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "Sayfa bulunamadi",

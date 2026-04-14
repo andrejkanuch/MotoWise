@@ -33,6 +33,10 @@ interface RouteRow {
   status: string;
   created_at: string;
   contributor_user_id: string;
+  slug?: string;
+  country_code?: string;
+  region_code?: string;
+  city?: string;
   start_lat?: number;
   start_lng?: number;
   users: {
@@ -91,7 +95,7 @@ export class RoutesService {
     let query = this.supabase
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('status', 'published')
       .order('created_at', { ascending: false })
@@ -212,7 +216,7 @@ export class RoutesService {
     const { data, error } = await this.supabaseAdmin
       .from('routes')
       .select(
-        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url)',
+        'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
       .eq('id', routeId)
       .eq('status', 'published')
@@ -535,6 +539,10 @@ export class RoutesService {
       status: row.status,
       createdAt: row.created_at,
       contributor,
+      slug: row.slug ?? undefined,
+      countryCode: row.country_code ?? undefined,
+      regionCode: row.region_code ?? undefined,
+      city: row.city ?? undefined,
       startLat: row.start_lat ?? undefined,
       startLng: row.start_lng ?? undefined,
     };

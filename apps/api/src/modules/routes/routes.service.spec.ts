@@ -124,11 +124,11 @@ describe('RoutesService', () => {
   // routeBySlug
   // ==========================================
 
-  describe('routeBySlug', () => {
+  describe('findBySlug', () => {
     it('found route returns correct shape with slug, countryCode, regionCode, city', async () => {
-      mockAdminClient._pushResult({ data: fakeRouteRow });
+      mockUserClient._pushResult({ data: fakeRouteRow });
 
-      const result = await service.routeBySlug('IT-BZ', 'stelvio-pass');
+      const result = await service.findBySlug('IT', 'IT-BZ', 'stelvio-pass');
 
       expect(result).not.toBeNull();
       expect(result?.slug).toBe('stelvio-pass');
@@ -139,34 +139,34 @@ describe('RoutesService', () => {
       expect(result?.name).toBe('Stelvio Pass');
       expect(result?.contributor.displayName).toBe('Marco');
 
-      expect(mockAdminClient.from).toHaveBeenCalledWith('routes');
-      expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('status', 'published');
-      expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('region_code', 'IT-BZ');
-      expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
+      expect(mockUserClient.from).toHaveBeenCalledWith('routes');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('status', 'published');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('region_code', 'IT-BZ');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
     });
 
     it('not found returns null', async () => {
-      mockAdminClient._pushResult({
+      mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
       });
 
-      const result = await service.routeBySlug('IT-BZ', 'nonexistent-route');
+      const result = await service.findBySlug('IT', 'IT-BZ', 'nonexistent-route');
 
       expect(result).toBeNull();
     });
 
     it('wrong region + correct slug returns null (composite key)', async () => {
-      mockAdminClient._pushResult({
+      mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
       });
 
-      const result = await service.routeBySlug('DE-BY', 'stelvio-pass');
+      const result = await service.findBySlug('DE', 'DE-BY', 'stelvio-pass');
 
       expect(result).toBeNull();
-      expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('region_code', 'DE-BY');
-      expect(mockAdminClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('region_code', 'DE-BY');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
     });
   });
 

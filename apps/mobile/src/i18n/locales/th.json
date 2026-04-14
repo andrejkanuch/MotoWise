@@ -613,7 +613,10 @@
     "featureMaintenanceReminders": "แจ้งเตือนบำรุงรักษาอัจฉริยะ",
     "featurePdfExport": "ส่งออกบันทึกเป็น PDF",
     "upgradeToPro": "อัปเกรดเป็น Pro",
-    "maybeLater": "ไว้ทีหลัง"
+    "maybeLater": "ไว้ทีหลัง",
+    "gpxExportTitle": "GPX Export",
+    "gpxExportDesc": "Export route GPX files for navigation apps beyond the free monthly limit.",
+    "featureGpxExport": "GPX route exports"
   },
   "notFound": {
     "message": "ไม่พบหน้านี้",

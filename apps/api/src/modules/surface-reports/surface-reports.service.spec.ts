@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SurfaceReportsService } from './surface-reports.service';
 
@@ -23,15 +22,23 @@ function createMockSupabase() {
   return { client, queryBuilder };
 }
 
+function createMockRedis() {
+  return {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+  };
+}
+
 describe('SurfaceReportsService', () => {
   let service: SurfaceReportsService;
-  let mockUser: ReturnType<typeof createMockSupabase>;
-  let mockAdmin: ReturnType<typeof createMockSupabase>;
+  let mockSupabase: ReturnType<typeof createMockSupabase>;
+  let mockRedis: ReturnType<typeof createMockRedis>;
 
   beforeEach(() => {
-    mockUser = createMockSupabase();
-    mockAdmin = createMockSupabase();
-    service = new SurfaceReportsService(mockUser.client as never, mockAdmin.client as never);
+    mockSupabase = createMockSupabase();
+    mockRedis = createMockRedis();
+    service = new SurfaceReportsService(mockSupabase.client as never, mockRedis as never);
   });
 
   describe('reportSurface', () => {
@@ -42,30 +49,18 @@ describe('SurfaceReportsService', () => {
         user_id: 'user-1',
         condition: 'wet',
         note: 'Slippery after rain',
+        photo_url: null,
         reported_at: '2026-04-13T10:00:00Z',
       };
 
-      // First call: duplicate check -- no existing report
-      const dupChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        gte: vi.fn().mockReturnThis(),
-        lte: vi.fn().mockReturnThis(),
-        single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      };
-
-      // Second call: insert
+      // insert -> select -> single chain
       const insertChain = {
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({ data: reportRow, error: null }),
       };
 
-      let callCount = 0;
-      mockUser.client.from = vi.fn().mockImplementation(() => {
-        callCount++;
-        return callCount === 1 ? dupChain : insertChain;
-      });
+      mockSupabase.client.from = vi.fn().mockReturnValue(insertChain);
 
       const result = await service.reportSurface('user-1', {
         routeId: 'route-1',
@@ -79,75 +74,135 @@ describe('SurfaceReportsService', () => {
       expect(result.note).toBe('Slippery after rain');
     });
 
-    it('rejects duplicate report on the same day', async () => {
-      const dupChain = {
+    it('rejects when insert fails', async () => {
+      const insertChain = {
+        insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        gte: vi.fn().mockReturnThis(),
-        lte: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
-          data: { id: 'existing-report' },
-          error: null,
+          data: null,
+          error: { message: 'duplicate key value violates unique constraint' },
         }),
       };
 
-      mockUser.client.from = vi.fn().mockReturnValue(dupChain);
+      mockSupabase.client.from = vi.fn().mockReturnValue(insertChain);
 
       await expect(
         service.reportSurface('user-1', {
           routeId: 'route-1',
           condition: 'wet',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow('duplicate key value violates unique constraint');
     });
   });
 
   describe('routeConditions', () => {
     it('returns aggregated conditions', async () => {
-      const rows = [
-        { condition: 'wet', reported_at: '2026-04-13T10:00:00Z' },
-        { condition: 'wet', reported_at: '2026-04-12T08:00:00Z' },
-        { condition: 'gravel', reported_at: '2026-04-11T14:00:00Z' },
-        { condition: 'dry', reported_at: '2026-04-10T09:00:00Z' },
+      const recentRows = [
+        {
+          id: 'r1',
+          route_id: 'route-1',
+          user_id: 'u1',
+          condition: 'wet',
+          note: null,
+          photo_url: null,
+          reported_at: '2026-04-13T10:00:00Z',
+        },
+        {
+          id: 'r2',
+          route_id: 'route-1',
+          user_id: 'u2',
+          condition: 'wet',
+          note: null,
+          photo_url: null,
+          reported_at: '2026-04-12T08:00:00Z',
+        },
+        {
+          id: 'r3',
+          route_id: 'route-1',
+          user_id: 'u3',
+          condition: 'gravel',
+          note: null,
+          photo_url: null,
+          reported_at: '2026-04-11T14:00:00Z',
+        },
+        {
+          id: 'r4',
+          route_id: 'route-1',
+          user_id: 'u4',
+          condition: 'dry',
+          note: null,
+          photo_url: null,
+          reported_at: '2026-04-10T09:00:00Z',
+        },
       ];
 
-      const selectChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: rows, error: null }),
-      };
+      const aggregateRows = [
+        { condition: 'wet' },
+        { condition: 'wet' },
+        { condition: 'gravel' },
+        { condition: 'dry' },
+      ];
 
-      mockAdmin.client.from = vi.fn().mockReturnValue(selectChain);
+      let callCount = 0;
+      mockSupabase.client.from = vi.fn().mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // getRecentReports: select -> eq -> order -> limit
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                order: vi.fn().mockReturnValue({
+                  limit: vi.fn().mockResolvedValue({ data: recentRows, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        // getAggregates: select -> eq -> gte
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              gte: vi.fn().mockResolvedValue({ data: aggregateRows, error: null }),
+            }),
+          }),
+        };
+      });
 
       const result = await service.routeConditions('route-1');
 
-      expect(result).toHaveLength(3);
+      expect(result.recentReports).toHaveLength(4);
+      expect(result.recentReports[0].routeId).toBe('route-1');
 
-      const wet = result.find((r) => r.condition === 'wet');
+      expect(result.aggregates).toHaveLength(3);
+
+      const wet = result.aggregates.find((a) => a.condition === 'wet');
       expect(wet).toBeDefined();
       expect(wet?.count).toBe(2);
-      expect(wet?.latestReportedAt).toBe('2026-04-13T10:00:00Z');
 
-      const gravel = result.find((r) => r.condition === 'gravel');
+      const gravel = result.aggregates.find((a) => a.condition === 'gravel');
       expect(gravel).toBeDefined();
       expect(gravel?.count).toBe(1);
 
-      const dry = result.find((r) => r.condition === 'dry');
+      const dry = result.aggregates.find((a) => a.condition === 'dry');
       expect(dry).toBeDefined();
       expect(dry?.count).toBe(1);
     });
 
     it('returns empty array when no reports exist', async () => {
-      const selectChain = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      };
-
-      mockAdmin.client.from = vi.fn().mockReturnValue(selectChain);
+      mockSupabase.client.from = vi.fn().mockImplementation(() => ({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+            }),
+            gte: vi.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        }),
+      }));
 
       const result = await service.routeConditions('route-1');
-      expect(result).toEqual([]);
+      expect(result.recentReports).toEqual([]);
+      expect(result.aggregates).toEqual([]);
     });
   });
 });
