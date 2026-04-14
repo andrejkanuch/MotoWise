@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { RouteMapSection } from '@/components/route-map-section';
 import { SaveRouteButton } from '@/components/save-route-button';
+import { BASE_URL } from '@/lib/constants';
 import { decodePolyline } from '@/lib/decode-polyline';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
@@ -199,10 +200,37 @@ export async function generateMetadata({
     route.description ??
     `${formatDistance(route.distanceM)} km motorcycle route in ${prettifyRegion(region, country)}, ${prettifyCountry(country)}`;
 
+  const canonicalUrl = `${BASE_URL}/route/${country}/${region}/${slug}`;
+  const staticMap =
+    route.polyline && route.polyline.length > 0
+      ? buildStaticMapUrl({
+          polyline: route.polyline,
+          width: 1200,
+          height: 630,
+          strokeColor: 'd97706',
+          retina: true,
+        })
+      : '';
+  const ogImage = staticMap.length > 0 ? staticMap : null;
+
   return {
     title,
     description,
-    openGraph: { title, description, type: 'article' },
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: canonicalUrl,
+      siteName: 'MotoVault',
+      ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
   };
 }
 

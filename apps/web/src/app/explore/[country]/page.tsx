@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SaveRouteButton } from '@/components/save-route-button';
+import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   fetchCountryBySlug,
   fetchRegionsByCountrySlug,
@@ -10,7 +11,7 @@ import {
 
 export const revalidate = 86400;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://motovault.app';
+const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
 interface PageProps {
   params: Promise<{ country: string }>;
@@ -22,13 +23,41 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!country) return {};
 
   const title = `Motorcycle Routes in ${country.name}`;
-  const description = `Discover the best motorcycle routes in ${country.name}. Browse twisty roads, scenic passes, and epic rides.`;
+  const rc = country.routeCount;
+  const description =
+    rc > 0
+      ? `Explore ${rc} motorcycle route${rc === 1 ? '' : 's'} in ${country.name}. Twisty roads, scenic passes, and rides rated by riders on MotoVault.`
+      : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault or share a ride from the app.`;
 
-  return {
+  const canonical = `${BASE_URL}/explore/${countrySlug}`;
+  const base: Metadata = {
     title: { absolute: `${title} | MotoVault` },
     description,
-    alternates: { canonical: `${BASE_URL}/explore/${countrySlug}` },
+    alternates: {
+      canonical,
+      languages: getHreflangMap(`/explore/${countrySlug}`),
+    },
+    openGraph: {
+      title: `${title} | MotoVault`,
+      description,
+      url: canonical,
+      siteName: 'MotoVault',
+      type: 'website',
+      images: [{ url: OG_IMAGE }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | MotoVault`,
+      description,
+      images: [OG_IMAGE],
+    },
   };
+
+  if (rc === 0) {
+    return { ...base, robots: { index: false, follow: true } };
+  }
+
+  return base;
 }
 
 function getDifficulty(curvature: number | null | undefined): { label: string; color: string } {
