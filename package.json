@@ -21,6 +21,7 @@
     "db:types": "turbo generate:types",
     "check:i18n": "tsx scripts/check-i18n-keys.ts",
     "precheck": "pnpm lint && pnpm typecheck && pnpm test",
+    "precheck:push": "sh scripts/precheck-changed.sh",
     "prepare": "git config core.hooksPath .githooks",
     "android": "expo run:android",
     "ios": "expo run:ios"

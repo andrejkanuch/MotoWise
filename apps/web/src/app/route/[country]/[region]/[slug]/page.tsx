@@ -1,12 +1,17 @@
 import { palette } from '@motovault/design-system';
-import type { RouteBySlugPagePayload } from '@motovault/types';
+import type { RouteBySlugPagePayload, RouteReview } from '@motovault/types';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { RouteMapSection } from '@/components/route-map-section';
+import { SaveRouteButton } from '@/components/save-route-button';
 import { decodePolyline } from '@/lib/decode-polyline';
+import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { OpenInAppCta } from './open-in-app-cta';
+import { RouteDetailReviewsSection } from './route-detail-reviews-section';
+import { ShareButton } from './share-button';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
@@ -38,6 +43,34 @@ const ROUTE_BY_SLUG_QUERY = `
   }
 `;
 
+const ROUTE_REVIEWS_QUERY = `
+  query GetRouteReviews($routeId: ID!, $first: Int) {
+    getRouteReviews(routeId: $routeId, first: $first) {
+      reviews {
+        id
+        rating
+        text
+        conditionTags
+        createdAt
+        author {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+        bike {
+          make
+          model
+          year
+        }
+      }
+      hasNextPage
+      endCursor
+      totalCount
+    }
+  }
+`;
+
 async function fetchRoute(
   country: string,
   region: string,
@@ -61,6 +94,34 @@ async function fetchRoute(
   }
 }
 
+async function fetchReviews(
+  routeId: string,
+  first = 10,
+): Promise<{
+  reviews: RouteReview[];
+  totalCount: number;
+  hasNextPage: boolean;
+} | null> {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: ROUTE_REVIEWS_QUERY,
+        variables: { routeId, first },
+      }),
+      next: { revalidate: 300 },
+    });
+    const json = await res.json();
+    if (json.errors || !json.data?.getRouteReviews) return null;
+    return json.data.getRouteReviews;
+  } catch {
+    return null;
+  }
+}
+
+// ── Formatting helpers ─────────────────────────────────────────────
+
 function formatDistance(meters: number): string {
   const km = meters / 1000;
   return km >= 100 ? `${Math.round(km)}` : `${km.toFixed(1)}`;
@@ -71,18 +132,24 @@ function formatElevation(meters: number): string {
 }
 
 function formatDuration(meters: number): string {
-  const hours = meters / 1000 / 60; // Rough: 60km/h avg motorcycle speed
-  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  const hours = meters / 1000 / 60;
+  if (hours < 1) return `${Math.round(hours * 60)}min`;
   const h = Math.floor(hours);
   const m = Math.round((hours - h) * 60);
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function getDifficulty(curvature: number | null | undefined): { label: string; color: string } {
-  if (curvature == null) return { label: 'Unknown', color: palette.neutral400 };
-  if (curvature >= 0.06) return { label: 'Expert', color: palette.danger500 };
-  if (curvature >= 0.03) return { label: 'Intermediate', color: palette.warning500 };
-  return { label: 'Easy', color: palette.success500 };
+function getDifficulty(curvature: number | null | undefined): {
+  label: string;
+  color: string;
+  level: number;
+} {
+  if (curvature == null) return { label: 'Unknown', color: palette.neutral400, level: 0 };
+  if (curvature >= 0.06) return { label: 'Expert', color: palette.danger500, level: 5 };
+  if (curvature >= 0.045) return { label: 'Advanced', color: palette.signature500, level: 4 };
+  if (curvature >= 0.03) return { label: 'Intermediate', color: palette.warning500, level: 3 };
+  if (curvature >= 0.015) return { label: 'Moderate', color: palette.accent400, level: 2 };
+  return { label: 'Easy', color: palette.success500, level: 1 };
 }
 
 function getSurfaceLabel(type: string | null | undefined): string {
@@ -99,13 +166,23 @@ function getSurfaceLabel(type: string | null | undefined): string {
   }
 }
 
-function prettifyRegion(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+function getCurvatureLabel(index: number | null | undefined): string {
+  if (index == null) return 'Unknown';
+  if (index >= 0.06) return 'Very Twisty';
+  if (index >= 0.03) return 'Twisty';
+  if (index >= 0.015) return 'Some Curves';
+  return 'Mostly Straight';
+}
+
+function prettifyRegion(regionSlug: string, countrySlug: string): string {
+  return regionDisplayName(regionSlug, countrySlug);
 }
 
 function prettifyCountry(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return countryDisplayName(slug);
 }
+
+// ── Metadata ───────────────────────────────────────────────────────
 
 export async function generateMetadata({
   params,
@@ -120,7 +197,7 @@ export async function generateMetadata({
   const description =
     route.editorialDescription ??
     route.description ??
-    `${formatDistance(route.distanceM)} km motorcycle route in ${prettifyRegion(region)}, ${prettifyCountry(country)}`;
+    `${formatDistance(route.distanceM)} km motorcycle route in ${prettifyRegion(region, country)}, ${prettifyCountry(country)}`;
 
   return {
     title,
@@ -128,6 +205,8 @@ export async function generateMetadata({
     openGraph: { title, description, type: 'article' },
   };
 }
+
+// ── Page ───────────────────────────────────────────────────────────
 
 export default async function RouteDetailPage({
   params,
@@ -138,13 +217,21 @@ export default async function RouteDetailPage({
   const route = await fetchRoute(country, region, slug);
   if (!route) notFound();
 
-  const cookieStore = await cookies();
-  const hasSession = cookieStore.getAll().some((c) => c.name.includes('auth-token'));
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const hasSession = !!user;
+
+  const reviewsData = await fetchReviews(route.id, 10);
+  const reviews = reviewsData?.reviews ?? [];
+  const totalReviewCount = reviewsData?.totalCount ?? 0;
+  const hasMoreReviews = reviewsData?.hasNextPage ?? false;
 
   const difficulty = getDifficulty(route.curvatureIndex);
   const surfaceLabel = getSurfaceLabel(route.surfaceType);
   const routeName = route.name ?? 'Unnamed Route';
-  const regionName = prettifyRegion(region);
+  const regionName = prettifyRegion(region, country);
   const countryName = prettifyCountry(country);
   const editorialText = route.editorialDescription ?? route.description;
   const decodedPolyline = route.polyline ? decodePolyline(route.polyline) : [];
@@ -159,29 +246,39 @@ export default async function RouteDetailPage({
         }) || null
       : null;
 
+  // Aggregate condition tags from reviews
+  const conditionTagCounts: Record<string, number> = {};
+  for (const review of reviews) {
+    for (const tag of review.conditionTags) {
+      conditionTagCounts[tag] = (conditionTagCounts[tag] ?? 0) + 1;
+    }
+  }
+  const topConditionTags = Object.entries(conditionTagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50">
+    <div className="min-h-screen text-neutral-50">
       {/* ── Breadcrumb ── */}
-      <nav className="border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm">
+      <nav className="border-b border-neutral-800/40">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 text-sm sm:px-6">
-          <a href="/explore" className="text-neutral-400 hover:text-neutral-200 transition-colors">
+          <a href="/explore" className="text-neutral-400 transition-colors hover:text-neutral-200">
             Explore
           </a>
           <span className="text-neutral-600">/</span>
           <a
             href={`/explore/${country}`}
-            className="text-neutral-400 hover:text-neutral-200 transition-colors"
+            className="text-neutral-400 transition-colors hover:text-neutral-200"
           >
             {countryName}
           </a>
           <span className="text-neutral-600">/</span>
-          <span className="text-neutral-300 truncate max-w-[200px]">{routeName}</span>
+          <span className="max-w-[200px] truncate text-neutral-300">{routeName}</span>
         </div>
       </nav>
 
       {/* ── Hero Section ── */}
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-        {/* Title + badges */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl lg:text-[2.75rem]">
             {routeName}
@@ -230,24 +327,25 @@ export default async function RouteDetailPage({
               />
               <span className="text-neutral-300">{difficulty.label}</span>
             </span>
-            <span className="text-sm text-neutral-400">·</span>
+            <span className="text-sm text-neutral-400">&middot;</span>
             <span className="text-sm text-neutral-300">{surfaceLabel}</span>
-            <span className="text-sm text-neutral-400">·</span>
+            <span className="text-sm text-neutral-400">&middot;</span>
             <span className="text-sm text-neutral-400">
               {regionName}, {countryName}
             </span>
           </div>
         </div>
 
-        {/* Map hero + action bar */}
+        {/* Map hero + action buttons */}
         <div className="relative mb-8 overflow-hidden rounded-2xl border border-neutral-800/60 bg-neutral-900">
           <RouteMapSection
             polyline={decodedPolyline}
             staticPreviewUrl={staticPreviewUrl}
             mapInstanceKey={route.id}
           />
-          {/* Action buttons — AllTrails-style top-right */}
-          <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+          <div className="absolute right-4 top-4 z-10 flex items-start gap-2">
+            <SaveRouteButton routeId={route.id} />
+            <ShareButton routeName={routeName} />
             <GpxDownloadButton
               routeId={route.id}
               routeName={routeName}
@@ -257,45 +355,32 @@ export default async function RouteDetailPage({
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
-      <div className="border-y border-neutral-800/60 bg-neutral-900/40">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-neutral-800/60 px-4 py-6 sm:px-6 lg:grid-cols-3">
-          <div className="text-center">
-            <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-              {formatDistance(route.distanceM)}
-              <span className="ml-1 text-base font-normal text-neutral-500">km</span>
-            </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
-              Length
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-              {route.elevationGainM != null ? formatElevation(route.elevationGainM) : '—'}
-              {route.elevationGainM != null && (
-                <span className="ml-1 text-base font-normal text-neutral-500">m</span>
-              )}
-            </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
-              Elevation gain
-            </p>
-          </div>
-          <div className="text-center">
-            <p className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl">
-              {formatDuration(route.distanceM)}
-            </p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-neutral-500">
-              Est. time
-            </p>
-          </div>
-        </div>
+      {/* ── Stats ── */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <p className="py-4 text-sm text-neutral-400">
+          {formatDistance(route.distanceM)} km
+          {route.elevationGainM != null && route.elevationGainM > 0 && (
+            <> &middot; {formatElevation(route.elevationGainM)}m elevation gain</>
+          )}{' '}
+          &middot; {formatDuration(route.distanceM)} est.
+          {route.curvatureIndex != null && (
+            <>
+              {' '}
+              &middot;{' '}
+              <span style={{ color: difficulty.color }}>
+                {getCurvatureLabel(route.curvatureIndex)}
+              </span>
+            </>
+          )}{' '}
+          &middot; {surfaceLabel}
+        </p>
       </div>
 
       {/* ── Content Section ── */}
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-3">
-          {/* Left column: description + ride tips */}
-          <div className="lg:col-span-2 space-y-10">
+          {/* ── Left column ── */}
+          <div className="space-y-8 lg:col-span-2">
             {/* Description */}
             {editorialText && (
               <section>
@@ -303,247 +388,110 @@ export default async function RouteDetailPage({
               </section>
             )}
 
-            {/* Route Details card */}
-            <section className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-6">
-              <h2 className="mb-5 text-lg font-semibold text-neutral-100">Route Details</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={palette.neutral400}
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <title>Surface</title>
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-500">Surface</p>
-                    <p className="text-sm font-medium text-neutral-200">{surfaceLabel}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={palette.neutral400}
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <title>Difficulty</title>
-                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-500">Difficulty</p>
-                    <p className="text-sm font-medium" style={{ color: difficulty.color }}>
-                      {difficulty.label}
-                    </p>
-                  </div>
-                </div>
-                {route.curvatureIndex != null && (
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke={palette.neutral400}
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <title>Curvature</title>
-                        <path d="M2 12c2-4 5-6 10-6s8 2 10 6c-2 4-5 6-10 6s-8-2-10-6z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs text-neutral-500">Curvature</p>
-                      <p className="text-sm font-medium text-neutral-200">
-                        {route.curvatureIndex >= 0.06
-                          ? 'Very Twisty'
-                          : route.curvatureIndex >= 0.03
-                            ? 'Twisty'
-                            : route.curvatureIndex >= 0.015
-                              ? 'Some Curves'
-                              : 'Mostly Straight'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-800/60">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={palette.neutral400}
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <title>Estimated riding time</title>
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M12 6v6l4 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs text-neutral-500">Est. riding time</p>
-                    <p className="text-sm font-medium text-neutral-200">
-                      {formatDuration(route.distanceM)}
-                    </p>
-                  </div>
-                </div>
+            {/* ── Condition Tags from reviews ── */}
+            {topConditionTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {topConditionTags.map(([tag, count]) => (
+                  <ConditionTagBadge key={tag} tag={tag} count={count} />
+                ))}
               </div>
+            )}
+
+            {/* ── Reviews ── */}
+            <section className="border-t border-neutral-800/40 pt-8">
+              <RouteDetailReviewsSection
+                reviews={reviews}
+                totalCount={totalReviewCount}
+                hasMore={hasMoreReviews}
+                isAuthenticated={hasSession}
+                ratingAvg={route.ratingAvg ?? null}
+              />
             </section>
 
-            {/* Contributor */}
-            <section className="flex items-center gap-4 rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-5">
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold"
-                style={{ backgroundColor: palette.signature500, color: palette.white }}
-              >
-                {route.contributor.displayName.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-neutral-200">
-                  Contributed by{' '}
-                  {route.contributor.publicUsername ? (
-                    <a
-                      href={`/u/${route.contributor.publicUsername}`}
-                      className="text-amber-400 hover:text-amber-300 transition-colors"
-                    >
-                      {route.contributor.displayName}
-                    </a>
-                  ) : (
-                    route.contributor.displayName
-                  )}
-                </p>
-                <p className="text-xs text-neutral-500">
-                  Added{' '}
-                  {new Date(route.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-            </section>
+            {/* ── Contributor ── */}
+            <p className="text-xs text-neutral-600">
+              Added by{' '}
+              {route.contributor.publicUsername ? (
+                <a
+                  href={`/u/${route.contributor.publicUsername}`}
+                  className="text-neutral-400 underline decoration-neutral-700 underline-offset-2 hover:decoration-neutral-500"
+                >
+                  {route.contributor.displayName}
+                </a>
+              ) : (
+                <span className="text-neutral-400">{route.contributor.displayName}</span>
+              )}{' '}
+              &middot;{' '}
+              {new Date(route.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </p>
           </div>
 
-          {/* Right sidebar */}
-          <div className="space-y-6">
-            {/* Reviews summary card */}
+          {/* ── Right sidebar ── */}
+          <div className="space-y-8">
+            {/* Rating — no card, just numbers */}
             {route.ratingAvg != null && route.ratingCount > 0 && (
-              <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-6">
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-neutral-400">
-                  Riders are saying
-                </h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold tracking-tight text-neutral-50">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl font-bold tabular-nums text-neutral-50">
                     {route.ratingAvg.toFixed(1)}
                   </span>
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill={palette.warning500}
-                    aria-hidden="true"
-                  >
-                    <title>Rating</title>
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
+                  <span className="text-sm text-neutral-500">/ 5</span>
                 </div>
-                <p className="mt-2 text-sm text-neutral-400">
+                <p className="mt-1 text-sm text-neutral-500">
                   {route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'}
-                  {route.commentCount > 0 &&
-                    ` · ${route.commentCount} ${route.commentCount === 1 ? 'comment' : 'comments'}`}
                 </p>
               </div>
             )}
 
-            {/* Ride this route CTA */}
-            <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-6">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-400">
-                Ride this route
-              </h3>
-              <p className="mb-4 text-sm text-neutral-400">
-                Open in the MotoVault app for turn-by-turn navigation, live tracking, and fuel
-                stops.
-              </p>
-              <div className="flex flex-col gap-2">
-                <a
-                  href="https://apps.apple.com/us/app/motovault/id6760291360"
-                  className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
-                  style={{ backgroundColor: palette.signature500, color: palette.white }}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <title>Open in app</title>
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  Open in App
-                </a>
-              </div>
-            </div>
+            {/* CTA — platform-aware */}
+            <OpenInAppCta />
 
             {/* Quick facts */}
-            <div className="rounded-2xl border border-neutral-800/60 bg-neutral-900/50 p-6">
-              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-neutral-400">
-                Quick facts
-              </h3>
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-neutral-500">Region</dt>
-                  <dd className="text-neutral-200">{regionName}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-neutral-500">Country</dt>
-                  <dd className="text-neutral-200">{countryName}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-neutral-500">Surface</dt>
-                  <dd className="text-neutral-200">{surfaceLabel}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-neutral-500">Difficulty</dt>
-                  <dd style={{ color: difficulty.color }}>{difficulty.label}</dd>
-                </div>
-              </dl>
-            </div>
+            <dl className="space-y-2.5 border-t border-neutral-800/30 pt-5 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-neutral-500">Region</dt>
+                <dd className="text-neutral-200">{regionName}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-neutral-500">Country</dt>
+                <dd className="text-neutral-200">{countryName}</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </div>
-
-      {/* ── Footer back link ── */}
-      <div className="border-t border-neutral-800/60 py-8 text-center">
-        <a
-          href="/explore"
-          className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          ← Back to Explore
-        </a>
-      </div>
     </div>
+  );
+}
+
+// ── Components ──────────────────────────────────────────────────────
+
+function ConditionTagBadge({ tag, count }: { tag: string; count: number }) {
+  const tagStyles: Record<string, { bg: string; text: string }> = {
+    'Good Surface': { bg: `${palette.success500}15`, text: palette.success500 },
+    'Gravel Hazard': { bg: `${palette.warning500}15`, text: palette.warning500 },
+    Construction: { bg: `${palette.danger500}15`, text: palette.danger500 },
+    'Low Traffic': { bg: `${palette.accent400}15`, text: palette.accent400 },
+    'Heavy Traffic': { bg: `${palette.signature500}15`, text: palette.signature500 },
+    Scenic: { bg: `${palette.primary400}15`, text: palette.primary400 },
+    'Technical Curves': { bg: `${palette.indigo400}15`, text: palette.indigo400 },
+  };
+  const style = tagStyles[tag] ?? {
+    bg: `${palette.neutral500}15`,
+    text: palette.neutral400,
+  };
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+      style={{ backgroundColor: style.bg, color: style.text }}
+    >
+      {tag}
+      {count > 1 && <span className="text-xs opacity-60">&times;{count}</span>}
+    </span>
   );
 }

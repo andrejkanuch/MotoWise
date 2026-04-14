@@ -38,11 +38,20 @@ function writeConsent(decision: Decision) {
 // `persistence: 'memory'` in instrumentation-client.ts. These helpers flip
 // capture on/off based on the user's cookie-banner choice and are the
 // single source of truth for PostHog consent on the web.
+let posthogScrollDepthStarted = false;
+
+function startPostHogScrollDepthOnce() {
+  if (posthogScrollDepthStarted || typeof window === 'undefined') return;
+  posthogScrollDepthStarted = true;
+  posthog.scrollManager.startMeasuringScrollPosition();
+}
+
 function applyPostHogConsent(granted: boolean) {
   if (typeof window === 'undefined') return;
   if (granted) {
     posthog.set_config({ persistence: 'localStorage+cookie' });
     posthog.opt_in_capturing();
+    startPostHogScrollDepthOnce();
     posthog.capture('$consent_granted');
   } else {
     posthog.opt_out_capturing();

@@ -1,12 +1,14 @@
+import { palette } from '@motovault/design-system';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { SaveRouteButton } from '@/components/save-route-button';
 import {
   fetchCountryBySlug,
   fetchRegionsByCountrySlug,
   fetchRoutesByCountry,
 } from '@/lib/fetch-places';
 
-export const revalidate = 86400; // 24 hours
+export const revalidate = 86400;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://motovault.app';
 
@@ -29,6 +31,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+function getDifficulty(curvature: number | null | undefined): { label: string; color: string } {
+  if (curvature == null) return { label: '', color: palette.neutral500 };
+  if (curvature >= 0.06) return { label: 'Expert', color: palette.danger500 };
+  if (curvature >= 0.03) return { label: 'Intermediate', color: palette.warning500 };
+  return { label: 'Easy', color: palette.success500 };
+}
+
 export default async function CountryPage({ params }: PageProps) {
   const { country: countrySlug } = await params;
   const country = await fetchCountryBySlug(countrySlug);
@@ -39,88 +48,122 @@ export default async function CountryPage({ params }: PageProps) {
     fetchRoutesByCountry(country.countryCode, 12),
   ]);
 
-  const title = `Motorcycle Routes in ${country.name}`;
-
   return (
-    <main className="min-h-screen bg-neutral-950">
-      {/* Hero */}
-      <section className="px-6 pb-16 pt-20 md:pb-24 md:pt-28">
-        <div className="mx-auto max-w-4xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
-            {country.name}
-          </p>
-          <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
-            {title}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-amber-500" />
-        </div>
+    <main className="min-h-screen text-neutral-50">
+      {/* Header — simple, left-aligned */}
+      <section className="mx-auto max-w-5xl px-4 pt-12 pb-8 sm:px-6">
+        <nav className="mb-6 text-sm text-neutral-500">
+          <a href="/explore" className="hover:text-neutral-300 transition-colors">
+            Explore
+          </a>
+          <span className="mx-2">/</span>
+          <span className="text-neutral-300">{country.name}</span>
+        </nav>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{country.name}</h1>
+        <p className="mt-2 text-base text-neutral-400">
+          {topRoutes.length} route{topRoutes.length !== 1 ? 's' : ''}{' '}
+          {regions.length > 0 && (
+            <>
+              across {regions.length} region{regions.length !== 1 ? 's' : ''}
+            </>
+          )}
+        </p>
       </section>
 
-      {/* Regions grid */}
+      {/* Regions — compact list, not identical cards */}
       {regions.length > 0 && (
-        <section className="px-6 pb-16">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">Regions</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {regions.map((region) => (
-                <a
-                  key={region.id}
-                  href={`/explore/${countrySlug}/${region.slug}`}
-                  className="group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 transition-colors hover:border-amber-500/40"
-                >
-                  <h3 className="text-lg font-semibold text-neutral-50 group-hover:text-amber-400 transition-colors">
-                    {region.name}
-                  </h3>
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-amber-400 group-hover:text-amber-300">
-                    View routes &rarr;
-                  </span>
-                </a>
-              ))}
-            </div>
+        <section className="mx-auto max-w-5xl px-4 pb-12 sm:px-6">
+          <div className="flex flex-wrap gap-2">
+            {regions.map((region) => (
+              <a
+                key={region.id}
+                href={`/explore/${countrySlug}/${region.slug}`}
+                className="rounded-full border border-neutral-800/50 px-4 py-2 text-sm text-neutral-300 transition-colors hover:border-neutral-600 hover:text-white"
+              >
+                {region.name}
+              </a>
+            ))}
           </div>
         </section>
       )}
 
-      {/* Top Routes */}
+      {/* Routes — varied layout: first route larger, rest in grid */}
       {topRoutes.length > 0 && (
-        <section className="px-6 pb-24">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-2xl font-semibold tracking-tight text-neutral-50">
-              Top Routes
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topRoutes.map((route) => (
+        <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
+          <h2 className="mb-6 text-lg font-semibold text-neutral-200">Routes</h2>
+
+          {/* Featured route — wider */}
+          {topRoutes[0] && (
+            <a
+              href={
+                topRoutes[0].countryCode && topRoutes[0].regionSlug && topRoutes[0].slug
+                  ? `/route/${topRoutes[0].countryCode.toLowerCase()}/${topRoutes[0].regionSlug}/${topRoutes[0].slug}`
+                  : `/routes/${topRoutes[0].id}`
+              }
+              className="group mb-6 block rounded-xl bg-neutral-900/40 p-5 transition-colors hover:bg-neutral-900/60"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-neutral-50 group-hover:text-neutral-200 transition-colors">
+                    {topRoutes[0].displayName ?? topRoutes[0].name ?? 'Unnamed Route'}
+                  </h3>
+                  <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-sm text-neutral-400">
+                    {topRoutes[0].distanceM > 0 && (
+                      <span>{(topRoutes[0].distanceM / 1000).toFixed(1)} km</span>
+                    )}
+                    {topRoutes[0].elevationGainM != null && (
+                      <span>{Math.round(topRoutes[0].elevationGainM)}m gain</span>
+                    )}
+                    {topRoutes[0].ratingAvg != null && (
+                      <span className="text-neutral-300">
+                        ★ {topRoutes[0].ratingAvg.toFixed(1)}
+                      </span>
+                    )}
+                    {(() => {
+                      const d = getDifficulty(topRoutes[0].curvatureIndex);
+                      return d.label ? <span style={{ color: d.color }}>{d.label}</span> : null;
+                    })()}
+                  </p>
+                </div>
+                <SaveRouteButton routeId={topRoutes[0].id} />
+              </div>
+            </a>
+          )}
+
+          {/* Rest of routes — compact list */}
+          <div className="divide-y divide-neutral-800/30">
+            {topRoutes.slice(1).map((route) => {
+              const diff = getDifficulty(route.curvatureIndex);
+              const href =
+                route.countryCode && route.regionSlug && route.slug
+                  ? `/route/${route.countryCode.toLowerCase()}/${route.regionSlug}/${route.slug}`
+                  : `/routes/${route.id}`;
+              return (
                 <a
                   key={route.id}
-                  href={`/routes/${route.id}`}
-                  className="group overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 transition-colors hover:border-neutral-700"
+                  href={href}
+                  className="group flex items-center justify-between py-4 transition-colors"
                 >
-                  <h3 className="text-base font-semibold text-neutral-50 group-hover:text-amber-400 transition-colors">
-                    {route.displayName ?? route.name ?? 'Unnamed Route'}
-                  </h3>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-neutral-400">
-                    {route.distanceM > 0 && <span>{(route.distanceM / 1000).toFixed(1)} km</span>}
-                    {route.elevationGainM != null && (
-                      <span>↑ {Math.round(route.elevationGainM)} m</span>
-                    )}
-                    {route.ratingAvg != null && <span>★ {route.ratingAvg.toFixed(1)}</span>}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-medium text-neutral-200 group-hover:text-white transition-colors">
+                      {route.displayName ?? route.name ?? 'Unnamed Route'}
+                    </h3>
+                    <p className="mt-0.5 flex gap-x-3 text-xs text-neutral-500">
+                      {route.distanceM > 0 && <span>{(route.distanceM / 1000).toFixed(1)} km</span>}
+                      {route.elevationGainM != null && (
+                        <span>{Math.round(route.elevationGainM)}m</span>
+                      )}
+                      {route.ratingAvg != null && <span>★ {route.ratingAvg.toFixed(1)}</span>}
+                      {diff.label && <span style={{ color: diff.color }}>{diff.label}</span>}
+                    </p>
                   </div>
+                  <SaveRouteButton routeId={route.id} />
                 </a>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </section>
       )}
-
-      {/* Back link */}
-      <div className="px-6 pb-16 text-center">
-        <a
-          href="/explore"
-          className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          ← Back to all countries
-        </a>
-      </div>
     </main>
   );
 }

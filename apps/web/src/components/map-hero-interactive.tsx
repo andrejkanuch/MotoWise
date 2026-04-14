@@ -1,10 +1,17 @@
 'use client';
 
-import mapboxgl from 'mapbox-gl';
+import type mapboxglDefault from 'mapbox-gl';
+import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import Script from 'next/script';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { palette } from '@motovault/design-system';
+
+const MAPBOX_GL_VERSION = '3.21.0';
+const MAPBOX_CDN_JS = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.js`;
+const MAPBOX_CDN_CSS = `https://api.mapbox.com/mapbox-gl-js/v${MAPBOX_GL_VERSION}/mapbox-gl.css`;
+
+type MapboxGL = typeof mapboxglDefault;
 
 function readMapboxPublicToken(): string {
   return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ?? '';
@@ -54,13 +61,15 @@ function MapHeroMapInner({
   accessToken,
   mapInstanceKey,
   staticPreviewFallback,
+  mapboxgl,
 }: Omit<MapHeroInteractiveProps, 'staticPreviewUrl'> & {
   accessToken: string;
   staticPreviewFallback?: string | null;
+  mapboxgl: MapboxGL;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapRef = useRef<MapboxMap | null>(null);
+  const markerRef = useRef<MapboxMarker | null>(null);
   const onHoverIndexRef = useRef(onHoverIndex);
   onHoverIndexRef.current = onHoverIndex;
   const [loaded, setLoaded] = useState(false);
@@ -186,7 +195,7 @@ function MapHeroMapInner({
     };
     // instanceKey (e.g. route id) must change when polyline geometry changes; avoid depending on
     // polyline array identity, which can be unstable across renders.
-  }, [accessToken, instanceKey]);
+  }, [accessToken, instanceKey, mapboxgl]);
 
   useEffect(() => {
     if (webglBlocked || !mapRef.current || !loaded) return;
@@ -212,7 +221,7 @@ function MapHeroMapInner({
       markerRef.current?.remove();
       markerRef.current = null;
     }
-  }, [highlightedPoint, loaded, webglBlocked]);
+  }, [highlightedPoint, loaded, webglBlocked, mapboxgl]);
 
   if (webglBlocked) {
     if (staticPreviewFallback) {
@@ -244,6 +253,14 @@ export function MapHeroInteractive({
   mapInstanceKey,
 }: MapHeroInteractiveProps) {
   const token = readMapboxPublicToken();
+  const [mapboxgl, setMapboxgl] = useState<MapboxGL | null>(
+    () => (globalThis as Record<string, unknown>).mapboxgl as MapboxGL | null ?? null,
+  );
+
+  const onScriptReady = useCallback(() => {
+    const gl = (globalThis as Record<string, unknown>).mapboxgl as MapboxGL | undefined;
+    if (gl) setMapboxgl(gl);
+  }, []);
 
   if (polyline.length === 0) {
     return null;
@@ -268,6 +285,24 @@ export function MapHeroInteractive({
     );
   }
 
+  if (!mapboxgl) {
+    return (
+      <>
+        {/* biome-ignore lint/style/useSelfClosingElements: next/script requires closing tag */}
+        <link rel="stylesheet" href={MAPBOX_CDN_CSS} />
+        <Script src={MAPBOX_CDN_JS} strategy="afterInteractive" onReady={onScriptReady} />
+        <div
+          className={`flex h-full w-full items-center justify-center rounded-xl bg-neutral-900 text-neutral-600 ${className}`}
+        >
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-600 border-t-amber-500" />
+            <span className="text-sm">Loading map…</span>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <MapHeroMapInner
       polyline={polyline}
@@ -277,6 +312,7 @@ export function MapHeroInteractive({
       accessToken={token}
       mapInstanceKey={mapInstanceKey}
       staticPreviewFallback={staticPreviewUrl}
+      mapboxgl={mapboxgl}
     />
   );
 }

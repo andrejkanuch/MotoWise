@@ -32,6 +32,8 @@
     "line2": "OWN",
     "line3": "YOUR RIDE.",
     "subtitle": "MotoVault is a free iOS and Android motorcycle companion app that combines maintenance tracking, expense logging, GPS ride recording, multi-day trip planning, and AI photo diagnostics — no OBD hardware required.",
+    "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
+    "trustLine": "Free to download — no credit card required.",
     "downloadCta": "Start Tracking Free",
     "exploreFeatures": "Explore Features",
     "scrollDown": "Scroll down",
@@ -76,7 +78,11 @@
       "tagline": "All your bikes, one place.",
       "description": "Store every bike by make, model, and year. Specs loaded automatically. One tap to see maintenance, expenses, and rides for any bike.",
       "badge": "Unlimited bikes"
-    }
+    },
+    "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
+    "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
+    "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
+    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
   },
   "SocialProof": {
     "riders": "Active Riders",

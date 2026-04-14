@@ -33,7 +33,9 @@
     "downloadCta": "Ücretsiz Takibe Başla",
     "exploreFeatures": "Ozellikleri Kesfet",
     "scrollDown": "Asagi kaydir",
-    "seoTitle": "Motosiklet Bakım Takipçisi ve Gider Yöneticisi"
+    "seoTitle": "Motosiklet Bakım Takipçisi ve Gider Yöneticisi",
+    "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
+    "trustLine": "Free to download — no credit card required."
   },
   "Features": {
     "sectionLabel": "Ozellikler",
@@ -74,7 +76,11 @@
       "tagline": "Her sürüş, haritada ve kayıtlı.",
       "description": "Hız, yükseklik ve mesafe ile GPS rotalarını kaydedin. Sürüş istatistiklerini inceleyin, öne çıkanları paylaşın ve eksiksiz bir sürüş geçmişi oluşturun.",
       "badge": "GPS takibi"
-    }
+    },
+    "tripAlt": "MotoVault trip planning screen showing Dolomites Loop route on a map",
+    "maintenanceAlt": "MotoVault maintenance tracking with active service tasks and reminders",
+    "expensesAlt": "MotoVault expense tracking showing cost breakdowns by category",
+    "plusLine": "Plus ride logging, AI diagnostics, digital garage, and more."
   },
   "SocialProof": {
     "riders": "Aktif Suruculer",
@@ -782,5 +788,161 @@
     "faq5Answer": "Yayınlanan her yolculuğun rota önizlemesi içeren kanonik bir URL'si vardır. Yolculuk detay ekranından da paylaşabilirsin; yerel paylaşım, URL'yi Mesajlar, Slack, Discord veya notlarına yapıştırmana izin verir.",
     "ctaTitle": "Bir sonraki üç günlük turun burada başlıyor.",
     "ctaBody": "Yolculuk planlama MotoVault'un kurucu özelliğidir. Uygulamayı indir, ilk waypoint'ini bırak ve neden her şeyden önce bunu inşa ettiğimizi gör."
+  },
+  "Compare": {
+    "title": "10 Best Motorcycle Apps in 2026 — Compared & Ranked",
+    "description": "Compare the best motorcycle maintenance, ride tracking, and diagnostic apps in 2026. Feature matrix, pricing, and honest reviews to help you choose the right app.",
+    "heroLabel": "Comparison Guide",
+    "heroTitle": "Best Motorcycle Apps in 2026",
+    "heroSubtitle": "We compared 10 popular motorcycle apps across maintenance tracking, ride logging, expense management, diagnostics, and learning — so you don't have to.",
+    "updatedAt": "Last updated: March 2026",
+    "methodology": "Methodology: Features verified from official app stores, websites, and documentation. Pricing accurate as of March 2026.",
+    "matrixTitle": "Feature Comparison Matrix",
+    "matrixSubtitle": "See how every app stacks up across the features riders actually need.",
+    "featureMaintenance": "Maintenance Tracking",
+    "featureExpenses": "Expense Tracking",
+    "featureRides": "Ride Logging",
+    "featureDiagnostics": "AI Diagnostics",
+    "featureLearning": "Learning Content",
+    "featureMultiBike": "Multi-Bike Garage",
+    "featureReminders": "Service Reminders",
+    "featureRoutes": "Route Planning",
+    "featureFree": "Free Tier",
+    "pricingTitle": "Pricing Comparison",
+    "pricingSubtitle": "What you'll pay — from free tiers to annual subscriptions.",
+    "appsTitle": "The Apps — At a Glance",
+    "appsSubtitle": "A quick overview of each app, what it does best, and where it falls short.",
+    "app0": {
+      "name": "MotoVault",
+      "tagline": "All-in-one: maintenance, expenses, rides, trip planning, AI diagnostics, and learning",
+      "best": "Best for: Riders who want one app for everything",
+      "description": "MotoVault combines maintenance tracking, expense logging, GPS ride recording (with route maps, max speed, avg speed, elevation profiles, and interactive charts), multi-day trip planning with typed waypoints (fuel, food, hotels, passes, ferries) and rider RSVPs, AI-powered photo diagnostics, and structured learning paths in a single app.",
+      "pros": "All-in-one platform, multi-day trip planning with typed waypoints, AI diagnostics without hardware, learning content with quizzes, multi-bike support, free tier available",
+      "cons": "Newer app — smaller community, no bend-weighted curvy-road turn-by-turn navigation",
+      "price": "Free / Pro from $4.99/mo",
+      "platforms": "iOS, Android"
+    },
+    "app1": {
+      "name": "RideLog",
+      "tagline": "Automatic ride detection with fuel and expense tracking",
+      "best": "Best for: Riders who want passive ride tracking on iPhone",
+      "description": "RideLog automatically detects rides using iPhone sensors and GPS. It also tracks fuel consumption, expenses, and maintenance reminders. The polished iOS experience is hard to beat — but it's iPhone-only.",
+      "pros": "Automatic ride detection, fuel tracking, clean UI, Find My Motorcycle feature",
+      "cons": "iOS only, no AI diagnostics, no learning content, limited maintenance depth",
+      "price": "Freemium (Premium subscription)",
+      "platforms": "iOS only"
+    },
+    "app2": {
+      "name": "REVER",
+      "tagline": "Route planning and community-driven ride discovery",
+      "best": "Best for: Touring riders who plan long routes",
+      "description": "REVER is built around route planning and discovery. It features GPS ride tracking, Butler Maps integration, and a community where riders share routes. Think of it as the social network for motorcycle routes.",
+      "pros": "Excellent route planning, community routes, real-time friend tracker, offline maps (Pro)",
+      "cons": "No maintenance tracking, no expense tracking, no diagnostics, Pro costs $40/year",
+      "price": "Free / Pro $39.99/year",
+      "platforms": "iOS, Android"
+    },
+    "app3": {
+      "name": "Calimoto",
+      "tagline": "Curvy-road navigation with lean angle tracking",
+      "best": "Best for: Sport and canyon riders who chase curves",
+      "description": "Calimoto's routing algorithm specifically favors curvy roads. It provides turn-by-turn navigation, ride recording with lean angle data, and round-trip generation. A specialized tool for riders who prioritize the riding experience.",
+      "pros": "Curvy-road algorithm, lean angle tracking, turn-by-turn voice navigation, offline maps",
+      "cons": "No maintenance features, no expense tracking, expensive at $43–66/year, no diagnostics",
+      "price": "$5.49/week or $43–66/year",
+      "platforms": "iOS, Android, Web"
+    },
+    "app4": {
+      "name": "MotorManage",
+      "tagline": "Manufacturer-spec maintenance schedules with 600+ brands",
+      "best": "Best for: Riders who follow factory service intervals strictly",
+      "description": "MotorManage pulls from a database of 600+ brands and 45,000+ models to generate manufacturer-recommended maintenance schedules. It tracks parts durability and costs. Focused purely on maintenance — it does that one thing well.",
+      "pros": "Massive make/model database, manufacturer-spec schedules, parts durability tracking, offline-first",
+      "cons": "No ride logging, no diagnostics, no learning content, relatively new app",
+      "price": "Free (2 bikes) / Paid for unlimited",
+      "platforms": "iOS, Android"
+    },
+    "app5": {
+      "name": "Moto Shed",
+      "tagline": "Simple maintenance and fuel logging with VIN recall alerts",
+      "best": "Best for: Riders who want a straightforward service log",
+      "description": "Moto Shed is a no-nonsense maintenance logger with fuel tracking, smart reminders, and VIN-based NHTSA recall monitoring. One-time purchase, no subscription, no ads. It's lean and focused.",
+      "pros": "One-time purchase, NHTSA recall alerts, 13 languages, ad-free, simple UI",
+      "cons": "No ride tracking, no diagnostics, no learning content, minimal analytics",
+      "price": "One-time purchase (low cost)",
+      "platforms": "iOS, Android"
+    },
+    "app6": {
+      "name": "AUTOsist",
+      "tagline": "Vehicle history reports and document storage for all vehicles",
+      "best": "Best for: Multi-vehicle owners who want transferable service records",
+      "description": "AUTOsist creates transferable vehicle history reports — useful when selling. It stores documents (insurance, registration), logs services, and exports to Excel. Not motorcycle-specific, but comprehensive for record-keeping.",
+      "pros": "Transferable history reports, document storage, web + mobile, fleet plans available",
+      "cons": "Not motorcycle-specific, no ride logging, no diagnostics, dated UI",
+      "price": "Free / Pro $20 one-time / Gold $50/year",
+      "platforms": "iOS, Android, Web"
+    },
+    "app7": {
+      "name": "EatSleepRIDE",
+      "tagline": "Social riding with crash detection and community leaderboards",
+      "best": "Best for: Social riders who want crash safety features",
+      "description": "EatSleepRIDE (ESR) combines GPS ride tracking with a social layer — leaderboards, community routes, and live location sharing. Its unique CRASHLIGHT feature detects crashes and auto-notifies emergency contacts.",
+      "pros": "Crash detection, live tracking for family, social leaderboards, free core features",
+      "cons": "No maintenance tracking, no expense tracking, no diagnostics, no learning content",
+      "price": "Free / CRASHLIGHT $14.99/year",
+      "platforms": "iOS, Android"
+    },
+    "app8": {
+      "name": "Scenic",
+      "tagline": "Beautiful route planning with curated POI database",
+      "best": "Best for: Touring riders on iOS who value aesthetics",
+      "description": "Scenic offers route planning with multiple curvy routing modes, a curated POI database (fuel, service, restaurants), and ride logging with photo annotations. The UI is polished and the offline map support is solid.",
+      "pros": "Beautiful UI, curated POIs, offline maps, photo annotations on routes, GPX import/export",
+      "cons": "iOS only, no maintenance features, no diagnostics, $5/month subscription",
+      "price": "Premium $4.99/month",
+      "platforms": "iOS only"
+    },
+    "app9": {
+      "name": "MotoScan",
+      "tagline": "OBD-II hardware diagnostics for BMW and other motorcycles",
+      "best": "Best for: BMW owners who want deep ECU diagnostics",
+      "description": "MotoScan connects to your motorcycle's OBD-II port via Bluetooth adapter to read/clear error codes and view real-time sensor data. It has deep BMW-specific diagnostics, with basic support for other brands.",
+      "pros": "Real ECU data, read/clear fault codes, real-time sensors, BMW deep integration",
+      "cons": "Requires OBD-II hardware ($30–100), Android-focused, no maintenance tracking, no ride logging",
+      "price": "$14–45 one-time + hardware cost",
+      "platforms": "Android (primary), iOS"
+    },
+    "verdictTitle": "The Verdict",
+    "verdictSubtitle": "Which app should you choose?",
+    "verdict1Title": "Want one app for everything?",
+    "verdict1": "MotoVault is the only app that combines maintenance, expenses, rides, AI diagnostics, and learning in one place. If you're tired of juggling multiple apps, this is it.",
+    "verdict2Title": "Focused on curvy-road turn-by-turn?",
+    "verdict2": "MotoVault handles multi-day trip planning with typed waypoints and rider RSVPs, so for most tours it's all you need. If bend-weighted curvy-road navigation and live turn-by-turn are your headline feature, pair MotoVault with REVER or Calimoto.",
+    "verdict3Title": "Just need a service log?",
+    "verdict3": "Moto Shed or MotorManage are solid, focused maintenance trackers. Moto Shed is a one-time purchase; MotorManage has manufacturer specs.",
+    "verdict4Title": "Need hardware diagnostics?",
+    "verdict4": "MotoScan is the only option for OBD-II ECU access. MotoVault's AI diagnostics work differently — no hardware needed, just describe symptoms or snap a photo.",
+    "faq": {
+      "0": {
+        "question": "Which motorcycle app has the most features?",
+        "answer": "MotoVault is the only app that combines maintenance tracking, expense logging, ride recording, AI-powered diagnostics, and structured learning content in a single platform. Most competitors focus on just one or two of these areas."
+      },
+      "1": {
+        "question": "Do I need multiple motorcycle apps?",
+        "answer": "For most riders, no. MotoVault covers maintenance, expenses, rides, multi-day trip planning with typed waypoints, AI diagnostics, and learning in one app. The one job it doesn't do is bend-weighted curvy-road turn-by-turn navigation — if that's your headline feature, pair MotoVault with a dedicated navigator like REVER or Calimoto."
+      },
+      "2": {
+        "question": "What's the difference between AI diagnostics and OBD diagnostics?",
+        "answer": "OBD diagnostics (like MotoScan) require a Bluetooth hardware adapter connected to your bike's diagnostic port. They read actual ECU fault codes. AI diagnostics (like MotoVault) let you describe symptoms or take a photo — no hardware needed. AI diagnostics are more accessible but OBD gives raw sensor data."
+      },
+      "3": {
+        "question": "Are there free motorcycle maintenance apps?",
+        "answer": "Yes. MotoVault, MotorManage, and Moto Shed all offer free tiers. MotoVault's free tier includes maintenance tracking, expense logging, and limited diagnostics. Moto Shed is a one-time low-cost purchase with no recurring fees."
+      },
+      "4": {
+        "question": "Which app is best for tracking motorcycle expenses?",
+        "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
+      }
+    }
   }
 }

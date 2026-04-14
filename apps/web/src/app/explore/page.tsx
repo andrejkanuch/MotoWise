@@ -4,43 +4,13 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Suspense } from 'react';
+import { SaveRouteButton } from '@/components/save-route-button';
+import { TypeaheadSearch } from '@/components/typeahead-search';
+import { COUNTRY_NAMES } from '@/lib/geo-names';
 
 /* ── Constants ────────────────────────────────────────────────── */
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://motovault.app';
-
-const COUNTRY_NAMES: Record<string, string> = {
-  US: 'United States',
-  DE: 'Germany',
-  AT: 'Austria',
-  CH: 'Switzerland',
-  IT: 'Italy',
-  ES: 'Spain',
-  FR: 'France',
-  GB: 'United Kingdom',
-  PT: 'Portugal',
-  GR: 'Greece',
-  HR: 'Croatia',
-  NO: 'Norway',
-  SE: 'Sweden',
-  RO: 'Romania',
-  CZ: 'Czech Republic',
-  SK: 'Slovakia',
-  SI: 'Slovenia',
-  BA: 'Bosnia and Herzegovina',
-  ME: 'Montenegro',
-  AL: 'Albania',
-  MK: 'North Macedonia',
-  BG: 'Bulgaria',
-  RS: 'Serbia',
-  PL: 'Poland',
-  BR: 'Brazil',
-  AR: 'Argentina',
-  MX: 'Mexico',
-  CO: 'Colombia',
-  CL: 'Chile',
-  CA: 'Canada',
-};
 
 const TOP_COUNTRIES = [
   { code: 'IT', emoji: '\u{1F1EE}\u{1F1F9}' },
@@ -58,32 +28,32 @@ const TOP_COUNTRIES = [
 ] as const;
 
 const TOP_ROUTES_SEO = [
-  'Pacific Coast Highway',
-  'Transfagarasan',
-  'Stelvio Pass',
-  'Grossglockner',
-  'Tail of the Dragon',
-  'Route Napoleon',
-  'Trollstigen',
-  'Ruta 40',
-  'Furka Pass',
-  'Black Forest B500',
-];
+  { name: 'Pacific Coast Highway', href: '/route/us/ca/pacific-coast-highway' },
+  { name: 'Transfagarasan', href: '/route/ro/ag/transfagarasan' },
+  { name: 'Stelvio Pass', href: '/route/it/bz/stelvio-pass' },
+  { name: 'Grossglockner', href: '/route/at/ka/grossglockner-high-alpine-road' },
+  { name: 'Tail of the Dragon', href: '/route/us/nc/tail-of-the-dragon' },
+  { name: 'Route Napoleon', href: '/route/fr/paca/route-napoleon' },
+  { name: 'Trollstigen', href: '/route/no/mr/trollstigen' },
+  { name: 'Ruta 40', href: '/route/ar/nq/ruta-40' },
+  { name: 'Furka Pass', href: '/route/ch/ur/furka-pass' },
+  { name: 'Black Forest B500', href: '/route/de/bw/black-forest-b500' },
+] as const;
 
 const SECTION_SKELETON_KEYS = ['a', 'b', 'c', 'd'] as const;
 
 const TOP_REGIONS_SEO = [
-  'Dolomites, Italy',
-  'Black Forest, Germany',
-  'Andalusia, Spain',
-  'Scottish Highlands',
-  'Norwegian Fjords',
-  'Transylvania, Romania',
-  'Swiss Alps',
-  'Provence, France',
-  'Croatian Coast',
-  'Blue Ridge, USA',
-];
+  { name: 'Dolomites, Italy', href: '/explore/it' },
+  { name: 'Black Forest, Germany', href: '/explore/de' },
+  { name: 'Andalusia, Spain', href: '/explore/es' },
+  { name: 'Scottish Highlands', href: '/explore/gb' },
+  { name: 'Norwegian Fjords', href: '/explore/no' },
+  { name: 'Transylvania, Romania', href: '/explore/ro' },
+  { name: 'Swiss Alps', href: '/explore/ch' },
+  { name: 'Provence, France', href: '/explore/fr' },
+  { name: 'Croatian Coast', href: '/explore/hr' },
+  { name: 'Blue Ridge, USA', href: '/explore/us' },
+] as const;
 
 /* ── Revalidation ─────────────────────────────────────────────── */
 
@@ -214,26 +184,9 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
           priority={priority}
         />
 
-        {/* Save icon overlay — decorative in server component, wired in client */}
-        <span
-          className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950/60 text-neutral-300 backdrop-blur-sm"
-          aria-hidden="true"
-        >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <title>Save route</title>
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-            />
-          </svg>
+        {/* Save button */}
+        <span className="absolute right-3 top-3">
+          <SaveRouteButton routeId={route.id} />
         </span>
 
         {/* Editor's Pick badge */}
@@ -306,35 +259,30 @@ function SectionSkeleton({ cols = 4 }: { cols?: number }) {
 
 /* ── Async sections ──────────────────────────────────────────── */
 
-async function NearYouSection({ countryCode }: { countryCode: string }) {
+async function NearYouSection({ countryCode }: { countryCode: string | undefined }) {
+  // If we have a country code, fetch routes for that country.
+  // If not, fetch top routes globally (no country filter).
   const routes = await fetchTopRoutes(4, countryCode);
   if (routes.length === 0) {
-    return (
-      <section>
-        <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">Routes near you</h2>
-        <div className="rounded-2xl border border-dashed border-neutral-800 py-16 text-center">
-          <p className="text-neutral-500">No routes found in your area yet.</p>
-          <a
-            href="/explore"
-            className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors"
-          >
-            Search all routes &rarr;
-          </a>
-        </div>
-      </section>
-    );
+    return null;
   }
-  const countryName = COUNTRY_NAMES[countryCode] ?? countryCode;
+  const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : null;
 
   return (
     <section>
       <div className="mb-6 flex items-baseline justify-between">
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
-          Routes near <span className="text-primary-400">{countryName}</span>
+          {countryName ? (
+            <>
+              Routes near <span className="text-primary-400">{countryName}</span>
+            </>
+          ) : (
+            'Popular routes'
+          )}
         </h2>
         <a
           href="/explore"
-          className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors"
+          className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200"
         >
           View all &rarr;
         </a>
@@ -422,9 +370,80 @@ const jsonLd = {
 
 /* ── Page ─────────────────────────────────────────────────────── */
 
+/**
+ * Detect the user's country from request headers.
+ *
+ * Priority order:
+ * 1. Cloudflare `cf-ipcountry` — set when behind Cloudflare
+ * 2. Vercel `x-vercel-ip-country` — set on Vercel deployments
+ * 3. Render / generic `x-country-code` — custom proxy header
+ * 4. Accept-Language header — parse primary language locale (e.g. "sk" → "SK")
+ * 5. Fallback to undefined (show global content, no "near you" bias)
+ */
+function detectCountry(hdrs: Headers): string | undefined {
+  // Direct geo headers from CDN/proxy
+  const cf = hdrs.get('cf-ipcountry');
+  if (cf && cf !== 'XX' && cf !== 'T1') return cf.toUpperCase();
+
+  const vercel = hdrs.get('x-vercel-ip-country');
+  if (vercel) return vercel.toUpperCase();
+
+  const custom = hdrs.get('x-country-code');
+  if (custom) return custom.toUpperCase();
+
+  // Infer from Accept-Language (best effort — language ≠ country but usually close)
+  const acceptLang = hdrs.get('accept-language');
+  if (acceptLang) {
+    // Parse first locale with region: "sk-SK,sk;q=0.9,en-US;q=0.8" → "SK"
+    const regionMatch = acceptLang.match(/[a-z]{2}-([A-Z]{2})/);
+    if (regionMatch) return regionMatch[1];
+
+    // Fallback: map primary language to likely country
+    const langMatch = acceptLang.match(/^([a-z]{2})/);
+    if (langMatch) {
+      const LANG_TO_COUNTRY: Record<string, string> = {
+        sk: 'SK',
+        cs: 'CZ',
+        de: 'DE',
+        fr: 'FR',
+        it: 'IT',
+        es: 'ES',
+        pt: 'PT',
+        nl: 'NL',
+        pl: 'PL',
+        ro: 'RO',
+        hr: 'HR',
+        el: 'GR',
+        no: 'NO',
+        sv: 'SE',
+        da: 'DK',
+        fi: 'FI',
+        hu: 'HU',
+        bg: 'BG',
+        sl: 'SI',
+        et: 'EE',
+        lv: 'LV',
+        lt: 'LT',
+        ga: 'IE',
+        en: 'US',
+        ja: 'JP',
+        ko: 'KR',
+        zh: 'CN',
+        ar: 'SA',
+        tr: 'TR',
+        ru: 'RU',
+      };
+      const mapped = LANG_TO_COUNTRY[langMatch[1]];
+      if (mapped) return mapped;
+    }
+  }
+
+  return undefined;
+}
+
 export default async function ExplorePage() {
   const hdrs = await headers();
-  const countryCode = hdrs.get('cf-ipcountry')?.toUpperCase() ?? 'US';
+  const countryCode = detectCountry(hdrs);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-50">
@@ -472,39 +491,8 @@ export default async function ExplorePage() {
             highways.
           </p>
 
-          {/* Search bar — full-width, prominent */}
-          <form action="/explore" method="GET" className="mx-auto max-w-2xl">
-            <div className="relative">
-              <svg
-                className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <title>Search</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                />
-              </svg>
-              <input
-                type="search"
-                name="q"
-                placeholder="Search by country, region, or route name..."
-                className="w-full rounded-2xl border border-neutral-700/50 bg-neutral-900/80 py-4 pl-13 pr-32 text-base text-neutral-50 placeholder:text-neutral-500 backdrop-blur-xl focus:border-primary-500/50 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all"
-                aria-label="Search motorcycle routes"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-primary-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-400 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          {/* Search bar — typeahead with Google-style dropdown */}
+          <TypeaheadSearch />
 
           <a
             href="/explore"
@@ -581,14 +569,17 @@ export default async function ExplorePage() {
                   </a>
                 </div>
               </div>
-              <div className="relative mx-auto w-64 sm:w-72">
-                {/* Phone frame placeholder */}
-                <div className="aspect-[9/19] overflow-hidden rounded-[2.5rem] border-4 border-neutral-700 bg-neutral-800">
-                  <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                    <div className="mb-4 h-16 w-16 rounded-2xl bg-primary-500/20" />
-                    <p className="text-sm font-medium text-neutral-400">App Preview</p>
-                    <p className="mt-1 text-xs text-neutral-600">Live ride tracking</p>
-                  </div>
+              <div className="relative mx-auto w-56 sm:w-64">
+                <div className="overflow-hidden rounded-[2rem] border-2 border-neutral-700 bg-neutral-900">
+                  {/* biome-ignore lint/performance/noImgElement: decorative marketing image */}
+                  <img
+                    src="/screenshots/trip-detail-hero.png"
+                    alt="MotoVault trip planning — Dolomites Loop route map"
+                    width={1170}
+                    height={2532}
+                    className="block w-full"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </div>
@@ -632,13 +623,13 @@ export default async function ExplorePage() {
                 Top routes
               </h3>
               <ul className="space-y-2">
-                {TOP_ROUTES_SEO.map((name) => (
-                  <li key={name}>
+                {TOP_ROUTES_SEO.map((route) => (
+                  <li key={route.name}>
                     <a
-                      href={`/explore`}
-                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                      href={route.href}
+                      className="text-sm text-neutral-400 transition-colors hover:text-neutral-200"
                     >
-                      {name}
+                      {route.name}
                     </a>
                   </li>
                 ))}
@@ -649,13 +640,13 @@ export default async function ExplorePage() {
                 Top regions
               </h3>
               <ul className="space-y-2">
-                {TOP_REGIONS_SEO.map((name) => (
-                  <li key={name}>
+                {TOP_REGIONS_SEO.map((region) => (
+                  <li key={region.name}>
                     <a
-                      href={`/explore`}
-                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                      href={region.href}
+                      className="text-sm text-neutral-400 transition-colors hover:text-neutral-200"
                     >
-                      {name}
+                      {region.name}
                     </a>
                   </li>
                 ))}

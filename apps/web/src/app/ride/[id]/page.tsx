@@ -86,7 +86,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
             <a
-              href={`motovault://ride/${ride.id}`}
+              href={`https://motovault.app/ride/${ride.id}`}
               className="inline-flex items-center rounded-xl bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
             >
               Open in App

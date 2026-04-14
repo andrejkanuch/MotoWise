@@ -57,9 +57,7 @@ export default function RouteMapView({
           overflow: 'hidden',
         }}
       >
-        <Text style={{ color: palette.neutral400, fontSize: 14, marginBottom: 8 }}>
-          Route Map
-        </Text>
+        <Text style={{ color: palette.neutral400, fontSize: 14, marginBottom: 8 }}>Route Map</Text>
         {name && (
           <Text style={{ color: palette.white, fontSize: 18, fontWeight: '600', marginBottom: 4 }}>
             {name}

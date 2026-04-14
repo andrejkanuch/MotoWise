@@ -85,7 +85,7 @@ export class FuelStopsService {
     // 1. Fetch route polyline + start coordinates
     const { data: route, error } = await this.supabase
       .from('routes')
-      .select('id, polyline, start_lat, start_lng, distance_m')
+      .select('id, polyline, distance_m')
       .eq('id', routeId)
       .single();
 

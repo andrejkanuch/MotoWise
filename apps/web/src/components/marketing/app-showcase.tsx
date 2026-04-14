@@ -18,7 +18,7 @@ const CAPABILITIES = [
     screenshot: '/images/features/home.png',
     altKey: 'cap2Alt',
     accentColor: 'oklch(0.65 0.15 160 / 0.12)',
-    href: '/features/garage-management',
+    href: '/features/trip-planning',
     icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6',
   },
   {
@@ -36,94 +36,35 @@ export async function AppShowcase() {
   const t = await getTranslations('AppShowcase');
 
   return (
-    <section className="py-28">
-      <div className="mx-auto max-w-7xl px-6">
-        {/* Section header */}
-        <div className="reveal-on-scroll mb-16 text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('sectionLabel')}
-          </p>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 text-balance sm:text-4xl lg:text-5xl">
-            {t('sectionTitle')}
-          </h2>
-        </div>
+    <section className="px-6 py-24">
+      <div className="mx-auto max-w-5xl">
+        <h2 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
+          {t('sectionTitle')}
+        </h2>
 
-        {/* Capability cards */}
-        <div className="grid gap-6 md:grid-cols-3">
-          {CAPABILITIES.map((cap, index) => (
+        <div className="mt-12 grid gap-8 md:grid-cols-3">
+          {CAPABILITIES.map((cap) => (
             <Link
               key={cap.titleKey}
               href={cap.href as '/features/ai-diagnostics'}
-              className="card-lift reveal-on-scroll group relative overflow-hidden rounded-xl border border-neutral-800/60 bg-neutral-900/50 transition-colors hover:border-warm-500/30"
-              style={{ animationDelay: `${index * 80}ms` }}
+              className="group"
             >
-              {/* Glow on hover */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{
-                  background: `radial-gradient(ellipse at 50% 0%, ${cap.accentColor}, transparent 70%)`,
-                }}
-                aria-hidden="true"
-              />
-
-              {/* Phone screenshot */}
-              <div className="relative mx-auto w-44 pt-8">
-                <div className="relative rounded-[1.5rem] border-[4px] border-neutral-800 bg-neutral-900 p-1 shadow-xl ring-1 ring-neutral-700/50">
-                  <div className="absolute left-1/2 top-0 z-10 h-3 w-14 -translate-x-1/2 rounded-b-lg bg-neutral-800" />
-                  <div className="overflow-hidden rounded-[1.2rem]">
-                    <ShowcaseImage
-                      src={cap.screenshot}
-                      alt={t(cap.altKey)}
-                      width={1206}
-                      height={2622}
-                      sizes="180px"
-                    />
-                  </div>
-                </div>
+              {/* Screenshot — no fake phone frame */}
+              <div className="overflow-hidden rounded-xl bg-neutral-900">
+                <ShowcaseImage
+                  src={cap.screenshot}
+                  alt={t(cap.altKey)}
+                  width={1206}
+                  height={2622}
+                  sizes="(max-width: 768px) 100vw, 300px"
+                />
               </div>
 
-              {/* Text content */}
-              <div className="relative z-10 p-8 pt-6">
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="flex size-8 items-center justify-center rounded-xl bg-neutral-800/80 text-warm-400 transition-colors group-hover:bg-warm-500/10">
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="size-4"
-                      aria-hidden="true"
-                    >
-                      <path d={cap.icon} />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-neutral-50">{t(cap.titleKey)}</h3>
-                </div>
-                <p className="text-sm leading-relaxed text-neutral-300">{t(cap.descKey)}</p>
-
-                {/* Arrow */}
-                <div className="mt-4 flex items-center gap-1 text-xs font-medium text-warm-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                  <span>{t('learnMore')}</span>
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Bottom accent */}
-              <div className="absolute inset-x-0 bottom-0 h-[3px] bg-transparent transition-colors duration-300 group-hover:bg-warm-500" />
+              {/* Text */}
+              <h3 className="mt-4 text-base font-semibold text-neutral-100 group-hover:text-warm-400 transition-colors">
+                {t(cap.titleKey)}
+              </h3>
+              <p className="mt-1 text-sm text-neutral-400">{t(cap.descKey)}</p>
             </Link>
           ))}
         </div>

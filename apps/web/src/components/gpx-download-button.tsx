@@ -2,8 +2,8 @@
 
 import { palette } from '@motovault/design-system';
 import { Download, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AuthModal } from '@/components/auth-modal';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const EXPORT_MUTATION = /* GraphQL */ `
@@ -51,11 +51,11 @@ interface GpxDownloadButtonProps {
 }
 
 export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDownloadButtonProps) {
-  const router = useRouter();
   const [isDownloading, setIsDownloading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Dismiss toast after 3s
   useEffect(() => {
@@ -79,7 +79,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
 
   const handleClick = useCallback(async () => {
     if (!isAuthenticated) {
-      router.push('/login');
+      setShowAuthModal(true);
       return;
     }
 
@@ -126,16 +126,31 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
     } finally {
       setIsDownloading(false);
     }
-  }, [isAuthenticated, remaining, routeId, router]);
+  }, [isAuthenticated, remaining, routeId]);
+
+  const paywallDialogRef = useRef<HTMLDivElement>(null);
+
+  // Close modals on Escape
+  useEffect(() => {
+    if (!showAuthModal && !showPaywall) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAuthModal(false);
+        setShowPaywall(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showAuthModal, showPaywall]);
 
   return (
-    <div className="relative inline-flex flex-col items-center gap-1">
+    <div className="relative inline-flex flex-col items-end gap-1">
       <button
         type="button"
         onClick={handleClick}
         disabled={isDownloading}
         aria-label={`Download GPX for ${routeName}`}
-        className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold backdrop-blur-sm transition-all hover:brightness-110 active:scale-[0.97] disabled:opacity-60 disabled:hover:brightness-100"
         style={{
           backgroundColor: palette.accent500,
           color: palette.white,
@@ -152,13 +167,13 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
       {/* Quota indicator */}
       {isAuthenticated && remaining !== null && (
         <span
-          className="text-xs"
+          className="text-[11px] leading-none"
           style={{
             color: remaining > 0 ? palette.neutral500 : palette.danger500,
           }}
         >
           {remaining > 0
-            ? `${remaining} export${remaining === 1 ? '' : 's'} remaining this month`
+            ? `${remaining} export${remaining === 1 ? '' : 's'} remaining`
             : 'Monthly limit reached'}
         </span>
       )}
@@ -166,7 +181,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
       {/* Toast notification */}
       {toast && (
         <div
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg px-4 py-2.5 text-sm font-medium shadow-lg"
+          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-[fadeInUp_200ms_ease-out] rounded-xl px-4 py-2.5 text-sm font-medium shadow-lg"
           style={{
             backgroundColor: toast.type === 'success' ? palette.success500 : palette.danger500,
             color: palette.white,
@@ -176,31 +191,46 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
         </div>
       )}
 
+      {/* Auth modal — inline sign in/up without leaving the page */}
+      <AuthModal
+        open={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        action="download GPX"
+      />
+
       {/* Paywall modal */}
       {showPaywall && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-[fadeIn_150ms_ease-out]"
           style={{ backgroundColor: palette.surfaceOverlay }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowPaywall(false);
+          }}
+          onKeyDown={() => {}}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Export limit reached"
         >
           <div
-            className="w-full max-w-md rounded-2xl p-6 shadow-xl"
-            style={{ backgroundColor: palette.white }}
+            ref={paywallDialogRef}
+            className="w-full max-w-md rounded-2xl border p-6 shadow-2xl animate-[scaleIn_200ms_ease-out]"
+            style={{ backgroundColor: palette.neutral950, borderColor: palette.neutral800 }}
           >
-            <h3 className="mb-2 text-lg font-bold" style={{ color: palette.neutral950 }}>
-              GPX Export Limit Reached
+            <h3 className="mb-2 text-lg font-bold" style={{ color: palette.neutral50 }}>
+              GPX export limit reached
             </h3>
-            <p className="mb-6 text-sm" style={{ color: palette.neutral600 }}>
-              You have used all your free GPX exports this month. Upgrade to MotoVault Pro for
+            <p className="mb-6 text-sm leading-relaxed" style={{ color: palette.neutral400 }}>
+              You&apos;ve used all your free GPX exports this month. Upgrade to MotoVault Pro for
               unlimited exports and more premium features.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowPaywall(false)}
-                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-medium"
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors hover:bg-neutral-700"
                 style={{
-                  backgroundColor: palette.neutral100,
-                  color: palette.neutral700,
+                  backgroundColor: palette.neutral800,
+                  color: palette.neutral300,
                 }}
               >
                 Maybe Later
@@ -211,7 +241,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
                   setShowPaywall(false);
                   window.open('https://apps.apple.com/us/app/motovault/id6760291360', '_blank');
                 }}
-                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold"
+                className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97]"
                 style={{
                   backgroundColor: palette.accent500,
                   color: palette.white,

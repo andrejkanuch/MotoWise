@@ -58,7 +58,7 @@ export function ShareRideButton({ rideId, rideName, isPublic, compact }: ShareRi
       }
 
       // Step 2: Only on success — generate URL and open share sheet
-      const shareUrl = `${BASE_URL}/rides/${rideId}`;
+      const shareUrl = `${BASE_URL}/ride/${rideId}`;
       await Share.share({
         message: rideName
           ? t('community.shareMessage', { name: rideName, url: shareUrl })

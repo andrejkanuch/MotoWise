@@ -9,6 +9,7 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { lngLatFromGeography } from './lng-lat-from-geography';
 import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 
 /** Row shape from route_saves JOIN routes JOIN users */
@@ -32,8 +33,7 @@ interface SavedRouteRow {
     status: string;
     created_at: string;
     contributor_user_id: string;
-    start_lat?: number;
-    start_lng?: number;
+    start_point?: unknown;
     users: {
       id: string;
       display_name: string | null;
@@ -140,7 +140,7 @@ export class SavedRoutesService {
     let query = this.supabase
       .from('route_saves')
       .select(
-        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, start_lat, start_lng, users:contributor_user_id(id, display_name, public_username, avatar_url))',
+        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, start_point, users:contributor_user_id(id, display_name, public_username, avatar_url))',
       )
       .eq('user_id', userId)
       .order('saved_at', { ascending: false })
@@ -214,7 +214,7 @@ export class SavedRoutesService {
     let query = this.supabaseAdmin
       .from('route_saves')
       .select(
-        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, start_lat, start_lng, users:contributor_user_id(id, display_name, public_username, avatar_url))',
+        'route_id, saved_at, routes:route_id(id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, start_point, users:contributor_user_id(id, display_name, public_username, avatar_url))',
       )
       .eq('user_id', user.id)
       .order('saved_at', { ascending: false })
@@ -274,6 +274,8 @@ export class SavedRoutesService {
       avatarUrl: r.users?.avatar_url ?? undefined,
     };
 
+    const start = lngLatFromGeography(r.start_point);
+
     return {
       id: r.id,
       name: r.name ?? undefined,
@@ -291,8 +293,8 @@ export class SavedRoutesService {
       status: r.status,
       createdAt: r.created_at,
       contributor,
-      startLat: r.start_lat ?? undefined,
-      startLng: r.start_lng ?? undefined,
+      startLat: start?.lat,
+      startLng: start?.lng,
     };
   }
 

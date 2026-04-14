@@ -1,6 +1,8 @@
 import BottomSheet, { BottomSheetBackdrop, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import {
+  GetPublicRideDocument,
+  type GetPublicRideQuery,
   GetRideDocument,
   type GetRideQuery,
   GetRideWaypointsDocument,
@@ -87,6 +89,8 @@ function decodePolyline(encoded: string): [number, number][] {
 
 type ChartType = 'speed' | 'elevation';
 
+type RideDetailPayload = NonNullable<GetRideQuery['ride'] | GetPublicRideQuery['getPublicRide']>;
+
 const STAT_CHART_MAP: Record<string, ChartType | null> = {
   'Avg Speed': 'speed',
   'Max Speed': 'speed',
@@ -109,20 +113,37 @@ export default function RideDetailScreen() {
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['30%', '55%', '90%'], []);
 
-  const { data, isLoading } = useQuery({
+  const { data: rideBundle, isLoading } = useQuery({
     queryKey: queryKeys.rides.detail(rideId ?? ''),
-    queryFn: () => gqlFetcher(GetRideDocument, { id: rideId }),
+    queryFn: async () => {
+      const id = rideId;
+      if (!id) throw new Error('Missing rideId');
+      try {
+        const r = await gqlFetcher(GetRideDocument, { id });
+        return { viewer: 'owner' as const, ride: r.ride };
+      } catch {
+        const r = await gqlFetcher(GetPublicRideDocument, { id });
+        return { viewer: 'public' as const, ride: r.getPublicRide };
+      }
+    },
     enabled: !!rideId,
   });
+
+  const isOwnerViewer = rideBundle?.viewer === 'owner';
+  /** Avoid fetching waypoints until we know the viewer is the ride owner */
+  const canLoadWaypoints = !!rideId && rideBundle != null && isOwnerViewer;
 
   const { data: waypointData, isLoading: waypointsLoading } = useQuery({
     queryKey: queryKeys.rides.waypoints(rideId ?? ''),
-    queryFn: () => gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints: 300 }),
-    enabled: !!rideId,
+    queryFn: () => {
+      if (!rideId) throw new Error('Missing rideId');
+      return gqlFetcher(GetRideWaypointsDocument, { rideId, maxPoints: 300 });
+    },
+    enabled: canLoadWaypoints,
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const ride = (data as GetRideQuery | undefined)?.ride;
+  const ride = rideBundle?.ride as RideDetailPayload | undefined;
   const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
 
   const rideLoaded = ride?.id;
@@ -631,22 +652,24 @@ export default function RideDetailScreen() {
           {/* Comments section */}
           {ride?.isPublic && <CommentList rideId={rideId} />}
 
-          {/* Delete action */}
-          <Pressable
-            onPress={handleDelete}
-            accessibilityRole="button"
-            accessibilityLabel="Delete ride"
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              paddingVertical: 8,
-            }}
-          >
-            <Trash2 size={14} color={palette.neutral500} />
-            <Text style={{ fontSize: 14, color: palette.neutral500 }}>Delete Ride</Text>
-          </Pressable>
+          {/* Delete — owner session only (public deep links use getPublicRide) */}
+          {isOwnerViewer && (
+            <Pressable
+              onPress={handleDelete}
+              accessibilityRole="button"
+              accessibilityLabel="Delete ride"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                paddingVertical: 8,
+              }}
+            >
+              <Trash2 size={14} color={palette.neutral500} />
+              <Text style={{ fontSize: 14, color: palette.neutral500 }}>Delete Ride</Text>
+            </Pressable>
+          )}
         </BottomSheetScrollView>
       </BottomSheet>
     </View>

@@ -15,7 +15,7 @@ export class SearchResolver {
 
   @Query(() => TypeaheadResult)
   @Public()
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
+  @Throttle({ default: THROTTLE_PRESETS.TYPEAHEAD })
   async searchTypeahead(
     @Args('q', { nullable: true }) q: string,
     @Args('near', { type: () => LatLngInput, nullable: true }) near: LatLngInput,

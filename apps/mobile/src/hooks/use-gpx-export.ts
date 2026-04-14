@@ -6,7 +6,6 @@ import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { buildGqlRequestHeaders } from '../lib/gql-auth-session';
-import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';

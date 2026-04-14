@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-const FAQ_KEYS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+const FAQ_KEYS = [0, 1, 2, 3] as const;
 
 export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -16,18 +16,9 @@ export function Faq() {
   return (
     <section id="faq" className="px-6 py-24 lg:py-28">
       <div className="mx-auto max-w-4xl">
-        {/* Decorative rule */}
-        <div
-          className="mx-auto mb-12 h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-          aria-hidden="true"
-        />
-
         {/* Section header */}
-        <div className="reveal-on-scroll mb-16 text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('sectionLabel')}
-          </p>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
+        <div className="reveal-on-scroll mb-12 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
             {t('sectionTitle')}
           </h2>
         </div>
