@@ -67,6 +67,7 @@ describe('RoutesService', () => {
       chain[m] = vi.fn().mockReturnValue(chain);
     }
     chain.single = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
+    chain.maybeSingle = vi.fn().mockImplementation(() => Promise.resolve(getResult()));
     // biome-ignore lint/suspicious/noThenProperty: Supabase query builders are thenable
     chain.then = vi
       .fn()
@@ -186,6 +187,109 @@ describe('RoutesService', () => {
       expect(route.countryCode).toBe('IT');
       expect(route.regionCode).toBe('IT-BZ');
       expect(route.city).toBe('Bormio');
+    });
+
+    it('applies countryCode, motovaultPicksOnly, and rating sort when requested', async () => {
+      mockUserClient._pushResult({ data: [fakeRouteRow] });
+
+      await service.discoverRoutes(
+        {
+          countryCode: 'it',
+          motovaultPicksOnly: true,
+          sortByRating: true,
+        },
+        10,
+      );
+
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('country_code', 'it');
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('is_motovault_pick', true);
+      expect(mockUserClient._chain.order).toHaveBeenCalledWith('rating_avg', {
+        ascending: false,
+        nullsFirst: false,
+      });
+      expect(mockUserClient._chain.order).toHaveBeenCalledWith('rating_count', {
+        ascending: false,
+      });
+    });
+
+    it('filters by regionCode when provided', async () => {
+      mockUserClient._pushResult({ data: [fakeRouteRow] });
+
+      await service.discoverRoutes(
+        {
+          countryCode: 'IT',
+          regionCode: 'IT-BZ',
+          sortByRating: true,
+        },
+        10,
+      );
+
+      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('region_code', 'it-bz');
+    });
+  });
+
+  describe('sitemapPublishedRoutes', () => {
+    it('maps published rows with country, region, slug', async () => {
+      mockUserClient._pushResult({
+        data: [
+          {
+            country_code: 'IT',
+            region_code: 'IT-BZ',
+            slug: 'stelvio-pass',
+            updated_at: '2026-04-01T00:00:00Z',
+          },
+        ],
+      });
+
+      const rows = await service.sitemapPublishedRoutes();
+
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toEqual({
+        countryCode: 'IT',
+        regionCode: 'IT-BZ',
+        slug: 'stelvio-pass',
+        updatedAt: '2026-04-01T00:00:00Z',
+      });
+      expect(mockUserClient._chain.not).toHaveBeenCalledWith('country_code', 'is', null);
+    });
+
+    it('returns empty array on Supabase error', async () => {
+      mockUserClient._pushResult({ data: null, error: { message: 'boom' } });
+
+      const rows = await service.sitemapPublishedRoutes();
+
+      expect(rows).toEqual([]);
+    });
+  });
+
+  describe('routePathById', () => {
+    it('returns canonical path when row exists', async () => {
+      mockUserClient._pushResult({
+        data: {
+          slug: 'stelvio-pass',
+          country_code: 'IT',
+          region_code: 'IT-BZ',
+        },
+      });
+
+      const path = await service.routePathById('550e8400-e29b-41d4-a716-446655440000');
+
+      expect(path).toEqual({
+        countryCode: 'IT',
+        regionCode: 'IT-BZ',
+        slug: 'stelvio-pass',
+      });
+      expect(mockUserClient._chain.maybeSingle).toHaveBeenCalled();
+    });
+
+    it('returns null when slug or geo columns missing', async () => {
+      mockUserClient._pushResult({
+        data: { slug: 'x', country_code: null, region_code: 'IT-BZ' },
+      });
+
+      const path = await service.routePathById('550e8400-e29b-41d4-a716-446655440000');
+
+      expect(path).toBeNull();
     });
   });
 });

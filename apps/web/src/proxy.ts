@@ -351,9 +351,10 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/explore') ||
     pathname.startsWith('/route/') ||
     pathname.startsWith('/routes/') ||
-    pathname.startsWith('/pro')
+    pathname.startsWith('/pro') ||
+    pathname.startsWith('/ingest')
   ) {
-    // Auth + public community routes + explore + route detail + pro: skip locale processing
+    // Auth + public community routes + explore + route detail + pro + PostHog proxy (/ingest → next.config rewrites): skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing

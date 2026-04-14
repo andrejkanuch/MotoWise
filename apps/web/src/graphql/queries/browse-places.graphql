@@ -1,0 +1,39 @@
+fragment BrowsePlaceFields on BrowsePlace {
+  id
+  kind
+  name
+  countryCode
+  regionCode
+  slug
+  parentId
+  routeCount
+}
+
+query BrowseCountries {
+  browseCountries {
+    ...BrowsePlaceFields
+  }
+}
+
+query BrowseCountryBySlug($slug: String!) {
+  browseCountryBySlug(slug: $slug) {
+    ...BrowsePlaceFields
+  }
+}
+
+query BrowseRegionsByCountrySlug($countrySlug: String!) {
+  browseRegionsByCountrySlug(countrySlug: $countrySlug) {
+    ...BrowsePlaceFields
+  }
+}
+
+query BrowseExploreRegion($countrySlug: String!, $regionSlug: String!) {
+  browseExploreRegion(countrySlug: $countrySlug, regionSlug: $regionSlug) {
+    country {
+      ...BrowsePlaceFields
+    }
+    region {
+      ...BrowsePlaceFields
+    }
+  }
+}

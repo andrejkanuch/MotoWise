@@ -13,6 +13,8 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import type { GPXExportError, GPXExportSuccess } from './dto/gpx-export.dto';
+import type { RouteCanonicalPath } from './models/route-canonical-path.model';
+import type { SitemapRouteEntry } from './models/sitemap-route-entry.model';
 import type { Route, RouteConnection, RouteContributor } from './models/route.model';
 
 /** Row shape from routes + users join */
@@ -71,6 +73,11 @@ export class RoutesService {
     after?: string,
   ): Promise<RouteConnection> {
     const limit = Math.min(first, 50);
+    const sortByRating = filter?.sortByRating === true;
+
+    if (after && sortByRating) {
+      throw new BadRequestException('Cursor pagination is not supported when sortByRating is true');
+    }
 
     // Surface recency pre-filter: fetch route IDs that have condition reports within N days
     let surfaceRecencyRouteIds: string[] | undefined;
@@ -97,12 +104,32 @@ export class RoutesService {
       .select(
         'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(limit + 1);
+      .eq('status', 'published');
+
+    if (sortByRating) {
+      query = query
+        .order('rating_avg', { ascending: false, nullsFirst: false })
+        .order('rating_count', { ascending: false });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
 
     // Apply basic filters
     if (filter) {
+      if (filter.countryCode != null && filter.countryCode.trim() !== '') {
+        const normalized = filter.countryCode.trim().toUpperCase();
+        if (!/^[A-Z]{2}$/.test(normalized)) {
+          throw new BadRequestException('Invalid country code');
+        }
+        query = query.eq('country_code', normalized.toLowerCase());
+      }
+      if (filter.motovaultPicksOnly) {
+        query = query.eq('is_motovault_pick', true);
+      }
+      if (filter.regionCode != null && filter.regionCode.trim() !== '') {
+        query = query.eq('region_code', filter.regionCode.trim().toLowerCase());
+      }
+
       // Surface type filter
       if (filter.surfaceTypes && filter.surfaceTypes.length > 0) {
         query = query.in('surface_type', filter.surfaceTypes);
@@ -173,14 +200,16 @@ export class RoutesService {
       query = query.in('id', surfaceRecencyRouteIds);
     }
 
-    // Cursor pagination
-    if (after) {
+    // Cursor pagination (created_at order only)
+    if (!sortByRating && after) {
       const decoded = Buffer.from(after, 'base64').toString('utf-8');
       if (Number.isNaN(Date.parse(decoded))) {
         throw new BadRequestException('Invalid cursor');
       }
       query = query.lt('created_at', decoded);
     }
+
+    query = query.limit(limit + 1);
 
     const { data, error } = await query;
 
@@ -862,6 +891,44 @@ ${trkpts}
   // ==========================================
   // Twist Score (Phase 3 — MOT-182)
   // ==========================================
+
+  async sitemapPublishedRoutes(): Promise<SitemapRouteEntry[]> {
+    const { data, error } = await this.supabase
+      .from('routes')
+      .select('country_code, region_code, slug, updated_at')
+      .eq('status', 'published')
+      .not('country_code', 'is', null)
+      .not('region_code', 'is', null)
+      .not('slug', 'is', null);
+
+    if (error) {
+      this.logger.warn(`sitemapPublishedRoutes: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((row) => ({
+      countryCode: row.country_code as string,
+      regionCode: row.region_code as string,
+      slug: row.slug as string,
+      updatedAt: row.updated_at as string,
+    }));
+  }
+
+  async routePathById(routeId: string): Promise<RouteCanonicalPath | null> {
+    const { data, error } = await this.supabase
+      .from('routes')
+      .select('slug, country_code, region_code')
+      .eq('id', routeId)
+      .maybeSingle();
+
+    if (error || !data?.slug || !data.country_code || !data.region_code) return null;
+
+    return {
+      countryCode: data.country_code as string,
+      regionCode: data.region_code as string,
+      slug: data.slug as string,
+    };
+  }
 
   async findBySlug(country: string, region: string, slug: string): Promise<Route | null> {
     const { data, error } = await this.supabase

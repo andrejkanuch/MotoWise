@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -83,6 +79,23 @@ input BoundsInput {
   neLng: Float!
   swLat: Float!
   swLng: Float!
+}
+
+type BrowseExploreRegionResult {
+  country: BrowsePlace!
+  region: BrowsePlace!
+}
+
+"""Public place row for explore / browse (countries, regions)"""
+type BrowsePlace {
+  countryCode: String!
+  id: ID!
+  kind: String!
+  name: String!
+  parentId: String
+  regionCode: String
+  routeCount: Int!
+  slug: String!
 }
 
 type CategoryTotal {
@@ -323,15 +336,33 @@ enum DiagnosticSeverity {
 input DiscoverRoutesFilterInput {
   bikeCategory: String
   bounds: BoundsInput
+
+  """
+  ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code
+  """
+  countryCode: String
   elevationRanges: [String!]
   highlyRatedOnly: Boolean
   lengthRanges: [String!]
 
   """Minimum twist score 1-10 (maps to curvature_index thresholds)"""
   minTwistScore: Int
+
+  """When true, only routes flagged as MotoVault editor picks"""
+  motovaultPicksOnly: Boolean
   nearLat: Float
   nearLng: Float
   radiusKm: Float
+
+  """
+  Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase
+  """
+  regionCode: String
+
+  """
+  When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort.
+  """
+  sortByRating: Boolean
 
   """Only routes with surface condition reports within the last N days"""
   surfaceRecency: Int
@@ -965,6 +996,18 @@ type Query {
   allMaintenanceTasks: [MaintenanceTask!]!
   articleBySlug(slug: String!): Article
   articleBySlugFull(slug: String!): Article
+
+  """All countries in the places taxonomy (browse / explore)"""
+  browseCountries: [BrowsePlace!]!
+
+  """Country by URL slug (lowercase ISO code, e.g. it, de)"""
+  browseCountryBySlug(slug: String!): BrowsePlace
+
+  """Country + region for /explore/:country/:region marketing pages"""
+  browseExploreRegion(countrySlug: String!, regionSlug: String!): BrowseExploreRegionResult
+
+  """Regions with population > 0 for a country slug"""
+  browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
   discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
@@ -1016,6 +1059,7 @@ type Query {
   routeBySlug(country: String!, region: String!, slug: String!): Route
   routeConditions(routeId: ID!): RouteConditions!
   routeDetail(routeId: ID!): Route!
+  routePathById(routeId: ID!): RouteCanonicalPath
   routeSponsorships(routeId: ID!): [Sponsorship!]!
 
   """Paginated list of the authenticated user's saved routes"""
@@ -1023,6 +1067,7 @@ type Query {
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
+  sitemapPublishedRoutes: [SitemapRouteEntry!]!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   tripByShareToken(shareToken: String!): SharedTrip
   tripDetail(tripId: ID!): Trip!
@@ -1185,6 +1230,12 @@ type Route {
   twistScore: Int
 }
 
+type RouteCanonicalPath {
+  countryCode: String!
+  regionCode: String!
+  slug: String!
+}
+
 type RouteConditions {
   aggregates: [ConditionAggregate!]!
   recentReports: [SurfaceReport!]!
@@ -1329,6 +1380,13 @@ type SharedTripWaypoint {
   notes: String
   sortOrder: Int!
   type: String!
+}
+
+type SitemapRouteEntry {
+  countryCode: String!
+  regionCode: String!
+  slug: String!
+  updatedAt: String!
 }
 
 type SpendingSummary {
