@@ -22,6 +22,7 @@ import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   type AspectRatio,
+  type ReferenceImage,
   generateImage,
   type Platform,
   publishCarousel,
@@ -81,8 +82,14 @@ export default {
           const body = (await request.json()) as {
             prompt: string;
             aspect_ratio?: AspectRatio;
+            reference_images?: ReferenceImage[];
           };
-          const result = await generateImage(env, body.prompt, body.aspect_ratio);
+          const result = await generateImage(
+            env,
+            body.prompt,
+            body.aspect_ratio,
+            body.reference_images,
+          );
           return json(result);
         }
 

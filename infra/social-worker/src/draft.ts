@@ -29,12 +29,14 @@ import { APP_FEATURES_MD, DESIGN_SYSTEM_MD, PERFORMANCE_LOG } from './content-re
 import type { Env } from './env';
 import { DRAFT_RESPONSE_SCHEMA, DRAFT_SYSTEM_PROMPT } from './prompts';
 import type { SlotName } from './queue';
+import { SCREENSHOT_CATALOG, screenshotCatalogForPrompt } from './screenshots';
 
 export interface DraftedPost {
   angle: string;
   caption: string;
   postPrompt: string; // prompt for 4:5 post image
   storyPrompt: string; // prompt for 9:16 story image
+  screenshotKeys: string[]; // screenshot catalog keys to composite into the image
 }
 
 interface GeminiCandidate {
@@ -103,6 +105,9 @@ export async function draftPost(
     '',
     '## Design system reference',
     DESIGN_SYSTEM_MD,
+    '',
+    '## Available app screenshots (pick 1-2 for screenshotKeys)',
+    screenshotCatalogForPrompt(),
     '',
     '## Recent posts (for voice/style — avoid repeating these angles)',
     JSON.stringify(recentPosts, null, 2),
@@ -208,6 +213,7 @@ function validateDraft(raw: unknown): DraftedPost {
   }
   const d = raw as Record<string, unknown>;
   const fields = ['angle', 'caption', 'postPrompt', 'storyPrompt'] as const;
+  // screenshotKeys validated separately below (array, not string)
   for (const f of fields) {
     const v = d[f];
     if (typeof v !== 'string' || v.trim() === '') {
@@ -252,5 +258,15 @@ function validateDraft(raw: unknown): DraftedPost {
     throw new Error(`draft validation: angle length ${angle.length} out of range`);
   }
 
-  return { angle, caption, postPrompt, storyPrompt };
+  // screenshotKeys — must be an array of valid catalog keys. Gemini may return
+  // an empty array if the post doesn't involve showing the app UI.
+  const rawKeys = d.screenshotKeys;
+  let screenshotKeys: string[] = [];
+  if (Array.isArray(rawKeys)) {
+    screenshotKeys = rawKeys.filter(
+      (k): k is string => typeof k === 'string' && k in SCREENSHOT_CATALOG,
+    );
+  }
+
+  return { angle, caption, postPrompt, storyPrompt, screenshotKeys };
 }

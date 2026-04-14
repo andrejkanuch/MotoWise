@@ -17,7 +17,6 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
-import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -132,10 +131,6 @@ export default function PersonalizingScreen() {
         experience_level: experienceLevel ?? 'beginner',
         has_bike: !!bikeData,
       });
-      MetaAnalytics.trackCompleteTutorial();
-      if (bikeData?.make && bikeData?.model && bikeData?.year) {
-        MetaAnalytics.trackAddToGarage(bikeData.make, bikeData.model, bikeData.year);
-      }
       setOnboardingCompleted(true);
       setMutationDone(true);
     };

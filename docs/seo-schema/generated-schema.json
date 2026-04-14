@@ -1,0 +1,62 @@
+{
+  "_comment": "Reference @graph shape for public route detail (/route/{cc}/{region}/{slug}). Implement in page.tsx via JsonLdGraph; replace placeholders with live API fields.",
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TouristAttraction",
+      "@id": "https://motovault.app/route/us/ca/example-slug#attraction",
+      "name": "Example Scenic Route",
+      "description": "Editorial or user description visible on the page.",
+      "url": "https://motovault.app/route/us/ca/example-slug",
+      "touristType": "Motorcycle touring",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 36.5,
+        "longitude": -121.9
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "California",
+        "addressCountry": "United States"
+      },
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Distance",
+          "value": "182 km"
+        }
+      ],
+      "isPartOf": { "@id": "https://motovault.app/#website" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://motovault.app/#/en/route/us/ca/example-slug/breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://motovault.app"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Explore",
+          "item": "https://motovault.app/explore"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "United States",
+          "item": "https://motovault.app/explore/us"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Example Scenic Route",
+          "item": "https://motovault.app/route/us/ca/example-slug"
+        }
+      ]
+    }
+  ]
+}

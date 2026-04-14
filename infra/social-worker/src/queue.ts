@@ -27,6 +27,7 @@ export interface QueueRow {
   story_results: unknown;
   error: string | null;
   source: string | null; // 'manual' | 'gemini-autodraft' | null (migration 00090)
+  screenshot_keys: string[] | null; // screenshot catalog keys (migration 00104)
   created_at: string;
   updated_at: string;
 }
@@ -178,7 +179,13 @@ export async function getRecentAngles(env: Env, days = 5): Promise<string[]> {
 export async function insertDraftedRow(
   env: Env,
   slot: SlotName,
-  draft: { angle: string; caption: string; postPrompt: string; storyPrompt: string },
+  draft: {
+    angle: string;
+    caption: string;
+    postPrompt: string;
+    storyPrompt: string;
+    screenshotKeys?: string[];
+  },
 ): Promise<string> {
   const today = new Date().toISOString().slice(0, 10);
   const url = `${env.SUPABASE_URL}/rest/v1/social_post_queue`;
@@ -193,6 +200,7 @@ export async function insertDraftedRow(
       caption: draft.caption,
       post_prompt: draft.postPrompt,
       story_prompt: draft.storyPrompt,
+      screenshot_keys: draft.screenshotKeys?.length ? draft.screenshotKeys : null,
       status: 'ready',
       source: 'gemini-autodraft',
     }),

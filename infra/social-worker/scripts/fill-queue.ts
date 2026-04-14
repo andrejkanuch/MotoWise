@@ -36,6 +36,7 @@ interface PostInput {
   caption: string;
   post_prompt: string;
   story_prompt: string;
+  screenshot_keys?: string[]; // optional screenshot catalog keys
 }
 
 const SLOTS = new Set(['afternoon', 'evening', 'night-americas']);
@@ -141,6 +142,7 @@ async function main(): Promise<void> {
         caption: p.caption,
         post_prompt: p.post_prompt,
         story_prompt: p.story_prompt,
+        screenshot_keys: p.screenshot_keys?.length ? p.screenshot_keys : null,
         status: 'ready',
       })),
     ),

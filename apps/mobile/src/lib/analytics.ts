@@ -2,8 +2,6 @@ import type { JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
-import { Settings } from 'react-native-fbsdk-next';
-
 // -------------------------------------------------------------------
 // Analytics & Crash Reporting Wrapper
 // -------------------------------------------------------------------
@@ -65,12 +63,6 @@ export function setAnalyticsEnabled(enabled: boolean) {
     posthogClient.optOut();
   } else if (enabled && posthogClient) {
     posthogClient.optIn();
-  }
-  // Facebook SDK advertising tracking
-  try {
-    Settings.setAdvertiserTrackingEnabled(enabled);
-  } catch {
-    // setAdvertiserTrackingEnabled can crash on iOS simulator
   }
 }
 
