@@ -70,10 +70,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         <CookieConsentProvider>
           <QueryProvider>{children}</QueryProvider>
-          <Analytics />
-          <AnalyticsWithConsent />
-          <PostHogPageView />
-          <WebVitalsReporter />
+          {process.env.NODE_ENV === 'production' && (
+            <>
+              <Analytics />
+              <AnalyticsWithConsent />
+              <PostHogPageView />
+              <WebVitalsReporter />
+            </>
+          )}
         </CookieConsentProvider>
       </body>
     </html>

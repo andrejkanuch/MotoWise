@@ -1,3 +1,4 @@
+import type { ExploreRouteDbRow } from '@motovault/types';
 import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
@@ -120,40 +121,26 @@ function getSupabaseAnon() {
 
 /* ── Data fetchers ────────────────────────────────────────────── */
 
-type RouteRow = {
-  id: string;
-  name: string | null;
-  description: string | null;
-  distance_m: number;
-  elevation_gain_m: number | null;
-  surface_type: string | null;
-  curvature_index: number | null;
-  rating_avg: number | null;
-  rating_count: number;
-  is_motovault_pick: boolean;
-  editorial_description: string | null;
-};
-
-async function fetchStaffPicks(): Promise<RouteRow[]> {
+async function fetchStaffPicks(): Promise<ExploreRouteDbRow[]> {
   const supabase = getSupabaseAnon();
   const { data } = await supabase
     .from('routes')
     .select(
-      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description',
+      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description, slug, country_code, region_code',
     )
     .eq('status', 'published')
     .eq('is_motovault_pick', true)
     .order('rating_avg', { ascending: false, nullsFirst: false })
     .limit(6);
-  return (data as RouteRow[]) ?? [];
+  return (data as ExploreRouteDbRow[]) ?? [];
 }
 
-async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<RouteRow[]> {
+async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<ExploreRouteDbRow[]> {
   const supabase = getSupabaseAnon();
   let query = supabase
     .from('routes')
     .select(
-      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description',
+      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, is_motovault_pick, editorial_description, slug, country_code, region_code',
     )
     .eq('status', 'published')
     .order('rating_avg', { ascending: false, nullsFirst: false })
@@ -162,7 +149,7 @@ async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<RouteRow
     query = query.eq('country_code', countryCode.toLowerCase());
   }
   const { data } = await query;
-  return (data as RouteRow[]) ?? [];
+  return (data as ExploreRouteDbRow[]) ?? [];
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -172,7 +159,7 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
-function getDifficulty(route: RouteRow): { label: string; color: string } {
+function getDifficulty(route: ExploreRouteDbRow): { label: string; color: string } {
   const ci = route.curvature_index ?? 0;
   const elev = route.elevation_gain_m ?? 0;
   if (ci >= 50 || elev >= 2000) return { label: 'Expert', color: 'text-red-400' };
@@ -198,7 +185,7 @@ const ROUTE_IMAGES = [
   '/images/route-forest.jpg',
 ];
 
-function RouteCard({ route, priority = false }: { route: RouteRow; priority?: boolean }) {
+function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; priority?: boolean }) {
   const difficulty = getDifficulty(route);
   // Deterministic image based on route ID hash
   const imageIndex = route.id.charCodeAt(0) % ROUTE_IMAGES.length;
@@ -206,7 +193,9 @@ function RouteCard({ route, priority = false }: { route: RouteRow; priority?: bo
 
   return (
     <a
-      href={`/route/${route.id}`}
+      href={route.slug && route.country_code && route.region_code
+        ? `/route/${route.country_code}/${route.region_code}/${route.slug}`
+        : `/routes/${route.id}`}
       className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
       {/* Route photo */}
@@ -302,7 +291,7 @@ async function NearYouSection({ countryCode }: { countryCode: string }) {
         </h2>
         <div className="rounded-2xl border border-dashed border-neutral-800 py-16 text-center">
           <p className="text-neutral-500">No routes found in your area yet.</p>
-          <a href="/search" className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors">
+          <a href="/explore" className="mt-2 inline-block text-sm font-medium text-primary-400 hover:text-primary-300 transition-colors">
             Search all routes &rarr;
           </a>
         </div>
@@ -317,7 +306,7 @@ async function NearYouSection({ countryCode }: { countryCode: string }) {
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
           Routes near <span className="text-primary-400">{countryName}</span>
         </h2>
-        <a href="/search" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+        <a href="/explore" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
           View all &rarr;
         </a>
       </div>
@@ -363,7 +352,7 @@ async function TopRoutesSection({ countryCode }: { countryCode: string }) {
     <section>
       <div className="mb-6 flex items-baseline justify-between">
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated routes</h2>
-        <a href="/search" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
+        <a href="/explore" className="text-sm font-medium text-neutral-400 hover:text-neutral-200 transition-colors">
           View all &rarr;
         </a>
       </div>
@@ -387,7 +376,7 @@ const jsonLd = {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://motovault.app/search?q={search_term_string}',
+      urlTemplate: 'https://motovault.app/explore?q={search_term_string}',
     },
     'query-input': 'required name=search_term_string',
   },
@@ -440,7 +429,7 @@ export default async function ExplorePage() {
           </p>
 
           {/* Search bar — full-width, prominent */}
-          <form action="/search" method="GET" className="mx-auto max-w-2xl">
+          <form action="/explore" method="GET" className="mx-auto max-w-2xl">
             <div className="relative">
               <svg
                 className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500"
@@ -464,7 +453,7 @@ export default async function ExplorePage() {
             </div>
           </form>
 
-          <a href="/search" className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors">
+          <a href="/explore" className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors">
             Explore nearby routes
           </a>
         </div>
@@ -503,7 +492,7 @@ export default async function ExplorePage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a
-                    href="https://apps.apple.com/app/motovault"
+                    href="https://apps.apple.com/us/app/motovault/id6760291360"
                     className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -512,7 +501,7 @@ export default async function ExplorePage() {
                     App Store
                   </a>
                   <a
-                    href="https://play.google.com/store/apps/details?id=app.motovault"
+                    href="https://play.google.com/store/apps/details?id=com.motovault.app"
                     className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
                   >
                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -573,7 +562,7 @@ export default async function ExplorePage() {
               <ul className="space-y-2">
                 {TOP_ROUTES_SEO.map((name) => (
                   <li key={name}>
-                    <a href={`/search?q=${encodeURIComponent(name)}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                    <a href={`/explore`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
                       {name}
                     </a>
                   </li>
@@ -585,7 +574,7 @@ export default async function ExplorePage() {
               <ul className="space-y-2">
                 {TOP_REGIONS_SEO.map((name) => (
                   <li key={name}>
-                    <a href={`/search?q=${encodeURIComponent(name)}`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
+                    <a href={`/explore`} className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors">
                       {name}
                     </a>
                   </li>

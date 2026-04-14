@@ -1,3 +1,4 @@
+import type { RouteForJsonLd } from '@motovault/types';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/lib/constants', () => ({
@@ -12,22 +13,30 @@ import {
 } from '../jsonld';
 
 describe('routeToTouristAttraction', () => {
-  const baseRoute = {
+  const baseRoute: RouteForJsonLd = {
     name: 'Pacific Coast Highway',
     description: 'A scenic coastal ride along the California coast.',
-    url: 'https://motovault.app/route/us/ca/pacific-coast',
-    latitude: 34.0259,
-    longitude: -118.7798,
+    editorialDescription: null,
+    distanceM: 120_000,
+    elevationGainM: 500,
+    surfaceType: 'paved',
+    ratingAvg: null,
+    ratingCount: 0,
+    startLat: 34.0259,
+    startLng: -118.7798,
     countryCode: 'us',
+    regionSlug: 'ca',
+    slug: 'pacific-coast-highway',
+    countryName: 'United States',
     regionName: 'California',
   };
 
-  it('produces valid @context, @type, name, and geo', () => {
+  it('produces @type TouristAttraction, name, canonical url, and geo', () => {
     const result = routeToTouristAttraction(baseRoute);
 
-    expect(result['@context']).toBe('https://schema.org');
     expect(result['@type']).toBe('TouristAttraction');
     expect(result.name).toBe('Pacific Coast Highway');
+    expect(result.url).toBe('https://motovault.app/route/us/ca/pacific-coast-highway');
     expect(result.geo).toEqual({
       '@type': 'GeoCoordinates',
       latitude: 34.0259,
@@ -45,7 +54,7 @@ describe('routeToTouristAttraction', () => {
     expect(result.aggregateRating).toBeUndefined();
   });
 
-  it('omits aggregateRating when ratingCount is undefined', () => {
+  it('omits aggregateRating when ratingCount is 0', () => {
     const result = routeToTouristAttraction(baseRoute);
 
     expect(result.aggregateRating).toBeUndefined();
@@ -60,10 +69,10 @@ describe('routeToTouristAttraction', () => {
 
     expect(result.aggregateRating).toEqual({
       '@type': 'AggregateRating',
-      ratingValue: 4.7,
-      reviewCount: 15,
-      bestRating: 5,
-      worstRating: 1,
+      ratingValue: '4.7',
+      reviewCount: '15',
+      bestRating: '5',
+      worstRating: '1',
     });
   });
 
@@ -82,42 +91,36 @@ describe('regionToPlace', () => {
   it('produces a valid Place schema', () => {
     const result = regionToPlace({
       name: 'California',
-      description: 'Top motorcycle routes in California.',
-      url: 'https://motovault.app/explore/us/ca',
       countryCode: 'us',
+      regionSlug: 'ca',
+      countryName: 'United States',
+      description: 'Top motorcycle routes in California.',
     });
 
-    expect(result['@context']).toBe('https://schema.org');
     expect(result['@type']).toBe('Place');
     expect(result.name).toBe('California');
     expect(result.description).toBe('Top motorcycle routes in California.');
     expect(result.url).toBe('https://motovault.app/explore/us/ca');
     expect(result.address).toEqual({
       '@type': 'PostalAddress',
-      addressCountry: 'us',
+      addressRegion: 'California',
+      addressCountry: 'United States',
     });
   });
 });
 
 describe('websiteSchema', () => {
   it('produces a valid WebSite schema', () => {
-    const result = websiteSchema({ name: 'MotoVault' });
+    const result = websiteSchema();
 
-    expect(result['@context']).toBe('https://schema.org');
     expect(result['@type']).toBe('WebSite');
     expect(result.name).toBe('MotoVault');
     expect(result.url).toBe('https://motovault.app');
   });
-
-  it('accepts a custom url', () => {
-    const result = websiteSchema({ name: 'MotoVault', url: 'https://custom.app' });
-
-    expect(result.url).toBe('https://custom.app');
-  });
 });
 
 describe('breadcrumbSchema', () => {
-  it('produces a valid BreadcrumbList with correct positions', () => {
+  it('produces a BreadcrumbList with correct positions', () => {
     const result = breadcrumbSchema([
       { name: 'Home', url: 'https://motovault.app' },
       { name: 'Explore', url: 'https://motovault.app/explore' },
@@ -125,7 +128,6 @@ describe('breadcrumbSchema', () => {
       { name: 'California', url: 'https://motovault.app/explore/us/ca' },
     ]);
 
-    expect(result['@context']).toBe('https://schema.org');
     expect(result['@type']).toBe('BreadcrumbList');
 
     const items = result.itemListElement as Array<Record<string, unknown>>;
@@ -147,9 +149,7 @@ describe('breadcrumbSchema', () => {
   });
 
   it('handles a single-item breadcrumb', () => {
-    const result = breadcrumbSchema([
-      { name: 'Home', url: 'https://motovault.app' },
-    ]);
+    const result = breadcrumbSchema([{ name: 'Home', url: 'https://motovault.app' }]);
 
     const items = result.itemListElement as Array<Record<string, unknown>>;
     expect(items).toHaveLength(1);

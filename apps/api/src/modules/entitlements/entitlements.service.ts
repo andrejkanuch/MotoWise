@@ -4,7 +4,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { QuotaStatus } from './quota-status.dto';
 
-const FEATURE_GPX_EXPORT = 'gpx_export';
+/** Must match the value used in routes.service consumeGpxQuota / checkGpxEntitlement */
+const FEATURE_GPX_EXPORT = 'DOWNLOAD_GPX';
 
 export const ENTITLEMENTS = {
   READ_FULL_ROUTE: 'READ_FULL_ROUTE',

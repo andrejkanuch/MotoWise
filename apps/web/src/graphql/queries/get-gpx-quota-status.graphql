@@ -1,7 +1,10 @@
 query GetGPXQuotaStatus {
   getGPXQuotaStatus {
-    remaining
+    feature
     limit
-    resetsAt
+    used
+    remaining
+    resetDate
+    isExhausted
   }
 }

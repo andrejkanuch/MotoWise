@@ -412,7 +412,11 @@ export class RoutesService {
     // 2. Generate GPX (reuse existing logic)
     const { gpx, filename } = await this.exportRouteGPX(routeId);
 
-    // 3. Upload to Supabase Storage
+    // 3. Record quota consumption BEFORE giving the user a download URL.
+    //    If this fails, we abort — prevents unlimited free exports during DB issues.
+    await this.consumeGpxQuota(userId, routeId);
+
+    // 4. Upload to Supabase Storage
     const storagePath = `gpx-exports/${userId}/${routeId}/${filename}`;
     const { error: uploadError } = await this.supabaseAdmin.storage
       .from('route-exports')
@@ -426,7 +430,7 @@ export class RoutesService {
       throw new InternalServerErrorException('Failed to upload GPX file');
     }
 
-    // 4. Get signed URL (valid for 1 hour)
+    // 5. Get signed URL (valid for 1 hour)
     const { data: signedData, error: signError } = await this.supabaseAdmin.storage
       .from('route-exports')
       .createSignedUrl(storagePath, 3600);
@@ -435,9 +439,6 @@ export class RoutesService {
       this.logger.error(`GPX signed URL failed: ${signError?.message}`);
       throw new InternalServerErrorException('Failed to generate download URL');
     }
-
-    // 5. Record quota consumption
-    await this.consumeGpxQuota(userId, routeId);
 
     return {
       fileUrl: signedData.signedUrl,
@@ -503,7 +504,7 @@ export class RoutesService {
 
     if (error) {
       this.logger.error(`Failed to record GPX quota consumption: ${error.message}`);
-      // Non-fatal — the user already got the file, just log and continue
+      throw new InternalServerErrorException('Failed to record export — please try again.');
     }
   }
 
@@ -834,75 +835,6 @@ ${trkpts}
   }
 
   // ==========================================
-  // Route Saves (Bookmarks)
-  // ==========================================
-
-  async saveRoute(userId: string, routeId: string): Promise<boolean> {
-    const { error } = await this.supabase
-      .from('route_saves')
-      .insert({ route_id: routeId, user_id: userId });
-
-    if (error) {
-      if (error.code === '23505') return true; // Already saved
-      this.logger.error(`saveRoute failed: ${error.message}`);
-      throw new InternalServerErrorException('Failed to save route');
-    }
-    return true;
-  }
-
-  async unsaveRoute(userId: string, routeId: string): Promise<boolean> {
-    const { error } = await this.supabase
-      .from('route_saves')
-      .delete()
-      .eq('route_id', routeId)
-      .eq('user_id', userId);
-
-    if (error) {
-      this.logger.error(`unsaveRoute failed: ${error.message}`);
-      throw new InternalServerErrorException('Failed to unsave route');
-    }
-    return true;
-  }
-
-  async getSavedRoutes(userId: string, first: number, after?: string) {
-    const limit = Math.min(first, 50);
-
-    let query = this.supabase
-      .from('route_saves')
-      .select(
-        'route_id, saved_at, routes:route_id(id, name, polyline, distance_m, elevation_gain_m, surface_type, rating_avg, rating_count, is_motovault_pick, contributor_user_id, users:contributor_user_id(id, display_name, public_username, avatar_url))',
-      )
-      .eq('user_id', userId)
-      .order('saved_at', { ascending: false })
-      .limit(limit + 1);
-
-    if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      if (Number.isNaN(Date.parse(decoded))) throw new BadRequestException('Invalid cursor');
-      query = query.lt('saved_at', decoded);
-    }
-
-    const { data, error } = await query;
-    if (error) {
-      this.logger.error(`getSavedRoutes failed: ${error.message}`);
-      throw new InternalServerErrorException('Failed to fetch saved routes');
-    }
-
-    const rows = data ?? [];
-    const hasNextPage = rows.length > limit;
-    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
-
-    return {
-      saves: sliced.map((row: Record<string, unknown>) => ({
-        routeId: row.route_id as string,
-        savedAt: row.saved_at as string,
-        route: row.routes ? this.mapRouteRow(row.routes as unknown as RouteRow) : undefined,
-      })),
-      hasNextPage,
-    };
-  }
-
-  // ==========================================
   // Premium Waitlist
   // ==========================================
 
@@ -950,19 +882,4 @@ ${trkpts}
     return { score, percentile };
   }
 
-  // ==========================================
-  // Public Saved Routes (Phase 3 — MOT-171)
-  // ==========================================
-
-  async publicSavedRoutes(
-    handle: string,
-    first: number,
-    after?: string,
-  ): Promise<RouteConnection> {
-    // Stub — returns empty connection until saved-routes.service is wired
-    return {
-      edges: [],
-      pageInfo: { hasNextPage: false, endCursor: undefined },
-    };
-  }
 }

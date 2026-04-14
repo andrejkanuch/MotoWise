@@ -1,11 +1,14 @@
 mutation ExportRouteGPX($routeId: ID!) {
   exportRouteGPX(routeId: $routeId) {
     ... on GPXExportSuccess {
-      downloadUrl
+      fileUrl
       fileName
-    }
-    ... on GPXExportQuotaExceeded {
       message
+    }
+    ... on GPXExportError {
+      code
+      reason
+      quotaRemaining
       upgradeUrl
     }
   }

@@ -1,14 +1,14 @@
 import { palette } from '@motovault/design-system';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  // biome-ignore lint/style/noNonNullAssertion: env vars validated at deploy time
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  // biome-ignore lint/style/noNonNullAssertion: env vars validated at deploy time
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+function getSupabaseAdmin(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
-async function getSignupsByDay() {
+async function getSignupsByDay(supabaseAdmin: SupabaseClient) {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -26,7 +26,7 @@ async function getSignupsByDay() {
   return grouped;
 }
 
-async function getRouteEngagement() {
+async function getRouteEngagement(supabaseAdmin: SupabaseClient) {
   const { data } = await supabaseAdmin
     .from('routes')
     .select('rating_count, comment_count')
@@ -44,7 +44,7 @@ async function getRouteEngagement() {
   return { totalRoutes, totalRatings, totalComments };
 }
 
-async function getTopRoutes() {
+async function getTopRoutes(supabaseAdmin: SupabaseClient) {
   const { data } = await supabaseAdmin
     .from('routes')
     .select('id, name, rating_avg, rating_count, comment_count')
@@ -55,7 +55,7 @@ async function getTopRoutes() {
   return data ?? [];
 }
 
-async function getTotalUsers() {
+async function getTotalUsers(supabaseAdmin: SupabaseClient) {
   const { count } = await supabaseAdmin.from('users').select('*', { count: 'exact', head: true });
 
   return count ?? 0;
@@ -80,11 +80,24 @@ function StatCard({
 }
 
 export default async function AnalyticsPage() {
+  const supabaseAdmin = getSupabaseAdmin();
+  if (!supabaseAdmin) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold text-neutral-50">Analytics</h1>
+        <p className="mt-2 text-neutral-400">
+          Set <code className="text-neutral-300">SUPABASE_SERVICE_ROLE_KEY</code> (and Supabase URL) to
+          load analytics. Builds without this key still succeed.
+        </p>
+      </div>
+    );
+  }
+
   const [signupsByDay, engagement, topRoutes, totalUsers] = await Promise.all([
-    getSignupsByDay(),
-    getRouteEngagement(),
-    getTopRoutes(),
-    getTotalUsers(),
+    getSignupsByDay(supabaseAdmin),
+    getRouteEngagement(supabaseAdmin),
+    getTopRoutes(supabaseAdmin),
+    getTotalUsers(supabaseAdmin),
   ]);
 
   const signupDays = Object.entries(signupsByDay);

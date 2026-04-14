@@ -16,7 +16,7 @@ query RouteBySlug($country: String!, $region: String!, $slug: String!) {
     startLng
     slug
     countryCode
-    regionSlug
+    regionCode
     contributor {
       id
       displayName

@@ -1,3 +1,4 @@
+import type { BrowsePlace, BrowsePlaceDbRow, RouteListDbRow, RouteListItem } from '@motovault/types';
 import { createClient } from '@supabase/supabase-js';
 
 /**
@@ -13,33 +14,9 @@ function getPublicSupabase() {
   );
 }
 
-// ---- Types ----
-
-export interface Place {
-  id: string;
-  kind: 'country' | 'region' | 'city';
-  name: string;
-  countryCode: string;
-  regionCode: string | null;
-  slug: string;
-  parentId: string | null;
-  routeCount: number;
-}
-
-export interface RouteListItem {
-  id: string;
-  name: string | null;
-  displayName: string | null;
-  distanceM: number;
-  elevationGainM: number | null;
-  surfaceType: string | null;
-  curvatureIndex: number | null;
-  ratingAvg: number | null;
-  ratingCount: number;
-  slug: string | null;
-  countryCode: string | null;
-  regionSlug: string | null;
-}
+/** Alias for `BrowsePlace` — shared type lives in `@motovault/types`. */
+export type Place = BrowsePlace;
+export type { RouteListItem };
 
 // ---- Queries ----
 
@@ -48,27 +25,48 @@ export async function fetchCountries(): Promise<Place[]> {
   const supabase = getPublicSupabase();
   const { data, error } = await supabase
     .from('places')
-    .select('id, kind, name, country_code, region_code, slug, parent_id, route_count')
+    .select('id, kind, name, country_code, region_code, latitude, longitude, population')
     .eq('kind', 'country')
-    .gt('route_count', 0)
     .order('name', { ascending: true });
 
   if (error) throw new Error(`fetchCountries: ${error.message}`);
   return (data ?? []).map(mapPlaceRow);
 }
 
-/** Fetch a country by its slug. */
+/** ISO country code → display name fallback (when places table is empty / not seeded). */
+const COUNTRY_FALLBACK: Record<string, string> = {
+  US: 'United States', DE: 'Germany', AT: 'Austria', CH: 'Switzerland',
+  IT: 'Italy', ES: 'Spain', FR: 'France', GB: 'United Kingdom',
+  PT: 'Portugal', GR: 'Greece', HR: 'Croatia', NO: 'Norway',
+  SE: 'Sweden', RO: 'Romania', CZ: 'Czech Republic',
+};
+
+/** Fetch a country by its slug (lowercase country code, e.g. "it"). */
 export async function fetchCountryBySlug(slug: string): Promise<Place | null> {
+  const code = slug.toUpperCase();
   const supabase = getPublicSupabase();
   const { data, error } = await supabase
     .from('places')
-    .select('id, kind, name, country_code, region_code, slug, parent_id, route_count')
+    .select('id, kind, name, country_code, region_code, latitude, longitude, population')
     .eq('kind', 'country')
-    .eq('slug', slug)
+    .eq('country_code', code)
     .single();
 
-  if (error) return null;
-  return mapPlaceRow(data);
+  if (!error && data) return mapPlaceRow(data);
+
+  // Fallback: places table may not be seeded — use hardcoded name
+  const name = COUNTRY_FALLBACK[code];
+  if (!name) return null;
+  return {
+    id: code,
+    kind: 'country',
+    name,
+    countryCode: code,
+    regionCode: null,
+    slug: slug,
+    parentId: null,
+    routeCount: 0,
+  };
 }
 
 /** Fetch regions for a given country slug. */
@@ -80,11 +78,11 @@ export async function fetchRegionsByCountrySlug(countrySlug: string): Promise<Pl
   const supabase = getPublicSupabase();
   const { data, error } = await supabase
     .from('places')
-    .select('id, kind, name, country_code, region_code, slug, parent_id, route_count')
+    .select('id, kind, name, country_code, region_code, latitude, longitude, population')
     .eq('kind', 'region')
     .eq('country_code', country.countryCode)
-    .gt('route_count', 0)
-    .order('route_count', { ascending: false });
+    .gt('population', 0)
+    .order('population', { ascending: false });
 
   if (error) throw new Error(`fetchRegionsByCountrySlug: ${error.message}`);
   return (data ?? []).map(mapPlaceRow);
@@ -101,10 +99,10 @@ export async function fetchRegionBySlug(
   const supabase = getPublicSupabase();
   const { data, error } = await supabase
     .from('places')
-    .select('id, kind, name, country_code, region_code, slug, parent_id, route_count')
+    .select('id, kind, name, country_code, region_code, latitude, longitude, population')
     .eq('kind', 'region')
     .eq('country_code', country.countryCode)
-    .eq('slug', regionSlug)
+    .eq('region_code', regionSlug)
     .single();
 
   if (error) return null;
@@ -121,11 +119,11 @@ export async function fetchRoutesByRegion(
   const { data, error } = await supabase
     .from('routes')
     .select(
-      'id, name, display_name, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, slug, country_code, region_slug',
+      'id, name, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, slug, country_code, region_code',
     )
     .eq('status', 'published')
-    .eq('country_code', countryCode)
-    .eq('region_slug', regionSlug)
+    .eq('country_code', countryCode.toLowerCase())
+    .eq('region_code', regionSlug.toLowerCase())
     .order('rating_avg', { ascending: false, nullsFirst: false })
     .limit(limit);
 
@@ -142,10 +140,10 @@ export async function fetchRoutesByCountry(
   const { data, error } = await supabase
     .from('routes')
     .select(
-      'id, name, display_name, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, slug, country_code, region_slug',
+      'id, name, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, slug, country_code, region_code',
     )
     .eq('status', 'published')
-    .eq('country_code', countryCode)
+    .eq('country_code', countryCode.toLowerCase())
     .order('rating_avg', { ascending: false, nullsFirst: false })
     .limit(limit);
 
@@ -155,50 +153,24 @@ export async function fetchRoutesByCountry(
 
 // ---- Mappers (snake_case → camelCase) ----
 
-interface PlaceRow {
-  id: string;
-  kind: string;
-  name: string;
-  country_code: string;
-  region_code: string | null;
-  slug: string;
-  parent_id: string | null;
-  route_count: number;
-}
-
-function mapPlaceRow(row: PlaceRow): Place {
+function mapPlaceRow(row: BrowsePlaceDbRow): BrowsePlace {
   return {
     id: row.id,
-    kind: row.kind as Place['kind'],
+    kind: row.kind as BrowsePlace['kind'],
     name: row.name,
     countryCode: row.country_code,
     regionCode: row.region_code,
-    slug: row.slug,
-    parentId: row.parent_id,
-    routeCount: row.route_count,
+    slug: row.slug ?? row.country_code.toLowerCase(),
+    parentId: row.parent_id ?? null,
+    routeCount: row.route_count ?? 0,
   };
 }
 
-interface RouteRow {
-  id: string;
-  name: string | null;
-  display_name: string | null;
-  distance_m: number;
-  elevation_gain_m: number | null;
-  surface_type: string | null;
-  curvature_index: number | null;
-  rating_avg: number | null;
-  rating_count: number;
-  slug: string | null;
-  country_code: string | null;
-  region_slug: string | null;
-}
-
-function mapRouteRow(row: RouteRow): RouteListItem {
+function mapRouteRow(row: RouteListDbRow): RouteListItem {
   return {
     id: row.id,
     name: row.name,
-    displayName: row.display_name,
+    displayName: row.name,
     distanceM: row.distance_m,
     elevationGainM: row.elevation_gain_m,
     surfaceType: row.surface_type,
@@ -207,6 +179,6 @@ function mapRouteRow(row: RouteRow): RouteListItem {
     ratingCount: row.rating_count,
     slug: row.slug,
     countryCode: row.country_code,
-    regionSlug: row.region_slug,
+    regionSlug: row.region_code,
   };
 }

@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
-import { EntitlementService, FEATURES, type Feature } from './entitlements.service';
+import { ENTITLEMENTS, EntitlementsService } from './entitlements.service';
 
-describe('EntitlementService', () => {
-  const service = new EntitlementService();
+describe('EntitlementsService', () => {
+  // `can()` is a pure method — only needs `this` for the class shape.
+  // Supabase is only used by getGPXQuotaStatus (tested via integration/e2e).
+  const service = new EntitlementsService(null as never);
 
   const mockUser: AuthUser = {
     id: 'user-123',
@@ -12,128 +14,49 @@ describe('EntitlementService', () => {
   };
 
   // ==========================================
-  // getTier
-  // ==========================================
-
-  describe('getTier', () => {
-    it('returns "anonymous" for null user', () => {
-      expect(service.getTier(null)).toBe('anonymous');
-    });
-
-    it('returns "free" for authenticated user (never "pro" in Phase 1)', () => {
-      const tier = service.getTier(mockUser);
-      expect(tier).toBe('free');
-      expect(tier).not.toBe('pro');
-    });
-  });
-
-  // ==========================================
-  // can — anonymous (7 features)
+  // can — anonymous (null user)
   // ==========================================
 
   describe('can (anonymous)', () => {
-    it('cannot READ_ALL_REVIEWS', () => {
-      expect(service.can(null, FEATURES.READ_ALL_REVIEWS)).toBe(false);
-    });
-
-    it('cannot WRITE_REVIEW', () => {
-      expect(service.can(null, FEATURES.WRITE_REVIEW)).toBe(false);
-    });
-
-    it('cannot SAVE_ROUTE', () => {
-      expect(service.can(null, FEATURES.SAVE_ROUTE)).toBe(false);
-    });
-
-    it('cannot DOWNLOAD_GPX', () => {
-      expect(service.can(null, FEATURES.DOWNLOAD_GPX)).toBe(false);
-    });
-
-    it('cannot USE_OFFLINE_MAPS', () => {
-      expect(service.can(null, FEATURES.USE_OFFLINE_MAPS)).toBe(false);
-    });
-
-    it('cannot SEE_FUEL_OVERLAY', () => {
-      expect(service.can(null, FEATURES.SEE_FUEL_OVERLAY)).toBe(false);
-    });
-
-    it('cannot AD_FREE', () => {
-      expect(service.can(null, FEATURES.AD_FREE)).toBe(false);
-    });
-  });
-
-  // ==========================================
-  // can — free tier (7 features)
-  // ==========================================
-
-  describe('can (free tier)', () => {
-    it('can READ_ALL_REVIEWS', () => {
-      expect(service.can(mockUser, FEATURES.READ_ALL_REVIEWS)).toBe(true);
-    });
-
-    it('can WRITE_REVIEW', () => {
-      expect(service.can(mockUser, FEATURES.WRITE_REVIEW)).toBe(true);
-    });
-
-    it('can SAVE_ROUTE', () => {
-      expect(service.can(mockUser, FEATURES.SAVE_ROUTE)).toBe(true);
-    });
-
-    it('cannot DOWNLOAD_GPX', () => {
-      expect(service.can(mockUser, FEATURES.DOWNLOAD_GPX)).toBe(false);
-    });
-
-    it('cannot USE_OFFLINE_MAPS', () => {
-      expect(service.can(mockUser, FEATURES.USE_OFFLINE_MAPS)).toBe(false);
-    });
-
-    it('cannot SEE_FUEL_OVERLAY', () => {
-      expect(service.can(mockUser, FEATURES.SEE_FUEL_OVERLAY)).toBe(false);
-    });
-
-    it('cannot AD_FREE', () => {
-      expect(service.can(mockUser, FEATURES.AD_FREE)).toBe(false);
-    });
-  });
-
-  // ==========================================
-  // getQuota — stub returns null for all
-  // ==========================================
-
-  describe('getQuota', () => {
-    const allFeatures: Feature[] = Object.values(FEATURES);
-
-    it('returns null for all features (anonymous)', () => {
-      for (const feature of allFeatures) {
-        expect(service.getQuota(null, feature)).toBeNull();
-      }
-    });
-
-    it('returns null for all features (free tier)', () => {
-      for (const feature of allFeatures) {
-        expect(service.getQuota(mockUser, feature)).toBeNull();
+    it('denies all entitlements for null user', () => {
+      for (const entitlement of Object.values(ENTITLEMENTS)) {
+        expect(service.can(null, entitlement)).toBe(false);
       }
     });
   });
 
   // ==========================================
-  // Full gating matrix — exhaustive 7x2
+  // can — authenticated user (Phase 1: all true)
   // ==========================================
 
-  describe('full gating matrix (7 features x 2 active tiers)', () => {
-    const expectedMatrix: Array<{ feature: Feature; anonymous: boolean; free: boolean }> = [
-      { feature: FEATURES.READ_ALL_REVIEWS, anonymous: false, free: true },
-      { feature: FEATURES.WRITE_REVIEW, anonymous: false, free: true },
-      { feature: FEATURES.SAVE_ROUTE, anonymous: false, free: true },
-      { feature: FEATURES.DOWNLOAD_GPX, anonymous: false, free: false },
-      { feature: FEATURES.USE_OFFLINE_MAPS, anonymous: false, free: false },
-      { feature: FEATURES.SEE_FUEL_OVERLAY, anonymous: false, free: false },
-      { feature: FEATURES.AD_FREE, anonymous: false, free: false },
+  describe('can (authenticated — Phase 1)', () => {
+    it('grants all entitlements for authenticated user', () => {
+      for (const entitlement of Object.values(ENTITLEMENTS)) {
+        expect(service.can(mockUser, entitlement)).toBe(true);
+      }
+    });
+  });
+
+  // ==========================================
+  // Full gating matrix — exhaustive
+  // ==========================================
+
+  describe('full gating matrix', () => {
+    const expectedMatrix: Array<{
+      entitlement: (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
+      anonymous: boolean;
+      authenticated: boolean;
+    }> = [
+      { entitlement: ENTITLEMENTS.READ_FULL_ROUTE, anonymous: false, authenticated: true },
+      { entitlement: ENTITLEMENTS.READ_ALL_REVIEWS, anonymous: false, authenticated: true },
+      { entitlement: ENTITLEMENTS.DOWNLOAD_GPX, anonymous: false, authenticated: true },
+      { entitlement: ENTITLEMENTS.SAVE_ROUTE, anonymous: false, authenticated: true },
     ];
 
-    for (const { feature, anonymous, free } of expectedMatrix) {
-      it(`${feature}: anonymous=${anonymous}, free=${free}`, () => {
-        expect(service.can(null, feature)).toBe(anonymous);
-        expect(service.can(mockUser, feature)).toBe(free);
+    for (const { entitlement, anonymous, authenticated } of expectedMatrix) {
+      it(`${entitlement}: anonymous=${anonymous}, authenticated=${authenticated}`, () => {
+        expect(service.can(null, entitlement)).toBe(anonymous);
+        expect(service.can(mockUser, entitlement)).toBe(authenticated);
       });
     }
   });

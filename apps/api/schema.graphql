@@ -860,7 +860,6 @@ type Mutation {
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
-  saveRoute(routeId: ID!): Boolean!
 
   """Save a route to your collection"""
   saveRouteToCollection(routeId: ID!): Boolean!
@@ -874,7 +873,6 @@ type Mutation {
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
-  unsaveRoute(routeId: ID!): Boolean!
 
   """Remove a saved route from your collection"""
   unsaveRouteFromCollection(routeId: ID!): Boolean!

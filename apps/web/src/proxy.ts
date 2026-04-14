@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { resolveUuidToSlug } from './lib/redirect/uuid-to-slug';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -310,6 +311,17 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
+  // UUID→slug redirect: /routes/{uuid} → /route/{country}/{region}/{slug}
+  const uuidMatch = pathname.match(/^\/routes\/([0-9a-f-]+)/i);
+  if (uuidMatch) {
+    const resolved = await resolveUuidToSlug(uuidMatch[1]);
+    if (resolved) {
+      const canonicalUrl = `/route/${resolved.country}/${resolved.region}/${resolved.slug}`;
+      return NextResponse.redirect(new URL(canonicalUrl, request.url), 301);
+    }
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+
   // Pass nonce to Next.js so it can apply it to inline scripts
   request.headers.set('x-nonce', nonce);
 
@@ -328,9 +340,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/rider/') ||
     pathname.startsWith('/ride/') ||
-    pathname.startsWith('/explore')
+    pathname.startsWith('/explore') ||
+    pathname.startsWith('/route/') ||
+    pathname.startsWith('/pro')
   ) {
-    // Auth + public community routes + explore: skip locale processing
+    // Auth + public community routes + explore + route detail + pro: skip locale processing
     response = NextResponse.next({ request });
   } else {
     // All other routes: run next-intl locale detection + routing

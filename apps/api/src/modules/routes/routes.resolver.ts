@@ -168,69 +168,6 @@ export class RoutesResolver {
   }
 
   // ==========================================
-  // Route Saves (Bookmarks)
-  // ==========================================
-
-  @Mutation(() => Boolean)
-  async saveRoute(
-    @CurrentUser() user: AuthUser,
-    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
-  ): Promise<boolean> {
-    return this.routesService.saveRoute(user.id, routeId);
-  }
-
-  @Mutation(() => Boolean)
-  async unsaveRoute(
-    @CurrentUser() user: AuthUser,
-    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
-  ): Promise<boolean> {
-    return this.routesService.unsaveRoute(user.id, routeId);
-  }
-
-  @Query(() => RouteConnection)
-  async savedRoutes(
-    @CurrentUser() user: AuthUser,
-    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
-    first?: number,
-    @Args('after', { nullable: true }) after?: string,
-  ): Promise<RouteConnection> {
-    const result = await this.routesService.getSavedRoutes(user.id, first ?? 20, after);
-
-    const edges = result.saves
-      .filter((s) => s.route != null)
-      .map((s) => ({
-        node: s.route!,
-        cursor: Buffer.from(s.savedAt).toString('base64'),
-      }));
-
-    const lastEdge = edges[edges.length - 1];
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: result.hasNextPage,
-        endCursor: lastEdge?.cursor,
-      },
-    };
-  }
-
-  // ==========================================
-  // Public Saved Routes (by handle)
-  // ==========================================
-
-  @Query(() => RouteConnection)
-  @Public()
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
-  async publicSavedRoutes(
-    @Args('handle') handle: string,
-    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
-    first?: number,
-    @Args('after', { nullable: true }) after?: string,
-  ): Promise<RouteConnection> {
-    return this.routesService.publicSavedRoutes(handle, first ?? 20, after);
-  }
-
-  // ==========================================
   // GPX Export
   // ==========================================
 

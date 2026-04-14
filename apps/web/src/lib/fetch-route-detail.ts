@@ -1,3 +1,10 @@
+import type {
+  RouteContributor,
+  RouteDetailPayload,
+  RouteReview,
+  RouteReviewsData,
+} from '@motovault/types';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
 const ROUTE_DETAIL_QUERY = `
@@ -56,63 +63,10 @@ const ROUTE_REVIEWS_QUERY = `
   }
 `;
 
-export interface RouteContributor {
-  id: string;
-  displayName: string;
-  publicUsername?: string;
-  avatarUrl?: string;
-}
+export type RouteDetail = RouteDetailPayload;
+export type { RouteContributor, RouteReview, RouteReviewsData };
 
-export interface RouteDetail {
-  id: string;
-  name?: string;
-  description?: string;
-  polyline: string;
-  distanceM: number;
-  elevationGainM?: number;
-  surfaceType?: string;
-  curvatureIndex?: number;
-  isMotovaultPick: boolean;
-  editorialDescription?: string;
-  ratingAvg?: number;
-  ratingCount: number;
-  commentCount: number;
-  status: string;
-  createdAt: string;
-  contributor: RouteContributor;
-}
-
-export interface RouteReviewAuthor {
-  id: string;
-  displayName: string;
-  publicUsername?: string;
-  avatarUrl?: string;
-}
-
-export interface RouteReviewBike {
-  make: string;
-  model: string;
-  year: number;
-}
-
-export interface RouteReview {
-  id: string;
-  rating: number;
-  text?: string;
-  conditionTags: string[];
-  createdAt: string;
-  author: RouteReviewAuthor;
-  bike?: RouteReviewBike;
-}
-
-export interface RouteReviewsData {
-  reviews: RouteReview[];
-  hasNextPage: boolean;
-  endCursor?: string;
-  totalCount: number;
-}
-
-export async function fetchRouteDetail(routeId: string): Promise<RouteDetail | null> {
+export async function fetchRouteDetail(routeId: string): Promise<RouteDetailPayload | null> {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',

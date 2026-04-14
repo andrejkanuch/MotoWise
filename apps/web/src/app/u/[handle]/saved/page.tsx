@@ -215,7 +215,7 @@ function SoftWallOverlay() {
         </p>
         <div className="mt-5 flex items-center justify-center gap-3">
           <a
-            href="https://apps.apple.com/app/motovault/id6745417382"
+            href="https://apps.apple.com/us/app/motovault/id6760291360"
             className="inline-flex items-center rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
             Download on iOS

@@ -4,11 +4,45 @@ import { palette } from '@motovault/design-system';
 import { Download, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { gqlFetcher } from '@/lib/graphql-client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const EXPORT_MUTATION = /* GraphQL */ `
+  mutation ExportRouteGPX($routeId: ID!) {
+    exportRouteGPX(routeId: $routeId) {
+      ... on GPXExportSuccess {
+        fileUrl
+        fileName
+        message
+      }
+      ... on GPXExportError {
+        code
+        reason
+        quotaRemaining
+        upgradeUrl
+      }
+    }
+  }
+` as never; // Cast to satisfy TypedDocumentNode until pnpm generate runs
 
-/** Free-tier monthly GPX export limit (mirrors backend constant) */
-const FREE_TIER_LIMIT = 3;
+const QUOTA_QUERY = /* GraphQL */ `
+  query GetGPXQuotaStatus {
+    getGPXQuotaStatus {
+      remaining
+      limit
+      isExhausted
+    }
+  }
+` as never;
+
+interface QuotaData {
+  getGPXQuotaStatus: { remaining: number; limit: number; isExhausted: boolean };
+}
+
+interface ExportData {
+  exportRouteGPX:
+    | { fileUrl: string; fileName: string; message: string }
+    | { code: string; reason: string; quotaRemaining?: number; upgradeUrl?: string };
+}
 
 interface GpxDownloadButtonProps {
   routeId: string;
@@ -16,13 +50,6 @@ interface GpxDownloadButtonProps {
   isAuthenticated: boolean;
 }
 
-/**
- * GPX Download button with quota awareness and paywall gating.
- *
- * Uses the REST endpoint (GET /routes/:id/export.gpx) for the actual download.
- * Once MOT-178/179 land the GraphQL resolvers, swap to the generated
- * ExportRouteGPX mutation + GetGPXQuotaStatus query for full quota tracking.
- */
 export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDownloadButtonProps) {
   const router = useRouter();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -37,69 +64,69 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
     return () => clearTimeout(timer);
   }, [toast]);
 
-  // Quota check — once MOT-179 lands, replace with:
-  // const { data } = useQuery({ queryKey: ['gpxQuota'], queryFn: () => gqlFetcher(GetGPXQuotaStatusDocument), staleTime: 60_000 })
-  // For now, read from localStorage as a client-side approximation.
+  // Fetch server-side quota status (only when authenticated)
   useEffect(() => {
-    if (!isAuthenticated) return;
-    const key = `gpx_exports_${new Date().toISOString().slice(0, 7)}`;
-    const used = Number(localStorage.getItem(key) ?? '0');
-    setRemaining(Math.max(0, FREE_TIER_LIMIT - used));
+    if (!isAuthenticated) {
+      setRemaining(null);
+      return;
+    }
+    gqlFetcher<QuotaData, Record<string, never>>(QUOTA_QUERY)
+      .then((data) => setRemaining(data.getGPXQuotaStatus.remaining))
+      .catch(() => {
+        // Fail open for display only — server enforces quota on export
+      });
   }, [isAuthenticated]);
 
-  const incrementLocalQuota = useCallback(() => {
-    const key = `gpx_exports_${new Date().toISOString().slice(0, 7)}`;
-    const used = Number(localStorage.getItem(key) ?? '0') + 1;
-    localStorage.setItem(key, String(used));
-    setRemaining(Math.max(0, FREE_TIER_LIMIT - used));
-  }, []);
-
   const handleClick = useCallback(async () => {
-    // Unauthenticated: redirect to login
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
 
-    // Quota exhausted: show paywall
     if (remaining !== null && remaining <= 0) {
       setShowPaywall(true);
       return;
     }
 
-    // Download GPX via REST endpoint
     setIsDownloading(true);
     try {
-      const res = await fetch(`${API_URL}/routes/${routeId}/export.gpx`);
-      if (!res.ok) {
-        throw new Error(`Export failed (${res.status})`);
+      const data = await gqlFetcher<ExportData, { routeId: string }>(EXPORT_MUTATION, { routeId });
+      const result = data.exportRouteGPX;
+
+      // Quota exceeded
+      if ('code' in result) {
+        setShowPaywall(true);
+        setRemaining(0);
+        return;
       }
 
-      const blob = await res.blob();
-      const sanitizedName = routeName
-        .replace(/[^a-zA-Z0-9\s-]/g, '')
-        .replace(/\s+/g, '-');
-      const fileName = `${sanitizedName}-motovault.gpx`;
+      // Download the file from the signed URL
+      const res = await fetch(result.fileUrl);
+      if (!res.ok) throw new Error(`Download failed (${res.status})`);
 
-      // Trigger browser download
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = result.fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      incrementLocalQuota();
-      setToast({ message: `Downloaded ${fileName}`, type: 'success' });
+      // Update remaining count locally
+      if (remaining !== null && remaining > 0) {
+        setRemaining(remaining - 1);
+      }
+
+      setToast({ message: result.message, type: 'success' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to download GPX';
       setToast({ message, type: 'error' });
     } finally {
       setIsDownloading(false);
     }
-  }, [isAuthenticated, remaining, routeId, routeName, router, incrementLocalQuota]);
+  }, [isAuthenticated, remaining, routeId, router]);
 
   return (
     <div className="relative inline-flex flex-col items-center gap-1">
@@ -168,7 +195,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
               className="mb-6 text-sm"
               style={{ color: palette.neutral600 }}
             >
-              You have used all {FREE_TIER_LIMIT} free GPX exports this month. Upgrade to MotoVault
+              You have used all your free GPX exports this month. Upgrade to MotoVault
               Pro for unlimited exports and more premium features.
             </p>
             <div className="flex gap-3">
@@ -187,9 +214,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
                 type="button"
                 onClick={() => {
                   setShowPaywall(false);
-                  // Once the paywall-modal component exists at this path, integrate it.
-                  // For now, redirect to the app store.
-                  window.open('https://apps.apple.com/app/motovault/id6745417382', '_blank');
+                  window.open('https://apps.apple.com/us/app/motovault/id6760291360', '_blank');
                 }}
                 className="flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold"
                 style={{

@@ -14,39 +14,24 @@
  *   `buildBreadcrumbList` from `./schema.ts`.
  */
 
+import type {
+  JsonLdBreadcrumbItem,
+  RegionForJsonLd,
+  RouteForJsonLd,
+} from '@motovault/types';
 import { BASE_URL } from '@/lib/constants';
 import { SCHEMA_IDS } from './schema';
+
+export type { JsonLdBreadcrumbItem, RegionForJsonLd, RouteForJsonLd };
+
+/** @deprecated Use `JsonLdBreadcrumbItem` from `@motovault/types` */
+export type BreadcrumbItem = JsonLdBreadcrumbItem;
 
 type JsonLdNode = Record<string, unknown>;
 
 // ---------------------------------------------------------------------------
 // Route → TouristAttraction
 // ---------------------------------------------------------------------------
-
-export interface RouteForJsonLd {
-  name: string;
-  description: string | null;
-  editorialDescription: string | null;
-  distanceM: number;
-  elevationGainM: number | null;
-  surfaceType: string | null;
-  ratingAvg: number | null;
-  ratingCount: number;
-  /** Latitude of the route start point. */
-  startLat: number;
-  /** Longitude of the route start point. */
-  startLng: number;
-  /** ISO 3166-1 alpha-2 country code, lowercased for URL segments. */
-  countryCode: string;
-  /** Slugified region name. */
-  regionSlug: string;
-  /** URL-safe route slug. */
-  slug: string;
-  /** Human-readable country name for address. */
-  countryName: string;
-  /** Human-readable region name for address. */
-  regionName: string;
-}
 
 export function routeToTouristAttraction(route: RouteForJsonLd): JsonLdNode {
   const url = `${BASE_URL}/route/${route.countryCode}/${route.regionSlug}/${route.slug}`;
@@ -116,14 +101,6 @@ export function routeToTouristAttraction(route: RouteForJsonLd): JsonLdNode {
 // Region → Place
 // ---------------------------------------------------------------------------
 
-export interface RegionForJsonLd {
-  name: string;
-  countryCode: string;
-  regionSlug: string;
-  countryName: string;
-  description?: string;
-}
-
 export function regionToPlace(region: RegionForJsonLd): JsonLdNode {
   const url = `${BASE_URL}/explore/${region.countryCode}/${region.regionSlug}`;
   return {
@@ -159,12 +136,7 @@ export function websiteSchema(): JsonLdNode {
 // BreadcrumbList
 // ---------------------------------------------------------------------------
 
-export interface BreadcrumbItem {
-  name: string;
-  url: string;
-}
-
-export function breadcrumbSchema(items: BreadcrumbItem[]): JsonLdNode {
+export function breadcrumbSchema(items: JsonLdBreadcrumbItem[]): JsonLdNode {
   const lastUrl = items[items.length - 1]?.url ?? BASE_URL;
   return {
     '@type': 'BreadcrumbList',

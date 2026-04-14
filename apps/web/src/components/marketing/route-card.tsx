@@ -1,5 +1,5 @@
 import { Link } from '@/i18n/navigation';
-import type { RouteListItem } from '@/lib/fetch-places';
+import type { RouteListItem } from '@motovault/types';
 
 function formatDistance(meters: number): string {
   const km = meters / 1000;
