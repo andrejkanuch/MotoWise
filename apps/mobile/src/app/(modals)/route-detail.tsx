@@ -31,6 +31,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -229,394 +230,408 @@ export default function RouteDetailScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
-      {/* Map */}
-      <MapboxGL.MapView
-        style={{ flex: 1 }}
-        styleURL={MAP_STYLES[mapStyle]}
-        compassEnabled={false}
-        logoEnabled={false}
-        attributionEnabled={false}
-        scaleBarEnabled={false}
-      >
-        {bounds && (
-          <MapboxGL.Camera
-            bounds={{
-              ...bounds,
-              paddingBottom: 200,
-              paddingTop: 60,
-              paddingLeft: 40,
-              paddingRight: 40,
-            }}
-            animationMode="flyTo"
-            animationDuration={500}
-          />
-        )}
-        {routeGeoJSON && (
-          <MapboxGL.ShapeSource id="route-line" shape={routeGeoJSON}>
-            <MapboxGL.LineLayer
-              id="route-line-layer"
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: bg }}>
+        {/* Map */}
+        <MapboxGL.MapView
+          style={{ flex: 1 }}
+          styleURL={MAP_STYLES[mapStyle]}
+          compassEnabled={false}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+        >
+          {bounds && (
+            <MapboxGL.Camera
+              bounds={{
+                ...bounds,
+                paddingBottom: 200,
+                paddingTop: 60,
+                paddingLeft: 40,
+                paddingRight: 40,
+              }}
+              animationMode="flyTo"
+              animationDuration={500}
+            />
+          )}
+          {routeGeoJSON && (
+            <MapboxGL.ShapeSource id="route-line" shape={routeGeoJSON}>
+              <MapboxGL.LineLayer
+                id="route-line-layer"
+                style={{
+                  lineColor: palette.accent500,
+                  lineWidth: 4,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                }}
+              />
+            </MapboxGL.ShapeSource>
+          )}
+          {/* Start point */}
+          {coordinates.length > 0 && (
+            <MapboxGL.PointAnnotation id="start" coordinate={coordinates[0]}>
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  backgroundColor: palette.success500,
+                  borderWidth: 2,
+                  borderColor: palette.white,
+                }}
+              />
+            </MapboxGL.PointAnnotation>
+          )}
+          {/* End point */}
+          {coordinates.length > 1 && (
+            <MapboxGL.PointAnnotation id="end" coordinate={coordinates[coordinates.length - 1]}>
+              <View
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  backgroundColor: palette.accent500,
+                  borderWidth: 2,
+                  borderColor: palette.white,
+                }}
+              />
+            </MapboxGL.PointAnnotation>
+          )}
+          {/* Fuel station markers — ShapeSource for GPU rendering */}
+          <MapboxGL.ShapeSource
+            id="fuel-stops-source"
+            shape={fuelStopsGeoJSON}
+            cluster={true}
+            clusterRadius={40}
+          >
+            <MapboxGL.CircleLayer
+              id="fuel-cluster-circle"
+              filter={['has', 'point_count']}
               style={{
-                lineColor: palette.accent500,
-                lineWidth: 4,
-                lineCap: 'round',
-                lineJoin: 'round',
+                visibility: showFuelStops ? 'visible' : 'none',
+                circleRadius: ['step', ['get', 'point_count'], 16, 10, 22],
+                circleColor: palette.warning500,
+                circleOpacity: 0.85,
+                circleStrokeColor: palette.white,
+                circleStrokeWidth: 1.5,
+              }}
+            />
+            <MapboxGL.SymbolLayer
+              id="fuel-cluster-count"
+              filter={['has', 'point_count']}
+              style={{
+                visibility: showFuelStops ? 'visible' : 'none',
+                textField: ['get', 'point_count_abbreviated'],
+                textSize: 12,
+                textColor: palette.white,
+              }}
+            />
+            <MapboxGL.CircleLayer
+              id="fuel-stop-dot"
+              filter={['!', ['has', 'point_count']]}
+              style={{
+                visibility: showFuelStops ? 'visible' : 'none',
+                circleRadius: 6,
+                circleColor: palette.warning500,
+                circleStrokeColor: palette.white,
+                circleStrokeWidth: 1.5,
               }}
             />
           </MapboxGL.ShapeSource>
-        )}
-        {/* Start point */}
-        {coordinates.length > 0 && (
-          <MapboxGL.PointAnnotation id="start" coordinate={coordinates[0]}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 7,
-                backgroundColor: palette.success500,
-                borderWidth: 2,
-                borderColor: palette.white,
-              }}
-            />
-          </MapboxGL.PointAnnotation>
-        )}
-        {/* End point */}
-        {coordinates.length > 1 && (
-          <MapboxGL.PointAnnotation id="end" coordinate={coordinates[coordinates.length - 1]}>
-            <View
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 7,
-                backgroundColor: palette.accent500,
-                borderWidth: 2,
-                borderColor: palette.white,
-              }}
-            />
-          </MapboxGL.PointAnnotation>
-        )}
-        {/* Fuel station markers — ShapeSource for GPU rendering */}
-        <MapboxGL.ShapeSource
-          id="fuel-stops-source"
-          shape={fuelStopsGeoJSON}
-          cluster={true}
-          clusterRadius={40}
-        >
-          <MapboxGL.CircleLayer
-            id="fuel-cluster-circle"
-            filter={['has', 'point_count']}
-            style={{
-              visibility: showFuelStops ? 'visible' : 'none',
-              circleRadius: ['step', ['get', 'point_count'], 16, 10, 22],
-              circleColor: palette.warning500,
-              circleOpacity: 0.85,
-              circleStrokeColor: palette.white,
-              circleStrokeWidth: 1.5,
-            }}
-          />
-          <MapboxGL.SymbolLayer
-            id="fuel-cluster-count"
-            filter={['has', 'point_count']}
-            style={{
-              visibility: showFuelStops ? 'visible' : 'none',
-              textField: ['get', 'point_count_abbreviated'],
-              textSize: 12,
-              textColor: palette.white,
-            }}
-          />
-          <MapboxGL.CircleLayer
-            id="fuel-stop-dot"
-            filter={['!', ['has', 'point_count']]}
-            style={{
-              visibility: showFuelStops ? 'visible' : 'none',
-              circleRadius: 6,
-              circleColor: palette.warning500,
-              circleStrokeColor: palette.white,
-              circleStrokeWidth: 1.5,
-            }}
-          />
-        </MapboxGL.ShapeSource>
-      </MapboxGL.MapView>
+        </MapboxGL.MapView>
 
-      {/* Floating controls */}
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          left: 12,
-          flexDirection: 'row',
-          gap: 8,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
+        {/* Floating controls */}
+        <View
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'absolute',
+            top: insets.top + 8,
+            left: 12,
+            flexDirection: 'row',
+            gap: 8,
           }}
         >
-          <ArrowLeft size={20} color={palette.white} />
-        </Pressable>
-      </View>
-
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          right: 12,
-          flexDirection: 'row',
-          gap: 8,
-        }}
-      >
-        <Pressable
-          onPress={handleCycleMapStyle}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <MapIcon size={18} color={palette.white} />
-        </Pressable>
-        <Pressable
-          onPress={handleShare}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Share2 size={18} color={palette.white} />
-        </Pressable>
-      </View>
-
-      {/* Bottom sheet */}
-      <BottomSheet
-        ref={sheetRef}
-        snapPoints={['35%', '60%', '90%']}
-        index={0}
-        backgroundStyle={{ backgroundColor: sheetBg, borderRadius: 24, borderCurve: 'continuous' }}
-        handleIndicatorStyle={{ backgroundColor: isDark ? palette.neutral600 : palette.neutral300 }}
-      >
-        <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
-          {/* MotoVault Pick badge */}
-          {route.isMotovaultPick && (
-            <Animated.View
-              entering={FadeIn.duration(300)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                alignSelf: 'flex-start',
-                marginBottom: 10,
-              }}
-            >
-              <Award size={14} color={isDark ? palette.accent400 : palette.accent500} />
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color: isDark ? palette.accent400 : palette.accent500,
-                }}
-              >
-                MotoVault Pick
-              </Text>
-            </Animated.View>
-          )}
-
-          {/* Route name */}
-          <Text style={{ fontSize: 22, fontWeight: '800', color: titleColor, marginBottom: 4 }}>
-            {route.name ?? 'Unnamed Route'}
-          </Text>
-
-          {/* Contributor */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
-            <User size={14} color={subtitleColor} />
-            <Text style={{ fontSize: 13, color: subtitleColor }}>
-              by {route.contributor.displayName}
-            </Text>
-          </View>
-
-          {/* Stats grid */}
-          <View
+          <Pressable
+            onPress={() => router.back()}
             style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              gap: 12,
-              marginBottom: 16,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <StatBadge
-              label="Distance"
-              value={formatDistance(route.distanceM, system)}
-              isDark={isDark}
-            />
-            {(route.elevationGainM ?? 0) > 0 && (
-              <StatBadge
-                label="Elevation"
-                value={formatElevation(route.elevationGainM ?? 0, system)}
-                isDark={isDark}
-              />
-            )}
-            {surfaceLabel && <StatBadge label="Surface" value={surfaceLabel} isDark={isDark} />}
-            {route.ratingAvg != null && route.ratingCount > 0 && (
-              <StatBadge
-                label="Rating"
-                value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
-                isDark={isDark}
-              />
-            )}
-            {fuelData?.fuelStopsNearRoute.rangeSummary && (
-              <Pressable
-                onPress={() => {
-                  setShowFuelStops((prev) => !prev);
-                  if (process.env.EXPO_OS === 'ios')
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            <ArrowLeft size={20} color={palette.white} />
+          </Pressable>
+        </View>
+
+        <View
+          style={{
+            position: 'absolute',
+            top: insets.top + 8,
+            right: 12,
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          <Pressable
+            onPress={handleCycleMapStyle}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <MapIcon size={18} color={palette.white} />
+          </Pressable>
+          <Pressable
+            onPress={handleShare}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Share2 size={18} color={palette.white} />
+          </Pressable>
+        </View>
+
+        {/* Bottom sheet */}
+        <BottomSheet
+          ref={sheetRef}
+          snapPoints={['35%', '60%', '90%']}
+          index={0}
+          backgroundStyle={{
+            backgroundColor: sheetBg,
+            borderRadius: 24,
+            borderCurve: 'continuous',
+          }}
+          handleIndicatorStyle={{
+            backgroundColor: isDark ? palette.neutral600 : palette.neutral300,
+          }}
+        >
+          <BottomSheetScrollView
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          >
+            {/* MotoVault Pick badge */}
+            {route.isMotovaultPick && (
+              <Animated.View
+                entering={FadeIn.duration(300)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                  alignSelf: 'flex-start',
+                  marginBottom: 10,
                 }}
-                accessibilityRole="button"
-                accessibilityLabel={`Fuel range: ${fuelData.fuelStopsNearRoute.rangeSummary.summary}. Double tap to ${showFuelStops ? 'hide' : 'show'} fuel stations.`}
               >
-                <View
+                <Award size={14} color={isDark ? palette.accent400 : palette.accent500} />
+                <Text
                   style={{
-                    backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    borderWidth: showFuelStops ? 1.5 : 0,
-                    borderColor: showFuelStops
-                      ? fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)
-                      : 'transparent',
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: isDark ? palette.accent400 : palette.accent500,
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Fuel
-                      size={11}
-                      color={fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 11,
-                        color: isDark ? palette.neutral500 : palette.neutral400,
-                      }}
-                    >
-                      Fuel Range
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired),
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {fuelBadgeLabel(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)}
-                  </Text>
-                </View>
-              </Pressable>
+                  MotoVault Pick
+                </Text>
+              </Animated.View>
             )}
-          </View>
 
-          {/* Description / editorial */}
-          {(route.editorialDescription ?? route.description) && (
-            <Text
+            {/* Route name */}
+            <Text style={{ fontSize: 22, fontWeight: '800', color: titleColor, marginBottom: 4 }}>
+              {route.name ?? 'Unnamed Route'}
+            </Text>
+
+            {/* Contributor */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+              <User size={14} color={subtitleColor} />
+              <Text style={{ fontSize: 13, color: subtitleColor }}>
+                by {route.contributor.displayName}
+              </Text>
+            </View>
+
+            {/* Stats grid */}
+            <View
               style={{
-                fontSize: 14,
-                lineHeight: 20,
-                color: isDark ? palette.neutral300 : palette.neutral600,
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: 12,
                 marginBottom: 16,
               }}
             >
-              {route.editorialDescription ?? route.description}
-            </Text>
-          )}
-
-          {/* Action buttons */}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-            <ActionButton
-              icon={<Download size={16} color={palette.white} />}
-              label="Export GPX"
-              onPress={handleExportGPX}
-              primary
-            />
-            <ActionButton
-              icon={
-                <Bookmark
-                  size={16}
-                  color={isSaved ? palette.white : palette.accent500}
-                  fill={isSaved ? palette.white : 'transparent'}
+              <StatBadge
+                label="Distance"
+                value={formatDistance(route.distanceM, system)}
+                isDark={isDark}
+              />
+              {(route.elevationGainM ?? 0) > 0 && (
+                <StatBadge
+                  label="Elevation"
+                  value={formatElevation(route.elevationGainM ?? 0, system)}
+                  isDark={isDark}
                 />
-              }
-              label={isSaved ? 'Saved' : 'Save'}
-              onPress={() => saveMutation.mutate()}
-              primary={isSaved}
-            />
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-            <ActionButton
-              icon={<CloudOff size={16} color={palette.accent500} />}
-              label="Offline"
-              onPress={() => setShowWaitlist(true)}
-            />
-            <ActionButton
-              icon={<Share2 size={16} color={palette.accent500} />}
-              label="Share"
-              onPress={handleShare}
-            />
-          </View>
+              )}
+              {surfaceLabel && <StatBadge label="Surface" value={surfaceLabel} isDark={isDark} />}
+              {route.ratingAvg != null && route.ratingCount > 0 && (
+                <StatBadge
+                  label="Rating"
+                  value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
+                  isDark={isDark}
+                />
+              )}
+              {fuelData?.fuelStopsNearRoute.rangeSummary && (
+                <Pressable
+                  onPress={() => {
+                    setShowFuelStops((prev) => !prev);
+                    if (process.env.EXPO_OS === 'ios')
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Fuel range: ${fuelData.fuelStopsNearRoute.rangeSummary.summary}. Double tap to ${showFuelStops ? 'hide' : 'show'} fuel stations.`}
+                >
+                  <View
+                    style={{
+                      backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 10,
+                      borderCurve: 'continuous',
+                      borderWidth: showFuelStops ? 1.5 : 0,
+                      borderColor: showFuelStops
+                        ? fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)
+                        : 'transparent',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Fuel
+                        size={11}
+                        color={fuelBadgeColor(
+                          fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired,
+                        )}
+                      />
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color: isDark ? palette.neutral500 : palette.neutral400,
+                        }}
+                      >
+                        Fuel Range
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: fuelBadgeColor(
+                          fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired,
+                        ),
+                        fontVariant: ['tabular-nums'],
+                      }}
+                    >
+                      {fuelBadgeLabel(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)}
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+            </View>
 
-          {/* Reviews */}
-          <ReviewList routeId={routeId} />
-
-          {/* Review form */}
-          {showReviewForm ? (
-            <ReviewForm routeId={routeId} onSuccess={() => setShowReviewForm(false)} />
-          ) : (
-            <Pressable
-              onPress={() => setShowReviewForm(true)}
-              style={{
-                paddingVertical: 12,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: palette.accent500,
-                alignItems: 'center',
-                marginVertical: 12,
-              }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                Leave a Review
+            {/* Description / editorial */}
+            {(route.editorialDescription ?? route.description) && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  lineHeight: 20,
+                  color: isDark ? palette.neutral300 : palette.neutral600,
+                  marginBottom: 16,
+                }}
+              >
+                {route.editorialDescription ?? route.description}
               </Text>
-            </Pressable>
-          )}
+            )}
 
-          {/* Comments */}
-          <CommentList routeId={routeId} />
+            {/* Action buttons */}
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+              <ActionButton
+                icon={<Download size={16} color={palette.white} />}
+                label="Export GPX"
+                onPress={handleExportGPX}
+                primary
+              />
+              <ActionButton
+                icon={
+                  <Bookmark
+                    size={16}
+                    color={isSaved ? palette.white : palette.accent500}
+                    fill={isSaved ? palette.white : 'transparent'}
+                  />
+                }
+                label={isSaved ? 'Saved' : 'Save'}
+                onPress={() => saveMutation.mutate()}
+                primary={isSaved}
+              />
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
+              <ActionButton
+                icon={<CloudOff size={16} color={palette.accent500} />}
+                label="Offline"
+                onPress={() => setShowWaitlist(true)}
+              />
+              <ActionButton
+                icon={<Share2 size={16} color={palette.accent500} />}
+                label="Share"
+                onPress={handleShare}
+              />
+            </View>
 
-          {/* Premium waitlist modal */}
-          <PremiumWaitlistModal visible={showWaitlist} onClose={() => setShowWaitlist(false)} />
-        </BottomSheetScrollView>
-      </BottomSheet>
-    </View>
+            {/* Reviews */}
+            <ReviewList routeId={routeId} />
+
+            {/* Review form */}
+            {showReviewForm ? (
+              <ReviewForm routeId={routeId} onSuccess={() => setShowReviewForm(false)} />
+            ) : (
+              <Pressable
+                onPress={() => setShowReviewForm(true)}
+                style={{
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: palette.accent500,
+                  alignItems: 'center',
+                  marginVertical: 12,
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                  Leave a Review
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Comments */}
+            <CommentList routeId={routeId} />
+
+            {/* Premium waitlist modal */}
+            <PremiumWaitlistModal visible={showWaitlist} onClose={() => setShowWaitlist(false)} />
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 

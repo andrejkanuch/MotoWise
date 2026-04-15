@@ -539,7 +539,7 @@ type FuelStop {
   lat: Float!
   lng: Float!
   name: String!
-  osmId: Int!
+  osmId: ID!
 }
 
 type GPXExportError {

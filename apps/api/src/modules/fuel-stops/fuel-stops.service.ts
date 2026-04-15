@@ -247,7 +247,7 @@ export class FuelStopsService {
         seen.add(el.id);
 
         stops.push({
-          osmId: el.id,
+          osmId: String(el.id),
           name: el.tags?.name ?? 'Fuel Station',
           lat: el.lat,
           lng: el.lon,

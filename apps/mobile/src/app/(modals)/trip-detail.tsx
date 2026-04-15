@@ -43,6 +43,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -382,104 +383,78 @@ ${rteptElements}
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
-      {/* Map */}
-      <MapboxGL.MapView
-        style={{ flex: 1 }}
-        styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
-        compassEnabled={false}
-        logoEnabled={false}
-        attributionEnabled={false}
-        scaleBarEnabled={false}
-      >
-        {bounds && (
-          <MapboxGL.Camera
-            bounds={{
-              ...bounds,
-              paddingBottom: 200,
-              paddingTop: 60,
-              paddingLeft: 40,
-              paddingRight: 40,
-            }}
-            animationMode="flyTo"
-            animationDuration={500}
-          />
-        )}
-        {routeGeoJSON && (
-          <MapboxGL.ShapeSource id="trip-route" shape={routeGeoJSON}>
-            <MapboxGL.LineLayer
-              id="trip-route-layer"
-              style={{
-                lineColor: palette.accent500,
-                lineWidth: 4,
-                lineCap: 'round',
-                lineJoin: 'round',
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: bg }}>
+        {/* Map */}
+        <MapboxGL.MapView
+          style={{ flex: 1 }}
+          styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
+          compassEnabled={false}
+          logoEnabled={false}
+          attributionEnabled={false}
+          scaleBarEnabled={false}
+        >
+          {bounds && (
+            <MapboxGL.Camera
+              bounds={{
+                ...bounds,
+                paddingBottom: 200,
+                paddingTop: 60,
+                paddingLeft: 40,
+                paddingRight: 40,
               }}
+              animationMode="flyTo"
+              animationDuration={500}
             />
-          </MapboxGL.ShapeSource>
-        )}
-        {waypoints.map((wp) => {
-          const wt = getWaypointIcon(wp.type);
-          return (
-            <MapboxGL.PointAnnotation key={wp.id} id={`wp-${wp.id}`} coordinate={[wp.lng, wp.lat]}>
-              <View
+          )}
+          {routeGeoJSON && (
+            <MapboxGL.ShapeSource id="trip-route" shape={routeGeoJSON}>
+              <MapboxGL.LineLayer
+                id="trip-route-layer"
                 style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 8,
-                  backgroundColor: wt.color,
-                  borderWidth: 2,
-                  borderColor: palette.white,
+                  lineColor: palette.accent500,
+                  lineWidth: 4,
+                  lineCap: 'round',
+                  lineJoin: 'round',
                 }}
               />
-            </MapboxGL.PointAnnotation>
-          );
-        })}
-      </MapboxGL.MapView>
+            </MapboxGL.ShapeSource>
+          )}
+          {waypoints.map((wp) => {
+            const wt = getWaypointIcon(wp.type);
+            return (
+              <MapboxGL.PointAnnotation
+                key={wp.id}
+                id={`wp-${wp.id}`}
+                coordinate={[wp.lng, wp.lat]}
+              >
+                <View
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: wt.color,
+                    borderWidth: 2,
+                    borderColor: palette.white,
+                  }}
+                />
+              </MapboxGL.PointAnnotation>
+            );
+          })}
+        </MapboxGL.MapView>
 
-      {/* Floating controls */}
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          left: 12,
-          flexDirection: 'row',
-          gap: 8,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
+        {/* Floating controls */}
+        <View
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: palette.neutral950,
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'absolute',
+            top: insets.top + 8,
+            left: 12,
+            flexDirection: 'row',
+            gap: 8,
           }}
         >
-          <ArrowLeft size={20} color={palette.white} />
-        </Pressable>
-      </View>
-
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          right: 12,
-          flexDirection: 'row',
-          gap: 8,
-        }}
-      >
-        {isOrganiser && (
           <Pressable
-            onPress={() =>
-              router.push({
-                pathname: '/(modals)/create-trip',
-                params: { tripId: trip.id },
-              } as never)
-            }
+            onPress={() => router.back()}
             style={{
               width: 40,
               height: 40,
@@ -490,543 +465,588 @@ ${rteptElements}
               justifyContent: 'center',
             }}
           >
-            <Pencil size={18} color={palette.white} />
+            <ArrowLeft size={20} color={palette.white} />
           </Pressable>
-        )}
-        {isOrganiser && (
-          <Pressable
-            onPress={handleOpenShareSheet}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              borderCurve: 'continuous',
-              backgroundColor: palette.neutral950,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Share2 size={18} color={palette.white} />
-          </Pressable>
-        )}
-      </View>
+        </View>
 
-      {/* Bottom sheet */}
-      <BottomSheet
-        ref={sheetRef}
-        snapPoints={['55%', '85%', '95%']}
-        index={0}
-        backgroundStyle={{ backgroundColor: sheetBg, borderRadius: 24, borderCurve: 'continuous' }}
-        handleIndicatorStyle={{ backgroundColor: isDark ? palette.neutral600 : palette.neutral300 }}
-      >
-        <BottomSheetScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
-          {/* Title */}
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: '800',
-              color: titleColor,
-              letterSpacing: -0.5,
-              marginBottom: 10,
-            }}
-          >
-            {trip.title}
-          </Text>
-
-          {/* Badge row — difficulty + visibility */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <View
+        <View
+          style={{
+            position: 'absolute',
+            top: insets.top + 8,
+            right: 12,
+            flexDirection: 'row',
+            gap: 8,
+          }}
+        >
+          {isOrganiser && (
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/(modals)/create-trip',
+                  params: { tripId: trip.id },
+                } as never)
+              }
               style={{
-                backgroundColor: isDark ? difficultyStyle.bgDark : difficultyStyle.bg,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 8,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
                 borderCurve: 'continuous',
+                backgroundColor: palette.neutral950,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 12, fontWeight: '700', color: difficultyStyle.text }}>
-                {difficultyLabel}
-              </Text>
-            </View>
+              <Pencil size={18} color={palette.white} />
+            </Pressable>
+          )}
+          {isOrganiser && (
+            <Pressable
+              onPress={handleOpenShareSheet}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                borderCurve: 'continuous',
+                backgroundColor: palette.neutral950,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Share2 size={18} color={palette.white} />
+            </Pressable>
+          )}
+        </View>
+
+        {/* Bottom sheet */}
+        <BottomSheet
+          ref={sheetRef}
+          snapPoints={['55%', '85%', '95%']}
+          index={0}
+          backgroundStyle={{
+            backgroundColor: sheetBg,
+            borderRadius: 24,
+            borderCurve: 'continuous',
+          }}
+          handleIndicatorStyle={{
+            backgroundColor: isDark ? palette.neutral600 : palette.neutral300,
+          }}
+        >
+          <BottomSheetScrollView
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+          >
+            {/* Title */}
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: '800',
+                color: titleColor,
+                letterSpacing: -0.5,
+                marginBottom: 10,
+              }}
+            >
+              {trip.title}
+            </Text>
+
+            {/* Badge row — difficulty + visibility */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 4,
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 8,
-                borderCurve: 'continuous',
+                gap: 8,
+                marginBottom: 12,
+                flexWrap: 'wrap',
               }}
             >
-              {trip.visibility === 'public' ? (
-                <Globe size={11} color={palette.success500} />
-              ) : trip.visibility === 'unlisted' ? (
-                <EyeOff size={11} color={palette.warning500} />
-              ) : (
-                <Lock size={11} color={palette.neutral500} />
-              )}
-              <Text
+              <View
                 style={{
-                  fontSize: 12,
-                  fontWeight: '700',
-                  color:
-                    trip.visibility === 'public'
-                      ? palette.success500
-                      : trip.visibility === 'unlisted'
-                        ? palette.warning500
-                        : palette.neutral500,
+                  backgroundColor: isDark ? difficultyStyle.bgDark : difficultyStyle.bg,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
                 }}
               >
-                {trip.visibility === 'public'
-                  ? 'Public'
-                  : trip.visibility === 'unlisted'
-                    ? 'Link only'
-                    : 'Private'}
-              </Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: difficultyStyle.text }}>
+                  {difficultyLabel}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                }}
+              >
+                {trip.visibility === 'public' ? (
+                  <Globe size={11} color={palette.success500} />
+                ) : trip.visibility === 'unlisted' ? (
+                  <EyeOff size={11} color={palette.warning500} />
+                ) : (
+                  <Lock size={11} color={palette.neutral500} />
+                )}
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color:
+                      trip.visibility === 'public'
+                        ? palette.success500
+                        : trip.visibility === 'unlisted'
+                          ? palette.warning500
+                          : palette.neutral500,
+                  }}
+                >
+                  {trip.visibility === 'public'
+                    ? 'Public'
+                    : trip.visibility === 'unlisted'
+                      ? 'Link only'
+                      : 'Private'}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          {/* Stats bar — the at-a-glance decision data */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
-              paddingHorizontal: 14,
-              paddingVertical: 12,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              marginBottom: 14,
-              gap: 14,
-            }}
-          >
-            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '800',
-                  color: titleColor,
-                  letterSpacing: -0.3,
-                }}
-              >
-                {tripDays}
-              </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
-                {tripDays === 1 ? 'day' : 'days'}
-              </Text>
-            </View>
+            {/* Stats bar — the at-a-glance decision data */}
             <View
               style={{
-                width: 1,
-                alignSelf: 'stretch',
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                marginBottom: 14,
+                gap: 14,
               }}
-            />
-            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-              <Text
+            >
+              <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '800',
+                    color: titleColor,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {tripDays}
+                </Text>
+                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                  {tripDays === 1 ? 'day' : 'days'}
+                </Text>
+              </View>
+              <View
                 style={{
-                  fontSize: 18,
-                  fontWeight: '800',
-                  color: titleColor,
-                  letterSpacing: -0.3,
+                  width: 1,
+                  alignSelf: 'stretch',
+                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
                 }}
-              >
-                {waypoints.length}
-              </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
-                {waypoints.length === 1 ? 'stop' : 'stops'}
-              </Text>
+              />
+              <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '800',
+                    color: titleColor,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {waypoints.length}
+                </Text>
+                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                  {waypoints.length === 1 ? 'stop' : 'stops'}
+                </Text>
+              </View>
+              <View
+                style={{
+                  width: 1,
+                  alignSelf: 'stretch',
+                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                }}
+              />
+              <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontWeight: '800',
+                    color: titleColor,
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  {trip.participantCount}
+                  <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
+                </Text>
+                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                  riders
+                </Text>
+              </View>
             </View>
+
+            {/* Date + organiser compact row */}
             <View
               style={{
-                width: 1,
-                alignSelf: 'stretch',
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 14,
+                flexWrap: 'wrap',
               }}
-            />
-            <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '800',
-                  color: titleColor,
-                  letterSpacing: -0.3,
-                }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Calendar size={13} color={palette.accent500} />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
+                  {formatDateRange(trip.startDate, trip.endDate)}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <User size={13} color={subtitleColor} />
+                <Text style={{ fontSize: 13, color: subtitleColor }}>
+                  Led by {trip.organiser.displayName}
+                </Text>
+              </View>
+            </View>
+
+            {/* Description — now below the decision-relevant data */}
+            {trip.description && (
+              <Animated.View entering={FadeIn.duration(300)} style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, lineHeight: 20, color: bodyColor }}>
+                  {trip.description}
+                </Text>
+              </Animated.View>
+            )}
+
+            {/* Day-by-day itinerary */}
+            {waypointsByDay.length > 0 && (
+              <Animated.View
+                entering={FadeInUp.delay(50).duration(250)}
+                style={{ marginBottom: 16 }}
               >
-                {trip.participantCount}
-                <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
-              </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>riders</Text>
-            </View>
-          </View>
-
-          {/* Date + organiser compact row */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              marginBottom: 14,
-              flexWrap: 'wrap',
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Calendar size={13} color={palette.accent500} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                {formatDateRange(trip.startDate, trip.endDate)}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <User size={13} color={subtitleColor} />
-              <Text style={{ fontSize: 13, color: subtitleColor }}>
-                Led by {trip.organiser.displayName}
-              </Text>
-            </View>
-          </View>
-
-          {/* Description — now below the decision-relevant data */}
-          {trip.description && (
-            <Animated.View entering={FadeIn.duration(300)} style={{ marginBottom: 16 }}>
-              <Text style={{ fontSize: 14, lineHeight: 20, color: bodyColor }}>
-                {trip.description}
-              </Text>
-            </Animated.View>
-          )}
-
-          {/* Day-by-day itinerary */}
-          {waypointsByDay.length > 0 && (
-            <Animated.View entering={FadeInUp.delay(50).duration(250)} style={{ marginBottom: 16 }}>
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: sectionLabelColor,
-                  marginBottom: 4,
-                }}
-              >
-                Itinerary
-              </Text>
-              {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
-                const isCollapsed = !!collapsedDays[dayIndex];
-                const DayChevron = isCollapsed ? ChevronDown : ChevronUp;
-                return (
-                  <Animated.View
-                    key={dayIndex}
-                    entering={FadeInUp.delay(sectionIdx * 60).duration(250)}
-                  >
-                    {/* Day header */}
-                    <Pressable
-                      onPress={() => toggleDay(dayIndex)}
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                        marginTop: 16,
-                        marginBottom: 8,
-                      }}
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: sectionLabelColor,
+                    marginBottom: 4,
+                  }}
+                >
+                  Itinerary
+                </Text>
+                {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
+                  const isCollapsed = !!collapsedDays[dayIndex];
+                  const DayChevron = isCollapsed ? ChevronDown : ChevronUp;
+                  return (
+                    <Animated.View
+                      key={dayIndex}
+                      entering={FadeInUp.delay(sectionIdx * 60).duration(250)}
                     >
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
-                        {formatDayDate(dayIndex)}
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
-                          {dayWaypoints.length} {dayWaypoints.length === 1 ? 'stop' : 'stops'}
+                      {/* Day header */}
+                      <Pressable
+                        onPress={() => toggleDay(dayIndex)}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                          borderRadius: 12,
+                          borderCurve: 'continuous',
+                          paddingHorizontal: 16,
+                          paddingVertical: 12,
+                          marginTop: 16,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
+                          {formatDayDate(dayIndex)}
                         </Text>
-                        <DayChevron size={16} color={subtitleColor} />
-                      </View>
-                    </Pressable>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
+                            {dayWaypoints.length} {dayWaypoints.length === 1 ? 'stop' : 'stops'}
+                          </Text>
+                          <DayChevron size={16} color={subtitleColor} />
+                        </View>
+                      </Pressable>
 
-                    {/* Waypoints within the day */}
-                    {!isCollapsed &&
-                      dayWaypoints.map((wp, index) => {
-                        const wt = getWaypointIcon(wp.type);
-                        return (
-                          <Animated.View
-                            key={wp.id}
-                            entering={FadeInUp.delay(index * 50).duration(200)}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              gap: 12,
-                              padding: 10,
-                              marginBottom: 6,
-                              borderRadius: 10,
-                              borderCurve: 'continuous',
-                              backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
-                            }}
-                          >
+                      {/* Waypoints within the day */}
+                      {!isCollapsed &&
+                        dayWaypoints.map((wp, index) => {
+                          const wt = getWaypointIcon(wp.type);
+                          return (
+                            <Animated.View
+                              key={wp.id}
+                              entering={FadeInUp.delay(index * 50).duration(200)}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: 10,
+                                marginBottom: 6,
+                                borderRadius: 10,
+                                borderCurve: 'continuous',
+                                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 16,
+                                  backgroundColor: wt.color,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <wt.Icon size={16} color={palette.white} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
+                                  numberOfLines={1}
+                                >
+                                  {wp.name}
+                                </Text>
+                                {wp.notes ? (
+                                  <Text
+                                    style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}
+                                    numberOfLines={2}
+                                  >
+                                    {wp.notes}
+                                  </Text>
+                                ) : null}
+                              </View>
+                            </Animated.View>
+                          );
+                        })}
+                    </Animated.View>
+                  );
+                })}
+              </Animated.View>
+            )}
+
+            {/* Open in Maps */}
+            {waypoints.length > 0 && (
+              <Pressable
+                onPress={handleOpenInMaps}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: palette.accent500,
+                  marginBottom: 16,
+                }}
+              >
+                <Navigation size={16} color={palette.accent500} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                  Open in Maps
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Export GPX */}
+            {waypoints.length > 0 && (
+              <Pressable
+                onPress={handleExportGPX}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: palette.accent500,
+                  marginBottom: 16,
+                }}
+              >
+                <FileDown size={16} color={palette.accent500} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                  Export GPX
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Participants */}
+            {trip.participants && trip.participants.length > 0 && (
+              <Animated.View
+                entering={FadeInUp.delay(100).duration(250)}
+                style={{ marginBottom: 16 }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: sectionLabelColor,
+                    marginBottom: 8,
+                  }}
+                >
+                  Riders ({trip.participantCount})
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {trip.participants.map((p) => {
+                    const statusInfo =
+                      STATUS_ICONS[p.status as keyof typeof STATUS_ICONS] ?? STATUS_ICONS.going;
+                    return (
+                      <Pressable
+                        key={p.id}
+                        onPress={() => p.publicUsername && handleProfilePress(p.publicUsername)}
+                        style={{ alignItems: 'center', gap: 4, width: 56 }}
+                      >
+                        <View>
+                          {p.avatarUrl ? (
+                            <Image
+                              source={{ uri: p.avatarUrl }}
+                              style={{ width: 36, height: 36, borderRadius: 18 }}
+                            />
+                          ) : (
                             <View
                               style={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 16,
-                                backgroundColor: wt.color,
+                                width: 36,
+                                height: 36,
+                                borderRadius: 18,
+                                backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
                                 alignItems: 'center',
                                 justifyContent: 'center',
                               }}
                             >
-                              <wt.Icon size={16} color={palette.white} />
+                              <User size={16} color={subtitleColor} />
                             </View>
-                            <View style={{ flex: 1 }}>
-                              <Text
-                                style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
-                                numberOfLines={1}
-                              >
-                                {wp.name}
-                              </Text>
-                              {wp.notes ? (
-                                <Text
-                                  style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}
-                                  numberOfLines={2}
-                                >
-                                  {wp.notes}
-                                </Text>
-                              ) : null}
-                            </View>
-                          </Animated.View>
-                        );
-                      })}
-                  </Animated.View>
-                );
-              })}
-            </Animated.View>
-          )}
-
-          {/* Open in Maps */}
-          {waypoints.length > 0 && (
-            <Pressable
-              onPress={handleOpenInMaps}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                paddingVertical: 12,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: palette.accent500,
-                marginBottom: 16,
-              }}
-            >
-              <Navigation size={16} color={palette.accent500} />
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                Open in Maps
-              </Text>
-            </Pressable>
-          )}
-
-          {/* Export GPX */}
-          {waypoints.length > 0 && (
-            <Pressable
-              onPress={handleExportGPX}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                paddingVertical: 12,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                borderWidth: 1,
-                borderColor: palette.accent500,
-                marginBottom: 16,
-              }}
-            >
-              <FileDown size={16} color={palette.accent500} />
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                Export GPX
-              </Text>
-            </Pressable>
-          )}
-
-          {/* Participants */}
-          {trip.participants && trip.participants.length > 0 && (
-            <Animated.View
-              entering={FadeInUp.delay(100).duration(250)}
-              style={{ marginBottom: 16 }}
-            >
-              <Text
-                style={{
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: sectionLabelColor,
-                  marginBottom: 8,
-                }}
-              >
-                Riders ({trip.participantCount})
-              </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {trip.participants.map((p) => {
-                  const statusInfo =
-                    STATUS_ICONS[p.status as keyof typeof STATUS_ICONS] ?? STATUS_ICONS.going;
-                  return (
-                    <Pressable
-                      key={p.id}
-                      onPress={() => p.publicUsername && handleProfilePress(p.publicUsername)}
-                      style={{ alignItems: 'center', gap: 4, width: 56 }}
-                    >
-                      <View>
-                        {p.avatarUrl ? (
-                          <Image
-                            source={{ uri: p.avatarUrl }}
-                            style={{ width: 36, height: 36, borderRadius: 18 }}
-                          />
-                        ) : (
+                          )}
                           <View
                             style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 18,
-                              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                              position: 'absolute',
+                              bottom: -2,
+                              right: -2,
+                              width: 14,
+                              height: 14,
+                              borderRadius: 7,
+                              backgroundColor: sheetBg,
                               alignItems: 'center',
                               justifyContent: 'center',
                             }}
                           >
-                            <User size={16} color={subtitleColor} />
+                            <statusInfo.Icon size={10} color={statusInfo.color} />
                           </View>
-                        )}
-                        <View
-                          style={{
-                            position: 'absolute',
-                            bottom: -2,
-                            right: -2,
-                            width: 14,
-                            height: 14,
-                            borderRadius: 7,
-                            backgroundColor: sheetBg,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <statusInfo.Icon size={10} color={statusInfo.color} />
                         </View>
-                      </View>
-                      <Text
-                        style={{ fontSize: 10, color: subtitleColor, textAlign: 'center' }}
-                        numberOfLines={1}
-                      >
-                        {p.displayName}
+                        <Text
+                          style={{ fontSize: 10, color: subtitleColor, textAlign: 'center' }}
+                          numberOfLines={1}
+                        >
+                          {p.displayName}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </Animated.View>
+            )}
+
+            {/* Action buttons */}
+            <Animated.View
+              entering={FadeInUp.delay(150).duration(250)}
+              style={{ gap: 10, marginBottom: 20 }}
+            >
+              {/* Join (going) */}
+              {!myParticipant && !isOrganiser && (
+                <Pressable
+                  onPress={() => joinMutation.mutate('going')}
+                  disabled={actionLoading}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: palette.accent500,
+                  }}
+                >
+                  {actionLoading ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <>
+                      <Users size={16} color={palette.white} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        I'm in
                       </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              {/* Maybe */}
+              {!myParticipant && !isOrganiser && (
+                <Pressable
+                  onPress={() => joinMutation.mutate('maybe')}
+                  disabled={actionLoading}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: palette.warning500,
+                  }}
+                >
+                  <HelpCircle size={16} color={palette.warning500} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
+                    Maybe
+                  </Text>
+                </Pressable>
+              )}
+
+              {/* Leave */}
+              {myParticipant && !isOrganiser && (
+                <Pressable
+                  onPress={handleLeave}
+                  disabled={actionLoading}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: palette.danger500,
+                  }}
+                >
+                  <LogOut size={16} color={palette.danger500} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                    Leave
+                  </Text>
+                </Pressable>
+              )}
             </Animated.View>
-          )}
 
-          {/* Action buttons */}
-          <Animated.View
-            entering={FadeInUp.delay(150).duration(250)}
-            style={{ gap: 10, marginBottom: 20 }}
-          >
-            {/* Join (going) */}
-            {!myParticipant && !isOrganiser && (
-              <Pressable
-                onPress={() => joinMutation.mutate('going')}
-                disabled={actionLoading}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  backgroundColor: palette.accent500,
-                }}
-              >
-                {actionLoading ? (
-                  <ActivityIndicator size="small" color={palette.white} />
-                ) : (
-                  <>
-                    <Users size={16} color={palette.white} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                      I'm in
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-            )}
+            {/* Comments */}
+            <CommentList tripId={tripId} />
+          </BottomSheetScrollView>
+        </BottomSheet>
 
-            {/* Maybe */}
-            {!myParticipant && !isOrganiser && (
-              <Pressable
-                onPress={() => joinMutation.mutate('maybe')}
-                disabled={actionLoading}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: palette.warning500,
-                }}
-              >
-                <HelpCircle size={16} color={palette.warning500} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
-                  Maybe
-                </Text>
-              </Pressable>
-            )}
-
-            {/* Leave */}
-            {myParticipant && !isOrganiser && (
-              <Pressable
-                onPress={handleLeave}
-                disabled={actionLoading}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 14,
-                  borderRadius: 14,
-                  borderCurve: 'continuous',
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: palette.danger500,
-                }}
-              >
-                <LogOut size={16} color={palette.danger500} />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                  Leave
-                </Text>
-              </Pressable>
-            )}
-          </Animated.View>
-
-          {/* Comments */}
-          <CommentList tripId={tripId} />
-        </BottomSheetScrollView>
-      </BottomSheet>
-
-      {isOrganiser && (
-        <TripShareSheet
-          tripId={tripId}
-          visible={shareSheetVisible}
-          onClose={() => setShareSheetVisible(false)}
-        />
-      )}
-    </View>
+        {isOrganiser && (
+          <TripShareSheet
+            tripId={tripId}
+            visible={shareSheetVisible}
+            onClose={() => setShareSheetVisible(false)}
+          />
+        )}
+      </View>
+    </GestureHandlerRootView>
   );
 }

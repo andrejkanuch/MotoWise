@@ -35,6 +35,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -318,126 +319,97 @@ export default function RideDetailScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
-      {/* Full-screen map */}
-      <View style={{ flex: 1 }}>
-        {routeData ? (
-          <MapboxGL.MapView
-            style={{ flex: 1 }}
-            styleURL={MAP_STYLES[mapStyle]}
-            logoEnabled={false}
-            attributionEnabled={false}
-            scaleBarEnabled={false}
-          >
-            <MapboxGL.Camera
-              bounds={{
-                ne: routeData.bounds.ne,
-                sw: routeData.bounds.sw,
-                paddingTop: insets.top + 60,
-                paddingBottom: 200,
-                paddingLeft: 40,
-                paddingRight: 40,
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
+        {/* Full-screen map */}
+        <View style={{ flex: 1 }}>
+          {routeData ? (
+            <MapboxGL.MapView
+              style={{ flex: 1 }}
+              styleURL={MAP_STYLES[mapStyle]}
+              logoEnabled={false}
+              attributionEnabled={false}
+              scaleBarEnabled={false}
+            >
+              <MapboxGL.Camera
+                bounds={{
+                  ne: routeData.bounds.ne,
+                  sw: routeData.bounds.sw,
+                  paddingTop: insets.top + 60,
+                  paddingBottom: 200,
+                  paddingLeft: 40,
+                  paddingRight: 40,
+                }}
+                animationDuration={1000}
+              />
+
+              <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson}>
+                <MapboxGL.LineLayer
+                  id="route-line"
+                  style={{
+                    lineColor: palette.accent500,
+                    lineWidth: 4,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                  }}
+                />
+              </MapboxGL.ShapeSource>
+
+              <MapboxGL.PointAnnotation id="start" coordinate={routeData.startPoint}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: palette.success500,
+                    borderWidth: 3,
+                    borderColor: palette.white,
+                  }}
+                />
+              </MapboxGL.PointAnnotation>
+
+              <MapboxGL.PointAnnotation id="end" coordinate={routeData.endPoint}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: palette.signature500,
+                    borderWidth: 3,
+                    borderColor: palette.white,
+                  }}
+                />
+              </MapboxGL.PointAnnotation>
+            </MapboxGL.MapView>
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: isDark ? palette.cardDark : palette.white,
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}
-              animationDuration={1000}
-            />
+            >
+              <Route size={32} color={palette.neutral600} />
+              <Text style={{ fontSize: 14, color: palette.neutral500 }}>No route data</Text>
+            </View>
+          )}
+        </View>
 
-            <MapboxGL.ShapeSource id="route-source" shape={routeData.geojson}>
-              <MapboxGL.LineLayer
-                id="route-line"
-                style={{
-                  lineColor: palette.accent500,
-                  lineWidth: 4,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                }}
-              />
-            </MapboxGL.ShapeSource>
-
-            <MapboxGL.PointAnnotation id="start" coordinate={routeData.startPoint}>
-              <View
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: 7,
-                  backgroundColor: palette.success500,
-                  borderWidth: 3,
-                  borderColor: palette.white,
-                }}
-              />
-            </MapboxGL.PointAnnotation>
-
-            <MapboxGL.PointAnnotation id="end" coordinate={routeData.endPoint}>
-              <View
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: 7,
-                  backgroundColor: palette.signature500,
-                  borderWidth: 3,
-                  borderColor: palette.white,
-                }}
-              />
-            </MapboxGL.PointAnnotation>
-          </MapboxGL.MapView>
-        ) : (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: isDark ? palette.cardDark : palette.white,
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            <Route size={32} color={palette.neutral600} />
-            <Text style={{ fontSize: 14, color: palette.neutral500 }}>No route data</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Floating controls — top left: back */}
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          left: 16,
-          zIndex: 10,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
+        {/* Floating controls — top left: back */}
+        <View
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            borderCurve: 'continuous',
-            backgroundColor: palette.surfaceOverlay,
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: 'absolute',
+            top: insets.top + 8,
+            left: 16,
+            zIndex: 10,
           }}
         >
-          <ArrowLeft size={20} color={palette.white} />
-        </Pressable>
-      </View>
-
-      {/* Floating controls — top right: map style + share */}
-      <View
-        style={{
-          position: 'absolute',
-          top: insets.top + 8,
-          right: 16,
-          flexDirection: 'row',
-          gap: 8,
-          zIndex: 10,
-        }}
-      >
-        {routeData && (
           <Pressable
-            onPress={handleCycleMapStyle}
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Change map style"
+            accessibilityLabel="Go back"
             style={{
               width: 44,
               height: 44,
@@ -448,230 +420,263 @@ export default function RideDetailScreen() {
               justifyContent: 'center',
             }}
           >
-            <MapIcon size={18} color={palette.white} />
+            <ArrowLeft size={20} color={palette.white} />
           </Pressable>
-        )}
-        <Pressable
-          onPress={handleShare}
-          accessibilityRole="button"
-          accessibilityLabel="Share ride"
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            borderCurve: 'continuous',
-            backgroundColor: palette.surfaceOverlay,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Share2 size={18} color={palette.white} />
-        </Pressable>
-      </View>
+        </View>
 
-      {/* Re-open pill when sheet is closed */}
-      {isMapFullScreen && (
-        <Animated.View
-          entering={FadeIn.duration(200)}
+        {/* Floating controls — top right: map style + share */}
+        <View
           style={{
             position: 'absolute',
-            bottom: insets.bottom + 16,
-            alignSelf: 'center',
+            top: insets.top + 8,
+            right: 16,
+            flexDirection: 'row',
+            gap: 8,
             zIndex: 10,
           }}
         >
+          {routeData && (
+            <Pressable
+              onPress={handleCycleMapStyle}
+              accessibilityRole="button"
+              accessibilityLabel="Change map style"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderCurve: 'continuous',
+                backgroundColor: palette.surfaceOverlay,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MapIcon size={18} color={palette.white} />
+            </Pressable>
+          )}
           <Pressable
-            onPress={() => sheetRef.current?.snapToIndex(0)}
+            onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Share ride"
             style={{
-              backgroundColor: isDark ? palette.cardDark : palette.white,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              flexDirection: 'row',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
-              gap: 6,
-              borderWidth: 1,
-              borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              justifyContent: 'center',
             }}
           >
-            <ChevronUp size={16} color={isDark ? palette.white : palette.neutral950} />
-            <Text
-              style={{
-                color: isDark ? palette.white : palette.neutral950,
-                fontSize: 14,
-                fontWeight: '600',
-              }}
-            >
-              Show Details
-            </Text>
+            <Share2 size={18} color={palette.white} />
           </Pressable>
-        </Animated.View>
-      )}
+        </View>
 
-      {/* Bottom sheet overlay */}
-      <BottomSheet
-        ref={sheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        enableContentPanningGesture={activeChart === null}
-        onChange={(index) => {
-          setIsMapFullScreen(index === -1);
-          if (index === -1) {
-            setActiveChart(null);
-          }
-        }}
-        backgroundStyle={{
-          backgroundColor: isDark ? palette.cardDark : palette.white,
-          borderRadius: 24,
-          borderCurve: 'continuous',
-        }}
-        handleIndicatorStyle={{ backgroundColor: palette.neutral500, width: 40 }}
-        backdropComponent={renderBackdrop}
-      >
-        <BottomSheetScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 20 }}>
-          {/* Ride name + date */}
-          <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 4 }}>
-            <Text
+        {/* Re-open pill when sheet is closed */}
+        {isMapFullScreen && (
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            style={{
+              position: 'absolute',
+              bottom: insets.bottom + 16,
+              alignSelf: 'center',
+              zIndex: 10,
+            }}
+          >
+            <Pressable
+              onPress={() => sheetRef.current?.snapToIndex(0)}
               style={{
-                fontSize: 24,
-                fontWeight: '800',
-                color: isDark ? palette.white : palette.neutral950,
-                letterSpacing: -0.5,
-              }}
-            >
-              {ride.name || 'Ride'}
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <Calendar size={14} color={isDark ? palette.neutral400 : palette.neutral500} />
-              <Text
-                style={{ fontSize: 14, color: isDark ? palette.neutral400 : palette.neutral500 }}
-              >
-                {formatFullDate(ride.startedAt)}
-                {ride.startedAt && ` at ${formatTime(ride.startedAt)}`}
-              </Text>
-            </View>
-          </Animated.View>
-
-          {/* Stats grid — tappable tiles */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {stats.map(({ icon: Icon, label, value }, index) => {
-              const chartKey = STAT_CHART_MAP[label] ?? null;
-              const hasChart = chartKey !== null;
-
-              return (
-                <Animated.View
-                  key={label}
-                  entering={FadeInUp.delay(index * 50).duration(250)}
-                  style={{ flexBasis: '47%', flexGrow: 1 }}
-                >
-                  <Pressable
-                    onPress={hasChart ? () => handleStatTap(chartKey) : undefined}
-                    accessibilityRole="button"
-                    accessibilityHint={hasChart ? 'Double tap to view chart' : undefined}
-                    disabled={!hasChart}
-                    style={({ pressed }) => ({
-                      backgroundColor:
-                        pressed && hasChart
-                          ? palette.surfaceHover
-                          : isDark
-                            ? palette.surfaceSubtle
-                            : palette.neutral100,
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      padding: 14,
-                      gap: 6,
-                      borderWidth: 1,
-                      borderColor:
-                        hasChart && activeChart === chartKey
-                          ? palette.accent500
-                          : isDark
-                            ? palette.surfaceElevated
-                            : palette.neutral200,
-                    })}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Icon size={14} color={palette.neutral500} />
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: '600',
-                          color: palette.neutral500,
-                        }}
-                      >
-                        {label}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 20,
-                        fontWeight: '800',
-                        color: isDark ? palette.white : palette.neutral950,
-                        fontVariant: ['tabular-nums'],
-                      }}
-                    >
-                      {value}
-                    </Text>
-                  </Pressable>
-                </Animated.View>
-              );
-            })}
-          </View>
-
-          {/* Active chart (conditionally rendered) */}
-          {activeChart && waypointsLoading && (
-            <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={palette.accent500} />
-            </View>
-          )}
-          {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 10 && (
-            <RideSpeedChart waypoints={waypoints} system={system} />
-          )}
-          {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 10 && (
-            <RideElevationChart waypoints={waypoints} system={system} />
-          )}
-          {activeChart && !waypointsLoading && waypoints.length < 10 && (
-            <View
-              style={{
-                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
-                borderRadius: 16,
+                backgroundColor: isDark ? palette.cardDark : palette.white,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 20,
                 borderCurve: 'continuous',
-                padding: 20,
+                flexDirection: 'row',
                 alignItems: 'center',
+                gap: 6,
                 borderWidth: 1,
                 borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
-              <Text style={{ color: palette.neutral500, fontSize: 14 }}>
-                Insufficient data for chart
+              <ChevronUp size={16} color={isDark ? palette.white : palette.neutral950} />
+              <Text
+                style={{
+                  color: isDark ? palette.white : palette.neutral950,
+                  fontSize: 14,
+                  fontWeight: '600',
+                }}
+              >
+                Show Details
               </Text>
-            </View>
-          )}
-
-          {/* Comments section */}
-          {ride?.isPublic && <CommentList rideId={rideId} />}
-
-          {/* Delete — owner session only (public deep links use getPublicRide) */}
-          {isOwnerViewer && (
-            <Pressable
-              onPress={handleDelete}
-              accessibilityRole="button"
-              accessibilityLabel="Delete ride"
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 8,
-              }}
-            >
-              <Trash2 size={14} color={palette.neutral500} />
-              <Text style={{ fontSize: 14, color: palette.neutral500 }}>Delete Ride</Text>
             </Pressable>
-          )}
-        </BottomSheetScrollView>
-      </BottomSheet>
-    </View>
+          </Animated.View>
+        )}
+
+        {/* Bottom sheet overlay */}
+        <BottomSheet
+          ref={sheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+          enableContentPanningGesture={activeChart === null}
+          onChange={(index) => {
+            setIsMapFullScreen(index === -1);
+            if (index === -1) {
+              setActiveChart(null);
+            }
+          }}
+          backgroundStyle={{
+            backgroundColor: isDark ? palette.cardDark : palette.white,
+            borderRadius: 24,
+            borderCurve: 'continuous',
+          }}
+          handleIndicatorStyle={{ backgroundColor: palette.neutral500, width: 40 }}
+          backdropComponent={renderBackdrop}
+        >
+          <BottomSheetScrollView
+            contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 20 }}
+          >
+            {/* Ride name + date */}
+            <Animated.View entering={FadeInUp.duration(250)} style={{ gap: 4 }}>
+              <Text
+                style={{
+                  fontSize: 24,
+                  fontWeight: '800',
+                  color: isDark ? palette.white : palette.neutral950,
+                  letterSpacing: -0.5,
+                }}
+              >
+                {ride.name || 'Ride'}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                <Calendar size={14} color={isDark ? palette.neutral400 : palette.neutral500} />
+                <Text
+                  style={{ fontSize: 14, color: isDark ? palette.neutral400 : palette.neutral500 }}
+                >
+                  {formatFullDate(ride.startedAt)}
+                  {ride.startedAt && ` at ${formatTime(ride.startedAt)}`}
+                </Text>
+              </View>
+            </Animated.View>
+
+            {/* Stats grid — tappable tiles */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {stats.map(({ icon: Icon, label, value }, index) => {
+                const chartKey = STAT_CHART_MAP[label] ?? null;
+                const hasChart = chartKey !== null;
+
+                return (
+                  <Animated.View
+                    key={label}
+                    entering={FadeInUp.delay(index * 50).duration(250)}
+                    style={{ flexBasis: '47%', flexGrow: 1 }}
+                  >
+                    <Pressable
+                      onPress={hasChart ? () => handleStatTap(chartKey) : undefined}
+                      accessibilityRole="button"
+                      accessibilityHint={hasChart ? 'Double tap to view chart' : undefined}
+                      disabled={!hasChart}
+                      style={({ pressed }) => ({
+                        backgroundColor:
+                          pressed && hasChart
+                            ? palette.surfaceHover
+                            : isDark
+                              ? palette.surfaceSubtle
+                              : palette.neutral100,
+                        borderRadius: 16,
+                        borderCurve: 'continuous',
+                        padding: 14,
+                        gap: 6,
+                        borderWidth: 1,
+                        borderColor:
+                          hasChart && activeChart === chartKey
+                            ? palette.accent500
+                            : isDark
+                              ? palette.surfaceElevated
+                              : palette.neutral200,
+                      })}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Icon size={14} color={palette.neutral500} />
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: palette.neutral500,
+                          }}
+                        >
+                          {label}
+                        </Text>
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 20,
+                          fontWeight: '800',
+                          color: isDark ? palette.white : palette.neutral950,
+                          fontVariant: ['tabular-nums'],
+                        }}
+                      >
+                        {value}
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                );
+              })}
+            </View>
+
+            {/* Active chart (conditionally rendered) */}
+            {activeChart && waypointsLoading && (
+              <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={palette.accent500} />
+              </View>
+            )}
+            {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 10 && (
+              <RideSpeedChart waypoints={waypoints} system={system} />
+            )}
+            {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 10 && (
+              <RideElevationChart waypoints={waypoints} system={system} />
+            )}
+            {activeChart && !waypointsLoading && waypoints.length < 10 && (
+              <View
+                style={{
+                  backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+                  borderRadius: 16,
+                  borderCurve: 'continuous',
+                  padding: 20,
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                }}
+              >
+                <Text style={{ color: palette.neutral500, fontSize: 14 }}>
+                  Insufficient data for chart
+                </Text>
+              </View>
+            )}
+
+            {/* Comments section */}
+            {ride?.isPublic && <CommentList rideId={rideId} />}
+
+            {/* Delete — owner session only (public deep links use getPublicRide) */}
+            {isOwnerViewer && (
+              <Pressable
+                onPress={handleDelete}
+                accessibilityRole="button"
+                accessibilityLabel="Delete ride"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 8,
+                }}
+              >
+                <Trash2 size={14} color={palette.neutral500} />
+                <Text style={{ fontSize: 14, color: palette.neutral500 }}>Delete Ride</Text>
+              </Pressable>
+            )}
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
+    </GestureHandlerRootView>
   );
 }

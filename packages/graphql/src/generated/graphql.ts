@@ -573,7 +573,7 @@ export type FuelStop = {
   lat: Scalars['Float']['output'];
   lng: Scalars['Float']['output'];
   name: Scalars['String']['output'];
-  osmId: Scalars['Int']['output'];
+  osmId: Scalars['ID']['output'];
 };
 
 export type GpxExportError = {
@@ -3057,7 +3057,7 @@ export type FuelStopsNearRouteQueryVariables = Exact<{
 }>;
 
 
-export type FuelStopsNearRouteQuery = { __typename?: 'Query', fuelStopsNearRoute: { __typename?: 'FuelRangeResult', fuelStops: Array<{ __typename?: 'FuelStop', osmId: number, name: string, lat: number, lng: number }>, rangeSummary: { __typename?: 'FuelRangeSummary', effectiveRangeKm: number, stopsRequired: number, summary: string } } };
+export type FuelStopsNearRouteQuery = { __typename?: 'Query', fuelStopsNearRoute: { __typename?: 'FuelRangeResult', fuelStops: Array<{ __typename?: 'FuelStop', osmId: string, name: string, lat: number, lng: number }>, rangeSummary: { __typename?: 'FuelRangeSummary', effectiveRangeKm: number, stopsRequired: number, summary: string } } };
 
 export type GetArticleBySlugQueryVariables = Exact<{
   slug: Scalars['String']['input'];
