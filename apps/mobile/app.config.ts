@@ -40,12 +40,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     'expo-router',
     [
-      'expo-camera',
-      {
-        cameraPermission: 'MotoVault needs camera access for diagnostic photo capture.',
-      },
-    ],
-    [
       'expo-image-picker',
       {
         photosPermission: 'MotoVault needs photo library access to upload diagnostic images.',
@@ -124,7 +118,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       monochromeImage: './src/assets/images/MotoVaultDark.png',
       backgroundColor: '#0F1B2D',
     },
-    permissions: ['CAMERA', 'READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    permissions: ['READ_MEDIA_IMAGES', 'NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
     intentFilters: [
       {
         action: 'VIEW',

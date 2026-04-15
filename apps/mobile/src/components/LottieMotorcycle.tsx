@@ -1,38 +1,53 @@
-import LottieView from 'lottie-react-native';
+import { palette } from '@motovault/design-system';
+import { Bike } from 'lucide-react-native';
+import { useEffect } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
+import { View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 
-const ANIMATIONS = {
-  emptyGarage: require('../assets/animations/bouncing-motorbike.json'),
-  cardPlaceholder: require('../assets/animations/motorcycle-card-placeholder.json'),
-} as const;
-
-type AnimationName = keyof typeof ANIMATIONS;
-
+/**
+ * Lightweight replacement for lottie-react-native.
+ * Shows a Bike icon with a gentle bounce animation.
+ */
 export function LottieMotorcycle({
-  animation,
   size = 120,
-  autoPlay = true,
   loop = false,
-  speed = 1,
   style,
 }: {
-  animation: AnimationName;
+  animation?: string;
   size?: number;
   autoPlay?: boolean;
   loop?: boolean;
   speed?: number;
   style?: StyleProp<ViewStyle>;
 }) {
-  const source = ANIMATIONS[animation];
-  const aspectRatio = animation === 'cardPlaceholder' ? 200 / 120 : 1;
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    translateY.value = withRepeat(
+      withSequence(withTiming(-6, { duration: 600 }), withTiming(0, { duration: 600 })),
+      loop ? -1 : 2,
+      true,
+    );
+  }, [loop, translateY]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
 
   return (
-    <LottieView
-      source={source}
-      autoPlay={autoPlay}
-      loop={loop}
-      speed={speed}
-      style={[{ width: size, height: size / aspectRatio }, style]}
-    />
+    <View
+      style={[{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }, style]}
+    >
+      <Animated.View style={animStyle}>
+        <Bike size={size * 0.5} color={palette.neutral400} strokeWidth={1.5} />
+      </Animated.View>
+    </View>
   );
 }
