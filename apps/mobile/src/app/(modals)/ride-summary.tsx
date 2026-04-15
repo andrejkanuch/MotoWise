@@ -33,7 +33,6 @@ import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-rean
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { MetaAnalytics } from '../../lib/meta-analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import {
@@ -226,7 +225,6 @@ export default function RideSummaryScreen() {
         duration_s: durationS,
         shared_to_discover: shareToDiscover,
       });
-      MetaAnalytics.trackLogRide(distanceM / 1000);
       incrementRideCount();
       maybeRequestReview();
 

@@ -4,7 +4,15 @@ import type { TFunction } from 'i18next';
 import { Gauge } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 import { CardWrapper } from './card-wrapper';
 import { SectionHeader } from './section-header';
 
@@ -46,10 +54,49 @@ function getBikeName(bike: { make: string; model: string; nickname?: string | nu
   return bike.nickname ?? `${bike.make} ${bike.model}`;
 }
 
+function MileageUpdatedRow({ dateStr, t }: { dateStr: string; t: TFunction }) {
+  const isStale = Date.now() - new Date(dateStr).getTime() > 7 * 24 * 60 * 60 * 1000;
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 4,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 12,
+          color: isStale ? palette.warning500 : palette.neutral400,
+          fontWeight: '500',
+        }}
+      >
+        {t('home.updatedAgo', { time: getRelativeTime(dateStr, t) })}
+      </Text>
+      {isStale && (
+        <Text
+          style={{
+            fontSize: 12,
+            color: palette.primary500,
+            fontWeight: '600',
+          }}
+        >
+          {t('home.tapToUpdate')}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOverviewProps) {
   const { t } = useTranslation();
   const hasMileage = motorcycles.some((m) => m.currentMileage != null);
   const isMultiBike = motorcycles.length > 1;
+  const scale = useSharedValue(1);
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <Animated.View entering={FadeInUp.delay(200).duration(300)}>
@@ -167,20 +214,23 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
         </ScrollView>
       ) : (
         <CardWrapper tier="medium">
-          <Pressable
+          <AnimatedPressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               onBikePress(motorcycles[0].id);
             }}
-            style={({ pressed }) => ({
-              padding: 20,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-            })}
+            onPressIn={() => {
+              scale.value = withSpring(0.97, { damping: 15, stiffness: 150 });
+            }}
+            onPressOut={() => {
+              scale.value = withSpring(1, { damping: 15, stiffness: 150 });
+            }}
+            style={[{ padding: 20 }, pressStyle]}
           >
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
               <Text
                 style={{
-                  fontSize: 28,
+                  fontSize: 34,
                   fontWeight: '700',
                   color: isDark ? palette.neutral50 : palette.neutral950,
                   fontVariant: ['tabular-nums'],
@@ -199,20 +249,9 @@ export function MileageOverview({ motorcycles, isDark, onBikePress }: MileageOve
               </Text>
             </View>
             {motorcycles[0].mileageUpdatedAt && (
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: palette.neutral400,
-                  fontWeight: '500',
-                  marginTop: 4,
-                }}
-              >
-                {t('home.updatedAgo', {
-                  time: getRelativeTime(motorcycles[0].mileageUpdatedAt, t),
-                })}
-              </Text>
+              <MileageUpdatedRow dateStr={motorcycles[0].mileageUpdatedAt} t={t} />
             )}
-          </Pressable>
+          </AnimatedPressable>
         </CardWrapper>
       )}
     </Animated.View>

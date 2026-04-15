@@ -27,6 +27,7 @@ import {
   publishCarousel,
   publishPost,
   publishStory,
+  type ReferenceImage,
 } from './publish';
 import { getRecentAngles, type SlotName } from './queue';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
@@ -81,8 +82,14 @@ export default {
           const body = (await request.json()) as {
             prompt: string;
             aspect_ratio?: AspectRatio;
+            reference_images?: ReferenceImage[];
           };
-          const result = await generateImage(env, body.prompt, body.aspect_ratio);
+          const result = await generateImage(
+            env,
+            body.prompt,
+            body.aspect_ratio,
+            body.reference_images,
+          );
           return json(result);
         }
 

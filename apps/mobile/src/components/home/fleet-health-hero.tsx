@@ -4,15 +4,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import Animated, {
-  FadeInUp,
-  useAnimatedProps,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useSharedValue, withSpring } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { CardWrapper } from './card-wrapper';
 
@@ -67,19 +59,13 @@ export function FleetHealthHero({
   const circumference = 2 * Math.PI * radius;
 
   const progress = useSharedValue(0);
-  const glowOpacity = useSharedValue(0.1);
 
   useEffect(() => {
     progress.value = withSpring(hasData ? score / 100 : 0, { damping: 15, stiffness: 90 });
-    glowOpacity.value = withRepeat(withTiming(0.3, { duration: 2000 }), -1, true);
-  }, [score, hasData, progress, glowOpacity]);
+  }, [score, hasData, progress]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - progress.value),
-  }));
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
   }));
 
   const color = getScoreColor(score);
@@ -100,161 +86,144 @@ export function FleetHealthHero({
   ].filter(Boolean) as { label: string; color: string }[];
 
   return (
-    <Animated.View entering={FadeInUp.delay(50).duration(300)}>
-      <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={
-            hasData
-              ? t('home.fleetHealthA11y', {
-                  score,
-                  defaultValue: `Fleet health score: ${score} out of 100`,
-                })
-              : t('home.fleetHealthNoDataA11y', {
-                  defaultValue: 'Fleet health: no maintenance data yet',
-                })
-          }
+    <CardWrapper tier="prominent" borderRadius={24} style={{ overflow: 'hidden' }}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={
+          hasData
+            ? t('home.fleetHealthA11y', {
+                score,
+                defaultValue: `Fleet health score: ${score} out of 100`,
+              })
+            : t('home.fleetHealthNoDataA11y', {
+                defaultValue: 'Fleet health: no maintenance data yet',
+              })
+        }
+      >
+        <LinearGradient
+          colors={[palette.gradientHeroStart, palette.gradientHeroMid, palette.gradientHeroEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 20,
+            minHeight: 180,
+          }}
         >
-          <LinearGradient
-            colors={[palette.gradientHeroStart, palette.gradientHeroMid, palette.gradientHeroEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              padding: 20,
-              minHeight: 180,
-            }}
-          >
-            {/* Ring with glow */}
-            <View style={{ alignItems: 'center', justifyContent: 'center', marginRight: 20 }}>
-              <Animated.View
-                style={[
-                  {
-                    position: 'absolute',
-                    width: ringSize + 20,
-                    height: ringSize + 20,
-                    borderRadius: (ringSize + 20) / 2,
-                    backgroundColor: color,
-                  },
-                  glowStyle,
-                ]}
-              />
-              <View
-                style={{
-                  width: ringSize,
-                  height: ringSize,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Svg width={ringSize} height={ringSize}>
-                  <Circle
+          <View style={{ alignItems: 'center', justifyContent: 'center', marginRight: 20 }}>
+            <View
+              style={{
+                width: ringSize,
+                height: ringSize,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Svg width={ringSize} height={ringSize}>
+                <Circle
+                  cx={ringSize / 2}
+                  cy={ringSize / 2}
+                  r={radius}
+                  stroke="rgba(255,255,255,0.15)"
+                  strokeWidth={strokeWidth}
+                  fill="none"
+                />
+                {hasData && (
+                  <AnimatedCircle
                     cx={ringSize / 2}
                     cy={ringSize / 2}
                     r={radius}
-                    stroke="rgba(255,255,255,0.15)"
+                    stroke={color}
                     strokeWidth={strokeWidth}
                     fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    animatedProps={animatedProps}
+                    transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
                   />
-                  {hasData && (
-                    <AnimatedCircle
-                      cx={ringSize / 2}
-                      cy={ringSize / 2}
-                      r={radius}
-                      stroke={color}
-                      strokeWidth={strokeWidth}
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeDasharray={circumference}
-                      animatedProps={animatedProps}
-                      transform={`rotate(-90 ${ringSize / 2} ${ringSize / 2})`}
-                    />
-                  )}
-                </Svg>
-                <View style={{ position: 'absolute', alignItems: 'center' }}>
-                  {hasData ? (
-                    <>
-                      <Text style={{ fontSize: 36, fontWeight: '800', color: palette.white }}>
-                        {score}
-                      </Text>
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: '600',
-                          color,
-                          marginTop: -4,
-                        }}
-                      >
-                        {t(getScoreLabelKey(score) as never)}
-                      </Text>
-                    </>
-                  ) : (
-                    <Text
-                      style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}
-                    >
-                      {t('home.noData')}
+                )}
+              </Svg>
+              <View style={{ position: 'absolute', alignItems: 'center' }}>
+                {hasData ? (
+                  <>
+                    <Text style={{ fontSize: 36, fontWeight: '800', color: palette.white }}>
+                      {score}
                     </Text>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            {/* Right side info */}
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white }}>
-                {bikeCount === 1 ? t('home.fleetHealthSingle') : t('home.fleetHealthTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: 'rgba(255,255,255,0.7)',
-                  marginTop: 4,
-                }}
-                numberOfLines={1}
-              >
-                {bikeCount === 1
-                  ? singleBikeName
-                  : t('home.fleetHealthStats', {
-                      bikes: bikeCount,
-                      attention: needsAttention,
-                      upcoming: upcomingTasks,
-                    })}
-              </Text>
-
-              {/* Stat pills */}
-              {statPills.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-                  {statPills.map((pill) => (
-                    <View
-                      key={pill.label}
+                    <Text
                       style={{
-                        backgroundColor: 'rgba(255,255,255,0.15)',
-                        borderRadius: 999,
-                        borderCurve: 'continuous',
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color,
+                        marginTop: -4,
                       }}
                     >
-                      <Text style={{ fontSize: 11, fontWeight: '700', color: pill.color }}>
-                        {pill.label}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                      {t(getScoreLabelKey(score) as never)}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.5)' }}>
+                    {t('home.noData')}
+                  </Text>
+                )}
+              </View>
             </View>
+          </View>
 
-            <ChevronRight
-              size={18}
-              color="rgba(255,255,255,0.6)"
-              strokeWidth={2}
-              style={{ marginLeft: 4 }}
-            />
-          </LinearGradient>
-        </Pressable>
-      </CardWrapper>
-    </Animated.View>
+          {/* Right side info */}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: palette.white }}>
+              {bikeCount === 1 ? t('home.fleetHealthSingle') : t('home.fleetHealthTitle')}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: 'rgba(255,255,255,0.7)',
+                marginTop: 4,
+              }}
+              numberOfLines={1}
+            >
+              {bikeCount === 1
+                ? singleBikeName
+                : t('home.fleetHealthStats', {
+                    bikes: bikeCount,
+                    attention: needsAttention,
+                    upcoming: upcomingTasks,
+                  })}
+            </Text>
+
+            {/* Stat pills */}
+            {statPills.length > 0 && (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                {statPills.map((pill) => (
+                  <View
+                    key={pill.label}
+                    style={{
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      borderRadius: 999,
+                      borderCurve: 'continuous',
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: pill.color }}>
+                      {pill.label}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <ChevronRight
+            size={18}
+            color="rgba(255,255,255,0.6)"
+            strokeWidth={2}
+            style={{ marginLeft: 4 }}
+          />
+        </LinearGradient>
+      </Pressable>
+    </CardWrapper>
   );
 }

@@ -43,11 +43,37 @@ interface ImagenResponse {
   error?: { message?: string };
 }
 
+export interface ReferenceImage {
+  data: string; // base64-encoded image
+  mimeType: string;
+}
+
 export async function generateImage(
   env: Env,
   prompt: string,
   aspectRatio: AspectRatio = '4:5',
+  referenceImages: ReferenceImage[] = [],
 ): Promise<GeneratedImage> {
+  // Build multimodal parts: text prompt + any reference screenshots.
+  // When reference images are provided, Gemini sees the real app screenshots
+  // and composites them into the generated scene instead of hallucinating
+  // phone UI.
+  const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
+  for (const ref of referenceImages) {
+    parts.push({ inlineData: { data: ref.data, mimeType: ref.mimeType } });
+  }
+  if (referenceImages.length > 0) {
+    parts.push({
+      text:
+        `${prompt}\n\nIMPORTANT: The image(s) above are REAL screenshots from the MotoVault app. ` +
+        'When composing the scene, place these exact screenshots on the phone screen(s) in the image. ' +
+        'Do NOT invent or hallucinate any app UI — use ONLY the provided screenshot(s) as the phone display content. ' +
+        'The phone frame should have rounded corners and a modern smartphone bezel.',
+    });
+  } else {
+    parts.push({ text: prompt });
+  }
+
   // Primary: Gemini 3.1 Flash Image (native 4:5 + 9:16 + text rendering)
   const gemini31Url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
 
@@ -55,7 +81,7 @@ export async function generateImage(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts }],
       generationConfig: {
         responseModalities: ['TEXT', 'IMAGE'],
         imageConfig: { aspectRatio, imageSize: '2K' },
@@ -85,7 +111,7 @@ export async function generateImage(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts }],
       generationConfig: {
         responseModalities: ['TEXT', 'IMAGE'],
         imageConfig: { aspectRatio, imageSize: '2K' },

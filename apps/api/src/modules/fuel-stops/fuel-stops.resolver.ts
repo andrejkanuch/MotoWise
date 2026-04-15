@@ -1,5 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
@@ -19,12 +20,18 @@ export class FuelStopsResolver {
    */
   @Query(() => FuelRangeResult)
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
   async fuelStopsNearRoute(
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
-    @Args('bikeId', { type: () => ID, nullable: true }) bikeId?: string,
+    @Args('bikeId', { type: () => ID, nullable: true }) bikeId: string | undefined,
     @Args('radiusKm', { type: () => Float, nullable: true, defaultValue: 5 })
     radiusKm?: number,
   ): Promise<FuelRangeResult> {
+    // Validate optional bikeId — silently fall back to defaults if invalid
+    if (bikeId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(bikeId)) {
+      bikeId = undefined;
+    }
+
     // 1. Get fuel stops near the route
     const fuelStops = await this.fuelStopsService.getFuelStopsNearRoute(routeId, radiusKm ?? 5);
 
@@ -56,6 +63,7 @@ export class FuelStopsResolver {
    */
   @Query(() => [FuelStop])
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
   async fuelStops(
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
     @Args('radiusKm', { type: () => Float, nullable: true, defaultValue: 5 })

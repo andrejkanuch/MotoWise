@@ -22,10 +22,8 @@ try {
 
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import { PostHogProvider } from 'posthog-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Settings } from 'react-native-fbsdk-next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
@@ -283,24 +281,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
-  }, []);
-
-  // Initialize Meta SDK with ATT prompt
-  useEffect(() => {
-    async function initMetaSDK() {
-      if (process.env.EXPO_OS === 'ios') {
-        const { status } = await requestTrackingPermissionsAsync();
-        Settings.initializeSDK();
-        try {
-          await Settings.setAdvertiserTrackingEnabled(status === 'granted');
-        } catch {
-          // setAdvertiserTrackingEnabled can crash on iOS simulator
-        }
-      } else {
-        Settings.initializeSDK();
-      }
-    }
-    initMetaSDK();
   }, []);
 
   // Initialize RevenueCat SDK with cleanup

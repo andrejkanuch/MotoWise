@@ -1,9 +1,17 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { DollarSign } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { useDashboardData, useExpenseDashboard } from '../../hooks/use-expense-dashboard';
 import { CATEGORY_COLORS } from '../../lib/expense-constants';
@@ -201,7 +209,35 @@ function EmptyExpenseCard({ isDark }: { isDark: boolean }) {
   );
 }
 
-/** Full expense breakdown for single-bike users */
+function AnimatedCategoryBar({
+  percentage,
+  color,
+  index,
+}: {
+  percentage: number;
+  color: string;
+  index: number;
+}) {
+  const width = useSharedValue(0);
+
+  useEffect(() => {
+    width.value = withDelay(
+      index * 100,
+      withTiming(percentage, { duration: 600, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [percentage, index, width]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+    height: '100%',
+    borderRadius: 2,
+    borderCurve: 'continuous',
+    backgroundColor: color,
+  }));
+
+  return <Animated.View style={animatedStyle} />;
+}
+
 function SingleBikeExpenseContent({
   isDark,
   motorcycleId,
@@ -295,7 +331,7 @@ function SingleBikeExpenseContent({
 
         {topCategories.length > 0 && (
           <View style={{ gap: 8, marginBottom: 12 }}>
-            {topCategories.map((cat) => (
+            {topCategories.map((cat, index) => (
               <View key={cat.category}>
                 <View
                   style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}
@@ -330,14 +366,10 @@ function SingleBikeExpenseContent({
                     overflow: 'hidden',
                   }}
                 >
-                  <View
-                    style={{
-                      width: `${(cat.total / maxCategoryTotal) * 100}%`,
-                      height: '100%',
-                      borderRadius: 2,
-                      borderCurve: 'continuous',
-                      backgroundColor: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
-                    }}
+                  <AnimatedCategoryBar
+                    percentage={(cat.total / maxCategoryTotal) * 100}
+                    color={CATEGORY_COLORS[cat.category] ?? palette.neutral400}
+                    index={index}
                   />
                 </View>
               </View>

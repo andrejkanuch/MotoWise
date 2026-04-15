@@ -1,14 +1,21 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
 
 interface GreetingHeaderProps {
   greetingText: string;
   subtitleText: string;
   avatarInitial: string;
   isDark: boolean;
+  healthScore?: number;
   onAvatarPress: () => void;
+}
+
+function getAvatarBorderColor(healthScore: number | undefined, isDark: boolean): string {
+  if (healthScore == null) return isDark ? palette.primary800 : palette.primary200;
+  if (healthScore >= 75) return palette.success500;
+  if (healthScore >= 40) return palette.warning500;
+  return palette.danger500;
 }
 
 export function GreetingHeader({
@@ -16,11 +23,11 @@ export function GreetingHeader({
   subtitleText,
   avatarInitial,
   isDark,
+  healthScore,
   onAvatarPress,
 }: GreetingHeaderProps) {
   return (
-    <Animated.View
-      entering={FadeIn.duration(400)}
+    <View
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -33,7 +40,7 @@ export function GreetingHeader({
       <View style={{ flex: 1, marginRight: 12 }}>
         <Text
           style={{
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: '800',
             letterSpacing: -0.5,
             color: isDark ? palette.neutral50 : palette.neutral950,
@@ -43,7 +50,7 @@ export function GreetingHeader({
         </Text>
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '500',
             color: isDark ? palette.neutral400 : palette.neutral500,
             marginTop: 2,
@@ -71,7 +78,7 @@ export function GreetingHeader({
             alignItems: 'center',
             justifyContent: 'center',
             borderWidth: 2,
-            borderColor: isDark ? palette.primary800 : palette.primary200,
+            borderColor: getAvatarBorderColor(healthScore, isDark),
           }}
         >
           <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
@@ -79,6 +86,6 @@ export function GreetingHeader({
           </Text>
         </View>
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }

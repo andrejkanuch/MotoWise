@@ -8,6 +8,7 @@
     "deploy": "wrangler deploy",
     "tail": "wrangler tail --format pretty",
     "fill-queue": "tsx scripts/fill-queue.ts",
+    "upload-screenshots": "tsx scripts/upload-screenshots.ts",
     "publish-carousel": "tsx --env-file=.env scripts/publish-carousel.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p scripts/tsconfig.json"
   },

@@ -44,6 +44,19 @@ export const DRAFT_SYSTEM_PROMPT = [
   '- 200-400 characters per prompt. Describe scene, lighting, mood, and any',
   '  overlaid text.',
   '',
+  'SCREENSHOT RULES:',
+  '- When your post concept involves showing the app UI (phone mockup, app',
+  '  screen, feature showcase), you MUST pick 1-2 screenshot keys from the',
+  '  available catalog. We will pass the REAL app screenshots to the image',
+  '  generator so the final image shows actual app UI — not hallucinated screens.',
+  '- Pick screenshots that match your post angle. E.g. a post about expenses',
+  '  should use "flow-add-expense" or "home-rides-expenses".',
+  '- In your storyPrompt, describe WHERE the phone/screenshot should appear in',
+  '  the composition (e.g. "phone mockup centered showing the app screenshot").',
+  '  The real screenshot will be provided as a reference image to the generator.',
+  '- If the post is purely atmospheric (e.g. a motorcycle on a road with text',
+  '  overlay, no app UI shown), set screenshotKeys to an empty array [].',
+  '',
   'OUTPUT: Respond with JSON only. No preamble. No markdown code fence. No',
   'trailing commentary. The JSON must exactly match the provided schema.',
 ].join('\n');
@@ -79,8 +92,14 @@ export const DRAFT_RESPONSE_SCHEMA = {
     storyPrompt: {
       type: 'string',
       description:
-        '9:16 photorealistic image prompt. 200-400 characters. This is the ONLY image generated — it will also be center-cropped to 4:5 for the feed post. Compose key content (subject, text overlays) in the CENTER of the frame so nothing important is lost when the top/bottom ~30% is cropped.',
+        '9:16 photorealistic image prompt. 200-400 characters. This is the ONLY image generated — it will also be center-cropped to 4:5 for the feed post. Compose key content (subject, text overlays) in the CENTER of the frame so nothing important is lost when the top/bottom ~30% is cropped. When screenshotKeys are provided, describe where the phone mockup should appear — the real screenshot will be composited in.',
+    },
+    screenshotKeys: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Array of 0-2 screenshot catalog keys to composite into the generated image. Pick keys that match your post angle. Use an empty array [] if the image does not show the app UI at all.',
     },
   },
-  required: ['angle', 'caption', 'postPrompt', 'storyPrompt'],
+  required: ['angle', 'caption', 'postPrompt', 'storyPrompt', 'screenshotKeys'],
 } as const;

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { ChevronRight, MapPin, Navigation, Route } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import {
   distanceUnitLabel,
@@ -41,13 +41,17 @@ function WeeklyActivityDots({ rides }: { rides: Array<{ startedAt: string }> }) 
 
   return (
     <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-      {days.map((day) => {
+      {days.map((day, i) => {
         const hasRide = rideDays.has(`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`);
         const isToday = day.toDateString() === today.toDateString();
         const dayLabel = day.toLocaleDateString(undefined, { weekday: 'narrow' });
 
         return (
-          <View key={day.toISOString()} style={{ alignItems: 'center', gap: 3 }}>
+          <Animated.View
+            key={day.toISOString()}
+            entering={FadeIn.delay(i * 40).duration(200)}
+            style={{ alignItems: 'center', gap: 3 }}
+          >
             <Text
               style={{
                 fontSize: 9,
@@ -70,7 +74,7 @@ function WeeklyActivityDots({ rides }: { rides: Array<{ startedAt: string }> }) 
             >
               {hasRide && <Navigation size={8} color={palette.white} />}
             </View>
-          </View>
+          </Animated.View>
         );
       })}
     </View>

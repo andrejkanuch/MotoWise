@@ -25,7 +25,7 @@
  */
 import { draftPost } from './draft';
 import type { Env } from './env';
-import { generateImage, publishPost, publishStory } from './publish';
+import { generateImage, publishPost, publishStory, type ReferenceImage } from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -34,6 +34,7 @@ import {
   markPublished,
   type SlotName,
 } from './queue';
+import { SCREENSHOT_CATALOG } from './screenshots';
 
 export const CRON_TO_SLOT: Record<string, SlotName> = {
   '0 14 * * *': 'afternoon',
@@ -95,14 +96,49 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2: generate ONE image at 9:16 and reuse for both post + story.
+    // Step 2a: fetch real app screenshots if the post specifies screenshot keys.
+    // These are passed as reference images to Gemini so it composites the real
+    // app UI into the generated scene instead of hallucinating phone screens.
+    const referenceImages: ReferenceImage[] = [];
+    if (row.screenshot_keys?.length) {
+      console.log(
+        `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
+      );
+      for (const key of row.screenshot_keys) {
+        const entry = SCREENSHOT_CATALOG[key];
+        if (!entry) {
+          console.warn(`[scheduled] id=${row.id} unknown screenshot key "${key}" — skipping`);
+          continue;
+        }
+        try {
+          const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
+          const screenshotRes = await fetch(screenshotUrl);
+          if (!screenshotRes.ok) {
+            console.warn(
+              `[scheduled] id=${row.id} screenshot "${key}" fetch failed (${screenshotRes.status}) — skipping`,
+            );
+            continue;
+          }
+          const arrayBuffer = await screenshotRes.arrayBuffer();
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          referenceImages.push({ data: base64, mimeType: 'image/png' });
+        } catch (err) {
+          console.warn(
+            `[scheduled] id=${row.id} screenshot "${key}" error: ${err instanceof Error ? err.message : err}`,
+          );
+        }
+      }
+      console.log(`[scheduled] id=${row.id} loaded ${referenceImages.length} reference image(s)`);
+    }
+
+    // Step 2b: generate ONE image at 9:16 and reuse for both post + story.
     // publishPost renders it as 1080x1350 (4:5 center-crop via Supabase
     // Storage /render), publishStory renders it as 1080x1920 (9:16, near
     // exact). This halves Gemini image-gen credits per publish cycle.
     // The story_prompt is used because 9:16 is the taller format — cropping
     // down to 4:5 works cleanly, while scaling up from 4:5 to 9:16 would
     // require upscaling (which Supabase render does NOT do).
-    const image = await generateImage(env, row.story_prompt, '9:16');
+    const image = await generateImage(env, row.story_prompt, '9:16', referenceImages);
 
     console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine})`);
 

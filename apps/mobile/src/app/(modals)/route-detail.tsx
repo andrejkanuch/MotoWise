@@ -1,6 +1,11 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
-import { RouteDetailDocument, SaveRouteDocument, UnsaveRouteDocument } from '@motovault/graphql';
+import {
+  FuelStopsNearRouteDocument,
+  RouteDetailDocument,
+  SaveRouteDocument,
+  UnsaveRouteDocument,
+} from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +16,7 @@ import {
   Bookmark,
   CloudOff,
   Download,
+  Fuel,
   Map as MapIcon,
   Share2,
   User,
@@ -32,9 +38,11 @@ import { PremiumWaitlistModal } from '../../components/discover/premium-waitlist
 import { ReviewForm } from '../../components/discover/review-form';
 import { ReviewList } from '../../components/discover/review-list';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { fuelBadgeColor, fuelBadgeLabel } from '../../utils/fuel-range';
 import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
 
@@ -81,6 +89,7 @@ export default function RouteDetailScreen() {
   const sheetRef = useRef<BottomSheet>(null);
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [isSaved, setIsSaved] = useState(false);
+  const [showFuelStops, setShowFuelStops] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -114,6 +123,15 @@ export default function RouteDetailScreen() {
   });
 
   const route = data?.routeDetail;
+
+  const { bikeId: primaryBikeId } = usePrimaryBikeFuelData();
+
+  const { data: fuelData } = useQuery({
+    queryKey: queryKeys.fuelStops.nearRoute(routeId, primaryBikeId),
+    queryFn: () => gqlFetcher(FuelStopsNearRouteDocument, { routeId, bikeId: primaryBikeId }),
+    enabled: !!routeId && primaryBikeId !== undefined,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const routeLoaded = route?.id;
   useEffect(() => {
@@ -156,6 +174,20 @@ export default function RouteDetailScreen() {
       properties: {},
     };
   }, [coordinates]);
+
+  const fuelStops = fuelData?.fuelStopsNearRoute.fuelStops;
+
+  const fuelStopsGeoJSON = useMemo(
+    () => ({
+      type: 'FeatureCollection' as const,
+      features: (fuelStops ?? []).map((stop) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [stop.lng, stop.lat] },
+        properties: { name: stop.name, osmId: stop.osmId },
+      })),
+    }),
+    [fuelStops],
+  );
 
   const handleCycleMapStyle = useCallback(() => {
     setMapStyle((prev) => cycleMapStyle(prev));
@@ -263,6 +295,47 @@ export default function RouteDetailScreen() {
             />
           </MapboxGL.PointAnnotation>
         )}
+        {/* Fuel station markers — ShapeSource for GPU rendering */}
+        <MapboxGL.ShapeSource
+          id="fuel-stops-source"
+          shape={fuelStopsGeoJSON}
+          cluster={true}
+          clusterRadius={40}
+        >
+          <MapboxGL.CircleLayer
+            id="fuel-cluster-circle"
+            filter={['has', 'point_count']}
+            style={{
+              visibility: showFuelStops ? 'visible' : 'none',
+              circleRadius: ['step', ['get', 'point_count'], 16, 10, 22],
+              circleColor: palette.warning500,
+              circleOpacity: 0.85,
+              circleStrokeColor: palette.white,
+              circleStrokeWidth: 1.5,
+            }}
+          />
+          <MapboxGL.SymbolLayer
+            id="fuel-cluster-count"
+            filter={['has', 'point_count']}
+            style={{
+              visibility: showFuelStops ? 'visible' : 'none',
+              textField: ['get', 'point_count_abbreviated'],
+              textSize: 12,
+              textColor: palette.white,
+            }}
+          />
+          <MapboxGL.CircleLayer
+            id="fuel-stop-dot"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              visibility: showFuelStops ? 'visible' : 'none',
+              circleRadius: 6,
+              circleColor: palette.warning500,
+              circleStrokeColor: palette.white,
+              circleStrokeWidth: 1.5,
+            }}
+          />
+        </MapboxGL.ShapeSource>
       </MapboxGL.MapView>
 
       {/* Floating controls */}
@@ -410,6 +483,56 @@ export default function RouteDetailScreen() {
                 value={`${route.ratingAvg.toFixed(1)} (${route.ratingCount})`}
                 isDark={isDark}
               />
+            )}
+            {fuelData?.fuelStopsNearRoute.rangeSummary && (
+              <Pressable
+                onPress={() => {
+                  setShowFuelStops((prev) => !prev);
+                  if (process.env.EXPO_OS === 'ios')
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`Fuel range: ${fuelData.fuelStopsNearRoute.rangeSummary.summary}. Double tap to ${showFuelStops ? 'hide' : 'show'} fuel stations.`}
+              >
+                <View
+                  style={{
+                    backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 10,
+                    borderCurve: 'continuous',
+                    borderWidth: showFuelStops ? 1.5 : 0,
+                    borderColor: showFuelStops
+                      ? fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)
+                      : 'transparent',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Fuel
+                      size={11}
+                      color={fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: isDark ? palette.neutral500 : palette.neutral400,
+                      }}
+                    >
+                      Fuel Range
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: fuelBadgeColor(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired),
+                      fontVariant: ['tabular-nums'],
+                    }}
+                  >
+                    {fuelBadgeLabel(fuelData.fuelStopsNearRoute.rangeSummary.stopsRequired)}
+                  </Text>
+                </View>
+              </Pressable>
             )}
           </View>
 
