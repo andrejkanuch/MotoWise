@@ -3,6 +3,7 @@ lockfileVersion: '9.0'
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
+  injectWorkspacePackages: true
 
 overrides:
   react: 19.1.0
@@ -76,7 +77,7 @@ importers:
         specifier: ^6.0.0
         version: 6.5.0(@nestjs/common@11.1.16(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.16)(reflect-metadata@0.2.2)
       '@react-pdf/renderer':
-        specifier: ^4.4.0
+        specifier: 4.4.0
         version: 4.4.0(react@19.1.0)
       '@sentry/nestjs':
         specifier: ^10.43.0
