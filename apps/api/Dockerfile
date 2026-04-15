@@ -36,7 +36,7 @@ RUN pnpm turbo build --filter=@motovault/api
 # Use pnpm deploy to create a self-contained app directory
 # Delete prepare script again since full source was re-copied
 RUN npm pkg delete scripts.prepare && \
-    pnpm --filter @motovault/api deploy --legacy --prod /app/deployed
+    pnpm --filter @motovault/api deploy --prod /app/deployed
 
 # ── Stage 4: Production ───────────────────────
 FROM node:20-slim AS runner
