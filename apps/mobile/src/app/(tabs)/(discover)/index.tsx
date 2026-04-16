@@ -1,14 +1,14 @@
 import { palette } from '@motovault/design-system';
 import {
-  COUNTRY_NAMES,
-  type SupportedCountryCode,
-  SUPPORTED_COUNTRY_CODES,
-} from '@motovault/types';
-import {
   DiscoverRoutesDocument,
   type DiscoverRoutesFilterInput,
   type DiscoverRoutesQuery,
 } from '@motovault/graphql';
+import {
+  COUNTRY_NAMES,
+  SUPPORTED_COUNTRY_CODES,
+  type SupportedCountryCode,
+} from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';

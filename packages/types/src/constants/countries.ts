@@ -19,13 +19,8 @@ export const SUPPORTED_COUNTRY_CODES = [
 
 export type SupportedCountryCode = (typeof SUPPORTED_COUNTRY_CODES)[number];
 
-export function isSupportedCountry(
-  code: string | undefined,
-): code is SupportedCountryCode {
-  return (
-    code != null &&
-    (SUPPORTED_COUNTRY_CODES as ReadonlyArray<string>).includes(code)
-  );
+export function isSupportedCountry(code: string | undefined): code is SupportedCountryCode {
+  return code != null && (SUPPORTED_COUNTRY_CODES as ReadonlyArray<string>).includes(code);
 }
 
 export const COUNTRY_NAMES: Record<SupportedCountryCode, string> = {
@@ -42,4 +37,3 @@ export const COUNTRY_NAMES: Record<SupportedCountryCode, string> = {
   PT: 'Portugal',
   US: 'United States',
 };
-

@@ -1,9 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  DeleteTripDocument,
-  MyTripsDocument,
-  type MyTripsQuery,
-} from '@motovault/graphql';
+import { DeleteTripDocument, MyTripsDocument, type MyTripsQuery } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import {
@@ -134,11 +130,7 @@ function MyTripCard({
           borderRadius: 16,
           borderCurve: 'continuous',
           borderWidth: 1,
-          borderColor: isDraft
-            ? isDark
-              ? palette.warning500
-              : palette.warning500
-            : cardBorder,
+          borderColor: isDraft ? (isDark ? palette.warning500 : palette.warning500) : cardBorder,
           padding: 14,
           gap: 10,
           opacity: isDraft ? 1 : 1,
@@ -267,10 +259,7 @@ function MyTripCard({
               size={16}
               variant="neutral"
             />
-            <Text
-              style={{ fontSize: 12, color: subtitleColor, flexShrink: 1 }}
-              numberOfLines={1}
-            >
+            <Text style={{ fontSize: 12, color: subtitleColor, flexShrink: 1 }} numberOfLines={1}>
               {trip.organiser.displayName}
             </Text>
           </View>
@@ -286,25 +275,18 @@ export default function MyTripsScreen() {
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
 
-  const {
-    data,
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    refetch,
-    isRefetching,
-  } = useInfiniteQuery<MyTripsQuery>({
-    queryKey: queryKeys.trips.my,
-    queryFn: ({ pageParam }) =>
-      gqlFetcher(MyTripsDocument, { first: PAGE_SIZE, after: (pageParam as string) ?? null }),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => {
-      const pageInfo = lastPage?.myTrips?.pageInfo;
-      if (!pageInfo?.hasNextPage) return undefined;
-      return pageInfo.endCursor ?? undefined;
-    },
-  });
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
+    useInfiniteQuery<MyTripsQuery>({
+      queryKey: queryKeys.trips.my,
+      queryFn: ({ pageParam }) =>
+        gqlFetcher(MyTripsDocument, { first: PAGE_SIZE, after: (pageParam as string) ?? null }),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => {
+        const pageInfo = lastPage?.myTrips?.pageInfo;
+        if (!pageInfo?.hasNextPage) return undefined;
+        return pageInfo.endCursor ?? undefined;
+      },
+    });
 
   const deleteMutation = useMutation({
     mutationFn: (tripId: string) => gqlFetcher(DeleteTripDocument, { tripId }),
@@ -480,9 +462,7 @@ export default function MyTripsScreen() {
           })}
         >
           <Plus size={20} color={palette.white} />
-          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            Plan a Trip
-          </Text>
+          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>Plan a Trip</Text>
         </Pressable>
       </Animated.View>
     );

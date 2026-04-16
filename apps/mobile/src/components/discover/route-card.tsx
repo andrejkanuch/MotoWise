@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import type { DiscoverRoutesQuery } from '@motovault/graphql';
 import { Award, Fuel, MessageCircle, Mountain, Star } from 'lucide-react-native';
-import { memo, useCallback, useState } from 'react';
+import { memo } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -32,7 +32,6 @@ export const RouteCard = memo(function RouteCard({
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
   const statColor = isDark ? palette.neutral200 : palette.neutral700;
-  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
   const surfaceLabel =
     route.surfaceType === 'paved'
       ? 'Paved'
