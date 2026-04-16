@@ -4,7 +4,9 @@ query DiscoverRoutes($filter: DiscoverRoutesFilterInput, $first: Int, $after: St
       node {
         id
         name
-        polyline
+        slug
+        countryCode
+        regionCode
         distanceM
         elevationGainM
         surfaceType

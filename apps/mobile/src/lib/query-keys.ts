@@ -60,9 +60,14 @@ export const queryKeys = {
   },
   routes: {
     all: ['routes'] as const,
+    discover: (filters: string) => ['routes', 'discover', filters] as const,
+    editorPicks: ['routes', 'editorPicks'] as const,
     detail: (routeId: string) => ['routes', 'detail', routeId] as const,
     saved: ['routes', 'saved'] as const,
     gpxQuota: ['routes', 'gpx-quota'] as const,
+  },
+  typeahead: {
+    search: (q: string) => ['typeahead', q] as const,
   },
   fuelStops: {
     nearRoute: (routeId: string, bikeId?: string) =>

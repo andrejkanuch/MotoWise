@@ -1,0 +1,19 @@
+query SearchTypeahead($q: String, $limit: Int) {
+  searchTypeahead(q: $q, limit: $limit) {
+    routes {
+      id
+      name
+      slug
+      countryCode
+      regionCode
+    }
+    places {
+      id
+      name
+      kind
+      countryCode
+      regionCode
+      population
+    }
+  }
+}
