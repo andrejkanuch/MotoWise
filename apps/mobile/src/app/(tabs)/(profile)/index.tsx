@@ -25,6 +25,7 @@ import {
   HelpCircle,
   Lock,
   LogOut,
+  Map as MapRoute,
   Moon,
   Navigation,
   Palette,
@@ -703,6 +704,57 @@ export default function ProfileScreen() {
             <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
               {t('profile.myRidesDescription', {
                 defaultValue: 'Ride history, stats & route maps',
+              })}
+            </Text>
+          </View>
+          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+      </Animated.View>
+
+      {/* My Trips */}
+      <Animated.View entering={FadeInUp.delay(130).duration(400)}>
+        <Pressable
+          onPress={() => {
+            haptic();
+            router.push('/(profile)/trips');
+          }}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            padding: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? `${palette.warning500}25` : 'rgba(245,158,11,0.10)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <MapRoute size={22} color={palette.warning500} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              {t('profile.myTripsTitle', { defaultValue: 'My Trips' })}
+            </Text>
+            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              {t('profile.myTripsDescription', {
+                defaultValue: 'Drafts & published multi-day plans',
               })}
             </Text>
           </View>

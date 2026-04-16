@@ -11,8 +11,12 @@ query MyTrips($first: Int, $after: String) {
         maxRiders
         participantCount
         status
+        visibility
         coverImageUrl
         createdAt
+        waypoints {
+          id
+        }
         organiser {
           id
           displayName
