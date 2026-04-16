@@ -173,8 +173,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         name: 'Slovakia',
       },
     },
-    dateCreated: '2025-01-01',
-    dateModified: '2026-03-28',
+    dateCreated: '2025-01-01T00:00:00+00:00',
+    dateModified: '2026-03-28T00:00:00+00:00',
   };
 
   return (
