@@ -106,6 +106,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSCameraUsageDescription: 'MotoVault needs camera access for diagnostic photo capture.',
       NSPhotoLibraryUsageDescription:
         'MotoVault needs photo library access to upload diagnostic images.',
+      // Required so Linking.canOpenURL() can probe whether the user has the
+      // external nav apps installed before offering them as Ride-this handoffs.
+      LSApplicationQueriesSchemes: ['maps', 'comgooglemaps', 'waze'],
     },
     config: {
       usesNonExemptEncryption: false,

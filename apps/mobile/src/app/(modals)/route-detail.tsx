@@ -15,22 +15,13 @@ import {
   Award,
   Bookmark,
   CloudOff,
-  Download,
   Fuel,
   Map as MapIcon,
   Share2,
   User,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  Share,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Share, Text, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -45,16 +36,17 @@ import { CommentList } from '../../components/comments/comment-list';
 import { PremiumWaitlistModal } from '../../components/discover/premium-waitlist-modal';
 import { ReviewForm } from '../../components/discover/review-form';
 import { ReviewList } from '../../components/discover/review-list';
+import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
+import { useGpxExport } from '../../hooks/use-gpx-export';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
+import { useRideThis } from '../../hooks/use-ride-this';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { fuelBadgeColor, fuelBadgeLabel } from '../../utils/fuel-range';
 import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 /** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
 function decodePolylineToCoords(encoded: string): [number, number][] {
@@ -211,12 +203,26 @@ export default function RouteDetailScreen() {
     setMapStyle((prev) => cycleMapStyle(prev));
   }, []);
 
-  const handleExportGPX = useCallback(async () => {
-    if (!routeId) return;
-    const url = `${API_URL}/routes/${routeId}/export.gpx`;
-    await Linking.openURL(url);
-    trackEvent(AnalyticsEvent.ROUTE_GPX_EXPORTED, { route_id: routeId });
-  }, [routeId]);
+  const { exportAndShare: exportGpx, isExporting: gpxExporting } = useGpxExport();
+
+  const navWaypoints = useMemo(() => {
+    if (coordinates.length === 0) return [];
+    const first = coordinates[0];
+    const last = coordinates[coordinates.length - 1];
+    return [
+      { lat: first[1], lng: first[0], name: 'Start' },
+      { lat: last[1], lng: last[0], name: 'End' },
+    ];
+  }, [coordinates]);
+
+  const rideThis = useRideThis({
+    surface: 'route',
+    entityId: routeId,
+    waypoints: navWaypoints,
+    onGpxExport: useCallback(async () => {
+      await exportGpx(routeId, route?.name ?? undefined);
+    }, [exportGpx, routeId, route?.name]),
+  });
 
   const handleShare = useCallback(async () => {
     if (!route) return;
@@ -611,47 +617,28 @@ export default function RouteDetailScreen() {
               </Text>
             )}
 
-            {/* Action buttons */}
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-              <Pressable
-                onPress={handleExportGPX}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: palette.accent500,
-                }}
-              >
-                <Download size={16} color={palette.white} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-                  Export GPX
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setShowWaitlist(true)}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  backgroundColor: 'transparent',
-                }}
-              >
-                <CloudOff size={16} color={palette.accent500} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                  Offline
-                </Text>
-              </Pressable>
-            </View>
+            {/* Secondary action — offline placeholder (premium waitlist).
+                Primary "Ride this" CTA lives outside the sheet as a sticky bar. */}
+            <Pressable
+              onPress={() => setShowWaitlist(true)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                borderWidth: 1,
+                borderColor: palette.accent500,
+                marginBottom: 20,
+              }}
+            >
+              <CloudOff size={16} color={palette.accent500} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                Offline
+              </Text>
+            </Pressable>
 
             {/* Reviews */}
             <ReviewList routeId={routeId} />
@@ -685,6 +672,19 @@ export default function RouteDetailScreen() {
             <PremiumWaitlistModal visible={showWaitlist} onClose={() => setShowWaitlist(false)} />
           </BottomSheetScrollView>
         </BottomSheet>
+
+        {/* Sticky primary CTA — one unambiguous action per screen. */}
+        {navWaypoints.length >= 2 && <RideThisStickyCta onPress={rideThis.open} />}
+
+        <RideThisSheet
+          visible={rideThis.visible}
+          onClose={rideThis.close}
+          providers={rideThis.providers}
+          activeSegment={rideThis.activeSegment}
+          onProvider={rideThis.triggerProvider}
+          onAdvance={rideThis.advanceSegment}
+          gpxExporting={gpxExporting}
+        />
       </View>
     </GestureHandlerRootView>
   );

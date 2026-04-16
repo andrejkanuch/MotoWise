@@ -19,12 +19,10 @@ import {
   ChevronDown,
   ChevronUp,
   EyeOff,
-  FileDown,
   Globe,
   HelpCircle,
   Lock,
   LogOut,
-  Navigation,
   Pencil,
   Share2,
   User,
@@ -36,8 +34,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Linking,
-  Platform,
   Pressable,
   Text,
   useColorScheme,
@@ -47,8 +43,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
+import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
+import { useRideThis } from '../../hooks/use-ride-this';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -278,26 +276,6 @@ export default function TripDetailScreen() {
     ]);
   }, [leaveMutation]);
 
-  const handleOpenInMaps = useCallback(() => {
-    if (waypoints.length === 0) return;
-    const first = waypoints[0];
-    const last = waypoints[waypoints.length - 1];
-    const isIOS = Platform.OS === 'ios';
-
-    trackEvent(AnalyticsEvent.TRIP_OPENED_IN_MAPS, {
-      trip_id: tripId,
-      waypoint_count: waypoints.length,
-    });
-
-    if (isIOS) {
-      const url = `maps://?saddr=${first.lat},${first.lng}&daddr=${last.lat},${last.lng}`;
-      Linking.openURL(url);
-    } else {
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${first.lat},${first.lng}&destination=${last.lat},${last.lng}`;
-      Linking.openURL(url);
-    }
-  }, [waypoints, tripId]);
-
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -364,6 +342,23 @@ ${rteptElements}
 
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'gpx' });
   }, [trip, waypoints, tripId]);
+
+  const navWaypoints = useMemo(
+    () =>
+      waypoints.map((w) => ({
+        lat: w.lat,
+        lng: w.lng,
+        name: w.name,
+      })),
+    [waypoints],
+  );
+
+  const rideThis = useRideThis({
+    surface: 'trip',
+    entityId: tripId,
+    waypoints: navWaypoints,
+    onGpxExport: handleExportGPX,
+  });
 
   const handleProfilePress = useCallback(
     (username: string) => {
@@ -826,53 +821,7 @@ ${rteptElements}
               </Animated.View>
             )}
 
-            {/* Open in Maps */}
-            {waypoints.length > 0 && (
-              <Pressable
-                onPress={handleOpenInMaps}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  borderWidth: 1,
-                  borderColor: palette.accent500,
-                  marginBottom: 16,
-                }}
-              >
-                <Navigation size={16} color={palette.accent500} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                  Open in Maps
-                </Text>
-              </Pressable>
-            )}
-
-            {/* Export GPX */}
-            {waypoints.length > 0 && (
-              <Pressable
-                onPress={handleExportGPX}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  borderWidth: 1,
-                  borderColor: palette.accent500,
-                  marginBottom: 16,
-                }}
-              >
-                <FileDown size={16} color={palette.accent500} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                  Export GPX
-                </Text>
-              </Pressable>
-            )}
+            {/* Nav handoff lives on the sticky "Ride this" CTA, not inside the sheet. */}
 
             {/* Participants */}
             {trip.participants && trip.participants.length > 0 && (
@@ -1046,6 +995,20 @@ ${rteptElements}
             onClose={() => setShareSheetVisible(false)}
           />
         )}
+
+        {/* Sticky primary CTA — one unambiguous action per screen. */}
+        {navWaypoints.length >= 2 && (
+          <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
+        )}
+
+        <RideThisSheet
+          visible={rideThis.visible}
+          onClose={rideThis.close}
+          providers={rideThis.providers}
+          activeSegment={rideThis.activeSegment}
+          onProvider={rideThis.triggerProvider}
+          onAdvance={rideThis.advanceSegment}
+        />
       </View>
     </GestureHandlerRootView>
   );
