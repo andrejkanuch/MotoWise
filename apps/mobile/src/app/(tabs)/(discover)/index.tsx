@@ -11,12 +11,23 @@ import {
 } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Platform,
+  Pressable,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, {
   Extrapolation,
   FadeInUp,
@@ -312,6 +323,41 @@ export default function DiscoverScreen() {
     [router],
   );
 
+  const handleMarkerPress = useCallback(
+    (routeId: string, routeName: string, lat: number, lng: number) => {
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.selectionAsync();
+      }
+      const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      const open = () => handleRoutePress(routeId);
+      const copy = async () => {
+        await Clipboard.setStringAsync(coords);
+      };
+
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: routeName,
+            message: coords,
+            options: ['View details', 'Copy coordinates', 'Cancel'],
+            cancelButtonIndex: 2,
+          },
+          (idx) => {
+            if (idx === 0) open();
+            else if (idx === 1) copy();
+          },
+        );
+      } else {
+        Alert.alert(routeName, coords, [
+          { text: 'View details', onPress: open },
+          { text: 'Copy coordinates', onPress: copy },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      }
+    },
+    [handleRoutePress],
+  );
+
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -423,9 +469,14 @@ export default function DiscoverScreen() {
               clusterMaxZoomLevel={14}
               onPress={(e) => {
                 const feature = e.features?.[0];
-                const routeId = feature?.properties?.id as string | undefined;
-                if (routeId && !feature?.properties?.cluster) {
-                  handleRoutePress(routeId);
+                if (!feature || feature.properties?.cluster) return;
+                const routeId = feature.properties?.id as string | undefined;
+                const routeName = (feature.properties?.name as string | undefined) ?? 'Route';
+                const coords = (feature.geometry as unknown as { coordinates?: [number, number] })
+                  .coordinates;
+                const [lng, lat] = coords ?? [null, null];
+                if (routeId && lat != null && lng != null) {
+                  handleMarkerPress(routeId, routeName, lat, lng);
                 }
               }}
             >
