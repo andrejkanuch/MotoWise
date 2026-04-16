@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { MapPin, Plus } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { TripCard } from './trip-card';
@@ -15,10 +15,10 @@ type TripNode = GetTripsQuery['getTrips']['edges'][number]['node'];
 export function TripSection() {
   const isDark = useColorScheme() === 'dark';
   const router = useRouter();
+  const reducedMotion = useReducedMotion();
 
   const headerColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const _emptyIconColor = isDark ? palette.neutral600 : palette.neutral300;
   const createBg = isDark ? palette.cardDark : palette.white;
   const createBorder = isDark ? palette.surfaceElevated : palette.neutral200;
 
@@ -44,7 +44,10 @@ export function TripSection() {
   }, [router]);
 
   return (
-    <Animated.View entering={FadeInUp.duration(300).delay(100)} style={{ gap: 10 }}>
+    <Animated.View
+      entering={reducedMotion ? undefined : FadeInUp.duration(300).delay(100)}
+      style={{ gap: 10 }}
+    >
       {/* Header */}
       <View
         style={{
@@ -58,7 +61,7 @@ export function TripSection() {
           <Text
             style={{
               fontSize: 16,
-              fontWeight: '800',
+              fontWeight: '700',
               color: headerColor,
               letterSpacing: -0.2,
             }}

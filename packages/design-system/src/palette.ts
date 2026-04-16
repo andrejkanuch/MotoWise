@@ -24,20 +24,21 @@ export const palette = {
   accent400: '#3cb88c',
   accent500: '#2d9e78',
 
-  // Neutral
-  white: '#ffffff',
-  black: '#000000',
-  neutral50: '#fafafa',
-  neutral100: '#f5f5f5',
-  neutral200: '#e5e5e5',
-  neutral300: '#d4d4d4',
-  neutral400: '#a3a3a3',
-  neutral500: '#737373',
-  neutral600: '#525252',
-  neutral700: '#404040',
-  neutral800: '#262626',
-  neutral900: '#171717',
-  neutral950: '#0a0a0a',
+  // Neutral — warm-tinted toward signature copper for subconscious cohesion.
+  // Every gray carries ~2-4% warmth so surfaces feel lived-in, not clinical.
+  white: '#fffbf8',
+  black: '#0c0a08',
+  neutral50: '#faf8f6',
+  neutral100: '#f5f2ef',
+  neutral200: '#e6e2de',
+  neutral300: '#d4d0cb',
+  neutral400: '#a39e98',
+  neutral500: '#736e68',
+  neutral600: '#52504b',
+  neutral700: '#403e3a',
+  neutral800: '#262421',
+  neutral900: '#181614',
+  neutral950: '#0c0b09',
 
   // Semantic
   danger500: '#ef4444',
@@ -117,18 +118,28 @@ export const palette = {
   controlBg: 'rgba(255,255,255,0.1)',
   controlBgActive: 'rgba(255,255,255,0.15)',
 
+  // Profile/settings surfaces
+  pressedLight: 'rgba(0,0,0,0.03)',
+  pressedDark: 'rgba(255,255,255,0.05)',
+  dividerLight: 'rgba(0,0,0,0.06)',
+  dividerDark: 'rgba(255,255,255,0.08)',
+  dividerSubtleDark: 'rgba(255,255,255,0.06)',
+  iconBubbleDark: 'rgba(255,255,255,0.08)',
+  dangerTintLight: 'rgba(239,68,68,0.1)',
+  dangerTintDark: 'rgba(239,68,68,0.15)',
+
   // Ride HUD
   hudGlow: 'rgba(45,158,120,0.06)',
 
-  // Surfaces
-  surfaceDark: '#0F172A',
-  cardDark: '#1E293B',
+  // Surfaces — warm slate, not cold blue-gray
+  surfaceDark: '#141210',
+  cardDark: '#1E1C19',
 
   // Tab bar
   tabActive: '#D4622E',
-  tabInactive: '#a3a3a3',
-  tabBarLight: '#ffffff',
-  tabBarDark: '#1c1c1e',
+  tabInactive: '#a39e98',
+  tabBarLight: '#fffbf8',
+  tabBarDark: '#1a1816',
 } as const;
 
 export type Palette = typeof palette;

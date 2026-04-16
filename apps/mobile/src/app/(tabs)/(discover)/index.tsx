@@ -1,17 +1,16 @@
 import { palette } from '@motovault/design-system';
 import {
   DiscoverRoutesDocument,
+  type DiscoverRoutesFilterInput,
   type DiscoverRoutesQuery,
-  GetTripsDocument,
-  type GetTripsQuery,
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Compass, Plus } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   Extrapolation,
@@ -19,6 +18,7 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -28,8 +28,12 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FeaturedRouteCard } from '../../../components/discover/featured-route-card';
+import { FilterChipRow } from '../../../components/discover/filter-chip-row';
+import { HorizontalRouteSection } from '../../../components/discover/horizontal-route-section';
 import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
+import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { usePrimaryBikeFuelData } from '../../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -37,27 +41,177 @@ import { queryKeys } from '../../../lib/query-keys';
 import { computeFuelStops } from '../../../utils/fuel-range';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
+// --- Types ---
+
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+
+// --- Filter chip definitions ---
+
+const FILTER_CHIPS = [
+  { key: 'popular', label: 'Popular', icon: TrendingUp },
+  { key: 'picks', label: 'Picks', icon: Award },
+  { key: 'twisty', label: 'Twisty', icon: Wind },
+  { key: 'paved', label: 'Paved' },
+  { key: 'mixed', label: 'Mixed' },
+  { key: 'off-road', label: 'Off-road' },
+  { key: 'highly-rated', label: 'Top Rated', icon: Star },
+] as const;
+
+type FilterKey = (typeof FILTER_CHIPS)[number]['key'];
+
+// --- Consolidated filter state ---
+
+interface DiscoverFilters {
+  chips: Set<FilterKey>;
+}
+
+// --- Memoized header ---
+
+interface DiscoverHeaderProps {
+  filters: DiscoverFilters;
+  onToggleChip: (key: FilterKey) => void;
+  featuredRoute: RouteNode | null;
+  onRoutePress: (routeId: string) => void;
+  showBelowFold: boolean;
+}
+
+const DiscoverHeader = memo(function DiscoverHeader({
+  filters,
+  onToggleChip,
+  featuredRoute,
+  onRoutePress,
+  showBelowFold,
+}: DiscoverHeaderProps) {
+  const isDark = useColorScheme() === 'dark';
+  const headerColor = isDark ? palette.white : palette.neutral950;
+
+  return (
+    <View style={{ gap: 16, paddingTop: 8 }}>
+      {/* Search */}
+      <TypeaheadSearch onRouteSelect={onRoutePress} />
+
+      {/* Filter chips */}
+      <FilterChipRow
+        chips={FILTER_CHIPS}
+        activeKeys={filters.chips}
+        onToggle={onToggleChip}
+        accessibilityGroupLabel="Route filters"
+      />
+
+      {/* Featured route / Road of the Week */}
+      {featuredRoute && (
+        <FeaturedRouteCard route={featuredRoute} onPress={() => onRoutePress(featuredRoute.id)} />
+      )}
+
+      {/* Below-fold content — deferred by one frame for faster first paint */}
+      {showBelowFold && (
+        <>
+          {/* Editor's Picks */}
+          <HorizontalRouteSection
+            title="Editor's Picks"
+            icon={Award}
+            iconColor={palette.signature500}
+            queryKey={queryKeys.routes.editorPicks}
+            filter={{ motovaultPicksOnly: true, sortByRating: true }}
+            first={10}
+            staleTime={10 * 60 * 1000}
+            onRoutePress={onRoutePress}
+          />
+
+          {/* Trips */}
+          <TripSection />
+        </>
+      )}
+
+      {/* Section divider before main list */}
+      <View style={{ paddingTop: 4 }}>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: '700',
+            color: headerColor,
+            letterSpacing: -0.2,
+          }}
+        >
+          {filters.chips.size > 0 ? 'Filtered routes' : 'Roads worth riding'}
+        </Text>
+      </View>
+    </View>
+  );
+});
+
+// --- Main screen ---
 
 export default function DiscoverScreen() {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const reducedMotion = useReducedMotion();
   const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
+
+  // Deferred rendering for below-fold sections
+  const [showBelowFold, setShowBelowFold] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShowBelowFold(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
 
   const { tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
-
   const bg = isDark ? palette.neutral950 : palette.white;
-  const headerColor = isDark ? palette.white : palette.neutral950;
+
+  // --- Consolidated filter state ---
+  const [filters, setFilters] = useState<DiscoverFilters>({
+    chips: new Set(),
+  });
+
+  const filterInput = useMemo((): DiscoverRoutesFilterInput | null => {
+    const filter: DiscoverRoutesFilterInput = {};
+    let hasFilter = false;
+
+    if (filters.chips.has('popular')) {
+      filter.sortByRating = true;
+      hasFilter = true;
+    }
+    if (filters.chips.has('picks')) {
+      filter.motovaultPicksOnly = true;
+      hasFilter = true;
+    }
+    if (filters.chips.has('twisty')) {
+      filter.minTwistScore = 6;
+      hasFilter = true;
+    }
+    if (filters.chips.has('paved')) {
+      filter.surfaceTypes = ['paved'];
+      hasFilter = true;
+    }
+    if (filters.chips.has('mixed')) {
+      filter.surfaceTypes = ['mixed'];
+      hasFilter = true;
+    }
+    if (filters.chips.has('off-road')) {
+      filter.surfaceTypes = ['off-road'];
+      hasFilter = true;
+    }
+    if (filters.chips.has('highly-rated')) {
+      filter.highlyRatedOnly = true;
+      hasFilter = true;
+    }
+    return hasFilter ? filter : null;
+  }, [filters]);
+
+  // --- Data fetching ---
+
+  const filterKey = useMemo(() => JSON.stringify(filterInput ?? {}), [filterInput]);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: [...queryKeys.routes.all],
+    queryKey: queryKeys.routes.discover(filterKey),
     queryFn: ({ pageParam }) =>
       gqlFetcher(DiscoverRoutesDocument, {
+        filter: filterInput,
         first: 20,
         after: pageParam ?? null,
       }),
@@ -66,28 +220,30 @@ export default function DiscoverScreen() {
       const pi = lastPage.discoverRoutes.pageInfo;
       return pi.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const routes = useMemo(() => {
+  const allRoutes = useMemo(() => {
     if (!data?.pages) return [];
     return data.pages.flatMap((p) => p.discoverRoutes.edges.map((e) => e.node));
   }, [data]);
 
-  // Fetch upcoming trips so we can plot their origins on the discovery map.
-  const { data: tripsData } = useQuery({
-    queryKey: queryKeys.trips.all,
-    queryFn: () => gqlFetcher(GetTripsDocument, { first: 20 }),
-  });
+  // Featured route: first MotoVault Pick (when no filters active)
+  const featuredRoute = useMemo(() => {
+    if (filters.chips.size > 0) return null;
+    return allRoutes.find((r) => r.isMotovaultPick) ?? null;
+  }, [allRoutes, filters]);
 
-  type TripNode = GetTripsQuery['getTrips']['edges'][number]['node'];
-  const trips: TripNode[] = useMemo(
-    () => tripsData?.getTrips?.edges?.map((e) => e.node) ?? [],
-    [tripsData],
-  );
+  // Routes for the list (exclude featured to avoid duplication)
+  const listRoutes = useMemo(() => {
+    if (!featuredRoute) return allRoutes;
+    return allRoutes.filter((r) => r.id !== featuredRoute.id);
+  }, [allRoutes, featuredRoute]);
 
-  // Build GeoJSON from route start points for map pins
+  // --- GeoJSON for map pins ---
+
   const routeGeoJSON = useMemo(() => {
-    const features = routes
+    const features = allRoutes
       .filter((r) => r.startLat != null && r.startLng != null)
       .map((r) => ({
         type: 'Feature' as const,
@@ -98,29 +254,9 @@ export default function DiscoverScreen() {
         properties: { id: r.id, name: r.name ?? 'Route', kind: 'route' },
       }));
     return { type: 'FeatureCollection' as const, features };
-  }, [routes]);
+  }, [allRoutes]);
 
-  // Plot trip starting waypoints so riders see WHERE trips are geographically.
-  const tripGeoJSON = useMemo(() => {
-    const features = trips.flatMap((t) => {
-      const wps = t.waypoints ?? [];
-      if (wps.length === 0) return [];
-      const sorted = [...wps].sort((a, b) => a.sortOrder - b.sortOrder);
-      const origin = sorted.find((w) => w.lat != null && w.lng != null);
-      if (!origin) return [];
-      return [
-        {
-          type: 'Feature' as const,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [origin.lng, origin.lat],
-          },
-          properties: { id: t.id, title: t.title, kind: 'trip' },
-        },
-      ];
-    });
-    return { type: 'FeatureCollection' as const, features };
-  }, [trips]);
+  // --- Callbacks ---
 
   const handleRoutePress = useCallback(
     (routeId: string) => {
@@ -130,10 +266,30 @@ export default function DiscoverScreen() {
   );
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const toggleChip = useCallback((key: FilterKey) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setFilters((prev) => {
+      const next = new Set(prev.chips);
+      // Surface types are mutually exclusive
+      const surfaceKeys: FilterKey[] = ['paved', 'mixed', 'off-road'];
+      if (surfaceKeys.includes(key)) {
+        for (const sk of surfaceKeys) {
+          if (sk !== key) next.delete(sk);
+        }
+      }
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return { ...prev, chips: next };
+    });
+  }, []);
+
+  // --- Scroll animation ---
 
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
@@ -150,12 +306,8 @@ export default function DiscoverScreen() {
     transform: [{ scale: fabScale.value }],
   }));
 
-  // Group rides are temporarily removed from Discover; the FAB goes straight
-  // to the trip planner. Keep it a single action until rides come back.
   const handleCreatePress = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(modals)/create-trip');
   }, [router]);
 
@@ -169,6 +321,21 @@ export default function DiscoverScreen() {
       />
     ),
     [handleRoutePress, tankLiters, kmPerLiter],
+  );
+
+  // --- Memoized header ---
+
+  const headerComponent = useMemo(
+    () => (
+      <DiscoverHeader
+        filters={filters}
+        onToggleChip={toggleChip}
+        featuredRoute={featuredRoute}
+        onRoutePress={handleRoutePress}
+        showBelowFold={showBelowFold}
+      />
+    ),
+    [filters, toggleChip, featuredRoute, handleRoutePress, showBelowFold],
   );
 
   return (
@@ -185,12 +352,12 @@ export default function DiscoverScreen() {
         >
           <MapboxGL.Camera
             defaultSettings={{
-              centerCoordinate: [-98.5795, 39.8283], // Center of US
-              zoomLevel: 3,
+              centerCoordinate: [12.4964, 41.9028], // Rome — center of target markets
+              zoomLevel: 4,
             }}
           />
 
-          {/* Route pins (clustered) */}
+          {/* Route pins (clustered) — now tappable */}
           {routeGeoJSON.features.length > 0 && (
             <MapboxGL.ShapeSource
               id="route-pins"
@@ -198,6 +365,13 @@ export default function DiscoverScreen() {
               cluster
               clusterRadius={50}
               clusterMaxZoomLevel={14}
+              onPress={(e) => {
+                const feature = e.features?.[0];
+                const routeId = feature?.properties?.id as string | undefined;
+                if (routeId && !feature?.properties?.cluster) {
+                  handleRoutePress(routeId);
+                }
+              }}
             >
               <MapboxGL.CircleLayer
                 id="cluster-circles"
@@ -230,52 +404,13 @@ export default function DiscoverScreen() {
               />
             </MapboxGL.ShapeSource>
           )}
-
-          {/* Trip origin pins — indigo to match the "Trip" badge */}
-          {tripGeoJSON.features.length > 0 && (
-            <MapboxGL.ShapeSource
-              id="trip-pins"
-              shape={tripGeoJSON}
-              onPress={(e) => {
-                const feature = e.features?.[0];
-                const tripId = feature?.properties?.id as string | undefined;
-                if (tripId) {
-                  router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
-                }
-              }}
-            >
-              <MapboxGL.CircleLayer
-                id="trip-dots-halo"
-                style={{
-                  circleColor: palette.indigo500,
-                  circleRadius: 11,
-                  circleOpacity: 0.25,
-                }}
-              />
-              <MapboxGL.CircleLayer
-                id="trip-dots"
-                style={{
-                  circleColor: palette.indigo500,
-                  circleRadius: 6,
-                  circleStrokeColor: palette.white,
-                  circleStrokeWidth: 2,
-                }}
-              />
-            </MapboxGL.ShapeSource>
-          )}
         </MapboxGL.MapView>
 
-        {/* Bottom scrim — fades the map into the list background */}
+        {/* Bottom scrim */}
         <LinearGradient
           colors={['transparent', bg]}
           pointerEvents="none"
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 48,
-          }}
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 48 }}
         />
 
         {/* Header overlay */}
@@ -295,19 +430,18 @@ export default function DiscoverScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 8,
-              backgroundColor: palette.neutral950,
+              backgroundColor: palette.surfaceOverlay,
               paddingHorizontal: 12,
               paddingVertical: 6,
               borderRadius: 14,
               borderCurve: 'continuous',
-              opacity: 0.88,
             }}
           >
             <Compass size={20} color={palette.accent500} />
             <Text
               style={{
                 fontSize: 18,
-                fontWeight: '800',
+                fontWeight: '700',
                 color: palette.white,
                 letterSpacing: -0.3,
               }}
@@ -320,7 +454,7 @@ export default function DiscoverScreen() {
 
       {/* Route list */}
       <AnimatedFlatList
-        data={routes}
+        data={listRoutes}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         onScroll={scrollHandler}
@@ -328,23 +462,7 @@ export default function DiscoverScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 160 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
-        ListHeaderComponent={
-          <View>
-            <TripSection />
-            <View style={{ paddingVertical: 12 }}>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: '800',
-                  color: headerColor,
-                  letterSpacing: -0.2,
-                }}
-              >
-                Roads worth riding
-              </Text>
-            </View>
-          </View>
-        }
+        ListHeaderComponent={headerComponent}
         ListEmptyComponent={
           isLoading ? (
             <ActivityIndicator
@@ -354,7 +472,7 @@ export default function DiscoverScreen() {
             />
           ) : (
             <Animated.View
-              entering={FadeInUp.duration(300)}
+              entering={reducedMotion ? undefined : FadeInUp.duration(300)}
               style={{ alignItems: 'center', paddingVertical: 44, gap: 10 }}
             >
               <View
@@ -373,7 +491,7 @@ export default function DiscoverScreen() {
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: '800',
+                  fontWeight: '700',
                   color: isDark ? palette.white : palette.neutral950,
                   textAlign: 'center',
                   letterSpacing: -0.3,
@@ -423,13 +541,14 @@ export default function DiscoverScreen() {
             position: 'absolute',
             bottom: insets.bottom + 88,
             right: 20,
-            width: 56,
-            height: 56,
-            borderRadius: 28,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            height: 48,
+            paddingHorizontal: 20,
+            borderRadius: 24,
             borderCurve: 'continuous',
             backgroundColor: palette.accent500,
-            alignItems: 'center',
-            justifyContent: 'center',
             shadowColor: palette.neutral950,
             shadowOpacity: 0.28,
             shadowRadius: 10,
@@ -439,7 +558,8 @@ export default function DiscoverScreen() {
           fabStyle,
         ]}
       >
-        <Plus size={24} color={palette.white} />
+        <Plus size={20} color={palette.white} />
+        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>Plan Trip</Text>
       </AnimatedPressable>
     </View>
   );

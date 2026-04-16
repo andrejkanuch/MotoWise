@@ -32,7 +32,14 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
 import { PremiumWaitlistModal } from '../../components/discover/premium-waitlist-modal';
@@ -93,6 +100,11 @@ export default function RouteDetailScreen() {
   const [showFuelStops, setShowFuelStops] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const saveScale = useSharedValue(1);
+  const saveAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: saveScale.value }],
+  }));
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -108,13 +120,18 @@ export default function RouteDetailScreen() {
       });
       setIsSaved((prev) => !prev);
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (!reducedMotion) {
+        saveScale.value = withSequence(
+          withTiming(1.3, { duration: 120 }),
+          withTiming(1, { duration: 200 }),
+        );
+      }
     },
   });
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const _statColor = isDark ? palette.neutral200 : palette.neutral700;
   const sheetBg = isDark ? palette.cardDark : palette.white;
 
   const { data, isLoading } = useQuery({
@@ -352,12 +369,14 @@ export default function RouteDetailScreen() {
         >
           <Pressable
             onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -376,13 +395,37 @@ export default function RouteDetailScreen() {
           }}
         >
           <Pressable
-            onPress={handleCycleMapStyle}
+            onPress={() => saveMutation.mutate()}
+            accessibilityRole="button"
+            accessibilityLabel={isSaved ? 'Unsave route' : 'Save route'}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.surfaceOverlay,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Animated.View style={saveAnimatedStyle}>
+              <Bookmark
+                size={18}
+                color={isSaved ? palette.accent500 : palette.white}
+                fill={isSaved ? palette.accent500 : 'transparent'}
+              />
+            </Animated.View>
+          </Pressable>
+          <Pressable
+            onPress={handleCycleMapStyle}
+            accessibilityRole="button"
+            accessibilityLabel="Change map style"
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              borderCurve: 'continuous',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -391,12 +434,14 @@ export default function RouteDetailScreen() {
           </Pressable>
           <Pressable
             onPress={handleShare}
+            accessibilityRole="button"
+            accessibilityLabel="Share route"
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -425,7 +470,7 @@ export default function RouteDetailScreen() {
             {/* MotoVault Pick badge */}
             {route.isMotovaultPick && (
               <Animated.View
-                entering={FadeIn.duration(300)}
+                entering={reducedMotion ? undefined : FadeIn.duration(300)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -439,21 +484,23 @@ export default function RouteDetailScreen() {
                   marginBottom: 10,
                 }}
               >
-                <Award size={14} color={isDark ? palette.accent400 : palette.accent500} />
+                <Award size={14} color={palette.signature500} />
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: '700',
-                    color: isDark ? palette.accent400 : palette.accent500,
+                    color: palette.signature500,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
                   }}
                 >
-                  MotoVault Pick
+                  Editor's Pick
                 </Text>
               </Animated.View>
             )}
 
             {/* Route name */}
-            <Text style={{ fontSize: 22, fontWeight: '800', color: titleColor, marginBottom: 4 }}>
+            <Text style={{ fontSize: 22, fontWeight: '700', color: titleColor, marginBottom: 4 }}>
               {route.name ?? 'Unnamed Route'}
             </Text>
 
@@ -565,37 +612,45 @@ export default function RouteDetailScreen() {
             )}
 
             {/* Action buttons */}
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-              <ActionButton
-                icon={<Download size={16} color={palette.white} />}
-                label="Export GPX"
-                onPress={handleExportGPX}
-                primary
-              />
-              <ActionButton
-                icon={
-                  <Bookmark
-                    size={16}
-                    color={isSaved ? palette.white : palette.accent500}
-                    fill={isSaved ? palette.white : 'transparent'}
-                  />
-                }
-                label={isSaved ? 'Saved' : 'Save'}
-                onPress={() => saveMutation.mutate()}
-                primary={isSaved}
-              />
-            </View>
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 20 }}>
-              <ActionButton
-                icon={<CloudOff size={16} color={palette.accent500} />}
-                label="Offline"
+              <Pressable
+                onPress={handleExportGPX}
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.accent500,
+                }}
+              >
+                <Download size={16} color={palette.white} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+                  Export GPX
+                </Text>
+              </Pressable>
+              <Pressable
                 onPress={() => setShowWaitlist(true)}
-              />
-              <ActionButton
-                icon={<Share2 size={16} color={palette.accent500} />}
-                label="Share"
-                onPress={handleShare}
-              />
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                <CloudOff size={16} color={palette.accent500} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                  Offline
+                </Text>
+              </Pressable>
             </View>
 
             {/* Reviews */}
@@ -660,47 +715,5 @@ function StatBadge({ label, value, isDark }: { label: string; value: string; isD
         {value}
       </Text>
     </View>
-  );
-}
-
-function ActionButton({
-  icon,
-  label,
-  onPress,
-  primary = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onPress: () => void;
-  primary?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderCurve: 'continuous',
-        backgroundColor: primary ? palette.accent500 : 'transparent',
-        borderWidth: primary ? 0 : 1,
-        borderColor: palette.accent500,
-      }}
-    >
-      {icon}
-      <Text
-        style={{
-          fontSize: 14,
-          fontWeight: '600',
-          color: primary ? palette.white : palette.accent500,
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
   );
 }

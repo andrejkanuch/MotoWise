@@ -39,10 +39,7 @@ function FilterChipRowInner<K extends string>({
   );
 
   return (
-    <View
-      accessibilityRole="toolbar"
-      accessibilityLabel={accessibilityGroupLabel ?? 'Filters'}
-    >
+    <View accessibilityRole="toolbar" accessibilityLabel={accessibilityGroupLabel ?? 'Filters'}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -70,19 +67,11 @@ function FilterChipRowInner<K extends string>({
               }}
             >
               {chip.emoji && (
-                <Text
-                  importantForAccessibility="no-hide-descendants"
-                  style={{ fontSize: 14 }}
-                >
+                <Text importantForAccessibility="no-hide-descendants" style={{ fontSize: 14 }}>
                   {chip.emoji}
                 </Text>
               )}
-              {Icon && (
-                <Icon
-                  size={14}
-                  color={isActive ? palette.white : chipText}
-                />
-              )}
+              {Icon && <Icon size={14} color={isActive ? palette.white : chipText} />}
               <Text
                 style={{
                   fontSize: 13,

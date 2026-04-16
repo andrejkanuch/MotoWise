@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Calendar,
+  ChevronDown,
   Map as MapIcon,
   Plus,
   Save,
@@ -38,7 +39,14 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
 import { StopListItem } from '../../components/trip/stop-list-item';
@@ -134,6 +142,13 @@ export default function CreateTripScreen() {
   const isEditMode = !!params.tripId;
   const sheetRef = useRef<BottomSheet>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
+
+  const reducedMotion = useReducedMotion();
+  const [showDetails, setShowDetails] = useState(false);
+  const chevronRotation = useSharedValue(0);
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronRotation.value}deg` }],
+  }));
 
   // Fetch existing trip data when in edit mode
   const tripQuery = useQuery({
@@ -465,8 +480,8 @@ export default function CreateTripScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       router.back();
     },
-    onError: () => {
-      Alert.alert('Error', 'Failed to save trip. Please try again.');
+    onError: (error) => {
+      Alert.alert('Failed to save trip', error?.message || 'Check your connection and try again');
     },
   });
 
@@ -492,8 +507,11 @@ export default function CreateTripScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       router.back();
     },
-    onError: () => {
-      Alert.alert('Error', 'Failed to publish trip. Please try again.');
+    onError: (error) => {
+      Alert.alert(
+        'Failed to publish trip',
+        error?.message || 'Check your connection and try again',
+      );
     },
   });
 
@@ -516,8 +534,8 @@ export default function CreateTripScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       router.back();
     },
-    onError: () => {
-      Alert.alert('Error', 'Failed to update trip. Please try again.');
+    onError: (error) => {
+      Alert.alert('Failed to update trip', error?.message || 'Check your connection and try again');
     },
   });
 
@@ -535,8 +553,8 @@ export default function CreateTripScreen() {
       // Pop both the edit modal AND the trip-detail modal underneath it.
       router.dismissAll();
     },
-    onError: () => {
-      Alert.alert('Error', 'Failed to delete trip. Please try again.');
+    onError: (error) => {
+      Alert.alert('Failed to delete trip', error?.message || 'Check your connection and try again');
     },
   });
 
@@ -717,12 +735,14 @@ export default function CreateTripScreen() {
         >
           <Pressable
             onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -743,12 +763,14 @@ export default function CreateTripScreen() {
         >
           <Pressable
             onPress={cycleMapStyle}
+            accessibilityRole="button"
+            accessibilityLabel="Change map style"
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(0,0,0,0.5)',
+              backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -760,7 +782,7 @@ export default function CreateTripScreen() {
         {/* Bottom Sheet */}
         <BottomSheet
           ref={sheetRef}
-          snapPoints={['12%', '45%', '85%']}
+          snapPoints={['35%', '65%', '90%']}
           index={0}
           backgroundStyle={{
             backgroundColor: sheetBg,
@@ -778,7 +800,7 @@ export default function CreateTripScreen() {
           >
             {/* Collapsed header */}
             <Animated.View
-              entering={FadeIn.duration(200)}
+              entering={reducedMotion ? undefined : FadeIn.duration(200)}
               style={{ paddingHorizontal: 20, paddingBottom: 12 }}
             >
               <Text style={{ fontSize: 18, fontWeight: '700', color: titleColor }}>
@@ -895,13 +917,12 @@ export default function CreateTripScreen() {
                           style={{
                             fontSize: 13,
                             color: subtitleColor,
-                            fontStyle: 'italic',
                             textAlign: 'center',
                             paddingVertical: 12,
                             paddingHorizontal: 20,
                           }}
                         >
-                          No stops yet
+                          Search above or long-press the map to add a stop
                         </Text>
                       )}
                     </View>
@@ -942,7 +963,7 @@ export default function CreateTripScreen() {
             {/* Metadata form */}
             <View style={{ paddingHorizontal: 20, gap: 16 }}>
               {/* Title input */}
-              <Animated.View entering={FadeInUp.delay(0).duration(250)}>
+              <Animated.View entering={reducedMotion ? undefined : FadeInUp.delay(0).duration(250)}>
                 <Text
                   style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
                 >
@@ -968,41 +989,36 @@ export default function CreateTripScreen() {
                 />
               </Animated.View>
 
-              {/* Description */}
-              <Animated.View entering={FadeInUp.delay(50).duration(250)}>
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
-                >
-                  Description
+              {/* More details toggle */}
+              <Pressable
+                onPress={() => {
+                  const next = !showDetails;
+                  setShowDetails(next);
+                  chevronRotation.value = withTiming(next ? 180 : 0, { duration: 200 });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={showDetails ? 'Less details' : 'More details'}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  alignSelf: 'flex-start',
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                  {showDetails ? 'Less details' : 'More details'}
                 </Text>
-                <TextInput
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Describe your trip route, highlights, what to bring..."
-                  placeholderTextColor={placeholderColor}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={1000}
-                  style={{
-                    backgroundColor: inputBg,
-                    borderWidth: 1,
-                    borderColor: inputBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontSize: 15,
-                    color: inputTextColor,
-                    minHeight: 100,
-                  }}
-                />
-              </Animated.View>
+                <Animated.View style={chevronStyle}>
+                  <ChevronDown size={16} color={palette.accent500} />
+                </Animated.View>
+              </Pressable>
 
-              {/* Dates */}
-              <Animated.View entering={FadeInUp.delay(100).duration(250)}>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <View style={{ flex: 1 }}>
+              {showDetails && (
+                <>
+                  {/* Description */}
+                  <Animated.View
+                    entering={reducedMotion ? undefined : FadeInUp.delay(50).duration(250)}
+                  >
                     <Text
                       style={{
                         fontSize: 13,
@@ -1011,66 +1027,172 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Start Date
+                      Description
                     </Text>
-                    {Platform.OS === 'android' ? (
-                      <>
-                        <Pressable
-                          onPress={() => setShowStartPicker(true)}
+                    <TextInput
+                      value={description}
+                      onChangeText={setDescription}
+                      placeholder="Describe your trip route, highlights, what to bring..."
+                      placeholderTextColor={placeholderColor}
+                      multiline
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                      maxLength={1000}
+                      style={{
+                        backgroundColor: inputBg,
+                        borderWidth: 1,
+                        borderColor: inputBorder,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 14,
+                        paddingVertical: 12,
+                        fontSize: 15,
+                        color: inputTextColor,
+                        minHeight: 100,
+                      }}
+                    />
+                  </Animated.View>
+
+                  {/* Dates */}
+                  <Animated.View
+                    entering={reducedMotion ? undefined : FadeInUp.delay(100).duration(250)}
+                  >
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text
                           style={{
-                            backgroundColor: inputBg,
-                            borderWidth: 1,
-                            borderColor: inputBorder,
-                            borderRadius: 10,
-                            borderCurve: 'continuous',
-                            paddingHorizontal: 12,
-                            paddingVertical: 10,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 8,
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: labelColor,
+                            marginBottom: 6,
                           }}
                         >
-                          <Calendar size={16} color={palette.accent500} />
-                          <Text style={{ fontSize: 14, color: inputTextColor }}>
-                            {startDate.toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </Text>
-                        </Pressable>
-                        {showStartPicker && (
+                          Start Date
+                        </Text>
+                        {Platform.OS === 'android' ? (
+                          <>
+                            <Pressable
+                              onPress={() => setShowStartPicker(true)}
+                              style={{
+                                backgroundColor: inputBg,
+                                borderWidth: 1,
+                                borderColor: inputBorder,
+                                borderRadius: 10,
+                                borderCurve: 'continuous',
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 8,
+                              }}
+                            >
+                              <Calendar size={16} color={palette.accent500} />
+                              <Text style={{ fontSize: 14, color: inputTextColor }}>
+                                {startDate.toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </Text>
+                            </Pressable>
+                            {showStartPicker && (
+                              <DateTimePicker
+                                value={startDate}
+                                mode="date"
+                                minimumDate={new Date()}
+                                onChange={(_e, d) => {
+                                  setShowStartPicker(false);
+                                  if (d) {
+                                    setStartDate(d);
+                                    if (d > endDate) setEndDate(d);
+                                  }
+                                }}
+                              />
+                            )}
+                          </>
+                        ) : (
                           <DateTimePicker
                             value={startDate}
                             mode="date"
                             minimumDate={new Date()}
                             onChange={(_e, d) => {
-                              setShowStartPicker(false);
                               if (d) {
                                 setStartDate(d);
                                 if (d > endDate) setEndDate(d);
                               }
                             }}
+                            themeVariant={isDark ? 'dark' : 'light'}
+                            accentColor={palette.signature500}
                           />
                         )}
-                      </>
-                    ) : (
-                      <DateTimePicker
-                        value={startDate}
-                        mode="date"
-                        minimumDate={new Date()}
-                        onChange={(_e, d) => {
-                          if (d) {
-                            setStartDate(d);
-                            if (d > endDate) setEndDate(d);
-                          }
-                        }}
-                        themeVariant={isDark ? 'dark' : 'light'}
-                        accentColor={palette.signature500}
-                      />
-                    )}
-                  </View>
-                  <View style={{ flex: 1 }}>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: labelColor,
+                            marginBottom: 6,
+                          }}
+                        >
+                          End Date
+                        </Text>
+                        {Platform.OS === 'android' ? (
+                          <>
+                            <Pressable
+                              onPress={() => setShowEndPicker(true)}
+                              style={{
+                                backgroundColor: inputBg,
+                                borderWidth: 1,
+                                borderColor: inputBorder,
+                                borderRadius: 10,
+                                borderCurve: 'continuous',
+                                paddingHorizontal: 12,
+                                paddingVertical: 10,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 8,
+                              }}
+                            >
+                              <Calendar size={16} color={palette.accent500} />
+                              <Text style={{ fontSize: 14, color: inputTextColor }}>
+                                {endDate.toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </Text>
+                            </Pressable>
+                            {showEndPicker && (
+                              <DateTimePicker
+                                value={endDate}
+                                mode="date"
+                                minimumDate={startDate}
+                                onChange={(_e, d) => {
+                                  setShowEndPicker(false);
+                                  if (d) setEndDate(d);
+                                }}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <DateTimePicker
+                            value={endDate}
+                            mode="date"
+                            minimumDate={startDate}
+                            onChange={(_e, d) => d && setEndDate(d)}
+                            themeVariant={isDark ? 'dark' : 'light'}
+                            accentColor={palette.signature500}
+                          />
+                        )}
+                      </View>
+                    </View>
+                  </Animated.View>
+
+                  {/* Difficulty */}
+                  <Animated.View
+                    entering={reducedMotion ? undefined : FadeInUp.delay(200).duration(250)}
+                  >
                     <Text
                       style={{
                         fontSize: 13,
@@ -1079,200 +1201,203 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      End Date
+                      Difficulty
                     </Text>
-                    {Platform.OS === 'android' ? (
-                      <>
-                        <Pressable
-                          onPress={() => setShowEndPicker(true)}
-                          style={{
-                            backgroundColor: inputBg,
-                            borderWidth: 1,
-                            borderColor: inputBorder,
-                            borderRadius: 10,
-                            borderCurve: 'continuous',
-                            paddingHorizontal: 12,
-                            paddingVertical: 10,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 8,
-                          }}
-                        >
-                          <Calendar size={16} color={palette.accent500} />
-                          <Text style={{ fontSize: 14, color: inputTextColor }}>
-                            {endDate.toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </Text>
-                        </Pressable>
-                        {showEndPicker && (
-                          <DateTimePicker
-                            value={endDate}
-                            mode="date"
-                            minimumDate={startDate}
-                            onChange={(_e, d) => {
-                              setShowEndPicker(false);
-                              if (d) setEndDate(d);
-                            }}
-                          />
-                        )}
-                      </>
-                    ) : (
-                      <DateTimePicker
-                        value={endDate}
-                        mode="date"
-                        minimumDate={startDate}
-                        onChange={(_e, d) => d && setEndDate(d)}
-                        themeVariant={isDark ? 'dark' : 'light'}
-                        accentColor={palette.signature500}
-                      />
-                    )}
-                  </View>
-                </View>
-              </Animated.View>
-
-              {/* Difficulty */}
-              <Animated.View entering={FadeInUp.delay(200).duration(250)}>
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
-                >
-                  Difficulty
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  {DIFFICULTIES.map((d) => {
-                    const isSelected = difficulty === d.key;
-                    const accentColor = DIFFICULTY_COLORS[d.key];
-                    return (
-                      <Pressable
-                        key={d.key}
-                        onPress={() => setDifficulty(d.key)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          borderRadius: 10,
-                          borderCurve: 'continuous',
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? accentColor : inputBorder,
-                          backgroundColor: isSelected ? chipSelectedBg : chipBg,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: isSelected ? '700' : '500',
-                            color: isSelected ? accentColor : subtitleColor,
-                          }}
-                        >
-                          {d.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </Animated.View>
-
-              {/* Visibility — privacy feature */}
-              <Animated.View entering={FadeInUp.delay(225).duration(250)}>
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
-                >
-                  Who can see this trip
-                </Text>
-                <View style={{ gap: 8 }}>
-                  {VISIBILITY_OPTIONS.map((opt) => {
-                    const isSelected = visibility === opt.key;
-                    return (
-                      <Pressable
-                        key={opt.key}
-                        onPress={() => setVisibility(opt.key)}
-                        style={{
-                          padding: 14,
-                          borderRadius: 12,
-                          borderCurve: 'continuous',
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? palette.accent500 : inputBorder,
-                          backgroundColor: isSelected ? chipSelectedBg : chipBg,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <Text
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      {DIFFICULTIES.map((d) => {
+                        const isSelected = difficulty === d.key;
+                        const accentColor = DIFFICULTY_COLORS[d.key];
+                        return (
+                          <Pressable
+                            key={d.key}
+                            onPress={() => setDifficulty(d.key)}
                             style={{
-                              fontSize: 14,
-                              fontWeight: '700',
-                              color: isSelected ? palette.accent500 : inputTextColor,
+                              flex: 1,
+                              paddingVertical: 10,
+                              borderRadius: 10,
+                              borderCurve: 'continuous',
+                              borderWidth: 1.5,
+                              borderColor: isSelected ? accentColor : inputBorder,
+                              backgroundColor: isSelected ? chipSelectedBg : chipBg,
+                              alignItems: 'center',
                             }}
                           >
-                            {opt.label}
-                          </Text>
-                          {isSelected && (
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                fontWeight: isSelected ? '700' : '500',
+                                color: isSelected ? accentColor : subtitleColor,
+                              }}
+                            >
+                              {d.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </Animated.View>
+
+                  {/* Visibility — privacy feature */}
+                  <Animated.View
+                    entering={reducedMotion ? undefined : FadeInUp.delay(225).duration(250)}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: labelColor,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Who can see this trip
+                    </Text>
+                    <View style={{ gap: 8 }}>
+                      {VISIBILITY_OPTIONS.map((opt) => {
+                        const isSelected = visibility === opt.key;
+                        return (
+                          <Pressable
+                            key={opt.key}
+                            onPress={() => setVisibility(opt.key)}
+                            style={{
+                              padding: 14,
+                              borderRadius: 12,
+                              borderCurve: 'continuous',
+                              borderWidth: 1.5,
+                              borderColor: isSelected ? palette.accent500 : inputBorder,
+                              backgroundColor: isSelected ? chipSelectedBg : chipBg,
+                            }}
+                          >
                             <View
                               style={{
-                                width: 16,
-                                height: 16,
-                                borderRadius: 8,
-                                backgroundColor: palette.accent500,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
                               }}
-                            />
-                          )}
-                        </View>
-                        <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 4 }}>
-                          {opt.description}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </Animated.View>
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: '700',
+                                  color: isSelected ? palette.accent500 : inputTextColor,
+                                }}
+                              >
+                                {opt.label}
+                              </Text>
+                              {isSelected && (
+                                <View
+                                  style={{
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: 8,
+                                    backgroundColor: palette.accent500,
+                                  }}
+                                />
+                              )}
+                            </View>
+                            <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 4 }}>
+                              {opt.description}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </Animated.View>
 
-              {/* Max riders */}
-              <Animated.View entering={FadeInUp.delay(250).duration(250)}>
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
-                >
-                  Max Riders
-                </Text>
-                <TextInput
-                  value={maxRiders}
-                  onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
-                  placeholder="10"
-                  placeholderTextColor={placeholderColor}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                  style={{
-                    backgroundColor: inputBg,
-                    borderWidth: 1,
-                    borderColor: inputBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontSize: 15,
-                    color: inputTextColor,
-                    width: 100,
-                  }}
-                />
-              </Animated.View>
+                  {/* Max riders */}
+                  <Animated.View
+                    entering={reducedMotion ? undefined : FadeInUp.delay(250).duration(250)}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                        color: labelColor,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Max Riders
+                    </Text>
+                    <TextInput
+                      value={maxRiders}
+                      onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
+                      placeholder="10"
+                      placeholderTextColor={placeholderColor}
+                      keyboardType="number-pad"
+                      maxLength={3}
+                      style={{
+                        backgroundColor: inputBg,
+                        borderWidth: 1,
+                        borderColor: inputBorder,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        paddingHorizontal: 14,
+                        paddingVertical: 12,
+                        fontSize: 15,
+                        color: inputTextColor,
+                        width: 100,
+                      }}
+                    />
+                  </Animated.View>
+                </>
+              )}
 
               {/* Error messages */}
-              {(saveMutation.isError || publishMutation.isError || updateMutation.isError) && (
-                <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
-                  Something went wrong. Please try again.
-                </Text>
+              {saveMutation.isError && (
+                <View style={{ gap: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: palette.danger500,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Failed to save trip
+                  </Text>
+                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                    {saveMutation.error?.message || 'Check your connection and try again'}
+                  </Text>
+                </View>
+              )}
+              {publishMutation.isError && (
+                <View style={{ gap: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: palette.danger500,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Failed to publish trip
+                  </Text>
+                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                    {publishMutation.error?.message || 'Check your connection and try again'}
+                  </Text>
+                </View>
+              )}
+              {updateMutation.isError && (
+                <View style={{ gap: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: palette.danger500,
+                      textAlign: 'center',
+                    }}
+                  >
+                    Failed to update trip
+                  </Text>
+                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                    {updateMutation.error?.message || 'Check your connection and try again'}
+                  </Text>
+                </View>
               )}
 
               {/* Published trip warning banner (edit mode only) */}
               {isEditMode && tripQuery.data?.tripDetail.status === 'published' && (
                 <Animated.View
-                  entering={FadeIn.duration(250)}
+                  entering={reducedMotion ? undefined : FadeIn.duration(250)}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',

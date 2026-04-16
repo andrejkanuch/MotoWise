@@ -34,9 +34,7 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
         accessibilityLabel={`Road of the Week: ${route.name}. ${Math.round(route.distanceM / 1000)} kilometers${route.ratingAvg != null ? `, rated ${route.ratingAvg.toFixed(1)} out of 5` : ''}`}
         accessibilityHint="Opens route details"
         style={({ pressed }) => ({
-          backgroundColor: pressed
-            ? (isDark ? palette.neutral800 : palette.neutral100)
-            : cardBg,
+          backgroundColor: pressed ? (isDark ? palette.neutral800 : palette.neutral100) : cardBg,
           borderWidth: 1,
           borderColor: cardBorder,
           borderRadius: 16,
@@ -94,7 +92,14 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Route size={13} color={subtitleColor} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor, fontVariant: ['tabular-nums'] }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: subtitleColor,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
               {formatDistance(route.distanceM, system)}
             </Text>
           </View>
@@ -102,7 +107,14 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
           {route.elevationGainM != null && route.elevationGainM > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Mountain size={13} color={subtitleColor} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor, fontVariant: ['tabular-nums'] }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: subtitleColor,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
                 {formatDistance(route.elevationGainM, system)}
               </Text>
             </View>
@@ -110,8 +122,15 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
 
           {route.ratingAvg != null && route.ratingCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Star size={13} color={palette.amber500} fill={palette.amber500} />
-              <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor, fontVariant: ['tabular-nums'] }}>
+              <Star size={13} color={palette.warning500} fill={palette.warning500} />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: subtitleColor,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
                 {route.ratingAvg.toFixed(1)} ({route.ratingCount})
               </Text>
             </View>
