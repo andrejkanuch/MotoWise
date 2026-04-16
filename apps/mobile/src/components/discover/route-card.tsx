@@ -1,14 +1,12 @@
 import { palette } from '@motovault/design-system';
 import type { DiscoverRoutesQuery } from '@motovault/graphql';
 import { Award, Fuel, MessageCircle, Mountain, Star } from 'lucide-react-native';
-import { memo } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { fuelBadgeColor, fuelBadgeLabel } from '../../utils/fuel-range';
 import { formatDistance } from '../../utils/ride-formatters';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
@@ -29,9 +27,12 @@ export const RouteCard = memo(function RouteCard({
   const system = useMeasurementSystem();
   const reducedMotion = useReducedMotion();
 
+  const cardBg = isDark ? palette.cardDark : palette.white;
+  const cardBorder = isDark ? palette.controlBg : palette.neutral200;
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
   const statColor = isDark ? palette.neutral200 : palette.neutral700;
+  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
   const surfaceLabel =
     route.surfaceType === 'paved'
       ? 'Paved'
@@ -41,6 +42,8 @@ export const RouteCard = memo(function RouteCard({
           ? 'Off-road'
           : null;
 
+  const animDelay = Math.min(index * 40, 300);
+
   // MotoVault Pick cards — elevated editorial layout
   if (route.isMotovaultPick) {
     return (
@@ -48,30 +51,32 @@ export const RouteCard = memo(function RouteCard({
         entering={
           reducedMotion
             ? undefined
-            : FadeInUp.delay(index * 40 + 20)
+            : FadeInUp.delay(animDelay + 20)
                 .springify()
                 .damping(14)
         }
+        style={{
+          backgroundColor: cardBg,
+          borderRadius: 18,
+          borderCurve: 'continuous',
+          borderWidth: 1,
+          borderColor: cardBorder,
+          padding: 16,
+          marginBottom: 14,
+          gap: 10,
+          shadowColor: palette.signature500,
+          shadowOpacity: isDark ? 0.2 : 0.1,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 5,
+        }}
       >
-        <AnimatedPressable
+        <Pressable
           onPress={onPress}
           accessibilityRole="button"
           accessibilityLabel={`Editor's Pick route: ${route.name ?? 'Unnamed route'}`}
           style={({ pressed }) => ({
-            backgroundColor: isDark ? palette.cardDark : palette.white,
-            borderRadius: 18,
-            borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
-            padding: 16,
-            marginBottom: 14,
-            gap: 8,
-            shadowColor: palette.signature500,
-            shadowOpacity: isDark ? 0.15 : 0.08,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 4,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
+            opacity: pressed ? 0.85 : 1,
           })}
         >
           {/* Badge */}
@@ -213,38 +218,41 @@ export const RouteCard = memo(function RouteCard({
             {route.contributor.displayName}
             {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
           </Text>
-        </AnimatedPressable>
+        </Pressable>
       </Animated.View>
     );
   }
 
-  // Regular cards — minimal row layout
+  // Regular cards
   return (
-    <Animated.View entering={reducedMotion ? undefined : FadeInUp.delay(index * 40).duration(250)}>
-      <AnimatedPressable
+    <Animated.View
+      entering={reducedMotion ? undefined : FadeInUp.delay(animDelay).duration(250)}
+      style={{
+        backgroundColor: cardBg,
+        borderRadius: 16,
+        borderCurve: 'continuous',
+        borderWidth: 1,
+        borderColor: cardBorder,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: palette.neutral950,
+        shadowOpacity: isDark ? 0.3 : 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+      }}
+    >
+      <Pressable
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={`Route: ${route.name ?? 'Unnamed route'}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed
-            ? isDark
-              ? palette.neutral800
-              : palette.neutral100
-            : isDark
-              ? palette.cardDark
-              : palette.white,
-          borderRadius: 14,
-          borderCurve: 'continuous',
-          borderWidth: 1,
-          borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
-          padding: 14,
-          marginBottom: 10,
-          transform: [{ scale: pressed ? 0.98 : 1 }],
+          opacity: pressed ? 0.85 : 1,
         })}
       >
         {/* Title */}
         <Text
-          style={{ fontSize: 15, fontWeight: '600', color: titleColor, marginBottom: 4 }}
+          style={{ fontSize: 15, fontWeight: '700', color: titleColor, marginBottom: 8 }}
           numberOfLines={1}
         >
           {route.name ?? 'Unnamed Route'}
@@ -335,11 +343,11 @@ export const RouteCard = memo(function RouteCard({
         </View>
 
         {/* Contributor */}
-        <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 4 }}>
+        <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 8 }}>
           {route.contributor.displayName}
           {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
         </Text>
-      </AnimatedPressable>
+      </Pressable>
     </Animated.View>
   );
 });

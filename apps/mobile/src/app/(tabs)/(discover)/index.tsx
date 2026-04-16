@@ -1,5 +1,11 @@
 import { palette } from '@motovault/design-system';
 import {
+  COUNTRY_EMOJIS,
+  COUNTRY_NAMES,
+  type SupportedCountryCode,
+  SUPPORTED_COUNTRY_CODES,
+} from '@motovault/types';
+import {
   DiscoverRoutesDocument,
   type DiscoverRoutesFilterInput,
   type DiscoverRoutesQuery,
@@ -59,10 +65,17 @@ const FILTER_CHIPS = [
 
 type FilterKey = (typeof FILTER_CHIPS)[number]['key'];
 
+const COUNTRY_CHIPS = SUPPORTED_COUNTRY_CODES.map((code) => ({
+  key: code,
+  label: COUNTRY_NAMES[code],
+  emoji: COUNTRY_EMOJIS[code],
+}));
+
 // --- Consolidated filter state ---
 
 interface DiscoverFilters {
   chips: Set<FilterKey>;
+  countryCode: SupportedCountryCode | null;
 }
 
 // --- Memoized header ---
@@ -70,6 +83,7 @@ interface DiscoverFilters {
 interface DiscoverHeaderProps {
   filters: DiscoverFilters;
   onToggleChip: (key: FilterKey) => void;
+  onToggleCountry: (key: SupportedCountryCode) => void;
   featuredRoute: RouteNode | null;
   onRoutePress: (routeId: string) => void;
   showBelowFold: boolean;
@@ -78,12 +92,18 @@ interface DiscoverHeaderProps {
 const DiscoverHeader = memo(function DiscoverHeader({
   filters,
   onToggleChip,
+  onToggleCountry,
   featuredRoute,
   onRoutePress,
   showBelowFold,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
   const headerColor = isDark ? palette.white : palette.neutral950;
+
+  const countryActiveKeys = useMemo(
+    () => (filters.countryCode ? new Set([filters.countryCode]) : new Set<SupportedCountryCode>()),
+    [filters.countryCode],
+  );
 
   return (
     <View style={{ gap: 16, paddingTop: 8 }}>
@@ -118,6 +138,26 @@ const DiscoverHeader = memo(function DiscoverHeader({
             onRoutePress={onRoutePress}
           />
 
+          {/* Country chips */}
+          <View style={{ gap: 8 }}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: '700',
+                color: headerColor,
+                letterSpacing: -0.2,
+              }}
+            >
+              Browse by country
+            </Text>
+            <FilterChipRow
+              chips={COUNTRY_CHIPS}
+              activeKeys={countryActiveKeys}
+              onToggle={onToggleCountry}
+              accessibilityGroupLabel="Country filters"
+            />
+          </View>
+
           {/* Trips */}
           <TripSection />
         </>
@@ -133,7 +173,11 @@ const DiscoverHeader = memo(function DiscoverHeader({
             letterSpacing: -0.2,
           }}
         >
-          {filters.chips.size > 0 ? 'Filtered routes' : 'Roads worth riding'}
+          {filters.countryCode
+            ? `Routes in ${COUNTRY_NAMES[filters.countryCode]}`
+            : filters.chips.size > 0
+              ? 'Filtered routes'
+              : 'Roads worth riding'}
         </Text>
       </View>
     </View>
@@ -166,6 +210,7 @@ export default function DiscoverScreen() {
   // --- Consolidated filter state ---
   const [filters, setFilters] = useState<DiscoverFilters>({
     chips: new Set(),
+    countryCode: null,
   });
 
   const filterInput = useMemo((): DiscoverRoutesFilterInput | null => {
@@ -200,6 +245,10 @@ export default function DiscoverScreen() {
       filter.highlyRatedOnly = true;
       hasFilter = true;
     }
+    if (filters.countryCode) {
+      filter.countryCode = filters.countryCode.toLowerCase();
+      hasFilter = true;
+    }
     return hasFilter ? filter : null;
   }, [filters]);
 
@@ -230,7 +279,7 @@ export default function DiscoverScreen() {
 
   // Featured route: first MotoVault Pick (when no filters active)
   const featuredRoute = useMemo(() => {
-    if (filters.chips.size > 0) return null;
+    if (filters.chips.size > 0 || filters.countryCode) return null;
     return allRoutes.find((r) => r.isMotovaultPick) ?? null;
   }, [allRoutes, filters]);
 
@@ -289,6 +338,14 @@ export default function DiscoverScreen() {
     });
   }, []);
 
+  const toggleCountry = useCallback((key: SupportedCountryCode) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setFilters((prev) => ({
+      ...prev,
+      countryCode: prev.countryCode === key ? null : key,
+    }));
+  }, []);
+
   // --- Scroll animation ---
 
   const scrollY = useSharedValue(0);
@@ -330,12 +387,13 @@ export default function DiscoverScreen() {
       <DiscoverHeader
         filters={filters}
         onToggleChip={toggleChip}
+        onToggleCountry={toggleCountry}
         featuredRoute={featuredRoute}
         onRoutePress={handleRoutePress}
         showBelowFold={showBelowFold}
       />
     ),
-    [filters, toggleChip, featuredRoute, handleRoutePress, showBelowFold],
+    [filters, toggleChip, toggleCountry, featuredRoute, handleRoutePress, showBelowFold],
   );
 
   return (

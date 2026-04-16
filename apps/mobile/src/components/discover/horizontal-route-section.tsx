@@ -90,16 +90,18 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
             {title}
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: CARD_GAP }}>
+        <View style={{ flexDirection: 'row', gap: CARD_GAP, paddingLeft: 0 }}>
           {[0, 1, 2].map((i) => (
             <View
               key={i}
               style={{
                 width: CARD_WIDTH,
-                height: 120,
-                borderRadius: 12,
+                height: 140,
+                borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+                backgroundColor: isDark ? palette.cardDark : palette.neutral100,
+                borderWidth: 1,
+                borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             />
           ))}
@@ -130,14 +132,14 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: CARD_GAP }}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: CARD_GAP }}
           style={{ marginHorizontal: -16 }}
           initialNumToRender={3}
           maxToRenderPerBatch={2}
           windowSize={5}
           getItemLayout={(_, index) => ({
             length: CARD_WIDTH + CARD_GAP,
-            offset: (CARD_WIDTH + CARD_GAP) * index,
+            offset: 16 + (CARD_WIDTH + CARD_GAP) * index,
             index,
           })}
         />
