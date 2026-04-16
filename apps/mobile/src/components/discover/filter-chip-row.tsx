@@ -66,11 +66,6 @@ function FilterChipRowInner<K extends string>({
                 backgroundColor: isActive ? palette.accent500 : chipBg,
               }}
             >
-              {chip.emoji && (
-                <Text importantForAccessibility="no-hide-descendants" style={{ fontSize: 14 }}>
-                  {chip.emoji}
-                </Text>
-              )}
               {Icon && <Icon size={14} color={isActive ? palette.white : chipText} />}
               <Text
                 style={{
@@ -79,7 +74,7 @@ function FilterChipRowInner<K extends string>({
                   color: isActive ? palette.white : chipText,
                 }}
               >
-                {chip.label}
+                {chip.emoji ? `${chip.emoji} ${chip.label}` : chip.label}
               </Text>
             </Pressable>
           );
