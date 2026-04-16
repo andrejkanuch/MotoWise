@@ -1,6 +1,5 @@
 import { palette } from '@motovault/design-system';
 import {
-  COUNTRY_EMOJIS,
   COUNTRY_NAMES,
   type SupportedCountryCode,
   SUPPORTED_COUNTRY_CODES,
@@ -68,7 +67,6 @@ type FilterKey = (typeof FILTER_CHIPS)[number]['key'];
 const COUNTRY_CHIPS = SUPPORTED_COUNTRY_CODES.map((code) => ({
   key: code,
   label: COUNTRY_NAMES[code],
-  emoji: COUNTRY_EMOJIS[code],
 }));
 
 // --- Consolidated filter state ---

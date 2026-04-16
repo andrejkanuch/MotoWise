@@ -43,17 +43,3 @@ export const COUNTRY_NAMES: Record<SupportedCountryCode, string> = {
   US: 'United States',
 };
 
-export const COUNTRY_EMOJIS: Record<SupportedCountryCode, string> = {
-  IT: '🇮🇹',
-  ES: '🇪🇸',
-  AT: '🇦🇹',
-  DE: '🇩🇪',
-  FR: '🇫🇷',
-  CH: '🇨🇭',
-  HR: '🇭🇷',
-  GR: '🇬🇷',
-  NO: '🇳🇴',
-  RO: '🇷🇴',
-  PT: '🇵🇹',
-  US: '🇺🇸',
-};
