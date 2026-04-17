@@ -1,11 +1,14 @@
-import type { RouteListItem } from '@motovault/types';
-import { createClient } from '@supabase/supabase-js';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
-import { fetchCountryBySlug, fetchRegionsByCountrySlug } from '@/lib/fetch-places';
+import {
+  type ExploreRouteWithMap,
+  fetchCountryBySlug,
+  fetchExploreRoutesByCountry,
+  fetchRegionsByCountrySlug,
+} from '@/lib/fetch-places';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 
 export const revalidate = 86400;
@@ -14,56 +17,6 @@ const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
 
 interface PageProps {
   params: Promise<{ country: string }>;
-}
-
-/* ── Types ───────────────────────────────────────────────────── */
-
-interface RouteWithPolyline extends RouteListItem {
-  polyline: string | null;
-  description: string | null;
-}
-
-/* ── Data fetching ───────────────────────────────────────────── */
-
-function getPublicSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-  );
-}
-
-async function fetchRoutesWithPolylines(
-  countryCode: string,
-  limit = 12,
-): Promise<RouteWithPolyline[]> {
-  const supabase = getPublicSupabase();
-  const { data, error } = await supabase
-    .from('routes')
-    .select(
-      'id, name, description, distance_m, elevation_gain_m, surface_type, curvature_index, rating_avg, rating_count, slug, country_code, region_code, polyline',
-    )
-    .eq('status', 'published')
-    .eq('country_code', countryCode.toLowerCase())
-    .order('rating_avg', { ascending: false, nullsFirst: false })
-    .limit(limit);
-
-  if (error) throw new Error(`fetchRoutesWithPolylines: ${error.message}`);
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    displayName: row.name,
-    description: row.description,
-    distanceM: row.distance_m,
-    elevationGainM: row.elevation_gain_m,
-    surfaceType: row.surface_type,
-    curvatureIndex: row.curvature_index,
-    ratingAvg: row.rating_avg,
-    ratingCount: row.rating_count,
-    slug: row.slug,
-    countryCode: row.country_code,
-    regionSlug: row.region_code,
-    polyline: row.polyline,
-  }));
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -300,7 +253,7 @@ function MapPlaceholder() {
 
 /* ── Route cards ─────────────────────────────────────────────── */
 
-function RouteCardFeatured({ route, index }: { route: RouteWithPolyline; index: number }) {
+function RouteCardFeatured({ route, index }: { route: ExploreRouteWithMap; index: number }) {
   const diff = getDifficulty(route.curvatureIndex, route.elevationGainM);
   const mapUrl = route.polyline ? buildThumbnailUrl(route.polyline, 800, 400) : '';
 
@@ -408,7 +361,7 @@ function RouteCardFeatured({ route, index }: { route: RouteWithPolyline; index: 
   );
 }
 
-function RouteCard({ route, index }: { route: RouteWithPolyline; index: number }) {
+function RouteCard({ route, index }: { route: ExploreRouteWithMap; index: number }) {
   const diff = getDifficulty(route.curvatureIndex, route.elevationGainM);
   const mapUrl = route.polyline ? buildThumbnailUrl(route.polyline, 400, 240) : '';
 
@@ -521,7 +474,7 @@ export default async function CountryPage({ params }: PageProps) {
 
   const [regions, topRoutes] = await Promise.all([
     fetchRegionsByCountrySlug(countrySlug),
-    fetchRoutesWithPolylines(country.countryCode, 12),
+    fetchExploreRoutesByCountry(country.countryCode, 12),
   ]);
 
   const featured = topRoutes[0] ?? null;

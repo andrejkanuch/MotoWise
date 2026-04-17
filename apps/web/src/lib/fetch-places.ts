@@ -1,4 +1,4 @@
-import type { BrowsePlaceFieldsFragment } from '@motovault/graphql';
+import type { BrowsePlaceFieldsFragment, ExploreDiscoverRoutesQuery } from '@motovault/graphql';
 import {
   BrowseCountriesDocument,
   BrowseCountryBySlugDocument,
@@ -91,6 +91,38 @@ function discoverNodeToRouteListItem(node: {
     countryCode: node.countryCode ?? null,
     regionSlug: node.regionCode ?? null,
   };
+}
+
+type ExploreDiscoverRouteNode =
+  ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+
+/** Route row for /explore/[country] cards (map thumbnail + description). */
+export type ExploreRouteWithMap = RouteListItem & {
+  description: string | null;
+  polyline: string | null;
+};
+
+function discoverNodeToExploreRouteWithMap(node: ExploreDiscoverRouteNode): ExploreRouteWithMap {
+  return {
+    ...discoverNodeToRouteListItem(node),
+    description: node.description ?? null,
+    polyline: node.polyline ?? null,
+  };
+}
+
+/** Top routes for a country — same source as discover tab, via API (no browser→Supabase fetch on Vercel). */
+export async function fetchExploreRoutesByCountry(
+  countryCode: string,
+  limit = 50,
+): Promise<ExploreRouteWithMap[]> {
+  const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
+    filter: {
+      sortByRating: true,
+      countryCode,
+    },
+    first: limit,
+  });
+  return data.discoverRoutes.edges.map((e) => discoverNodeToExploreRouteWithMap(e.node));
 }
 
 /** Fetch published routes for a country+region, sorted by rating. */

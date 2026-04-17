@@ -16,6 +16,7 @@ query ExploreDiscoverRoutes($filter: DiscoverRoutesFilterInput, $first: Int) {
         slug
         countryCode
         regionCode
+        polyline
       }
     }
     pageInfo {
