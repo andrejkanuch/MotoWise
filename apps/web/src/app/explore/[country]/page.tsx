@@ -73,6 +73,14 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
+/** PostgREST / drivers may return `numeric` as string — never call `.toFixed` on a string. */
+function ratingDisplay(avg: unknown, count: unknown): { text: string; stars: number } | null {
+  const n = typeof avg === 'number' ? avg : Number(avg);
+  const c = typeof count === 'number' ? count : Number(count);
+  if (!Number.isFinite(n) || !Number.isFinite(c) || c <= 0) return null;
+  return { text: n.toFixed(1), stars: Math.round(n) };
+}
+
 function formatElevation(meters: number): string {
   return `${Math.round(meters).toLocaleString()} m`;
 }
@@ -119,8 +127,10 @@ function surfaceLabel(surfaceType: string): string {
 }
 
 function estimateTime(distanceM: number, surfaceType?: string | null): string {
+  const meters = Number(distanceM);
+  if (!Number.isFinite(meters) || meters < 0) return '—';
   const avgSpeed = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
-  const hours = distanceM / 1000 / avgSpeed;
+  const hours = meters / 1000 / avgSpeed;
   if (hours < 1) return `${Math.round(hours * 60)} min`;
   const h = Math.floor(hours);
   const m = Math.round((hours - h) * 60);
@@ -368,26 +378,27 @@ function RouteCardFeatured({ route, index }: { route: RouteWithPolyline; index: 
 
         {/* Rating + difficulty */}
         <div className="mt-3 flex items-center gap-3">
-          {route.ratingAvg != null && route.ratingCount > 0 && (
-            <div
-              className="flex items-center gap-1.5"
-              role="img"
-              aria-label={`Rated ${route.ratingAvg.toFixed(1)} out of 5 stars, ${route.ratingCount} reviews`}
-            >
-              <div className="flex items-center gap-0.5" aria-hidden="true">
-                {([0, 1, 2, 3, 4] as const).map((i) => (
-                  <StarIcon
-                    key={`${route.id}-star-${i}`}
-                    filled={i < Math.round(route.ratingAvg ?? 0)}
-                  />
-                ))}
+          {(() => {
+            const r = ratingDisplay(route.ratingAvg, route.ratingCount);
+            if (!r) return null;
+            return (
+              <div
+                className="flex items-center gap-1.5"
+                role="img"
+                aria-label={`Rated ${r.text} out of 5 stars, ${route.ratingCount} reviews`}
+              >
+                <div className="flex items-center gap-0.5" aria-hidden="true">
+                  {([0, 1, 2, 3, 4] as const).map((i) => (
+                    <StarIcon key={`${route.id}-star-${i}`} filled={i < r.stars} />
+                  ))}
+                </div>
+                <span className="text-sm text-neutral-300">
+                  {r.text}
+                  <span className="text-neutral-400"> ({route.ratingCount})</span>
+                </span>
               </div>
-              <span className="text-sm text-neutral-300">
-                {route.ratingAvg.toFixed(1)}
-                <span className="text-neutral-400"> ({route.ratingCount})</span>
-              </span>
-            </div>
-          )}
+            );
+          })()}
           <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${diff.colorClass}`}>
             {diff.label}
           </span>
@@ -471,23 +482,24 @@ function RouteCard({ route, index }: { route: RouteWithPolyline; index: number }
 
         {/* Rating + difficulty */}
         <div className="mt-auto flex items-center gap-2.5 pt-3">
-          {route.ratingAvg != null && route.ratingCount > 0 && (
-            <div
-              className="flex items-center gap-1"
-              role="img"
-              aria-label={`Rated ${route.ratingAvg.toFixed(1)} out of 5`}
-            >
-              <div className="flex items-center gap-0.5" aria-hidden="true">
-                {([0, 1, 2, 3, 4] as const).map((i) => (
-                  <StarIcon
-                    key={`${route.id}-star-${i}`}
-                    filled={i < Math.round(route.ratingAvg ?? 0)}
-                  />
-                ))}
+          {(() => {
+            const r = ratingDisplay(route.ratingAvg, route.ratingCount);
+            if (!r) return null;
+            return (
+              <div
+                className="flex items-center gap-1"
+                role="img"
+                aria-label={`Rated ${r.text} out of 5`}
+              >
+                <div className="flex items-center gap-0.5" aria-hidden="true">
+                  {([0, 1, 2, 3, 4] as const).map((i) => (
+                    <StarIcon key={`${route.id}-star-${i}`} filled={i < r.stars} />
+                  ))}
+                </div>
+                <span className="text-xs text-neutral-300">{r.text}</span>
               </div>
-              <span className="text-xs text-neutral-300">{route.ratingAvg.toFixed(1)}</span>
-            </div>
-          )}
+            );
+          })()}
           <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
             {diff.label}
           </span>
