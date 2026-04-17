@@ -1,77 +1,29 @@
 /**
  * P5.1 — client hook for trip suggestions.
- *
- * Uses inline graphql.parse so we don't need codegen to run before the next
- * push (sandbox codegen is currently broken — see P2.3 notes).
  */
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import {
+  CreateTripSuggestionDocument,
+  type CreateTripSuggestionMutation,
+  PeriodOfDay,
+  RespondToTripSuggestionDocument,
+  type RespondToTripSuggestionMutation,
+  TripSuggestionDecision,
+  TripSuggestionKind,
+  TripSuggestionsDocument,
+  type TripSuggestionsQuery,
+  type TripSuggestionsQueryVariables,
+} from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { parse } from 'graphql';
 import { useCallback } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
 
-export interface TripSuggestionAuthor {
-  id: string;
-  displayName: string;
-  avatarUrl?: string | null;
-  publicUsername?: string | null;
-}
+export type TripSuggestion = TripSuggestionsQuery['tripSuggestions'][number];
+export type TripSuggestionAuthor = TripSuggestion['author'];
 
-export interface TripSuggestion {
-  id: string;
-  tripId: string;
-  kind: string;
-  name: string;
-  notes?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-  dayIndex?: number | null;
-  periodOfDay?: string | null;
-  status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
-  decidedBy?: string | null;
-  decidedAt?: string | null;
-  decidedNote?: string | null;
-  waypointId?: string | null;
-  createdAt: string;
-  author: TripSuggestionAuthor;
-}
-
-interface ListData {
-  tripSuggestions: TripSuggestion[];
-}
-interface ListVars {
-  tripId: string;
-}
-
-const TripSuggestionsDocument = parse(/* GraphQL */ `
-  query TripSuggestions($tripId: ID!) {
-    tripSuggestions(tripId: $tripId) {
-      id
-      tripId
-      kind
-      name
-      notes
-      lat
-      lng
-      dayIndex
-      periodOfDay
-      status
-      decidedBy
-      decidedAt
-      decidedNote
-      waypointId
-      createdAt
-      author {
-        id
-        displayName
-        avatarUrl
-        publicUsername
-      }
-    }
-  }
-`) as TypedDocumentNode<ListData, ListVars>;
-
-interface CreateInput {
+// Caller-facing input shapes use plain string unions so callers aren't forced
+// to import the GraphQL enum. The hook converts them to the generated enum
+// values before hitting the wire.
+export interface CreateTripSuggestionHookInput {
   tripId: string;
   name: string;
   notes?: string;
@@ -79,83 +31,84 @@ interface CreateInput {
   lng?: number;
   dayIndex?: number;
   periodOfDay?: string;
-  kind?: string;
-}
-interface CreateData {
-  createTripSuggestion: TripSuggestion;
-}
-interface CreateVars {
-  input: CreateInput;
+  kind?: 'waypoint' | 'note';
 }
 
-const CreateTripSuggestionDocument = parse(/* GraphQL */ `
-  mutation CreateTripSuggestion($input: CreateTripSuggestionInput!) {
-    createTripSuggestion(input: $input) {
-      id
-      tripId
-      status
-      name
-      notes
-      lat
-      lng
-      dayIndex
-      periodOfDay
-      createdAt
-      author {
-        id
-        displayName
-        avatarUrl
-      }
-    }
-  }
-`) as TypedDocumentNode<CreateData, CreateVars>;
-
-interface RespondInput {
+export interface RespondToTripSuggestionHookInput {
   suggestionId: string;
   decision: 'accepted' | 'rejected' | 'withdrawn';
   note?: string;
 }
-interface RespondData {
-  respondToTripSuggestion: TripSuggestion;
-}
-interface RespondVars {
-  input: RespondInput;
-}
 
-const RespondToTripSuggestionDocument = parse(/* GraphQL */ `
-  mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {
-    respondToTripSuggestion(input: $input) {
-      id
-      status
-      decidedBy
-      decidedAt
-      decidedNote
-      waypointId
-    }
-  }
-`) as TypedDocumentNode<RespondData, RespondVars>;
+const DECISION_MAP: Record<
+  RespondToTripSuggestionHookInput['decision'],
+  TripSuggestionDecision
+> = {
+  accepted: TripSuggestionDecision.Accepted,
+  rejected: TripSuggestionDecision.Rejected,
+  withdrawn: TripSuggestionDecision.Withdrawn,
+};
+
+const KIND_MAP: Record<'waypoint' | 'note', TripSuggestionKind> = {
+  waypoint: TripSuggestionKind.Waypoint,
+  note: TripSuggestionKind.Note,
+};
+
+const PERIOD_MAP: Record<string, PeriodOfDay | undefined> = {
+  morning: PeriodOfDay.Morning,
+  afternoon: PeriodOfDay.Afternoon,
+  evening: PeriodOfDay.Evening,
+};
 
 export function useTripSuggestions(tripId: string | undefined) {
   const qc = useQueryClient();
   const queryKey = ['trip-suggestions', tripId ?? ''];
 
-  const list = useQuery<ListData>({
+  const list = useQuery<TripSuggestionsQuery>({
     queryKey,
     enabled: !!tripId,
-    queryFn: () => gqlFetcher(TripSuggestionsDocument, { tripId: tripId ?? '' }),
+    queryFn: () => {
+      const variables: TripSuggestionsQueryVariables = { tripId: tripId ?? '' };
+      return gqlFetcher(TripSuggestionsDocument, variables);
+    },
   });
 
-  const create = useMutation({
-    mutationFn: (input: CreateInput) =>
-      gqlFetcher(CreateTripSuggestionDocument, { input: { kind: 'waypoint', ...input } }),
+  const create = useMutation<
+    CreateTripSuggestionMutation,
+    Error,
+    CreateTripSuggestionHookInput
+  >({
+    mutationFn: (input) =>
+      gqlFetcher(CreateTripSuggestionDocument, {
+        input: {
+          tripId: input.tripId,
+          name: input.name,
+          notes: input.notes,
+          lat: input.lat,
+          lng: input.lng,
+          dayIndex: input.dayIndex,
+          periodOfDay: input.periodOfDay ? PERIOD_MAP[input.periodOfDay] : undefined,
+          kind: KIND_MAP[input.kind ?? 'waypoint'],
+        },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey });
     },
   });
 
-  const respond = useMutation({
-    mutationFn: (input: RespondInput) =>
-      gqlFetcher(RespondToTripSuggestionDocument, { input }),
+  const respond = useMutation<
+    RespondToTripSuggestionMutation,
+    Error,
+    RespondToTripSuggestionHookInput
+  >({
+    mutationFn: (input) =>
+      gqlFetcher(RespondToTripSuggestionDocument, {
+        input: {
+          suggestionId: input.suggestionId,
+          decision: DECISION_MAP[input.decision],
+          note: input.note,
+        },
+      }),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey });
       // If an accept materialised a waypoint, trip-detail should refetch.
@@ -166,7 +119,7 @@ export function useTripSuggestions(tripId: string | undefined) {
   });
 
   const propose = useCallback(
-    (input: CreateInput) => create.mutateAsync(input),
+    (input: CreateTripSuggestionHookInput) => create.mutateAsync(input),
     [create],
   );
 

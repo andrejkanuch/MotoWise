@@ -107,6 +107,12 @@ export type AskTripAssistantInput = {
   tripId: Scalars['ID']['input'];
 };
 
+/** Role of a message in the trip assistant conversation. */
+export enum AssistantMessageRole {
+  Assistant = 'assistant',
+  User = 'user'
+}
+
 export type BoundsInput = {
   neLat: Scalars['Float']['input'];
   neLng: Scalars['Float']['input'];
@@ -317,12 +323,12 @@ export type CreateTripInput = {
 
 export type CreateTripSuggestionInput = {
   dayIndex?: InputMaybe<Scalars['Int']['input']>;
-  kind?: Scalars['String']['input'];
+  kind?: TripSuggestionKind;
   lat?: InputMaybe<Scalars['Float']['input']>;
   lng?: InputMaybe<Scalars['Float']['input']>;
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<Scalars['String']['input']>;
+  periodOfDay?: InputMaybe<PeriodOfDay>;
   tripId: Scalars['ID']['input'];
 };
 
@@ -343,7 +349,7 @@ export type CreateWaypointInput = {
   lng: Scalars['Float']['input'];
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<Scalars['String']['input']>;
+  periodOfDay?: InputMaybe<PeriodOfDay>;
   sortOrder: Scalars['Int']['input'];
   tripId: Scalars['ID']['input'];
   type: Scalars['String']['input'];
@@ -719,7 +725,7 @@ export type InlineWaypointInput = {
   lng: Scalars['Float']['input'];
   name: Scalars['String']['input'];
   notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<Scalars['String']['input']>;
+  periodOfDay?: InputMaybe<PeriodOfDay>;
   sortOrder: Scalars['Int']['input'];
   type: Scalars['String']['input'];
 };
@@ -1443,6 +1449,20 @@ export type PageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+/** Role of a trip participant. */
+export enum ParticipantRole {
+  CoPlanner = 'co_planner',
+  Organizer = 'organizer',
+  Rider = 'rider'
+}
+
+/** Period of the day assigned to a waypoint or ride segment. */
+export enum PeriodOfDay {
+  Afternoon = 'afternoon',
+  Evening = 'evening',
+  Morning = 'morning'
+}
+
 export type PlaceSuggestion = {
   __typename?: 'PlaceSuggestion';
   countryCode: Scalars['String']['output'];
@@ -1930,7 +1950,7 @@ export type ReportSurfaceInput = {
 };
 
 export type RespondToTripSuggestionInput = {
-  decision: Scalars['String']['input'];
+  decision: TripSuggestionDecision;
   note?: InputMaybe<Scalars['String']['input']>;
   suggestionId: Scalars['ID']['input'];
 };
@@ -2115,7 +2135,7 @@ export type SearchArticlesInput = {
 };
 
 export type SetParticipantRoleInput = {
-  role: Scalars['String']['input'];
+  role: ParticipantRole;
   tripId: Scalars['ID']['input'];
   userId: Scalars['ID']['input'];
 };
@@ -2196,7 +2216,7 @@ export type SharedTripWaypoint = {
   lng: Scalars['Float']['output'];
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<Scalars['String']['output']>;
+  periodOfDay?: Maybe<PeriodOfDay>;
   sortOrder: Scalars['Int']['output'];
   type: Scalars['String']['output'];
 };
@@ -2340,14 +2360,12 @@ export type Trip = {
 
 export type TripAssistantHistoryMessage = {
   content: Scalars['String']['input'];
-  role: Scalars['String']['input'];
+  role: AssistantMessageRole;
 };
 
 export type TripAssistantMessage = {
   __typename?: 'TripAssistantMessage';
-  inputTokens?: Maybe<Scalars['Int']['output']>;
   message: Scalars['String']['output'];
-  outputTokens?: Maybe<Scalars['Int']['output']>;
 };
 
 export type TripConnection = {
@@ -2406,13 +2424,13 @@ export type TripSuggestion = {
   decidedBy?: Maybe<Scalars['String']['output']>;
   decidedNote?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  kind: Scalars['String']['output'];
+  kind: TripSuggestionKind;
   lat?: Maybe<Scalars['Float']['output']>;
   lng?: Maybe<Scalars['Float']['output']>;
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<Scalars['String']['output']>;
-  status: Scalars['String']['output'];
+  periodOfDay?: Maybe<PeriodOfDay>;
+  status: TripSuggestionStatus;
   tripId: Scalars['ID']['output'];
   waypointId?: Maybe<Scalars['String']['output']>;
 };
@@ -2425,6 +2443,27 @@ export type TripSuggestionAuthor = {
   publicUsername?: Maybe<Scalars['String']['output']>;
 };
 
+/** Decision applied to a pending trip suggestion. */
+export enum TripSuggestionDecision {
+  Accepted = 'accepted',
+  Rejected = 'rejected',
+  Withdrawn = 'withdrawn'
+}
+
+/** Kind of a trip suggestion (waypoint or note). */
+export enum TripSuggestionKind {
+  Note = 'note',
+  Waypoint = 'waypoint'
+}
+
+/** Lifecycle of a trip suggestion. */
+export enum TripSuggestionStatus {
+  Accepted = 'accepted',
+  Pending = 'pending',
+  Rejected = 'rejected',
+  Withdrawn = 'withdrawn'
+}
+
 export type TripWaypoint = {
   __typename?: 'TripWaypoint';
   createdAt: Scalars['String']['output'];
@@ -2434,7 +2473,7 @@ export type TripWaypoint = {
   lng: Scalars['Float']['output'];
   name: Scalars['String']['output'];
   notes?: Maybe<Scalars['String']['output']>;
-  periodOfDay?: Maybe<Scalars['String']['output']>;
+  periodOfDay?: Maybe<PeriodOfDay>;
   sortOrder: Scalars['Int']['output'];
   tripId: Scalars['ID']['output'];
   type: Scalars['String']['output'];
@@ -2537,7 +2576,7 @@ export type UpdateWaypointInput = {
   lng?: InputMaybe<Scalars['Float']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
-  periodOfDay?: InputMaybe<Scalars['String']['input']>;
+  periodOfDay?: InputMaybe<PeriodOfDay>;
   sortOrder?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<Scalars['String']['input']>;
   waypointId: Scalars['ID']['input'];
@@ -2623,14 +2662,14 @@ export type AddWaypointMutationVariables = Exact<{
 }>;
 
 
-export type AddWaypointMutation = { __typename?: 'Mutation', addWaypoint: { __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string } };
+export type AddWaypointMutation = { __typename?: 'Mutation', addWaypoint: { __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string } };
 
 export type AskTripAssistantMutationVariables = Exact<{
   input: AskTripAssistantInput;
 }>;
 
 
-export type AskTripAssistantMutation = { __typename?: 'Mutation', askTripAssistant: { __typename?: 'TripAssistantMessage', message: string, inputTokens?: number | null, outputTokens?: number | null } };
+export type AskTripAssistantMutation = { __typename?: 'Mutation', askTripAssistant: { __typename?: 'TripAssistantMessage', message: string } };
 
 export type CancelGroupRideMutationVariables = Exact<{
   groupRideId: Scalars['ID']['input'];
@@ -2723,14 +2762,14 @@ export type CreateTripSuggestionMutationVariables = Exact<{
 }>;
 
 
-export type CreateTripSuggestionMutation = { __typename?: 'Mutation', createTripSuggestion: { __typename?: 'TripSuggestion', id: string, tripId: string, status: string, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: string | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null } } };
+export type CreateTripSuggestionMutation = { __typename?: 'Mutation', createTripSuggestion: { __typename?: 'TripSuggestion', id: string, tripId: string, status: TripSuggestionStatus, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null } } };
 
 export type CreateTripWithWaypointsMutationVariables = Exact<{
   input: CreateTripWithWaypointsInput;
 }>;
 
 
-export type CreateTripWithWaypointsMutation = { __typename?: 'Mutation', createTripWithWaypoints: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
+export type CreateTripWithWaypointsMutation = { __typename?: 'Mutation', createTripWithWaypoints: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
 
 export type CreateTripMutationVariables = Exact<{
   input: CreateTripInput;
@@ -2959,7 +2998,7 @@ export type RespondToTripSuggestionMutationVariables = Exact<{
 }>;
 
 
-export type RespondToTripSuggestionMutation = { __typename?: 'Mutation', respondToTripSuggestion: { __typename?: 'TripSuggestion', id: string, status: string, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null } };
+export type RespondToTripSuggestionMutation = { __typename?: 'Mutation', respondToTripSuggestion: { __typename?: 'TripSuggestion', id: string, status: TripSuggestionStatus, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null } };
 
 export type RevokeShareLinkMutationVariables = Exact<{
   linkId: Scalars['ID']['input'];
@@ -3096,7 +3135,7 @@ export type UpdateTripMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
+export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, status: string, visibility: string, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }> | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
@@ -3110,7 +3149,7 @@ export type UpdateWaypointMutationVariables = Exact<{
 }>;
 
 
-export type UpdateWaypointMutation = { __typename?: 'Mutation', updateWaypoint: { __typename?: 'TripWaypoint', id: string, sortOrder: number, dayIndex: number, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number } };
+export type UpdateWaypointMutation = { __typename?: 'Mutation', updateWaypoint: { __typename?: 'TripWaypoint', id: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number } };
 
 export type UploadWaypointsMutationVariables = Exact<{
   input: UploadWaypointsInput;
@@ -3465,14 +3504,14 @@ export type TripByShareTokenQueryVariables = Exact<{
 }>;
 
 
-export type TripByShareTokenQuery = { __typename?: 'Query', tripByShareToken?: { __typename?: 'SharedTrip', id: string, title: string, description?: string | null, status: string, difficulty: string, startDate: string, endDate: string, maxRiders: number, participantCount: number, coverImageUrl?: string | null, waypoints: Array<{ __typename?: 'SharedTripWaypoint', id: string, sortOrder: number, dayIndex?: number | null, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number }>, participants: Array<{ __typename?: 'SharedTripParticipant', anonId: string, role: string, status: string, displayName: string, avatarUrl?: string | null }> } | null };
+export type TripByShareTokenQuery = { __typename?: 'Query', tripByShareToken?: { __typename?: 'SharedTrip', id: string, title: string, description?: string | null, status: string, difficulty: string, startDate: string, endDate: string, maxRiders: number, participantCount: number, coverImageUrl?: string | null, waypoints: Array<{ __typename?: 'SharedTripWaypoint', id: string, sortOrder: number, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number }>, participants: Array<{ __typename?: 'SharedTripParticipant', anonId: string, role: string, status: string, displayName: string, avatarUrl?: string | null }> } | null };
 
 export type TripDetailQueryVariables = Exact<{
   tripId: Scalars['ID']['input'];
 }>;
 
 
-export type TripDetailQuery = { __typename?: 'Query', tripDetail: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: string | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string }> | null, participants?: Array<{ __typename?: 'TripParticipant', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null, role: string, status: string, bikeId?: string | null, joinedAt: string }> | null } };
+export type TripDetailQuery = { __typename?: 'Query', tripDetail: { __typename?: 'Trip', id: string, title: string, description: string, startDate: string, endDate: string, difficulty: string, maxRiders: number, participantCount: number, status: string, visibility: string, coverImageUrl?: string | null, createdAt: string, organiser: { __typename?: 'TripOrganiser', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null }, waypoints?: Array<{ __typename?: 'TripWaypoint', id: string, tripId: string, sortOrder: number, dayIndex: number, periodOfDay?: PeriodOfDay | null, type: string, name: string, notes?: string | null, lat: number, lng: number, createdAt: string }> | null, participants?: Array<{ __typename?: 'TripParticipant', id: string, displayName: string, publicUsername?: string | null, avatarUrl?: string | null, role: string, status: string, bikeId?: string | null, joinedAt: string }> | null } };
 
 export type TripInvitesQueryVariables = Exact<{
   tripId: Scalars['ID']['input'];
@@ -3486,7 +3525,7 @@ export type TripSuggestionsQueryVariables = Exact<{
 }>;
 
 
-export type TripSuggestionsQuery = { __typename?: 'Query', tripSuggestions: Array<{ __typename?: 'TripSuggestion', id: string, tripId: string, kind: string, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: string | null, status: string, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null, publicUsername?: string | null } }> };
+export type TripSuggestionsQuery = { __typename?: 'Query', tripSuggestions: Array<{ __typename?: 'TripSuggestion', id: string, tripId: string, kind: TripSuggestionKind, name: string, notes?: string | null, lat?: number | null, lng?: number | null, dayIndex?: number | null, periodOfDay?: PeriodOfDay | null, status: TripSuggestionStatus, decidedBy?: string | null, decidedAt?: string | null, decidedNote?: string | null, waypointId?: string | null, createdAt: string, author: { __typename?: 'TripSuggestionAuthor', id: string, displayName: string, avatarUrl?: string | null, publicUsername?: string | null } }> };
 
 export type ExportRouteGpxMutationVariables = Exact<{
   routeId: Scalars['ID']['input'];
@@ -3578,7 +3617,7 @@ export const BrowsePlaceFieldsFragmentDoc = {"kind":"Document","definitions":[{"
 export const AddExpensePhotoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddExpensePhoto"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddExpensePhotoInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addExpensePhoto"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"expenseId"}},{"kind":"Field","name":{"kind":"Name","value":"storagePath"}},{"kind":"Field","name":{"kind":"Name","value":"publicUrl"}},{"kind":"Field","name":{"kind":"Name","value":"fileSizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddExpensePhotoMutation, AddExpensePhotoMutationVariables>;
 export const AddTaskPhotoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddTaskPhoto"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddTaskPhotoInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTaskPhoto"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"taskId"}},{"kind":"Field","name":{"kind":"Name","value":"storagePath"}},{"kind":"Field","name":{"kind":"Name","value":"publicUrl"}},{"kind":"Field","name":{"kind":"Name","value":"fileSizeBytes"}},{"kind":"Field","name":{"kind":"Name","value":"mimeType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddTaskPhotoMutation, AddTaskPhotoMutationVariables>;
 export const AddWaypointDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddWaypoint"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateWaypointInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addWaypoint"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tripId"}},{"kind":"Field","name":{"kind":"Name","value":"sortOrder"}},{"kind":"Field","name":{"kind":"Name","value":"dayIndex"}},{"kind":"Field","name":{"kind":"Name","value":"periodOfDay"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"lat"}},{"kind":"Field","name":{"kind":"Name","value":"lng"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<AddWaypointMutation, AddWaypointMutationVariables>;
-export const AskTripAssistantDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AskTripAssistant"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AskTripAssistantInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"askTripAssistant"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"inputTokens"}},{"kind":"Field","name":{"kind":"Name","value":"outputTokens"}}]}}]}}]} as unknown as DocumentNode<AskTripAssistantMutation, AskTripAssistantMutationVariables>;
+export const AskTripAssistantDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AskTripAssistant"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AskTripAssistantInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"askTripAssistant"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"message"}}]}}]}}]} as unknown as DocumentNode<AskTripAssistantMutation, AskTripAssistantMutationVariables>;
 export const CancelGroupRideDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CancelGroupRide"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"groupRideId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cancelGroupRide"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"groupRideId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"groupRideId"}}}]}]}}]} as unknown as DocumentNode<CancelGroupRideMutation, CancelGroupRideMutationVariables>;
 export const CompleteMaintenanceTaskDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteMaintenanceTask"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteMaintenanceTaskInput"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"createNextOccurrence"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeMaintenanceTask"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}},{"kind":"Argument","name":{"kind":"Name","value":"createNextOccurrence"},"value":{"kind":"Variable","name":{"kind":"Name","value":"createNextOccurrence"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completed"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"completedAt"}},{"kind":"Field","name":{"kind":"Name","value":"completedMileage"}},{"kind":"Field","name":{"kind":"Name","value":"cost"}},{"kind":"Field","name":{"kind":"Name","value":"partsCost"}},{"kind":"Field","name":{"kind":"Name","value":"laborCost"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}}]}},{"kind":"Field","name":{"kind":"Name","value":"nextOccurrence"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"dueDate"}},{"kind":"Field","name":{"kind":"Name","value":"targetMileage"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isRecurring"}},{"kind":"Field","name":{"kind":"Name","value":"intervalKm"}},{"kind":"Field","name":{"kind":"Name","value":"intervalDays"}},{"kind":"Field","name":{"kind":"Name","value":"source"}},{"kind":"Field","name":{"kind":"Name","value":"motorcycleId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]}}]} as unknown as DocumentNode<CompleteMaintenanceTaskMutation, CompleteMaintenanceTaskMutationVariables>;
 export const CompleteOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteOnboarding"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteOnboardingInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeOnboarding"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"preferences"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<CompleteOnboardingMutation, CompleteOnboardingMutationVariables>;

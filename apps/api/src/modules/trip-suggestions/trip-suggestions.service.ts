@@ -276,17 +276,19 @@ export class TripSuggestionsService {
 
   private mapRow(row: SuggestionWithAuthor): TripSuggestion {
     const author = row.users;
+    // DB CHECK constraints narrow `kind`, `status`, and `period_of_day` to the
+    // unions declared in @motovault/types, so these casts are safe.
     return {
       id: row.id,
       tripId: row.trip_id,
-      kind: row.kind,
+      kind: row.kind as TripSuggestion['kind'],
       name: row.name,
       notes: row.notes ?? undefined,
       lat: row.lat ?? undefined,
       lng: row.lng ?? undefined,
       dayIndex: row.day_index ?? undefined,
-      periodOfDay: row.period_of_day ?? undefined,
-      status: row.status,
+      periodOfDay: (row.period_of_day as TripSuggestion['periodOfDay']) ?? undefined,
+      status: row.status as TripSuggestion['status'],
       decidedBy: row.decided_by ?? undefined,
       decidedAt: row.decided_at ?? undefined,
       decidedNote: row.decided_note ?? undefined,

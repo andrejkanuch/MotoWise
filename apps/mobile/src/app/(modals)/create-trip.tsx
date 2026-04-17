@@ -3,6 +3,7 @@ import { palette } from '@motovault/design-system';
 import {
   CreateTripWithWaypointsDocument,
   DeleteTripDocument,
+  type PeriodOfDay,
   PublishTripDocument,
   TripDetailDocument,
   UpdateTripDocument,
@@ -475,7 +476,10 @@ export default function CreateTripScreen() {
         lat: wp.lat,
         lng: wp.lng,
         dayIndex: wp.dayIndex,
-        periodOfDay: wp.periodOfDay ?? null,
+        // LocalWaypoint models periodOfDay as the string union for editor
+        // state; the GraphQL input expects the generated PeriodOfDay enum.
+        // The string values are identical, so a narrow cast is safe.
+        periodOfDay: (wp.periodOfDay ?? null) as PeriodOfDay | null,
       })),
     };
   }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);

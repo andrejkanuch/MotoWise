@@ -35,5 +35,7 @@ export * from './validators/share-link';
 export * from './validators/sponsorship';
 export * from './validators/surface-report';
 export * from './validators/trip';
+export * from './validators/trip-assistant';
+export * from './validators/trip-suggestions';
 export * from './validators/user';
 export * from './validators/user-preferences';

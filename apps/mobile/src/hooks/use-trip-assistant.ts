@@ -1,16 +1,16 @@
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import {
+  AskTripAssistantDocument,
+  type AskTripAssistantMutation,
+  type AskTripAssistantMutationVariables,
+  AssistantMessageRole,
+} from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
-import { parse } from 'graphql';
 import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
 
 /**
- * Trip-context AI assistant.
- *
- * The resolver is GraphQL (`askTripAssistant`) but the generated client type
- * isn't checked in yet — we parse the query inline and cast to
- * `TypedDocumentNode` so the app compiles before the next `pnpm generate`.
- * Swap to `AskTripAssistantDocument` from `@motovault/graphql` once generated.
+ * Trip-context AI assistant. Wraps the `askTripAssistant` GraphQL mutation and
+ * keeps a local message history so consumers can render a chat-style UI.
  */
 
 export interface AssistantMessage {
@@ -20,47 +20,26 @@ export interface AssistantMessage {
   createdAt: number;
 }
 
-interface MutationData {
-  askTripAssistant: {
-    message: string;
-    inputTokens: number | null;
-    outputTokens: number | null;
-  };
-}
-
-interface MutationVars {
-  input: {
-    tripId: string;
-    question: string;
-    history?: Array<{ role: string; content: string }>;
-  };
-}
-
-const AskTripAssistantDocument = parse(/* GraphQL */ `
-  mutation AskTripAssistant($input: AskTripAssistantInput!) {
-    askTripAssistant(input: $input) {
-      message
-      inputTokens
-      outputTokens
-    }
-  }
-`) as TypedDocumentNode<MutationData, MutationVars>;
-
 let nextId = 1;
 const makeId = () => `m_${nextId++}_${Date.now()}`;
 
 export function useTripAssistant(tripId: string | undefined) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
 
-  const mutation = useMutation({
+  const mutation = useMutation<AskTripAssistantMutation, Error, string>({
     mutationFn: async (question: string) => {
       if (!tripId) throw new Error('Missing tripId');
-      const history = messages
-        .slice(-16)
-        .map((m) => ({ role: m.role, content: m.content }));
-      return gqlFetcher(AskTripAssistantDocument, {
+      const history = messages.slice(-16).map((m) => ({
+        role:
+          m.role === 'assistant'
+            ? AssistantMessageRole.Assistant
+            : AssistantMessageRole.User,
+        content: m.content,
+      }));
+      const variables: AskTripAssistantMutationVariables = {
         input: { tripId, question, history },
-      });
+      };
+      return gqlFetcher(AskTripAssistantDocument, variables);
     },
   });
 

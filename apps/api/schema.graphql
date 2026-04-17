@@ -84,6 +84,12 @@ input AskTripAssistantInput {
   tripId: ID!
 }
 
+"""Role of a message in the trip assistant conversation."""
+enum AssistantMessageRole {
+  assistant
+  user
+}
+
 input BoundsInput {
   neLat: Float!
   neLng: Float!
@@ -286,12 +292,12 @@ input CreateTripInput {
 
 input CreateTripSuggestionInput {
   dayIndex: Int
-  kind: String! = "waypoint"
+  kind: TripSuggestionKind! = waypoint
   lat: Float
   lng: Float
   name: String!
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   tripId: ID!
 }
 
@@ -312,7 +318,7 @@ input CreateWaypointInput {
   lng: Float!
   name: String!
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   sortOrder: Int!
   tripId: ID!
   type: String!
@@ -676,7 +682,7 @@ input InlineWaypointInput {
   lng: Float!
   name: String!
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   sortOrder: Int!
   type: String!
 }
@@ -982,6 +988,20 @@ type PageInfo {
   startCursor: String
 }
 
+"""Role of a trip participant."""
+enum ParticipantRole {
+  co_planner
+  organizer
+  rider
+}
+
+"""Period of the day assigned to a waypoint or ride segment."""
+enum PeriodOfDay {
+  afternoon
+  evening
+  morning
+}
+
 type PlaceSuggestion {
   countryCode: String!
   id: Int!
@@ -1174,7 +1194,7 @@ input ReportSurfaceInput {
 }
 
 input RespondToTripSuggestionInput {
-  decision: String!
+  decision: TripSuggestionDecision!
   note: String
   suggestionId: ID!
 }
@@ -1344,7 +1364,7 @@ input SearchArticlesInput {
 }
 
 input SetParticipantRoleInput {
-  role: String!
+  role: ParticipantRole!
   tripId: ID!
   userId: ID!
 }
@@ -1418,7 +1438,7 @@ type SharedTripWaypoint {
   lng: Float!
   name: String!
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   sortOrder: Int!
   type: String!
 }
@@ -1555,13 +1575,11 @@ type Trip {
 
 input TripAssistantHistoryMessage {
   content: String!
-  role: String!
+  role: AssistantMessageRole!
 }
 
 type TripAssistantMessage {
-  inputTokens: Int
   message: String!
-  outputTokens: Int
 }
 
 type TripConnection {
@@ -1613,13 +1631,13 @@ type TripSuggestion {
   decidedBy: String
   decidedNote: String
   id: ID!
-  kind: String!
+  kind: TripSuggestionKind!
   lat: Float
   lng: Float
   name: String!
   notes: String
-  periodOfDay: String
-  status: String!
+  periodOfDay: PeriodOfDay
+  status: TripSuggestionStatus!
   tripId: ID!
   waypointId: String
 }
@@ -1631,6 +1649,27 @@ type TripSuggestionAuthor {
   publicUsername: String
 }
 
+"""Decision applied to a pending trip suggestion."""
+enum TripSuggestionDecision {
+  accepted
+  rejected
+  withdrawn
+}
+
+"""Kind of a trip suggestion (waypoint or note)."""
+enum TripSuggestionKind {
+  note
+  waypoint
+}
+
+"""Lifecycle of a trip suggestion."""
+enum TripSuggestionStatus {
+  accepted
+  pending
+  rejected
+  withdrawn
+}
+
 type TripWaypoint {
   createdAt: String!
   dayIndex: Int!
@@ -1639,7 +1678,7 @@ type TripWaypoint {
   lng: Float!
   name: String!
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   sortOrder: Int!
   tripId: ID!
   type: String!
@@ -1741,7 +1780,7 @@ input UpdateWaypointInput {
   lng: Float
   name: String
   notes: String
-  periodOfDay: String
+  periodOfDay: PeriodOfDay
   sortOrder: Int
   type: String
   waypointId: ID!

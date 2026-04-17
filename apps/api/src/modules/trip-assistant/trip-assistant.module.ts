@@ -1,3 +1,5 @@
+import '../../shared/graphql/enums';
+
 import { Module } from '@nestjs/common';
 import { AiBudgetModule } from '../ai-budget/ai-budget.module';
 import { SupabaseModule } from '../supabase/supabase.module';

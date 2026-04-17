@@ -1,12 +1,25 @@
+import type {
+  ParticipantRole,
+  TripSuggestionDecision,
+  TripSuggestionKind,
+} from '@motovault/types';
 import { Field, Float, ID, InputType, Int } from '@nestjs/graphql';
+import {
+  ParticipantRoleEnum,
+  PeriodOfDayEnum,
+  TripSuggestionDecisionEnum,
+  TripSuggestionKindEnum,
+} from '../../../shared/graphql/enums';
+
+type PeriodOfDay = (typeof PeriodOfDayEnum)[keyof typeof PeriodOfDayEnum];
 
 @InputType()
 export class CreateTripSuggestionInput {
   @Field(() => ID)
   tripId: string;
 
-  @Field(() => String, { defaultValue: 'waypoint' })
-  kind: string;
+  @Field(() => TripSuggestionKindEnum, { defaultValue: 'waypoint' })
+  kind: TripSuggestionKind;
 
   @Field()
   name: string;
@@ -23,8 +36,8 @@ export class CreateTripSuggestionInput {
   @Field(() => Int, { nullable: true })
   dayIndex?: number;
 
-  @Field({ nullable: true })
-  periodOfDay?: string;
+  @Field(() => PeriodOfDayEnum, { nullable: true })
+  periodOfDay?: PeriodOfDay;
 }
 
 @InputType()
@@ -32,9 +45,8 @@ export class RespondToTripSuggestionInput {
   @Field(() => ID)
   suggestionId: string;
 
-  /** 'accepted' | 'rejected' | 'withdrawn' */
-  @Field()
-  decision: string;
+  @Field(() => TripSuggestionDecisionEnum)
+  decision: TripSuggestionDecision;
 
   @Field({ nullable: true })
   note?: string;
@@ -49,6 +61,6 @@ export class SetParticipantRoleInput {
   userId: string;
 
   /** 'co_planner' | 'rider' — organisers remain untouched via this API. */
-  @Field()
-  role: string;
+  @Field(() => ParticipantRoleEnum)
+  role: ParticipantRole;
 }

@@ -1,4 +1,12 @@
+import type { TripSuggestionKind, TripSuggestionStatus } from '@motovault/types';
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import {
+  PeriodOfDayEnum,
+  TripSuggestionKindEnum,
+  TripSuggestionStatusEnum,
+} from '../../../shared/graphql/enums';
+
+type PeriodOfDay = (typeof PeriodOfDayEnum)[keyof typeof PeriodOfDayEnum];
 
 /**
  * A lightweight author projection for suggestion cards. Kept separate from
@@ -27,8 +35,8 @@ export class TripSuggestion {
   @Field(() => ID)
   tripId: string;
 
-  @Field()
-  kind: string;
+  @Field(() => TripSuggestionKindEnum)
+  kind: TripSuggestionKind;
 
   @Field()
   name: string;
@@ -45,11 +53,11 @@ export class TripSuggestion {
   @Field(() => Int, { nullable: true })
   dayIndex?: number;
 
-  @Field({ nullable: true })
-  periodOfDay?: string;
+  @Field(() => PeriodOfDayEnum, { nullable: true })
+  periodOfDay?: PeriodOfDay;
 
-  @Field()
-  status: string;
+  @Field(() => TripSuggestionStatusEnum)
+  status: TripSuggestionStatus;
 
   @Field({ nullable: true })
   decidedBy?: string;

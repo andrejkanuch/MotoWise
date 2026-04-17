@@ -4,16 +4,16 @@
  * Paginates every ride the rider owns client-side, decodes their polylines,
  * and stacks them on a world map as low-opacity lines (Strava-style heatmap).
  * The top card is a shareable annual recap keyed off the current year.
- *
- * We bypass the generated `MyRides` document on purpose: codegen in the
- * sandbox is flaky, and we want `routePolyline` / `region` without forcing
- * the user to run `pnpm generate` before the next push.
  */
 import { palette } from '@motovault/design-system';
-import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
+import {
+  MyRidesForHeatmapDocument,
+  type MyRidesForHeatmapQuery,
+  type MyRidesForHeatmapQueryVariables,
+} from '@motovault/graphql';
+import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { parse } from 'graphql';
 import { ArrowLeft, Flame, Share2 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useCallback, useMemo } from 'react';
@@ -25,9 +25,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import MapboxGL from '@rnmapbox/maps';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { gqlFetcher } from '../../../lib/graphql-client';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
   type HeatmapRide,
@@ -35,43 +35,6 @@ import {
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
 } from '../../../utils/ride-heatmap';
-import { gqlFetcher } from '../../../lib/graphql-client';
-
-interface RideHeatmapPage {
-  myRides: {
-    edges: Array<{ node: HeatmapRide & { id: string; startedAt: string }; cursor: string }>;
-    pageInfo: { hasNextPage: boolean; endCursor?: string | null };
-    totalCount: number;
-  };
-}
-
-interface RideHeatmapVars {
-  first?: number | null;
-  after?: string | null;
-}
-
-const RideHeatmapDocument = parse(/* GraphQL */ `
-  query RideHeatmap($first: Int, $after: String) {
-    myRides(first: $first, after: $after) {
-      edges {
-        node {
-          id
-          name
-          startedAt
-          distanceM
-          routePolyline
-          region
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      totalCount
-    }
-  }
-`) as TypedDocumentNode<RideHeatmapPage, RideHeatmapVars>;
 
 const PAGE_SIZE = 50;
 
@@ -85,16 +48,20 @@ export default function RideHeatmapScreen() {
   const insets = useSafeAreaInsets();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteQuery<RideHeatmapPage>({
-      queryKey: ['rides', 'heatmap'],
-      queryFn: ({ pageParam }) =>
-        gqlFetcher(RideHeatmapDocument, {
+    useInfiniteQuery({
+      queryKey: ['rides', 'heatmap'] as const,
+      queryFn: ({ pageParam }: { pageParam: string | null }) => {
+        const variables: MyRidesForHeatmapQueryVariables = {
           first: PAGE_SIZE,
-          after: (pageParam as string | null) ?? null,
-        }),
+          after: pageParam,
+        };
+        return gqlFetcher(MyRidesForHeatmapDocument, variables);
+      },
       initialPageParam: null as string | null,
-      getNextPageParam: (lastPage) =>
-        lastPage?.myRides.pageInfo.hasNextPage ? lastPage.myRides.pageInfo.endCursor ?? null : null,
+      getNextPageParam: (lastPage: MyRidesForHeatmapQuery) =>
+        lastPage.myRides.pageInfo.hasNextPage
+          ? lastPage.myRides.pageInfo.endCursor ?? null
+          : null,
     });
 
   // Eagerly page until we've pulled everything — rider cohorts with thousands

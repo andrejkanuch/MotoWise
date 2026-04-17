@@ -119,12 +119,15 @@ function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant = false
 }
 
 function mapRowToWaypoint(row: WaypointRow): TripWaypoint {
+  // Column `period_of_day` is constrained by a DB CHECK to 'morning'|'afternoon'|
+  // 'evening', so narrowing by cast is safe here. Anything else would surface
+  // as a DB constraint error before it ever reached this mapper.
   return {
     id: row.id,
     tripId: row.trip_id,
     sortOrder: row.sort_order,
     dayIndex: row.day_index,
-    periodOfDay: row.period_of_day ?? null,
+    periodOfDay: (row.period_of_day as TripWaypoint['periodOfDay']) ?? null,
     type: row.type,
     name: row.name,
     notes: row.notes ?? undefined,

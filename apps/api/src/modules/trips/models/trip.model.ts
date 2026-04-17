@@ -1,4 +1,7 @@
 import { Field, Float, ID, Int, ObjectType } from '@nestjs/graphql';
+import { PeriodOfDayEnum } from '../../../shared/graphql/enums';
+
+type PeriodOfDay = (typeof PeriodOfDayEnum)[keyof typeof PeriodOfDayEnum];
 
 @ObjectType()
 export class TripOrganiser {
@@ -44,8 +47,8 @@ export class TripWaypoint {
   @Field(() => Int)
   dayIndex: number;
 
-  @Field(() => String, { nullable: true })
-  periodOfDay?: string | null;
+  @Field(() => PeriodOfDayEnum, { nullable: true })
+  periodOfDay?: PeriodOfDay | null;
 
   @Field()
   createdAt: string;

@@ -20,4 +20,5 @@ export * from './seo-jsonld';
 export * from './sponsorship';
 export * from './surface-report';
 export * from './trip';
+export * from './trip-suggestions';
 export * from './user';
