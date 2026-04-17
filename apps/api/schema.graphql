@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -76,6 +72,12 @@ enum ArticleDifficulty {
 type ArticleEdge {
   cursor: String!
   node: Article!
+}
+
+input AskTripAssistantInput {
+  history: [TripAssistantHistoryMessage!]
+  question: String!
+  tripId: ID!
 }
 
 input BoundsInput {
@@ -276,6 +278,17 @@ input CreateTripInput {
   maxRiders: Int!
   startDate: String!
   title: String!
+}
+
+input CreateTripSuggestionInput {
+  dayIndex: Int
+  kind: String! = "waypoint"
+  lat: Float
+  lng: Float
+  name: String!
+  notes: String
+  periodOfDay: String
+  tripId: ID!
 }
 
 input CreateTripWithWaypointsInput {
@@ -844,6 +857,7 @@ type Mutation {
   addExpensePhoto(input: AddExpensePhotoInput!): ExpensePhoto!
   addTaskPhoto(input: AddTaskPhotoInput!): TaskPhoto!
   addWaypoint(input: CreateWaypointInput!): TripWaypoint!
+  askTripAssistant(input: AskTripAssistantInput!): TripAssistantMessage!
   cancelGroupRide(groupRideId: ID!): Boolean!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
@@ -857,6 +871,7 @@ type Mutation {
   createRouteReview(input: CreateRouteReviewInput!): RouteReview!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   createTrip(input: CreateTripInput!): Trip!
+  createTripSuggestion(input: CreateTripSuggestionInput!): TripSuggestion!
   createTripWithWaypoints(input: CreateTripWithWaypointsInput!): Trip!
   deleteAccount: Boolean!
   deleteComment(commentId: ID!): Boolean!
@@ -895,11 +910,13 @@ type Mutation {
   requestDataExport: DataExportRequest!
   resetAiCircuitBreaker: Boolean!
   respondToTripInvite(accept: Boolean!, inviteId: ID!): Boolean!
+  respondToTripSuggestion(input: RespondToTripSuggestionInput!): TripSuggestion!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
 
   """Save a route to your collection"""
   saveRouteToCollection(routeId: ID!): Boolean!
+  setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
   startRide(input: StartRideInput!): Ride!
@@ -1078,6 +1095,7 @@ type Query {
   tripByShareToken(shareToken: String!): SharedTrip
   tripDetail(tripId: ID!): Trip!
   tripInvites(tripId: ID!): [TripInvite!]!
+  tripSuggestions(tripId: ID!): [TripSuggestion!]!
   user: User!
 }
 
@@ -1149,6 +1167,12 @@ input ReportSurfaceInput {
   note: String
   photoUrl: String
   routeId: ID!
+}
+
+input RespondToTripSuggestionInput {
+  decision: String!
+  note: String
+  suggestionId: ID!
 }
 
 type Ride {
@@ -1313,6 +1337,12 @@ input SearchArticlesInput {
   difficulty: ArticleDifficulty
   first: Int = 20
   query: String
+}
+
+input SetParticipantRoleInput {
+  role: String!
+  tripId: ID!
+  userId: ID!
 }
 
 type ShareLink {
@@ -1519,6 +1549,17 @@ type Trip {
   waypoints: [TripWaypoint!]
 }
 
+input TripAssistantHistoryMessage {
+  content: String!
+  role: String!
+}
+
+type TripAssistantMessage {
+  inputTokens: Int
+  message: String!
+  outputTokens: Int
+}
+
 type TripConnection {
   edges: [TripEdge!]!
   pageInfo: TripPageInfo!
@@ -1558,6 +1599,32 @@ type TripParticipant {
   publicUsername: String
   role: String!
   status: String!
+}
+
+type TripSuggestion {
+  author: TripSuggestionAuthor!
+  createdAt: String!
+  dayIndex: Int
+  decidedAt: String
+  decidedBy: String
+  decidedNote: String
+  id: ID!
+  kind: String!
+  lat: Float
+  lng: Float
+  name: String!
+  notes: String
+  periodOfDay: String
+  status: String!
+  tripId: ID!
+  waypointId: String
+}
+
+type TripSuggestionAuthor {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
 }
 
 type TripWaypoint {
