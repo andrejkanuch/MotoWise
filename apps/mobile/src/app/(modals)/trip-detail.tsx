@@ -36,6 +36,7 @@ import {
   Alert,
   Image,
   Pressable,
+  Share,
   Text,
   useColorScheme,
   View,
@@ -214,7 +215,6 @@ export default function TripDetailScreen() {
       readiness,
     });
     try {
-      const { Share } = await import('react-native');
       await Share.share({ message: brief, title: `${trip.title ?? 'Trip'} — tank-bag brief` });
       trackEvent(AnalyticsEvent.TRIP_BRIEF_SHARED, {
         trip_id: tripId,
@@ -511,19 +511,19 @@ ${rteptElements}
           {waypoints.map((wp) => {
             const wt = getWaypointIcon(wp.type);
             return (
-              <MapboxGL.PointAnnotation
+              <MapboxGL.MarkerView
                 key={wp.id}
                 id={`wp-${wp.id}`}
                 coordinate={[wp.lng, wp.lat]}
-                onSelected={() =>
-                  showMarkerActionSheet({
-                    title: wp.name || 'Waypoint',
-                    lat: wp.lat,
-                    lng: wp.lng,
-                  })
-                }
               >
-                <View
+                <Pressable
+                  onPress={() =>
+                    showMarkerActionSheet({
+                      title: wp.name || 'Waypoint',
+                      lat: wp.lat,
+                      lng: wp.lng,
+                    })
+                  }
                   style={{
                     width: 16,
                     height: 16,
@@ -533,7 +533,7 @@ ${rteptElements}
                     borderColor: palette.white,
                   }}
                 />
-              </MapboxGL.PointAnnotation>
+              </MapboxGL.MarkerView>
             );
           })}
         </MapboxGL.MapView>
@@ -1204,6 +1204,7 @@ ${rteptElements}
             tripId={tripId}
             visible={shareSheetVisible}
             onClose={() => setShareSheetVisible(false)}
+            tripStatus={trip?.status}
           />
         )}
 

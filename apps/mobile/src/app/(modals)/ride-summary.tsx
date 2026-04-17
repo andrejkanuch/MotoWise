@@ -404,7 +404,7 @@ export default function RideSummaryScreen() {
                 </MapboxGL.ShapeSource>
 
                 {/* Start marker */}
-                <MapboxGL.PointAnnotation id="start-marker" coordinate={routeData.startPoint}>
+                <MapboxGL.MarkerView id="start-marker" coordinate={routeData.startPoint}>
                   <View
                     style={{
                       width: 16,
@@ -415,10 +415,10 @@ export default function RideSummaryScreen() {
                       borderColor: palette.white,
                     }}
                   />
-                </MapboxGL.PointAnnotation>
+                </MapboxGL.MarkerView>
 
                 {/* End marker */}
-                <MapboxGL.PointAnnotation id="end-marker" coordinate={routeData.endPoint}>
+                <MapboxGL.MarkerView id="end-marker" coordinate={routeData.endPoint}>
                   <View
                     style={{
                       width: 16,
@@ -429,7 +429,7 @@ export default function RideSummaryScreen() {
                       borderColor: palette.white,
                     }}
                   />
-                </MapboxGL.PointAnnotation>
+                </MapboxGL.MarkerView>
               </>
             )}
           </MapboxGL.MapView>

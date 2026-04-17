@@ -293,18 +293,15 @@ export default function RouteDetailScreen() {
           )}
           {/* Start point */}
           {coordinates.length > 0 && (
-            <MapboxGL.PointAnnotation
-              id="start"
-              coordinate={coordinates[0]}
-              onSelected={() =>
-                showMarkerActionSheet({
-                  title: 'Start',
-                  lat: coordinates[0][1],
-                  lng: coordinates[0][0],
-                })
-              }
-            >
-              <View
+            <MapboxGL.MarkerView id="start" coordinate={coordinates[0]}>
+              <Pressable
+                onPress={() =>
+                  showMarkerActionSheet({
+                    title: 'Start',
+                    lat: coordinates[0][1],
+                    lng: coordinates[0][0],
+                  })
+                }
                 style={{
                   width: 14,
                   height: 14,
@@ -314,22 +311,22 @@ export default function RouteDetailScreen() {
                   borderColor: palette.white,
                 }}
               />
-            </MapboxGL.PointAnnotation>
+            </MapboxGL.MarkerView>
           )}
           {/* End point */}
           {coordinates.length > 1 && (
-            <MapboxGL.PointAnnotation
+            <MapboxGL.MarkerView
               id="end"
               coordinate={coordinates[coordinates.length - 1]}
-              onSelected={() =>
-                showMarkerActionSheet({
-                  title: 'Finish',
-                  lat: coordinates[coordinates.length - 1][1],
-                  lng: coordinates[coordinates.length - 1][0],
-                })
-              }
             >
-              <View
+              <Pressable
+                onPress={() =>
+                  showMarkerActionSheet({
+                    title: 'Finish',
+                    lat: coordinates[coordinates.length - 1][1],
+                    lng: coordinates[coordinates.length - 1][0],
+                  })
+                }
                 style={{
                   width: 14,
                   height: 14,
@@ -339,7 +336,7 @@ export default function RouteDetailScreen() {
                   borderColor: palette.white,
                 }}
               />
-            </MapboxGL.PointAnnotation>
+            </MapboxGL.MarkerView>
           )}
           {/* Fuel station markers — ShapeSource for GPU rendering */}
           <MapboxGL.ShapeSource

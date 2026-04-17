@@ -195,7 +195,7 @@ export default function GroupRideDetailScreen() {
           />
         )}
         {meetingCoord && (
-          <MapboxGL.PointAnnotation id="meeting-point" coordinate={meetingCoord}>
+          <MapboxGL.MarkerView id="meeting-point" coordinate={meetingCoord}>
             <View
               style={{
                 width: 20,
@@ -206,7 +206,7 @@ export default function GroupRideDetailScreen() {
                 borderColor: palette.white,
               }}
             />
-          </MapboxGL.PointAnnotation>
+          </MapboxGL.MarkerView>
         )}
       </MapboxGL.MapView>
 

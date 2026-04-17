@@ -25,6 +25,7 @@ interface TripShareSheetProps {
   tripId: string;
   visible: boolean;
   onClose: () => void;
+  tripStatus?: string;
 }
 
 function buildShareUrl(token: string): string {
@@ -43,7 +44,7 @@ function truncate(url: string): string {
  * The DB stores only sha256(token); the organiser must rotate the token to
  * obtain a new plaintext value to copy or share.
  */
-export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps) {
+export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripShareSheetProps) {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -65,6 +66,9 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPlaintextToken(data.rotateTripShareToken);
       setJustCopied(false);
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
     },
     onError: () => {
       Alert.alert('Could not create link', 'Something went wrong. Please try again in a moment.');
@@ -203,7 +207,37 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
         </View>
 
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 24 }}>
-          {!plaintextToken ? (
+          {tripStatus === 'archived' ? (
+            <Animated.View
+              entering={FadeIn.duration(220)}
+              style={{ alignItems: 'center', paddingTop: 40 }}
+            >
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  borderCurve: 'continuous',
+                  backgroundColor: chipBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Link2 size={28} color={mutedColor} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: bodyColor,
+                  textAlign: 'center',
+                }}
+              >
+                Unarchive this trip to share it.
+              </Text>
+            </Animated.View>
+          ) : !plaintextToken ? (
             <Animated.View entering={FadeIn.duration(220)}>
               <View
                 style={{
@@ -319,6 +353,18 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
                 </Text>
               </View>
 
+              {/* Info line */}
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  textAlign: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                Anyone with this link can view your trip
+              </Text>
+
               {/* Action buttons */}
               <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
                 <Pressable
@@ -433,8 +479,8 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
           )}
         </View>
 
-        {/* Stop sharing — always available */}
-        <View
+        {/* Stop sharing — available unless archived */}
+        {tripStatus !== 'archived' && <View
           style={{
             paddingHorizontal: 20,
             paddingBottom: insets.bottom + 16,
@@ -468,7 +514,7 @@ export function TripShareSheet({ tripId, visible, onClose }: TripShareSheetProps
               </Text>
             )}
           </Pressable>
-        </View>
+        </View>}
       </View>
     </Modal>
   );

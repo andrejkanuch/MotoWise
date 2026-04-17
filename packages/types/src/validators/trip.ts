@@ -252,7 +252,7 @@ const InlineWaypointSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
-  periodOfDay: PeriodOfDaySchema.optional(),
+  periodOfDay: PeriodOfDaySchema.nullable().optional(),
 });
 
 export const CreateTripWithWaypointsInputSchema = z

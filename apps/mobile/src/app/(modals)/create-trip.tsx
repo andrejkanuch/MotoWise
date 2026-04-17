@@ -562,6 +562,32 @@ export default function CreateTripScreen() {
     },
   });
 
+  // Update + publish mutation (edit mode, draft → published)
+  const updateAndPublishMutation = useMutation({
+    mutationFn: async () => {
+      const tripInput = buildTripInput();
+      const tripId = params.tripId ?? '';
+      await gqlFetcher(UpdateTripDocument, {
+        input: { tripId, ...tripInput },
+      });
+      await gqlFetcher(PublishTripDocument, { tripId });
+    },
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
+      router.back();
+    },
+    onError: (error) => {
+      Alert.alert(
+        'Failed to publish trip',
+        error?.message || 'Check your connection and try again',
+      );
+    },
+  });
+
   // Delete mutation (edit mode only) — permanently removes the trip.
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -596,6 +622,7 @@ export default function CreateTripScreen() {
     saveMutation.isPending ||
     publishMutation.isPending ||
     updateMutation.isPending ||
+    updateAndPublishMutation.isPending ||
     deleteMutation.isPending;
   const sortedWaypoints = useMemo(
     () => [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -726,7 +753,7 @@ export default function CreateTripScreen() {
           {sortedWaypoints.map((wp) => {
             const wt = getWaypointIcon(wp.type);
             return (
-              <MapboxGL.PointAnnotation key={wp.id} id={wp.id} coordinate={[wp.lng, wp.lat]}>
+              <MapboxGL.MarkerView key={wp.id} id={wp.id} coordinate={[wp.lng, wp.lat]}>
                 <View
                   style={{
                     width: 28,
@@ -741,7 +768,7 @@ export default function CreateTripScreen() {
                 >
                   <wt.Icon size={14} color={palette.white} />
                 </View>
-              </MapboxGL.PointAnnotation>
+              </MapboxGL.MarkerView>
             );
           })}
         </MapboxGL.MapView>
@@ -1534,6 +1561,40 @@ export default function CreateTripScreen() {
                       )}
                     </Pressable>
                   </View>
+
+                  {/* Publish — shown only when editing a draft trip */}
+                  {tripQuery.data?.tripDetail.status === 'draft' && (
+                    <Pressable
+                      onPress={() => updateAndPublishMutation.mutate()}
+                      disabled={!isValid || isSaving}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        paddingVertical: 14,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        backgroundColor: isValid
+                          ? palette.success500
+                          : isDark
+                            ? palette.neutral800
+                            : palette.neutral300,
+                        opacity: isSaving ? 0.7 : 1,
+                      }}
+                    >
+                      {updateAndPublishMutation.isPending ? (
+                        <ActivityIndicator size="small" color={palette.white} />
+                      ) : (
+                        <>
+                          <Send size={16} color={palette.white} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                            Save &amp; Publish
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+                  )}
 
                   {/* Delete — full width, danger outlined. Lives here (edit mode)
                     so the view screen stays read-only. */}

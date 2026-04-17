@@ -6,8 +6,8 @@ import {
 } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react-native';
-import { memo, useCallback, useMemo } from 'react';
-import { FlatList, Text, useColorScheme, View } from 'react-native';
+import { memo, useMemo } from 'react';
+import { ScrollView, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -68,20 +68,6 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
     return data.discoverRoutes.edges.map((e) => e.node);
   }, [data]);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: RouteNode; index: number }) => (
-      <View style={{ width: CARD_WIDTH }}>
-        <RouteCard
-          route={item}
-          index={index}
-          onPress={() => onRoutePress(item.id)}
-          fuelStopsRequired={computeFuelStops(item.distanceM / 1000, tankLiters, kmPerLiter)}
-        />
-      </View>
-    ),
-    [onRoutePress, tankLiters, kmPerLiter],
-  );
-
   // Hide entirely if no data and not loading
   if (!isLoading && routes.length === 0) return null;
 
@@ -128,29 +114,26 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
       </View>
 
       {/* Horizontal card list */}
-      <View
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 16, gap: CARD_GAP }}
+        style={{ marginHorizontal: -16 }}
         accessibilityRole="list"
         accessibilityLabel={title}
         accessibilityHint={`Swipe left or right to see more. ${routes.length} routes`}
       >
-        <FlatList
-          horizontal
-          data={routes}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: CARD_GAP }}
-          style={{ marginHorizontal: -16 }}
-          initialNumToRender={3}
-          maxToRenderPerBatch={2}
-          windowSize={5}
-          getItemLayout={(_, index) => ({
-            length: CARD_WIDTH + CARD_GAP,
-            offset: 16 + (CARD_WIDTH + CARD_GAP) * index,
-            index,
-          })}
-        />
-      </View>
+        {routes.map((route, index) => (
+          <View key={route.id} style={{ width: CARD_WIDTH }}>
+            <RouteCard
+              route={route}
+              index={index}
+              onPress={() => onRoutePress(route.id)}
+              fuelStopsRequired={computeFuelStops(route.distanceM / 1000, tankLiters, kmPerLiter)}
+            />
+          </View>
+        ))}
+      </ScrollView>
     </Animated.View>
   );
 });

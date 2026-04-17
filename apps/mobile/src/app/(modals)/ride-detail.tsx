@@ -355,7 +355,7 @@ export default function RideDetailScreen() {
                 />
               </MapboxGL.ShapeSource>
 
-              <MapboxGL.PointAnnotation id="start" coordinate={routeData.startPoint}>
+              <MapboxGL.MarkerView id="start" coordinate={routeData.startPoint}>
                 <View
                   style={{
                     width: 14,
@@ -366,9 +366,9 @@ export default function RideDetailScreen() {
                     borderColor: palette.white,
                   }}
                 />
-              </MapboxGL.PointAnnotation>
+              </MapboxGL.MarkerView>
 
-              <MapboxGL.PointAnnotation id="end" coordinate={routeData.endPoint}>
+              <MapboxGL.MarkerView id="end" coordinate={routeData.endPoint}>
                 <View
                   style={{
                     width: 14,
@@ -379,7 +379,7 @@ export default function RideDetailScreen() {
                     borderColor: palette.white,
                   }}
                 />
-              </MapboxGL.PointAnnotation>
+              </MapboxGL.MarkerView>
             </MapboxGL.MapView>
           ) : (
             <View
