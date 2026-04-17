@@ -47,6 +47,7 @@ import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SponsorshipsModule } from './modules/sponsorships/sponsorships.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
 import { SurfaceReportsModule } from './modules/surface-reports/surface-reports.module';
+import { TripAssistantModule } from './modules/trip-assistant/trip-assistant.module';
 import { TripsModule } from './modules/trips/trips.module';
 import { UsersModule } from './modules/users/users.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
@@ -115,6 +116,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ShareLinksModule,
     SponsorshipsModule,
     TripsModule,
+    TripAssistantModule,
     WaitlistModule,
     WebhooksModule,
     HealthModule,

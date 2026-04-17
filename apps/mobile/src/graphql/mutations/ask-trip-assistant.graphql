@@ -1,0 +1,7 @@
+mutation AskTripAssistant($input: AskTripAssistantInput!) {
+  askTripAssistant(input: $input) {
+    message
+    inputTokens
+    outputTokens
+  }
+}

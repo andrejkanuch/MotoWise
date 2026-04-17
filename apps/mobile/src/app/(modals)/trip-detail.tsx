@@ -58,6 +58,9 @@ import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
 import { ReadinessRing } from '../../components/trip/readiness-ring';
 import { OfflinePackButton } from '../../components/trip/offline-pack-button';
+import { TripAssistantFAB } from '../../components/trip/trip-assistant-fab';
+import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
+import { useTripAssistant } from '../../hooks/use-trip-assistant';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { cacheTripPayload } from '../../lib/offline-trips';
@@ -114,6 +117,7 @@ export default function TripDetailScreen() {
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [actionLoading, setActionLoading] = useState(false);
   const [shareSheetVisible, setShareSheetVisible] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
@@ -182,6 +186,9 @@ export default function TripDetailScreen() {
     tripId,
     waypoints: waypoints.map((wp) => ({ lat: wp.lat, lng: wp.lng })),
   });
+
+  // Trip-context AI assistant.
+  const assistant = useTripAssistant(tripId);
 
   // Whenever we have a live trip payload AND the user has an offline pack,
   // refresh the cached copy so trip-detail hydrates with fresh data next
@@ -1124,6 +1131,20 @@ ${rteptElements}
         {navWaypoints.length >= 2 && (
           <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
         )}
+
+        {/* Trip-context AI assistant — floating above the sticky CTA. */}
+        <TripAssistantFAB
+          onPress={() => setAssistantOpen(true)}
+          bottomOffset={navWaypoints.length >= 2 ? 96 : 24}
+        />
+        <TripAssistantSheet
+          visible={assistantOpen}
+          onClose={() => setAssistantOpen(false)}
+          messages={assistant.messages}
+          isPending={assistant.isPending}
+          onAsk={assistant.ask}
+          onReset={assistant.reset}
+        />
 
         <RideThisSheet
           visible={rideThis.visible}
