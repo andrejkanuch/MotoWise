@@ -1343,6 +1343,42 @@ export type Database = {
         }
         Relationships: []
       }
+      places: {
+        Row: {
+          country_code: string
+          id: number
+          kind: string
+          latitude: number
+          longitude: number
+          name: string
+          population: number | null
+          region_code: string | null
+          search_tsv: unknown
+        }
+        Insert: {
+          country_code: string
+          id: number
+          kind: string
+          latitude: number
+          longitude: number
+          name: string
+          population?: number | null
+          region_code?: string | null
+          search_tsv?: unknown
+        }
+        Update: {
+          country_code?: string
+          id?: number
+          kind?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          population?: number | null
+          region_code?: string | null
+          search_tsv?: unknown
+        }
+        Relationships: []
+      }
       premium_waitlist: {
         Row: {
           feature: string
@@ -1780,6 +1816,90 @@ export type Database = {
           },
         ]
       }
+      route_list_items: {
+        Row: {
+          added_at: string
+          list_id: string
+          note: string | null
+          route_id: string
+        }
+        Insert: {
+          added_at?: string
+          list_id: string
+          note?: string | null
+          route_id: string
+        }
+        Update: {
+          added_at?: string
+          list_id?: string
+          note?: string | null
+          route_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_list_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "route_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_list_items_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_lists: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          slug: string
+          updated_at: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_lists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_lists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_reviews: {
         Row: {
           bike_id: string | null
@@ -1884,8 +2004,10 @@ export type Database = {
       }
       routes: {
         Row: {
+          city: string | null
           comment_count: number
           contributor_user_id: string
+          country_code: string | null
           created_at: string
           curvature_index: number | null
           description: string | null
@@ -1893,6 +2015,7 @@ export type Database = {
           editorial_description: string | null
           elevation_gain_m: number | null
           end_point: unknown
+          featured_tag: string | null
           geography: unknown
           id: string
           is_motovault_pick: boolean
@@ -1900,6 +2023,9 @@ export type Database = {
           polyline: string
           rating_avg: number | null
           rating_count: number
+          region_code: string | null
+          search_tsv: unknown
+          slug: string | null
           source_ride_id: string | null
           start_point: unknown
           status: string
@@ -1907,8 +2033,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          city?: string | null
           comment_count?: number
           contributor_user_id: string
+          country_code?: string | null
           created_at?: string
           curvature_index?: number | null
           description?: string | null
@@ -1916,6 +2044,7 @@ export type Database = {
           editorial_description?: string | null
           elevation_gain_m?: number | null
           end_point?: unknown
+          featured_tag?: string | null
           geography?: unknown
           id?: string
           is_motovault_pick?: boolean
@@ -1923,6 +2052,9 @@ export type Database = {
           polyline: string
           rating_avg?: number | null
           rating_count?: number
+          region_code?: string | null
+          search_tsv?: unknown
+          slug?: string | null
           source_ride_id?: string | null
           start_point?: unknown
           status?: string
@@ -1930,8 +2062,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          city?: string | null
           comment_count?: number
           contributor_user_id?: string
+          country_code?: string | null
           created_at?: string
           curvature_index?: number | null
           description?: string | null
@@ -1939,6 +2073,7 @@ export type Database = {
           editorial_description?: string | null
           elevation_gain_m?: number | null
           end_point?: unknown
+          featured_tag?: string | null
           geography?: unknown
           id?: string
           is_motovault_pick?: boolean
@@ -1946,6 +2081,9 @@ export type Database = {
           polyline?: string
           rating_avg?: number | null
           rating_count?: number
+          region_code?: string | null
+          search_tsv?: unknown
+          slug?: string | null
           source_ride_id?: string | null
           start_point?: unknown
           status?: string
@@ -2014,6 +2152,75 @@ export type Database = {
           },
         ]
       }
+      social_post_queue: {
+        Row: {
+          angle: string
+          attempts: number
+          caption: string
+          created_at: string
+          error: string | null
+          id: string
+          last_attempt_at: string | null
+          post_image_url: string | null
+          post_prompt: string
+          post_results: Json | null
+          published_at: string | null
+          scheduled_for: string
+          screenshot_keys: string[] | null
+          slot: string
+          source: string | null
+          status: string
+          story_image_url: string | null
+          story_prompt: string
+          story_results: Json | null
+          updated_at: string
+        }
+        Insert: {
+          angle: string
+          attempts?: number
+          caption: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          post_image_url?: string | null
+          post_prompt: string
+          post_results?: Json | null
+          published_at?: string | null
+          scheduled_for: string
+          screenshot_keys?: string[] | null
+          slot: string
+          source?: string | null
+          status?: string
+          story_image_url?: string | null
+          story_prompt: string
+          story_results?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          angle?: string
+          attempts?: number
+          caption?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          post_image_url?: string | null
+          post_prompt?: string
+          post_results?: Json | null
+          published_at?: string | null
+          scheduled_for?: string
+          screenshot_keys?: string[] | null
+          slot?: string
+          source?: string | null
+          status?: string
+          story_image_url?: string | null
+          story_prompt?: string
+          story_results?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
@@ -2037,6 +2244,149 @@ export type Database = {
           srtext?: string | null
         }
         Relationships: []
+      }
+      sponsorships: {
+        Row: {
+          clicks_count: number
+          cost_per_impression: number
+          created_at: string
+          cta_text: string
+          cta_url: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          impressions_count: number
+          monthly_budget: number | null
+          placement_type: string
+          route_id: string
+          spent_this_month: number
+          sponsor_id: string
+          starts_at: string
+          status: Database["public"]["Enums"]["sponsorship_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          clicks_count?: number
+          cost_per_impression?: number
+          created_at?: string
+          cta_text?: string
+          cta_url: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          impressions_count?: number
+          monthly_budget?: number | null
+          placement_type: string
+          route_id: string
+          spent_this_month?: number
+          sponsor_id: string
+          starts_at: string
+          status?: Database["public"]["Enums"]["sponsorship_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          clicks_count?: number
+          cost_per_impression?: number
+          created_at?: string
+          cta_text?: string
+          cta_url?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          impressions_count?: number
+          monthly_budget?: number | null
+          placement_type?: string
+          route_id?: string
+          spent_this_month?: number
+          sponsor_id?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["sponsorship_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsorships_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsorships_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sponsorships_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      surface_reports: {
+        Row: {
+          condition: Database["public"]["Enums"]["surface_condition"]
+          id: string
+          note: string | null
+          photo_url: string | null
+          report_date: string
+          reported_at: string
+          route_id: string
+          user_id: string
+        }
+        Insert: {
+          condition: Database["public"]["Enums"]["surface_condition"]
+          id?: string
+          note?: string | null
+          photo_url?: string | null
+          report_date?: string
+          reported_at?: string
+          route_id: string
+          user_id: string
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["surface_condition"]
+          id?: string
+          note?: string | null
+          photo_url?: string | null
+          report_date?: string
+          reported_at?: string
+          route_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "surface_reports_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surface_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "surface_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trip_invites: {
         Row: {
@@ -2164,6 +2514,109 @@ export type Database = {
           },
         ]
       }
+      trip_suggestions: {
+        Row: {
+          author_user_id: string
+          created_at: string
+          day_index: number | null
+          decided_at: string | null
+          decided_by: string | null
+          decided_note: string | null
+          id: string
+          kind: string
+          lat: number | null
+          lng: number | null
+          name: string
+          notes: string | null
+          period_of_day: string | null
+          status: string
+          trip_id: string
+          updated_at: string
+          waypoint_id: string | null
+        }
+        Insert: {
+          author_user_id: string
+          created_at?: string
+          day_index?: number | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decided_note?: string | null
+          id?: string
+          kind?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          notes?: string | null
+          period_of_day?: string | null
+          status?: string
+          trip_id: string
+          updated_at?: string
+          waypoint_id?: string | null
+        }
+        Update: {
+          author_user_id?: string
+          created_at?: string
+          day_index?: number | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decided_note?: string | null
+          id?: string
+          kind?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          notes?: string | null
+          period_of_day?: string | null
+          status?: string
+          trip_id?: string
+          updated_at?: string
+          waypoint_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_suggestions_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_suggestions_author_user_id_fkey"
+            columns: ["author_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_suggestions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_suggestions_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_suggestions_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_suggestions_waypoint_id_fkey"
+            columns: ["waypoint_id"]
+            isOneToOne: false
+            referencedRelation: "trip_waypoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_waypoints: {
         Row: {
           created_at: string
@@ -2173,6 +2626,7 @@ export type Database = {
           lng: number
           name: string
           notes: string | null
+          period_of_day: string | null
           sort_order: number
           trip_id: string
           type: string
@@ -2185,6 +2639,7 @@ export type Database = {
           lng: number
           name: string
           notes?: string | null
+          period_of_day?: string | null
           sort_order: number
           trip_id: string
           type: string
@@ -2197,6 +2652,7 @@ export type Database = {
           lng?: number
           name?: string
           notes?: string | null
+          period_of_day?: string | null
           sort_order?: number
           trip_id?: string
           type?: string
@@ -2277,6 +2733,55 @@ export type Database = {
           },
         ]
       }
+      user_gating_events: {
+        Row: {
+          created_at: string
+          feature: string
+          id: string
+          route_id: string | null
+          user_id: string
+          year_month: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature: string
+          id?: string
+          route_id?: string | null
+          user_id: string
+          year_month?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature?: string
+          id?: string
+          route_id?: string | null
+          user_id?: string
+          year_month?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gating_events_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gating_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gating_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -2291,6 +2796,7 @@ export type Database = {
           follower_count: number
           following_count: number
           full_name: string | null
+          handle: string | null
           id: string
           is_public: boolean
           measurement_system: string
@@ -2299,6 +2805,7 @@ export type Database = {
           public_username: string | null
           revenuecat_id: string | null
           role: Database["public"]["Enums"]["user_role"]
+          show_saved_publicly: boolean
           subscription_expires_at: string | null
           subscription_status: string
           subscription_tier: string
@@ -2319,6 +2826,7 @@ export type Database = {
           follower_count?: number
           following_count?: number
           full_name?: string | null
+          handle?: string | null
           id: string
           is_public?: boolean
           measurement_system?: string
@@ -2327,6 +2835,7 @@ export type Database = {
           public_username?: string | null
           revenuecat_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          show_saved_publicly?: boolean
           subscription_expires_at?: string | null
           subscription_status?: string
           subscription_tier?: string
@@ -2347,6 +2856,7 @@ export type Database = {
           follower_count?: number
           following_count?: number
           full_name?: string | null
+          handle?: string | null
           id?: string
           is_public?: boolean
           measurement_system?: string
@@ -2355,6 +2865,7 @@ export type Database = {
           public_username?: string | null
           revenuecat_id?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          show_saved_publicly?: boolean
           subscription_expires_at?: string | null
           subscription_status?: string
           subscription_tier?: string
@@ -2412,35 +2923,49 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
-          city: string | null
           display_name: string | null
-          follower_count: number | null
-          following_count: number | null
+          handle: string | null
           id: string | null
           is_public: boolean | null
           public_username: string | null
+          show_saved_publicly: boolean | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
-          city?: string | null
           display_name?: string | null
-          follower_count?: number | null
-          following_count?: number | null
+          handle?: string | null
           id?: string | null
           is_public?: boolean | null
           public_username?: string | null
+          show_saved_publicly?: boolean | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
-          city?: string | null
           display_name?: string | null
-          follower_count?: number | null
-          following_count?: number | null
+          handle?: string | null
           id?: string | null
           is_public?: boolean | null
           public_username?: string | null
+          show_saved_publicly?: boolean | null
+        }
+        Relationships: []
+      }
+      route_twist_buckets: {
+        Row: {
+          country_code: string | null
+          p0: number | null
+          p10: number | null
+          p100: number | null
+          p20: number | null
+          p30: number | null
+          p40: number | null
+          p50: number | null
+          p60: number | null
+          p70: number | null
+          p80: number | null
+          p90: number | null
         }
         Relationships: []
       }
@@ -2578,6 +3103,37 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      claim_next_social_post: {
+        Args: { p_slot: string }
+        Returns: {
+          angle: string
+          attempts: number
+          caption: string
+          created_at: string
+          error: string | null
+          id: string
+          last_attempt_at: string | null
+          post_image_url: string | null
+          post_prompt: string
+          post_results: Json | null
+          published_at: string | null
+          scheduled_for: string
+          screenshot_keys: string[] | null
+          slot: string
+          source: string | null
+          status: string
+          story_image_url: string | null
+          story_prompt: string
+          story_results: Json | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "social_post_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       complete_onboarding: {
         Args: {
           p_annual_repair_spend?: string
@@ -2632,8 +3188,18 @@ export type Database = {
           }
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
+      earth: { Args: never; Returns: number }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      find_nearest_place: {
+        Args: { p_kind?: string; p_lat: number; p_lng: number }
+        Returns: {
+          country_code: string
+          name: string
+          place_id: number
+          region_code: string
+        }[]
+      }
       flag_comment: { Args: { comment_uuid: string }; Returns: number }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
@@ -2734,6 +3300,15 @@ export type Database = {
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
       get_daily_ai_spend: { Args: { p_since: string }; Returns: number }
+      get_routes_needing_slug: {
+        Args: { batch_offset?: number; batch_size?: number }
+        Returns: {
+          id: string
+          lat: number
+          lng: number
+          name: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       hard_delete_expired_accounts: { Args: never; Returns: number }
       increment_article_view_count: {
@@ -3423,6 +3998,21 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      trip_is_public: { Args: { p_trip_id: string }; Returns: boolean }
+      typeahead_search: {
+        Args: { result_limit?: number; search_term: string }
+        Returns: {
+          country_code: string
+          id: string
+          kind: string
+          name: string
+          population: number
+          region_code: string
+          sim: number
+          slug: string
+          source: string
+        }[]
+      }
       unlockrows: { Args: { "": string }; Returns: number }
       update_route_geography: {
         Args: {
@@ -3443,7 +4033,16 @@ export type Database = {
         }
         Returns: string
       }
+      user_is_trip_organiser: {
+        Args: { p_trip_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      user_is_trip_participant: {
+        Args: { p_trip_id: string; p_user_id: string }
+        Returns: boolean
+      }
       utc_date: { Args: { ts: string }; Returns: string }
+      year_month_immutable: { Args: { ts: string }; Returns: string }
     }
     Enums: {
       article_category:
@@ -3468,6 +4067,16 @@ export type Database = {
         | "dirt_bike"
         | "scooter"
         | "other"
+      sponsorship_status: "active" | "paused" | "deactivated" | "expired"
+      surface_condition:
+        | "smooth"
+        | "rough"
+        | "gravel"
+        | "potholes"
+        | "wet"
+        | "icy"
+        | "debris"
+        | "construction"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -3630,6 +4239,17 @@ export const Constants = {
         "dirt_bike",
         "scooter",
         "other",
+      ],
+      sponsorship_status: ["active", "paused", "deactivated", "expired"],
+      surface_condition: [
+        "smooth",
+        "rough",
+        "gravel",
+        "potholes",
+        "wet",
+        "icy",
+        "debris",
+        "construction",
       ],
       user_role: ["user", "admin"],
     },
