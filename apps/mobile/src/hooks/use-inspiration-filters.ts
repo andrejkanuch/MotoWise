@@ -24,27 +24,53 @@ export interface InspirationFilters {
   becauseYouLiked: { filter: DiscoverRoutesFilterInput; anchorName: string | null } | null;
 }
 
-function seasonalFilter(month: number): { filter: DiscoverRoutesFilterInput; label: string } {
-  // Months are 0-indexed.
-  if (month >= 10 || month <= 2) {
-    // Nov-Feb: cold / wet — keep it paved + top rated.
-    return {
-      filter: { surfaceTypes: ['paved'], highlyRatedOnly: true },
-      label: 'Stay paved this week',
-    };
-  }
-  if (month >= 8 && month <= 10) {
-    // Sep-Nov: autumn, foliage rides — mixed surfaces shine.
-    return {
-      filter: { surfaceTypes: ['mixed'], highlyRatedOnly: true },
-      label: 'Great in fall foliage',
-    };
-  }
-  // Spring / summer — go chase twisties.
-  return {
+type Season = 'winter' | 'spring' | 'summer' | 'autumn';
+
+// Months are 0-indexed. Dec + Jan + Feb = winter, etc.
+const SEASON_BY_MONTH: Record<number, Season> = {
+  0: 'winter', // Jan
+  1: 'winter', // Feb
+  2: 'spring', // Mar
+  3: 'spring', // Apr
+  4: 'spring', // May
+  5: 'summer', // Jun
+  6: 'summer', // Jul
+  7: 'summer', // Aug
+  8: 'autumn', // Sep
+  9: 'autumn', // Oct
+  10: 'autumn', // Nov
+  11: 'winter', // Dec
+};
+
+const SEASON_VARIANT: Record<Season, { filter: DiscoverRoutesFilterInput; label: string }> = {
+  winter: {
+    filter: { surfaceTypes: ['paved'], highlyRatedOnly: true },
+    label: 'Stay paved this week',
+  },
+  spring: {
+    filter: { minTwistScore: 7, highlyRatedOnly: true },
+    label: 'Spring twisties',
+  },
+  summer: {
     filter: { minTwistScore: 7, highlyRatedOnly: true },
     label: 'Summer twisties',
-  };
+  },
+  autumn: {
+    filter: { surfaceTypes: ['mixed'], highlyRatedOnly: true },
+    label: 'Great in fall foliage',
+  },
+};
+
+// Stable reference so consumers memoising on `weekend` don't churn.
+const WEEKEND_FILTER: DiscoverRoutesFilterInput = {
+  lengthRanges: ['50to100'],
+  highlyRatedOnly: true,
+  sortByRating: true,
+};
+
+function seasonalFilter(month: number): { filter: DiscoverRoutesFilterInput; label: string } {
+  const season = SEASON_BY_MONTH[month] ?? 'summer';
+  return SEASON_VARIANT[season];
 }
 
 function mostCommonSurface(routes: SavedRouteNode[]): string | null {
@@ -61,8 +87,10 @@ function mostCommonSurface(routes: SavedRouteNode[]): string | null {
 }
 
 export function useInspirationFilters(enabled = true): InspirationFilters {
-  const now = new Date();
-  const season = useMemo(() => seasonalFilter(now.getMonth()), [now.getMonth()]);
+  // Compute once per mount — the "season of the week" isn't going to flip
+  // mid-render, and pulling `new Date()` out of the render path keeps the
+  // returned object reference-stable for Discover's memoised consumers.
+  const month = useMemo(() => new Date().getMonth(), []);
 
   // Only the user's saved-routes call runs while signed-in. If it fails or is
   // empty we just skip the "because you liked" section.
@@ -78,26 +106,28 @@ export function useInspirationFilters(enabled = true): InspirationFilters {
     [data],
   );
 
-  const becauseYouLiked = useMemo(() => {
-    if (savedRoutes.length === 0) return null;
-    const surface = mostCommonSurface(savedRoutes);
-    if (!surface) return null;
-    // Pick the most-recently-saved route as the "anchor" for the label.
-    const anchorName = savedRoutes[0]?.name ?? null;
+  return useMemo<InspirationFilters>(() => {
+    const season = seasonalFilter(month);
+
+    let becauseYouLiked: InspirationFilters['becauseYouLiked'] = null;
+    if (savedRoutes.length > 0) {
+      const surface = mostCommonSurface(savedRoutes);
+      if (surface) {
+        becauseYouLiked = {
+          filter: {
+            surfaceTypes: [surface],
+            highlyRatedOnly: true,
+          },
+          // Pick the most-recently-saved route as the "anchor" for the label.
+          anchorName: savedRoutes[0]?.name ?? null,
+        };
+      }
+    }
+
     return {
-      filter: {
-        surfaceTypes: [surface],
-        highlyRatedOnly: true,
-      } as DiscoverRoutesFilterInput,
-      anchorName,
+      weekend: WEEKEND_FILTER,
+      season,
+      becauseYouLiked,
     };
-  }, [savedRoutes]);
-
-  const weekend: DiscoverRoutesFilterInput = {
-    lengthRanges: ['50to100'],
-    highlyRatedOnly: true,
-    sortByRating: true,
-  };
-
-  return { weekend, season, becauseYouLiked };
+  }, [month, savedRoutes]);
 }

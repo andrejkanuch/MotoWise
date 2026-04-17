@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { Calendar, EyeOff, Globe, Lock, MapPin, User, Users } from 'lucide-react-native';
-import type { ComponentType } from 'react';
+import { type ComponentType, useMemo } from 'react';
 import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeInUp,
@@ -101,13 +101,19 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
 
   // P4.2 — planning-completeness ring, lives in the badge row as a passive nudge.
-  const completeness = computeTripCompleteness({
-    description: trip.description,
-    waypointCount: stopCount,
-    dayCount: days,
-    participantCount,
-    maxRiders,
-  });
+  // Memoised so a parent re-render (e.g. scroll position in FlatList) doesn't
+  // recompute the dimensions/sort for every visible card.
+  const completeness = useMemo(
+    () =>
+      computeTripCompleteness({
+        description: trip.description,
+        waypointCount: stopCount,
+        dayCount: days,
+        participantCount,
+        maxRiders,
+      }),
+    [trip.description, stopCount, days, participantCount, maxRiders],
+  );
 
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));

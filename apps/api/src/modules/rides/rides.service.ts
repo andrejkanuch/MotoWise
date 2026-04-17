@@ -369,9 +369,16 @@ export class RidesService {
     this.logger.debug(`myRides: userId=${userId}, first=${first}, after=${after}`);
 
     const limit = Math.min(first, 50);
+    // Explicit column list matches Ride model fields (see rides/models/ride.model.ts
+    // + mapRow below). Avoids shipping heavy `metadata` / `weather_snapshot` / `ai_summary`
+    // blobs that the GraphQL surface doesn't expose. `count: 'estimated'` keeps totalCount
+    // cheap for large histories — we don't need exact row count for pagination.
     let query = this.supabase
       .from('rides')
-      .select('*', { count: 'exact' })
+      .select(
+        'id, user_id, motorcycle_id, status, name, started_at, ended_at, distance_m, max_speed_mps, avg_speed_mps, max_lean_angle, elevation_gain, elevation_loss, route_polyline, route_thumbnail_uri, gps_quality, paused_duration_s, auto_paused_duration_s, mileage_applied, is_public, visibility, region, created_at, updated_at',
+        { count: 'estimated' },
+      )
       .eq('user_id', userId)
       .is('deleted_at', null)
       .order('started_at', { ascending: false })

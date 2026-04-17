@@ -1,5 +1,7 @@
+import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -25,30 +27,22 @@ import type { TripSuggestion } from './models/trip-suggestion.model';
  * normalises snake_case → camelCase for the GraphQL layer.
  */
 
-interface SuggestionRow {
-  id: string;
-  trip_id: string;
-  author_user_id: string;
-  kind: string;
-  name: string;
-  notes: string | null;
-  lat: number | null;
-  lng: number | null;
-  day_index: number | null;
-  period_of_day: string | null;
-  status: string;
-  decided_by: string | null;
-  decided_at: string | null;
-  decided_note: string | null;
-  waypoint_id: string | null;
-  created_at: string;
-  users: {
-    id: string;
-    display_name: string | null;
-    avatar_url: string | null;
-    public_username: string | null;
-  } | null;
-}
+type SuggestionRow = Tables<'trip_suggestions'>;
+type AuthorPick = Pick<Tables<'users'>, 'id' | 'display_name' | 'avatar_url' | 'public_username'>;
+
+/**
+ * Shape returned when we embed the author join off `author_user_id`.
+ *
+ * Supabase's runtime returns `users` as a single object (the FK is 1-1 against
+ * public.users), but its select-string type parser defaults to an array when
+ * the client is not parameterised with `Database`. We narrow with a single
+ * `as unknown as` at each `.select(SELECT)` call site — same pattern used in
+ * users.service.ts. The fix is to thread `Database` through the supabase-user
+ * provider, which is a cross-module change left for a separate sweep.
+ */
+type SuggestionWithAuthor = SuggestionRow & { users: AuthorPick | null };
+
+const MATERIALISE_RETRY_LIMIT = 3;
 
 const SELECT = `
   id, trip_id, author_user_id, kind, name, notes, lat, lng, day_index,
@@ -65,8 +59,7 @@ export class TripSuggestionsService {
 
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
-  async list(userId: string, tripId: string): Promise<TripSuggestion[]> {
-    this.logger.debug(`list suggestions userId=${userId} tripId=${tripId}`);
+  async list(tripId: string): Promise<TripSuggestion[]> {
     const { data, error } = await this.supabase
       .from('trip_suggestions')
       .select(SELECT)
@@ -79,7 +72,8 @@ export class TripSuggestionsService {
       throw new InternalServerErrorException('Failed to load suggestions');
     }
 
-    return (data ?? []).map((row) => this.mapRow(row as unknown as SuggestionRow));
+    const rows = (data ?? []) as unknown as SuggestionWithAuthor[];
+    return rows.map((row) => this.mapRow(row));
   }
 
   async create(userId: string, input: CreateTripSuggestionInput): Promise<TripSuggestion> {
@@ -114,13 +108,10 @@ export class TripSuggestionsService {
       throw new InternalServerErrorException('Failed to create suggestion');
     }
 
-    return this.mapRow(data as unknown as SuggestionRow);
+    return this.mapRow(data as unknown as SuggestionWithAuthor);
   }
 
-  async respond(
-    userId: string,
-    input: RespondToTripSuggestionInput,
-  ): Promise<TripSuggestion> {
+  async respond(userId: string, input: RespondToTripSuggestionInput): Promise<TripSuggestion> {
     const { suggestionId, decision, note } = input;
     if (!['accepted', 'rejected', 'withdrawn'].includes(decision)) {
       throw new BadRequestException('Invalid decision');
@@ -136,7 +127,7 @@ export class TripSuggestionsService {
       throw new NotFoundException('Suggestion not found');
     }
 
-    const existingRow = existing as unknown as SuggestionRow;
+    const existingRow = existing as unknown as SuggestionWithAuthor;
 
     if (existingRow.status !== 'pending') {
       throw new BadRequestException('Suggestion already decided');
@@ -164,13 +155,15 @@ export class TripSuggestionsService {
 
     if (error || !data) {
       if (error?.code === '42501') {
-        throw new ForbiddenException('Only the organiser, co-planners, or the author can change this');
+        throw new ForbiddenException(
+          'Only the organiser, co-planners, or the author can change this',
+        );
       }
       this.logger.error(`respond failed: ${error?.message} (${error?.code})`);
       throw new InternalServerErrorException('Failed to update suggestion');
     }
 
-    return this.mapRow(data as unknown as SuggestionRow);
+    return this.mapRow(data as unknown as SuggestionWithAuthor);
   }
 
   async setParticipantRole(userId: string, input: SetParticipantRoleInput): Promise<boolean> {
@@ -181,63 +174,96 @@ export class TripSuggestionsService {
       .eq('id', input.tripId)
       .single();
     if (tripErr || !trip) throw new NotFoundException('Trip not found');
-    if (trip.organiser_user_id !== userId) {
+
+    const tripRow = trip as Pick<Tables<'trips'>, 'id' | 'organiser_user_id'>;
+
+    if (tripRow.organiser_user_id !== userId) {
       throw new ForbiddenException('Only the organiser can change roles');
     }
     if (!['co_planner', 'rider'].includes(input.role)) {
       throw new BadRequestException('Role must be co_planner or rider');
     }
+    // Protect the organiser's own participant row from being silently demoted.
+    if (input.userId === tripRow.organiser_user_id) {
+      throw new BadRequestException('Cannot change role of trip organiser');
+    }
 
-    const { error } = await this.supabase
+    // Select back so we can distinguish "updated nothing" (stranger not on this
+    // trip, or RLS blocked it) from a real success.
+    const { data: updated, error } = await this.supabase
       .from('trip_participants')
       .update({ role: input.role })
       .eq('trip_id', input.tripId)
-      .eq('user_id', input.userId);
+      .eq('user_id', input.userId)
+      .select('trip_id, user_id');
 
     if (error) {
       this.logger.error(`setParticipantRole failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to update role');
     }
+    if (!updated || updated.length === 0) {
+      throw new NotFoundException('Participant not found on this trip');
+    }
 
     return true;
   }
 
-  /** Insert a new trip_waypoint at the end of the requested day. */
+  /**
+   * Insert a new trip_waypoint at the end of the requested day.
+   *
+   * 00107 adds a unique index on (trip_id, day_index, sort_order) so two
+   * co-planners accepting suggestions at the same time can't silently grab the
+   * same slot. We retry a bounded number of times on 23505 and bail with a
+   * clean Conflict so the client can re-fetch + ask the user to try again.
+   */
   private async materialiseWaypoint(sug: SuggestionRow): Promise<string> {
-    // Place at the end of the existing sort order for this day (fallback day 0).
     const dayIndex = sug.day_index ?? 0;
-    const { data: siblings, error: siblingsErr } = await this.supabase
-      .from('trip_waypoints')
-      .select('sort_order')
-      .eq('trip_id', sug.trip_id)
-      .eq('day_index', dayIndex)
-      .order('sort_order', { ascending: false })
-      .limit(1);
 
-    if (siblingsErr) {
-      this.logger.error(`materialise load failed: ${siblingsErr.message}`);
-      throw new InternalServerErrorException('Failed to accept suggestion');
-    }
+    for (let attempt = 0; attempt < MATERIALISE_RETRY_LIMIT; attempt++) {
+      const { data: siblings, error: siblingsErr } = await this.supabase
+        .from('trip_waypoints')
+        .select('sort_order')
+        .eq('trip_id', sug.trip_id)
+        .eq('day_index', dayIndex)
+        .order('sort_order', { ascending: false })
+        .limit(1);
 
-    const nextOrder = (siblings?.[0]?.sort_order ?? -1) + 1;
+      if (siblingsErr) {
+        this.logger.error(`materialise load failed: ${siblingsErr.message}`);
+        throw new InternalServerErrorException('Failed to accept suggestion');
+      }
 
-    const { data: inserted, error: insertErr } = await this.supabase
-      .from('trip_waypoints')
-      .insert({
-        trip_id: sug.trip_id,
-        type: 'stop',
-        name: sug.name,
-        notes: sug.notes,
-        lat: sug.lat,
-        lng: sug.lng,
-        day_index: dayIndex,
-        sort_order: nextOrder,
-        period_of_day: sug.period_of_day,
-      })
-      .select('id')
-      .single();
+      const topRow = siblings?.[0] as Pick<Tables<'trip_waypoints'>, 'sort_order'> | undefined;
+      const nextOrder = (topRow?.sort_order ?? -1) + 1;
 
-    if (insertErr || !inserted) {
+      const { data: inserted, error: insertErr } = await this.supabase
+        .from('trip_waypoints')
+        .insert({
+          trip_id: sug.trip_id,
+          type: 'stop',
+          name: sug.name,
+          notes: sug.notes,
+          lat: sug.lat,
+          lng: sug.lng,
+          day_index: dayIndex,
+          sort_order: nextOrder,
+          period_of_day: sug.period_of_day,
+        })
+        .select('id')
+        .single();
+
+      if (!insertErr && inserted) {
+        return (inserted as Pick<Tables<'trip_waypoints'>, 'id'>).id;
+      }
+
+      // 23505 = unique_violation — another co-planner grabbed this slot. Retry.
+      if (insertErr?.code === '23505') {
+        this.logger.debug(
+          `materialise race on (${sug.trip_id}, ${dayIndex}, ${nextOrder}), attempt ${attempt + 1}`,
+        );
+        continue;
+      }
+
       if (insertErr?.code === '42501') {
         throw new ForbiddenException('You must be an organiser or co-planner to accept');
       }
@@ -245,10 +271,10 @@ export class TripSuggestionsService {
       throw new InternalServerErrorException('Failed to accept suggestion');
     }
 
-    return inserted.id;
+    throw new ConflictException('Could not allocate waypoint sort order after retries — try again');
   }
 
-  private mapRow(row: SuggestionRow): TripSuggestion {
+  private mapRow(row: SuggestionWithAuthor): TripSuggestion {
     const author = row.users;
     return {
       id: row.id,

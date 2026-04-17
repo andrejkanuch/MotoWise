@@ -27,10 +27,26 @@ const APPLE_MULTI_DEST_MIN_IOS = 16;
  */
 export const GOOGLE_MAX_POINTS_PER_URL = 10;
 
+/**
+ * Rounds to 6dp (~11 cm at the equator — plenty for nav handoff) and rejects
+ * NaN/Infinity/out-of-range. Callers upstream already filter invalid rows,
+ * but a bogus deep link or cached trip from another region could still
+ * sneak a `lat: NaN` into the URL and open Maps at `NaN,NaN` otherwise.
+ */
 const fmt = (n: number): string => {
+  if (!Number.isFinite(n)) return '';
   const rounded = Math.round(n * 1e6) / 1e6;
   return rounded.toString();
 };
+
+function isValidCoord(w: NavWaypoint): boolean {
+  return (
+    Number.isFinite(w.lat) &&
+    Number.isFinite(w.lng) &&
+    Math.abs(w.lat) <= 90 &&
+    Math.abs(w.lng) <= 180
+  );
+}
 
 const coord = (w: NavWaypoint): string => `${fmt(w.lat)},${fmt(w.lng)}`;
 
@@ -45,18 +61,19 @@ export function buildAppleMapsUrl(
   waypoints: NavWaypoint[],
   opts: { iosMajorVersion?: number } = {},
 ): string | null {
-  if (waypoints.length < 2) return null;
+  const valid = waypoints.filter(isValidCoord);
+  if (valid.length < 2) return null;
 
   const supportsMultiDest =
     (opts.iosMajorVersion ?? APPLE_MULTI_DEST_MIN_IOS) >= APPLE_MULTI_DEST_MIN_IOS;
-  const start = waypoints[0];
+  const start = valid[0];
 
-  if (!supportsMultiDest || waypoints.length === 2) {
-    const end = waypoints[waypoints.length - 1];
+  if (!supportsMultiDest || valid.length === 2) {
+    const end = valid[valid.length - 1];
     return `maps://?saddr=${coord(start)}&daddr=${coord(end)}&dirflg=d`;
   }
 
-  const destParts = waypoints
+  const destParts = valid
     .slice(1)
     .map((w, i) => (i === 0 ? coord(w) : `+to:${coord(w)}`))
     .join('');
@@ -92,9 +109,10 @@ export function buildGoogleMapsUrls(waypoints: NavWaypoint[]): {
   urls: string[];
   chunked: boolean;
 } {
-  if (waypoints.length < 2) return { urls: [], chunked: false };
+  const valid = waypoints.filter(isValidCoord);
+  if (valid.length < 2) return { urls: [], chunked: false };
 
-  const chunks = chunkWaypointsForGoogle(waypoints);
+  const chunks = chunkWaypointsForGoogle(valid);
   const urls = chunks.map((chunk) => {
     const origin = coord(chunk[0]);
     const destination = coord(chunk[chunk.length - 1]);
@@ -123,8 +141,9 @@ export function buildGoogleMapsUrls(waypoints: NavWaypoint[]): {
  * waypoints[0] when they tap the handoff.
  */
 export function buildWazeUrls(waypoints: NavWaypoint[]): string[] {
-  if (waypoints.length < 2) return [];
-  return waypoints.slice(1).map((w) => `waze://?ll=${coord(w)}&navigate=yes`);
+  const filtered = waypoints.filter(isValidCoord);
+  if (filtered.length < 2) return [];
+  return filtered.slice(1).map((w) => `waze://?ll=${coord(w)}&navigate=yes`);
 }
 
 /**

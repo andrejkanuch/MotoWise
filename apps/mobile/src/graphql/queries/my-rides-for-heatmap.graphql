@@ -1,0 +1,20 @@
+query MyRidesForHeatmap($first: Int, $after: String) {
+  myRides(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        name
+        startedAt
+        distanceM
+        region
+        routePolyline
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    totalCount
+  }
+}

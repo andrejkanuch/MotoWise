@@ -14,7 +14,19 @@ export interface MarkerActionOptions {
 
 const formatCoords = (lat: number, lng: number) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
+/**
+ * Guards against NaN / Infinity / out-of-range pins that can sneak in via
+ * deep links or stale GeoJSON — without this a bogus marker still opens Maps
+ * at the equator and copies garbage to the clipboard.
+ */
+function isValidCoord(lat: number, lng: number): boolean {
+  return (
+    Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
+  );
+}
+
 const openAppleMaps = async (lat: number, lng: number, title?: string) => {
+  if (!isValidCoord(lat, lng)) return;
   const q = title ? `&q=${encodeURIComponent(title)}` : '';
   const url = `maps://?ll=${lat},${lng}${q}`;
   const ok = await Linking.canOpenURL(url);
@@ -34,6 +46,7 @@ const openAppleMaps = async (lat: number, lng: number, title?: string) => {
  */
 export function showMarkerActionSheet(opts: MarkerActionOptions) {
   const { title, lat, lng, extraActions = [], message } = opts;
+  if (!isValidCoord(lat, lng)) return;
   if (Platform.OS === 'ios') Haptics.selectionAsync().catch(() => {});
 
   const coords = formatCoords(lat, lng);

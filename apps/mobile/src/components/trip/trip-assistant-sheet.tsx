@@ -1,4 +1,8 @@
-import BottomSheet, { BottomSheetScrollView, BottomSheetTextInput } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetScrollView,
+  type BottomSheetScrollViewMethods,
+  BottomSheetTextInput,
+} from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import { Send, Sparkles, X } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -32,7 +36,7 @@ export function TripAssistantSheet({
 }: TripAssistantSheetProps) {
   const isDark = useColorScheme() === 'dark';
   const sheetRef = useRef<BottomSheet>(null);
-  const scrollRef = useRef<{ scrollToEnd: (opts?: { animated: boolean }) => void } | null>(null);
+  const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
   const [draft, setDraft] = useState('');
   const snapPoints = useMemo(() => ['90%'], []);
 
@@ -111,15 +115,18 @@ export function TripAssistantSheet({
             <Text style={{ fontSize: 13, color: palette.accent500, fontWeight: '600' }}>Reset</Text>
           </Pressable>
         )}
-        <Pressable onPress={onClose} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
+        <Pressable
+          onPress={onClose}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <X size={20} color={subColor} />
         </Pressable>
       </View>
 
       <BottomSheetScrollView
-        ref={(r) => {
-          scrollRef.current = r as unknown as { scrollToEnd: (opts?: { animated: boolean }) => void };
-        }}
+        ref={scrollRef}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, gap: 10 }}
         onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
       >

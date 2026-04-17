@@ -29,8 +29,8 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Avatar } from '../../../components/ui/avatar';
 import { CompletenessRing } from '../../../components/trip/completeness-ring';
+import { Avatar } from '../../../components/ui/avatar';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact } from '../../../utils/haptics';
@@ -118,13 +118,19 @@ function MyTripCard({
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
 
   // P4.2 — nudge the rider to finish drafts; hide ring when fully planned.
-  const completeness = computeTripCompleteness({
-    description: trip.description,
-    waypointCount: stopCount,
-    dayCount: days,
-    participantCount,
-    maxRiders,
-  });
+  // Memoised so scroll / draft-count re-renders of the parent list don't
+  // replay the dimension scoring for every visible card.
+  const completeness = useMemo(
+    () =>
+      computeTripCompleteness({
+        description: trip.description,
+        waypointCount: stopCount,
+        dayCount: days,
+        participantCount,
+        maxRiders,
+      }),
+    [trip.description, stopCount, days, participantCount, maxRiders],
+  );
 
   return (
     <Animated.View entering={FadeInUp.delay(Math.min(index * 50, 300)).duration(250)}>

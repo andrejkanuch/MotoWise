@@ -72,10 +72,61 @@ export type PeriodOfDay = z.infer<typeof PeriodOfDaySchema>;
 export const PARTICIPANT_ROLE = {
   ORGANIZER: 'organizer',
   RIDER: 'rider',
+  CO_PLANNER: 'co_planner',
 } as const;
 
-export const ParticipantRoleSchema = z.enum(['organizer', 'rider']);
+export const ParticipantRoleSchema = z.enum(['organizer', 'rider', 'co_planner']);
 export type ParticipantRole = z.infer<typeof ParticipantRoleSchema>;
+
+// --- Trip Suggestion Kind ---
+
+export const TRIP_SUGGESTION_KIND = {
+  WAYPOINT: 'waypoint',
+  NOTE: 'note',
+} as const;
+
+export const TripSuggestionKindSchema = z.enum(['waypoint', 'note']);
+export type TripSuggestionKind = z.infer<typeof TripSuggestionKindSchema>;
+
+// --- Trip Suggestion Status ---
+
+export const TRIP_SUGGESTION_STATUS = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  WITHDRAWN: 'withdrawn',
+} as const;
+
+export const TripSuggestionStatusSchema = z.enum([
+  'pending',
+  'accepted',
+  'rejected',
+  'withdrawn',
+]);
+export type TripSuggestionStatus = z.infer<typeof TripSuggestionStatusSchema>;
+
+// --- Trip Suggestion Decision ---
+// Subset of status — only the outcomes an actor can explicitly apply.
+
+export const TRIP_SUGGESTION_DECISION = {
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  WITHDRAWN: 'withdrawn',
+} as const;
+
+export const TripSuggestionDecisionSchema = z.enum(['accepted', 'rejected', 'withdrawn']);
+export type TripSuggestionDecision = z.infer<typeof TripSuggestionDecisionSchema>;
+
+// --- Assistant Message Role ---
+// Role labels for the trip-planning assistant chat thread.
+
+export const ASSISTANT_MESSAGE_ROLE = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+} as const;
+
+export const AssistantMessageRoleSchema = z.enum(['user', 'assistant']);
+export type AssistantMessageRole = z.infer<typeof AssistantMessageRoleSchema>;
 
 // --- Participant Status ---
 

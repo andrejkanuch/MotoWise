@@ -21,10 +21,10 @@ export class TripSuggestionsResolver {
   @UseGuards(GqlAuthGuard)
   @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async tripSuggestions(
-    @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<TripSuggestion[]> {
-    return this.service.list(user.id, tripId);
+    // Auth is enforced by the guard; RLS scopes visibility to trip participants.
+    return this.service.list(tripId);
   }
 
   @Mutation(() => TripSuggestion)

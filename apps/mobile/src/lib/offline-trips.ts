@@ -14,9 +14,32 @@
  */
 
 import MapboxGL from '@rnmapbox/maps';
+import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
 import { createMMKV } from 'react-native-mmkv';
 
-const OFFLINE_STORE = createMMKV({ id: 'offline-trips-v1' });
+const MMKV_KEY_STORE_KEY = 'motovault.offline.mmkv.key.v1';
+
+/**
+ * Pulls (or lazily generates) a per-install 32-byte encryption key from
+ * expo-secure-store. expo-secure-store v13+ exposes sync getItem/setItem, so
+ * we can keep a module-level MMKV handle without forcing every call-site async.
+ */
+function getOrCreateMmkvKey(): string {
+  const existing = SecureStore.getItem(MMKV_KEY_STORE_KEY);
+  if (existing) return existing;
+  const bytes = Crypto.getRandomBytes(32);
+  const key = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  SecureStore.setItem(MMKV_KEY_STORE_KEY, key);
+  return key;
+}
+
+const OFFLINE_STORE = createMMKV({
+  id: 'offline-trips-v1',
+  encryptionKey: getOrCreateMmkvKey(),
+});
 
 const PACK_NAME = (tripId: string) => `trip-${tripId}`;
 const REGISTRY_KEY = 'registry';
@@ -63,9 +86,36 @@ export function listOfflineTrips(): OfflinePackMeta[] {
   );
 }
 
+/**
+ * Projects a TripDetail payload down to the fields the offline screen actually
+ * renders. Drops per-user UUIDs (participant.id, bikeId) so a leaked MMKV blob
+ * can't be re-keyed against the server. Everything else on `trip` (title,
+ * dates, waypoints, organiser) flows through untouched.
+ */
+function stripPii<T>(payload: T): T {
+  if (!payload || typeof payload !== 'object') return payload;
+  const p = payload as Record<string, unknown>;
+  if (!Array.isArray(p.participants)) return payload;
+
+  const sanitized = {
+    ...p,
+    participants: p.participants.map((raw) => {
+      const part = raw as Record<string, unknown>;
+      return {
+        displayName: part.displayName ?? null,
+        publicUsername: part.publicUsername ?? null,
+        avatarUrl: part.avatarUrl ?? null,
+        role: part.role ?? null,
+        status: part.status ?? null,
+      };
+    }),
+  };
+  return sanitized as T;
+}
+
 /** Cache the rendered trip payload so `trip-detail` can hydrate offline. */
 export function cacheTripPayload<T>(tripId: string, payload: T): void {
-  OFFLINE_STORE.set(PAYLOAD_KEY(tripId), JSON.stringify(payload));
+  OFFLINE_STORE.set(PAYLOAD_KEY(tripId), JSON.stringify(stripPii(payload)));
 }
 
 export function readCachedTripPayload<T>(tripId: string): T | null {
@@ -93,6 +143,17 @@ export interface DownloadParams {
 }
 
 /**
+ * Mapbox RN SDK's public API for pack size is the async `bytes()` method, but
+ * some versions still expose `_size` synchronously. Prefer the sync field when
+ * it's there; callers that need certainty should fall back to `bytes()`.
+ */
+function getPackSizeBytes(pack: unknown): number | undefined {
+  const p = pack as { bytes?: () => Promise<number>; _size?: number };
+  if (typeof p._size === 'number') return p._size;
+  return undefined;
+}
+
+/**
  * Start (or resume) an offline download.
  * Resolves when the pack is complete. Rejects if Mapbox surfaces an error.
  */
@@ -109,6 +170,11 @@ export async function downloadOfflinePack(params: DownloadParams): Promise<Offli
   }
 
   await new Promise<void>((resolve, reject) => {
+    // Mapbox fires progress 50-300 times per pack; only forward whole-percent
+    // transitions (plus the terminal Complete tick) so the progress UI doesn't
+    // re-render on every native callback.
+    let lastReportedPct = -1;
+
     MapboxGL.offlineManager
       .createPack(
         {
@@ -122,13 +188,17 @@ export async function downloadOfflinePack(params: DownloadParams): Promise<Offli
           maxZoom: OFFLINE_MAX_ZOOM,
         },
         (_pack, status) => {
-          if (onProgress) {
-            const s = status as {
-              percentage?: number;
-              completedTileCount?: number;
-              requiredTileCount?: number;
-              completedResourceSize?: number;
-            };
+          const s = status as {
+            percentage?: number;
+            completedTileCount?: number;
+            requiredTileCount?: number;
+            completedResourceSize?: number;
+          };
+          const pct = Math.floor(s.percentage ?? 0);
+          const isComplete = status.state === MapboxGL.OfflinePackDownloadState.Complete;
+
+          if (onProgress && (isComplete || pct - lastReportedPct >= 1)) {
+            lastReportedPct = pct;
             onProgress({
               percentage: s.percentage ?? 0,
               completedTileCount: s.completedTileCount ?? 0,
@@ -136,7 +206,8 @@ export async function downloadOfflinePack(params: DownloadParams): Promise<Offli
               completedResourceSize: s.completedResourceSize ?? 0,
             });
           }
-          if (status.state === MapboxGL.OfflinePackDownloadState.Complete) {
+
+          if (isComplete) {
             resolve();
           }
         },
@@ -147,7 +218,7 @@ export async function downloadOfflinePack(params: DownloadParams): Promise<Offli
 
   const packs = await MapboxGL.offlineManager.getPacks();
   const finished = packs.find((p) => p.name === name);
-  const sizeBytes = finished ? (finished as unknown as { _size?: number })._size : undefined;
+  const sizeBytes = finished ? getPackSizeBytes(finished) : undefined;
 
   const meta: OfflinePackMeta = {
     tripId,

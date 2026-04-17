@@ -1,0 +1,6 @@
+# Build artifacts — never commit these
+*.ipa
+*.apk
+*.aab
+build-*.ipa
+build-*.apk
