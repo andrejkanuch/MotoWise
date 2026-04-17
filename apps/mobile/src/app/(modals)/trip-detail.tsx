@@ -55,6 +55,9 @@ import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
+import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
+import { ReadinessRing } from '../../components/trip/readiness-ring';
+import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -139,6 +142,58 @@ export default function TripDetailScreen() {
     () => [...(trip?.waypoints ?? [])].sort((a, b) => a.sortOrder - b.sortOrder) as TripWaypoint[],
     [trip?.waypoints],
   );
+
+  // Pre-ride readiness — recomputes whenever waypoints/trip shape changes.
+  const { bikeId, tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
+  const readiness = useMemo(
+    () =>
+      computeReadiness(
+        {
+          startDate: trip?.startDate,
+          endDate: trip?.endDate,
+          visibility: trip?.visibility as 'private' | 'unlisted' | 'public' | null | undefined,
+          participantCount: trip?.participantCount ?? 0,
+          waypoints: waypoints.map((wp) => ({
+            lat: wp.lat,
+            lng: wp.lng,
+            sortOrder: wp.sortOrder,
+            name: wp.name,
+          })),
+        },
+        bikeId ? { id: bikeId, tankLiters, kmPerLiter } : null,
+      ),
+    [
+      trip?.startDate,
+      trip?.endDate,
+      trip?.visibility,
+      trip?.participantCount,
+      waypoints,
+      bikeId,
+      tankLiters,
+      kmPerLiter,
+    ],
+  );
+
+  const handleShareBrief = useCallback(async () => {
+    if (!trip) return;
+    const brief = formatReadinessBrief({
+      tripTitle: trip.title ?? 'Trip',
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      waypoints: waypoints.map((wp) => ({ name: wp.name, notes: wp.notes })),
+      readiness,
+    });
+    try {
+      const { Share } = await import('react-native');
+      await Share.share({ message: brief, title: `${trip.title ?? 'Trip'} — tank-bag brief` });
+      trackEvent(AnalyticsEvent.TRIP_BRIEF_SHARED, {
+        trip_id: tripId,
+        readiness_score: Math.round(readiness.score * 100),
+      });
+    } catch {
+      /* user cancelled */
+    }
+  }, [trip, waypoints, readiness, tripId]);
 
   const tripDays = useMemo(() => {
     if (!trip?.startDate || !trip?.endDate) return 1;
@@ -722,6 +777,11 @@ ${rteptElements}
                 </Text>
               </Animated.View>
             )}
+
+            {/* Pre-ride readiness — fed by waypoints/bike/visibility. */}
+            <Animated.View entering={FadeInUp.delay(30).duration(250)}>
+              <ReadinessRing report={readiness} onShareBrief={handleShareBrief} />
+            </Animated.View>
 
             {/* Day-by-day itinerary */}
             {waypointsByDay.length > 0 && (
