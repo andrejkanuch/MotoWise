@@ -1,0 +1,19 @@
+mutation CreateTripSuggestion($input: CreateTripSuggestionInput!) {
+  createTripSuggestion(input: $input) {
+    id
+    tripId
+    status
+    name
+    notes
+    lat
+    lng
+    dayIndex
+    periodOfDay
+    createdAt
+    author {
+      id
+      displayName
+      avatarUrl
+    }
+  }
+}

@@ -1,0 +1,10 @@
+mutation RespondToTripSuggestion($input: RespondToTripSuggestionInput!) {
+  respondToTripSuggestion(input: $input) {
+    id
+    status
+    decidedBy
+    decidedAt
+    decidedNote
+    waypointId
+  }
+}

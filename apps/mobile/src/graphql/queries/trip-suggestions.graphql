@@ -1,0 +1,25 @@
+query TripSuggestions($tripId: ID!) {
+  tripSuggestions(tripId: $tripId) {
+    id
+    tripId
+    kind
+    name
+    notes
+    lat
+    lng
+    dayIndex
+    periodOfDay
+    status
+    decidedBy
+    decidedAt
+    decidedNote
+    waypointId
+    createdAt
+    author {
+      id
+      displayName
+      avatarUrl
+      publicUsername
+    }
+  }
+}

@@ -62,6 +62,8 @@ import { OfflinePackButton } from '../../components/trip/offline-pack-button';
 import { TripAssistantFAB } from '../../components/trip/trip-assistant-fab';
 import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { useTripAssistant } from '../../hooks/use-trip-assistant';
+import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
+import { SuggestionsSection } from '../../components/trip/suggestions-section';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { cacheTripPayload } from '../../lib/offline-trips';
@@ -318,6 +320,11 @@ export default function TripDetailScreen() {
     () => trip?.participants?.find((p) => p.id === userId),
     [trip?.participants, userId],
   );
+  // P5.1 — co-planners share accept/reject rights with the organiser.
+  const isCoPlanner = myParticipant?.role === 'co_planner';
+  const canDecideSuggestions = isOrganiser || isCoPlanner;
+
+  const tripSuggestions = useTripSuggestions(tripId);
 
   const difficultyKey = (
     trip?.difficulty ?? 'easy'
@@ -1029,6 +1036,16 @@ ${rteptElements}
                 </View>
               </Animated.View>
             )}
+
+            {/* P5.1 — async waypoint suggestions */}
+            <SuggestionsSection
+              suggestions={tripSuggestions.suggestions}
+              isLoading={tripSuggestions.isLoading}
+              canDecide={canDecideSuggestions}
+              currentUserId={userId ?? undefined}
+              onRespond={tripSuggestions.respond}
+              isResponding={tripSuggestions.isResponding}
+            />
 
             {/* Action buttons */}
             <Animated.View
