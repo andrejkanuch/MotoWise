@@ -14,7 +14,7 @@ import {
   type TripSuggestionsQueryVariables,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
 
 export type TripSuggestion = TripSuggestionsQuery['tripSuggestions'][number];
@@ -40,10 +40,14 @@ export interface RespondToTripSuggestionHookInput {
   note?: string;
 }
 
-const DECISION_MAP: Record<
-  RespondToTripSuggestionHookInput['decision'],
-  TripSuggestionDecision
-> = {
+// Internal variables shape — tripId is injected by the hook so call sites
+// don't need to thread it through. Required for the scoped invalidate in
+// onSuccess (#110).
+interface RespondMutationVars extends RespondToTripSuggestionHookInput {
+  tripId: string;
+}
+
+const DECISION_MAP: Record<RespondToTripSuggestionHookInput['decision'], TripSuggestionDecision> = {
   accepted: TripSuggestionDecision.Accepted,
   rejected: TripSuggestionDecision.Rejected,
   withdrawn: TripSuggestionDecision.Withdrawn,
@@ -62,22 +66,25 @@ const PERIOD_MAP: Record<string, PeriodOfDay | undefined> = {
 
 export function useTripSuggestions(tripId: string | undefined) {
   const qc = useQueryClient();
-  const queryKey = ['trip-suggestions', tripId ?? ''];
+  const resolvedTripId = tripId ?? '';
+  const queryKey = ['trip-suggestions', resolvedTripId];
+
+  // #126 — track in-flight respond mutations per-suggestion so one row's
+  // pending state doesn't disable action buttons on every other row.
+  // Using a Set so parallel/optimistic responses on different rows each
+  // get their own state without clobbering each other.
+  const [respondingIds, setRespondingIds] = useState<ReadonlySet<string>>(() => new Set());
 
   const list = useQuery<TripSuggestionsQuery>({
     queryKey,
     enabled: !!tripId,
     queryFn: () => {
-      const variables: TripSuggestionsQueryVariables = { tripId: tripId ?? '' };
+      const variables: TripSuggestionsQueryVariables = { tripId: resolvedTripId };
       return gqlFetcher(TripSuggestionsDocument, variables);
     },
   });
 
-  const create = useMutation<
-    CreateTripSuggestionMutation,
-    Error,
-    CreateTripSuggestionHookInput
-  >({
+  const create = useMutation<CreateTripSuggestionMutation, Error, CreateTripSuggestionHookInput>({
     mutationFn: (input) =>
       gqlFetcher(CreateTripSuggestionDocument, {
         input: {
@@ -91,29 +98,43 @@ export function useTripSuggestions(tripId: string | undefined) {
           kind: KIND_MAP[input.kind ?? 'waypoint'],
         },
       }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey });
+    // #110 — scope invalidate to this trip's key using the mutation variables
+    // so other trips' caches are untouched.
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['trip-suggestions', variables.tripId] });
     },
   });
 
-  const respond = useMutation<
-    RespondToTripSuggestionMutation,
-    Error,
-    RespondToTripSuggestionHookInput
-  >({
-    mutationFn: (input) =>
-      gqlFetcher(RespondToTripSuggestionDocument, {
-        input: {
-          suggestionId: input.suggestionId,
-          decision: DECISION_MAP[input.decision],
-          note: input.note,
-        },
-      }),
+  const respond = useMutation<RespondToTripSuggestionMutation, Error, RespondMutationVars>({
+    mutationFn: async (vars) => {
+      setRespondingIds((prev) => {
+        const next = new Set(prev);
+        next.add(vars.suggestionId);
+        return next;
+      });
+      try {
+        return await gqlFetcher(RespondToTripSuggestionDocument, {
+          input: {
+            suggestionId: vars.suggestionId,
+            decision: DECISION_MAP[vars.decision],
+            note: vars.note,
+          },
+        });
+      } finally {
+        setRespondingIds((prev) => {
+          if (!prev.has(vars.suggestionId)) return prev;
+          const next = new Set(prev);
+          next.delete(vars.suggestionId);
+          return next;
+        });
+      }
+    },
+    // #110 — scope invalidate to this trip's suggestions.
     onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey });
+      qc.invalidateQueries({ queryKey: ['trip-suggestions', vars.tripId] });
       // If an accept materialised a waypoint, trip-detail should refetch.
       if (vars.decision === 'accepted') {
-        qc.invalidateQueries({ queryKey: ['trip'] });
+        qc.invalidateQueries({ queryKey: ['trip', vars.tripId] });
       }
     },
   });
@@ -123,14 +144,22 @@ export function useTripSuggestions(tripId: string | undefined) {
     [create],
   );
 
+  // Caller signature stays `{ suggestionId, decision, note? }`; the hook
+  // injects tripId so the respond mutation can scope its invalidate.
+  const respondAsync = useCallback(
+    (input: RespondToTripSuggestionHookInput) =>
+      respond.mutateAsync({ ...input, tripId: resolvedTripId }),
+    [respond, resolvedTripId],
+  );
+
   return {
     suggestions: list.data?.tripSuggestions ?? [],
     isLoading: list.isLoading,
     isFetching: list.isFetching,
     refetch: list.refetch,
     propose,
-    respond: respond.mutateAsync,
-    isResponding: respond.isPending,
+    respond: respondAsync,
+    respondingIds,
     isProposing: create.isPending,
   };
 }

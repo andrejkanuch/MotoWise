@@ -22,8 +22,9 @@ interface SuggestionsSectionProps {
   onRespond: (input: {
     suggestionId: string;
     decision: 'accepted' | 'rejected' | 'withdrawn';
-  }) => Promise<unknown> | void;
-  isResponding: boolean;
+  }) => Promise<unknown> | undefined;
+  /** Set of suggestion ids with an in-flight respond mutation. */
+  respondingIds: ReadonlySet<string>;
 }
 
 function formatRelative(iso: string): string {
@@ -43,7 +44,7 @@ export function SuggestionsSection({
   canDecide,
   currentUserId,
   onRespond,
-  isResponding,
+  respondingIds,
 }: SuggestionsSectionProps) {
   const isDark = useColorScheme() === 'dark';
 
@@ -96,6 +97,7 @@ export function SuggestionsSection({
             const isPending = s.status === 'pending';
             const decided = !isPending;
             const isAuthor = currentUserId && s.author.id === currentUserId;
+            const rowResponding = respondingIds.has(s.id);
 
             const statusTint =
               s.status === 'accepted'
@@ -106,11 +108,7 @@ export function SuggestionsSection({
                     ? palette.neutral400
                     : palette.warning500;
             const StatusIcon =
-              s.status === 'accepted'
-                ? CheckCircle2
-                : s.status === 'rejected'
-                  ? XCircle
-                  : Clock;
+              s.status === 'accepted' ? CheckCircle2 : s.status === 'rejected' ? XCircle : Clock;
 
             return (
               <Animated.View
@@ -126,9 +124,7 @@ export function SuggestionsSection({
                   gap: 8,
                 }}
               >
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
-                >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <StatusIcon size={14} color={statusTint} />
                   <Text
                     style={{
@@ -157,9 +153,7 @@ export function SuggestionsSection({
                   {s.name}
                 </Text>
                 {s.notes ? (
-                  <Text style={{ color: bodyColor, fontSize: 13, lineHeight: 18 }}>
-                    {s.notes}
-                  </Text>
+                  <Text style={{ color: bodyColor, fontSize: 13, lineHeight: 18 }}>{s.notes}</Text>
                 ) : null}
                 <Text style={{ color: metaColor, fontSize: 12 }}>
                   Suggested by {s.author.displayName}
@@ -175,7 +169,7 @@ export function SuggestionsSection({
                           label="Accept"
                           tint={palette.success500}
                           Icon={Check}
-                          disabled={isResponding}
+                          disabled={rowResponding}
                           onPress={() =>
                             onRespond({
                               suggestionId: s.id,
@@ -187,7 +181,7 @@ export function SuggestionsSection({
                           label="Reject"
                           tint={palette.danger500}
                           Icon={X}
-                          disabled={isResponding}
+                          disabled={rowResponding}
                           onPress={() =>
                             onRespond({
                               suggestionId: s.id,
@@ -202,7 +196,7 @@ export function SuggestionsSection({
                         label="Withdraw"
                         tint={palette.neutral500}
                         Icon={X}
-                        disabled={isResponding}
+                        disabled={rowResponding}
                         onPress={() =>
                           onRespond({
                             suggestionId: s.id,

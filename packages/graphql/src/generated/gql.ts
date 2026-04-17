@@ -68,6 +68,7 @@ type Documents = {
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": typeof types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": typeof types.RotateTripShareTokenDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRouteToCollection(routeId: $routeId)\n}": typeof types.SaveRouteDocument,
+    "mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}": typeof types.SetTripParticipantRoleDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": typeof types.ShareRideToDiscoverDocument,
     "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": typeof types.ShareRideDocument,
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": typeof types.StartRideDocument,
@@ -202,6 +203,7 @@ const documents: Documents = {
     "mutation RevokeShareLink($linkId: ID!) {\n  revokeShareLink(linkId: $linkId)\n}": types.RevokeShareLinkDocument,
     "mutation RotateTripShareToken($tripId: ID!) {\n  rotateTripShareToken(tripId: $tripId)\n}": types.RotateTripShareTokenDocument,
     "mutation SaveRoute($routeId: ID!) {\n  saveRouteToCollection(routeId: $routeId)\n}": types.SaveRouteDocument,
+    "mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}": types.SetTripParticipantRoleDocument,
     "mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {\n  shareRideToDiscover(input: $input) {\n    id\n    name\n    distanceM\n  }\n}": types.ShareRideToDiscoverDocument,
     "mutation ShareRide($rideId: String!, $sharedWithUserId: String!) {\n  shareRide(rideId: $rideId, sharedWithUserId: $sharedWithUserId)\n}": types.ShareRideDocument,
     "mutation StartRide($input: StartRideInput!) {\n  startRide(input: $input) {\n    id\n    status\n    startedAt\n    motorcycleId\n  }\n}": types.StartRideDocument,
@@ -512,6 +514,10 @@ export function graphql(source: "mutation RotateTripShareToken($tripId: ID!) {\n
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation SaveRoute($routeId: ID!) {\n  saveRouteToCollection(routeId: $routeId)\n}"): (typeof documents)["mutation SaveRoute($routeId: ID!) {\n  saveRouteToCollection(routeId: $routeId)\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}"): (typeof documents)["mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {\n  setTripParticipantRole(input: $input)\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

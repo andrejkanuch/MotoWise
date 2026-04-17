@@ -1,8 +1,8 @@
 import { palette } from '@motovault/design-system';
 import { CheckCircle, CloudDownload, Loader, Trash2 } from 'lucide-react-native';
 import { Alert, Pressable, Text, useColorScheme, View } from 'react-native';
-import { formatBytes } from '../../lib/offline-trips';
 import type { OfflineStatus } from '../../hooks/use-offline-trip';
+import { formatBytes } from '../../lib/offline-trips';
 
 interface OfflinePackButtonProps {
   status: OfflineStatus;

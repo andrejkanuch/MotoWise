@@ -1,5 +1,5 @@
-import { Field, ID, InputType } from '@nestjs/graphql';
 import type { AssistantMessageRole } from '@motovault/types';
+import { Field, ID, InputType } from '@nestjs/graphql';
 import { AssistantMessageRoleEnum } from '../../../shared/graphql/enums';
 
 @InputType()

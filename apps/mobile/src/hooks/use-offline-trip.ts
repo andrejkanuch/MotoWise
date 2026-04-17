@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
+import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import {
   bboxFromPoints,
   downloadOfflinePack,
@@ -8,7 +9,6 @@ import {
   type OfflineProgress,
   removeOfflinePack,
 } from '../lib/offline-trips';
-import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { MAP_STYLES } from '../utils/map-styles';
 
 export type OfflineStatus = 'none' | 'downloading' | 'ready' | 'error';
@@ -63,10 +63,7 @@ export function useOfflineTrip({ tripId, waypoints }: UseOfflineTripParams) {
       });
     } catch (err) {
       setStatus('error');
-      Alert.alert(
-        'Offline download failed',
-        err instanceof Error ? err.message : 'Unknown error',
-      );
+      Alert.alert('Offline download failed', err instanceof Error ? err.message : 'Unknown error');
     }
   }, [tripId, waypoints]);
 

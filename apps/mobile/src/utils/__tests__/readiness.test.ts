@@ -10,10 +10,7 @@ const futureDate = () => {
 
 describe('computeReadiness', () => {
   it('fails if route has <2 stops', () => {
-    const r = computeReadiness(
-      { waypoints: [{ lat: 0, lng: 0, sortOrder: 0 }] },
-      bike,
-    );
+    const r = computeReadiness({ waypoints: [{ lat: 0, lng: 0, sortOrder: 0 }] }, bike);
     expect(r.items.find((i) => i.key === 'route')?.passed).toBe(false);
   });
 

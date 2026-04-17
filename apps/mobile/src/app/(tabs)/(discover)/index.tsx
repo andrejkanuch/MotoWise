@@ -107,6 +107,11 @@ interface DiscoverHeaderProps {
   featuredRoute: RouteNode | null;
   onRoutePress: (routeId: string) => void;
   showBelowFold: boolean;
+  /** Progressive unlock level for below-the-fold queries. Each stage enables
+   * one more horizontal carousel so cold-start doesn't fire 4 parallel
+   * `DiscoverRoutes` RTTs on top of the main infinite query + savedRoutes.
+   * 0 = none, 1 = editor picks, 2 = weekend, 3 = seasonal + becauseYouLiked. */
+  fetchStage: number;
   inspiration: ReturnType<typeof useInspirationFilters>;
 }
 
@@ -117,6 +122,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   featuredRoute,
   onRoutePress,
   showBelowFold,
+  fetchStage,
   inspiration,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
@@ -157,6 +163,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
             filter={{ motovaultPicksOnly: true, sortByRating: true }}
             first={10}
             staleTime={10 * 60 * 1000}
+            enabled={fetchStage >= 1}
             onRoutePress={onRoutePress}
           />
 
@@ -171,6 +178,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
                 filter={inspiration.weekend}
                 first={10}
                 staleTime={10 * 60 * 1000}
+                enabled={fetchStage >= 2}
                 onRoutePress={onRoutePress}
               />
 
@@ -182,6 +190,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
                 filter={inspiration.season.filter}
                 first={10}
                 staleTime={30 * 60 * 1000}
+                enabled={fetchStage >= 3}
                 onRoutePress={onRoutePress}
               />
 
@@ -198,6 +207,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
                   filter={inspiration.becauseYouLiked.filter}
                   first={10}
                   staleTime={10 * 60 * 1000}
+                  enabled={fetchStage >= 3}
                   onRoutePress={onRoutePress}
                 />
               )}
@@ -264,6 +274,24 @@ export default function DiscoverScreen() {
   useEffect(() => {
     const id = requestAnimationFrame(() => setShowBelowFold(true));
     return () => cancelAnimationFrame(id);
+  }, []);
+
+  // Progressive unlock of below-fold queries. The main infinite list and
+  // SavedRoutes (inspiration seed) fire immediately; each 150 ms tick unlocks
+  // one carousel so cold-start doesn't burst 5–6 GraphQL RTTs in parallel.
+  // Stage map: 1 = Editor's Picks, 2 = Weekend, 3 = Seasonal + Because-you-liked.
+  const [fetchStage, setFetchStage] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFetchStage((s) => {
+        if (s >= 3) {
+          clearInterval(id);
+          return s;
+        }
+        return s + 1;
+      });
+    }, 150);
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -493,6 +521,7 @@ export default function DiscoverScreen() {
         featuredRoute={featuredRoute}
         onRoutePress={handleRoutePress}
         showBelowFold={showBelowFold}
+        fetchStage={fetchStage}
         inspiration={inspiration}
       />
     ),
@@ -503,6 +532,7 @@ export default function DiscoverScreen() {
       featuredRoute,
       handleRoutePress,
       showBelowFold,
+      fetchStage,
       inspiration,
     ],
   );

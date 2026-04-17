@@ -5,6 +5,7 @@ import {
   AssistantMessageRole,
 } from '@motovault/graphql';
 import { useMutation } from '@tanstack/react-query';
+import * as Crypto from 'expo-crypto';
 import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
 
@@ -20,8 +21,7 @@ export interface AssistantMessage {
   createdAt: number;
 }
 
-let nextId = 1;
-const makeId = () => `m_${nextId++}_${Date.now()}`;
+const makeId = () => Crypto.randomUUID();
 
 export function useTripAssistant(tripId: string | undefined) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
@@ -30,10 +30,7 @@ export function useTripAssistant(tripId: string | undefined) {
     mutationFn: async (question: string) => {
       if (!tripId) throw new Error('Missing tripId');
       const history = messages.slice(-16).map((m) => ({
-        role:
-          m.role === 'assistant'
-            ? AssistantMessageRole.Assistant
-            : AssistantMessageRole.User,
+        role: m.role === 'assistant' ? AssistantMessageRole.Assistant : AssistantMessageRole.User,
         content: m.content,
       }));
       const variables: AskTripAssistantMutationVariables = {

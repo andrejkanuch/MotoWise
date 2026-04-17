@@ -4,8 +4,8 @@
  */
 export {
   computeReadiness,
-  formatReadinessBrief,
   FUEL_RANGE_SAFETY_FACTOR,
+  formatReadinessBrief,
   type ReadinessInput,
   type ReadinessInputBike,
   type ReadinessInputTrip,

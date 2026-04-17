@@ -45,9 +45,47 @@ const PACK_NAME = (tripId: string) => `trip-${tripId}`;
 const REGISTRY_KEY = 'registry';
 const PAYLOAD_KEY = (tripId: string) => `payload:${tripId}`;
 
-/** Conservative zoom range — street-level detail without blowing up disk. */
+/**
+ * Conservative zoom range — highway-level detail without blowing up disk.
+ *
+ * maxZoom was 14 but that quadruples tile count vs. 12 (each +1 zoom = 4×
+ * tiles per area). 12 still renders street names & turn geometry clearly at
+ * riding speeds; go higher only for a deliberate "hi-res pack" opt-in.
+ */
 export const OFFLINE_MIN_ZOOM = 8;
-export const OFFLINE_MAX_ZOOM = 14;
+export const OFFLINE_MAX_ZOOM = 12;
+
+/**
+ * Hard cap on tile count per pack. Mapbox free tier allows 750 MAU tile
+ * packs; paid tier is $0.15/1k tiles afterwards. 5k tiles ≈ 75–150 MB on
+ * disk and keeps us well under a single-user quota blowout.
+ */
+const MAX_TILES_PER_PACK = 5000;
+
+/**
+ * Cheap upper-bound estimate of tiles covered by a bbox across a zoom range.
+ * Formula: at zoom `z`, the world is 2^z tiles wide on each axis, so the
+ * tile count for a bbox is `ceil(lngDelta/360 * 2^z) * ceil(latDelta/180 * 2^z)`.
+ * Summed across `minZoom..maxZoom` this slightly over-counts (Mercator
+ * distortion near the poles) but never under-counts, which is what we want
+ * for a gate.
+ */
+export function estimateTileCount(
+  bbox: [number, number, number, number],
+  minZoom: number,
+  maxZoom: number,
+): number {
+  const [minLng, minLat, maxLng, maxLat] = bbox;
+  const lngDelta = Math.abs(maxLng - minLng);
+  const latDelta = Math.abs(maxLat - minLat);
+  let total = 0;
+  for (let z = minZoom; z <= maxZoom; z++) {
+    const tilesX = Math.max(1, Math.ceil((lngDelta / 360) * 2 ** z));
+    const tilesY = Math.max(1, Math.ceil((latDelta / 180) * 2 ** z));
+    total += tilesX * tilesY;
+  }
+  return total;
+}
 
 export interface OfflinePackMeta {
   tripId: string;
@@ -161,6 +199,14 @@ export async function downloadOfflinePack(params: DownloadParams): Promise<Offli
   const { tripId, bbox, styleURL, onProgress } = params;
   const name = PACK_NAME(tripId);
 
+  const estimated = estimateTileCount(bbox, OFFLINE_MIN_ZOOM, OFFLINE_MAX_ZOOM);
+  if (estimated > MAX_TILES_PER_PACK) {
+    throw new Error(
+      `Offline pack too large (~${estimated.toLocaleString()} tiles). ` +
+        `Try a shorter trip or fewer days — the limit is ${MAX_TILES_PER_PACK.toLocaleString()} tiles.`,
+    );
+  }
+
   // If a pack with that name already exists, wipe it — we want to re-download
   // with the current bbox/style.
   try {
@@ -246,10 +292,14 @@ export async function removeOfflinePack(tripId: string): Promise<void> {
   OFFLINE_STORE.remove(PAYLOAD_KEY(tripId));
 }
 
-/** Build a sensible bbox from a list of lng/lat points with a small padding. */
+/**
+ * Build a sensible bbox from a list of lng/lat points with a small padding.
+ * Default pad is ~2 km (0.02°) — enough to show the first turn off-route
+ * without quadrupling tile count, which 0.05°+ did on long trips.
+ */
 export function bboxFromPoints(
   points: Array<{ lat: number; lng: number }>,
-  paddingDeg = 0.05,
+  paddingDeg = 0.02,
 ): [number, number, number, number] | null {
   if (points.length === 0) return null;
   let minLng = Infinity;

@@ -1,0 +1,3 @@
+mutation SetTripParticipantRole($input: SetParticipantRoleInput!) {
+  setTripParticipantRole(input: $input)
+}

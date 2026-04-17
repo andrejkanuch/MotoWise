@@ -72,18 +72,14 @@ export const FUEL_RANGE_SAFETY_FACTOR = 0.8;
 const REQUIRED_WEIGHT = 2;
 const RECOMMENDED_WEIGHT = 1;
 
-function haversineKm(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-): number {
+function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(b.lat - a.lat);
   const dLng = toRad(b.lng - a.lng);
   const lat1 = toRad(a.lat);
   const lat2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
@@ -232,8 +228,7 @@ export function formatReadinessBrief(params: {
   readiness: ReadinessReport;
 }): string {
   const { tripTitle, startDate, endDate, waypoints, readiness } = params;
-  const dates =
-    startDate && endDate ? `${startDate} → ${endDate}` : startDate || 'Dates TBD';
+  const dates = startDate && endDate ? `${startDate} → ${endDate}` : startDate || 'Dates TBD';
 
   const stopLines = waypoints
     .map((w, i) => `  ${i + 1}. ${w.name}${w.notes ? ` — ${w.notes}` : ''}`)

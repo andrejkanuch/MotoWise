@@ -16,27 +16,24 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Flame, Share2 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Share,
-  Text,
-  View,
-} from 'react-native';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
-  type HeatmapRide,
   buildAnnualRecap,
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
+  type HeatmapRide,
 } from '../../../utils/ride-heatmap';
 
 const PAGE_SIZE = 50;
+// Hard cap so a rider with 10k rides doesn't pound the API on mount.
+// 20 pages × 50/page ≈ most-recent ~1000 rides, which covers the realistic
+// "personal heatmap" ceiling. Rides beyond that show a footer hint.
+const MAX_PAGES = 20;
 
 function formatKm(meters: number): string {
   return `${(meters / 1000).toFixed(meters < 10_000 ? 1 : 0)} km`;
@@ -47,35 +44,40 @@ export default function RideHeatmapScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteQuery({
-      queryKey: ['rides', 'heatmap'] as const,
-      queryFn: ({ pageParam }: { pageParam: string | null }) => {
-        const variables: MyRidesForHeatmapQueryVariables = {
-          first: PAGE_SIZE,
-          after: pageParam,
-        };
-        return gqlFetcher(MyRidesForHeatmapDocument, variables);
-      },
-      initialPageParam: null as string | null,
-      getNextPageParam: (lastPage: MyRidesForHeatmapQuery) =>
-        lastPage.myRides.pageInfo.hasNextPage
-          ? lastPage.myRides.pageInfo.endCursor ?? null
-          : null,
-    });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
+    queryKey: ['rides', 'heatmap'] as const,
+    queryFn: ({ pageParam }: { pageParam: string | null }) => {
+      const variables: MyRidesForHeatmapQueryVariables = {
+        first: PAGE_SIZE,
+        after: pageParam,
+      };
+      return gqlFetcher(MyRidesForHeatmapDocument, variables);
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) =>
+      lastPage.myRides.pageInfo.hasNextPage ? (lastPage.myRides.pageInfo.endCursor ?? null) : null,
+  });
 
-  // Eagerly page until we've pulled everything — rider cohorts with thousands
-  // of rides would need chunked rendering, but for now we optimise for
-  // "personal heatmap <500 rides" which is the realistic ceiling.
-  if (hasNextPage && !isFetchingNextPage) {
-    fetchNextPage();
-  }
+  const pagesLoaded = data?.pages.length ?? 0;
+  const capReached = pagesLoaded >= MAX_PAGES;
+
+  // Eagerly page until MAX_PAGES. Firing from an effect (not render body) keeps
+  // React from queuing a fetch on every re-render — without the cap this was an
+  // unbounded loop for riders with large histories.
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && pagesLoaded < MAX_PAGES) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, pagesLoaded, fetchNextPage]);
 
   const allRides: HeatmapRide[] = useMemo(
     () => (data?.pages ?? []).flatMap((p) => p.myRides.edges.map((e) => e.node)),
     [data?.pages],
   );
 
+  // `allRides` is memoed on `data?.pages`, so its reference only changes when a
+  // new page lands — keeping FeatureCollection identity stable across
+  // same-page re-renders and preserving Mapbox's tile cache between renders.
   const geojson = useMemo(() => buildHeatmapFeatureCollection(allRides), [allRides]);
   const lifetime = useMemo(() => buildLifetimeTotals(allRides), [allRides]);
   const year = new Date().getFullYear();
@@ -89,9 +91,7 @@ export default function RideHeatmapScreen() {
       lines.push(`${recap.countries.length} countries: ${recap.countries.join(', ')}`);
     }
     if (recap.longestRide?.name) {
-      lines.push(
-        `Top ride: ${recap.longestRide.name} — ${formatKm(recap.longestRide.distanceM)}`,
-      );
+      lines.push(`Top ride: ${recap.longestRide.name} — ${formatKm(recap.longestRide.distanceM)}`);
     }
     lines.push('— via MotoWise');
     await Share.share({ message: lines.join('\n') }).catch(() => {});
@@ -192,22 +192,16 @@ export default function RideHeatmapScreen() {
                 }}
               />
               <MapboxGL.ShapeSource id="heatmap-source" shape={geojson as never}>
-                <MapboxGL.LineLayer
-                  id="heatmap-line-glow"
-                  style={{
-                    lineColor: palette.danger500,
-                    lineWidth: 4,
-                    lineOpacity: 0.12,
-                    lineCap: 'round',
-                    lineJoin: 'round',
-                  }}
-                />
+                {/* Single line layer with lineBlur for glow — replaces the
+                    previous stacked wide-faded + narrow-bright pair, halving
+                    the per-feature overdraw on GPU. */}
                 <MapboxGL.LineLayer
                   id="heatmap-line"
                   style={{
                     lineColor: palette.danger500,
-                    lineWidth: 1.5,
-                    lineOpacity: 0.55,
+                    lineWidth: 2,
+                    lineOpacity: 0.7,
+                    lineBlur: 2.5,
                     lineCap: 'round',
                     lineJoin: 'round',
                   }}
@@ -225,7 +219,7 @@ export default function RideHeatmapScreen() {
                 paddingHorizontal: 10,
                 paddingVertical: 6,
                 borderRadius: 999,
-                backgroundColor: 'rgba(0,0,0,0.55)',
+                backgroundColor: palette.surfaceOverlay,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 6,
@@ -236,6 +230,32 @@ export default function RideHeatmapScreen() {
                 Loading rides…
               </Text>
             </Animated.View>
+          )}
+          {capReached && hasNextPage && allRides.length > 0 && (
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 12,
+                left: 12,
+                right: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: palette.surfaceOverlay,
+              }}
+            >
+              <Text
+                style={{
+                  color: palette.white,
+                  fontSize: 11,
+                  fontWeight: '600',
+                  textAlign: 'center',
+                }}
+              >
+                Showing your most recent ~{MAX_PAGES * PAGE_SIZE} rides
+              </Text>
+            </View>
           )}
         </View>
 
@@ -254,17 +274,9 @@ export default function RideHeatmapScreen() {
         >
           <Stat label="Rides" value={String(lifetime.rideCount)} dark={isDark} />
           <Divider color={dividerColor} />
-          <Stat
-            label="Lifetime"
-            value={formatKm(lifetime.totalDistanceM)}
-            dark={isDark}
-          />
+          <Stat label="Lifetime" value={formatKm(lifetime.totalDistanceM)} dark={isDark} />
           <Divider color={dividerColor} />
-          <Stat
-            label="Countries"
-            value={String(lifetime.countries.length)}
-            dark={isDark}
-          />
+          <Stat label="Countries" value={String(lifetime.countries.length)} dark={isDark} />
         </Animated.View>
 
         {/* Annual recap */}
@@ -284,8 +296,8 @@ export default function RideHeatmapScreen() {
           </Text>
           {recap.rideCount === 0 ? (
             <Text style={{ color: bodyColor, fontSize: 14, lineHeight: 20 }}>
-              No rides yet this year. Once you save a few, we'll surface your longest ride
-              and countries ridden here.
+              No rides yet this year. Once you save a few, we'll surface your longest ride and
+              countries ridden here.
             </Text>
           ) : (
             <>
@@ -303,8 +315,8 @@ export default function RideHeatmapScreen() {
               </Text>
               {recap.longestRide?.name && (
                 <Text style={{ color: bodyColor, fontSize: 14, lineHeight: 20 }}>
-                  Top ride: <Text style={{ fontWeight: '700' }}>{recap.longestRide.name}</Text>{' '}
-                  — {formatKm(recap.longestRide.distanceM)}.
+                  Top ride: <Text style={{ fontWeight: '700' }}>{recap.longestRide.name}</Text> —{' '}
+                  {formatKm(recap.longestRide.distanceM)}.
                 </Text>
               )}
               <Pressable
@@ -320,9 +332,7 @@ export default function RideHeatmapScreen() {
                   paddingVertical: 8,
                   paddingHorizontal: 12,
                   borderRadius: 999,
-                  backgroundColor: isDark
-                    ? `${palette.accent500}25`
-                    : 'rgba(45,158,120,0.10)',
+                  backgroundColor: isDark ? `${palette.accent500}25` : palette.accentTintSubtle,
                 }}
               >
                 <Share2 size={14} color={palette.accent500} />

@@ -97,12 +97,7 @@ export const TRIP_SUGGESTION_STATUS = {
   WITHDRAWN: 'withdrawn',
 } as const;
 
-export const TripSuggestionStatusSchema = z.enum([
-  'pending',
-  'accepted',
-  'rejected',
-  'withdrawn',
-]);
+export const TripSuggestionStatusSchema = z.enum(['pending', 'accepted', 'rejected', 'withdrawn']);
 export type TripSuggestionStatus = z.infer<typeof TripSuggestionStatusSchema>;
 
 // --- Trip Suggestion Decision ---

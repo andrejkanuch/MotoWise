@@ -27,6 +27,11 @@ interface HorizontalRouteSectionProps {
   filter: DiscoverRoutesFilterInput;
   first?: number;
   staleTime?: number;
+  /** When false, the underlying GraphQL query is not fired. Used by Discover
+   * to stagger cold-start fanout — the main list fires immediately, carousels
+   * unlock over the next few frames so we don't flood the API with 6+
+   * parallel RTTs on mount. */
+  enabled?: boolean;
   onRoutePress: (routeId: string) => void;
 }
 
@@ -38,6 +43,7 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
   filter,
   first = 10,
   staleTime = 10 * 60 * 1000,
+  enabled = true,
   onRoutePress,
 }: HorizontalRouteSectionProps) {
   const isDark = useColorScheme() === 'dark';
@@ -54,6 +60,7 @@ export const HorizontalRouteSection = memo(function HorizontalRouteSection({
         after: null,
       }),
     staleTime,
+    enabled,
   });
 
   const routes = useMemo(() => {

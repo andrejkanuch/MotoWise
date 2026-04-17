@@ -45,11 +45,22 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
 import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
+import { OfflinePackButton } from '../../components/trip/offline-pack-button';
+import { ReadinessRing } from '../../components/trip/readiness-ring';
+import { useRolePicker } from '../../components/trip/role-picker-sheet';
+import { SuggestionsSection } from '../../components/trip/suggestions-section';
+import { TripAssistantFAB } from '../../components/trip/trip-assistant-fab';
+import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
+import { useOfflineTrip } from '../../hooks/use-offline-trip';
+import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useRideThis } from '../../hooks/use-ride-this';
+import { useTripAssistant } from '../../hooks/use-trip-assistant';
+import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { cacheTripPayload } from '../../lib/offline-trips';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { MAP_STYLES } from '../../utils/map-styles';
@@ -57,16 +68,6 @@ import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
-import { ReadinessRing } from '../../components/trip/readiness-ring';
-import { OfflinePackButton } from '../../components/trip/offline-pack-button';
-import { TripAssistantFAB } from '../../components/trip/trip-assistant-fab';
-import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
-import { useTripAssistant } from '../../hooks/use-trip-assistant';
-import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
-import { SuggestionsSection } from '../../components/trip/suggestions-section';
-import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
-import { useOfflineTrip } from '../../hooks/use-offline-trip';
-import { cacheTripPayload } from '../../lib/offline-trips';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -325,6 +326,7 @@ export default function TripDetailScreen() {
   const canDecideSuggestions = isOrganiser || isCoPlanner;
 
   const tripSuggestions = useTripSuggestions(tripId);
+  const { showRolePicker } = useRolePicker({ tripId });
 
   const difficultyKey = (
     trip?.difficulty ?? 'easy'
@@ -986,6 +988,16 @@ ${rteptElements}
                       <Pressable
                         key={p.id}
                         onPress={() => p.publicUsername && handleProfilePress(p.publicUsername)}
+                        onLongPress={
+                          isOrganiser
+                            ? () =>
+                                showRolePicker({
+                                  id: p.id,
+                                  displayName: p.displayName,
+                                  role: p.role,
+                                })
+                            : undefined
+                        }
                         style={{ alignItems: 'center', gap: 4, width: 56 }}
                       >
                         <View>
@@ -1030,6 +1042,18 @@ ${rteptElements}
                         >
                           {p.displayName}
                         </Text>
+                        {p.role === 'co_planner' && (
+                          <Text
+                            style={{
+                              fontSize: 8,
+                              fontWeight: '700',
+                              color: palette.accent500,
+                              textAlign: 'center',
+                            }}
+                          >
+                            Co-planner
+                          </Text>
+                        )}
                       </Pressable>
                     );
                   })}
@@ -1044,7 +1068,7 @@ ${rteptElements}
               canDecide={canDecideSuggestions}
               currentUserId={userId ?? undefined}
               onRespond={tripSuggestions.respond}
-              isResponding={tripSuggestions.isResponding}
+              respondingIds={tripSuggestions.respondingIds}
             />
 
             {/* Action buttons */}

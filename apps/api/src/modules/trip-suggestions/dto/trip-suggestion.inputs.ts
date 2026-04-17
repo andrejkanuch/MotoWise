@@ -1,8 +1,4 @@
-import type {
-  ParticipantRole,
-  TripSuggestionDecision,
-  TripSuggestionKind,
-} from '@motovault/types';
+import type { ParticipantRole, TripSuggestionDecision, TripSuggestionKind } from '@motovault/types';
 import { Field, Float, ID, InputType, Int } from '@nestjs/graphql';
 import {
   ParticipantRoleEnum,

@@ -1,8 +1,8 @@
 import { palette } from '@motovault/design-system';
+import * as Haptics from 'expo-haptics';
 import { Sparkles } from 'lucide-react-native';
 import { Platform, Pressable, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
 
 interface TripAssistantFABProps {
   onPress: () => void;

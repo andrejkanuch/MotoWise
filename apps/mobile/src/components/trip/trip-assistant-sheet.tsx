@@ -48,12 +48,6 @@ export function TripAssistantSheet({
     }
   }, [visible]);
 
-  useEffect(() => {
-    // Keep latest message visible as soon as it streams in.
-    const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
-    return () => clearTimeout(t);
-  }, []);
-
   if (!visible) return null;
 
   const bg = isDark ? palette.neutral950 : palette.white;

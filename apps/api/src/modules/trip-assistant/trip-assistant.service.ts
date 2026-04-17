@@ -164,14 +164,12 @@ export class TripAssistantService {
     return (data ?? null) as BikeRow | null;
   }
 
-  private buildSystemPrompt(
-    trip: TripRow,
-    waypoints: WaypointRow[],
-    bike: BikeRow | null,
-  ): string {
+  private buildSystemPrompt(trip: TripRow, waypoints: WaypointRow[], bike: BikeRow | null): string {
     const bikeLine = bike
       ? `${bike.year ?? ''} ${bike.make ?? ''} ${bike.model ?? ''}${bike.engine_cc ? ` ${bike.engine_cc}cc` : ''}${bike.type ? ` (${bike.type})` : ''}${
-          bike.current_mileage ? `, odometer ${bike.current_mileage} ${bike.mileage_unit ?? 'km'}` : ''
+          bike.current_mileage
+            ? `, odometer ${bike.current_mileage} ${bike.mileage_unit ?? 'km'}`
+            : ''
         }`.trim()
       : 'No primary bike on file';
 
@@ -207,9 +205,7 @@ export class TripAssistantService {
       }
     }
 
-    const itinerary = waypointBlocks.length
-      ? waypointBlocks.join('\n\n')
-      : '(no waypoints yet)';
+    const itinerary = waypointBlocks.length ? waypointBlocks.join('\n\n') : '(no waypoints yet)';
 
     const tripTitle = sanitizeForPrompt(trip.title, 120) || 'Untitled trip';
     const tripStatus = sanitizeForPrompt(trip.status, 32);

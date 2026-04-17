@@ -6,8 +6,8 @@
  * (accent once the rider has ≥75%, amber in the middle, neutral below that).
  */
 import { palette } from '@motovault/design-system';
-import Svg, { Circle } from 'react-native-svg';
 import { Text, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 
 interface CompletenessRingProps {
   percent: number;
@@ -30,11 +30,7 @@ export function CompletenessRing({
   const offset = circumference * (1 - clamped / 100);
 
   const color =
-    clamped >= 75
-      ? palette.success500
-      : clamped >= 50
-        ? palette.warning500
-        : palette.neutral400;
+    clamped >= 75 ? palette.success500 : clamped >= 50 ? palette.warning500 : palette.neutral400;
 
   const trackColor = dark ? palette.neutral700 : palette.neutral200;
   const labelColor = dark ? palette.neutral50 : palette.neutral950;
