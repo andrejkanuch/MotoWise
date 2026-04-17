@@ -30,9 +30,11 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '../../../components/ui/avatar';
+import { CompletenessRing } from '../../../components/trip/completeness-ring';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact } from '../../../utils/haptics';
+import { computeTripCompleteness } from '../../../utils/trip-completeness';
 
 const PAGE_SIZE = 20;
 
@@ -115,6 +117,15 @@ function MyTripCard({
   const maxRiders = Math.max(1, trip.maxRiders ?? 1);
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
 
+  // P4.2 — nudge the rider to finish drafts; hide ring when fully planned.
+  const completeness = computeTripCompleteness({
+    description: trip.description,
+    waypointCount: stopCount,
+    dayCount: days,
+    participantCount,
+    maxRiders,
+  });
+
   return (
     <Animated.View entering={FadeInUp.delay(Math.min(index * 50, 300)).duration(250)}>
       <Pressable
@@ -178,6 +189,12 @@ function MyTripCard({
           )}
 
           <View style={{ flex: 1 }} />
+
+          {/* Planning-completeness ring — shown on anything less than fully
+              planned so drafts stand out without a scolding progress bar. */}
+          {completeness.percent < 100 && (
+            <CompletenessRing percent={completeness.percent} dark={isDark} size={26} stroke={2.5} />
+          )}
 
           <View
             style={{

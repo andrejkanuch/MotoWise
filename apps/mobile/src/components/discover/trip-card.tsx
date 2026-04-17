@@ -9,6 +9,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { computeTripCompleteness } from '../../utils/trip-completeness';
+import { CompletenessRing } from '../trip/completeness-ring';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -98,6 +100,15 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
   const maxRiders = Math.max(1, trip.maxRiders ?? 1);
   const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
 
+  // P4.2 — planning-completeness ring, lives in the badge row as a passive nudge.
+  const completeness = computeTripCompleteness({
+    description: trip.description,
+    waypointCount: stopCount,
+    dayCount: days,
+    participantCount,
+    maxRiders,
+  });
+
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const handlePressIn = () => {
@@ -160,6 +171,12 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
           </View>
 
           <View style={{ flex: 1 }} />
+
+          {/* Planning-completeness ring — hidden at 100% so completed trips
+              feel done instead of cluttered with a flat 100 badge. */}
+          {completeness.percent < 100 && (
+            <CompletenessRing percent={completeness.percent} dark={isDark} size={26} stroke={2.5} />
+          )}
 
           <View
             style={{
