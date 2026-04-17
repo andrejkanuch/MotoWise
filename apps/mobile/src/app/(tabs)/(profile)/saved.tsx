@@ -127,7 +127,7 @@ function SavedRouteCard({
             <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
           )}
 
-          {route.ratingAvg != null && route.ratingCount > 0 && (
+          {route.ratingAvg != null && (route.ratingCount ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Star size={12} color={palette.warning500} fill={palette.warning500} />
               <Text
@@ -146,10 +146,12 @@ function SavedRouteCard({
         </View>
 
         {/* Contributor */}
-        <Text style={{ fontSize: 12, color: subtitleColor }}>
-          by {route.contributor.displayName}
-          {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
-        </Text>
+        {route.contributor && (
+          <Text style={{ fontSize: 12, color: subtitleColor }}>
+            by {route.contributor.displayName}
+            {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+          </Text>
+        )}
       </Pressable>
     </Animated.View>
   );

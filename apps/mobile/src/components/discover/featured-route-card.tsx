@@ -74,7 +74,7 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
         </Text>
 
         {/* Editorial description or fallback */}
-        {(route.editorialDescription || route.contributor.displayName) && (
+        {(route.editorialDescription || route.contributor?.displayName) && (
           <Text
             numberOfLines={2}
             style={{
@@ -84,7 +84,7 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
             }}
           >
             {route.editorialDescription ??
-              `Contributed by ${route.contributor.displayName ?? 'a rider'}`}
+              `Contributed by ${route.contributor?.displayName ?? 'a rider'}`}
           </Text>
         )}
 
@@ -120,7 +120,7 @@ export const FeaturedRouteCard = memo(function FeaturedRouteCard({
             </View>
           )}
 
-          {route.ratingAvg != null && route.ratingCount > 0 && (
+          {route.ratingAvg != null && (route.ratingCount ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Star size={13} color={palette.warning500} fill={palette.warning500} />
               <Text

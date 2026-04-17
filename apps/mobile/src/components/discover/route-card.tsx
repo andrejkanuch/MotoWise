@@ -161,7 +161,7 @@ export const RouteCard = memo(function RouteCard({
               <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
             )}
 
-            {route.ratingAvg != null && route.ratingCount > 0 && (
+            {route.ratingAvg != null && (route.ratingCount ?? 0) > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <Star size={12} color={palette.warning500} fill={palette.warning500} />
                 <Text
@@ -178,7 +178,7 @@ export const RouteCard = memo(function RouteCard({
               </View>
             )}
 
-            {route.commentCount > 0 && (
+            {(route.commentCount ?? 0) > 0 && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <MessageCircle size={12} color={subtitleColor} />
                 <Text style={{ fontSize: 12, color: subtitleColor }}>{route.commentCount}</Text>
@@ -213,10 +213,12 @@ export const RouteCard = memo(function RouteCard({
           </View>
 
           {/* Contributor */}
-          <Text style={{ fontSize: 12, color: subtitleColor }}>
-            {route.contributor.displayName}
-            {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
-          </Text>
+          {route.contributor && (
+            <Text style={{ fontSize: 12, color: subtitleColor }}>
+              {route.contributor.displayName}
+              {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+            </Text>
+          )}
         </Pressable>
       </Animated.View>
     );
@@ -290,7 +292,7 @@ export const RouteCard = memo(function RouteCard({
             <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
           )}
 
-          {route.ratingAvg != null && route.ratingCount > 0 && (
+          {route.ratingAvg != null && (route.ratingCount ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Star size={12} color={palette.warning500} fill={palette.warning500} />
               <Text
@@ -307,7 +309,7 @@ export const RouteCard = memo(function RouteCard({
             </View>
           )}
 
-          {route.commentCount > 0 && (
+          {(route.commentCount ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <MessageCircle size={12} color={subtitleColor} />
               <Text style={{ fontSize: 12, color: subtitleColor }}>{route.commentCount}</Text>
@@ -342,10 +344,12 @@ export const RouteCard = memo(function RouteCard({
         </View>
 
         {/* Contributor */}
-        <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 8 }}>
-          {route.contributor.displayName}
-          {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
-        </Text>
+        {route.contributor && (
+          <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 8 }}>
+            {route.contributor.displayName}
+            {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+          </Text>
+        )}
       </Pressable>
     </Animated.View>
   );
