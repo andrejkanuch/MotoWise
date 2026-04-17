@@ -15,6 +15,8 @@ export interface NavWaypoint {
   lat: number;
   lng: number;
   name?: string | null;
+  /** Multi-day trips: 0-indexed day number. Absent or 0 for single-day routes. */
+  dayIndex?: number;
 }
 
 /** Apple Maps allows chaining destinations via `+to:` starting from iOS 16. */

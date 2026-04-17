@@ -1,4 +1,5 @@
 import { palette } from '@motovault/design-system';
+import * as Haptics from 'expo-haptics';
 import {
   ArrowRight,
   ChevronRight,
@@ -14,11 +15,18 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   useColorScheme,
   View,
 } from 'react-native';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavProvider, RideThisProviderState } from '../hooks/use-ride-this';
 
@@ -34,6 +42,11 @@ interface RideThisSheetProps {
   onProvider: (provider: NavProvider) => void;
   onAdvance: () => void;
   gpxExporting?: boolean;
+  /** Currently filtered day, or null when the rider wants every day in one handoff. */
+  selectedDay?: number | null;
+  onSelectDay?: (day: number | null) => void;
+  /** Sorted day indices present in the waypoint set. A single-day trip omits the pills. */
+  availableDays?: number[];
 }
 
 const PROVIDER_ORDER: NavProvider[] = ['apple', 'google', 'waze', 'gpx'];
@@ -52,6 +65,149 @@ const ICONS: Record<NavProvider, typeof MapIcon> = {
   gpx: FileDown,
 };
 
+function DayPill({
+  label,
+  selected,
+  onPress,
+  pillBg,
+  textColor,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  pillBg: string;
+  textColor: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      style={{
+        height: 44,
+        paddingHorizontal: 18,
+        borderRadius: 22,
+        borderCurve: 'continuous',
+        backgroundColor: selected ? palette.accent500 : pillBg,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: '700',
+          letterSpacing: -0.1,
+          color: selected ? palette.white : textColor,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ProviderRow({
+  label,
+  subtitle,
+  Icon,
+  disabled,
+  showSpinner,
+  onPress,
+  rowBg,
+  iconBg,
+  titleColor,
+  bodyColor,
+  mutedColor,
+}: {
+  label: string;
+  subtitle: string;
+  Icon: typeof MapIcon;
+  disabled: boolean;
+  showSpinner: boolean;
+  onPress: () => void;
+  rowBg: string;
+  iconBg: string;
+  titleColor: string;
+  bodyColor: string;
+  mutedColor: string;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withSpring(0.97, { damping: 18, stiffness: 320 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 18, stiffness: 320 });
+        }}
+        disabled={disabled || showSpinner}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}. ${subtitle}`}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 14,
+          padding: 16,
+          marginBottom: 10,
+          borderRadius: 16,
+          borderCurve: 'continuous',
+          backgroundColor: rowBg,
+          opacity: disabled ? 0.45 : 1,
+        }}
+      >
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            borderCurve: 'continuous',
+            backgroundColor: iconBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {showSpinner ? (
+            <ActivityIndicator size="small" color={palette.accent500} />
+          ) : (
+            <Icon size={20} color={disabled ? mutedColor : palette.accent500} />
+          )}
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: titleColor,
+              letterSpacing: -0.2,
+              marginBottom: 2,
+            }}
+          >
+            {label}
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              color: bodyColor,
+              lineHeight: 18,
+            }}
+          >
+            {subtitle}
+          </Text>
+        </View>
+        <ChevronRight size={18} color={mutedColor} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 export function RideThisSheet({
   visible,
   onClose,
@@ -60,6 +216,9 @@ export function RideThisSheet({
   onProvider,
   onAdvance,
   gpxExporting,
+  selectedDay = null,
+  onSelectDay,
+  availableDays = [],
 }: RideThisSheetProps) {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
@@ -71,6 +230,22 @@ export function RideThisSheet({
   const dividerColor = isDark ? palette.neutral800 : palette.neutral200;
   const rowBg = isDark ? palette.neutral900 : palette.neutral50;
   const closeBg = isDark ? palette.neutral800 : palette.neutral100;
+  const pillBg = isDark ? palette.surfaceSubtle : palette.neutral100;
+  const pillTextColor = isDark ? palette.white : palette.neutral950;
+
+  const showDayPills = availableDays.length > 1;
+
+  const handleSelectDay = (day: number | null) => {
+    if (process.env.EXPO_OS === 'ios') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onSelectDay?.(day);
+  };
+
+  const bodyText =
+    selectedDay !== null
+      ? `Hand off Day ${selectedDay + 1} stops to your nav app.`
+      : 'Hand the route off to the app you ride with.';
 
   const visibleProviders = useMemo(
     () => PROVIDER_ORDER.filter((p) => (p === 'apple' ? Platform.OS === 'ios' : true)),
@@ -114,16 +289,16 @@ export function RideThisSheet({
             accessibilityRole="button"
             accessibilityLabel="Close"
             style={{
-              width: 34,
-              height: 34,
-              borderRadius: 17,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
               borderCurve: 'continuous',
               backgroundColor: closeBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <X size={18} color={titleColor} />
+            <X size={20} color={titleColor} />
           </Pressable>
         </View>
 
@@ -202,11 +377,38 @@ export function RideThisSheet({
               fontSize: 13,
               color: bodyColor,
               lineHeight: 19,
-              marginBottom: 16,
+              marginBottom: showDayPills ? 12 : 16,
             }}
           >
-            Hand the route off to the app you ride with.
+            {bodyText}
           </Text>
+
+          {showDayPills && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingVertical: 4, paddingRight: 20 }}
+              style={{ marginHorizontal: -20, paddingHorizontal: 20, marginBottom: 16 }}
+            >
+              <DayPill
+                label="All days"
+                selected={selectedDay === null}
+                onPress={() => handleSelectDay(null)}
+                pillBg={pillBg}
+                textColor={pillTextColor}
+              />
+              {availableDays.map((day) => (
+                <DayPill
+                  key={day}
+                  label={`Day ${day + 1}`}
+                  selected={selectedDay === day}
+                  onPress={() => handleSelectDay(day)}
+                  pillBg={pillBg}
+                  textColor={pillTextColor}
+                />
+              ))}
+            </ScrollView>
+          )}
 
           {visibleProviders.map((provider, i) => {
             const state = providers[provider];
@@ -217,64 +419,19 @@ export function RideThisSheet({
 
             return (
               <Animated.View key={provider} entering={FadeInUp.delay(i * 40).duration(220)}>
-                <Pressable
+                <ProviderRow
+                  label={LABELS[provider]}
+                  subtitle={state.subtitle}
+                  Icon={Icon}
+                  disabled={disabled}
+                  showSpinner={!!showSpinner}
                   onPress={() => !showSpinner && onProvider(provider)}
-                  disabled={disabled || showSpinner}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${LABELS[provider]}. ${state.subtitle}`}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: 16,
-                    marginBottom: 10,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    backgroundColor: rowBg,
-                    opacity: disabled ? 0.45 : 1,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.neutral800 : palette.white,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {showSpinner ? (
-                      <ActivityIndicator size="small" color={palette.accent500} />
-                    ) : (
-                      <Icon size={20} color={disabled ? mutedColor : palette.accent500} />
-                    )}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: titleColor,
-                        letterSpacing: -0.2,
-                        marginBottom: 2,
-                      }}
-                    >
-                      {LABELS[provider]}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: bodyColor,
-                        lineHeight: 18,
-                      }}
-                    >
-                      {state.subtitle}
-                    </Text>
-                  </View>
-                  <ChevronRight size={18} color={mutedColor} />
-                </Pressable>
+                  rowBg={rowBg}
+                  iconBg={isDark ? palette.neutral800 : palette.white}
+                  titleColor={titleColor}
+                  bodyColor={bodyColor}
+                  mutedColor={mutedColor}
+                />
               </Animated.View>
             );
           })}
@@ -312,6 +469,10 @@ export function RideThisStickyCta({
   disabled?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <View
@@ -324,41 +485,54 @@ export function RideThisStickyCta({
       }}
       pointerEvents="box-none"
     >
-      <Pressable
-        onPress={onPress}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityLabel={`Ride this${subtitle ? `. ${subtitle}` : ''}`}
-        style={{
-          backgroundColor: disabled ? palette.neutral500 : palette.accent500,
-          paddingVertical: 16,
-          paddingHorizontal: 20,
-          borderRadius: 16,
-          borderCurve: 'continuous',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          shadowColor: palette.black,
-          shadowOpacity: 0.22,
-          shadowRadius: 16,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 6,
-          opacity: disabled ? 0.7 : 1,
-        }}
-      >
-        <Navigation size={18} color={palette.white} />
-        <Text
+      <Animated.View style={animatedStyle}>
+        <Pressable
+          onPress={() => {
+            if (process.env.EXPO_OS === 'ios') {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            }
+            onPress();
+          }}
+          onPressIn={() => {
+            scale.value = withSpring(0.96, { damping: 15, stiffness: 400 });
+          }}
+          onPressOut={() => {
+            scale.value = withSpring(1, { damping: 12, stiffness: 300 });
+          }}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={`Ride this${subtitle ? `. ${subtitle}` : ''}`}
           style={{
-            color: palette.white,
-            fontSize: 16,
-            fontWeight: '700',
-            letterSpacing: 0.2,
+            backgroundColor: disabled ? palette.neutral500 : palette.accent500,
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            borderRadius: 16,
+            borderCurve: 'continuous',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            shadowColor: palette.black,
+            shadowOpacity: 0.22,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 6,
+            opacity: disabled ? 0.7 : 1,
           }}
         >
-          Ride this
-        </Text>
-      </Pressable>
+          <Navigation size={18} color={palette.white} />
+          <Text
+            style={{
+              color: palette.white,
+              fontSize: 16,
+              fontWeight: '700',
+              letterSpacing: 0.2,
+            }}
+          >
+            Ride this
+          </Text>
+        </Pressable>
+      </Animated.View>
       {subtitle && (
         <Text
           style={{

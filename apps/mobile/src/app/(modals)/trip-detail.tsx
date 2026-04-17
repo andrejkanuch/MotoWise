@@ -16,7 +16,6 @@ import {
   ArrowLeft,
   Calendar,
   CheckCircle,
-  ChevronDown,
   ChevronUp,
   EyeOff,
   Globe,
@@ -26,6 +25,7 @@ import {
   Pencil,
   Plus,
   Share2,
+  Sparkles,
   User,
   Users,
   XCircle,
@@ -42,7 +42,14 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
 import { RideThisSheet, RideThisStickyCta } from '../../components/ride-this-sheet';
@@ -50,7 +57,6 @@ import { OfflinePackButton } from '../../components/trip/offline-pack-button';
 import { ReadinessRing } from '../../components/trip/readiness-ring';
 import { useRolePicker } from '../../components/trip/role-picker-sheet';
 import { SuggestionsSection } from '../../components/trip/suggestions-section';
-import { TripAssistantFAB } from '../../components/trip/trip-assistant-fab';
 import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
@@ -110,6 +116,21 @@ function formatDateRange(start: string, end: string): string {
   const e = new Date(end);
   const opts: Intl.DateTimeFormatOptions = { month: 'long', day: 'numeric', year: 'numeric' };
   return `${s.toLocaleDateString('en-US', opts)} \u2013 ${e.toLocaleDateString('en-US', opts)}`;
+}
+
+function AnimatedChevron({ collapsed, color }: { collapsed: boolean; color: string }) {
+  const rotation = useSharedValue(collapsed ? 180 : 0);
+  useEffect(() => {
+    rotation.value = withTiming(collapsed ? 180 : 0, { duration: 200 });
+  }, [collapsed, rotation]);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+  return (
+    <Animated.View style={style}>
+      <ChevronUp size={16} color={color} />
+    </Animated.View>
+  );
 }
 
 export default function TripDetailScreen() {
@@ -442,6 +463,7 @@ ${rteptElements}
         lat: w.lat,
         lng: w.lng,
         name: w.name,
+        dayIndex: w.dayIndex ?? 0,
       })),
     [waypoints],
   );
@@ -462,17 +484,18 @@ ${rteptElements}
 
   if (isLoading || !trip) {
     return (
-      <View
+      <Animated.View
+        exiting={FadeOut.duration(180)}
         style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
       >
         <ActivityIndicator size="large" color={palette.accent500} />
-      </View>
+      </Animated.View>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={{ flex: 1, backgroundColor: bg }}>
+      <Animated.View entering={FadeIn.duration(280)} style={{ flex: 1, backgroundColor: bg }}>
         {/* Map */}
         <MapboxGL.MapView
           style={{ flex: 1 }}
@@ -521,14 +544,19 @@ ${rteptElements}
                     })
                   }
                   style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: 8,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
                     backgroundColor: wt.color,
-                    borderWidth: 2,
+                    borderWidth: 2.5,
                     borderColor: palette.white,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  <wt.Icon size={14} color={palette.white} />
+                </Pressable>
               </MapboxGL.MarkerView>
             );
           })}
@@ -547,9 +575,9 @@ ${rteptElements}
           <Pressable
             onPress={() => router.back()}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
               borderCurve: 'continuous',
               backgroundColor: palette.neutral950,
               alignItems: 'center',
@@ -569,6 +597,27 @@ ${rteptElements}
             gap: 8,
           }}
         >
+          <Pressable
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios')
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setAssistantOpen(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Ask trip assistant"
+            accessibilityHint="Opens an AI chat scoped to this trip"
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              borderCurve: 'continuous',
+              backgroundColor: palette.signature500,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Sparkles size={20} color={palette.white} />
+          </Pressable>
           {isOrganiser && (
             <Pressable
               onPress={() =>
@@ -578,9 +627,9 @@ ${rteptElements}
                 } as never)
               }
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: 48,
+                height: 48,
+                borderRadius: 24,
                 borderCurve: 'continuous',
                 backgroundColor: palette.neutral950,
                 alignItems: 'center',
@@ -594,9 +643,9 @@ ${rteptElements}
             <Pressable
               onPress={handleOpenShareSheet}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: 48,
+                height: 48,
+                borderRadius: 24,
                 borderCurve: 'continuous',
                 backgroundColor: palette.neutral950,
                 alignItems: 'center',
@@ -626,7 +675,8 @@ ${rteptElements}
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           >
             {/* Title */}
-            <Text
+            <Animated.Text
+              entering={FadeInUp.duration(220)}
               style={{
                 fontSize: 24,
                 fontWeight: '800',
@@ -636,10 +686,11 @@ ${rteptElements}
               }}
             >
               {trip.title}
-            </Text>
+            </Animated.Text>
 
             {/* Badge row — difficulty + visibility */}
-            <View
+            <Animated.View
+              entering={FadeInUp.delay(40).duration(220)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -657,7 +708,7 @@ ${rteptElements}
                   borderCurve: 'continuous',
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: difficultyStyle.text }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: difficultyStyle.text }}>
                   {difficultyLabel}
                 </Text>
               </View>
@@ -682,7 +733,7 @@ ${rteptElements}
                 )}
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '700',
                     color:
                       trip.visibility === 'public'
@@ -699,10 +750,11 @@ ${rteptElements}
                       : 'Private'}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Stats bar — the at-a-glance decision data */}
-            <View
+            <Animated.View
+              entering={FadeInUp.delay(80).duration(220)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -726,7 +778,7 @@ ${rteptElements}
                 >
                   {tripDays}
                 </Text>
-                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
                   {tripDays === 1 ? 'day' : 'days'}
                 </Text>
               </View>
@@ -748,7 +800,7 @@ ${rteptElements}
                 >
                   {waypoints.length}
                 </Text>
-                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
                   {waypoints.length === 1 ? 'stop' : 'stops'}
                 </Text>
               </View>
@@ -771,14 +823,15 @@ ${rteptElements}
                   {trip.participantCount}
                   <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
                 </Text>
-                <Text style={{ fontSize: 11, color: subtitleColor, fontWeight: '600' }}>
+                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
                   riders
                 </Text>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Date + organiser compact row */}
-            <View
+            <Animated.View
+              entering={FadeInUp.delay(120).duration(220)}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -799,7 +852,7 @@ ${rteptElements}
                   Led by {trip.organiser.displayName}
                 </Text>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Description — now below the decision-relevant data */}
             {trip.description && (
@@ -834,7 +887,7 @@ ${rteptElements}
               >
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '600',
                     color: sectionLabelColor,
                     marginBottom: 4,
@@ -844,7 +897,6 @@ ${rteptElements}
                 </Text>
                 {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
                   const isCollapsed = !!collapsedDays[dayIndex];
-                  const DayChevron = isCollapsed ? ChevronDown : ChevronUp;
                   return (
                     <Animated.View
                       key={dayIndex}
@@ -870,10 +922,10 @@ ${rteptElements}
                           {formatDayDate(dayIndex)}
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
+                          <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
                             {dayWaypoints.length} {dayWaypoints.length === 1 ? 'stop' : 'stops'}
                           </Text>
-                          <DayChevron size={16} color={subtitleColor} />
+                          <AnimatedChevron collapsed={isCollapsed} color={subtitleColor} />
                         </View>
                       </Pressable>
 
@@ -884,7 +936,7 @@ ${rteptElements}
                             {group.period && (
                               <Text
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   fontWeight: '700',
                                   color: subtitleColor,
                                   letterSpacing: 0.6,
@@ -937,7 +989,7 @@ ${rteptElements}
                                     {wp.notes ? (
                                       <Text
                                         style={{
-                                          fontSize: 12,
+                                          fontSize: 13,
                                           color: subtitleColor,
                                           marginTop: 2,
                                         }}
@@ -968,7 +1020,7 @@ ${rteptElements}
               >
                 <Text
                   style={{
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: '600',
                     color: sectionLabelColor,
                     marginBottom: 8,
@@ -994,7 +1046,7 @@ ${rteptElements}
                                 })
                             : undefined
                         }
-                        style={{ alignItems: 'center', gap: 4, width: 56 }}
+                        style={{ alignItems: 'center', gap: 4, width: 64 }}
                       >
                         <View>
                           {p.avatarUrl ? (
@@ -1033,7 +1085,7 @@ ${rteptElements}
                           </View>
                         </View>
                         <Text
-                          style={{ fontSize: 10, color: subtitleColor, textAlign: 'center' }}
+                          style={{ fontSize: 13, color: subtitleColor, textAlign: 'center' }}
                           numberOfLines={1}
                         >
                           {p.displayName}
@@ -1041,7 +1093,7 @@ ${rteptElements}
                         {p.role === 'co_planner' && (
                           <Text
                             style={{
-                              fontSize: 8,
+                              fontSize: 11,
                               fontWeight: '700',
                               color: palette.accent500,
                               textAlign: 'center',
@@ -1209,11 +1261,7 @@ ${rteptElements}
           <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
         )}
 
-        {/* Trip-context AI assistant — floating above the sticky CTA. */}
-        <TripAssistantFAB
-          onPress={() => setAssistantOpen(true)}
-          bottomOffset={navWaypoints.length >= 2 ? 96 : 24}
-        />
+        {/* Trip-context AI assistant sheet — triggered from the top-right AI button. */}
         <TripAssistantSheet
           visible={assistantOpen}
           onClose={() => setAssistantOpen(false)}
@@ -1230,8 +1278,11 @@ ${rteptElements}
           activeSegment={rideThis.activeSegment}
           onProvider={rideThis.triggerProvider}
           onAdvance={rideThis.advanceSegment}
+          selectedDay={rideThis.selectedDay}
+          onSelectDay={rideThis.setSelectedDay}
+          availableDays={rideThis.availableDays}
         />
-      </View>
+      </Animated.View>
     </GestureHandlerRootView>
   );
 }
