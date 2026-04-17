@@ -140,8 +140,10 @@ export default function CreateTripScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const params = useLocalSearchParams<{ tripId?: string }>();
+  const params = useLocalSearchParams<{ tripId?: string; cloneFromTripId?: string }>();
   const isEditMode = !!params.tripId;
+  const isCloneMode = !!params.cloneFromTripId && !params.tripId;
+  const sourceTripId = params.tripId ?? params.cloneFromTripId;
   const sheetRef = useRef<BottomSheet>(null);
   const cameraRef = useRef<MapboxGL.Camera>(null);
 
@@ -152,11 +154,11 @@ export default function CreateTripScreen() {
     transform: [{ rotate: `${chevronRotation.value}deg` }],
   }));
 
-  // Fetch existing trip data when in edit mode
+  // Fetch existing trip data when in edit OR clone mode
   const tripQuery = useQuery({
-    queryKey: ['trip-edit', params.tripId],
-    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: params.tripId ?? '' }),
-    enabled: isEditMode,
+    queryKey: ['trip-edit', sourceTripId],
+    queryFn: () => gqlFetcher(TripDetailDocument, { tripId: sourceTripId ?? '' }),
+    enabled: !!sourceTripId,
   });
 
   // Theme colors
@@ -228,23 +230,32 @@ export default function CreateTripScreen() {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  // Pre-populate state from fetched trip in edit mode
+  // Pre-populate state from fetched trip in edit OR clone mode.
+  // Clone mode rehydrates the shape of another trip (waypoints, description,
+  // difficulty) but leaves the title obvious ("Copy of …") and strips IDs so
+  // we insert a brand-new trip on save.
   const [editDataLoaded, setEditDataLoaded] = useState(false);
   useEffect(() => {
-    if (!isEditMode || editDataLoaded || !tripQuery.data) return;
+    if (editDataLoaded || !tripQuery.data) return;
+    if (!isEditMode && !isCloneMode) return;
     const trip = tripQuery.data.tripDetail;
-    setTitle(trip.title);
+    setTitle(isCloneMode ? `Copy of ${trip.title}` : trip.title);
     setDescription(trip.description);
     setDifficulty(trip.difficulty as Difficulty);
     setMaxRiders(String(trip.maxRiders));
-    setStartDate(new Date(`${trip.startDate}T09:00:00`));
-    setEndDate(new Date(`${trip.endDate}T18:00:00`));
+    if (isEditMode) {
+      setStartDate(new Date(`${trip.startDate}T09:00:00`));
+      setEndDate(new Date(`${trip.endDate}T18:00:00`));
+    }
     if (trip.visibility) {
-      setVisibility(trip.visibility as Visibility);
+      // A cloned trip starts private — user opts back into public explicitly.
+      setVisibility(isCloneMode ? 'private' : (trip.visibility as Visibility));
     }
     if (trip.waypoints) {
       const mapped: LocalWaypoint[] = trip.waypoints.map((wp) => ({
-        id: wp.id,
+        // Clone mode: swap in local temp IDs so the upsert treats these as
+        // net-new rows on save instead of trying to update the source trip.
+        id: isCloneMode ? tempId() : wp.id,
         type: wp.type,
         name: wp.name,
         lat: wp.lat,
@@ -258,7 +269,7 @@ export default function CreateTripScreen() {
       setWaypoints(mapped);
     }
     setEditDataLoaded(true);
-  }, [isEditMode, editDataLoaded, tripQuery.data]);
+  }, [isEditMode, isCloneMode, editDataLoaded, tripQuery.data]);
 
   // Edit stop modal state
   const [editingWaypoint, setEditingWaypoint] = useState<LocalWaypoint | null>(null);

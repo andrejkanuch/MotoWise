@@ -24,6 +24,7 @@ import {
   Lock,
   LogOut,
   Pencil,
+  Plus,
   Share2,
   User,
   Users,
@@ -1034,6 +1035,44 @@ ${rteptElements}
               entering={FadeInUp.delay(150).duration(250)}
               style={{ gap: 10, marginBottom: 20 }}
             >
+              {/* Clone — available to anyone viewing someone else's public trip. */}
+              {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(modals)/create-trip',
+                      params: { cloneFromTripId: tripId },
+                    })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="Clone this trip"
+                  accessibilityHint="Opens the planner pre-filled with this trip's waypoints"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                  }}
+                >
+                  <Plus size={16} color={isDark ? palette.white : palette.neutral950} />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: isDark ? palette.white : palette.neutral950,
+                    }}
+                  >
+                    Clone this trip
+                  </Text>
+                </Pressable>
+              )}
+
               {/* Join (going) */}
               {!myParticipant && !isOrganiser && (
                 <Pressable

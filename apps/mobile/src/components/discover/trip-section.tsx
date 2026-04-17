@@ -49,13 +49,7 @@ export function TripSection() {
       style={{ gap: 10 }}
     >
       {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <View style={{ gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <MapPin size={18} color={palette.accent500} />
           <Text
@@ -66,9 +60,12 @@ export function TripSection() {
               letterSpacing: -0.2,
             }}
           >
-            Multi-day trips
+            Trips from riders
           </Text>
         </View>
+        <Text style={{ fontSize: 12, color: subtitleColor, marginLeft: 26 }}>
+          Clone a multi-day itinerary instead of planning from scratch.
+        </Text>
       </View>
 
       {/* Content */}
