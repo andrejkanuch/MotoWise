@@ -1256,8 +1256,10 @@ ${rteptElements}
           />
         )}
 
-        {/* Sticky primary CTA — one unambiguous action per screen. */}
-        {navWaypoints.length >= 2 && (
+        {/* Sticky primary CTA — one unambiguous action per screen.
+            Hidden while the assistant or ride-this sheets are open so it
+            doesn't bleed through over their input/footer rows. */}
+        {navWaypoints.length >= 2 && !assistantOpen && !rideThis.visible && (
           <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
         )}
 
