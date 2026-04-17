@@ -75,6 +75,8 @@ export function TripSection() {
       {isLoading ? (
         <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 24 }} />
       ) : trips.length === 0 ? (
+        // Secondary style — the "Plan Trip" FAB is the primary entry point on
+        // this screen. This empty-state is a quiet inline nudge, not a duplicate CTA.
         <Pressable
           onPress={handleCreate}
           accessibilityRole="button"
@@ -83,36 +85,22 @@ export function TripSection() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 48,
-            backgroundColor: isDark ? palette.cardDark : palette.white,
-            borderRadius: 14,
+            gap: 10,
+            minHeight: 44,
+            backgroundColor: 'transparent',
+            borderRadius: 12,
             borderCurve: 'continuous',
             borderWidth: 1,
+            borderStyle: 'dashed',
             borderColor: createBorder,
             paddingHorizontal: 14,
             paddingVertical: 10,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <MapPin size={18} color={palette.accent500} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: headerColor }}>
-              Plan a multi-day trip
-            </Text>
-          </View>
-          <View
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              borderCurve: 'continuous',
-              backgroundColor: palette.accent500,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Plus size={16} color={palette.white} />
-          </View>
+          <MapPin size={16} color={subtitleColor} />
+          <Text style={{ fontSize: 13, color: subtitleColor, flex: 1 }}>
+            No trips yet — tap Plan Trip to start one.
+          </Text>
         </Pressable>
       ) : (
         <ScrollView

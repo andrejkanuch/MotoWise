@@ -53,6 +53,7 @@ import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
+import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -422,6 +423,13 @@ ${rteptElements}
                 key={wp.id}
                 id={`wp-${wp.id}`}
                 coordinate={[wp.lng, wp.lat]}
+                onSelected={() =>
+                  showMarkerActionSheet({
+                    title: wp.name || 'Waypoint',
+                    lat: wp.lat,
+                    lng: wp.lng,
+                  })
+                }
               >
                 <View
                   style={{

@@ -46,6 +46,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { fuelBadgeColor, fuelBadgeLabel } from '../../utils/fuel-range';
 import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
 
 /** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
@@ -292,7 +293,17 @@ export default function RouteDetailScreen() {
           )}
           {/* Start point */}
           {coordinates.length > 0 && (
-            <MapboxGL.PointAnnotation id="start" coordinate={coordinates[0]}>
+            <MapboxGL.PointAnnotation
+              id="start"
+              coordinate={coordinates[0]}
+              onSelected={() =>
+                showMarkerActionSheet({
+                  title: 'Start',
+                  lat: coordinates[0][1],
+                  lng: coordinates[0][0],
+                })
+              }
+            >
               <View
                 style={{
                   width: 14,
@@ -307,7 +318,17 @@ export default function RouteDetailScreen() {
           )}
           {/* End point */}
           {coordinates.length > 1 && (
-            <MapboxGL.PointAnnotation id="end" coordinate={coordinates[coordinates.length - 1]}>
+            <MapboxGL.PointAnnotation
+              id="end"
+              coordinate={coordinates[coordinates.length - 1]}
+              onSelected={() =>
+                showMarkerActionSheet({
+                  title: 'Finish',
+                  lat: coordinates[coordinates.length - 1][1],
+                  lng: coordinates[coordinates.length - 1][0],
+                })
+              }
+            >
               <View
                 style={{
                   width: 14,
