@@ -155,6 +155,8 @@ export const AnalyticsEvent = {
   TRIP_SHARED: 'trip_shared',
   TRIP_OPENED_IN_MAPS: 'trip_opened_in_maps',
   TRIP_BRIEF_SHARED: 'trip_brief_shared',
+  TRIP_OFFLINE_DOWNLOADED: 'trip_offline_downloaded',
+  TRIP_OFFLINE_REMOVED: 'trip_offline_removed',
 
   // Nav-app handoff (superset — emitted alongside legacy TRIP_OPENED_IN_MAPS
   // / ROUTE_GPX_EXPORTED for PostHog funnel continuity).

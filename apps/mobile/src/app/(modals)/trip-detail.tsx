@@ -57,7 +57,10 @@ import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
 import { ReadinessRing } from '../../components/trip/readiness-ring';
+import { OfflinePackButton } from '../../components/trip/offline-pack-button';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
+import { useOfflineTrip } from '../../hooks/use-offline-trip';
+import { cacheTripPayload } from '../../lib/offline-trips';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -173,6 +176,22 @@ export default function TripDetailScreen() {
       kmPerLiter,
     ],
   );
+
+  // Offline pack — tile download + payload caching for on-the-road use.
+  const offline = useOfflineTrip({
+    tripId,
+    waypoints: waypoints.map((wp) => ({ lat: wp.lat, lng: wp.lng })),
+  });
+
+  // Whenever we have a live trip payload AND the user has an offline pack,
+  // refresh the cached copy so trip-detail hydrates with fresh data next
+  // time they open it without signal.
+  useEffect(() => {
+    if (!trip || !tripId) return;
+    if (offline.status === 'ready') {
+      cacheTripPayload(tripId, trip);
+    }
+  }, [trip, tripId, offline.status]);
 
   const handleShareBrief = useCallback(async () => {
     if (!trip) return;
@@ -781,6 +800,17 @@ ${rteptElements}
             {/* Pre-ride readiness — fed by waypoints/bike/visibility. */}
             <Animated.View entering={FadeInUp.delay(30).duration(250)}>
               <ReadinessRing report={readiness} onShareBrief={handleShareBrief} />
+            </Animated.View>
+
+            {/* Offline pack — download tiles + trip payload for the ride. */}
+            <Animated.View entering={FadeInUp.delay(40).duration(250)}>
+              <OfflinePackButton
+                status={offline.status}
+                progress={offline.progress}
+                meta={offline.meta}
+                onDownload={offline.download}
+                onRemove={offline.remove}
+              />
             </Animated.View>
 
             {/* Day-by-day itinerary */}
