@@ -149,8 +149,8 @@ export default function CreateTripScreen() {
   const cameraRef = useRef<MapboxGL.Camera>(null);
 
   const reducedMotion = useReducedMotion();
-  const [showDetails, setShowDetails] = useState(false);
-  const chevronRotation = useSharedValue(0);
+  const [showDetails, setShowDetails] = useState(isEditMode || isCloneMode);
+  const chevronRotation = useSharedValue(isEditMode || isCloneMode ? 180 : 0);
   const chevronStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${chevronRotation.value}deg` }],
   }));
@@ -788,9 +788,9 @@ export default function CreateTripScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
               borderCurve: 'continuous',
               backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
@@ -816,9 +816,9 @@ export default function CreateTripScreen() {
             accessibilityRole="button"
             accessibilityLabel="Change map style"
             style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
+              width: 48,
+              height: 48,
+              borderRadius: 24,
               borderCurve: 'continuous',
               backgroundColor: palette.surfaceOverlay,
               alignItems: 'center',
@@ -861,6 +861,41 @@ export default function CreateTripScreen() {
                   ? 'Search or long-press the map to add stops'
                   : `${waypoints.length} stop${waypoints.length === 1 ? '' : 's'} planned`}
               </Text>
+            </Animated.View>
+
+            {/* Trip title — metadata-first, above the stop list */}
+            <Animated.View
+              entering={reducedMotion ? undefined : FadeInUp.delay(0).duration(250)}
+              style={{ paddingHorizontal: 20, marginBottom: 16 }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
+                Trip Title *
+              </Text>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                onBlur={() => {
+                  if (title.trim().length > 0 && !showDetails) {
+                    setShowDetails(true);
+                    chevronRotation.value = withTiming(180, { duration: 200 });
+                  }
+                }}
+                placeholder="e.g. Alps Adventure 2026"
+                placeholderTextColor={placeholderColor}
+                maxLength={100}
+                returnKeyType="next"
+                style={{
+                  backgroundColor: inputBg,
+                  borderWidth: 1,
+                  borderColor: inputBorder,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  fontSize: 15,
+                  color: inputTextColor,
+                }}
+              />
             </Animated.View>
 
             {/* Geocoding search bar */}
@@ -1043,33 +1078,6 @@ export default function CreateTripScreen() {
 
             {/* Metadata form */}
             <View style={{ paddingHorizontal: 20, gap: 16 }}>
-              {/* Title input */}
-              <Animated.View entering={reducedMotion ? undefined : FadeInUp.delay(0).duration(250)}>
-                <Text
-                  style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}
-                >
-                  Trip Title *
-                </Text>
-                <TextInput
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="e.g. Alps Adventure 2026"
-                  placeholderTextColor={placeholderColor}
-                  maxLength={100}
-                  style={{
-                    backgroundColor: inputBg,
-                    borderWidth: 1,
-                    borderColor: inputBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 14,
-                    paddingVertical: 12,
-                    fontSize: 15,
-                    color: inputTextColor,
-                  }}
-                />
-              </Animated.View>
-
               {/* More details toggle */}
               <Pressable
                 onPress={() => {

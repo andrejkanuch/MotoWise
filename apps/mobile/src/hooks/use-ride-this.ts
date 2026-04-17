@@ -48,6 +48,11 @@ interface UseRideThisResult {
   } | null;
   triggerProvider: (provider: NavProvider) => Promise<void>;
   advanceSegment: () => Promise<void>;
+  /** Selected day for multi-day handoff, or null when all days are active. */
+  selectedDay: number | null;
+  setSelectedDay: (day: number | null) => void;
+  /** Sorted list of available day indices in the current waypoint set. */
+  availableDays: number[];
 }
 
 const iosMajor = Platform.OS === 'ios' ? Number.parseInt(String(Platform.Version), 10) : 0;
@@ -69,6 +74,18 @@ export function useRideThis({
   const [visible, setVisible] = useState(false);
   const [wazeInstalled, setWazeInstalled] = useState<boolean | null>(null);
   const [activeSegment, setActiveSegment] = useState<UseRideThisResult['activeSegment']>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
+  const availableDays = useMemo(
+    () => Array.from(new Set(waypoints.map((w) => w.dayIndex ?? 0))).sort((a, b) => a - b),
+    [waypoints],
+  );
+
+  const filteredWaypoints = useMemo(
+    () =>
+      selectedDay === null ? waypoints : waypoints.filter((w) => (w.dayIndex ?? 0) === selectedDay),
+    [waypoints, selectedDay],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -85,24 +102,26 @@ export function useRideThis({
   }, []);
 
   const providers = useMemo<UseRideThisResult['providers']>(() => {
-    const appleUrl = buildAppleMapsUrl(waypoints, { iosMajorVersion: iosMajor || undefined });
-    const google = buildGoogleMapsUrls(waypoints);
-    const wazeChain = buildWazeUrls(waypoints);
+    const appleUrl = buildAppleMapsUrl(filteredWaypoints, {
+      iosMajorVersion: iosMajor || undefined,
+    });
+    const google = buildGoogleMapsUrls(filteredWaypoints);
+    const wazeChain = buildWazeUrls(filteredWaypoints);
     const canChainApple = Platform.OS === 'ios' && !!appleUrl && (iosMajor === 0 || iosMajor >= 16);
 
     const appleSubtitle = (() => {
       if (!appleUrl) return 'Needs at least two stops.';
-      if (waypoints.length <= 2) return 'Door-to-door handoff.';
+      if (filteredWaypoints.length <= 2) return 'Door-to-door handoff.';
       if (!canChainApple) return 'Only start and end will transfer. Use GPX for mid-stops.';
-      return `Full ${waypoints.length}-stop handoff (iOS 16+).`;
+      return `Full ${filteredWaypoints.length}-stop handoff (iOS 16+).`;
     })();
 
     const googleSubtitle = (() => {
       if (google.urls.length === 0) return 'Needs at least two stops.';
       if (google.chunked) {
-        return `${waypoints.length} stops → ${google.urls.length} segments (we'll hand off).`;
+        return `${filteredWaypoints.length} stops → ${google.urls.length} segments (we'll hand off).`;
       }
-      return `${waypoints.length}-stop handoff.`;
+      return `${filteredWaypoints.length}-stop handoff.`;
     })();
 
     const wazeSubtitle = (() => {
@@ -142,14 +161,14 @@ export function useRideThis({
       },
       gpx: {
         provider: 'gpx',
-        available: waypoints.length >= 2,
-        totalSegments: waypoints.length >= 2 ? 1 : 0,
+        available: filteredWaypoints.length >= 2,
+        totalSegments: filteredWaypoints.length >= 2 ? 1 : 0,
         chunked: false,
         subtitle: 'Calimoto · Rever · TomTom · Scenic',
         urls: [],
       },
     };
-  }, [waypoints, wazeInstalled]);
+  }, [filteredWaypoints, wazeInstalled]);
 
   const emit = useCallback(
     (provider: NavProvider, segmentIndex: number, totalSegments: number) => {
@@ -157,10 +176,11 @@ export function useRideThis({
         surface,
         provider,
         entity_id: entityId,
-        waypoint_count: waypoints.length,
+        waypoint_count: filteredWaypoints.length,
         chunked: totalSegments > 1,
         segment_index: segmentIndex + 1,
         segment_total: totalSegments,
+        day_filter: selectedDay,
       });
 
       // Legacy alias for PostHog funnel continuity — only on first segment
@@ -172,12 +192,12 @@ export function useRideThis({
       ) {
         trackEvent(AnalyticsEvent.TRIP_OPENED_IN_MAPS, {
           trip_id: entityId,
-          waypoint_count: waypoints.length,
+          waypoint_count: filteredWaypoints.length,
           provider,
         });
       }
     },
-    [surface, entityId, waypoints.length],
+    [surface, entityId, filteredWaypoints.length, selectedDay],
   );
 
   const openUrlWithHaptic = useCallback(async (url: string) => {
@@ -197,6 +217,7 @@ export function useRideThis({
   const close = useCallback(() => {
     setVisible(false);
     setActiveSegment(null);
+    setSelectedDay(null);
   }, []);
 
   const triggerProvider = useCallback(
@@ -255,5 +276,8 @@ export function useRideThis({
     activeSegment,
     triggerProvider,
     advanceSegment,
+    selectedDay,
+    setSelectedDay,
+    availableDays,
   };
 }
