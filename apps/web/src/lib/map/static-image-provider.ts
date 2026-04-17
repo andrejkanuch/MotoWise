@@ -3,7 +3,15 @@
  * Used by route detail pages to render a map with the route polyline.
  */
 
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
+/** Prefer server-only token; fall back to public token so SSR thumbnails match client maps (explore cards, OG). */
+function mapboxTokenForStaticImages(): string {
+  return (
+    process.env.MAPBOX_ACCESS_TOKEN ??
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN ??
+    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ??
+    ''
+  );
+}
 const BASE = 'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static';
 
 /** Mapbox Static API has a ~8192 char URL limit. Keep well under. */
@@ -104,6 +112,7 @@ function encodeValue(value: number): string {
  * Automatically simplifies long polylines to stay within URL limits.
  */
 export function buildStaticMapUrl(opts: StaticMapOptions): string {
+  const MAPBOX_TOKEN = mapboxTokenForStaticImages();
   if (!MAPBOX_TOKEN) return '';
 
   const {
