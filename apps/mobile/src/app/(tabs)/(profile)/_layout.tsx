@@ -16,6 +16,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="privacy" />
       <Stack.Screen name="support" />
       <Stack.Screen name="rides" />
+      <Stack.Screen name="heatmap" />
       <Stack.Screen name="saved" />
       <Stack.Screen name="upgrade" options={{ presentation: 'formSheet' }} />
     </Stack>

@@ -16,6 +16,8 @@ query MyRides($first: Int, $after: String, $motorcycleId: String) {
         durationS
         motorcycleId
         routeThumbnailUri
+        routePolyline
+        region
         gpsQuality
       }
       cursor

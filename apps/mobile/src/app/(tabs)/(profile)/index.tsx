@@ -21,6 +21,7 @@ import {
   ChevronRight,
   CreditCard,
   Crown,
+  Flame,
   Globe,
   HelpCircle,
   Lock,
@@ -705,6 +706,56 @@ export default function ProfileScreen() {
               {t('profile.myRidesDescription', {
                 defaultValue: 'Ride history, stats & route maps',
               })}
+            </Text>
+          </View>
+          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+        </Pressable>
+      </Animated.View>
+
+      {/* Roads I've ridden — lifetime heatmap + annual recap */}
+      <Animated.View entering={FadeInUp.delay(125).duration(400)}>
+        <Pressable
+          onPress={() => {
+            haptic();
+            // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+            router.push('/(tabs)/(profile)/heatmap' as any);
+          }}
+          style={{
+            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            borderRadius: 20,
+            borderCurve: 'continuous',
+            padding: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? `${palette.danger500}25` : 'rgba(239,68,68,0.10)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <Flame size={22} color={palette.danger500} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              Roads I've ridden
+            </Text>
+            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              Lifetime heatmap & year recap
             </Text>
           </View>
           <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
