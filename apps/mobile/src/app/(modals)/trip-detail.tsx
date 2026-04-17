@@ -511,11 +511,7 @@ ${rteptElements}
           {waypoints.map((wp) => {
             const wt = getWaypointIcon(wp.type);
             return (
-              <MapboxGL.MarkerView
-                key={wp.id}
-                id={`wp-${wp.id}`}
-                coordinate={[wp.lng, wp.lat]}
-              >
+              <MapboxGL.MarkerView key={wp.id} id={`wp-${wp.id}`} coordinate={[wp.lng, wp.lat]}>
                 <Pressable
                   onPress={() =>
                     showMarkerActionSheet({

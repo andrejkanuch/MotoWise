@@ -480,41 +480,43 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
         </View>
 
         {/* Stop sharing — available unless archived */}
-        {tripStatus !== 'archived' && <View
-          style={{
-            paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 16,
-            paddingTop: 12,
-            borderTopWidth: 1,
-            borderTopColor: dividerColor,
-          }}
-        >
-          <Pressable
-            onPress={handleStopSharing}
-            disabled={updateTripMutation.isPending}
+        {tripStatus !== 'archived' && (
+          <View
             style={{
-              paddingVertical: 14,
-              borderRadius: 12,
-              borderCurve: 'continuous',
-              alignItems: 'center',
-              opacity: updateTripMutation.isPending ? 0.6 : 1,
+              paddingHorizontal: 20,
+              paddingBottom: insets.bottom + 16,
+              paddingTop: 12,
+              borderTopWidth: 1,
+              borderTopColor: dividerColor,
             }}
           >
-            {updateTripMutation.isPending ? (
-              <ActivityIndicator size="small" color={palette.danger500} />
-            ) : (
-              <Text
-                style={{
-                  color: palette.danger500,
-                  fontSize: 15,
-                  fontWeight: '700',
-                }}
-              >
-                Stop sharing
-              </Text>
-            )}
-          </Pressable>
-        </View>}
+            <Pressable
+              onPress={handleStopSharing}
+              disabled={updateTripMutation.isPending}
+              style={{
+                paddingVertical: 14,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                alignItems: 'center',
+                opacity: updateTripMutation.isPending ? 0.6 : 1,
+              }}
+            >
+              {updateTripMutation.isPending ? (
+                <ActivityIndicator size="small" color={palette.danger500} />
+              ) : (
+                <Text
+                  style={{
+                    color: palette.danger500,
+                    fontSize: 15,
+                    fontWeight: '700',
+                  }}
+                >
+                  Stop sharing
+                </Text>
+              )}
+            </Pressable>
+          </View>
+        )}
       </View>
     </Modal>
   );

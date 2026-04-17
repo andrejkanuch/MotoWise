@@ -1,9 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  DiscoverRoutesDocument,
-  type DiscoverRoutesFilterInput,
-  type DiscoverRoutesQuery,
-} from '@motovault/graphql';
+import { DiscoverRoutesDocument, type DiscoverRoutesFilterInput } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
@@ -13,8 +9,6 @@ import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { computeFuelStops } from '../../utils/fuel-range';
 import { RouteCard } from './route-card';
-
-type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
 const CARD_WIDTH = 280;
 const CARD_GAP = 12;

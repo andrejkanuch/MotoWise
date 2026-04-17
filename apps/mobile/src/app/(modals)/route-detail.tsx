@@ -315,10 +315,7 @@ export default function RouteDetailScreen() {
           )}
           {/* End point */}
           {coordinates.length > 1 && (
-            <MapboxGL.MarkerView
-              id="end"
-              coordinate={coordinates[coordinates.length - 1]}
-            >
+            <MapboxGL.MarkerView id="end" coordinate={coordinates[coordinates.length - 1]}>
               <Pressable
                 onPress={() =>
                   showMarkerActionSheet({
