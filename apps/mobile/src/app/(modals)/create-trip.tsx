@@ -61,6 +61,7 @@ import {
 } from '../../utils/map-styles';
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
 import type { GeocodingResult } from '../../utils/mapbox-geocoding';
+import { groupByPeriod, PERIOD_HINT, PERIOD_LABEL } from '../../utils/period-of-day';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
 
@@ -73,6 +74,7 @@ interface LocalWaypoint {
   notes?: string;
   sortOrder: number;
   dayIndex: number;
+  periodOfDay?: 'morning' | 'afternoon' | 'evening' | null;
 }
 
 const DIFFICULTIES: { key: Difficulty; label: string }[] = [
@@ -250,6 +252,8 @@ export default function CreateTripScreen() {
         notes: wp.notes ?? undefined,
         sortOrder: wp.sortOrder,
         dayIndex: wp.dayIndex,
+        periodOfDay: (wp as { periodOfDay?: 'morning' | 'afternoon' | 'evening' | null })
+          .periodOfDay,
       }));
       setWaypoints(mapped);
     }
@@ -261,11 +265,13 @@ export default function CreateTripScreen() {
   const [editName, setEditName] = useState('');
   const [editType, setEditType] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editPeriod, setEditPeriod] = useState<'morning' | 'afternoon' | 'evening' | null>(null);
 
   const openEditModal = useCallback((wp: LocalWaypoint) => {
     setEditName(wp.name);
     setEditType(wp.type);
     setEditNotes(wp.notes ?? '');
+    setEditPeriod(wp.periodOfDay ?? null);
     setEditingWaypoint(wp);
   }, []);
 
@@ -283,13 +289,14 @@ export default function CreateTripScreen() {
               name: editName.trim() || wp.name,
               type: editType,
               notes: editNotes.trim() || undefined,
+              periodOfDay: editPeriod,
             }
           : wp,
       ),
     );
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setEditingWaypoint(null);
-  }, [editingWaypoint, editName, editType, editNotes]);
+  }, [editingWaypoint, editName, editType, editNotes, editPeriod]);
 
   const isValid =
     title.trim().length > 0 &&
@@ -457,6 +464,7 @@ export default function CreateTripScreen() {
         lat: wp.lat,
         lng: wp.lng,
         dayIndex: wp.dayIndex,
+        periodOfDay: wp.periodOfDay ?? null,
       })),
     };
   }, [title, description, startDate, endDate, difficulty, maxRiders, visibility, waypoints]);
@@ -883,35 +891,66 @@ export default function CreateTripScreen() {
                         )}
                       </View>
 
-                      {/* Day's stops */}
+                      {/* Day's stops — grouped by period-of-day when labelled. */}
                       {dayWaypoints.length > 0 ? (
-                        dayWaypoints.map((wp) => {
-                          const globalIdx = sortedWaypoints.indexOf(wp);
-                          return (
-                            <StopListItem
-                              key={wp.id}
-                              waypoint={wp}
-                              index={globalIdx}
-                              isFirst={globalIdx === 0}
-                              isLast={globalIdx === sortedWaypoints.length - 1}
-                              onMoveUp={() => handleMoveUp(globalIdx)}
-                              onMoveDown={() => handleMoveDown(globalIdx)}
-                              onDelete={() => handleDeleteWaypoint(wp.id)}
-                              onPress={() => openEditModal(wp)}
-                              onMoveDay={() => handleMoveDay(wp.id)}
-                              distance={
-                                globalIdx > 0 && routeLegs[globalIdx - 1]
-                                  ? formatSegmentDistance(routeLegs[globalIdx - 1].distanceM)
-                                  : undefined
-                              }
-                              duration={
-                                globalIdx > 0 && routeLegs[globalIdx - 1]
-                                  ? formatSegmentDuration(routeLegs[globalIdx - 1].durationS)
-                                  : undefined
-                              }
-                            />
-                          );
-                        })
+                        groupByPeriod(dayWaypoints).map((group) => (
+                          <View key={`${dayIndex}-${group.period ?? 'unset'}`}>
+                            {group.period && (
+                              <View
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'baseline',
+                                  gap: 8,
+                                  marginHorizontal: 20,
+                                  marginTop: 4,
+                                  marginBottom: 4,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: '700',
+                                    color: subtitleColor,
+                                    letterSpacing: 0.6,
+                                    textTransform: 'uppercase',
+                                  }}
+                                >
+                                  {group.label}
+                                </Text>
+                                <Text style={{ fontSize: 11, color: subtitleColor, opacity: 0.7 }}>
+                                  {PERIOD_HINT[group.period]}
+                                </Text>
+                              </View>
+                            )}
+                            {group.items.map((wp) => {
+                              const globalIdx = sortedWaypoints.indexOf(wp);
+                              return (
+                                <StopListItem
+                                  key={wp.id}
+                                  waypoint={wp}
+                                  index={globalIdx}
+                                  isFirst={globalIdx === 0}
+                                  isLast={globalIdx === sortedWaypoints.length - 1}
+                                  onMoveUp={() => handleMoveUp(globalIdx)}
+                                  onMoveDown={() => handleMoveDown(globalIdx)}
+                                  onDelete={() => handleDeleteWaypoint(wp.id)}
+                                  onPress={() => openEditModal(wp)}
+                                  onMoveDay={() => handleMoveDay(wp.id)}
+                                  distance={
+                                    globalIdx > 0 && routeLegs[globalIdx - 1]
+                                      ? formatSegmentDistance(routeLegs[globalIdx - 1].distanceM)
+                                      : undefined
+                                  }
+                                  duration={
+                                    globalIdx > 0 && routeLegs[globalIdx - 1]
+                                      ? formatSegmentDuration(routeLegs[globalIdx - 1].durationS)
+                                      : undefined
+                                  }
+                                />
+                              );
+                            })}
+                          </View>
+                        ))
                       ) : (
                         <Text
                           style={{
@@ -1712,6 +1751,67 @@ export default function CreateTripScreen() {
                   Type
                 </Text>
                 <WaypointTypePicker selected={editType} onSelect={setEditType} />
+              </View>
+
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                }}
+              />
+
+              {/* Period of day */}
+              <View>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: labelColor,
+                    marginBottom: 6,
+                  }}
+                >
+                  Period of day
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {(['morning', 'afternoon', 'evening'] as const).map((p) => {
+                    const selected = editPeriod === p;
+                    return (
+                      <Pressable
+                        key={p}
+                        onPress={() => setEditPeriod(selected ? null : p)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 10,
+                          borderRadius: 10,
+                          borderCurve: 'continuous',
+                          borderWidth: 1,
+                          borderColor: selected ? palette.accent500 : inputBorder,
+                          backgroundColor: selected
+                            ? `${palette.accent500}1A`
+                            : isDark
+                              ? palette.surfaceSubtle
+                              : palette.white,
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '600',
+                            color: selected ? palette.accent500 : labelColor,
+                          }}
+                        >
+                          {PERIOD_LABEL[p]}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={{ fontSize: 11, color: placeholderColor, marginTop: 6 }}>
+                  Groups this stop under the right block on the day list. Optional.
+                </Text>
               </View>
 
               <View

@@ -56,6 +56,17 @@ export const WaypointTypeSchema = z.enum([
 ]);
 export type WaypointType = z.infer<typeof WaypointTypeSchema>;
 
+// --- Period of Day ---
+
+export const PERIOD_OF_DAY = {
+  MORNING: 'morning',
+  AFTERNOON: 'afternoon',
+  EVENING: 'evening',
+} as const;
+
+export const PeriodOfDaySchema = z.enum(['morning', 'afternoon', 'evening']);
+export type PeriodOfDay = z.infer<typeof PeriodOfDaySchema>;
+
 // --- Participant Role ---
 
 export const PARTICIPANT_ROLE = {
@@ -195,6 +206,7 @@ const InlineWaypointSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
+  periodOfDay: PeriodOfDaySchema.optional(),
 });
 
 export const CreateTripWithWaypointsInputSchema = z
@@ -245,6 +257,7 @@ export const CreateWaypointInputSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
+  periodOfDay: PeriodOfDaySchema.optional(),
 });
 
 export type CreateWaypointInput = z.infer<typeof CreateWaypointInputSchema>;
@@ -260,6 +273,7 @@ export const UpdateWaypointInputSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000).optional(),
   dayIndex: z.number().int().min(0).max(365).optional(),
+  periodOfDay: PeriodOfDaySchema.nullable().optional(),
 });
 
 export type UpdateWaypointInput = z.infer<typeof UpdateWaypointInputSchema>;
@@ -327,6 +341,7 @@ export const SharedTripWaypointSchema = z
     id: z.string().uuid(),
     sort_order: z.number().int(),
     day_index: z.number().int().nullable(),
+    period_of_day: PeriodOfDaySchema.nullable().optional(),
     type: z.string(),
     name: z.string(),
     notes: z.string().nullable(),

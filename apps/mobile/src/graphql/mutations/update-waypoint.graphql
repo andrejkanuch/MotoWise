@@ -3,6 +3,7 @@ mutation UpdateWaypoint($input: UpdateWaypointInput!) {
     id
     sortOrder
     dayIndex
+    periodOfDay
     type
     name
     notes

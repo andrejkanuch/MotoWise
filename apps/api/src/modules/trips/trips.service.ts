@@ -45,6 +45,7 @@ interface WaypointRow {
   trip_id: string;
   sort_order: number;
   day_index: number;
+  period_of_day: string | null;
   type: string;
   name: string;
   notes: string | null;
@@ -123,6 +124,7 @@ function mapRowToWaypoint(row: WaypointRow): TripWaypoint {
     tripId: row.trip_id,
     sortOrder: row.sort_order,
     dayIndex: row.day_index,
+    periodOfDay: row.period_of_day ?? null,
     type: row.type,
     name: row.name,
     notes: row.notes ?? undefined,
@@ -468,6 +470,7 @@ export class TripsService {
         notes?: string;
         sortOrder: number;
         dayIndex?: number;
+        periodOfDay?: string;
       }>;
     },
   ): Promise<Trip> {
@@ -533,6 +536,7 @@ export class TripsService {
         notes: wp.notes ?? null,
         sort_order: wp.sortOrder,
         day_index: wp.dayIndex ?? 0,
+        period_of_day: wp.periodOfDay ?? null,
       }));
 
       const { data: waypointData, error: wpError } = await this.supabase
@@ -576,6 +580,7 @@ export class TripsService {
         notes?: string;
         sortOrder: number;
         dayIndex?: number;
+        periodOfDay?: string;
       }>;
     },
   ): Promise<Trip> {
@@ -644,6 +649,7 @@ export class TripsService {
           notes: wp.notes ?? null,
           sort_order: wp.sortOrder,
           day_index: wp.dayIndex ?? 0,
+          period_of_day: wp.periodOfDay ?? null,
         }));
 
         const { data: waypointData, error: wpError } = await this.supabase
@@ -717,6 +723,7 @@ export class TripsService {
       notes?: string;
       sortOrder: number;
       dayIndex?: number;
+      periodOfDay?: string;
     },
   ): Promise<TripWaypoint> {
     await this.verifyOrganiser(userId, input.tripId);
@@ -732,6 +739,7 @@ export class TripsService {
         notes: input.notes ?? null,
         sort_order: input.sortOrder,
         day_index: input.dayIndex ?? 0,
+        period_of_day: input.periodOfDay ?? null,
       })
       .select('*')
       .single();
@@ -755,6 +763,7 @@ export class TripsService {
       notes?: string;
       sortOrder?: number;
       dayIndex?: number;
+      periodOfDay?: string | null;
     },
   ): Promise<TripWaypoint> {
     // Get waypoint to find trip_id
@@ -778,6 +787,7 @@ export class TripsService {
     if (input.notes !== undefined) update.notes = input.notes;
     if (input.sortOrder !== undefined) update.sort_order = input.sortOrder;
     if (input.dayIndex !== undefined) update.day_index = input.dayIndex;
+    if (input.periodOfDay !== undefined) update.period_of_day = input.periodOfDay;
 
     const { data, error } = await this.supabase
       .from('trip_waypoints')

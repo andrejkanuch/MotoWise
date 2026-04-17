@@ -4,6 +4,7 @@ mutation AddWaypoint($input: CreateWaypointInput!) {
     tripId
     sortOrder
     dayIndex
+    periodOfDay
     type
     name
     notes

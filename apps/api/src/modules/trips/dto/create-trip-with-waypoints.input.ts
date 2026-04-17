@@ -22,6 +22,9 @@ export class InlineWaypointInput {
 
   @Field(() => Int, { defaultValue: 0 })
   dayIndex: number;
+
+  @Field(() => String, { nullable: true })
+  periodOfDay?: string;
 }
 
 @InputType()

@@ -44,6 +44,9 @@ export class TripWaypoint {
   @Field(() => Int)
   dayIndex: number;
 
+  @Field(() => String, { nullable: true })
+  periodOfDay?: string | null;
+
   @Field()
   createdAt: string;
 }

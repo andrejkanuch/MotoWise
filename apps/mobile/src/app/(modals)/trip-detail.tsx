@@ -54,6 +54,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
+import { groupByPeriod } from '../../utils/period-of-day';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -773,56 +774,81 @@ ${rteptElements}
                         </View>
                       </Pressable>
 
-                      {/* Waypoints within the day */}
+                      {/* Waypoints within the day — grouped by period when labelled. */}
                       {!isCollapsed &&
-                        dayWaypoints.map((wp, index) => {
-                          const wt = getWaypointIcon(wp.type);
-                          return (
-                            <Animated.View
-                              key={wp.id}
-                              entering={FadeInUp.delay(index * 50).duration(200)}
-                              style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 12,
-                                padding: 10,
-                                marginBottom: 6,
-                                borderRadius: 10,
-                                borderCurve: 'continuous',
-                                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
-                              }}
-                            >
-                              <View
+                        groupByPeriod(dayWaypoints).map((group) => (
+                          <View key={`${dayIndex}-${group.period ?? 'unset'}`}>
+                            {group.period && (
+                              <Text
                                 style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 16,
-                                  backgroundColor: wt.color,
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
+                                  fontSize: 11,
+                                  fontWeight: '700',
+                                  color: subtitleColor,
+                                  letterSpacing: 0.6,
+                                  textTransform: 'uppercase',
+                                  marginTop: 4,
+                                  marginBottom: 4,
                                 }}
                               >
-                                <wt.Icon size={16} color={palette.white} />
-                              </View>
-                              <View style={{ flex: 1 }}>
-                                <Text
-                                  style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
-                                  numberOfLines={1}
+                                {group.label}
+                              </Text>
+                            )}
+                            {group.items.map((wp, index) => {
+                              const wt = getWaypointIcon(wp.type);
+                              return (
+                                <Animated.View
+                                  key={wp.id}
+                                  entering={FadeInUp.delay(index * 40).duration(200)}
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 12,
+                                    padding: 10,
+                                    marginBottom: 6,
+                                    borderRadius: 10,
+                                    borderCurve: 'continuous',
+                                    backgroundColor: isDark
+                                      ? palette.surfaceSubtle
+                                      : palette.neutral50,
+                                  }}
                                 >
-                                  {wp.name}
-                                </Text>
-                                {wp.notes ? (
-                                  <Text
-                                    style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}
-                                    numberOfLines={2}
+                                  <View
+                                    style={{
+                                      width: 32,
+                                      height: 32,
+                                      borderRadius: 16,
+                                      backgroundColor: wt.color,
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
                                   >
-                                    {wp.notes}
-                                  </Text>
-                                ) : null}
-                              </View>
-                            </Animated.View>
-                          );
-                        })}
+                                    <wt.Icon size={16} color={palette.white} />
+                                  </View>
+                                  <View style={{ flex: 1 }}>
+                                    <Text
+                                      style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
+                                      numberOfLines={1}
+                                    >
+                                      {wp.name}
+                                    </Text>
+                                    {wp.notes ? (
+                                      <Text
+                                        style={{
+                                          fontSize: 12,
+                                          color: subtitleColor,
+                                          marginTop: 2,
+                                        }}
+                                        numberOfLines={2}
+                                      >
+                                        {wp.notes}
+                                      </Text>
+                                    ) : null}
+                                  </View>
+                                </Animated.View>
+                              );
+                            })}
+                          </View>
+                        ))}
                     </Animated.View>
                   );
                 })}

@@ -25,4 +25,7 @@ export class UpdateWaypointInput {
 
   @Field(() => Int, { nullable: true })
   dayIndex?: number;
+
+  @Field(() => String, { nullable: true })
+  periodOfDay?: string | null;
 }
