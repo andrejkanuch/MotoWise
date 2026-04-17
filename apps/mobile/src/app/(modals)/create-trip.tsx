@@ -849,7 +849,7 @@ export default function CreateTripScreen() {
             {/* Day-by-day stop list */}
             {sortedWaypoints.length > 0 && (
               <View style={{ marginBottom: 16 }}>
-                {Array.from({ length: numDays }, (_, dayIndex) => {
+                {Array.from({ length: numDays }, (_, dayIndex) => dayIndex).map((dayIndex) => {
                   const dayWaypoints = waypointsByDay[dayIndex] ?? [];
 
                   // Compute day stats from route legs for stops in this day

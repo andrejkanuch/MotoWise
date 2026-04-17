@@ -38,10 +38,13 @@ type ParticipantRow = Tables<'trip_participants'>;
  */
 function sanitizeForPrompt(s: string | null | undefined, maxLen: number): string {
   if (!s) return '';
-  return s
-    .replace(/[\r\n\u2028\u2029]+/g, ' ')
-    .replace(/[\u0000-\u001F\u007F]/g, '')
-    .slice(0, maxLen);
+  return (
+    s
+      .replace(/[\r\n\u2028\u2029]+/g, ' ')
+      // biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — strip C0/DEL control chars from user input before injecting into AI prompt
+      .replace(/[\u0000-\u001F\u007F]/g, '')
+      .slice(0, maxLen)
+  );
 }
 
 @Injectable()
