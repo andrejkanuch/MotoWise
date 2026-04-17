@@ -15,7 +15,17 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
+import {
+  Award,
+  CalendarDays,
+  Compass,
+  Leaf,
+  Plus,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Wind,
+} from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionSheetIOS,
@@ -50,6 +60,7 @@ import { HorizontalRouteSection } from '../../../components/discover/horizontal-
 import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
+import { useInspirationFilters } from '../../../hooks/use-inspiration-filters';
 import { usePrimaryBikeFuelData } from '../../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -96,6 +107,7 @@ interface DiscoverHeaderProps {
   featuredRoute: RouteNode | null;
   onRoutePress: (routeId: string) => void;
   showBelowFold: boolean;
+  inspiration: ReturnType<typeof useInspirationFilters>;
 }
 
 const DiscoverHeader = memo(function DiscoverHeader({
@@ -105,6 +117,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   featuredRoute,
   onRoutePress,
   showBelowFold,
+  inspiration,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
   const headerColor = isDark ? palette.white : palette.neutral950;
@@ -146,6 +159,50 @@ const DiscoverHeader = memo(function DiscoverHeader({
             staleTime={10 * 60 * 1000}
             onRoutePress={onRoutePress}
           />
+
+          {/* Inspiration sections — hidden as soon as the user filters/searches. */}
+          {filters.chips.size === 0 && !filters.countryCode && (
+            <>
+              <HorizontalRouteSection
+                title="Ride this weekend"
+                icon={CalendarDays}
+                iconColor={palette.accent500}
+                queryKey={['routes', 'inspiration', 'weekend'] as const}
+                filter={inspiration.weekend}
+                first={10}
+                staleTime={10 * 60 * 1000}
+                onRoutePress={onRoutePress}
+              />
+
+              <HorizontalRouteSection
+                title={inspiration.season.label}
+                icon={Leaf}
+                iconColor={palette.success500}
+                queryKey={['routes', 'inspiration', 'season', inspiration.season.label] as const}
+                filter={inspiration.season.filter}
+                first={10}
+                staleTime={30 * 60 * 1000}
+                onRoutePress={onRoutePress}
+              />
+
+              {inspiration.becauseYouLiked && (
+                <HorizontalRouteSection
+                  title={
+                    inspiration.becauseYouLiked.anchorName
+                      ? `Because you liked ${inspiration.becauseYouLiked.anchorName}`
+                      : 'Similar to your saves'
+                  }
+                  icon={Sparkles}
+                  iconColor={palette.accent500}
+                  queryKey={['routes', 'inspiration', 'similar-to-saved'] as const}
+                  filter={inspiration.becauseYouLiked.filter}
+                  first={10}
+                  staleTime={10 * 60 * 1000}
+                  onRoutePress={onRoutePress}
+                />
+              )}
+            </>
+          )}
 
           {/* Country chips */}
           <View style={{ gap: 8 }}>
@@ -214,6 +271,7 @@ export default function DiscoverScreen() {
   }, []);
 
   const { tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
+  const inspiration = useInspirationFilters();
   const bg = isDark ? palette.neutral950 : palette.white;
 
   // --- Consolidated filter state ---
@@ -435,9 +493,18 @@ export default function DiscoverScreen() {
         featuredRoute={featuredRoute}
         onRoutePress={handleRoutePress}
         showBelowFold={showBelowFold}
+        inspiration={inspiration}
       />
     ),
-    [filters, toggleChip, toggleCountry, featuredRoute, handleRoutePress, showBelowFold],
+    [
+      filters,
+      toggleChip,
+      toggleCountry,
+      featuredRoute,
+      handleRoutePress,
+      showBelowFold,
+      inspiration,
+    ],
   );
 
   return (
