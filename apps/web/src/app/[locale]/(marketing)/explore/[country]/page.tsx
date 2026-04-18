@@ -11,6 +11,7 @@ import {
   fetchRegionsByCountrySlug,
   fetchRoutesByCountry,
 } from '@/lib/fetch-places';
+import { COUNTRY_INTROS } from '@/lib/seo/country-intros';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 86400; // 24 hours
@@ -80,6 +81,8 @@ export default async function CountryPage({ params }: PageProps) {
     fetchRoutesByCountry(country.countryCode, 12),
   ]);
 
+  const introContent = COUNTRY_INTROS[countrySlug] ?? null;
+
   const title = `Motorcycle Routes in ${country.name}`;
   const description = `Discover the best motorcycle routes in ${country.name}. Browse ${country.routeCount} routes across regions.`;
   const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
@@ -126,6 +129,20 @@ export default async function CountryPage({ params }: PageProps) {
           </h1>
           <div className="mx-auto mt-6 h-1.5 w-32 rounded-full bg-signature-500" />
           <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{description}</p>
+
+          {/* Country intro content */}
+          {introContent && (
+            <div className="mx-auto mt-8 max-w-3xl space-y-4">
+              {introContent.map((paragraph) => (
+                <p
+                  key={paragraph.slice(0, 40)}
+                  className="text-base leading-relaxed text-neutral-400"
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

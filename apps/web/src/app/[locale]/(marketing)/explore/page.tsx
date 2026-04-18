@@ -13,9 +13,9 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-const PAGE_TITLE = 'Explore Motorcycle Routes';
+const PAGE_TITLE = 'Discover the Best Motorcycle Routes Worldwide';
 const PAGE_DESCRIPTION =
-  'Discover the best motorcycle routes worldwide. Browse by country and region to find twisty roads, scenic passes, and epic rides.';
+  'Discover the best motorcycle routes worldwide. Browse by country and region to find twisty mountain passes, scenic coastal roads, and epic multi-day touring routes curated by real riders.';
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -75,6 +75,14 @@ export default async function ExplorePage({ params }: PageProps) {
           <p className="mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">{PAGE_DESCRIPTION}</p>
         </div>
       </section>
+
+      <div className="mx-auto max-w-3xl px-6 pb-8 text-center">
+        <p className="text-base leading-relaxed text-neutral-400">
+          Every route on MotoVault is shared by real riders and rated by the community. Browse
+          countries below to explore twisty passes, coastal roads, and epic touring routes — or open
+          MotoVault on your phone to navigate any route with turn-by-turn directions.
+        </p>
+      </div>
 
       {/* Country grid */}
       <section className="px-6 pb-24">

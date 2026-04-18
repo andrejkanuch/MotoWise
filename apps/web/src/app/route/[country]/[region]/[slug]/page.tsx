@@ -9,6 +9,7 @@ import { BASE_URL } from '@/lib/constants';
 import { decodePolyline } from '@/lib/decode-polyline';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
+import { ROUTE_EDITORIAL } from '@/lib/seo/route-editorial';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { OpenInAppCta } from './open-in-app-cta';
 import { RouteDetailReviewsSection } from './route-detail-reviews-section';
@@ -262,6 +263,8 @@ export default async function RouteDetailPage({
   const regionName = prettifyRegion(region, country);
   const countryName = prettifyCountry(country);
   const editorialText = route.editorialDescription ?? route.description;
+  const routeKey = `${country}/${region}/${slug}`;
+  const editorial = ROUTE_EDITORIAL[routeKey] ?? null;
   const decodedPolyline = route.polyline ? decodePolyline(route.polyline) : [];
   const staticPreviewUrl =
     route.polyline && route.polyline.length > 0
@@ -273,6 +276,44 @@ export default async function RouteDetailPage({
           retina: true,
         }) || null
       : null;
+
+  // JSON-LD structured data
+  const midIdx = Math.floor(decodedPolyline.length / 2);
+  const midpoint = decodedPolyline[midIdx] ?? decodedPolyline[0];
+
+  const routeSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'TouristAttraction',
+    name: routeName,
+    description:
+      editorialText ??
+      `${formatDistance(route.distanceM)} km motorcycle route in ${regionName}, ${countryName}`,
+    url: `${BASE_URL}/route/${country}/${region}/${slug}`,
+    geo: midpoint
+      ? {
+          '@type': 'GeoCoordinates',
+          latitude: midpoint[0],
+          longitude: midpoint[1],
+        }
+      : undefined,
+    address: {
+      '@type': 'PostalAddress',
+      addressRegion: regionName,
+      addressCountry: countryName,
+    },
+    touristType: 'Motorcyclist',
+    isAccessibleForFree: true,
+  };
+
+  if (route.ratingAvg != null && route.ratingCount > 0) {
+    routeSchema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: route.ratingAvg.toFixed(1),
+      reviewCount: String(route.ratingCount),
+      bestRating: '5',
+      worstRating: '1',
+    };
+  }
 
   // Aggregate condition tags from reviews
   const conditionTagCounts: Record<string, number> = {};
@@ -287,6 +328,11 @@ export default async function RouteDetailPage({
 
   return (
     <div className="min-h-screen text-neutral-50">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(routeSchema).replace(/</g, '\\u003c') }}
+      />
       {/* ── Breadcrumb ── */}
       <nav className="border-b border-neutral-800/40">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 text-sm sm:px-6">
@@ -414,6 +460,42 @@ export default async function RouteDetailPage({
               <section>
                 <p className="text-base leading-relaxed text-neutral-300">{editorialText}</p>
               </section>
+            )}
+
+            {/* ── Expanded Editorial Content ── */}
+            {editorial && (
+              <div className="space-y-6">
+                {editorial.introduction && !editorialText && (
+                  <p className="text-base leading-relaxed text-neutral-300">
+                    {editorial.introduction}
+                  </p>
+                )}
+                {editorial.sections.map((section) => (
+                  <div key={section.heading}>
+                    <h2 className="mb-3 text-xl font-semibold text-neutral-100">
+                      {section.heading}
+                    </h2>
+                    <p className="text-base leading-relaxed text-neutral-300">{section.content}</p>
+                  </div>
+                ))}
+                {editorial.faqs.length > 0 && (
+                  <div className="border-t border-neutral-800/40 pt-6">
+                    <h2 className="mb-4 text-xl font-semibold text-neutral-100">
+                      Frequently Asked Questions
+                    </h2>
+                    <dl className="space-y-4">
+                      {editorial.faqs.map((faq) => (
+                        <div key={faq.question}>
+                          <dt className="text-base font-medium text-neutral-200">{faq.question}</dt>
+                          <dd className="mt-1 text-sm leading-relaxed text-neutral-400">
+                            {faq.answer}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* ── Condition Tags from reviews ── */}

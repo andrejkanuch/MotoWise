@@ -257,6 +257,55 @@ export function buildArticle(article: ArticleInput): JsonLdNode {
   };
 }
 
+export function buildTouristAttraction(args: {
+  name: string;
+  description: string;
+  url: string;
+  latitude: number;
+  longitude: number;
+  countryName: string;
+  regionName: string;
+}): JsonLdNode {
+  return {
+    '@type': 'TouristAttraction',
+    name: args.name,
+    description: args.description,
+    url: args.url,
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: args.latitude,
+      longitude: args.longitude,
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressRegion: args.regionName,
+      addressCountry: args.countryName,
+    },
+    touristType: 'Motorcyclist',
+    isAccessibleForFree: true,
+  };
+}
+
+export function buildRouteAggregateRating(args: {
+  itemName: string;
+  ratingValue: number;
+  ratingCount: number;
+  url: string;
+}): JsonLdNode {
+  return {
+    '@type': 'TouristAttraction',
+    name: args.itemName,
+    url: args.url,
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: args.ratingValue.toFixed(1),
+      reviewCount: String(args.ratingCount),
+      bestRating: '5',
+      worstRating: '1',
+    },
+  };
+}
+
 /** Build a full `@graph` array for consumption by `<JsonLdGraph>`. */
 export function buildGraph(...nodes: (JsonLdNode | false | null | undefined)[]): JsonLdNode[] {
   return nodes.filter(Boolean) as JsonLdNode[];

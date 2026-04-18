@@ -1,8 +1,8 @@
 {
   "Metadata": {
-    "title": "MotoVault — Motorcycle Companion App for iOS & Android",
+    "title": "MotoVault: Motorcycle Trip Planning, Maintenance Tracking & AI Diagnostics",
     "titleTemplate": "%s | MotoVault",
-    "description": "MotoVault is a free motorcycle companion app with maintenance tracking, expense logging, ride recording, trip planning, and AI photo diagnostics — no OBD hardware needed.",
+    "description": "Plan multi-day motorcycle trips, discover routes worldwide, track maintenance and expenses, and diagnose issues with AI — all in one free app for iOS and Android.",
     "ogDescription": "Free motorcycle companion app for iOS and Android: maintenance, expenses, rides, multi-day trip planning, and AI photo diagnostics — no OBD hardware required."
   },
   "Navbar": {
@@ -28,11 +28,11 @@
     "blog": "Blog"
   },
   "Hero": {
-    "line1": "TRACK YOUR BIKE.",
-    "line2": "OWN",
-    "line3": "YOUR RIDE.",
+    "line1": "PLAN. TRACK.",
+    "line2": "RIDE",
+    "line3": "SMARTER.",
     "subtitle": "MotoVault is a free iOS and Android motorcycle companion app that combines maintenance tracking, expense logging, GPS ride recording, multi-day trip planning, and AI photo diagnostics — no OBD hardware required.",
-    "subtitleShort": "Maintenance tracking, trip planning, and expense logging — all in one free app for iOS and Android.",
+    "subtitleShort": "Trip planning, route discovery, maintenance tracking, expense logging, and AI diagnostics — one free motorcycle app for iOS and Android.",
     "trustLine": "Free to download — no credit card required.",
     "downloadCta": "Start Tracking Free",
     "exploreFeatures": "Explore Features",
@@ -412,7 +412,7 @@
     "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
   },
   "FeaturesDiagnostics": {
-    "title": "AI Motorcycle Diagnostics",
+    "title": "AI Motorcycle Diagnostics — No Hardware Needed",
     "description": "Snap a photo of your motorcycle issue and get an AI-powered diagnosis in seconds. Supports 18,000+ bike models.",
     "heroTitle": "AI-Powered Motorcycle Diagnostics",
     "heroSubtitle": "Point your camera at any part, warning light, or issue. Our AI identifies the problem and suggests fixes — all in seconds.",
@@ -520,7 +520,7 @@
     "longFormLesson": "Each lesson follows a proven format designed for retention and practical application. Lessons begin with a clear learning objective — what you will understand or be able to do after completing it. Visual explanations with diagrams and annotated photos make complex systems easy to understand. Key concepts are highlighted and reinforced through interactive quizzes that test comprehension in real time. Many lessons conclude with a practical exercise: a guided, step-by-step task you perform on your own motorcycle, complete with safety reminders and tool requirements. This combination of theory and practice means you do not just memorize facts — you build real skills you can use in your garage. The AI adapts explanations to your specific bike when possible, making the content directly relevant to the motorcycle you ride."
   },
   "FeaturesGarage": {
-    "title": "Motorcycle Garage Management",
+    "title": "Motorcycle Garage Management — Track Every Bike",
     "description": "Track multiple bikes, log maintenance, set service reminders. Supports 18,000+ models via NHTSA database.",
     "heroTitle": "Your Digital Motorcycle Garage",
     "heroSubtitle": "Track every bike you own. Log maintenance, set reminders, and keep a complete service history.",
@@ -1890,6 +1890,168 @@
       }
     }
   },
+  "VsMotorManage": {
+    "title": "MotoVault vs MotorManage — Which Motorcycle App Is Better?",
+    "description": "Compare MotoVault and MotorManage side by side. See which motorcycle maintenance app offers better features for tracking service schedules, expenses, and diagnostics.",
+    "h1": "MotoVault vs MotorManage",
+    "subtitle": "Compare two leading motorcycle management apps to find the right fit for your riding needs.",
+    "mvHeading": "MotoVault",
+    "mvDescription": "MotoVault is an all-in-one motorcycle companion app combining maintenance tracking, expense logging, ride recording, multi-day trip planning, route discovery, and AI photo diagnostics — available on iOS and Android.",
+    "compHeading": "MotorManage",
+    "compDescription": "MotorManage specializes in manufacturer-specific maintenance schedules for over 600 motorcycle brands. It provides detailed service interval tracking based on your exact make, model, and year with OEM-recommended procedures.",
+    "featureMaintenance": "Maintenance tracking",
+    "featureExpenses": "Expense logging",
+    "featureManufacturerSchedules": "OEM service schedules",
+    "featureDiagnostics": "AI diagnostics",
+    "featureTripPlanning": "Trip planning",
+    "featureRouteDiscovery": "Route discovery",
+    "featureLearning": "Learning content",
+    "featureMultiBike": "Multiple bikes",
+    "featureAndroid": "Android support",
+    "featureRides": "Ride recording",
+    "parity": {
+      "0": {
+        "label": "Maintenance tracking",
+        "mv": "Smart reminders",
+        "comp": "OEM intervals for 600+ brands"
+      },
+      "1": {
+        "label": "Expense logging",
+        "mv": "Full cost tracking with analytics",
+        "comp": "Basic cost logging"
+      },
+      "2": {
+        "label": "Service schedules",
+        "mv": "Custom intervals",
+        "comp": "Manufacturer-specific for 600+ brands"
+      },
+      "3": { "label": "AI diagnostics", "mv": "Photo-based AI analysis", "comp": "Not available" },
+      "4": {
+        "label": "Trip planning",
+        "mv": "Multi-day with typed waypoints",
+        "comp": "Not available"
+      },
+      "5": {
+        "label": "Route discovery",
+        "mv": "Community-curated routes",
+        "comp": "Not available"
+      },
+      "6": { "label": "Learning content", "mv": "Courses and quizzes", "comp": "Not available" },
+      "7": {
+        "label": "Multiple bikes",
+        "mv": "Unlimited (Pro)",
+        "comp": "Multiple bikes supported"
+      },
+      "8": { "label": "Android support", "mv": "iOS and Android", "comp": "Android only" },
+      "9": { "label": "Ride recording", "mv": "GPS with maps", "comp": "Not available" }
+    },
+    "pricing": {
+      "0": {
+        "label": "Free tier",
+        "mv": "Yes — 1 bike, core features",
+        "comp": "Limited free version"
+      },
+      "1": { "label": "Pro price", "mv": "$4.99/month", "comp": "One-time purchase ~$5" },
+      "2": { "label": "Platforms", "mv": "iOS + Android", "comp": "Android" }
+    },
+    "verdictHeading": "Which Should You Choose?",
+    "verdictText": "Choose MotorManage if you want detailed manufacturer-specific service schedules for your exact bike and prefer a one-time purchase Android app. Choose MotoVault if you want an all-in-one platform that goes beyond maintenance to include trip planning, route discovery, AI diagnostics, and learning content on both iOS and Android.",
+    "faq": {
+      "0": {
+        "question": "Is MotorManage better than MotoVault for maintenance tracking?",
+        "answer": "MotorManage excels at manufacturer-specific service schedules with OEM intervals for over 600 brands. MotoVault offers smart custom reminders with expense tracking and AI diagnostics. If OEM-spec schedules are your priority, MotorManage has the edge. If you want an all-in-one platform, MotoVault is the better choice."
+      },
+      "1": {
+        "question": "Does MotorManage work on iPhone?",
+        "answer": "No — MotorManage is Android-only. MotoVault is available on both iOS and Android."
+      },
+      "2": {
+        "question": "Can MotoVault replace MotorManage?",
+        "answer": "For most riders, yes. MotoVault covers maintenance tracking, expenses, and adds features MotorManage doesn't have (trip planning, diagnostics, learning). The one area where MotorManage has an advantage is its extensive database of manufacturer-specific service schedules."
+      },
+      "3": {
+        "question": "Which app is cheaper?",
+        "answer": "MotorManage is a one-time purchase (~$5). MotoVault offers a generous free tier with Pro at $4.99/month or $34.99/year. For basic maintenance tracking, MotorManage has a lower lifetime cost. For the full feature set, MotoVault Pro provides significantly more value."
+      }
+    }
+  },
+  "VsMotoShed": {
+    "title": "MotoVault vs Moto Shed — Which Motorcycle App Is Better?",
+    "description": "Compare MotoVault and Moto Shed side by side. See which motorcycle app offers better maintenance tracking, expense management, and overall riding features.",
+    "h1": "MotoVault vs Moto Shed",
+    "subtitle": "Compare a simple service logger with a full motorcycle companion platform.",
+    "mvHeading": "MotoVault",
+    "mvDescription": "MotoVault is an all-in-one motorcycle companion app combining maintenance tracking, expense logging, ride recording, multi-day trip planning, route discovery, and AI photo diagnostics — available on iOS and Android.",
+    "compHeading": "Moto Shed",
+    "compDescription": "Moto Shed is a clean, focused iOS app for logging motorcycle services and maintenance. It offers a straightforward approach to tracking what you've done to your bike, with a one-time purchase price and no subscription.",
+    "featureMaintenance": "Maintenance tracking",
+    "featureExpenses": "Expense logging",
+    "featureDiagnostics": "AI diagnostics",
+    "featureTripPlanning": "Trip planning",
+    "featureRouteDiscovery": "Route discovery",
+    "featureLearning": "Learning content",
+    "featureMultiBike": "Multiple bikes",
+    "featureAndroid": "Android support",
+    "featureRides": "Ride recording",
+    "featureReminders": "Service reminders",
+    "parity": {
+      "0": {
+        "label": "Maintenance tracking",
+        "mv": "Full tracking with reminders",
+        "comp": "Service logging"
+      },
+      "1": {
+        "label": "Expense logging",
+        "mv": "Detailed cost analytics",
+        "comp": "Basic cost per service"
+      },
+      "2": {
+        "label": "Service reminders",
+        "mv": "Smart date/mileage reminders",
+        "comp": "Basic reminders"
+      },
+      "3": { "label": "AI diagnostics", "mv": "Photo-based AI analysis", "comp": "Not available" },
+      "4": {
+        "label": "Trip planning",
+        "mv": "Multi-day with typed waypoints",
+        "comp": "Not available"
+      },
+      "5": {
+        "label": "Route discovery",
+        "mv": "Community-curated routes",
+        "comp": "Not available"
+      },
+      "6": { "label": "Learning content", "mv": "Courses and quizzes", "comp": "Not available" },
+      "7": { "label": "Multiple bikes", "mv": "Unlimited (Pro)", "comp": "Multiple bikes" },
+      "8": { "label": "Android support", "mv": "iOS and Android", "comp": "iOS only" },
+      "9": { "label": "Ride recording", "mv": "GPS with maps", "comp": "Not available" }
+    },
+    "pricing": {
+      "0": { "label": "Free tier", "mv": "Yes — 1 bike, core features", "comp": "No free tier" },
+      "1": { "label": "Price", "mv": "$4.99/month (Pro)", "comp": "One-time ~$4.99" },
+      "2": { "label": "Platforms", "mv": "iOS + Android", "comp": "iOS only" }
+    },
+    "verdictHeading": "Which Should You Choose?",
+    "verdictText": "Choose Moto Shed if you want a dead-simple service logger with a one-time purchase price and no subscription. Choose MotoVault if you want a comprehensive platform that goes beyond maintenance logging to include trip planning, route discovery, expense analytics, AI diagnostics, and learning content.",
+    "faq": {
+      "0": {
+        "question": "Is Moto Shed simpler than MotoVault?",
+        "answer": "Yes — Moto Shed is intentionally minimal. It's a service logger with a clean interface and no extra features. MotoVault is a full-featured platform. If you only need to log services, Moto Shed's simplicity is appealing. If you want more from your motorcycle app, MotoVault is the better choice."
+      },
+      "1": {
+        "question": "Does Moto Shed work on Android?",
+        "answer": "No — Moto Shed is iOS only. MotoVault is available on both iOS and Android."
+      },
+      "2": {
+        "question": "Which app is better value?",
+        "answer": "Moto Shed is a one-time purchase (~$4.99) for basic service logging. MotoVault's free tier already includes more features than Moto Shed, and Pro ($4.99/month) adds unlimited bikes, full analytics, AI diagnostics, and learning content. For pure service logging, Moto Shed is cheaper. For everything else, MotoVault's free tier is hard to beat."
+      },
+      "3": {
+        "question": "Can I switch from Moto Shed to MotoVault?",
+        "answer": "Yes — you'll need to manually re-enter your service history, but MotoVault's maintenance tracking covers everything Moto Shed offers plus expense analytics, smart reminders, and AI diagnostics."
+      }
+    }
+  },
   "FeaturesIndex": {
     "title": "Features",
     "description": "Everything MotoVault does — trip planning, AI diagnostics, garage tracking, learning and progress.",
@@ -1909,7 +2071,7 @@
     "progressDesc": "Every ride, every task, every spend logged automatically so you always know where your motorcycle stands."
   },
   "FeaturesTripPlanning": {
-    "title": "Motorcycle Trip Planner — Multi-Day Route Builder & Itinerary",
+    "title": "Motorcycle Trip Planning App — Multi-Day Routes & Navigation",
     "description": "MotoVault's motorcycle trip planner app builds multi-day routes with typed waypoints (fuel, food, hotels, passes, ferries), real road routing, and rider RSVPs. Offline-capable on iOS and Android.",
     "heroEyebrow": "Multi-Day Routes · Offline Maps",
     "heroTitle": "Plan Every Mile of the Ride",
