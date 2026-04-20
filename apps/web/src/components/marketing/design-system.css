@@ -617,6 +617,32 @@
   75%  { content: "..."; }
 }
 
+/* ── Custom cursor dot ── */
+.mv-cursor-dot {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mv-warm-500);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: width 0.25s var(--mv-ease-expo), height 0.25s var(--mv-ease-expo),
+    background 0.2s, border 0.2s, opacity 0.3s;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  border: 1px solid transparent;
+}
+.mv-cursor-dot.mv-cursor-hover {
+  width: 48px;
+  height: 48px;
+  background: transparent;
+  border-color: var(--mv-ink);
+}
+@media (hover: none) {
+  .mv-cursor-dot { display: none; }
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .mv-marketing *,

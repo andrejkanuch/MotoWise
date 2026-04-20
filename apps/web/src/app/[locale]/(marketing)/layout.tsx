@@ -1,6 +1,7 @@
 import { Instrument_Serif } from 'next/font/google';
 import { headers } from 'next/headers';
 import { getLocale, getTranslations } from 'next-intl/server';
+import { CursorDot } from '@/components/marketing/cursor-dot';
 import { Footer } from '@/components/marketing/footer';
 import { Navbar } from '@/components/marketing/navbar';
 import { routing } from '@/i18n/routing';
@@ -77,6 +78,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
         Skip to content
       </a>
       <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
+      <CursorDot />
       <Navbar />
       <main id="main-content">{children}</main>
       <Footer />
