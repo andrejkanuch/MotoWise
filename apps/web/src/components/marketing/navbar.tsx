@@ -713,11 +713,7 @@ export function Navbar() {
                 <a href="/login" onClick={closeMobile} style={S.mobileSignin}>
                   {t('login', { defaultValue: 'Sign in' })}
                 </a>
-                <a
-                  href="/#download"
-                  onClick={closeMobile}
-                  style={S.mobileCta}
-                >
+                <a href="/#download" style={S.mobileCta}>
                   {t('getTheApp', { defaultValue: 'Get the app' })}
                 </a>
               </>
