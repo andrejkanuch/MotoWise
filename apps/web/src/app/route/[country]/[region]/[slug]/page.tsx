@@ -184,6 +184,45 @@ function prettifyCountry(slug: string): string {
   return countryDisplayName(slug);
 }
 
+function countrySlugToCode(slug: string): string {
+  const map: Record<string, string> = {
+    'united-states': 'US',
+    usa: 'US',
+    germany: 'DE',
+    france: 'FR',
+    italy: 'IT',
+    spain: 'ES',
+    austria: 'AT',
+    switzerland: 'CH',
+    'united-kingdom': 'UK',
+    portugal: 'PT',
+    greece: 'GR',
+    croatia: 'HR',
+    norway: 'NO',
+    sweden: 'SE',
+    romania: 'RO',
+    canada: 'CA',
+    mexico: 'MX',
+    brazil: 'BR',
+    argentina: 'AR',
+    colombia: 'CO',
+    chile: 'CL',
+    peru: 'PE',
+    'czech-republic': 'CZ',
+    poland: 'PL',
+    netherlands: 'NL',
+    belgium: 'BE',
+    ireland: 'IE',
+    scotland: 'SC',
+    'costa-rica': 'CR',
+    ecuador: 'EC',
+    bolivia: 'BO',
+    uruguay: 'UY',
+    'dominican-republic': 'DO',
+  };
+  return map[slug] ?? slug.slice(0, 2).toUpperCase();
+}
+
 // ── Metadata ───────────────────────────────────────────────────────
 
 export async function generateMetadata({
@@ -235,6 +274,23 @@ export async function generateMetadata({
   };
 }
 
+// ── CSS variables (matching feature.css tokens) ───────────────────
+
+const cssVars = {
+  bg: 'oklch(0.12 0.01 55)',
+  bg2: 'oklch(0.09 0.008 55)',
+  surface: 'oklch(0.15 0.012 55)',
+  ink: 'oklch(0.98 0.006 80)',
+  ink2: 'oklch(0.78 0.012 70)',
+  ink3: 'oklch(0.58 0.012 65)',
+  ink4: 'oklch(0.4 0.012 60)',
+  line: 'oklch(1 0 0 / 0.07)',
+  warm500: 'oklch(0.76 0.18 60)',
+  warm400: 'oklch(0.84 0.15 68)',
+  warm300: 'oklch(0.9 0.11 72)',
+  success: 'oklch(0.72 0.2 145)',
+} as const;
+
 // ── Page ───────────────────────────────────────────────────────────
 
 export default async function RouteDetailPage({
@@ -276,6 +332,8 @@ export default async function RouteDetailPage({
           retina: true,
         }) || null
       : null;
+
+  const countryCode = countrySlugToCode(country);
 
   // JSON-LD structured data
   const midIdx = Math.floor(decodedPolyline.length / 2);
@@ -326,42 +384,256 @@ export default async function RouteDetailPage({
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
+  // Split route name into lines for giant title
+  const titleWords = routeName.split(' ');
+  const titleLines: string[] = [];
+  if (titleWords.length <= 2) {
+    titleLines.push(routeName);
+  } else if (titleWords.length <= 4) {
+    const mid = Math.ceil(titleWords.length / 2);
+    titleLines.push(titleWords.slice(0, mid).join(' '));
+    titleLines.push(titleWords.slice(mid).join(' '));
+  } else {
+    const third = Math.ceil(titleWords.length / 3);
+    titleLines.push(titleWords.slice(0, third).join(' '));
+    titleLines.push(titleWords.slice(third, third * 2).join(' '));
+    titleLines.push(titleWords.slice(third * 2).join(' '));
+  }
+
   return (
-    <div className="min-h-screen text-neutral-50">
+    <div style={{ background: cssVars.bg, color: cssVars.ink, minHeight: '100vh' }}>
+      <style
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: scoped CSS for route hero
+        dangerouslySetInnerHTML={{
+          __html: `
+            @keyframes bgBreath {
+              0% { transform: scale(1.05); }
+              100% { transform: scale(1.12); }
+            }
+            .rh-icon-btn:hover {
+              background: oklch(1 0 0 / 0.08) !important;
+              border-color: oklch(1 0 0 / 0.16) !important;
+            }
+            .rh-crumb-link:hover { color: ${cssVars.warm400} !important; }
+            .rh-stat { border-right: 1px solid ${cssVars.line}; }
+            .rh-stat:last-child { border-right: none; }
+            @media (max-width: 900px) {
+              .rh-bottom-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+              .rh-actions { align-items: flex-start !important; }
+              .rh-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+              .rh-stat { border-bottom: 1px solid ${cssVars.line}; }
+            }
+            @media (max-width: 720px) {
+              .rh-hero { padding: 120px 24px 40px !important; }
+              .rsec-wrapper { padding: 80px 24px !important; }
+            }
+          `,
+        }}
+      />
       <script
         type="application/ld+json"
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data requires dangerouslySetInnerHTML
         dangerouslySetInnerHTML={{ __html: JSON.stringify(routeSchema).replace(/</g, '\\u003c') }}
       />
-      {/* ── Breadcrumb ── */}
-      <nav className="border-b border-neutral-800/40">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 text-sm sm:px-6">
-          <a href="/explore" className="text-neutral-400 transition-colors hover:text-neutral-200">
-            Explore
-          </a>
-          <span className="text-neutral-600">/</span>
-          <a
-            href={`/explore/${country}`}
-            className="text-neutral-400 transition-colors hover:text-neutral-200"
-          >
-            {countryName}
-          </a>
-          <span className="text-neutral-600">/</span>
-          <span className="max-w-[200px] truncate text-neutral-300">{routeName}</span>
-        </div>
-      </nav>
 
-      {/* ── Hero Section ── */}
-      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-50 sm:text-4xl lg:text-[2.75rem]">
-            {routeName}
-          </h1>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+      {/* ═══════════════ HERO (full-viewport) ═══════════════ */}
+      <section
+        className="rh-hero"
+        style={{
+          position: 'relative',
+          minHeight: '100vh',
+          padding: '140px 40px 60px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          isolation: 'isolate',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Background image */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: -3,
+            backgroundImage: staticPreviewUrl ? `url("${staticPreviewUrl}")` : 'none',
+            backgroundColor: cssVars.bg2,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 45%',
+            filter: 'saturate(0.9) brightness(0.45) hue-rotate(20deg) contrast(1.05)',
+            transform: 'scale(1.05)',
+            animation: 'bgBreath 20s ease-in-out infinite alternate',
+          }}
+        />
+
+        {/* Gradient overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: -2,
+            background: [
+              'linear-gradient(180deg, oklch(0.09 0.008 55 / 0.5) 0%, oklch(0.09 0.008 55 / 0.2) 40%, oklch(0.09 0.008 55 / 0.95) 100%)',
+              'radial-gradient(ellipse 70% 60% at 80% 30%, oklch(0.76 0.18 60 / 0.18), transparent 60%)',
+            ].join(', '),
+          }}
+        />
+
+        {/* Grid pattern overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: -1,
+            backgroundImage: [
+              'linear-gradient(to right, oklch(1 0 0 / 0.025) 1px, transparent 1px)',
+              'linear-gradient(to bottom, oklch(1 0 0 / 0.025) 1px, transparent 1px)',
+            ].join(', '),
+            backgroundSize: '80px 80px',
+            maskImage: 'radial-gradient(ellipse 80% 100% at 50% 50%, #000, transparent 85%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 100% at 50% 50%, #000, transparent 85%)',
+            opacity: 0.5,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* ── Hero Top ── */}
+        <div style={{ maxWidth: 1240, margin: '0 auto', width: '100%' }}>
+          {/* Breadcrumbs */}
+          <nav
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: 11,
+              color: cssVars.ink3,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <a
+              href="/explore"
+              className="rh-crumb-link"
+              style={{ color: cssVars.ink3, textDecoration: 'none', transition: 'color .2s' }}
+            >
+              Explore
+            </a>
+            <span style={{ color: cssVars.ink4 }}>/</span>
+            <a
+              href={`/explore/${country}`}
+              className="rh-crumb-link"
+              style={{ color: cssVars.ink3, textDecoration: 'none', transition: 'color .2s' }}
+            >
+              {countryName}
+            </a>
+            <span style={{ color: cssVars.ink4 }}>/</span>
+            <a
+              href={`/explore/${country}/${region}`}
+              className="rh-crumb-link"
+              style={{ color: cssVars.ink3, textDecoration: 'none', transition: 'color .2s' }}
+            >
+              {regionName}
+            </a>
+            <span style={{ color: cssVars.ink4 }}>/</span>
+            <span style={{ color: cssVars.warm400 }}>{routeName}</span>
+          </nav>
+
+          {/* Meta tags row */}
+          <div
+            style={{
+              marginTop: 36,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              flexWrap: 'wrap',
+            }}
+          >
+            {/* Country flag tag */}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 14px',
+                background: 'oklch(1 0 0 / 0.05)',
+                border: `1px solid ${cssVars.line}`,
+                borderRadius: 999,
+                backdropFilter: 'blur(12px)',
+                fontSize: 12,
+                color: cssVars.ink2,
+                fontWeight: 500,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              <span
+                style={{
+                  width: 22,
+                  height: 16,
+                  borderRadius: 3,
+                  background: 'oklch(0.4 0.18 265)',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'oklch(0.98 0 0)',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                {countryCode}
+              </span>
+              {countryName}
+            </span>
+
+            {/* Status dot tag */}
+            {route.status && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 14px',
+                  background: 'oklch(1 0 0 / 0.05)',
+                  border: `1px solid ${cssVars.line}`,
+                  borderRadius: 999,
+                  backdropFilter: 'blur(12px)',
+                  fontSize: 12,
+                  color: cssVars.ink2,
+                  fontWeight: 500,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: cssVars.success,
+                    boxShadow: `0 0 0 4px oklch(0.72 0.2 145 / 0.18)`,
+                  }}
+                />
+                {route.status === 'published' ? 'Verified' : route.status}
+              </span>
+            )}
+
+            {/* Editor's pick */}
             {route.isMotovaultPick && (
               <span
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-                style={{ backgroundColor: palette.signatureBgDark, color: palette.signature400 }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 14px',
+                  background: 'oklch(1 0 0 / 0.05)',
+                  border: `1px solid ${cssVars.line}`,
+                  borderRadius: 999,
+                  backdropFilter: 'blur(12px)',
+                  fontSize: 12,
+                  color: cssVars.warm400,
+                  fontWeight: 500,
+                  letterSpacing: '-0.005em',
+                }}
               >
                 <svg
                   width="12"
@@ -376,204 +648,753 @@ export default async function RouteDetailPage({
                 Editor&apos;s Pick
               </span>
             )}
+
+            {/* Rating */}
             {route.ratingAvg != null && route.ratingCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-200">
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '6px 14px',
+                  background: 'oklch(1 0 0 / 0.05)',
+                  border: `1px solid ${cssVars.line}`,
+                  borderRadius: 999,
+                  backdropFilter: 'blur(12px)',
+                  fontSize: 12,
+                  color: cssVars.ink2,
+                  fontWeight: 500,
+                  letterSpacing: '-0.005em',
+                }}
+              >
                 <svg
-                  width="16"
-                  height="16"
+                  width="12"
+                  height="12"
                   viewBox="0 0 24 24"
-                  fill={palette.warning500}
+                  fill={cssVars.warm400}
                   aria-hidden="true"
                 >
                   <title>Rating</title>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
-                {route.ratingAvg.toFixed(1)}
-                <span className="text-neutral-500">
-                  ({route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'})
-                </span>
+                {route.ratingAvg.toFixed(1)} ({route.ratingCount})
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 text-sm">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: difficulty.color }}
-              />
-              <span className="text-neutral-300">{difficulty.label}</span>
-            </span>
-            <span className="text-sm text-neutral-400">&middot;</span>
-            <span className="text-sm text-neutral-300">{surfaceLabel}</span>
-            <span className="text-sm text-neutral-400">&middot;</span>
-            <span className="text-sm text-neutral-400">
-              {regionName}, {countryName}
-            </span>
           </div>
+
+          {/* Giant title */}
+          <h1
+            style={{
+              margin: '28px 0 0',
+              fontSize: 'clamp(64px, 10vw, 168px)',
+              fontWeight: 500,
+              lineHeight: 0.86,
+              letterSpacing: '-0.05em',
+            }}
+          >
+            {titleLines.map((line, i) => (
+              <span key={line} style={{ display: 'block' }}>
+                <span style={{ display: 'inline-block' }}>
+                  {i === titleLines.length - 1 ? (
+                    <span
+                      style={{
+                        fontFamily: "'Instrument Serif', serif",
+                        fontWeight: 400,
+                        fontStyle: 'italic',
+                        letterSpacing: '-0.03em',
+                        color: cssVars.warm300,
+                      }}
+                    >
+                      {line}
+                    </span>
+                  ) : (
+                    line
+                  )}
+                </span>
+              </span>
+            ))}
+          </h1>
         </div>
 
-        {/* Map hero + action buttons */}
-        <div className="relative mb-8 overflow-hidden rounded-2xl border border-neutral-800/60 bg-neutral-900">
+        {/* ── Hero Bottom: Stats + Actions ── */}
+        <div
+          className="rh-bottom-grid"
+          style={{
+            maxWidth: 1240,
+            margin: '60px auto 0',
+            width: '100%',
+            display: 'grid',
+            gridTemplateColumns: '1.4fr 1fr',
+            gap: 60,
+            alignItems: 'end',
+          }}
+        >
+          {/* Stats grid */}
+          <div
+            className="rh-stats-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 0,
+              border: `1px solid ${cssVars.line}`,
+              borderRadius: 16,
+              overflow: 'hidden',
+              background: 'oklch(0.09 0.008 55 / 0.6)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <div className="rh-stat" style={{ padding: '18px 20px' }}>
+              <div
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 9.5,
+                  color: cssVars.ink3,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Distance
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatDistance(route.distanceM)}
+                <span
+                  style={{
+                    fontFamily: "'Instrument Serif', serif",
+                    fontWeight: 400,
+                    fontStyle: 'italic',
+                    color: cssVars.warm400,
+                    fontSize: 20,
+                    marginLeft: 4,
+                  }}
+                >
+                  km
+                </span>
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: cssVars.ink4,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {surfaceLabel} road
+              </div>
+            </div>
+
+            <div className="rh-stat" style={{ padding: '18px 20px' }}>
+              <div
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 9.5,
+                  color: cssVars.ink3,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Elevation
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {route.elevationGainM != null && route.elevationGainM > 0
+                  ? formatElevation(route.elevationGainM)
+                  : '--'}
+                <span
+                  style={{
+                    fontFamily: "'Instrument Serif', serif",
+                    fontWeight: 400,
+                    fontStyle: 'italic',
+                    color: cssVars.warm400,
+                    fontSize: 20,
+                    marginLeft: 4,
+                  }}
+                >
+                  m
+                </span>
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: cssVars.ink4,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                Elevation gain
+              </div>
+            </div>
+
+            <div className="rh-stat" style={{ padding: '18px 20px' }}>
+              <div
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 9.5,
+                  color: cssVars.ink3,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Curvature
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                  color: difficulty.color,
+                }}
+              >
+                {difficulty.label}
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: cssVars.ink4,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {getCurvatureLabel(route.curvatureIndex)}
+              </div>
+            </div>
+
+            <div className="rh-stat" style={{ padding: '18px 20px' }}>
+              <div
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 9.5,
+                  color: cssVars.ink3,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Est. Time
+              </div>
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatDuration(route.distanceM)}
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: cssVars.ink4,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                Riding time
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div
+            className="rh-actions"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              alignItems: 'flex-end',
+            }}
+          >
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <GpxDownloadButton
+                routeId={route.id}
+                routeName={routeName}
+                isAuthenticated={hasSession}
+              />
+              <OpenInAppCta />
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <SaveRouteButton routeId={route.id} />
+              <ShareButton routeName={routeName} variant="icon" />
+            </div>
+
+            {/* Contributor */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                color: cssVars.ink3,
+                fontSize: 12,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, oklch(0.5 0.18 30), oklch(0.6 0.15 60))',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: cssVars.ink,
+                  border: '1px solid oklch(1 0 0 / 0.2)',
+                }}
+              >
+                {route.contributor.displayName.charAt(0).toUpperCase()}
+              </div>
+              <span>
+                Added by{' '}
+                <strong style={{ color: cssVars.ink2, fontWeight: 500 }}>
+                  {route.contributor.publicUsername ? (
+                    <a
+                      href={`/u/${route.contributor.publicUsername}`}
+                      style={{ color: cssVars.ink2, textDecoration: 'none' }}
+                    >
+                      {route.contributor.displayName}
+                    </a>
+                  ) : (
+                    route.contributor.displayName
+                  )}
+                </strong>{' '}
+                &middot;{' '}
+                {new Date(route.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ OVERVIEW SECTION ═══════════════ */}
+      {(editorialText || editorial) && (
+        <section
+          className="rsec-wrapper"
+          style={{ padding: '100px 40px', maxWidth: 1240, margin: '0 auto' }}
+        >
+          <div style={{ marginBottom: 56 }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 14,
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: 11,
+                color: cssVars.ink3,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <span style={{ width: 28, height: 1, background: cssVars.warm500 }} />
+              Overview
+            </div>
+            <h2
+              style={{
+                fontSize: 'clamp(36px, 5vw, 64px)',
+                fontWeight: 500,
+                lineHeight: 0.98,
+                letterSpacing: '-0.04em',
+                margin: '16px 0 0',
+                maxWidth: 700,
+              }}
+            >
+              About{' '}
+              <span
+                style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontWeight: 400,
+                  fontStyle: 'italic',
+                  letterSpacing: '-0.03em',
+                  color: cssVars.warm400,
+                }}
+              >
+                this route
+              </span>
+            </h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1fr', gap: 80 }}>
+            <div>
+              {editorialText && (
+                <p
+                  style={{
+                    color: cssVars.ink2,
+                    fontSize: 17,
+                    lineHeight: 1.65,
+                    letterSpacing: '-0.01em',
+                    margin: 0,
+                    maxWidth: '60ch',
+                  }}
+                >
+                  {editorialText}
+                </p>
+              )}
+
+              {editorial && (
+                <div style={{ marginTop: editorialText ? 40 : 0 }}>
+                  {editorial.introduction && !editorialText && (
+                    <p
+                      style={{
+                        color: cssVars.ink2,
+                        fontSize: 17,
+                        lineHeight: 1.65,
+                        letterSpacing: '-0.01em',
+                        margin: '0 0 40px',
+                        maxWidth: '60ch',
+                      }}
+                    >
+                      {editorial.introduction}
+                    </p>
+                  )}
+                  {editorial.sections.map((section) => (
+                    <div key={section.heading} style={{ marginTop: 40 }}>
+                      <h3
+                        style={{
+                          fontSize: 22,
+                          fontWeight: 500,
+                          letterSpacing: '-0.02em',
+                          lineHeight: 1.15,
+                          margin: '0 0 14px',
+                        }}
+                      >
+                        {section.heading}
+                      </h3>
+                      <p
+                        style={{
+                          color: cssVars.ink2,
+                          fontSize: 15,
+                          lineHeight: 1.7,
+                          maxWidth: '60ch',
+                          letterSpacing: '-0.005em',
+                          margin: 0,
+                        }}
+                      >
+                        {section.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Condition Tags */}
+              {topConditionTags.length > 0 && (
+                <div style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {topConditionTags.map(([tag, count]) => (
+                    <ConditionTagBadge key={tag} tag={tag} count={count} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Side facts */}
+            <div>
+              <div
+                style={{
+                  background: cssVars.surface,
+                  border: `1px solid ${cssVars.line}`,
+                  borderRadius: 18,
+                  padding: 22,
+                }}
+              >
+                <h4
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: 11,
+                    color: cssVars.ink3,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    margin: '0 0 14px',
+                    fontWeight: 500,
+                  }}
+                >
+                  Quick Facts
+                </h4>
+                <div>
+                  {[
+                    { key: 'Region', value: regionName },
+                    { key: 'Country', value: countryName },
+                    { key: 'Surface', value: surfaceLabel },
+                    { key: 'Difficulty', value: difficulty.label, color: difficulty.color },
+                    ...(route.ratingAvg != null && route.ratingCount > 0
+                      ? [
+                          {
+                            key: 'Rating',
+                            value: `${route.ratingAvg.toFixed(1)} (${route.ratingCount})`,
+                          },
+                        ]
+                      : []),
+                  ].map((fact) => (
+                    <div
+                      key={fact.key}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        padding: '8px 0',
+                        fontSize: 13,
+                        borderBottom: `1px dashed oklch(1 0 0 / 0.03)`,
+                      }}
+                    >
+                      <span style={{ color: cssVars.ink3, letterSpacing: '-0.005em' }}>
+                        {fact.key}
+                      </span>
+                      <span
+                        style={{
+                          color: 'color' in fact && fact.color ? fact.color : cssVars.ink,
+                          fontWeight: 500,
+                          letterSpacing: '-0.005em',
+                        }}
+                      >
+                        {fact.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* FAQs */}
+          {editorial && editorial.faqs.length > 0 && (
+            <div
+              style={{
+                marginTop: 80,
+                paddingTop: 80,
+                borderTop: `1px solid ${cssVars.line}`,
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 11,
+                  color: cssVars.ink3,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span style={{ width: 28, height: 1, background: cssVars.warm500 }} />
+                FAQ
+              </div>
+              <h2
+                style={{
+                  fontSize: 'clamp(36px, 5vw, 64px)',
+                  fontWeight: 500,
+                  lineHeight: 0.98,
+                  letterSpacing: '-0.04em',
+                  margin: '16px 0 56px',
+                }}
+              >
+                Common{' '}
+                <span
+                  style={{
+                    fontFamily: "'Instrument Serif', serif",
+                    fontWeight: 400,
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.03em',
+                    color: cssVars.warm400,
+                  }}
+                >
+                  questions
+                </span>
+              </h2>
+              <dl
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0,
+                  border: `1px solid ${cssVars.line}`,
+                  borderRadius: 24,
+                  overflow: 'hidden',
+                  background: cssVars.bg2,
+                }}
+              >
+                {editorial.faqs.map((faq) => (
+                  <div
+                    key={faq.question}
+                    style={{
+                      padding: '28px 32px',
+                      borderBottom: `1px solid ${cssVars.line}`,
+                    }}
+                  >
+                    <dt
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 500,
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      {faq.question}
+                    </dt>
+                    <dd
+                      style={{
+                        marginTop: 10,
+                        color: cssVars.ink2,
+                        fontSize: 14.5,
+                        lineHeight: 1.6,
+                        letterSpacing: '-0.005em',
+                        maxWidth: '60ch',
+                      }}
+                    >
+                      {faq.answer}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ═══════════════ MAP SECTION ═══════════════ */}
+      <section
+        className="rsec-wrapper"
+        style={{ padding: '100px 40px', maxWidth: 1240, margin: '0 auto' }}
+      >
+        <div style={{ marginBottom: 56 }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 14,
+              fontFamily: "'Geist Mono', monospace",
+              fontSize: 11,
+              color: cssVars.ink3,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span style={{ width: 28, height: 1, background: cssVars.warm500 }} />
+            Route Map
+          </div>
+          <h2
+            style={{
+              fontSize: 'clamp(36px, 5vw, 64px)',
+              fontWeight: 500,
+              lineHeight: 0.98,
+              letterSpacing: '-0.04em',
+              margin: '16px 0 0',
+              maxWidth: 700,
+            }}
+          >
+            Explore the{' '}
+            <span
+              style={{
+                fontFamily: "'Instrument Serif', serif",
+                fontWeight: 400,
+                fontStyle: 'italic',
+                letterSpacing: '-0.03em',
+                color: cssVars.warm400,
+              }}
+            >
+              terrain
+            </span>
+          </h2>
+        </div>
+
+        <div
+          style={{
+            border: `1px solid ${cssVars.line}`,
+            borderRadius: 24,
+            overflow: 'hidden',
+            background: 'oklch(0.13 0.012 55)',
+          }}
+        >
           <RouteMapSection
             polyline={decodedPolyline}
             staticPreviewUrl={staticPreviewUrl}
             mapInstanceKey={route.id}
           />
-          <div className="absolute right-4 top-4 z-10 flex items-start gap-2">
-            <SaveRouteButton routeId={route.id} />
-            <ShareButton routeName={routeName} />
-            <GpxDownloadButton
-              routeId={route.id}
-              routeName={routeName}
-              isAuthenticated={hasSession}
-            />
-          </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── Stats ── */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <p className="py-4 text-sm text-neutral-400">
-          {formatDistance(route.distanceM)} km
-          {route.elevationGainM != null && route.elevationGainM > 0 && (
-            <> &middot; {formatElevation(route.elevationGainM)}m elevation gain</>
-          )}{' '}
-          &middot; {formatDuration(route.distanceM)} est.
-          {route.curvatureIndex != null && (
-            <>
-              {' '}
-              &middot;{' '}
-              <span style={{ color: difficulty.color }}>
-                {getCurvatureLabel(route.curvatureIndex)}
+      {/* ═══════════════ REVIEWS SECTION ═══════════════ */}
+      {(reviews.length > 0 || totalReviewCount > 0) && (
+        <section
+          className="rsec-wrapper"
+          style={{
+            padding: '100px 40px',
+            maxWidth: 1240,
+            margin: '0 auto',
+            borderTop: `1px solid ${cssVars.line}`,
+          }}
+        >
+          <div style={{ marginBottom: 56 }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 14,
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: 11,
+                color: cssVars.ink3,
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+              }}
+            >
+              <span style={{ width: 28, height: 1, background: cssVars.warm500 }} />
+              Reviews
+            </div>
+            <h2
+              style={{
+                fontSize: 'clamp(36px, 5vw, 64px)',
+                fontWeight: 500,
+                lineHeight: 0.98,
+                letterSpacing: '-0.04em',
+                margin: '16px 0 0',
+                maxWidth: 700,
+              }}
+            >
+              Rider{' '}
+              <span
+                style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontWeight: 400,
+                  fontStyle: 'italic',
+                  letterSpacing: '-0.03em',
+                  color: cssVars.warm400,
+                }}
+              >
+                experiences
               </span>
-            </>
-          )}{' '}
-          &middot; {surfaceLabel}
-        </p>
-      </div>
-
-      {/* ── Content Section ── */}
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-3">
-          {/* ── Left column ── */}
-          <div className="space-y-8 lg:col-span-2">
-            {/* Description */}
-            {editorialText && (
-              <section>
-                <p className="text-base leading-relaxed text-neutral-300">{editorialText}</p>
-              </section>
-            )}
-
-            {/* ── Expanded Editorial Content ── */}
-            {editorial && (
-              <div className="space-y-6">
-                {editorial.introduction && !editorialText && (
-                  <p className="text-base leading-relaxed text-neutral-300">
-                    {editorial.introduction}
-                  </p>
-                )}
-                {editorial.sections.map((section) => (
-                  <div key={section.heading}>
-                    <h2 className="mb-3 text-xl font-semibold text-neutral-100">
-                      {section.heading}
-                    </h2>
-                    <p className="text-base leading-relaxed text-neutral-300">{section.content}</p>
-                  </div>
-                ))}
-                {editorial.faqs.length > 0 && (
-                  <div className="border-t border-neutral-800/40 pt-6">
-                    <h2 className="mb-4 text-xl font-semibold text-neutral-100">
-                      Frequently Asked Questions
-                    </h2>
-                    <dl className="space-y-4">
-                      {editorial.faqs.map((faq) => (
-                        <div key={faq.question}>
-                          <dt className="text-base font-medium text-neutral-200">{faq.question}</dt>
-                          <dd className="mt-1 text-sm leading-relaxed text-neutral-400">
-                            {faq.answer}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Condition Tags from reviews ── */}
-            {topConditionTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {topConditionTags.map(([tag, count]) => (
-                  <ConditionTagBadge key={tag} tag={tag} count={count} />
-                ))}
-              </div>
-            )}
-
-            {/* ── Reviews ── */}
-            <section className="border-t border-neutral-800/40 pt-8">
-              <RouteDetailReviewsSection
-                reviews={reviews}
-                totalCount={totalReviewCount}
-                hasMore={hasMoreReviews}
-                isAuthenticated={hasSession}
-                ratingAvg={route.ratingAvg ?? null}
-              />
-            </section>
-
-            {/* ── Contributor ── */}
-            <p className="text-xs text-neutral-600">
-              Added by{' '}
-              {route.contributor.publicUsername ? (
-                <a
-                  href={`/u/${route.contributor.publicUsername}`}
-                  className="text-neutral-400 underline decoration-neutral-700 underline-offset-2 hover:decoration-neutral-500"
-                >
-                  {route.contributor.displayName}
-                </a>
-              ) : (
-                <span className="text-neutral-400">{route.contributor.displayName}</span>
-              )}{' '}
-              &middot;{' '}
-              {new Date(route.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </p>
+            </h2>
           </div>
 
-          {/* ── Right sidebar ── */}
-          <div className="space-y-8">
-            {/* Rating — no card, just numbers */}
-            {route.ratingAvg != null && route.ratingCount > 0 && (
-              <div>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-3xl font-bold tabular-nums text-neutral-50">
-                    {route.ratingAvg.toFixed(1)}
-                  </span>
-                  <span className="text-sm text-neutral-500">/ 5</span>
-                </div>
-                <p className="mt-1 text-sm text-neutral-500">
-                  {route.ratingCount} {route.ratingCount === 1 ? 'review' : 'reviews'}
-                </p>
-              </div>
-            )}
-
-            {/* CTA — platform-aware */}
-            <OpenInAppCta />
-
-            {/* Quick facts */}
-            <dl className="space-y-2.5 border-t border-neutral-800/30 pt-5 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-neutral-500">Region</dt>
-                <dd className="text-neutral-200">{regionName}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-neutral-500">Country</dt>
-                <dd className="text-neutral-200">{countryName}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
+          <RouteDetailReviewsSection
+            reviews={reviews}
+            totalCount={totalReviewCount}
+            hasMore={hasMoreReviews}
+            isAuthenticated={hasSession}
+            ratingAvg={route.ratingAvg ?? null}
+          />
+        </section>
+      )}
     </div>
   );
 }
@@ -597,11 +1418,22 @@ function ConditionTagBadge({ tag, count }: { tag: string; count: number }) {
 
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
-      style={{ backgroundColor: style.bg, color: style.text }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        borderRadius: 999,
+        padding: '6px 14px',
+        fontSize: 13,
+        fontWeight: 500,
+        backgroundColor: style.bg,
+        color: style.text,
+        border: `1px solid ${cssVars.line}`,
+        backdropFilter: 'blur(8px)',
+      }}
     >
       {tag}
-      {count > 1 && <span className="text-xs opacity-60">&times;{count}</span>}
+      {count > 1 && <span style={{ fontSize: 11, opacity: 0.6 }}>&times;{count}</span>}
     </span>
   );
 }

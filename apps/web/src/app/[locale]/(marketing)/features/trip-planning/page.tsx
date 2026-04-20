@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { TripPlanningFlowStepper } from '@/components/marketing/trip-planning-flow-stepper';
 import { Link } from '@/i18n/navigation';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import { buildBreadcrumbList, buildFAQPage, buildGraph, buildWebPage } from '@/lib/seo/schema';
@@ -29,70 +28,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-const WAYPOINT_TYPES = [
-  { key: 'start', label: 'Start', color: 'oklch(0.70 0.16 150)' },
-  { key: 'end', label: 'End', color: 'oklch(0.62 0.18 25)' },
-  { key: 'fuel', label: 'Fuel', color: 'oklch(0.72 0.16 70)' },
-  { key: 'food', label: 'Food', color: 'oklch(0.72 0.14 50)' },
-  { key: 'scenic', label: 'Scenic', color: 'oklch(0.65 0.14 230)' },
-  { key: 'overnight', label: 'Overnight', color: 'oklch(0.55 0.15 270)' },
-  { key: 'photo', label: 'Photo', color: 'oklch(0.68 0.15 200)' },
-  { key: 'mechanical', label: 'Mechanical', color: 'oklch(0.65 0.14 0)' },
-  { key: 'ferry', label: 'Ferry', color: 'oklch(0.65 0.14 210)' },
-  { key: 'pass_summit', label: 'Pass Summit', color: 'oklch(0.70 0.15 40)' },
-  { key: 'rally_point', label: 'Rally Point', color: 'oklch(0.68 0.15 180)' },
-] as const;
-
-const FEATURE_CARDS = [
-  {
-    titleKey: 'f1Title',
-    descKey: 'f1Desc',
-    // calendar
-    icon: 'M8 2v4M16 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z',
-  },
-  {
-    titleKey: 'f2Title',
-    descKey: 'f2Desc',
-    // pin
-    icon: 'M12 22s7-7.58 7-13a7 7 0 1 0-14 0c0 5.42 7 13 7 13zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
-  },
-  {
-    titleKey: 'f3Title',
-    descKey: 'f3Desc',
-    // route
-    icon: 'M4 5a3 3 0 1 1 6 0v14a3 3 0 0 0 6 0V5a3 3 0 1 1 6 0',
-  },
-  {
-    titleKey: 'f4Title',
-    descKey: 'f4Desc',
-    // lock/eye
-    icon: 'M12 5c5 0 9 5 9 7s-4 7-9 7-9-5-9-7 4-7 9-7zm0 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
-  },
-  {
-    titleKey: 'f5Title',
-    descKey: 'f5Desc',
-    // users
-    icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
-  },
-  {
-    titleKey: 'f6Title',
-    descKey: 'f6Desc',
-    // draft doc
-    icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M9 14l2 2 4-4',
-  },
-  {
-    titleKey: 'f7Title',
-    descKey: 'f7Desc',
-    // bars/difficulty
-    icon: 'M3 20h4V10H3zM10 20h4V4h-4zM17 20h4v-8h-4z',
-  },
-  {
-    titleKey: 'f8Title',
-    descKey: 'f8Desc',
-    // share
-    icon: 'M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4',
-  },
-] as const;
+/* ── Arrow icon shared across buttons ── */
+function ArrowIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
 
 export default async function TripPlanningPage({ params }: PageProps) {
   const { locale } = await params;
@@ -126,522 +80,1074 @@ export default async function TripPlanningPage({ params }: PageProps) {
     buildFAQPage(faqItems, `${locale}/features/trip-planning/faq`),
   );
 
-  const steps = [
-    {
-      number: '1',
-      label: t('step1Label'),
-      title: t('step1Title'),
-      description: t('step1Desc'),
-      screenshot: '/images/features/trip-planning/trip-planning-new.png',
-      alt: 'MotoVault trip planner — blank dark map over New York ready for waypoints',
-    },
-    {
-      number: '2',
-      label: t('step2Label'),
-      title: t('step2Title'),
-      description: t('step2Desc'),
-      screenshot: '/images/features/trip-planning/trip-planning-edit.png',
-      alt: 'MotoVault trip planner — Dolomites route with typed waypoints rendered on the map',
-    },
-    {
-      number: '3',
-      label: t('step3Label'),
-      title: t('step3Title'),
-      description: t('step3Desc'),
-      screenshot: '/images/features/trip-planning/trip-detail-hero.png',
-      alt: 'MotoVault trip detail — title, difficulty badge, dates, organiser and route',
-    },
-    {
-      number: '4',
-      label: t('step4Label'),
-      title: t('step4Title'),
-      description: t('step4Desc'),
-      screenshot: '/images/features/trip-planning/trip-detail-itinerary.png',
-      alt: 'MotoVault trip detail — expanded itinerary with Day 1 waypoints and notes',
-    },
-  ];
-
   return (
     <>
       <JsonLdGraph nodes={graph} />
 
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="px-6 pt-20 md:pt-24">
-        <ol className="mx-auto flex max-w-7xl items-center gap-2 text-sm text-neutral-500">
-          <li>
-            <Link href="/" className="transition-colors hover:text-neutral-300">
-              Home
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <Link href="/features" className="transition-colors hover:text-neutral-300">
-              Features
-            </Link>
-          </li>
-          <li aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-600"
-              aria-hidden="true"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </li>
-          <li>
-            <Link href="/features/trip-planning" className="text-neutral-300" aria-current="page">
-              {t('title')}
-            </Link>
-          </li>
-        </ol>
-      </nav>
+      {/* ════ HERO ════ */}
+      <section
+        style={{
+          position: 'relative',
+          padding: '180px 40px 100px',
+          maxWidth: 'var(--mv-container)',
+          margin: '0 auto',
+        }}
+      >
+        {/* Breadcrumb */}
+        <nav
+          aria-label="Breadcrumb"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            fontFamily: "var(--font-geist-mono, 'Geist Mono', monospace)",
+            fontSize: 11,
+            color: 'var(--mv-ink-3)',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            marginBottom: 32,
+          }}
+        >
+          <Link href="/" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
+            MotoVault
+          </Link>
+          <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
+          <Link href="/features" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
+            Features
+          </Link>
+          <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
+          <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
+        </nav>
 
-      {/* Hero — distinctive: map backdrop + hand-drawn route SVG */}
-      <section className="relative px-6 pb-16 pt-8 md:pb-28 md:pt-14">
-        {/* Layered topo + route motif */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-          {/* soft radial glow */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'radial-gradient(ellipse 70% 60% at 50% 10%, oklch(0.76 0.13 70 / 0.12), transparent 70%)',
-            }}
-          />
-          {/* route polyline across the hero */}
-          <svg
-            className="absolute inset-x-0 top-[42%] mx-auto h-44 w-full max-w-6xl opacity-[0.35]"
-            viewBox="0 0 1200 200"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="tp-route" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="oklch(0.70 0.16 150)" stopOpacity="0.0" />
-                <stop offset="15%" stopColor="oklch(0.70 0.16 150)" stopOpacity="0.9" />
-                <stop offset="50%" stopColor="oklch(0.76 0.13 70)" stopOpacity="0.9" />
-                <stop offset="85%" stopColor="oklch(0.62 0.18 25)" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="oklch(0.62 0.18 25)" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0 130 C120 80 200 150 320 110 S520 40 660 100 S900 170 1040 90 L1200 60"
-              fill="none"
-              stroke="url(#tp-route)"
-              strokeWidth="2.5"
-              strokeDasharray="6 8"
-              strokeLinecap="round"
-            />
-            {/* waypoint dots */}
-            {[
-              { x: 120, y: 100, c: 'oklch(0.70 0.16 150)' },
-              { x: 320, y: 110, c: 'oklch(0.65 0.14 230)' },
-              { x: 520, y: 70, c: 'oklch(0.55 0.15 270)' },
-              { x: 660, y: 100, c: 'oklch(0.70 0.15 40)' },
-              { x: 820, y: 130, c: 'oklch(0.72 0.16 70)' },
-              { x: 1040, y: 90, c: 'oklch(0.62 0.18 25)' },
-            ].map((p) => (
-              <g key={`${p.x}-${p.y}`}>
-                <circle cx={p.x} cy={p.y} r="7" fill={p.c} fillOpacity="0.25" />
-                <circle cx={p.x} cy={p.y} r="3.5" fill={p.c} />
-              </g>
-            ))}
-          </svg>
-          {/* topo contour lines */}
-          <svg
-            className="absolute inset-0 h-full w-full opacity-[0.06]"
-            viewBox="0 0 1200 600"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <g fill="none" stroke="oklch(0.76 0.13 70)" strokeWidth="0.8">
-              <path d="M0 100 Q300 60 600 110 T1200 80" />
-              <path d="M0 160 Q320 120 620 170 T1200 140" />
-              <path d="M0 220 Q280 180 580 230 T1200 200" />
-              <path d="M0 280 Q300 240 600 290 T1200 260" />
-              <path d="M0 340 Q320 300 620 350 T1200 320" />
-              <path d="M0 400 Q280 360 580 410 T1200 380" />
-              <path d="M0 460 Q300 420 600 470 T1200 440" />
-            </g>
-          </svg>
-        </div>
-
-        <div className="reveal-on-scroll relative mx-auto max-w-4xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('heroEyebrow')}
-          </p>
-          <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-neutral-50 sm:text-5xl lg:text-6xl">
-            {t('heroTitle')}
-          </h1>
-          <div className="mx-auto mt-6 h-1.5 w-40 rounded-full bg-gradient-to-r from-warm-400 via-signature-500 to-warm-400" />
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400 md:text-xl">
-            {t('heroSubtitle')}
-          </p>
-
-          {/* CTA pair */}
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/#download"
-              className="group inline-flex items-center gap-2 rounded-full bg-warm-500 px-6 py-3 text-sm font-semibold text-neutral-950 shadow-lg shadow-warm-500/20 transition-all hover:-translate-y-0.5 hover:bg-warm-400"
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1.15fr 1fr',
+            gap: 80,
+            alignItems: 'center',
+          }}
+        >
+          {/* Text column */}
+          <div>
+            <div className="mv-section-meta">Feature &middot; 01</div>
+            <h1
+              style={{
+                fontSize: 'clamp(48px, 7.5vw, 112px)',
+                fontWeight: 500,
+                lineHeight: 0.92,
+                letterSpacing: '-0.045em',
+                margin: '24px 0 0',
+              }}
             >
-              {t('heroCtaPrimary')}
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="transition-transform group-hover:translate-x-0.5"
-                aria-hidden="true"
-              >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </Link>
-            <a
-              href="#real-trip"
-              className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900/60 px-6 py-3 text-sm font-semibold text-neutral-200 backdrop-blur transition-colors hover:border-warm-500/50 hover:text-warm-300"
+              <span style={{ display: 'block' }}>Plan the ride.</span>
+              <span style={{ display: 'block' }}>
+                <em className="mv-serif">Then forget the map.</em>
+              </span>
+            </h1>
+            <p
+              style={{
+                marginTop: 32,
+                color: 'var(--mv-ink-2)',
+                fontSize: 18,
+                lineHeight: 1.55,
+                maxWidth: 520,
+                letterSpacing: '-0.01em',
+              }}
             >
-              {t('heroCtaSecondary')}
-            </a>
+              {t('heroSubtitle')}
+            </p>
+            <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link href="/#download" className="mv-btn mv-btn-primary">
+                <span>Try it free</span>
+                <ArrowIcon />
+              </Link>
+              <a href="#how" className="mv-btn mv-btn-ghost">
+                See how it works
+              </a>
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* SEO-targeted H2 + keyword-rich intro + stat strip. Placed just below
-          the hero so search engines and LLMs see "motorcycle trip planner",
-          "multi-day motorcycle route planning" and the quantitative stats
-          near the top of the page. */}
-      <section className="relative px-6 py-14" aria-labelledby="trip-planning-seo-heading">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2
-            id="trip-planning-seo-heading"
-            className="text-2xl font-bold leading-tight tracking-tight text-neutral-50 sm:text-3xl"
-          >
-            {t('seoHeading')}
-          </h2>
-          <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-neutral-400 md:text-lg">
-            {t('seoIntro')}
-          </p>
-        </div>
-
-        <div className="mx-auto mt-12 max-w-5xl">
-          <p className="mb-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('statStripLabel')}
-          </p>
-          <dl className="grid grid-cols-2 gap-4 rounded-2xl border border-neutral-800/70 bg-neutral-900/60 p-6 text-center backdrop-blur sm:grid-cols-4 md:gap-6 md:p-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="space-y-1.5">
-                <dt className="sr-only">{t(`stat${i}Label`)}</dt>
-                <dd className="text-3xl font-bold text-warm-400 md:text-4xl">
-                  {t(`stat${i}Value`)}
-                </dd>
-                <p className="text-xs leading-snug text-neutral-500">{t(`stat${i}Label`)}</p>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* Positioning / "Why we built this first" — CEO-friendly narrative */}
-      <section className="relative px-6 py-20">
-        <div className="mx-auto max-w-3xl">
-          <div className="reveal-on-scroll rounded-2xl border border-warm-500/15 bg-gradient-to-br from-neutral-900/80 to-neutral-950/80 p-8 shadow-xl backdrop-blur-sm md:p-12">
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-warm-500/10 text-warm-400">
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
+          {/* Visual column — animated route map */}
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
+            <div
+              style={{
+                position: 'relative',
+                width: '100%',
+                aspectRatio: '4/3',
+                maxWidth: 600,
+                borderRadius: 24,
+                overflow: 'hidden',
+                background:
+                  'radial-gradient(circle at 30% 30%, oklch(0.2 0.015 55), oklch(0.1 0.008 55))',
+                border: '1px solid var(--mv-line)',
+                boxShadow: '0 40px 80px -20px oklch(0 0 0 / 0.6)',
+              }}
+            >
+              {/* Grid overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundImage:
+                    'linear-gradient(to right, oklch(1 0 0 / 0.03) 1px, transparent 1px), linear-gradient(to bottom, oklch(1 0 0 / 0.03) 1px, transparent 1px)',
+                  backgroundSize: '40px 40px',
+                  maskImage: 'radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent 90%)',
+                  WebkitMaskImage:
+                    'radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent 90%)',
+                }}
+              />
+              <svg viewBox="0 0 600 450" fill="none" style={{ width: '100%', height: '100%' }} aria-hidden="true">
+                <path
+                  d="M 80 380 Q 160 320 200 280 T 320 220 Q 380 170 430 140 T 520 80"
+                  stroke="oklch(0.84 0.15 68)"
+                  strokeWidth="10"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6" />
-                </svg>
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-                Founder's Note
-              </p>
-            </div>
-            <h2 className="mt-5 text-2xl font-bold leading-tight tracking-tight text-neutral-50 sm:text-3xl">
-              {t('positioningTitle')}
-            </h2>
-            <p className="mt-5 text-base leading-relaxed text-neutral-300 md:text-lg">
-              {t('positioningBody')}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Step-by-step */}
-      <TripPlanningFlowStepper
-        sectionLabel={t('howItWorksLabel')}
-        sectionTitle={t('howItWorksTitle')}
-        steps={steps}
-      />
-
-      {/* Divider */}
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Waypoint types chip strip */}
-      <section className="reveal-on-scroll px-6 py-16">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            Typed Waypoints
-          </p>
-          <h2 className="text-2xl font-bold tracking-tight text-neutral-50 sm:text-3xl">
-            Eleven waypoint types, one living map
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-neutral-400">
-            Every stop on a trip has a type, an icon, and its own semantic meaning. The itinerary,
-            the map, and the analytics all understand the difference between a fuel stop and an
-            overnight.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-2.5">
-            {WAYPOINT_TYPES.map((wp) => (
-              <span
-                key={wp.key}
-                className="group inline-flex items-center gap-2 rounded-full border border-neutral-800/80 bg-neutral-900/70 px-4 py-2 text-sm text-neutral-300 transition-colors hover:border-neutral-700"
-              >
-                <span
-                  className="size-2.5 shrink-0 rounded-full ring-2 ring-transparent transition-all group-hover:ring-neutral-800"
-                  style={{ backgroundColor: wp.color }}
-                  aria-hidden="true"
+                  fill="none"
+                  opacity="0.2"
                 />
-                {wp.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+                <path
+                  d="M 80 380 Q 160 320 200 280 T 320 220 Q 380 170 430 140 T 520 80"
+                  stroke="oklch(0.84 0.15 68)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                {/* Start waypoint */}
+                <circle cx="80" cy="380" r="7" fill="oklch(0.72 0.2 145)" />
+                <circle cx="80" cy="380" r="3" fill="#000" />
+                {/* Mid waypoints */}
+                <circle cx="200" cy="280" r="6" fill="oklch(0.84 0.15 68)" />
+                <circle cx="200" cy="280" r="2.5" fill="#000" />
+                <text
+                  x="215"
+                  y="275"
+                  fontFamily="Geist Mono, monospace"
+                  fontSize="10"
+                  fill="oklch(0.78 0.012 70)"
+                  letterSpacing="0.05em"
+                >
+                  FUEL
+                </text>
+                <circle cx="320" cy="220" r="6" fill="oklch(0.84 0.15 68)" />
+                <circle cx="320" cy="220" r="2.5" fill="#000" />
+                <text
+                  x="335"
+                  y="215"
+                  fontFamily="Geist Mono, monospace"
+                  fontSize="10"
+                  fill="oklch(0.78 0.012 70)"
+                  letterSpacing="0.05em"
+                >
+                  SCENIC
+                </text>
+                <circle cx="430" cy="140" r="6" fill="oklch(0.84 0.15 68)" />
+                <circle cx="430" cy="140" r="2.5" fill="#000" />
+                <text
+                  x="445"
+                  y="135"
+                  fontFamily="Geist Mono, monospace"
+                  fontSize="10"
+                  fill="oklch(0.78 0.012 70)"
+                  letterSpacing="0.05em"
+                >
+                  PASS
+                </text>
+                {/* End waypoint */}
+                <circle cx="520" cy="80" r="7" fill="oklch(0.76 0.18 60)" />
+                <circle cx="520" cy="80" r="3" fill="#000" />
+              </svg>
 
-      {/* Real Trip phone gallery */}
-      <section id="real-trip" className="relative px-6 py-24">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 50% at 50% 50%, oklch(0.76 0.13 70 / 0.07), transparent 70%)',
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl">
-          <div className="reveal-on-scroll mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('galleryLabel')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('galleryTitle')}
-            </h2>
-            <p className="mx-auto mt-5 max-w-3xl text-neutral-400">{t('galleryBody')}</p>
-          </div>
-
-          <div
-            className="flex flex-col items-center justify-center gap-6 md:flex-row md:items-start md:gap-8 lg:gap-10"
-            style={{ perspective: '1200px' }}
-          >
-            {[
-              {
-                src: '/images/features/trip-planning/trip-detail-hero.png',
-                alt: 'Dolomites Loop trip detail — map with route, title, difficulty, dates',
-                label: t('gallery1Label'),
-                subtitle: t('gallery1Subtitle'),
-                rot: 'rotateY(3deg)',
-              },
-              {
-                src: '/images/features/trip-planning/trip-detail-itinerary.png',
-                alt: 'Dolomites Loop itinerary — Day 1 waypoints with icons and notes',
-                label: t('gallery2Label'),
-                subtitle: t('gallery2Subtitle'),
-                rot: 'none',
-              },
-              {
-                src: '/images/features/trip-planning/trip-detail-full.png',
-                alt: 'Dolomites Loop full itinerary — Day 1 and Day 2 waypoints',
-                label: t('gallery3Label'),
-                subtitle: t('gallery3Subtitle'),
-                rot: 'rotateY(-3deg)',
-              },
-            ].map((shot, i) => (
+              {/* Route info overlay */}
               <div
-                key={shot.src}
-                className="reveal-on-scroll flex flex-col items-center gap-4"
-                style={{ animationDelay: `${i * 120}ms` }}
+                style={{
+                  position: 'absolute',
+                  top: 20,
+                  left: 20,
+                  background: 'oklch(0.12 0.01 55 / 0.85)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                  border: '1px solid var(--mv-line)',
+                  borderRadius: 14,
+                  padding: '14px 16px',
+                  minWidth: 200,
+                }}
               >
                 <div
-                  className={`relative w-[240px] md:w-[260px] lg:w-[280px] ${i === 1 ? 'z-10' : 'z-0'}`}
+                  className="mv-mono"
+                  style={{
+                    fontSize: 10,
+                    color: 'var(--mv-warm-400)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Route 04 &middot; Dolomites
+                </div>
+                <div
+                  style={{ fontSize: 15, fontWeight: 500, marginTop: 4, letterSpacing: '-0.01em' }}
+                >
+                  Bolzano &rarr; Cortina
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    marginTop: 10,
+                    paddingTop: 10,
+                    borderTop: '1px solid var(--mv-line)',
+                    fontSize: 12,
+                    color: 'var(--mv-ink-3)',
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                      412 km
+                    </strong>
+                    Distance
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                      5h 20m
+                    </strong>
+                    Riding
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
+                      4
+                    </strong>
+                    Stops
+                  </div>
+                </div>
+              </div>
+
+              {/* GPX exported badge */}
+              <div
+                className="mv-mono"
+                style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  right: 20,
+                  background: 'oklch(0.72 0.2 145 / 0.15)',
+                  border: '1px solid oklch(0.72 0.2 145 / 0.4)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  borderRadius: 999,
+                  padding: '8px 14px 8px 10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 12,
+                  color: 'var(--mv-success)',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: 'var(--mv-success)',
+                    boxShadow: '0 0 8px var(--mv-success)',
+                  }}
+                />
+                Ready &middot; GPX exported
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════ PILLARS — How it works ════ */}
+      <section
+        id="how"
+        style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
+      >
+        <div style={{ maxWidth: 860 }}>
+          <div className="mv-section-meta">How it works</div>
+          <h2 className="mv-section-title">
+            Four things that matter on <span className="mv-serif">a long ride.</span>
+          </h2>
+        </div>
+
+        <div
+          style={{
+            marginTop: 80,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 2,
+            background: 'var(--mv-line)',
+            border: '1px solid var(--mv-line)',
+            borderRadius: 24,
+            overflow: 'hidden',
+          }}
+        >
+          {[
+            {
+              num: '01',
+              title: 'Typed waypoints, not pins.',
+              body: 'Tag each stop as fuel, scenic, overnight or pass summit. The map styles them differently so you can read it at a glance.',
+              kvLabel: 'Types',
+              kvValue: '6 built-in',
+            },
+            {
+              num: '02',
+              title: 'Real motorcycle routing.',
+              body: 'Prefer twisties, avoid highways, lean into scenic roads. The routing engine knows the difference between a commute and a ride.',
+              kvLabel: 'Profiles',
+              kvValue: '3 \u00b7 tweakable',
+            },
+            {
+              num: '03',
+              title: 'Fuel-range aware.',
+              body: 'Tell MotoVault your tank size and efficiency. It warns you when two waypoints are further apart than your bike can handle.',
+              kvLabel: 'Per-bike',
+              kvValue: 'Auto-loaded',
+            },
+            {
+              num: '04',
+              title: 'Share with the group.',
+              body: 'One link \u2192 every rider has the route on their phone. Or export GPX to Rever, Calimoto, Google Maps, your Garmin.',
+              kvLabel: 'Exports',
+              kvValue: 'GPX \u00b7 KML \u00b7 Apple',
+            },
+            {
+              num: '05',
+              title: 'Day-by-day breakdown.',
+              body: 'Split multi-day tours into legs with overnight pins. See daily distance and time before you roll out.',
+              kvLabel: 'Max days',
+              kvValue: 'Unlimited',
+            },
+            {
+              num: '06',
+              title: 'Offline mode.',
+              body: "Pre-download map tiles for the regions you'll ride through. Dead zones in the Alps? Not a problem.",
+              kvLabel: 'Cache',
+              kvValue: 'Regions \u00b7 Offline',
+            },
+          ].map((p) => (
+            <div
+              key={p.num}
+              style={{
+                background: 'var(--mv-bg)',
+                padding: 40,
+                minHeight: 260,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div
+                className="mv-mono"
+                style={{ fontSize: 11, color: 'var(--mv-warm-400)', letterSpacing: '0.15em' }}
+              >
+                {p.num}
+              </div>
+              <div
+                style={{
+                  fontSize: 22,
+                  fontWeight: 500,
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.15,
+                  margin: '32px 0 14px',
+                }}
+              >
+                {p.title}
+              </div>
+              <div
+                style={{
+                  color: 'var(--mv-ink-3)',
+                  fontSize: 14,
+                  lineHeight: 1.55,
+                  letterSpacing: '-0.005em',
+                  flex: 1,
+                }}
+              >
+                {p.body}
+              </div>
+              <div
+                className="mv-mono"
+                style={{
+                  marginTop: 24,
+                  paddingTop: 24,
+                  borderTop: '1px solid var(--mv-line)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11,
+                  color: 'var(--mv-ink-3)',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {p.kvLabel}
+                <strong
+                  style={{
+                    fontFamily: "var(--font-geist, 'Geist', sans-serif)",
+                    fontSize: 14,
+                    color: 'var(--mv-warm-400)',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    letterSpacing: '-0.005em',
+                  }}
+                >
+                  {p.kvValue}
+                </strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ════ SHOWCASE 1 — Waypoints ════ */}
+      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 80,
+            alignItems: 'center',
+          }}
+        >
+          <div>
+            <div
+              className="mv-mono"
+              style={{
+                fontSize: 11,
+                color: 'var(--mv-warm-400)',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Waypoints
+            </div>
+            <h3
+              style={{
+                fontSize: 'clamp(32px, 3.8vw, 54px)',
+                fontWeight: 500,
+                lineHeight: 1,
+                letterSpacing: '-0.035em',
+                margin: '18px 0 0',
+              }}
+            >
+              Every stop, <span className="mv-serif">typed.</span>
+            </h3>
+            <p
+              style={{
+                marginTop: 20,
+                color: 'var(--mv-ink-2)',
+                fontSize: 16,
+                lineHeight: 1.6,
+                maxWidth: 500,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              Fuel, scenic, overnight, pass summit, coffee, border crossing — each waypoint carries
+              its type so the map stays readable at a glance and the export tells the truth to your
+              GPS.
+            </p>
+            {/* Waypoint type cards */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 16,
+                marginTop: 60,
+              }}
+            >
+              {[
+                {
+                  icon: 'M3 22h12 M5 22V4a2 2 0 012-2h4a2 2 0 012 2v18 M3 10h10 M17 5l3 3v9a2 2 0 01-2 2',
+                  label: 'Fuel',
+                  sub: 'Stations ranked by distance from route.',
+                },
+                {
+                  icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 13a3 3 0 100-6 3 3 0 000 6z',
+                  label: 'Scenic',
+                  sub: 'Viewpoints with photo previews.',
+                },
+                {
+                  icon: 'M2 4v16 M2 8h18a2 2 0 012 2v10 M2 17h20 M6 8v9',
+                  label: 'Overnight',
+                  sub: 'Hotels, B&Bs and camps in range.',
+                },
+                {
+                  icon: 'M12 2L22 22H2L12 2z',
+                  label: 'Summit',
+                  sub: 'Elevation profile & closure status.',
+                },
+              ].map((wp) => (
+                <div
+                  key={wp.label}
+                  style={{
+                    background: 'var(--mv-surface)',
+                    border: '1px solid var(--mv-line)',
+                    borderRadius: 16,
+                    padding: 24,
+                  }}
                 >
                   <div
-                    className="relative rounded-[2.5rem] border-[6px] border-neutral-800 bg-neutral-900 p-1.5 shadow-2xl ring-1 ring-neutral-700/50 transition-transform duration-500 hover:-translate-y-2"
-                    style={{ transform: shot.rot }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 10,
+                      background: 'oklch(1 0 0 / 0.04)',
+                      border: '1px solid var(--mv-line)',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: 'var(--mv-warm-400)',
+                      marginBottom: 24,
+                    }}
                   >
-                    <div className="absolute left-1/2 top-0 z-10 h-4 w-20 -translate-x-1/2 rounded-b-xl bg-neutral-800" />
-                    <div className="overflow-hidden rounded-[2rem]">
-                      <Image
-                        src={shot.src}
-                        alt={shot.alt}
-                        width={1206}
-                        height={2322}
-                        className="block w-full"
-                        sizes="280px"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="mx-auto mt-1.5 h-1 w-16 rounded-full bg-neutral-700" />
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d={wp.icon} />
+                    </svg>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: '-0.01em' }}>
+                    {wp.label}
                   </div>
                   <div
-                    className="pointer-events-none absolute inset-0 -z-10 blur-3xl"
                     style={{
-                      background:
-                        'radial-gradient(ellipse 80% 60% at 50% 50%, oklch(0.70 0.16 150 / 0.1), transparent)',
+                      fontSize: 13,
+                      color: 'var(--mv-ink-3)',
+                      marginTop: 6,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {wp.sub}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Phone mockup */}
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: '-40px -20px',
+                background:
+                  'radial-gradient(ellipse 50% 50% at 50% 50%, var(--mv-warm-900), transparent 70%)',
+                filter: 'blur(60px)',
+                opacity: 0.55,
+                zIndex: 0,
+              }}
+              aria-hidden="true"
+            />
+            <div
+              style={{
+                position: 'relative',
+                width: 320,
+                aspectRatio: '9/19.5',
+                borderRadius: 44,
+                background: '#080808',
+                padding: 9,
+                boxShadow: '0 0 0 1px oklch(1 0 0 / 0.09), 0 60px 120px -30px oklch(0 0 0 / 0.8)',
+              }}
+            >
+              {/* Dynamic island */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 14,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 110,
+                  height: 28,
+                  background: '#000',
+                  borderRadius: 999,
+                  zIndex: 3,
+                }}
+                aria-hidden="true"
+              />
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: 35,
+                  overflow: 'hidden',
+                  background: '#111',
+                }}
+              >
+                <Image
+                  src="/images/marketing/mw/trip-planning-new.png"
+                  alt="MotoVault trip planner showing a new route on a dark map"
+                  width={640}
+                  height={1386}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'top',
+                  }}
+                  sizes="320px"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════ SHOWCASE 2 — Export & share (reversed) ════ */}
+      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 80,
+            alignItems: 'center',
+            gridTemplateAreas: '"b a"',
+          }}
+        >
+          <div style={{ gridArea: 'a' }}>
+            <div
+              className="mv-mono"
+              style={{
+                fontSize: 11,
+                color: 'var(--mv-warm-400)',
+                letterSpacing: '0.2em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Export &amp; share
+            </div>
+            <h3
+              style={{
+                fontSize: 'clamp(32px, 3.8vw, 54px)',
+                fontWeight: 500,
+                lineHeight: 1,
+                letterSpacing: '-0.035em',
+                margin: '18px 0 0',
+              }}
+            >
+              Your route, <span className="mv-serif">on every device.</span>
+            </h3>
+            <p
+              style={{
+                marginTop: 20,
+                color: 'var(--mv-ink-2)',
+                fontSize: 16,
+                lineHeight: 1.6,
+                maxWidth: 500,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              One share link sends the route to every rider in your group — they open it in
+              MotoVault or import to their GPS of choice. No re-planning. No &ldquo;did you get the
+              file?&rdquo;
+            </p>
+            {/* Checklist */}
+            <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                'Native GPX, KML and GeoJSON exports.',
+                'One-tap send to Apple Maps, Google Maps, Waze.',
+                "Share via link — viewers don't need the app.",
+                'Import from Rever, Calimoto, Garmin BaseCamp.',
+              ].map((item) => (
+                <div
+                  key={item}
+                  style={{
+                    display: 'flex',
+                    gap: 14,
+                    alignItems: 'flex-start',
+                    fontSize: 14,
+                    color: 'var(--mv-ink-2)',
+                  }}
+                >
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      width: 18,
+                      height: 18,
+                      borderRadius: '50%',
+                      background: 'oklch(0.76 0.18 60 / 0.18)',
+                      border: '1px solid var(--mv-warm-500)',
+                      backgroundImage:
+                        "url(\"data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e9a76a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E\")",
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center',
+                      marginTop: 2,
                     }}
                     aria-hidden="true"
                   />
+                  {item}
                 </div>
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-neutral-300">{shot.label}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{shot.subtitle}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Feature grid — 8 cards */}
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="reveal-on-scroll mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('featuresLabel')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('featuresTitle')}
-            </h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURE_CARDS.map((feature, index) => (
-              <div
-                key={feature.titleKey}
-                className="card-lift reveal-on-scroll group rounded-xl border border-neutral-800/60 bg-neutral-900/50 p-6 backdrop-blur-sm transition-colors hover:border-warm-500/40"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-neutral-800/80 text-warm-400 transition-colors group-hover:bg-warm-500/10">
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+              ))}
+            </div>
+            {/* Export chips */}
+            <div
+              style={{
+                marginTop: 40,
+                display: 'flex',
+                gap: 10,
+                flexWrap: 'wrap',
+                padding: 20,
+                background: 'var(--mv-surface)',
+                border: '1px solid var(--mv-line)',
+                borderRadius: 14,
+              }}
+            >
+              {['GPX', 'KML', 'GeoJSON', 'APPLE MAPS', 'GOOGLE MAPS', 'GARMIN', 'REVER'].map(
+                (chip) => (
+                  <span
+                    key={chip}
+                    className="mv-mono"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '8px 14px',
+                      background: 'oklch(1 0 0 / 0.03)',
+                      border: '1px solid var(--mv-line)',
+                      borderRadius: 999,
+                      fontSize: 12,
+                      color: 'var(--mv-ink-2)',
+                      letterSpacing: '0.02em',
+                    }}
                   >
-                    <path d={feature.icon} />
-                  </svg>
-                </div>
-                <h3 className="text-base font-semibold text-neutral-50">{t(feature.titleKey)}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-400">
-                  {t(feature.descKey)}
-                </p>
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: 'var(--mv-warm-500)',
+                      }}
+                    />
+                    {chip}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+          {/* Phone mockup */}
+          <div
+            style={{ gridArea: 'b', position: 'relative', display: 'grid', placeItems: 'center' }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: '-40px -20px',
+                background:
+                  'radial-gradient(ellipse 50% 50% at 50% 50%, var(--mv-warm-900), transparent 70%)',
+                filter: 'blur(60px)',
+                opacity: 0.55,
+                zIndex: 0,
+              }}
+              aria-hidden="true"
+            />
+            <div
+              style={{
+                position: 'relative',
+                width: 320,
+                aspectRatio: '9/19.5',
+                borderRadius: 44,
+                background: '#080808',
+                padding: 9,
+                boxShadow: '0 0 0 1px oklch(1 0 0 / 0.09), 0 60px 120px -30px oklch(0 0 0 / 0.8)',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 14,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 110,
+                  height: 28,
+                  background: '#000',
+                  borderRadius: 999,
+                  zIndex: 3,
+                }}
+                aria-hidden="true"
+              />
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: 35,
+                  overflow: 'hidden',
+                  background: '#111',
+                }}
+              >
+                <Image
+                  src="/images/marketing/mw/trip-detail-hero.png"
+                  alt="MotoVault trip detail showing Dolomites route overview"
+                  width={640}
+                  height={1386}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'top',
+                  }}
+                  sizes="320px"
+                />
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
+      {/* ════ STATS ROW ════ */}
+      <section
+        style={{
+          padding: '80px 40px',
+          maxWidth: 'var(--mv-container)',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 48,
+          borderTop: '1px solid var(--mv-line)',
+          borderBottom: '1px solid var(--mv-line)',
+        }}
+      >
+        {[
+          { value: '8', unit: 'k+', label: 'Routes planned each month.' },
+          { value: '412', unit: 'km', label: 'Average multi-day tour length.' },
+          { value: '6', unit: ' types', label: 'Waypoint categories built-in.' },
+          { value: '< 90', unit: 's', label: 'To plan a four-day tour.' },
+        ].map((s) => (
+          <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
+            <div
+              style={{
+                fontSize: 'clamp(32px, 3.6vw, 52px)',
+                fontWeight: 500,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+                color: 'var(--mv-ink)',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {s.value}
+              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                {s.unit}
+              </span>
+            </div>
+            <div
+              style={{
+                marginTop: 12,
+                color: 'var(--mv-ink-3)',
+                fontSize: 13,
+                letterSpacing: '-0.005em',
+              }}
+            >
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </section>
 
-      {/* Narrative long-form */}
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            {t('walkthroughLabel')}
-          </p>
-          <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-            {t('walkthroughTitle')}
+      {/* ════ CTA ════ */}
+      <section
+        style={{
+          padding: '180px 40px',
+          position: 'relative',
+          overflow: 'hidden',
+          isolation: 'isolate',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'radial-gradient(ellipse 70% 80% at 50% 50%, oklch(0.76 0.18 60 / 0.16), transparent 70%), linear-gradient(180deg, oklch(0.09 0.008 55 / 0.7), oklch(0.09 0.008 55 / 0.95))',
+            zIndex: -1,
+          }}
+          aria-hidden="true"
+        />
+        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+          <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
+            Start planning
+          </div>
+          <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
+            Your next{' '}
+            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+              tour.
+            </span>
           </h2>
-
-          <div className="mt-10 space-y-6 text-lg leading-relaxed text-neutral-300">
-            <p>{t('walkthroughP1')}</p>
-            <p>{t('walkthroughP2')}</p>
-            <p>{t('walkthroughP3')}</p>
-            <p>{t('walkthroughP4')}</p>
+          <p
+            style={{
+              margin: '24px auto 0',
+              maxWidth: 460,
+              fontSize: 17,
+              color: 'var(--mv-ink-2)',
+              lineHeight: 1.55,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Free on iOS and Android. Plan your first route in under 90 seconds.
+          </p>
+          <div
+            style={{
+              marginTop: 40,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Link href="/#download" className="mv-btn mv-btn-primary">
+              <span>Get the app</span>
+            </Link>
+            <Link href="/explore" className="mv-btn mv-btn-ghost">
+              Explore rider routes &rarr;
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div
-        className="mx-auto h-px w-32 bg-gradient-to-r from-transparent via-neutral-700 to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* FAQ */}
-      <section className="reveal-on-scroll px-6 py-24">
-        <div className="mx-auto max-w-4xl">
-          <div className="reveal-on-scroll mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              {t('faqLabel')}
-            </p>
-            <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              {t('faqTitle')}
-            </h2>
-          </div>
-          <TripPlanningFaq items={faqItems} />
+      {/* ════ NEXT FEATURE CARDS ════ */}
+      <section
+        style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
+      >
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2,
+            background: 'var(--mv-line)',
+            border: '1px solid var(--mv-line)',
+            borderRadius: 24,
+            overflow: 'hidden',
+          }}
+        >
+          <Link
+            href="/features/ai-diagnostics"
+            style={{
+              background: 'var(--mv-bg)',
+              padding: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 260,
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <div>
+              <div
+                className="mv-mono"
+                style={{
+                  fontSize: 11,
+                  color: 'var(--mv-ink-3)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Next feature &middot; 02
+              </div>
+              <div
+                style={{
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  fontWeight: 500,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                  marginTop: 16,
+                }}
+              >
+                AI{' '}
+                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                  diagnostics.
+                </span>
+              </div>
+            </div>
+            <div
+              style={{
+                marginTop: 32,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+                color: 'var(--mv-warm-400)',
+                fontWeight: 500,
+              }}
+            >
+              Point. Tap. Answered.
+              <ArrowIcon />
+            </div>
+          </Link>
+          <Link
+            href="/features/garage-management"
+            style={{
+              background: 'var(--mv-bg)',
+              padding: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 260,
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
+          >
+            <div>
+              <div
+                className="mv-mono"
+                style={{
+                  fontSize: 11,
+                  color: 'var(--mv-ink-3)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Or see &middot; 03
+              </div>
+              <div
+                style={{
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  fontWeight: 500,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                  marginTop: 16,
+                }}
+              >
+                Garage{' '}
+                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                  management.
+                </span>
+              </div>
+            </div>
+            <div
+              style={{
+                marginTop: 32,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+                color: 'var(--mv-warm-400)',
+                fontWeight: 500,
+              }}
+            >
+              One vault, every bike.
+              <ArrowIcon />
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ════ FAQ ════ */}
+      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto' }}>
+          <div className="mv-section-meta">{t('faqLabel')}</div>
+          <h2 className="mv-section-title">{t('faqTitle')}</h2>
+          <div style={{ marginTop: 48 }}>
+            <TripPlanningFaq items={faqItems} />
+          </div>
+        </div>
+      </section>
+
+      {/* ════ BOTTOM CTA ════ */}
       <FeatureCta />
     </>
   );

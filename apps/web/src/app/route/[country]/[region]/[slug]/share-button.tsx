@@ -5,6 +5,25 @@ interface ShareButtonProps {
   variant?: 'icon' | 'full';
 }
 
+const iconBtnStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '13px 16px',
+  borderRadius: 12,
+  background: 'oklch(1 0 0 / 0.04)',
+  border: '1px solid oklch(1 0 0 / 0.07)',
+  color: 'oklch(0.98 0.006 80)',
+  fontFamily: 'inherit',
+  fontSize: 13,
+  fontWeight: 500,
+  textDecoration: 'none',
+  cursor: 'pointer',
+  backdropFilter: 'blur(12px)',
+  transition: 'all .2s',
+  letterSpacing: '-0.005em',
+};
+
 export function ShareButton({ routeName, variant = 'icon' }: ShareButtonProps) {
   const handleShare = () => {
     if (navigator.share) {
@@ -18,7 +37,11 @@ export function ShareButton({ routeName, variant = 'icon' }: ShareButtonProps) {
     return (
       <button
         type="button"
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-700 px-4 py-3 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-800"
+        style={{
+          ...iconBtnStyle,
+          width: '100%',
+          justifyContent: 'center',
+        }}
         onClick={handleShare}
       >
         <ShareIcon />
@@ -28,11 +51,7 @@ export function ShareButton({ routeName, variant = 'icon' }: ShareButtonProps) {
   }
 
   return (
-    <button
-      type="button"
-      className="flex items-center gap-2 rounded-xl bg-neutral-800/80 px-3.5 py-2.5 text-sm font-medium text-neutral-200 backdrop-blur-sm transition-colors hover:bg-neutral-700/80"
-      onClick={handleShare}
-    >
+    <button type="button" style={iconBtnStyle} onClick={handleShare}>
       <ShareIcon />
       Share
     </button>

@@ -1,55 +1,360 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
 
-type NavLeaf = { key: string; href: string; tagline?: string };
-type NavGroup = { key: string; children: NavLeaf[] };
-type NavItem = NavLeaf | NavGroup;
-
-const isGroup = (item: NavItem): item is NavGroup => 'children' in item;
-
-const NAV_LINKS: readonly NavItem[] = [
+/* ── Dropdown feature items with icons ── */
+const FEATURE_ITEMS = [
   {
-    key: 'features',
-    children: [
-      {
-        key: 'tripPlanning',
-        href: '/features/trip-planning',
-        tagline: 'Multi-day routes, typed waypoints, live map',
-      },
-      {
-        key: 'diagnostics',
-        href: '/features/ai-diagnostics',
-        tagline: 'Snap a photo, get an AI-powered diagnosis',
-      },
-      {
-        key: 'garage',
-        href: '/features/garage-management',
-        tagline: 'Every bike, every service, one timeline',
-      },
-      {
-        key: 'learning',
-        href: '/features/learning-paths',
-        tagline: 'Modules tailored to your motorcycle',
-      },
-      {
-        key: 'progress',
-        href: '/features/progress-tracking',
-        tagline: 'Rides, tasks and spend logged automatically',
-      },
-    ],
+    key: 'tripPlanning',
+    href: '/features/trip-planning',
+    sub: 'Multi-day routes & GPX export.',
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+    ),
   },
+  {
+    key: 'diagnostics',
+    href: '/features/ai-diagnostics',
+    sub: 'Snap a photo, get the answer.',
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+        <circle cx="12" cy="13" r="4" />
+      </svg>
+    ),
+  },
+  {
+    key: 'garage',
+    href: '/features/garage-management',
+    sub: 'Unlimited bikes, one vault.',
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
+  {
+    key: 'learning',
+    href: '/features/learning-paths',
+    sub: 'Go from novice to expert.',
+    icon: (
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+      </svg>
+    ),
+  },
+] as const;
+
+const NAV_LINKS = [
   { key: 'explore', href: '/explore' },
-  { key: 'compare', href: '/compare' },
+  { key: 'riders', href: '#proof' },
   { key: 'faq', href: '#faq' },
 ] as const;
 
 const SCROLL_ACTIVATE = 80;
 const SCROLL_DEACTIVATE = 20;
+
+/* ── Styles ── */
+const S = {
+  nav: {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    padding: '20px 40px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    transition:
+      'padding .4s var(--mv-ease), background .4s var(--mv-ease), backdrop-filter .4s var(--mv-ease), border-color .4s',
+    borderBottom: '1px solid transparent',
+  },
+  navScrolled: {
+    padding: '12px 40px',
+    background: 'oklch(0.09 0.008 55 / 0.7)',
+    backdropFilter: 'blur(24px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    borderBottomColor: 'var(--mv-line)',
+  },
+  brand: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    fontWeight: 600,
+    fontSize: '17px',
+    letterSpacing: '-0.02em',
+    color: 'var(--mv-ink)',
+    textDecoration: 'none',
+  },
+  brandMark: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '9px',
+    overflow: 'hidden' as const,
+    display: 'grid',
+    placeItems: 'center',
+    transition: 'transform .5s var(--mv-ease-expo)',
+  },
+  brandMarkHover: {
+    transform: 'rotate(-8deg) scale(1.05)',
+  },
+  brandImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover' as const,
+    display: 'block',
+  },
+  navLinks: {
+    display: 'flex',
+    gap: '2px',
+    alignItems: 'center',
+    padding: '4px',
+    background: 'oklch(1 0 0 / 0.02)',
+    border: '1px solid var(--mv-line)',
+    borderRadius: '999px',
+    backdropFilter: 'blur(12px)',
+    position: 'relative' as const,
+  },
+  navLink: {
+    color: 'var(--mv-ink-2)',
+    textDecoration: 'none',
+    fontSize: '13px',
+    fontWeight: 500,
+    padding: '9px 16px',
+    borderRadius: '999px',
+    transition: 'color .2s, background .2s',
+    letterSpacing: '-0.005em',
+    position: 'relative' as const,
+    cursor: 'pointer',
+    background: 'transparent',
+    border: 'none',
+    fontFamily: 'inherit',
+  },
+  navLinkHover: {
+    color: 'var(--mv-ink)',
+    background: 'oklch(1 0 0 / 0.04)',
+  },
+  dropdown: {
+    position: 'relative' as const,
+  },
+  dropdownTrigger: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '5px',
+    cursor: 'pointer',
+  },
+  dropdownMenu: {
+    position: 'absolute' as const,
+    top: 'calc(100% + 10px)',
+    left: '50%',
+    transform: 'translateX(-50%) translateY(-8px)',
+    minWidth: '340px',
+    background: 'oklch(0.12 0.01 55 / 0.96)',
+    backdropFilter: 'blur(24px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+    border: '1px solid var(--mv-line)',
+    borderRadius: '18px',
+    padding: '10px',
+    opacity: 0,
+    visibility: 'hidden' as const,
+    transition: 'opacity .3s var(--mv-ease), transform .3s var(--mv-ease), visibility .3s',
+    boxShadow: '0 40px 80px -20px oklch(0 0 0 / 0.7)',
+  },
+  dropdownMenuOpen: {
+    opacity: 1,
+    visibility: 'visible' as const,
+    transform: 'translateX(-50%) translateY(0)',
+  },
+  dropdownBridge: {
+    content: '""',
+    position: 'absolute' as const,
+    top: '100%',
+    left: '-20px',
+    right: '-20px',
+    height: '14px',
+  },
+  dropdownItem: {
+    display: 'flex',
+    gap: '14px',
+    alignItems: 'flex-start',
+    padding: '12px 14px',
+    borderRadius: '12px',
+    color: 'var(--mv-ink)',
+    textDecoration: 'none',
+    transition: 'background .2s',
+  },
+  dropdownItemHover: {
+    background: 'oklch(1 0 0 / 0.04)',
+  },
+  dropdownIcon: {
+    width: '34px',
+    height: '34px',
+    borderRadius: '10px',
+    background: 'oklch(1 0 0 / 0.04)',
+    border: '1px solid var(--mv-line)',
+    display: 'grid',
+    placeItems: 'center',
+    color: 'var(--mv-warm-400)',
+    flexShrink: 0,
+  },
+  dropdownTitle: {
+    fontSize: '14px',
+    fontWeight: 500,
+    letterSpacing: '-0.01em',
+    lineHeight: 1.2,
+  },
+  dropdownSub: {
+    fontSize: '12px',
+    color: 'var(--mv-ink-3)',
+    marginTop: '2px',
+    letterSpacing: '-0.005em',
+    lineHeight: 1.35,
+  },
+  navRight: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  navSignin: {
+    color: 'var(--mv-ink-2)',
+    fontSize: '13px',
+    fontWeight: 500,
+    textDecoration: 'none',
+    padding: '9px 14px',
+    transition: 'color .2s',
+  },
+  navCta: {
+    padding: '9px 16px',
+    borderRadius: '999px',
+    whiteSpace: 'nowrap' as const,
+    background: 'var(--mv-ink)',
+    color: 'oklch(0.15 0.02 55)',
+    fontWeight: 600,
+    fontSize: '13px',
+    textDecoration: 'none',
+    transition: 'transform .2s var(--mv-ease), background .2s',
+    letterSpacing: '-0.005em',
+    display: 'inline-block',
+  },
+  navCtaHover: {
+    background: 'var(--mv-warm-500)',
+    transform: 'translateY(-1px)',
+  },
+  chevronSvg: {
+    transition: 'transform .3s var(--mv-ease)',
+    opacity: 0.7,
+  },
+  chevronOpen: {
+    transform: 'rotate(180deg)',
+  },
+  /* Mobile */
+  hamburger: {
+    display: 'none',
+    width: '44px',
+    height: '44px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--mv-ink-2)',
+    cursor: 'pointer',
+    borderRadius: '12px',
+    transition: 'color .2s',
+  },
+  mobileOverlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    zIndex: 99,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    background: 'oklch(0.09 0.008 55 / 0.96)',
+    backdropFilter: 'blur(24px) saturate(140%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(140%)',
+  },
+  mobileInner: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '24px',
+    overflowY: 'auto' as const,
+    padding: '32px 24px',
+  },
+  mobileLink: {
+    fontSize: '24px',
+    fontWeight: 500,
+    color: 'var(--mv-ink-2)',
+    textDecoration: 'none',
+    transition: 'color .2s',
+    letterSpacing: '-0.02em',
+  },
+  mobileCta: {
+    marginTop: '16px',
+    padding: '14px 32px',
+    borderRadius: '999px',
+    background: 'var(--mv-ink)',
+    color: 'oklch(0.15 0.02 55)',
+    fontWeight: 600,
+    fontSize: '15px',
+    textDecoration: 'none',
+    transition: 'transform .2s var(--mv-ease), background .2s',
+    letterSpacing: '-0.005em',
+  },
+  mobileSignin: {
+    color: 'var(--mv-ink-2)',
+    fontSize: '15px',
+    fontWeight: 500,
+    textDecoration: 'none',
+    padding: '9px 14px',
+  },
+};
 
 export function Navbar() {
   const pathname = usePathname();
@@ -57,6 +362,17 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [brandHover, setBrandHover] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const [ctaHover, setCtaHover] = useState(false);
+  const [signinHover, setSigninHover] = useState(false);
+  const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null);
+
+  const scrolledRef = useRef(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // Check auth state on mount
   useEffect(() => {
@@ -71,11 +387,8 @@ export function Navbar() {
     });
     return () => subscription.unsubscribe();
   }, []);
-  const scrolledRef = useRef(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
-  // Scroll hysteresis — activate at 80px, deactivate at 20px
+  // Scroll hysteresis
   useEffect(() => {
     function onScroll() {
       const y = window.scrollY;
@@ -87,10 +400,7 @@ export function Navbar() {
         setScrolled(false);
       }
     }
-
-    // Check initial scroll position
     onScroll();
-
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -113,7 +423,7 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
-  // Focus first link when mobile menu opens, restore focus when it closes
+  // Focus first link when mobile menu opens
   useEffect(() => {
     if (mobileOpen) {
       firstLinkRef.current?.focus();
@@ -122,164 +432,207 @@ export function Navbar() {
     }
   }, [mobileOpen]);
 
-  // Close on Escape key
+  // Close on Escape
   useEffect(() => {
     if (!mobileOpen) return;
-
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setMobileOpen(false);
-      }
+      if (e.key === 'Escape') setMobileOpen(false);
     }
-
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [mobileOpen]);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
+  const handleDropdownEnter = useCallback(() => {
+    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
+    setDropdownOpen(true);
+  }, []);
+
+  const handleDropdownLeave = useCallback(() => {
+    dropdownTimeoutRef.current = setTimeout(() => setDropdownOpen(false), 80);
+  }, []);
+
   return (
-    <nav
-      className={`sticky top-0 z-50 transition-[background-color,border-color,backdrop-filter,filter] duration-300 ${
-        scrolled
-          ? 'border-b border-warm-500/20 bg-neutral-950/60 saturate-150 backdrop-blur-xl'
-          : 'bg-transparent'
-      }`}
-    >
-      <div
-        className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    <>
+      <nav
+        style={{
+          ...S.nav,
+          ...(scrolled ? S.navScrolled : {}),
+        }}
       >
-        {/* Logo */}
+        {/* Brand */}
         <Link
           href="/"
-          className="logo-glow logo-needle text-xl font-extrabold tracking-tight text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded"
+          style={S.brand}
+          onMouseEnter={() => setBrandHover(true)}
+          onMouseLeave={() => setBrandHover(false)}
         >
+          <span style={{ ...S.brandMark, ...(brandHover ? S.brandMarkHover : {}) }}>
+            <Image
+              src="/images/marketing/MotoVault.png"
+              alt="MotoVault"
+              width={32}
+              height={32}
+              style={S.brandImg}
+            />
+          </span>
           MotoVault
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden items-center gap-5 xl:gap-7 lg:flex">
-          {NAV_LINKS.map((item) => {
-            const cls =
-              'text-sm text-neutral-300 underline-offset-4 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:rounded min-h-[44px] inline-flex items-center';
-
-            if (isGroup(item)) {
-              return (
-                <div key={item.key} className="nav-dropdown group relative">
-                  <button
-                    type="button"
-                    className={`${cls} gap-1`}
-                    aria-haspopup="menu"
-                    aria-expanded="false"
-                  >
-                    {t(item.key)}
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="transition-transform duration-200 group-hover:rotate-180"
-                      aria-hidden="true"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  <div
-                    role="menu"
-                    className="pointer-events-none absolute left-1/2 top-full z-50 w-[340px] -translate-x-1/2 translate-y-0 pt-3 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-                  >
-                    <div className="overflow-hidden rounded-2xl border border-neutral-800/80 bg-neutral-950/95 shadow-2xl ring-1 ring-neutral-800 backdrop-blur-xl">
-                      <ul className="p-2">
-                        {item.children.map((child) => (
-                          <li key={child.key}>
-                            <Link
-                              href={child.href}
-                              role="menuitem"
-                              className="flex flex-col gap-0.5 rounded-xl px-4 py-3 text-left transition-colors hover:bg-neutral-900 focus-visible:bg-neutral-900 focus-visible:outline-none"
-                            >
-                              <span className="text-sm font-semibold text-neutral-50">
-                                {t(child.key)}
-                              </span>
-                              {child.tagline && (
-                                <span className="text-xs text-neutral-500">{child.tagline}</span>
-                              )}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="border-t border-neutral-900 px-4 py-3">
-                        <Link
-                          href="/features"
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-warm-400 transition-colors hover:text-warm-300"
-                        >
-                          {t('viewAllFeatures', { defaultValue: 'View all features' })}
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                          >
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                          </svg>
-                        </Link>
-                      </div>
-                    </div>
+        {/* Desktop nav-links pill */}
+        <div className="mv-nav-links" style={S.navLinks}>
+          {/* Features dropdown */}
+          <div
+            style={S.dropdown}
+            onMouseEnter={handleDropdownEnter}
+            onMouseLeave={handleDropdownLeave}
+            onFocus={handleDropdownEnter}
+            onBlur={handleDropdownLeave}
+          >
+            {/* Bridge element for hover gap */}
+            <div style={S.dropdownBridge} />
+            <button
+              type="button"
+              style={{
+                ...S.navLink,
+                ...S.dropdownTrigger,
+                ...(hoveredLink === 'features' || dropdownOpen ? S.navLinkHover : {}),
+              }}
+              aria-haspopup="menu"
+              aria-expanded={dropdownOpen}
+              onMouseEnter={() => setHoveredLink('features')}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
+              {t('features')}
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+                style={{
+                  ...S.chevronSvg,
+                  ...(dropdownOpen ? S.chevronOpen : {}),
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div
+              role="menu"
+              style={{
+                ...S.dropdownMenu,
+                ...(dropdownOpen ? S.dropdownMenuOpen : {}),
+              }}
+            >
+              {FEATURE_ITEMS.map((item) => (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  role="menuitem"
+                  style={{
+                    ...S.dropdownItem,
+                    ...(hoveredDropdownItem === item.key ? S.dropdownItemHover : {}),
+                  }}
+                  onMouseEnter={() => setHoveredDropdownItem(item.key)}
+                  onMouseLeave={() => setHoveredDropdownItem(null)}
+                >
+                  <span style={S.dropdownIcon}>{item.icon}</span>
+                  <div>
+                    <div style={S.dropdownTitle}>{t(item.key)}</div>
+                    <div style={S.dropdownSub}>{item.sub}</div>
                   </div>
-                </div>
-              );
-            }
+                </Link>
+              ))}
+            </div>
+          </div>
 
-            return item.href.startsWith('#') ? (
-              <a key={item.key} href={item.href} className={cls}>
-                {t(item.key)}
+          {/* Explore, Riders, FAQ */}
+          {NAV_LINKS.map((link) =>
+            link.href.startsWith('#') ? (
+              <a
+                key={link.key}
+                href={link.href}
+                style={{
+                  ...S.navLink,
+                  ...(hoveredLink === link.key ? S.navLinkHover : {}),
+                }}
+                onMouseEnter={() => setHoveredLink(link.key)}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                {t(link.key)}
               </a>
             ) : (
-              <Link key={item.key} href={item.href} className={cls}>
-                {t(item.key)}
+              <Link
+                key={link.key}
+                href={link.href}
+                style={{
+                  ...S.navLink,
+                  ...(hoveredLink === link.key ? S.navLinkHover : {}),
+                }}
+                onMouseEnter={() => setHoveredLink(link.key)}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                {t(link.key)}
               </Link>
-            );
-          })}
+            ),
+          )}
+        </div>
+
+        {/* Right side */}
+        <div className="mv-nav-right" style={S.navRight}>
           <LanguageSwitcher />
           {isLoggedIn ? (
             <a
               href="/feed"
-              className="cta-primary rounded-full bg-warm-500 px-5 py-2.5 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+              style={{
+                ...S.navCta,
+                ...(ctaHover ? S.navCtaHover : {}),
+              }}
+              onMouseEnter={() => setCtaHover(true)}
+              onMouseLeave={() => setCtaHover(false)}
             >
               {t('dashboard', { defaultValue: 'My Garage' })}
             </a>
           ) : (
-            <div className="flex items-center gap-2 rounded-full border border-neutral-800/80 bg-neutral-900/40 p-1 backdrop-blur-sm">
+            <>
               <a
                 href="/login"
-                className="rounded-full px-4 py-2 text-sm font-medium text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                className="mv-nav-signin"
+                style={{
+                  ...S.navSignin,
+                  ...(signinHover ? { color: 'var(--mv-ink)' } : {}),
+                }}
+                onMouseEnter={() => setSigninHover(true)}
+                onMouseLeave={() => setSigninHover(false)}
               >
-                {t('login', { defaultValue: 'Log In' })}
+                {t('login', { defaultValue: 'Sign in' })}
               </a>
               <a
-                href="/signup"
-                className="cta-primary rounded-full bg-warm-500 px-4 py-2 text-sm font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
+                href="#download"
+                style={{
+                  ...S.navCta,
+                  ...(ctaHover ? S.navCtaHover : {}),
+                }}
+                onMouseEnter={() => setCtaHover(true)}
+                onMouseLeave={() => setCtaHover(false)}
               >
-                {t('signup', { defaultValue: 'Sign Up' })}
+                {t('getTheApp', { defaultValue: 'Get the app' })}
               </a>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Hamburger (mobile) */}
         <button
           ref={menuButtonRef}
           type="button"
-          className="flex size-11 items-center justify-center rounded-lg text-neutral-300 transition-colors hover:text-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 lg:hidden"
+          className="mv-hamburger"
+          style={S.hamburger}
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
@@ -309,7 +662,7 @@ export function Navbar() {
             )}
           </svg>
         </button>
-      </div>
+      </nav>
 
       {/* Mobile overlay */}
       {mobileOpen && (
@@ -318,76 +671,60 @@ export function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label={t('openMenu')}
-          className="fixed inset-0 z-40 flex flex-col bg-neutral-950/95 backdrop-blur-xl lg:hidden"
-          style={{ top: 'calc(72px + env(safe-area-inset-top, 0px))' }}
+          style={{ ...S.mobileOverlay, top: '72px' }}
         >
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 overflow-y-auto py-8">
-            {(() => {
-              // Flatten dropdown children into top-level for mobile menu
-              const mobileItems: NavLeaf[] = [];
-              for (const item of NAV_LINKS) {
-                if (isGroup(item)) {
-                  for (const child of item.children) mobileItems.push(child);
-                } else {
-                  mobileItems.push(item);
-                }
-              }
-              return mobileItems.map((link, i) => {
-                const cls =
-                  'text-2xl font-medium text-neutral-200 underline-offset-4 transition-colors hover:text-neutral-50 hover:underline';
-                return link.href.startsWith('#') ? (
-                  <a
-                    key={link.key}
-                    ref={i === 0 ? firstLinkRef : undefined}
-                    href={link.href}
-                    onClick={closeMobile}
-                    className={cls}
-                  >
-                    {t(link.key)}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.key}
-                    ref={i === 0 ? firstLinkRef : undefined}
-                    href={link.href}
-                    onClick={closeMobile}
-                    className={cls}
-                  >
-                    {t(link.key)}
-                  </Link>
-                );
-              });
-            })()}
+          <div style={S.mobileInner}>
+            {FEATURE_ITEMS.map((item, i) => (
+              <Link
+                key={item.key}
+                ref={i === 0 ? firstLinkRef : undefined}
+                href={item.href}
+                onClick={closeMobile}
+                style={S.mobileLink}
+              >
+                {t(item.key)}
+              </Link>
+            ))}
+            {NAV_LINKS.map((link) =>
+              link.href.startsWith('#') ? (
+                <a key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
+                  {t(link.key)}
+                </a>
+              ) : (
+                <Link key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
+                  {t(link.key)}
+                </Link>
+              ),
+            )}
             <LanguageSwitcher />
             {isLoggedIn ? (
-              <a
-                href="/feed"
-                onClick={closeMobile}
-                className="cta-primary mt-4 rounded-full bg-warm-500 px-10 py-4 text-lg font-bold text-neutral-950 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
-              >
+              <a href="/feed" onClick={closeMobile} style={S.mobileCta}>
                 {t('dashboard', { defaultValue: 'My Garage' })}
               </a>
             ) : (
-              <div className="mt-4 flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 p-1.5 backdrop-blur-sm">
-                <a
-                  href="/login"
-                  onClick={closeMobile}
-                  className="rounded-full px-6 py-3 text-base font-medium text-neutral-300 transition-colors hover:text-neutral-50"
-                >
-                  {t('login', { defaultValue: 'Log In' })}
+              <>
+                <a href="/login" onClick={closeMobile} style={S.mobileSignin}>
+                  {t('login', { defaultValue: 'Sign in' })}
                 </a>
-                <a
-                  href="/signup"
-                  onClick={closeMobile}
-                  className="cta-primary rounded-full bg-warm-500 px-6 py-3 text-base font-bold text-neutral-950 transition-opacity hover:opacity-90"
-                >
-                  {t('signup', { defaultValue: 'Sign Up' })}
+                <a href="#download" onClick={closeMobile} style={S.mobileCta}>
+                  {t('getTheApp', { defaultValue: 'Get the app' })}
                 </a>
-              </div>
+              </>
             )}
           </div>
         </div>
       )}
-    </nav>
+
+      {/* Responsive styles — hide nav-links + signin at <=960px, show hamburger */}
+      <style>{`
+        .mv-nav-links, .mv-nav-right .mv-nav-signin { display: flex; }
+        .mv-hamburger { display: none !important; }
+        @media (max-width: 960px) {
+          .mv-nav-links, .mv-nav-right .mv-nav-signin { display: none !important; }
+          .mv-nav-right { display: none !important; }
+          .mv-hamburger { display: flex !important; }
+        }
+      `}</style>
+    </>
   );
 }
