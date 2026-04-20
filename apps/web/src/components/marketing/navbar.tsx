@@ -620,7 +620,7 @@ export function Navbar() {
                 {t('login', { defaultValue: 'Sign in' })}
               </a>
               <a
-                href="#download"
+                href="/#download"
                 style={{
                   ...S.navCta,
                   ...(ctaHover ? S.navCtaHover : {}),
@@ -713,21 +713,13 @@ export function Navbar() {
                 <a href="/login" onClick={closeMobile} style={S.mobileSignin}>
                   {t('login', { defaultValue: 'Sign in' })}
                 </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeMobile();
-                    document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  style={{
-                    ...S.mobileCta,
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
+                <a
+                  href="/#download"
+                  onClick={closeMobile}
+                  style={S.mobileCta}
                 >
                   {t('getTheApp', { defaultValue: 'Get the app' })}
-                </button>
+                </a>
               </>
             )}
           </div>
