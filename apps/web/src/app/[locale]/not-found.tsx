@@ -135,8 +135,7 @@ export default function NotFound() {
           transform: 'translateX(-50%)',
           width: '2px',
           height: '120px',
-          background:
-            'linear-gradient(180deg, oklch(0.76 0.18 60 / 0.3), transparent)',
+          background: 'linear-gradient(180deg, oklch(0.76 0.18 60 / 0.3), transparent)',
         }}
       />
     </div>

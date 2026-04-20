@@ -64,8 +64,7 @@ export default function Loading() {
             borderRadius: '50%',
             background: 'oklch(0.84 0.15 68)',
             transform: 'translate(-50%, -50%)',
-            boxShadow:
-              '0 0 0 3px oklch(1 0 0 / 0.04), 0 0 14px oklch(0.84 0.15 68)',
+            boxShadow: '0 0 0 3px oklch(1 0 0 / 0.04), 0 0 14px oklch(0.84 0.15 68)',
             animation: 'mv-root-pulse 1.4s ease-in-out infinite',
           }}
         />

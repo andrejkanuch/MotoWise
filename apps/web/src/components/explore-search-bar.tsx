@@ -452,7 +452,16 @@ export function ExploreSearchBar() {
           />
 
           {/* Country filter */}
-          <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 110, position: 'relative' }}>
+          <div
+            style={{
+              padding: '8px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              minWidth: 110,
+              position: 'relative',
+            }}
+          >
             <span style={selectLabelStyle}>Country</span>
             <div style={{ position: 'relative' }}>
               <select
@@ -476,7 +485,13 @@ export function ExploreSearchBar() {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
               >
                 <title>Expand</title>
                 <polyline points="6 9 12 15 18 9" />
@@ -495,7 +510,16 @@ export function ExploreSearchBar() {
           />
 
           {/* Duration filter */}
-          <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 110, position: 'relative' }}>
+          <div
+            style={{
+              padding: '8px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              minWidth: 110,
+              position: 'relative',
+            }}
+          >
             <span style={selectLabelStyle}>Duration</span>
             <div style={{ position: 'relative' }}>
               <select
@@ -519,7 +543,13 @@ export function ExploreSearchBar() {
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
               >
                 <title>Expand</title>
                 <polyline points="6 9 12 15 18 9" />
@@ -628,7 +658,17 @@ export function ExploreSearchBar() {
                     onClick={() => navigate(buildPlaceHref(place))}
                   >
                     <KindIcon kind={place.kind} />
-                    <span style={{ flex: 1, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{place.name}</span>
+                    <span
+                      style={{
+                        flex: 1,
+                        fontWeight: 500,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {place.name}
+                    </span>
                     <span
                       style={{
                         fontFamily: 'var(--font-geist-mono, monospace)',
@@ -692,7 +732,17 @@ export function ExploreSearchBar() {
                       onClick={() => navigate(buildRouteHref(route))}
                     >
                       <MapIcon />
-                      <span style={{ flex: 1, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{route.name}</span>
+                      <span
+                        style={{
+                          flex: 1,
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {route.name}
+                      </span>
                       <span
                         style={{
                           fontFamily: 'var(--font-geist-mono, monospace)',

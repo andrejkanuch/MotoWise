@@ -234,7 +234,8 @@ export default function NotFound() {
             <div className="nf-compass-ring" />
             <div className="nf-compass-ring ring-2" />
             <div className="nf-compass-ring ring-3" />
-            <svg className="nf-compass-ticks" viewBox="0 0 100 100">
+            <svg className="nf-compass-ticks" viewBox="0 0 100 100" aria-hidden="true">
+              <title>Compass ticks</title>
               <g stroke="oklch(1 0 0 / 0.25)" strokeLinecap="round">
                 <line x1="50" y1="3" x2="50" y2="8" />
                 <line x1="73.5" y1="9.3" x2="71" y2="13.7" />

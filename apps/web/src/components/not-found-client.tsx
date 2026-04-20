@@ -17,9 +17,7 @@ export function TelemetryHeading() {
   useEffect(() => {
     const id = setInterval(() => {
       tRef.current += 0.04;
-      const raw = Math.round(
-        180 + Math.sin(tRef.current) * 60 + Math.cos(tRef.current * 1.7) * 20,
-      );
+      const raw = Math.round(180 + Math.sin(tRef.current) * 60 + Math.cos(tRef.current * 1.7) * 20);
       setDeg(String(((raw % 360) + 360) % 360).padStart(3, '0'));
     }, 80);
     return () => clearInterval(id);

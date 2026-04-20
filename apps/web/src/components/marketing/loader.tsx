@@ -4,13 +4,7 @@
  *
  * Sizes: "sm" (44px) · default (80px) · "lg" (140px)
  */
-export function MvLoader({
-  size,
-  label,
-}: {
-  size?: 'sm' | 'lg';
-  label?: string;
-}) {
+export function MvLoader({ size, label }: { size?: 'sm' | 'lg'; label?: string }) {
   const spinner = (
     <div className={`mv-loader${size ? ` ${size}` : ''}`}>
       <div className="mv-loader-tread" />
