@@ -1,6 +1,7 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
+import Image from 'next/image';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { useMemo, useState } from 'react';
@@ -201,9 +202,11 @@ export default function SignUpPage() {
               }}
             >
               <span style={{ width: 32, height: 32, borderRadius: 9, overflow: 'hidden' }}>
-                <img
+                <Image
                   src="/images/marketing/MotoVault.png"
                   alt="MotoVault"
+                  width={32}
+                  height={32}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </span>
@@ -234,6 +237,7 @@ export default function SignUpPage() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 style={{ transition: 'transform .3s' }}
+                aria-hidden="true"
               >
                 <line x1="19" y1="12" x2="5" y2="12" />
                 <polyline points="12 19 5 12 12 5" />
@@ -692,6 +696,7 @@ export default function SignUpPage() {
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                             <polyline points="22,6 12,13 2,6" />
@@ -759,6 +764,7 @@ export default function SignUpPage() {
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -791,6 +797,7 @@ export default function SignUpPage() {
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                             <circle cx="12" cy="12" r="3" />
@@ -868,6 +875,7 @@ export default function SignUpPage() {
                             strokeWidth="1.8"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            aria-hidden="true"
                           >
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -919,6 +927,7 @@ export default function SignUpPage() {
                         strokeWidth="2.2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
+                        aria-hidden="true"
                       >
                         <line x1="5" y1="12" x2="19" y2="12" />
                         <polyline points="12 5 19 12 12 19" />

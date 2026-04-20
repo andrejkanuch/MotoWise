@@ -23,6 +23,7 @@ const FEATURE_ITEMS = [
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
         <circle cx="12" cy="10" r="3" />
@@ -43,6 +44,7 @@ const FEATURE_ITEMS = [
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
         <circle cx="12" cy="13" r="4" />
@@ -63,6 +65,7 @@ const FEATURE_ITEMS = [
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
         <polyline points="9 22 9 12 15 12 15 22" />
@@ -83,6 +86,7 @@ const FEATURE_ITEMS = [
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
       </svg>
@@ -483,6 +487,7 @@ export function Navbar() {
         {/* Desktop nav-links pill */}
         <div className="mv-nav-links" style={S.navLinks}>
           {/* Features dropdown */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: dropdown hover container */}
           <div
             style={S.dropdown}
             onMouseEnter={handleDropdownEnter}
@@ -706,9 +711,21 @@ export function Navbar() {
                 <a href="/login" onClick={closeMobile} style={S.mobileSignin}>
                   {t('login', { defaultValue: 'Sign in' })}
                 </a>
-                <a href="#download" onClick={closeMobile} style={S.mobileCta}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobile();
+                    document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  style={{
+                    ...S.mobileCta,
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
                   {t('getTheApp', { defaultValue: 'Get the app' })}
-                </a>
+                </button>
               </>
             )}
           </div>

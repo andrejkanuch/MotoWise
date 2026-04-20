@@ -210,9 +210,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 { top: 24, right: 24, borderWidth: '2px 2px 0 0', borderRadius: '0 6px 0 0' },
                 { bottom: 24, left: 24, borderWidth: '0 0 2px 2px', borderRadius: '0 0 0 6px' },
                 { bottom: 24, right: 24, borderWidth: '0 2px 2px 0', borderRadius: '0 0 6px 0' },
-              ].map((b, i) => (
+              ].map((b) => (
                 <span
-                  key={i}
+                  key={`corner-${b.borderRadius}`}
                   style={{
                     position: 'absolute',
                     width: 24,

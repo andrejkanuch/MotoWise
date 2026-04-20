@@ -261,7 +261,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
 
           {/* Garage stack visual */}
           <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
-            <div style={{ position: 'relative', width: '100%', maxWidth: 520, aspectRatio: '4/4.3' }}>
+            <div
+              style={{ position: 'relative', width: '100%', maxWidth: 520, aspectRatio: '4/4.3' }}
+            >
               {BIKES.map((bike, i) => {
                 const pos = CARD_POSITIONS[i];
                 return (
@@ -421,12 +423,48 @@ export default async function GarageManagementPage({ params }: PageProps) {
           }}
         >
           {[
-            { num: '01', title: 'Unlimited bikes.', body: 'Daily, weekend, touring, project, sold. Keep them all \u2014 even retired bikes stay searchable for when a buyer asks about service history.', kvLabel: 'Cost', kvValue: 'Free \u00b7 forever' },
-            { num: '02', title: 'Auto-loaded specs.', body: 'Search your make & model \u2014 MotoVault pre-fills tank size, tire specs, service intervals and torque values for 12,000+ bikes.', kvLabel: 'Database', kvValue: '12k+ models' },
-            { num: '03', title: 'Maintenance reminders.', body: "Mileage or time-based, tuned to each bike\u2019s service schedule. Alerts land before you\u2019re overdue \u2014 not the day the light turns on.", kvLabel: 'Reminders', kvValue: 'Per-bike & smart' },
-            { num: '04', title: 'Expense tracking.', body: 'Fuel, parts, gear, insurance, storage \u2014 categorized and rolled up monthly. See your true cost-per-mile for every bike.', kvLabel: 'Categories', kvValue: '8 built-in' },
-            { num: '05', title: 'Documents vault.', body: 'Registration, insurance card, service receipts, VIN. Encrypted, synced, one tap away when the officer asks.', kvLabel: 'Storage', kvValue: 'Encrypted \u00b7 synced' },
-            { num: '06', title: 'Exportable history.', body: 'Selling a bike? Export a full service report as PDF \u2014 every oil change, every tire, every receipt. Adds real resale value.', kvLabel: 'Export', kvValue: 'PDF \u00b7 CSV' },
+            {
+              num: '01',
+              title: 'Unlimited bikes.',
+              body: 'Daily, weekend, touring, project, sold. Keep them all \u2014 even retired bikes stay searchable for when a buyer asks about service history.',
+              kvLabel: 'Cost',
+              kvValue: 'Free \u00b7 forever',
+            },
+            {
+              num: '02',
+              title: 'Auto-loaded specs.',
+              body: 'Search your make & model \u2014 MotoVault pre-fills tank size, tire specs, service intervals and torque values for 12,000+ bikes.',
+              kvLabel: 'Database',
+              kvValue: '12k+ models',
+            },
+            {
+              num: '03',
+              title: 'Maintenance reminders.',
+              body: 'Mileage or time-based, tuned to each bike\u2019s service schedule. Alerts land before you\u2019re overdue \u2014 not the day the light turns on.',
+              kvLabel: 'Reminders',
+              kvValue: 'Per-bike & smart',
+            },
+            {
+              num: '04',
+              title: 'Expense tracking.',
+              body: 'Fuel, parts, gear, insurance, storage \u2014 categorized and rolled up monthly. See your true cost-per-mile for every bike.',
+              kvLabel: 'Categories',
+              kvValue: '8 built-in',
+            },
+            {
+              num: '05',
+              title: 'Documents vault.',
+              body: 'Registration, insurance card, service receipts, VIN. Encrypted, synced, one tap away when the officer asks.',
+              kvLabel: 'Storage',
+              kvValue: 'Encrypted \u00b7 synced',
+            },
+            {
+              num: '06',
+              title: 'Exportable history.',
+              body: 'Selling a bike? Export a full service report as PDF \u2014 every oil change, every tire, every receipt. Adds real resale value.',
+              kvLabel: 'Export',
+              kvValue: 'PDF \u00b7 CSV',
+            },
           ].map((p) => (
             <div
               key={p.num}
@@ -628,8 +666,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
             Know what your bike <span className="mv-serif">really costs.</span>
           </h2>
           <p className="mv-section-sub">
-            Every fill-up, service and gear purchase &mdash; rolled up into the numbers that actually
-            matter.
+            Every fill-up, service and gear purchase &mdash; rolled up into the numbers that
+            actually matter.
           </p>
         </div>
 
@@ -655,12 +693,60 @@ export default async function GarageManagementPage({ params }: PageProps) {
             <svg
               viewBox="0 0 100 100"
               style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}
+              aria-hidden="true"
             >
-              <circle cx="50" cy="50" r="40" stroke="oklch(1 0 0 / 0.04)" strokeWidth="14" fill="none" />
-              <circle cx="50" cy="50" r="40" stroke="oklch(0.76 0.18 60)" strokeWidth="14" fill="none" strokeDasharray="88 251.33" strokeDashoffset="0" strokeLinecap="butt" />
-              <circle cx="50" cy="50" r="40" stroke="oklch(0.84 0.15 68)" strokeWidth="14" fill="none" strokeDasharray="63 251.33" strokeDashoffset="-88" strokeLinecap="butt" />
-              <circle cx="50" cy="50" r="40" stroke="oklch(0.6 0.13 60)" strokeWidth="14" fill="none" strokeDasharray="48 251.33" strokeDashoffset="-151" strokeLinecap="butt" />
-              <circle cx="50" cy="50" r="40" stroke="oklch(0.45 0.1 60)" strokeWidth="14" fill="none" strokeDasharray="52 251.33" strokeDashoffset="-199" strokeLinecap="butt" />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="oklch(1 0 0 / 0.04)"
+                strokeWidth="14"
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="oklch(0.76 0.18 60)"
+                strokeWidth="14"
+                fill="none"
+                strokeDasharray="88 251.33"
+                strokeDashoffset="0"
+                strokeLinecap="butt"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="oklch(0.84 0.15 68)"
+                strokeWidth="14"
+                fill="none"
+                strokeDasharray="63 251.33"
+                strokeDashoffset="-88"
+                strokeLinecap="butt"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="oklch(0.6 0.13 60)"
+                strokeWidth="14"
+                fill="none"
+                strokeDasharray="48 251.33"
+                strokeDashoffset="-151"
+                strokeLinecap="butt"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="oklch(0.45 0.1 60)"
+                strokeWidth="14"
+                fill="none"
+                strokeDasharray="52 251.33"
+                strokeDashoffset="-199"
+                strokeLinecap="butt"
+              />
             </svg>
             <div
               style={{
@@ -701,10 +787,30 @@ export default async function GarageManagementPage({ params }: PageProps) {
           {/* Legend */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {[
-              { color: 'oklch(0.76 0.18 60)', label: 'Fuel', sub: '14 fill-ups \u00b7 34% of total', value: '$75.20' },
-              { color: 'oklch(0.84 0.15 68)', label: 'Maintenance', sub: 'Oil, chain lube \u00b7 25%', value: '$53.80' },
-              { color: 'oklch(0.6 0.13 60)', label: 'Parts', sub: 'Brake pads \u00b7 19%', value: '$42.10' },
-              { color: 'oklch(0.45 0.1 60)', label: 'Insurance & misc', sub: 'Monthly \u00b7 22%', value: '$43.70' },
+              {
+                color: 'oklch(0.76 0.18 60)',
+                label: 'Fuel',
+                sub: '14 fill-ups \u00b7 34% of total',
+                value: '$75.20',
+              },
+              {
+                color: 'oklch(0.84 0.15 68)',
+                label: 'Maintenance',
+                sub: 'Oil, chain lube \u00b7 25%',
+                value: '$53.80',
+              },
+              {
+                color: 'oklch(0.6 0.13 60)',
+                label: 'Parts',
+                sub: 'Brake pads \u00b7 19%',
+                value: '$42.10',
+              },
+              {
+                color: 'oklch(0.45 0.1 60)',
+                label: 'Insurance & misc',
+                sub: 'Monthly \u00b7 22%',
+                value: '$43.70',
+              },
             ].map((item, i, arr) => (
               <div
                 key={item.label}
@@ -727,7 +833,14 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, letterSpacing: '-0.005em' }}>{item.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--mv-ink-3)', marginTop: 2, letterSpacing: '0.03em' }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--mv-ink-3)',
+                      marginTop: 2,
+                      letterSpacing: '0.03em',
+                    }}
+                  >
                     {item.sub}
                   </div>
                 </div>
@@ -785,7 +898,14 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 </span>
               )}
             </div>
-            <div style={{ marginTop: 12, color: 'var(--mv-ink-3)', fontSize: 13, letterSpacing: '-0.005em' }}>
+            <div
+              style={{
+                marginTop: 12,
+                color: 'var(--mv-ink-3)',
+                fontSize: 13,
+                letterSpacing: '-0.005em',
+              }}
+            >
               {s.label}
             </div>
           </div>
@@ -821,10 +941,27 @@ export default async function GarageManagementPage({ params }: PageProps) {
               remember.
             </span>
           </h2>
-          <p style={{ margin: '24px auto 0', maxWidth: 460, fontSize: 17, color: 'var(--mv-ink-2)', lineHeight: 1.55, letterSpacing: '-0.01em' }}>
+          <p
+            style={{
+              margin: '24px auto 0',
+              maxWidth: 460,
+              fontSize: 17,
+              color: 'var(--mv-ink-2)',
+              lineHeight: 1.55,
+              letterSpacing: '-0.01em',
+            }}
+          >
             Free forever. Set up your first bike in under 90 seconds.
           </p>
-          <div style={{ marginTop: 40, display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              marginTop: 40,
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
             <Link href="/#download" className="mv-btn mv-btn-primary">
               <span>Get the app</span>
             </Link>
@@ -836,7 +973,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ NEXT FEATURE CARDS ════ */}
-      <section style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section
+        style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
+      >
         <div
           style={{
             display: 'grid',
@@ -850,34 +989,110 @@ export default async function GarageManagementPage({ params }: PageProps) {
         >
           <Link
             href="/features/learning-paths"
-            style={{ background: 'var(--mv-bg)', padding: 48, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 260, textDecoration: 'none', color: 'inherit' }}
+            style={{
+              background: 'var(--mv-bg)',
+              padding: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 260,
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
           >
             <div>
-              <div className="mv-mono" style={{ fontSize: 11, color: 'var(--mv-ink-3)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              <div
+                className="mv-mono"
+                style={{
+                  fontSize: 11,
+                  color: 'var(--mv-ink-3)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Next feature &middot; 04
               </div>
-              <div style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 500, letterSpacing: '-0.03em', lineHeight: 1, marginTop: 16 }}>
-                Learning <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>paths.</span>
+              <div
+                style={{
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  fontWeight: 500,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                  marginTop: 16,
+                }}
+              >
+                Learning{' '}
+                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                  paths.
+                </span>
               </div>
             </div>
-            <div style={{ marginTop: 32, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--mv-warm-400)', fontWeight: 500 }}>
+            <div
+              style={{
+                marginTop: 32,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+                color: 'var(--mv-warm-400)',
+                fontWeight: 500,
+              }}
+            >
               Novice to expert.
               <ArrowIcon />
             </div>
           </Link>
           <Link
             href="/features/trip-planning"
-            style={{ background: 'var(--mv-bg)', padding: 48, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 260, textDecoration: 'none', color: 'inherit' }}
+            style={{
+              background: 'var(--mv-bg)',
+              padding: 48,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 260,
+              textDecoration: 'none',
+              color: 'inherit',
+            }}
           >
             <div>
-              <div className="mv-mono" style={{ fontSize: 11, color: 'var(--mv-ink-3)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
+              <div
+                className="mv-mono"
+                style={{
+                  fontSize: 11,
+                  color: 'var(--mv-ink-3)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Or see &middot; 01
               </div>
-              <div style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 500, letterSpacing: '-0.03em', lineHeight: 1, marginTop: 16 }}>
-                Trip <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>planning.</span>
+              <div
+                style={{
+                  fontSize: 'clamp(28px, 3vw, 40px)',
+                  fontWeight: 500,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                  marginTop: 16,
+                }}
+              >
+                Trip{' '}
+                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                  planning.
+                </span>
               </div>
             </div>
-            <div style={{ marginTop: 32, display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--mv-warm-400)', fontWeight: 500 }}>
+            <div
+              style={{
+                marginTop: 32,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 14,
+                color: 'var(--mv-warm-400)',
+                fontWeight: 500,
+              }}
+            >
               Multi-day routes.
               <ArrowIcon />
             </div>
