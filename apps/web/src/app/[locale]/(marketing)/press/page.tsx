@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { BASE_URL } from '@/lib/constants';
 
 export async function generateMetadata({
   params,
@@ -17,15 +17,9 @@ export async function generateMetadata({
     description:
       'Download MotoVault brand assets, logos, screenshots, and company information for press and media coverage.',
     alternates: {
-      canonical: getCanonicalUrl(locale, '/press'),
-      languages: {
-        en: `${BASE_URL}/press`,
-        es: `${BASE_URL}/es/press`,
-        de: `${BASE_URL}/de/press`,
-        fr: `${BASE_URL}/fr/press`,
-        it: `${BASE_URL}/it/press`,
-        'x-default': `${BASE_URL}/press`,
-      },
+      // Press page is English-only — always canonical to unprefixed URL.
+      canonical: `${BASE_URL}/press`,
+      languages: { 'x-default': `${BASE_URL}/press` },
     },
   };
 }

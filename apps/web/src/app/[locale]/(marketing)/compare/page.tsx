@@ -3,7 +3,6 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { FeatureCta } from '@/components/marketing/feature-cta';
 import { JsonLd } from '@/components/marketing/json-ld';
 import { Link } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 
 interface PageProps {
@@ -18,11 +17,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t('title'),
     description: t('description'),
     alternates: {
-      canonical: getCanonicalUrl(locale, '/compare'),
-      languages: Object.fromEntries([
-        ...routing.locales.map((l) => [l, getCanonicalUrl(l, '/compare')]),
-        ['x-default', getCanonicalUrl('en', '/compare')],
-      ]),
+      // Compare index has untranslated content — always canonical to unprefixed URL.
+      canonical: `${BASE_URL}/compare`,
+      languages: { 'x-default': `${BASE_URL}/compare` },
     },
   };
 }

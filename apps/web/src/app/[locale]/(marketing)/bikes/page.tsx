@@ -20,15 +20,14 @@ const PAGE_DESCRIPTION =
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
-  const canonical = getCanonicalUrl(locale, '/bikes');
   return {
     // `absolute` bypasses the root layout's "%s | MotoVault" template so we don't
     // double-suffix. The root title.default is "MotoVault" so a single suffix is enough.
     title: { absolute: `${PAGE_TITLE} | MotoVault` },
     description: PAGE_DESCRIPTION,
     alternates: {
-      canonical,
-      // Bike pages are English-only for MVP. No hreflang variants yet.
+      // Bike pages are English-only for MVP — always canonical to unprefixed URL.
+      canonical: `${BASE_URL}/bikes`,
       languages: { 'x-default': `${BASE_URL}/bikes` },
     },
   };
