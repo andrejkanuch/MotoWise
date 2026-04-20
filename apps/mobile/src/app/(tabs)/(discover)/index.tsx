@@ -365,12 +365,11 @@ export default function DiscoverScreen() {
       return pi?.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
     staleTime: 5 * 60 * 1000,
-    structuralSharing: false,
   });
 
   const allRoutes = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flatMap((p) => p.discoverRoutes.edges.map((e) => e.node));
+    return data.pages.flatMap((p) => p?.discoverRoutes?.edges?.map((e) => e.node) ?? []);
   }, [data]);
 
   // Featured route: first MotoVault Pick (when no filters active)

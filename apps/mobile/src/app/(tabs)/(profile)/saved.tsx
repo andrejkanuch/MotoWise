@@ -176,7 +176,6 @@ export default function SavedScreen() {
         if (!pageInfo?.hasNextPage) return undefined;
         return pageInfo.endCursor ?? undefined;
       },
-      structuralSharing: false,
     });
 
   const unsaveMutation = useMutation({

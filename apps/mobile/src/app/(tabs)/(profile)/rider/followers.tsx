@@ -63,7 +63,6 @@ export default function FollowersScreen() {
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     enabled: !!userId && activeTab === 'followers',
-    structuralSharing: false,
   });
 
   // Following query
@@ -81,7 +80,6 @@ export default function FollowersScreen() {
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     enabled: !!userId && activeTab === 'following',
-    structuralSharing: false,
   });
 
   const activeQuery = activeTab === 'followers' ? followersQuery : followingQuery;

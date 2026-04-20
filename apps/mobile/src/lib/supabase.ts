@@ -40,3 +40,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+/**
+ * Sign out safely — no-ops when the session is already gone instead of
+ * throwing "the current user is anonymous".  Failures are logged to Sentry.
+ */
+export async function safeSignOut(): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session) {
+    await supabase.auth.signOut().catch((err) => {
+      console.warn('safeSignOut: signOut failed', err);
+    });
+  }
+}

@@ -115,7 +115,6 @@ export default function RidesScreen() {
         if (!pageInfo?.hasNextPage) return undefined;
         return pageInfo.endCursor ?? undefined;
       },
-      structuralSharing: false,
     });
 
   const allEdges = useMemo<RideEdge[]>(

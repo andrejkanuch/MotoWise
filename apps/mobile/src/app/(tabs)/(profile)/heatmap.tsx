@@ -58,7 +58,6 @@ export default function RideHeatmapScreen() {
       const pi = lastPage?.myRides?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
-    structuralSharing: false,
   });
 
   const pagesLoaded = data?.pages?.length ?? 0;

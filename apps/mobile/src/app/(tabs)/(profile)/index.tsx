@@ -48,7 +48,7 @@ import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
-import { supabase } from '../../../lib/supabase';
+import { safeSignOut } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/auth.store';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
@@ -200,14 +200,8 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     haptic();
-    const {
-      data: { session: current },
-    } = await supabase.auth.getSession();
-    if (current) {
-      await supabase.auth.signOut();
-    } else {
-      router.replace('/(auth)/login');
-    }
+    await safeSignOut();
+    router.replace('/(auth)/login');
   };
 
   const queryClient = useQueryClient();
@@ -223,7 +217,7 @@ export default function ProfileScreen() {
   const deleteMutation = useMutation({
     mutationFn: () => gqlFetcher(DeleteAccountDocument),
     onSuccess: async () => {
-      await supabase.auth.signOut().catch(() => {});
+      await safeSignOut();
       queryClient.clear();
       router.replace('/(auth)/login');
     },

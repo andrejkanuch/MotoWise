@@ -23,6 +23,7 @@ export const queryClient = new QueryClient({
       retry: 3,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       networkMode: 'offlineFirst',
+      structuralSharing: false,
     },
     mutations: {
       retry: (failureCount, error) => {
