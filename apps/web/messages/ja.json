@@ -11,6 +11,7 @@
     "garage": "ガレージ",
     "faq": "FAQ",
     "download": "アプリを入手",
+    "getTheApp": "アプリを入手",
     "login": "ログイン",
     "openMenu": "ナビゲーションメニューを開く",
     "closeMenu": "ナビゲーションメニューを閉じる",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "ライダー"
   },
   "Hero": {
     "line1": "バイクを管理しよう。",
@@ -363,11 +365,13 @@
     "contactDescription": "アカウント削除やデータプライバシーに関するご質問は、こちらまでお問い合わせください"
   },
   "NotFound": {
+    "label": "ページが見つかりません",
     "code": "404",
-    "message": "このページは存在しません。",
+    "message": "道を間違えました。このルートは存在しません。",
     "backHome": "ホームに戻る"
   },
   "Error": {
+    "label": "エラー",
     "title": "エラーが発生しました",
     "message": "予期しないエラーが発生しました。もう一度お試しください。",
     "retry": "再試行"

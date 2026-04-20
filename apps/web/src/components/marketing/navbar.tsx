@@ -117,7 +117,9 @@ const S = {
     alignItems: 'center',
     transition:
       'padding .4s var(--mv-ease), background .4s var(--mv-ease), backdrop-filter .4s var(--mv-ease), border-color .4s',
-    borderBottom: '1px solid transparent',
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid' as const,
+    borderBottomColor: 'transparent',
   },
   navScrolled: {
     padding: '12px 40px',

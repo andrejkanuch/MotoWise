@@ -11,6 +11,7 @@
     "garage": "Garasi",
     "faq": "FAQ",
     "download": "Unduh Aplikasi",
+    "getTheApp": "Unduh Aplikasi",
     "login": "Masuk",
     "openMenu": "Buka menu navigasi",
     "closeMenu": "Tutup menu navigasi",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Pengendara"
   },
   "Hero": {
     "line1": "LACAK MOTORMU.",
@@ -363,13 +365,15 @@
     "contactDescription": "Untuk pertanyaan tentang penghapusan akun atau privasi data, hubungi kami di"
   },
   "NotFound": {
+    "label": "Halaman tidak ditemukan",
     "code": "404",
-    "message": "Halaman ini tidak ada.",
-    "backHome": "Kembali ke Beranda"
+    "message": "Salah belok. Jalur ini tidak ada.",
+    "backHome": "Kembali ke beranda"
   },
   "Error": {
+    "label": "Kesalahan",
     "title": "Terjadi Kesalahan",
-    "message": "Kami mengalami error yang tidak terduga. Silakan coba lagi.",
+    "message": "Terjadi error yang tidak terduga. Silakan coba lagi.",
     "retry": "Coba lagi"
   },
   "LanguageSwitcher": {

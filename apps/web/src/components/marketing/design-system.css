@@ -225,6 +225,10 @@
   50% { opacity: 0.6; transform: scale(0.8); }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Button styles ── */
 .mv-btn {
   position: relative;
@@ -419,6 +423,103 @@
     flex-direction: column;
     gap: 16px;
   }
+}
+
+/* ── Loader ── */
+.mv-loader {
+  --size: 80px;
+  --ring: 2px;
+  --accent: var(--mv-warm-400, oklch(0.84 0.15 68));
+  --bg-ring: oklch(1 0 0 / 0.08);
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  display: inline-block;
+  color: var(--accent);
+}
+.mv-loader.sm { --size: 44px; --ring: 1.5px; }
+.mv-loader.lg { --size: 140px; --ring: 3px; }
+
+.mv-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: var(--ring) solid var(--bg-ring);
+}
+.mv-loader::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: var(--ring) solid transparent;
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  animation: mv-loader-spin 1.1s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+  filter: drop-shadow(0 0 10px oklch(0.84 0.15 68 / 0.45));
+}
+
+.mv-loader-tread {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  border: 1px dashed oklch(1 0 0 / 0.22);
+  animation: mv-loader-spin-back 4s linear infinite;
+}
+
+.mv-loader-hub {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: calc(var(--size) * 0.12);
+  height: calc(var(--size) * 0.12);
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px oklch(1 0 0 / 0.04), 0 0 14px var(--accent);
+  animation: mv-loader-pulse 1.4s ease-in-out infinite;
+}
+
+.mv-loader-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.mv-loader-text {
+  font-family: var(--font-geist-mono, 'Geist Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mv-ink-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mv-loader-text .mv-dots::after {
+  content: "";
+  display: inline-block;
+  animation: mv-loader-dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes mv-loader-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes mv-loader-spin-back {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+@keyframes mv-loader-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.85; }
+  50%      { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+@keyframes mv-loader-dots {
+  0%   { content: ""; }
+  25%  { content: "."; }
+  50%  { content: ".."; }
+  75%  { content: "..."; }
 }
 
 /* ── Reduced motion ── */

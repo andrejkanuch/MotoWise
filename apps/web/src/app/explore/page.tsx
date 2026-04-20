@@ -5,8 +5,8 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Suspense } from 'react';
+import { ExploreSearchBar } from '@/components/explore-search-bar';
 import { SaveRouteButton } from '@/components/save-route-button';
-import { TypeaheadSearch } from '@/components/typeahead-search';
 import { BASE_URL } from '@/lib/constants';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
@@ -56,17 +56,6 @@ const TOP_REGIONS_SEO = [
   { name: 'Provence, France', href: '/explore/fr' },
   { name: 'Croatian Coast', href: '/explore/hr' },
   { name: 'Blue Ridge, USA', href: '/explore/us' },
-] as const;
-
-const FILTER_CHIPS = [
-  { label: 'Mountain passes', query: 'Mountain pass' },
-  { label: 'Coastal', query: 'Coastal' },
-  { label: 'Weekend escape', query: 'Weekend' },
-  { label: 'Adventure', query: 'Adventure' },
-  { label: 'Dolomites', query: 'Dolomites' },
-  { label: 'Scotland', query: 'Scotland' },
-  { label: 'Pyrenees', query: 'Pyrenees' },
-  { label: 'Big Sur', query: 'Big Sur' },
 ] as const;
 
 /* ── Revalidation ─────────────────────────────────────────────── */
@@ -783,156 +772,9 @@ export default async function ExplorePage() {
           or just an evening escape after work.
         </p>
 
-        {/* Glassmorphic Search Bar */}
-        <div style={{ marginTop: 40, position: 'relative' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'stretch',
-              background: 'oklch(0.15 0.012 55 / 0.7)',
-              backdropFilter: 'blur(24px)',
-              border: '1px solid var(--mv-line)',
-              borderRadius: 20,
-              padding: 8,
-              boxShadow: '0 30px 60px -30px oklch(0 0 0 / 0.7)',
-            }}
-          >
-            {/* Search input field — uses the existing TypeaheadSearch inside the glassmorphic shell */}
-            <div
-              style={{
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                padding: '0 20px',
-                minWidth: 0,
-              }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--mv-ink-2)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>Search</title>
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <TypeaheadSearch />
-              </div>
-            </div>
-
-            {/* Search button */}
-            <button
-              type="button"
-              style={{
-                padding: '0 28px',
-                background: 'var(--mv-warm-500)',
-                color: '#000',
-                border: 'none',
-                borderRadius: 14,
-                fontFamily: 'inherit',
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: '-0.005em',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'background 0.2s, transform 0.2s',
-              }}
-            >
-              Search
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <title>Go</title>
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Chips */}
-        <div
-          style={{
-            marginTop: 22,
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: 18,
-            flexWrap: 'wrap' as const,
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap' as const,
-              columnGap: 8,
-              rowGap: 10,
-              alignItems: 'center',
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--font-geist-mono, monospace)',
-                fontSize: 10,
-                color: 'var(--mv-ink-3)',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase' as const,
-                marginRight: 6,
-                whiteSpace: 'nowrap' as const,
-              }}
-            >
-              Popular:
-            </span>
-            {FILTER_CHIPS.map((chip) => (
-              <a
-                key={chip.query}
-                href={`/explore?q=${encodeURIComponent(chip.query)}`}
-                style={{
-                  padding: '7px 13px 7px 10px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  borderRadius: 999,
-                  background: 'oklch(1 0 0 / 0.03)',
-                  border: '1px solid var(--mv-line)',
-                  color: 'var(--mv-ink-2)',
-                  fontSize: 12.5,
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <span
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: '50%',
-                    background: 'var(--mv-warm-500)',
-                  }}
-                />
-                {chip.label}
-              </a>
-            ))}
-          </div>
-        </div>
+        <Suspense>
+          <ExploreSearchBar />
+        </Suspense>
       </section>
 
       {/* ===== STATS BAR ===== */}

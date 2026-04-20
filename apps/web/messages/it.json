@@ -11,6 +11,7 @@
     "garage": "Garage",
     "faq": "Domande Frequenti",
     "download": "Scarica l'App",
+    "getTheApp": "Scarica l'App",
     "login": "Accedi",
     "openMenu": "Apri menu di navigazione",
     "closeMenu": "Chiudi menu di navigazione",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Motociclisti"
   },
   "Hero": {
     "line1": "TRACCIA LA TUA MOTO.",
@@ -363,13 +365,15 @@
     "contactDescription": "Per qualsiasi domanda sull'eliminazione dell'account o sulla privacy dei dati, contattaci a"
   },
   "NotFound": {
+    "label": "Pagina non trovata",
     "code": "404",
-    "message": "Questa pagina non esiste.",
-    "backHome": "Torna all'Home"
+    "message": "Svolta sbagliata. Questa strada non esiste.",
+    "backHome": "Torna alla home"
   },
   "Error": {
+    "label": "Errore",
     "title": "Qualcosa è andato storto",
-    "message": "Abbiamo riscontrato un errore imprevisto. Per favore, riprova.",
+    "message": "Si è verificato un errore imprevisto. Per favore, riprova.",
     "retry": "Riprova"
   },
   "LanguageSwitcher": {

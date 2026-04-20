@@ -1,5 +1,8 @@
 import { Instrument_Serif } from 'next/font/google';
-import { PublicNavbar } from '@/components/public-navbar';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { Footer } from '@/components/marketing/footer';
+import { Navbar } from '@/components/marketing/navbar';
 import '@/components/marketing/design-system.css';
 
 const instrumentSerif = Instrument_Serif({
@@ -10,11 +13,16 @@ const instrumentSerif = Instrument_Serif({
   display: 'swap',
 });
 
-export default function ExploreLayout({ children }: { children: React.ReactNode }) {
+export default async function ExploreLayout({ children }: { children: React.ReactNode }) {
+  const messages = await getMessages();
+
   return (
-    <div className={`mv-marketing ${instrumentSerif.variable}`}>
-      <PublicNavbar />
-      {children}
-    </div>
+    <NextIntlClientProvider messages={messages}>
+      <div className={`mv-marketing ${instrumentSerif.variable}`}>
+        <Navbar />
+        <main>{children}</main>
+        <Footer />
+      </div>
+    </NextIntlClientProvider>
   );
 }

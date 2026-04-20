@@ -11,6 +11,7 @@
     "garage": "Garage",
     "faq": "Häufige Fragen",
     "download": "App holen",
+    "getTheApp": "App holen",
     "login": "Anmelden",
     "openMenu": "Navigationsmenü öffnen",
     "closeMenu": "Navigationsmenü schließen",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Fahrer"
   },
   "Hero": {
     "line1": "VERFOLGE DEIN BIKE.",
@@ -363,11 +365,13 @@
     "contactDescription": "Bei Fragen zur Kontolöschung oder Datenschutz kontaktiere uns unter"
   },
   "NotFound": {
+    "label": "Seite nicht gefunden",
     "code": "404",
-    "message": "Diese Seite existiert nicht.",
+    "message": "Falsch abgebogen. Diese Strecke existiert nicht.",
     "backHome": "Zurück zur Startseite"
   },
   "Error": {
+    "label": "Fehler",
     "title": "Etwas ist schiefgelaufen",
     "message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "retry": "Erneut versuchen"

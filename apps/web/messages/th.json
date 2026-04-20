@@ -11,6 +11,7 @@
     "garage": "โรงรถ",
     "faq": "คำถามที่พบบ่อย",
     "download": "ดาวน์โหลดแอป",
+    "getTheApp": "ดาวน์โหลดแอป",
     "login": "เข้าสู่ระบบ",
     "openMenu": "เปิดเมนูนำทาง",
     "closeMenu": "ปิดเมนูนำทาง",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "ไรเดอร์"
   },
   "Hero": {
     "line1": "ติดตามรถของคุณ",
@@ -363,11 +365,13 @@
     "contactDescription": "สำหรับคำถามเกี่ยวกับการลบบัญชีหรือความเป็นส่วนตัว ติดต่อเราที่"
   },
   "NotFound": {
+    "label": "ไม่พบหน้า",
     "code": "404",
-    "message": "ไม่พบหน้านี้",
+    "message": "เลี้ยวผิด เส้นทางนี้ไม่มีอยู่",
     "backHome": "กลับหน้าแรก"
   },
   "Error": {
+    "label": "ข้อผิดพลาด",
     "title": "เกิดข้อผิดพลาด",
     "message": "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองอีกครั้ง",
     "retry": "ลองอีกครั้ง"
