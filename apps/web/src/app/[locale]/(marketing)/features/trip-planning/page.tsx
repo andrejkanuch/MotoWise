@@ -86,9 +86,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
 
       {/* ════ HERO ════ */}
       <section
+        className="mv-section-hero"
         style={{
           position: 'relative',
-          padding: '180px 40px 100px',
           maxWidth: 'var(--mv-container)',
           margin: '0 auto',
         }}
@@ -119,14 +119,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
           <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
         </nav>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.15fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-          }}
-        >
+        <div className="mv-grid-hero">
           {/* Text column */}
           <div>
             <div className="mv-section-meta">Feature &middot; 01</div>
@@ -366,10 +359,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ PILLARS — How it works ════ */}
-      <section
-        id="how"
-        style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section id="how" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">How it works</div>
           <h2 className="mv-section-title">
@@ -378,10 +368,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
         </div>
 
         <div
+          className="mv-grid-3"
           style={{
             marginTop: 80,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
@@ -506,15 +495,8 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ SHOWCASE 1 — Waypoints ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-          }}
-        >
+      <section className="mv-section-inner">
+        <div className="mv-grid-2">
           <div>
             <div
               className="mv-mono"
@@ -554,9 +536,8 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </p>
             {/* Waypoint type cards */}
             <div
+              className="mv-grid-4"
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: 16,
                 marginTop: 60,
               }}
@@ -650,17 +631,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
               }}
               aria-hidden="true"
             />
-            <div
-              style={{
-                position: 'relative',
-                width: 320,
-                aspectRatio: '9/19.5',
-                borderRadius: 44,
-                background: '#080808',
-                padding: 9,
-                boxShadow: '0 0 0 1px oklch(1 0 0 / 0.09), 0 60px 120px -30px oklch(0 0 0 / 0.8)',
-              }}
-            >
+            <div className="mv-phone-mockup">
               {/* Dynamic island */}
               <div
                 style={{
@@ -705,17 +676,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ SHOWCASE 2 — Export & share (reversed) ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-            gridTemplateAreas: '"b a"',
-          }}
-        >
-          <div style={{ gridArea: 'a' }}>
+      <section className="mv-section-inner">
+        <div className="mv-grid-2-rev">
+          <div>
             <div
               className="mv-mono"
               style={{
@@ -836,9 +799,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </div>
           </div>
           {/* Phone mockup */}
-          <div
-            style={{ gridArea: 'b', position: 'relative', display: 'grid', placeItems: 'center' }}
-          >
+          <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
             <div
               style={{
                 position: 'absolute',
@@ -851,17 +812,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
               }}
               aria-hidden="true"
             />
-            <div
-              style={{
-                position: 'relative',
-                width: 320,
-                aspectRatio: '9/19.5',
-                borderRadius: 44,
-                background: '#080808',
-                padding: 9,
-                boxShadow: '0 0 0 1px oklch(1 0 0 / 0.09), 0 60px 120px -30px oklch(0 0 0 / 0.8)',
-              }}
-            >
+            <div className="mv-phone-mockup">
               <div
                 style={{
                   position: 'absolute',
@@ -905,18 +856,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ STATS ROW ════ */}
-      <section
-        style={{
-          padding: '80px 40px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 48,
-          borderTop: '1px solid var(--mv-line)',
-          borderBottom: '1px solid var(--mv-line)',
-        }}
-      >
+      <section className="mv-section-stats mv-grid-stats">
         {[
           { value: '8', unit: 'k+', label: 'Routes planned each month.' },
           { value: '412', unit: 'km', label: 'Average multi-day tour length.' },
@@ -954,14 +894,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ CTA ════ */}
-      <section
-        style={{
-          padding: '180px 40px',
-          position: 'relative',
-          overflow: 'hidden',
-          isolation: 'isolate',
-        }}
-      >
+      <section className="mv-section-cta">
         <div
           style={{
             position: 'absolute',
@@ -1014,14 +947,10 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ NEXT FEATURE CARDS ════ */}
-      <section
-        style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section className="mv-section-nav">
         <div
+          className="mv-grid-cards"
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
             borderRadius: 24,
@@ -1142,7 +1071,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
       </section>
 
       {/* ════ FAQ ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="mv-section-meta">{t('faqLabel')}</div>
           <h2 className="mv-section-title">{t('faqTitle')}</h2>

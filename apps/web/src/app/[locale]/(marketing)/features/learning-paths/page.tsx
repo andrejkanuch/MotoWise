@@ -182,11 +182,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
 
       {/* ════ HERO ════ */}
       <section
+        className="mv-section-hero"
         style={{
           position: 'relative',
-          padding: '180px 40px 100px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
         }}
       >
         {/* Breadcrumb */}
@@ -215,14 +213,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
           <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
         </nav>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.15fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-          }}
-        >
+        <div className="mv-grid-hero">
           {/* Text column */}
           <div>
             <div className="mv-section-meta">Feature &middot; 04</div>
@@ -466,7 +457,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ RIDER LEVELS ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">Rider levels</div>
           <h2 className="mv-section-title">
@@ -479,10 +470,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
         </div>
 
         <div
+          className="mv-grid-4"
           style={{
             marginTop: 60,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
@@ -555,10 +545,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ FEATURED PATHS ════ */}
-      <section
-        id="paths"
-        style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section id="paths" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">Featured paths</div>
           <h2 className="mv-section-title">
@@ -571,10 +558,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
         </div>
 
         <div
+          className="mv-grid-3"
           style={{
             marginTop: 60,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 20,
           }}
         >
@@ -678,15 +664,8 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ SHOWCASE — Why it works ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-          }}
-        >
+      <section className="mv-section-inner">
+        <div className="mv-grid-2">
           <div>
             <div
               className="mv-mono"
@@ -777,14 +756,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
               aria-hidden="true"
             />
             <div
+              className="mv-phone-mockup"
               style={{
                 position: 'relative',
-                width: 320,
-                aspectRatio: '9/19.5',
-                borderRadius: 44,
-                background: '#080808',
-                padding: 9,
-                boxShadow: '0 0 0 1px oklch(1 0 0 / 0.09), 0 60px 120px -30px oklch(0 0 0 / 0.8)',
               }}
             >
               {/* Dynamic island */}
@@ -831,18 +805,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ STATS ROW ════ */}
-      <section
-        style={{
-          padding: '80px 40px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 48,
-          borderTop: '1px solid var(--mv-line)',
-          borderBottom: '1px solid var(--mv-line)',
-        }}
-      >
+      <section className="mv-section-stats mv-grid-stats">
         {[
           { value: '40', unit: '+', label: 'Paths in the library, growing.' },
           { value: '8', unit: 'min', label: 'Average lesson length.' },
@@ -881,8 +844,8 @@ export default async function LearningPathsPage({ params }: PageProps) {
 
       {/* ════ CTA ════ */}
       <section
+        className="mv-section-cta"
         style={{
-          padding: '180px 40px',
           position: 'relative',
           overflow: 'hidden',
           isolation: 'isolate',
@@ -940,14 +903,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ NEXT FEATURE CARDS ════ */}
-      <section
-        style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section className="mv-section-nav">
         <div
+          className="mv-grid-cards"
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
             borderRadius: 24,
@@ -1068,7 +1027,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       </section>
 
       {/* ════ FAQ ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="mv-section-meta">Got Questions?</div>
           <h2 className="mv-section-title">Frequently Asked Questions</h2>

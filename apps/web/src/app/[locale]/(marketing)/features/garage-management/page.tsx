@@ -178,11 +178,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
 
       {/* ════ HERO ════ */}
       <section
+        className="mv-section-hero"
         style={{
           position: 'relative',
-          padding: '180px 40px 100px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
         }}
       >
         {/* Breadcrumb */}
@@ -211,14 +209,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
           <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
         </nav>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1.15fr 1fr',
-            gap: 80,
-            alignItems: 'center',
-          }}
-        >
+        <div className="mv-grid-hero">
           {/* Text column */}
           <div>
             <div className="mv-section-meta">Feature &middot; 03</div>
@@ -350,12 +341,11 @@ export default async function GarageManagementPage({ params }: PageProps) {
                     </div>
                     {bike.hasMeta && (
                       <div
+                        className="mv-grid-3"
                         style={{
                           marginTop: 16,
                           paddingTop: 14,
                           borderTop: '1px solid var(--mv-line)',
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(3, 1fr)',
                           gap: 10,
                         }}
                       >
@@ -402,7 +392,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ PILLARS ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">One vault &middot; everything</div>
           <h2 className="mv-section-title">
@@ -411,10 +401,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
         </div>
 
         <div
+          className="mv-grid-3"
           style={{
             marginTop: 80,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
@@ -539,10 +528,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ MAINTENANCE TIMELINE ════ */}
-      <section
-        id="maint"
-        style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section id="maint" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">Maintenance timeline</div>
           <h2 className="mv-section-title">
@@ -565,9 +551,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
           {MAINT_ROWS.map((row, i, arr) => (
             <div
               key={row.label}
+              className="mv-grid-table"
               style={{
-                display: 'grid',
-                gridTemplateColumns: '50px 1fr 1fr 1fr auto',
                 gap: 20,
                 padding: '20px 24px',
                 borderBottom: i < arr.length - 1 ? '1px solid var(--mv-line)' : 'none',
@@ -659,7 +644,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ EXPENSES -- donut chart ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
           <div className="mv-section-meta">Expenses &amp; cost/mile</div>
           <h2 className="mv-section-title">
@@ -672,12 +657,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
         </div>
 
         <div
+          className="mv-grid-2"
           style={{
             marginTop: 80,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
             gap: 48,
-            alignItems: 'center',
           }}
         >
           {/* Donut */}
@@ -862,18 +845,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ STATS ROW ════ */}
-      <section
-        style={{
-          padding: '80px 40px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 48,
-          borderTop: '1px solid var(--mv-line)',
-          borderBottom: '1px solid var(--mv-line)',
-        }}
-      >
+      <section className="mv-section-stats mv-grid-stats">
         {[
           { value: '\u221e', unit: '', label: 'Bikes per garage. Seriously.' },
           { value: '12', unit: 'k+', label: 'Models with pre-loaded specs.' },
@@ -914,8 +886,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
 
       {/* ════ CTA ════ */}
       <section
+        className="mv-section-cta"
         style={{
-          padding: '180px 40px',
           position: 'relative',
           overflow: 'hidden',
           isolation: 'isolate',
@@ -973,14 +945,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ NEXT FEATURE CARDS ════ */}
-      <section
-        style={{ padding: '100px 40px 140px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
-      >
+      <section className="mv-section-nav">
         <div
+          className="mv-grid-cards"
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
             borderRadius: 24,
@@ -1101,7 +1069,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
       </section>
 
       {/* ════ FAQ ════ */}
-      <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
+      <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
           <div className="mv-section-meta">Support</div>
           <h2 className="mv-section-title">Frequently Asked Questions</h2>

@@ -412,13 +412,7 @@ function RouteCard({
 
 function SectionSkeleton({ cols = 4 }: { cols?: number }) {
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: 20,
-      }}
-    >
+    <div className={cols === 3 ? 'mv-grid-3' : 'mv-grid-4'} style={{ gap: 20 }}>
       {SECTION_SKELETON_KEYS.slice(0, cols).map((slot) => (
         <div
           key={slot}
@@ -506,13 +500,7 @@ async function NearYouSection({ countryCode }: { countryCode: string | undefined
         </a>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 20,
-        }}
-      >
+      <div className="mv-grid-4" style={{ gap: 20 }}>
         {routes.map((route) => (
           <RouteCard key={route.id} route={route} />
         ))}
@@ -567,13 +555,7 @@ async function StaffPicksSection() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 20,
-        }}
-      >
+      <div className="mv-grid-3" style={{ gap: 20 }}>
         {picks.map((route) => (
           <RouteCard key={route.id} route={route} priority featured />
         ))}
@@ -627,13 +609,7 @@ async function TopRoutesSection() {
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 20,
-        }}
-      >
+      <div className="mv-grid-4" style={{ gap: 20 }}>
         {routes.map((route) => (
           <RouteCard key={route.id} route={route} />
         ))}
@@ -786,9 +762,8 @@ export default async function ExplorePage() {
         }}
       >
         <div
+          className="mv-grid-4"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 2,
             background: 'var(--mv-line)',
             border: '1px solid var(--mv-line)',
@@ -902,13 +877,7 @@ export default async function ExplorePage() {
           </a>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 14,
-          }}
-        >
+        <div className="mv-grid-4" style={{ gap: 14 }}>
           {TOP_COUNTRIES.map(({ code, emoji }) => (
             <a
               key={code}
@@ -1024,6 +993,7 @@ export default async function ExplorePage() {
         }}
       >
         <div
+          className="mv-grid-2"
           style={{
             position: 'relative',
             borderRadius: 24,
@@ -1031,10 +1001,7 @@ export default async function ExplorePage() {
             background: 'linear-gradient(145deg, oklch(0.14 0.012 55), oklch(0.09 0.008 55))',
             border: '1px solid var(--mv-line)',
             padding: 40,
-            display: 'grid',
-            gridTemplateColumns: '1fr 1.5fr',
             gap: 40,
-            alignItems: 'center',
           }}
         >
           <div>
@@ -1173,13 +1140,7 @@ export default async function ExplorePage() {
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 16,
-          }}
-        >
+        <div className="mv-grid-3" style={{ gap: 16 }}>
           {[
             {
               icon: (
@@ -1349,13 +1310,7 @@ export default async function ExplorePage() {
               atlas.
             </span>
           </h2>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
-              gap: 40,
-            }}
-          >
+          <div className="mv-grid-3" style={{ gap: 40 }}>
             <div>
               <h3
                 style={{
