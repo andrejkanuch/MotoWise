@@ -51,24 +51,97 @@ const PATH_NODES = [
   { title: 'Body position basics', meta: '8 MIN \u00b7 VIDEO', badge: 'Done', state: 'done' },
   { title: 'Countersteering, really', meta: '6 MIN \u00b7 DRILL', badge: 'Done', state: 'done' },
   { title: 'Entry speed management', meta: '10 MIN \u00b7 VIDEO', badge: 'Done', state: 'done' },
-  { title: 'Vision & the late apex', meta: '12 MIN \u00b7 ON NOW', badge: 'Active', state: 'active' },
+  {
+    title: 'Vision & the late apex',
+    meta: '12 MIN \u00b7 ON NOW',
+    badge: 'Active',
+    state: 'active',
+  },
   { title: 'Trail-braking intro', meta: '9 MIN \u00b7 DRILL', badge: 'Next', state: 'default' },
 ] as const;
 
 const PATH_CARDS = [
-  { tag: 'Skill \u00b7 cornering', title: 'Mastering the corner.', body: 'Vision, body position, trail-braking. Nine lessons from a former racing coach.', progress: 55, lessons: '9 lessons \u00b7 72 min', status: 'In progress', statusColor: undefined },
-  { tag: 'Skill \u00b7 braking', title: 'Emergency braking, done right.', body: 'Threshold braking, ABS feel, swerving vs braking. Parking-lot drills included.', progress: 0, lessons: '6 lessons \u00b7 48 min', status: 'Not started', statusColor: undefined },
-  { tag: 'Wrench \u00b7 basics', title: 'Chain, tires & fluids.', body: "The three things every rider should be able to do in their garage. With your specific bike\u2019s specs.", progress: 100, lessons: '8 lessons \u00b7 65 min', status: 'Completed', statusColor: 'var(--mv-success)' },
-  { tag: 'Touring', title: 'Packing for a week on the road.', body: 'Weight balance, weatherproofing, what to bring, what to skip. From veteran long-haulers.', progress: 0, lessons: '7 lessons \u00b7 55 min', status: 'Not started', statusColor: undefined },
-  { tag: 'Skill \u00b7 rain', title: 'Riding in the wet.', body: 'Tire choice, line selection, smooth inputs. How to turn a soggy day into a great one.', progress: 25, lessons: '5 lessons \u00b7 40 min', status: 'In progress', statusColor: undefined },
-  { tag: 'Off-road', title: 'Your first dirt road.', body: 'Standing up, weighting pegs, gravel reflexes. An intro for road riders looking sideways.', progress: 0, lessons: '6 lessons \u00b7 50 min', status: 'Not started', statusColor: undefined },
+  {
+    tag: 'Skill \u00b7 cornering',
+    title: 'Mastering the corner.',
+    body: 'Vision, body position, trail-braking. Nine lessons from a former racing coach.',
+    progress: 55,
+    lessons: '9 lessons \u00b7 72 min',
+    status: 'In progress',
+    statusColor: undefined,
+  },
+  {
+    tag: 'Skill \u00b7 braking',
+    title: 'Emergency braking, done right.',
+    body: 'Threshold braking, ABS feel, swerving vs braking. Parking-lot drills included.',
+    progress: 0,
+    lessons: '6 lessons \u00b7 48 min',
+    status: 'Not started',
+    statusColor: undefined,
+  },
+  {
+    tag: 'Wrench \u00b7 basics',
+    title: 'Chain, tires & fluids.',
+    body: 'The three things every rider should be able to do in their garage. With your specific bike\u2019s specs.',
+    progress: 100,
+    lessons: '8 lessons \u00b7 65 min',
+    status: 'Completed',
+    statusColor: 'var(--mv-success)',
+  },
+  {
+    tag: 'Touring',
+    title: 'Packing for a week on the road.',
+    body: 'Weight balance, weatherproofing, what to bring, what to skip. From veteran long-haulers.',
+    progress: 0,
+    lessons: '7 lessons \u00b7 55 min',
+    status: 'Not started',
+    statusColor: undefined,
+  },
+  {
+    tag: 'Skill \u00b7 rain',
+    title: 'Riding in the wet.',
+    body: 'Tire choice, line selection, smooth inputs. How to turn a soggy day into a great one.',
+    progress: 25,
+    lessons: '5 lessons \u00b7 40 min',
+    status: 'In progress',
+    statusColor: undefined,
+  },
+  {
+    tag: 'Off-road',
+    title: 'Your first dirt road.',
+    body: 'Standing up, weighting pegs, gravel reflexes. An intro for road riders looking sideways.',
+    progress: 0,
+    lessons: '6 lessons \u00b7 50 min',
+    status: 'Not started',
+    statusColor: undefined,
+  },
 ] as const;
 
 const LEVELS = [
-  { numeral: 'i', num: 'Level 01', title: 'Just licensed.', body: 'Body position, slow-speed control, lane positioning, mirror discipline. Build the base.' },
-  { numeral: 'ii', num: 'Level 02', title: 'Confident commuter.', body: 'Emergency braking, rain riding, group etiquette, threshold braking drills.' },
-  { numeral: 'iii', num: 'Level 03', title: 'Weekend carver.', body: 'Trail-braking, late apex, body position refinement, pace on unfamiliar roads.' },
-  { numeral: 'iv', num: 'Level 04', title: 'Long-haul rider.', body: 'Multi-day touring, fatigue management, off-road basics, bike packing craft.' },
+  {
+    numeral: 'i',
+    num: 'Level 01',
+    title: 'Just licensed.',
+    body: 'Body position, slow-speed control, lane positioning, mirror discipline. Build the base.',
+  },
+  {
+    numeral: 'ii',
+    num: 'Level 02',
+    title: 'Confident commuter.',
+    body: 'Emergency braking, rain riding, group etiquette, threshold braking drills.',
+  },
+  {
+    numeral: 'iii',
+    num: 'Level 03',
+    title: 'Weekend carver.',
+    body: 'Trail-braking, late apex, body position refinement, pace on unfamiliar roads.',
+  },
+  {
+    numeral: 'iv',
+    num: 'Level 04',
+    title: 'Long-haul rider.',
+    body: 'Multi-day touring, fatigue management, off-road basics, bike packing craft.',
+  },
 ] as const;
 
 export default async function LearningPathsPage({ params }: PageProps) {
@@ -198,8 +271,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 width: '100%',
                 maxWidth: 520,
                 aspectRatio: '1/1.08',
-                background:
-                  'linear-gradient(145deg, oklch(0.16 0.012 55), oklch(0.1 0.008 55))',
+                background: 'linear-gradient(145deg, oklch(0.16 0.012 55), oklch(0.1 0.008 55))',
                 border: '1px solid var(--mv-line)',
                 borderRadius: 24,
                 padding: 32,
@@ -319,7 +391,11 @@ export default async function LearningPathsPage({ params }: PageProps) {
                           fontSize: 10,
                           background: isDone ? 'var(--mv-warm-500)' : 'var(--mv-bg)',
                           border: `2px solid ${isDone ? 'var(--mv-warm-500)' : isActive ? 'var(--mv-warm-400)' : 'var(--mv-line)'}`,
-                          color: isDone ? '#000' : isActive ? 'var(--mv-warm-400)' : 'var(--mv-ink-3)',
+                          color: isDone
+                            ? '#000'
+                            : isActive
+                              ? 'var(--mv-warm-400)'
+                              : 'var(--mv-ink-3)',
                           boxShadow: isActive ? '0 0 0 4px oklch(0.76 0.18 60 / 0.18)' : 'none',
                         }}
                       >
@@ -573,8 +649,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   style={{
                     height: '100%',
                     width: `${card.progress}%`,
-                    background:
-                      'linear-gradient(90deg, var(--mv-warm-500), var(--mv-warm-400))',
+                    background: 'linear-gradient(90deg, var(--mv-warm-500), var(--mv-warm-400))',
                   }}
                 />
               </div>
@@ -741,7 +816,12 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   alt="MotoVault home dashboard showing learning progress and recommendations"
                   width={640}
                   height={1386}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    objectPosition: 'top',
+                  }}
                   sizes="320px"
                 />
               </div>

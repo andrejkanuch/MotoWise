@@ -196,7 +196,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
                     'radial-gradient(ellipse 80% 90% at 50% 50%, black, transparent 90%)',
                 }}
               />
-              <svg viewBox="0 0 600 450" fill="none" style={{ width: '100%', height: '100%' }} aria-hidden="true">
+              <svg
+                viewBox="0 0 600 450"
+                fill="none"
+                style={{ width: '100%', height: '100%' }}
+                aria-hidden="true"
+              >
                 <path
                   d="M 80 380 Q 160 320 200 280 T 320 220 Q 380 170 430 140 T 520 80"
                   stroke="oklch(0.84 0.15 68)"
