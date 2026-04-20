@@ -152,10 +152,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   };
 
-  if (rc === 0) {
-    return { ...base, robots: { index: false, follow: true } };
-  }
-
   return base;
 }
 

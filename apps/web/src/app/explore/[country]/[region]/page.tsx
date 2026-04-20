@@ -54,10 +54,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
   };
 
-  if (routeCount === 0) {
-    return { ...base, robots: { index: false, follow: true } };
-  }
-
   return base;
 }
 
