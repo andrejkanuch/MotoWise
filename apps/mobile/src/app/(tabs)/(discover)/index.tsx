@@ -361,10 +361,11 @@ export default function DiscoverScreen() {
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
-      const pi = lastPage.discoverRoutes.pageInfo;
-      return pi.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
+      const pi = lastPage?.discoverRoutes?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
     staleTime: 5 * 60 * 1000,
+    structuralSharing: false,
   });
 
   const allRoutes = useMemo(() => {

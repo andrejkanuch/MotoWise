@@ -309,6 +309,7 @@ export default function MyTripsScreen() {
         if (!pageInfo?.hasNextPage) return undefined;
         return pageInfo.endCursor ?? undefined;
       },
+      structuralSharing: false,
     });
 
   const deleteMutation = useMutation({

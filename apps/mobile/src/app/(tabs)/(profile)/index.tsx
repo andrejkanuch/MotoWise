@@ -200,7 +200,14 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     haptic();
-    await supabase.auth.signOut();
+    const {
+      data: { session: current },
+    } = await supabase.auth.getSession();
+    if (current) {
+      await supabase.auth.signOut();
+    } else {
+      router.replace('/(auth)/login');
+    }
   };
 
   const queryClient = useQueryClient();
@@ -216,7 +223,7 @@ export default function ProfileScreen() {
   const deleteMutation = useMutation({
     mutationFn: () => gqlFetcher(DeleteAccountDocument),
     onSuccess: async () => {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut().catch(() => {});
       queryClient.clear();
       router.replace('/(auth)/login');
     },

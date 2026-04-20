@@ -54,11 +54,14 @@ export default function RideHeatmapScreen() {
       return gqlFetcher(MyRidesForHeatmapDocument, variables);
     },
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) =>
-      lastPage.myRides.pageInfo.hasNextPage ? (lastPage.myRides.pageInfo.endCursor ?? null) : null,
+    getNextPageParam: (lastPage: MyRidesForHeatmapQuery) => {
+      const pi = lastPage?.myRides?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
+    },
+    structuralSharing: false,
   });
 
-  const pagesLoaded = data?.pages.length ?? 0;
+  const pagesLoaded = data?.pages?.length ?? 0;
   const capReached = pagesLoaded >= MAX_PAGES;
 
   // Eagerly page until MAX_PAGES. Firing from an effect (not render body) keeps

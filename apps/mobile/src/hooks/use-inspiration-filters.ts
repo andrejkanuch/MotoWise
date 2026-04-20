@@ -102,7 +102,7 @@ export function useInspirationFilters(enabled = true): InspirationFilters {
   });
 
   const savedRoutes: SavedRouteNode[] = useMemo(
-    () => data?.savedRoutes.edges.map((e) => e.node) ?? [],
+    () => data?.savedRoutes?.edges?.map((e) => e.node) ?? [],
     [data],
   );
 

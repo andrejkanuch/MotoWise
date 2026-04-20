@@ -59,10 +59,11 @@ export default function FollowersScreen() {
       }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => {
-      const pi = lastPage.getFollowers.pageInfo;
-      return pi.hasNextPage ? (pi.endCursor ?? null) : null;
+      const pi = lastPage?.getFollowers?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     enabled: !!userId && activeTab === 'followers',
+    structuralSharing: false,
   });
 
   // Following query
@@ -76,18 +77,19 @@ export default function FollowersScreen() {
       }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => {
-      const pi = lastPage.getFollowing.pageInfo;
-      return pi.hasNextPage ? (pi.endCursor ?? null) : null;
+      const pi = lastPage?.getFollowing?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
     enabled: !!userId && activeTab === 'following',
+    structuralSharing: false,
   });
 
   const activeQuery = activeTab === 'followers' ? followersQuery : followingQuery;
 
   const edges: FollowEdge[] =
     activeTab === 'followers'
-      ? (followersQuery.data?.pages.flatMap((p) => p.getFollowers.edges) ?? [])
-      : (followingQuery.data?.pages.flatMap((p) => p.getFollowing.edges) ?? []);
+      ? (followersQuery.data?.pages?.flatMap((p) => p?.getFollowers?.edges ?? []) ?? [])
+      : (followingQuery.data?.pages?.flatMap((p) => p?.getFollowing?.edges ?? []) ?? []);
 
   const navigateToRider = (riderUsername: string | null | undefined) => {
     if (!riderUsername) return;
