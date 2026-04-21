@@ -52,14 +52,15 @@ INSERT INTO public.discover_trips (
   updated_at
 )
 SELECT
-  -- Slug: sanitize to fit CHECK pattern, truncate to 81 chars
+  -- Slug: sanitize to fit CHECK pattern ^[a-z0-9][a-z0-9-]{2,80}$
+  -- 1. Lowercase + strip invalid chars, 2. Truncate to 75, 3. Append UUID suffix for uniqueness
   LEFT(
-    COALESCE(
-      NULLIF(r.slug, ''),
-      'route-' || LEFT(r.id::TEXT, 8)
+    regexp_replace(
+      lower(COALESCE(NULLIF(r.slug, ''), COALESCE(NULLIF(r.name, ''), 'route'))),
+      '[^a-z0-9-]', '', 'g'
     ),
-    81
-  ),
+    70
+  ) || '-' || LEFT(r.id::TEXT, 8),
   -- Title: truncate to 150, fallback for NULL
   LEFT(COALESCE(NULLIF(TRIM(r.name), ''), 'Untitled Route'), 150),
   -- Description: meaningful fallback (NOT empty string — fails CHECK >= 1)
