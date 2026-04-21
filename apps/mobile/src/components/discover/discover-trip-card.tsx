@@ -53,7 +53,11 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
     return (
       <Animated.View
         entering={
-          reducedMotion ? undefined : FadeInUp.delay(animDelay + 20).springify().damping(14)
+          reducedMotion
+            ? undefined
+            : FadeInUp.delay(animDelay + 20)
+                .springify()
+                .damping(14)
         }
         style={{
           backgroundColor: cardBg,
@@ -77,7 +81,9 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
           accessibilityLabel={`Editor's Pick: ${trip.title}`}
           style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start' }}>
+          <View
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start' }}
+          >
             <Award size={13} color={palette.signature500} />
             <Text
               style={{
@@ -142,7 +148,10 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
       >
         {/* Title + day count badge */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor, flex: 1 }} numberOfLines={1}>
+          <Text
+            style={{ fontSize: 15, fontWeight: '700', color: titleColor, flex: 1 }}
+            numberOfLines={1}
+          >
             {trip.title}
           </Text>
           {trip.dayCount > 1 && (
@@ -215,7 +224,12 @@ function TripStats({
       {/* Distance */}
       {trip.distanceM != null && (
         <Text
-          style={{ fontSize: 13, fontWeight: '600', color: statColor, fontVariant: ['tabular-nums'] }}
+          style={{
+            fontSize: 13,
+            fontWeight: '600',
+            color: statColor,
+            fontVariant: ['tabular-nums'],
+          }}
         >
           {formatDistance(trip.distanceM, system)}
         </Text>
@@ -226,7 +240,12 @@ function TripStats({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
           <Mountain size={12} color={palette.accent500} />
           <Text
-            style={{ fontSize: 13, fontWeight: '600', color: statColor, fontVariant: ['tabular-nums'] }}
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: statColor,
+              fontVariant: ['tabular-nums'],
+            }}
           >
             {Math.round(trip.elevationGainM ?? 0)}m
           </Text>
@@ -241,7 +260,12 @@ function TripStats({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
           <Star size={12} color={palette.warning500} fill={palette.warning500} />
           <Text
-            style={{ fontSize: 12, fontWeight: '600', color: statColor, fontVariant: ['tabular-nums'] }}
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              color: statColor,
+              fontVariant: ['tabular-nums'],
+            }}
           >
             {trip.averageRating.toFixed(1)}
           </Text>

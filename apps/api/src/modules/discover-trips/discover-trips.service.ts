@@ -1,16 +1,12 @@
 import {
   type CreateDiscoverTripReviewInput,
+  type DiscoverTripsFilter,
   type DiscoverTripWaypoint,
   DiscoverTripWaypointSchema,
-  type DiscoverTripsFilter,
   type ModerateDiscoverTripInput,
   type PublishTripToDiscoverInput,
 } from '@motovault/types/validators';
-import {
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
@@ -246,9 +242,6 @@ export class DiscoverTripsService {
     // Determine forked_from if this trip was cloned from another discover trip
     const forkedFrom = trip.cloned_from_discover_trip_id ?? null;
 
-    // Get country/region from first waypoint (use start waypoint)
-    const startWaypoint = waypointsJson.find((w) => w.type === 'start') ?? waypointsJson[0];
-
     // Insert snapshot (ON CONFLICT for re-publish: update existing row)
     const { data: inserted, error: insertError } = await this.supabase
       .from('discover_trips')
@@ -343,9 +336,7 @@ export class DiscoverTripsService {
     };
   }
 
-  async moderateTrip(
-    input: ModerateDiscoverTripInput,
-  ): Promise<DiscoverTrip> {
+  async moderateTrip(input: ModerateDiscoverTripInput): Promise<DiscoverTrip> {
     const { data, error } = await this.supabaseAdmin
       .from('discover_trips')
       .update({ status: input.status })
@@ -359,11 +350,9 @@ export class DiscoverTripsService {
 
   async incrementViewCount(id: string): Promise<void> {
     // Fire-and-forget with error observation
-    this.supabaseAdmin
-      .rpc('increment_discover_trip_view', { p_id: id })
-      .then(({ error }) => {
-        if (error) this.logger.error('Failed to increment view count', error);
-      });
+    this.supabaseAdmin.rpc('increment_discover_trip_view', { p_id: id }).then(({ error }) => {
+      if (error) this.logger.error('Failed to increment view count', error);
+    });
   }
 
   // ==========================================

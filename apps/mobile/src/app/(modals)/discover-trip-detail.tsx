@@ -7,15 +7,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  ArrowLeft,
-  Award,
-  Calendar,
-  Copy,
-  MapPin,
-  Mountain,
-  Star,
-} from 'lucide-react-native';
+import { ArrowLeft, Award, Calendar, Copy, MapPin, Mountain, Star } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -85,10 +77,10 @@ export default function DiscoverTripDetailScreen() {
   // --- Clone mutation ---
 
   const cloneMutation = useMutation({
-    mutationFn: () =>
-      gqlFetcher(CloneDiscoverTripDocument, { discoverTripId: discoverTripId! }),
+    mutationFn: () => gqlFetcher(CloneDiscoverTripDocument, { discoverTripId: discoverTripId! }),
     onSuccess: (result) => {
-      if (process.env.EXPO_OS === 'ios') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: ['discoverTrips'] });
       const newTripId = result?.cloneDiscoverTrip;
       if (newTripId) {
@@ -99,7 +91,7 @@ export default function DiscoverTripDetailScreen() {
       if (err.message?.includes('already cloned')) {
         Alert.alert('Already Cloned', 'You have already cloned this trip.');
       } else if (err.message?.includes('No internet') || err.message?.includes('Network')) {
-        Alert.alert('Offline', 'No internet connection. Please try again when you\'re back online.');
+        Alert.alert('Offline', "No internet connection. Please try again when you're back online.");
       } else {
         Alert.alert('Clone Failed', 'Could not clone this trip. Please try again.');
       }
@@ -131,7 +123,9 @@ export default function DiscoverTripDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{ flex: 1, backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }}
+      >
         <ActivityIndicator size="large" color={palette.accent500} />
       </View>
     );
@@ -139,10 +133,16 @@ export default function DiscoverTripDetailScreen() {
 
   if (error || !trip) {
     return (
-      <View style={{ flex: 1, backgroundColor: bg, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
-        <Text style={{ fontSize: 16, color: titleColor, textAlign: 'center' }}>
-          Trip not found
-        </Text>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: bg,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 32,
+        }}
+      >
+        <Text style={{ fontSize: 16, color: titleColor, textAlign: 'center' }}>Trip not found</Text>
         <Pressable onPress={() => router.back()} style={{ marginTop: 16 }}>
           <Text style={{ fontSize: 15, color: palette.accent500, fontWeight: '600' }}>Go back</Text>
         </Pressable>
@@ -185,24 +185,41 @@ export default function DiscoverTripDetailScreen() {
           style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}
         >
           {/* Difficulty */}
-          <View style={{
-            paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-            borderCurve: 'continuous',
-            backgroundColor: `${difficultyColor}18`,
-          }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: difficultyColor, textTransform: 'capitalize' }}>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 10,
+              borderCurve: 'continuous',
+              backgroundColor: `${difficultyColor}18`,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: difficultyColor,
+                textTransform: 'capitalize',
+              }}
+            >
               {trip.difficulty}
             </Text>
           </View>
 
           {/* Day count */}
           {trip.dayCount > 1 && (
-            <View style={{
-              flexDirection: 'row', alignItems: 'center', gap: 4,
-              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: `${palette.accent500}18`,
-            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 10,
+                borderCurve: 'continuous',
+                backgroundColor: `${palette.accent500}18`,
+              }}
+            >
               <Calendar size={12} color={palette.accent500} />
               <Text style={{ fontSize: 12, fontWeight: '700', color: palette.accent500 }}>
                 {trip.dayCount} days
@@ -212,12 +229,18 @@ export default function DiscoverTripDetailScreen() {
 
           {/* MotoVault Pick */}
           {trip.isMotovaultPick && (
-            <View style={{
-              flexDirection: 'row', alignItems: 'center', gap: 4,
-              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10,
-              borderCurve: 'continuous',
-              backgroundColor: `${palette.signature500}18`,
-            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 10,
+                borderCurve: 'continuous',
+                backgroundColor: `${palette.signature500}18`,
+              }}
+            >
               <Award size={12} color={palette.signature500} />
               <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
                 Pick
@@ -227,14 +250,28 @@ export default function DiscoverTripDetailScreen() {
         </Animated.View>
 
         {/* Stats bar */}
-        <View style={{
-          flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 20,
-          padding: 14, borderRadius: 14, borderCurve: 'continuous',
-          backgroundColor: cardBg,
-        }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 16,
+            marginBottom: 20,
+            padding: 14,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            backgroundColor: cardBg,
+          }}
+        >
           {trip.distanceM != null && (
             <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor, fontVariant: ['tabular-nums'] }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: titleColor,
+                  fontVariant: ['tabular-nums'],
+                }}
+              >
                 {formatDistance(trip.distanceM, system)}
               </Text>
               <Text style={{ fontSize: 11, color: subtitleColor }}>Distance</Text>
@@ -244,7 +281,14 @@ export default function DiscoverTripDetailScreen() {
             <View style={{ alignItems: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <Mountain size={14} color={palette.accent500} />
-                <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor, fontVariant: ['tabular-nums'] }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: titleColor,
+                    fontVariant: ['tabular-nums'],
+                  }}
+                >
                   {formatElevation(trip.elevationGainM ?? 0, system)}
                 </Text>
               </View>
@@ -282,10 +326,17 @@ export default function DiscoverTripDetailScreen() {
 
         {/* Contributor attribution */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-          <View style={{
-            width: 32, height: 32, borderRadius: 16, borderCurve: 'continuous',
-            backgroundColor: palette.accent500, alignItems: 'center', justifyContent: 'center',
-          }}>
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              backgroundColor: palette.accent500,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
               {trip.contributor.displayName.charAt(0).toUpperCase()}
             </Text>
@@ -315,7 +366,14 @@ export default function DiscoverTripDetailScreen() {
                 style={{ marginBottom: 16 }}
               >
                 {trip.dayCount > 1 && (
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: palette.accent500, marginBottom: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: '700',
+                      color: palette.accent500,
+                      marginBottom: 8,
+                    }}
+                  >
                     Day {dayIndex + 1}
                   </Text>
                 )}
@@ -323,11 +381,14 @@ export default function DiscoverTripDetailScreen() {
                   <View
                     key={`${dayIndex}-${wpIdx}`}
                     style={{
-                      flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      gap: 10,
                       paddingVertical: 8,
                       borderLeftWidth: wpIdx < waypoints.length - 1 ? 1 : 0,
                       borderLeftColor: isDark ? palette.neutral800 : palette.neutral200,
-                      marginLeft: 8, paddingLeft: 16,
+                      marginLeft: 8,
+                      paddingLeft: 16,
                     }}
                   >
                     <MapPin size={16} color={palette.accent500} style={{ marginTop: 2 }} />
@@ -335,7 +396,9 @@ export default function DiscoverTripDetailScreen() {
                       <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
                         {wp.name}
                       </Text>
-                      <Text style={{ fontSize: 12, color: subtitleColor, textTransform: 'capitalize' }}>
+                      <Text
+                        style={{ fontSize: 12, color: subtitleColor, textTransform: 'capitalize' }}
+                      >
                         {WAYPOINT_ICONS[wp.type] ?? wp.type}
                       </Text>
                       {wp.notes && (

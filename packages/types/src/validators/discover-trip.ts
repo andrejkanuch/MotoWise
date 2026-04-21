@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { TripDifficultySchema, WaypointTypeSchema } from './trip';
 import { SurfaceTypeSchema } from './route';
+import { TripDifficultySchema, WaypointTypeSchema } from './trip';
 
 // --- Helpers ---
 
@@ -9,12 +9,7 @@ const stripHtml = (v: string) => v.replace(/<[^>]*>/g, '');
 
 // --- Discover Trip Status ---
 
-export const DiscoverTripStatusSchema = z.enum([
-  'published',
-  'hidden',
-  'flagged',
-  'unpublished',
-]);
+export const DiscoverTripStatusSchema = z.enum(['published', 'hidden', 'flagged', 'unpublished']);
 export type DiscoverTripStatus = z.infer<typeof DiscoverTripStatusSchema>;
 
 // --- Discover Trip Waypoint (JSONB contract) ---
@@ -36,9 +31,7 @@ export type DiscoverTripWaypoint = z.infer<typeof DiscoverTripWaypointSchema>;
 export const PublishTripToDiscoverInputSchema = z.object({
   tripId: z.string().uuid(),
 });
-export type PublishTripToDiscoverInput = z.infer<
-  typeof PublishTripToDiscoverInputSchema
->;
+export type PublishTripToDiscoverInput = z.infer<typeof PublishTripToDiscoverInputSchema>;
 
 // --- Discover Trips Filter ---
 
@@ -61,9 +54,7 @@ export const CreateDiscoverTripReviewInputSchema = z.object({
   conditionTags: z.array(z.string().max(50)).max(10).optional(),
   bikeId: z.string().uuid().optional(),
 });
-export type CreateDiscoverTripReviewInput = z.infer<
-  typeof CreateDiscoverTripReviewInputSchema
->;
+export type CreateDiscoverTripReviewInput = z.infer<typeof CreateDiscoverTripReviewInputSchema>;
 
 // --- Moderate Discover Trip (Admin) ---
 
@@ -71,6 +62,4 @@ export const ModerateDiscoverTripInputSchema = z.object({
   discoverTripId: z.string().uuid(),
   status: z.enum(['published', 'hidden', 'flagged']),
 });
-export type ModerateDiscoverTripInput = z.infer<
-  typeof ModerateDiscoverTripInputSchema
->;
+export type ModerateDiscoverTripInput = z.infer<typeof ModerateDiscoverTripInputSchema>;

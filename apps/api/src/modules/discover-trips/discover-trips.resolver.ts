@@ -13,11 +13,11 @@ import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
+import { DiscoverTripsService } from './discover-trips.service';
 import { CreateDiscoverTripReviewInput } from './dto/create-discover-trip-review.input';
 import { DiscoverTripsFilterInput } from './dto/discover-trips-filter.input';
 import { ModerateDiscoverTripInput } from './dto/moderate-discover-trip.input';
 import { PublishTripToDiscoverInput } from './dto/publish-trip-to-discover.input';
-import { DiscoverTripsService } from './discover-trips.service';
 import {
   DiscoverTrip,
   DiscoverTripConnection,
@@ -42,9 +42,7 @@ export class DiscoverTripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<DiscoverTripConnection> {
-    const validated = filter
-      ? DiscoverTripsFilterSchema.parse(filter)
-      : undefined;
+    const validated = filter ? DiscoverTripsFilterSchema.parse(filter) : undefined;
     return this.discoverTripsService.list(validated, first ?? 20, after);
   }
 
@@ -60,9 +58,7 @@ export class DiscoverTripsResolver {
 
   @Query(() => DiscoverTrip)
   @Public()
-  async discoverTripById(
-    @Args('id', { type: () => ID }) id: string,
-  ): Promise<DiscoverTrip> {
+  async discoverTripById(@Args('id', { type: () => ID }) id: string): Promise<DiscoverTrip> {
     return this.discoverTripsService.getById(id);
   }
 
@@ -89,7 +85,9 @@ export class DiscoverTripsResolver {
     return this.discoverTripsService.unpublishFromDiscover(discoverTripId, user.id);
   }
 
-  @Mutation(() => ID, { description: 'Clones a discover trip into the user\'s planner. Returns the new trip ID.' })
+  @Mutation(() => ID, {
+    description: "Clones a discover trip into the user's planner. Returns the new trip ID.",
+  })
   @Throttle({ default: THROTTLE_PRESETS.CLONE })
   async cloneDiscoverTrip(
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,

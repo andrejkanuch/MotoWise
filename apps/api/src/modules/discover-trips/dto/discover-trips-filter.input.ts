@@ -1,8 +1,5 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
-import {
-  SurfaceTypeEnum,
-  TripDifficultyEnum,
-} from '../../../shared/graphql/enums';
+import { SurfaceTypeEnum, TripDifficultyEnum } from '../../../shared/graphql/enums';
 
 @InputType()
 export class DiscoverTripsFilterInput {

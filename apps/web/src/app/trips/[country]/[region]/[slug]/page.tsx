@@ -91,11 +91,7 @@ interface PageParams {
   params: Promise<{ country: string; region: string; slug: string }>;
 }
 
-async function fetchTrip(
-  country: string,
-  region: string,
-  slug: string,
-): Promise<TripData | null> {
+async function fetchTrip(country: string, region: string, slug: string): Promise<TripData | null> {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
@@ -225,9 +221,13 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* Breadcrumb */}
       <nav className="mb-4 text-sm text-gray-500">
-        <a href="/explore" className="hover:underline">Explore</a>
+        <a href="/explore" className="hover:underline">
+          Explore
+        </a>
         {' / '}
-        <a href={`/explore/${country}`} className="hover:underline">{countryName}</a>
+        <a href={`/explore/${country}`} className="hover:underline">
+          {countryName}
+        </a>
         {regionName && (
           <>
             {' / '}
@@ -244,8 +244,22 @@ export default async function TripPage({ params }: PageParams) {
         <span
           className="px-3 py-1 rounded-full text-xs font-bold capitalize"
           style={{
-            backgroundColor: trip.difficulty === 'easy' ? '#dcfce7' : trip.difficulty === 'moderate' ? '#dbeafe' : trip.difficulty === 'challenging' ? '#fef3c7' : '#fee2e2',
-            color: trip.difficulty === 'easy' ? '#166534' : trip.difficulty === 'moderate' ? '#1e40af' : trip.difficulty === 'challenging' ? '#92400e' : '#991b1b',
+            backgroundColor:
+              trip.difficulty === 'easy'
+                ? '#dcfce7'
+                : trip.difficulty === 'moderate'
+                  ? '#dbeafe'
+                  : trip.difficulty === 'challenging'
+                    ? '#fef3c7'
+                    : '#fee2e2',
+            color:
+              trip.difficulty === 'easy'
+                ? '#166534'
+                : trip.difficulty === 'moderate'
+                  ? '#1e40af'
+                  : trip.difficulty === 'challenging'
+                    ? '#92400e'
+                    : '#991b1b',
           }}
         >
           {trip.difficulty}
@@ -291,9 +305,7 @@ export default async function TripPage({ params }: PageParams) {
       </div>
 
       {/* Description */}
-      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-8">
-        {trip.description}
-      </p>
+      <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-8">{trip.description}</p>
 
       {/* Contributor */}
       <div className="flex items-center gap-3 mb-8">
@@ -319,15 +331,16 @@ export default async function TripPage({ params }: PageParams) {
               )}
               <div className="space-y-3">
                 {waypoints.map((wp, i) => (
-                  <div key={`${dayIndex}-${i}`} className="flex items-start gap-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+                  <div
+                    key={`${dayIndex}-${i}`}
+                    className="flex items-start gap-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700"
+                  >
                     <div>
                       <p className="font-medium">{wp.name}</p>
                       <p className="text-sm text-gray-500 capitalize">
                         {WAYPOINT_LABELS[wp.type] ?? wp.type}
                       </p>
-                      {wp.notes && (
-                        <p className="text-sm text-gray-500 mt-1">{wp.notes}</p>
-                      )}
+                      {wp.notes && <p className="text-sm text-gray-500 mt-1">{wp.notes}</p>}
                     </div>
                   </div>
                 ))}
@@ -340,7 +353,9 @@ export default async function TripPage({ params }: PageParams) {
       {/* Clone CTA */}
       <div className="sticky bottom-4 bg-white dark:bg-gray-900 p-4 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 text-center">
         <p className="text-lg font-bold mb-2">Want to ride this trip?</p>
-        <p className="text-sm text-gray-500 mb-3">Clone it to your planner, customize dates and stops, then ride.</p>
+        <p className="text-sm text-gray-500 mb-3">
+          Clone it to your planner, customize dates and stops, then ride.
+        </p>
         <a
           href="https://apps.apple.com/app/motovault/id6738025498"
           className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition"

@@ -130,7 +130,10 @@ export class DiscoverTrip {
   @Field()
   updatedAt: string;
 
-  @Field({ nullable: true, description: 'Set when this template was forked from another discover trip' })
+  @Field({
+    nullable: true,
+    description: 'Set when this template was forked from another discover trip',
+  })
   forkedFromDiscoverTripId?: string;
 }
 

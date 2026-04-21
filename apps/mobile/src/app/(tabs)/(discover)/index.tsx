@@ -6,6 +6,7 @@ import {
   DiscoverTripsDocument,
   type DiscoverTripsFilterInput,
   type DiscoverTripsQuery,
+  SurfaceType,
 } from '@motovault/graphql';
 import {
   COUNTRY_NAMES,
@@ -61,15 +62,12 @@ import { DiscoverTripCard } from '../../../components/discover/discover-trip-car
 import { FeaturedRouteCard } from '../../../components/discover/featured-route-card';
 import { FilterChipRow } from '../../../components/discover/filter-chip-row';
 import { HorizontalRouteSection } from '../../../components/discover/horizontal-route-section';
-import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { useInspirationFilters } from '../../../hooks/use-inspiration-filters';
-import { usePrimaryBikeFuelData } from '../../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { computeFuelStops } from '../../../utils/fuel-range';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 // --- Types ---
@@ -303,7 +301,6 @@ export default function DiscoverScreen() {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
 
-  const { tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
   const inspiration = useInspirationFilters();
   const bg = isDark ? palette.neutral950 : palette.white;
 
@@ -361,15 +358,30 @@ export default function DiscoverScreen() {
       filter.country = filters.countryCode.toLowerCase();
       hasFilter = true;
     }
-    if (filters.chips.has('paved')) { filter.surfaceType = 'paved' as any; hasFilter = true; }
-    if (filters.chips.has('mixed')) { filter.surfaceType = 'mixed' as any; hasFilter = true; }
-    if (filters.chips.has('off-road')) { filter.surfaceType = 'off_road' as any; hasFilter = true; }
+    if (filters.chips.has('paved')) {
+      filter.surfaceType = SurfaceType.Paved;
+      hasFilter = true;
+    }
+    if (filters.chips.has('mixed')) {
+      filter.surfaceType = SurfaceType.Mixed;
+      hasFilter = true;
+    }
+    if (filters.chips.has('off-road')) {
+      filter.surfaceType = SurfaceType.OffRoad;
+      hasFilter = true;
+    }
     return hasFilter ? filter : null;
   }, [filters]);
 
   const tripFilterKey = useMemo(() => JSON.stringify(tripFilterInput ?? {}), [tripFilterInput]);
 
-  const { data: tripData, isLoading: tripsLoading, fetchNextPage: fetchNextTrips, hasNextPage: hasNextTrips, isFetchingNextPage: isFetchingNextTrips } = useInfiniteQuery({
+  const {
+    data: tripData,
+    isLoading: tripsLoading,
+    fetchNextPage: fetchNextTrips,
+    hasNextPage: hasNextTrips,
+    isFetchingNextPage: isFetchingNextTrips,
+  } = useInfiniteQuery({
     queryKey: ['discoverTrips', 'feed', tripFilterKey],
     queryFn: ({ pageParam }) =>
       gqlFetcher(DiscoverTripsDocument, {
@@ -543,11 +555,7 @@ export default function DiscoverScreen() {
 
   const renderTripItem = useCallback(
     ({ item, index }: { item: TripNode; index: number }) => (
-      <DiscoverTripCard
-        trip={item}
-        index={index}
-        onPress={() => handleTripPress(item.id)}
-      />
+      <DiscoverTripCard trip={item} index={index} onPress={() => handleTripPress(item.id)} />
     ),
     [handleTripPress],
   );
