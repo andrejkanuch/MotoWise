@@ -249,6 +249,25 @@ export class DiscoverTripsService {
       .eq('source_trip_id', input.tripId)
       .maybeSingle();
 
+    // Derive country_code from start waypoint via Mapbox reverse geocode
+    const startWp = waypointsJson.find((w) => w.type === 'start') ?? waypointsJson[0];
+    let countryCode = 'XX';
+    if (startWp) {
+      try {
+        const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN;
+        if (mapboxToken) {
+          const geoRes = await fetch(
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${startWp.lng},${startWp.lat}.json?types=country&limit=1&access_token=${mapboxToken}`,
+          );
+          const geoJson = await geoRes.json();
+          const cc = geoJson?.features?.[0]?.properties?.short_code;
+          if (cc && typeof cc === 'string') countryCode = cc.toLowerCase();
+        }
+      } catch (e) {
+        this.logger.warn('Reverse geocode failed, using XX', e);
+      }
+    }
+
     const payload = {
       slug,
       title: trip.title,
@@ -259,7 +278,7 @@ export class DiscoverTripsService {
       contributor_user_id: userId,
       source_trip_id: input.tripId,
       forked_from_discover_trip_id: forkedFrom,
-      country_code: 'XX', // TODO: reverse geocode from waypoint lat/lng
+      country_code: countryCode,
       status: 'published' as const,
     };
 

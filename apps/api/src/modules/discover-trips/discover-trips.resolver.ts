@@ -53,13 +53,17 @@ export class DiscoverTripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<DiscoverTrip> {
-    return this.discoverTripsService.getBySlug(country, region, slug);
+    const trip = await this.discoverTripsService.getBySlug(country, region, slug);
+    this.discoverTripsService.incrementViewCount(trip.id);
+    return trip;
   }
 
   @Query(() => DiscoverTrip)
   @Public()
   async discoverTripById(@Args('id', { type: () => ID }) id: string): Promise<DiscoverTrip> {
-    return this.discoverTripsService.getById(id);
+    const trip = await this.discoverTripsService.getById(id);
+    this.discoverTripsService.incrementViewCount(trip.id);
+    return trip;
   }
 
   // ==========================================

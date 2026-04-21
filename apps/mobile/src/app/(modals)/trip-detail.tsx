@@ -876,7 +876,7 @@ ${rteptElements}
                     letterSpacing: -0.3,
                   }}
                 >
-                  {trip.participantCount}
+                  {trip.participantCount + 1}
                   <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
                 </Text>
                 <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
@@ -1082,9 +1082,49 @@ ${rteptElements}
                     marginBottom: 8,
                   }}
                 >
-                  Riders ({trip.participantCount})
+                  Riders ({trip.participantCount + 1})
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {/* Organizer — always shown first */}
+                  <View style={{ alignItems: 'center', gap: 4, width: 64 }}>
+                    {trip.organiser.avatarUrl ? (
+                      <Image
+                        source={{ uri: trip.organiser.avatarUrl }}
+                        style={{ width: 36, height: 36, borderRadius: 18 }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: palette.accent500,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                          {(trip.organiser.displayName ?? 'O').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <Text
+                      style={{ fontSize: 11, color: subtitleColor, textAlign: 'center' }}
+                      numberOfLines={1}
+                    >
+                      {trip.organiser.displayName ?? 'Organizer'}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        fontWeight: '700',
+                        color: palette.accent500,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Lead
+                    </Text>
+                  </View>
                   {trip.participants.map((p) => {
                     const statusInfo =
                       STATUS_ICONS[p.status as keyof typeof STATUS_ICONS] ?? STATUS_ICONS.going;
