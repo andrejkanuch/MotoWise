@@ -179,10 +179,12 @@ export class DiscoverTripsService {
   }
 
   async getById(id: string): Promise<DiscoverTrip> {
+    // RLS gates non-published access to contributor + admin only
     const { data, error } = await this.supabase
       .from('discover_trips')
       .select(DISCOVER_TRIP_COLUMNS)
       .eq('id', id)
+      .eq('status', 'published')
       .single();
 
     if (error || !data) throw new DiscoverTripNotFoundError();
@@ -278,13 +280,15 @@ export class DiscoverTripsService {
   }
 
   async unpublishFromDiscover(discoverTripId: string, userId: string): Promise<boolean> {
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from('discover_trips')
       .update({ status: 'unpublished' })
       .eq('id', discoverTripId)
-      .eq('contributor_user_id', userId);
+      .eq('contributor_user_id', userId)
+      .select('id')
+      .single();
 
-    if (error) throw new DiscoverTripNotFoundError();
+    if (error || !data) throw new DiscoverTripNotFoundError();
     return true;
   }
 
@@ -439,14 +443,12 @@ export class DiscoverTripsService {
     try {
       const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
       const parts = decoded.split('|');
-      if (parts.length === 2) {
-        return { publishedAt: parts[0], id: parts[1] };
-      }
-      // Fallback: single-field cursor from old clients (backward compat)
-      if (parts.length === 1) {
-        return { publishedAt: parts[0], id: '' };
-      }
-      return null;
+      if (parts.length !== 2) return null;
+      const [publishedAt, id] = parts;
+      // Validate to prevent PostgREST filter injection via crafted cursors
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(publishedAt)) return null;
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+      return { publishedAt, id };
     } catch {
       return null;
     }

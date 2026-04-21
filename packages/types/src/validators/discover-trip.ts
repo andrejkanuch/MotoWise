@@ -9,13 +9,6 @@ const stripHtml = (v: string) => v.replace(/<[^>]*>/g, '');
 
 // --- Discover Trip Status ---
 
-export const DISCOVER_TRIP_STATUS = {
-  PUBLISHED: 'published',
-  HIDDEN: 'hidden',
-  FLAGGED: 'flagged',
-  UNPUBLISHED: 'unpublished',
-} as const;
-
 export const DiscoverTripStatusSchema = z.enum([
   'published',
   'hidden',
@@ -47,24 +40,6 @@ export type PublishTripToDiscoverInput = z.infer<
   typeof PublishTripToDiscoverInputSchema
 >;
 
-// --- Clone Discover Trip ---
-
-export const CloneDiscoverTripInputSchema = z.object({
-  discoverTripId: z.string().uuid(),
-});
-export type CloneDiscoverTripInput = z.infer<
-  typeof CloneDiscoverTripInputSchema
->;
-
-// --- Unpublish from Discover ---
-
-export const UnpublishFromDiscoverInputSchema = z.object({
-  discoverTripId: z.string().uuid(),
-});
-export type UnpublishFromDiscoverInput = z.infer<
-  typeof UnpublishFromDiscoverInputSchema
->;
-
 // --- Discover Trips Filter ---
 
 export const DiscoverTripsFilterSchema = z.object({
@@ -77,23 +52,12 @@ export const DiscoverTripsFilterSchema = z.object({
 });
 export type DiscoverTripsFilter = z.infer<typeof DiscoverTripsFilterSchema>;
 
-// --- Discover Trip Slug Params (URL validation) ---
-
-export const DiscoverTripSlugParamsSchema = z.object({
-  country: z.string().min(2).max(2),
-  region: z.string().min(1).max(10),
-  slug: z.string().min(3).max(81),
-});
-export type DiscoverTripSlugParams = z.infer<
-  typeof DiscoverTripSlugParamsSchema
->;
-
 // --- Create Discover Trip Review ---
 
 export const CreateDiscoverTripReviewInputSchema = z.object({
   discoverTripId: z.string().uuid(),
   rating: z.number().int().min(1).max(5),
-  text: z.string().min(1).max(500).optional(),
+  text: z.string().min(1).max(500).transform(stripHtml).optional(),
   conditionTags: z.array(z.string().max(50)).max(10).optional(),
   bikeId: z.string().uuid().optional(),
 });

@@ -5,6 +5,5 @@ import { TripsService } from './trips.service';
 
 @Module({
   providers: [TripsResolver, TripsService],
-  exports: [TripsService],
 })
 export class TripsModule {}

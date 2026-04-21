@@ -87,11 +87,13 @@ CREATE UNIQUE INDEX idx_discover_trips_migrated_route
 
 -- Primary browse + pagination (covers country filter + published_at cursor)
 CREATE INDEX idx_discover_trips_country_published
-  ON public.discover_trips (country_code, published_at DESC);
+  ON public.discover_trips (country_code, published_at DESC, id DESC)
+  WHERE status = 'published';
 
--- Rating sort
-CREATE INDEX idx_discover_trips_rating
-  ON public.discover_trips (average_rating DESC NULLS LAST) WHERE average_rating IS NOT NULL;
+-- Global feed (no country filter) — partial index for the hottest query path
+CREATE INDEX idx_discover_trips_published_feed
+  ON public.discover_trips (published_at DESC, id DESC)
+  WHERE status = 'published';
 
 -- "Near me" proximity discovery
 CREATE INDEX idx_discover_trips_start_point
@@ -196,17 +198,5 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
 -- Only callable by service_role (NestJS API via SUPABASE_ADMIN)
 REVOKE ALL ON FUNCTION public.increment_discover_trip_view(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.increment_discover_trip_view(UUID) TO service_role;
-
-CREATE OR REPLACE FUNCTION public.increment_discover_trip_clone(p_id UUID)
-RETURNS VOID AS $$
-BEGIN
-  UPDATE public.discover_trips
-  SET clone_count = clone_count + 1
-  WHERE id = p_id AND status = 'published';
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
-
-REVOKE ALL ON FUNCTION public.increment_discover_trip_clone(UUID) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.increment_discover_trip_clone(UUID) TO service_role;
 
 COMMIT;

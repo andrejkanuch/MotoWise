@@ -4,7 +4,7 @@ import {
   ModerateDiscoverTripInputSchema,
   PublishTripToDiscoverInputSchema,
 } from '@motovault/types/validators';
-import { UseGuards } from '@nestjs/common';
+import { ForbiddenException, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
@@ -116,7 +116,9 @@ export class DiscoverTripsResolver {
   async moderateDiscoverTrip(
     @Args('input', new ZodValidationPipe(ModerateDiscoverTripInputSchema))
     input: ModerateDiscoverTripInput,
+    @CurrentUser() user: AuthUser,
   ): Promise<DiscoverTrip> {
+    if (user.role !== 'admin') throw new ForbiddenException('Admin access required');
     return this.discoverTripsService.moderateTrip({
       discoverTripId: input.discoverTripId,
       status: input.status as 'published' | 'hidden' | 'flagged',
