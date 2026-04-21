@@ -2,6 +2,7 @@ export * from './article';
 export * from './browse';
 export * from './comment';
 export * from './content-flag';
+export * from './discover-trip';
 export * from './content-generation-log';
 export * from './diagnostic';
 export * from './expense';
