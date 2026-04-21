@@ -507,9 +507,39 @@ export default function DiscoverTripDetailScreen() {
         </View>
 
         {/* Description */}
-        <Text style={{ fontSize: 14, lineHeight: 22, color: statColor, marginBottom: 24 }}>
+        <Text style={{ fontSize: 14, lineHeight: 22, color: statColor, marginBottom: 16 }}>
           {trip.description}
         </Text>
+
+        {/* Route info — start/end summary for simple routes */}
+        {trip.waypoints.length >= 2 && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 24,
+              padding: 12,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+            }}
+          >
+            <MapPin size={16} color={palette.accent500} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
+                {trip.waypoints.find((w) => w.type === 'start')?.name ?? trip.waypoints[0].name}
+                {'  →  '}
+                {trip.waypoints.find((w) => w.type === 'end')?.name ?? trip.waypoints[trip.waypoints.length - 1].name}
+              </Text>
+              {trip.countryCode && (
+                <Text style={{ fontSize: 12, color: subtitleColor }}>
+                  {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode.toUpperCase()].filter(Boolean).join(', ')}
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Contributor attribution */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 24 }}>
@@ -578,15 +608,15 @@ export default function DiscoverTripDetailScreen() {
                       paddingLeft: 16,
                     }}
                   >
-                    <MapPin size={16} color={palette.accent500} style={{ marginTop: 2 }} />
+                    <MapPin size={16} color={wp.type === 'start' ? palette.success500 : wp.type === 'end' ? palette.danger500 : palette.accent500} style={{ marginTop: 2 }} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
-                        {wp.name}
+                        {WAYPOINT_ICONS[wp.type] ?? wp.type}
                       </Text>
                       <Text
-                        style={{ fontSize: 12, color: subtitleColor, textTransform: 'capitalize' }}
+                        style={{ fontSize: 12, color: subtitleColor }}
                       >
-                        {WAYPOINT_ICONS[wp.type] ?? wp.type}
+                        {wp.lat.toFixed(4)}, {wp.lng.toFixed(4)}
                       </Text>
                       {wp.notes && (
                         <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 2 }}>
