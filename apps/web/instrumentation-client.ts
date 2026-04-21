@@ -14,9 +14,11 @@ if (process.env.NODE_ENV === 'production') {
     api_host: '/ingest',
     ui_host: 'https://eu.posthog.com',
     defaults: '2026-01-30',
-    capture_pageview: false, // App Router — fired manually via <PostHogPageView />
-    // Default is `if_capture_pageview`, which disables $pageleave when pageview is manual.
-    capture_pageleave: true,
+    // `defaults: '2026-01-30'` sets capture_pageview to 'history_change' which
+    // auto-captures $pageview on pushState/replaceState/popstate (App Router).
+    // `capture_pageleave` defaults to 'if_capture_pageview' → enabled because
+    // capture_pageview is 'history_change'. This sends $pageleave with scroll
+    // depth data on beforeunload/visibilitychange automatically.
     capture_exceptions: true,
     opt_out_capturing_by_default: true,
     persistence: 'memory',

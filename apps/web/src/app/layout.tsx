@@ -6,7 +6,6 @@ import Script from 'next/script';
 import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentProvider } from '@/components/cookie-consent';
-import { PostHogPageView } from '@/components/posthog-pageview';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
@@ -74,7 +73,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <>
               <Analytics />
               <AnalyticsWithConsent />
-              <PostHogPageView />
               <WebVitalsReporter />
             </>
           )}
