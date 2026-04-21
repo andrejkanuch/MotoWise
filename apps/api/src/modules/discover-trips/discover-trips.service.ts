@@ -242,32 +242,54 @@ export class DiscoverTripsService {
     // Determine forked_from if this trip was cloned from another discover trip
     const forkedFrom = trip.cloned_from_discover_trip_id ?? null;
 
-    // Insert snapshot (ON CONFLICT for re-publish: update existing row)
-    const { data: inserted, error: insertError } = await this.supabase
+    // Check if already published (re-publish = update existing snapshot)
+    const { data: existing } = await this.supabase
       .from('discover_trips')
-      .upsert(
-        {
-          slug,
-          title: trip.title,
-          description: trip.description,
-          difficulty: trip.difficulty,
-          day_count: dayCount,
-          waypoints: waypointsJson,
-          contributor_user_id: userId,
-          source_trip_id: input.tripId,
-          forked_from_discover_trip_id: forkedFrom,
-          country_code: 'XX', // TODO: reverse geocode from waypoint lat/lng
-          status: 'published',
-        },
-        { onConflict: 'source_trip_id', ignoreDuplicates: false },
-      )
-      .select(DISCOVER_TRIP_COLUMNS)
-      .single();
+      .select('id')
+      .eq('source_trip_id', input.tripId)
+      .maybeSingle();
 
-    if (insertError) {
-      if (insertError.code === '23505') throw new DiscoverTripAlreadyPublishedError();
-      throw insertError;
+    const payload = {
+      slug,
+      title: trip.title,
+      description: trip.description,
+      difficulty: trip.difficulty,
+      day_count: dayCount,
+      waypoints: waypointsJson,
+      contributor_user_id: userId,
+      source_trip_id: input.tripId,
+      forked_from_discover_trip_id: forkedFrom,
+      country_code: 'XX', // TODO: reverse geocode from waypoint lat/lng
+      status: 'published' as const,
+    };
+
+    let inserted;
+    let insertError;
+
+    if (existing) {
+      // Re-publish: update existing snapshot (slug stays immutable)
+      const { slug: _slug, source_trip_id: _src, contributor_user_id: _cuid, ...updatePayload } = payload;
+      const result = await this.supabase
+        .from('discover_trips')
+        .update(updatePayload)
+        .eq('id', existing.id)
+        .select(DISCOVER_TRIP_COLUMNS)
+        .single();
+      inserted = result.data;
+      insertError = result.error;
+    } else {
+      // First publish: insert new snapshot
+      const result = await this.supabase
+        .from('discover_trips')
+        .insert(payload)
+        .select(DISCOVER_TRIP_COLUMNS)
+        .single();
+      inserted = result.data;
+      insertError = result.error;
     }
+
+    if (insertError) throw insertError;
+    if (!inserted) throw new DiscoverTripNotFoundError();
 
     return this.mapRow(inserted as unknown as DiscoverTripRow);
   }
