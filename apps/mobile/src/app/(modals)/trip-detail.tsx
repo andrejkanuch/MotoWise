@@ -3,6 +3,7 @@ import { palette } from '@motovault/design-system';
 import {
   JoinTripDocument,
   LeaveTripDocument,
+  PublishTripToDiscoverDocument,
   TripDetailDocument,
   type TripDetailQuery,
 } from '@motovault/graphql';
@@ -17,6 +18,7 @@ import {
   Calendar,
   CheckCircle,
   ChevronUp,
+  Compass,
   EyeOff,
   Globe,
   HelpCircle,
@@ -390,6 +392,46 @@ export default function TripDetailScreen() {
     ]);
   }, [leaveMutation]);
 
+  const [publishedToDiscover, setPublishedToDiscover] = useState(false);
+
+  const publishToDiscoverMutation = useMutation({
+    mutationFn: () =>
+      gqlFetcher(PublishTripToDiscoverDocument, { input: { tripId } }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setPublishedToDiscover(true);
+      Alert.alert(
+        'Published to Discover',
+        'Your trip is now a template that other riders can browse and clone.',
+      );
+    },
+    onError: (err: Error) => {
+      if (err.message?.includes('Quality gate')) {
+        Alert.alert(
+          'Not Ready Yet',
+          'Add at least 2 waypoints, a title, description, and difficulty before publishing.',
+        );
+      } else if (err.message?.includes('already published')) {
+        setPublishedToDiscover(true);
+      } else {
+        Alert.alert('Publish Failed', err.message ?? 'Please try again.');
+      }
+    },
+  });
+
+  const handlePublishToDiscover = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      'Publish to Discover?',
+      'This will create a public template of your trip. Dates, riders, and personal notes are never shared.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Publish', onPress: () => publishToDiscoverMutation.mutate() },
+      ],
+    );
+  }, [publishToDiscoverMutation]);
+
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -594,7 +636,7 @@ ${rteptElements}
             top: insets.top + 8,
             right: 12,
             flexDirection: 'row',
-            gap: 8,
+            gap: 6,
           }}
         >
           <Pressable
@@ -605,18 +647,22 @@ ${rteptElements}
             }}
             accessibilityRole="button"
             accessibilityLabel="Ask trip assistant"
-            accessibilityHint="Opens an AI chat scoped to this trip"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              backgroundColor: palette.signature500,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={{ alignItems: 'center', gap: 3 }}
           >
-            <Sparkles size={20} color={palette.white} />
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderCurve: 'continuous',
+                backgroundColor: palette.signature500,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Sparkles size={18} color={palette.white} />
+            </View>
+            <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>AI</Text>
           </Pressable>
           {isOrganiser && (
             <Pressable
@@ -626,33 +672,43 @@ ${rteptElements}
                   params: { tripId: trip.id },
                 } as never)
               }
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderCurve: 'continuous',
-                backgroundColor: palette.neutral950,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={{ alignItems: 'center', gap: 3 }}
             >
-              <Pencil size={18} color={palette.white} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.neutral950,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Pencil size={16} color={palette.white} />
+              </View>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Edit</Text>
             </Pressable>
           )}
           {isOrganiser && (
             <Pressable
               onPress={handleOpenShareSheet}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderCurve: 'continuous',
-                backgroundColor: palette.neutral950,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={{ alignItems: 'center', gap: 3 }}
             >
-              <Share2 size={18} color={palette.white} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.neutral950,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Share2 size={16} color={palette.white} />
+              </View>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Share</Text>
             </Pressable>
           )}
         </View>
@@ -1124,6 +1180,65 @@ ${rteptElements}
               entering={FadeInUp.delay(150).duration(250)}
               style={{ gap: 10, marginBottom: 20 }}
             >
+              {/* Publish to Discover — organizer only, when trip has enough content */}
+              {isOrganiser && !publishedToDiscover && waypoints.length >= 2 && (
+                <Pressable
+                  onPress={handlePublishToDiscover}
+                  disabled={publishToDiscoverMutation.isPending}
+                  accessibilityRole="button"
+                  accessibilityLabel="Publish to Discover"
+                  accessibilityHint="Makes this trip a template other riders can browse and clone"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: palette.accent500,
+                  }}
+                >
+                  {publishToDiscoverMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <>
+                      <Compass size={16} color={palette.white} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        Publish to Discover
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              {/* Published indicator */}
+              {isOrganiser && publishedToDiscover && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                  }}
+                >
+                  <CheckCircle size={16} color={palette.success500} />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: palette.success500,
+                    }}
+                  >
+                    Published on Discover
+                  </Text>
+                </View>
+              )}
+
               {/* Clone — available to anyone viewing someone else's public trip. */}
               {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
                 <Pressable
