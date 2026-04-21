@@ -1,0 +1,8 @@
+mutation PublishTripToDiscover($input: PublishTripToDiscoverInput!) {
+  publishTripToDiscover(input: $input) {
+    id
+    slug
+    title
+    status
+  }
+}

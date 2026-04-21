@@ -25,7 +25,7 @@ export class DiscoverTripWaypoint {
   @Field(() => Float)
   lng: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   notes?: string | null;
 }
 

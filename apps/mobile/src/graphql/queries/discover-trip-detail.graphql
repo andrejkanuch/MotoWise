@@ -1,0 +1,46 @@
+query DiscoverTripDetail($id: ID!) {
+  discoverTripById(id: $id) {
+    id
+    slug
+    title
+    description
+    difficulty
+    dayCount
+    waypoints {
+      sortOrder
+      dayIndex
+      type
+      name
+      lat
+      lng
+      notes
+    }
+    polyline
+    startLat
+    startLng
+    countryCode
+    regionCode
+    city
+    distanceM
+    elevationGainM
+    estimatedDurationMinutes
+    surfaceType
+    curvatureIndex
+    status
+    isFeatured
+    isMotovaultPick
+    viewCount
+    cloneCount
+    averageRating
+    reviewCount
+    publishedAt
+    updatedAt
+    forkedFromDiscoverTripId
+    contributor {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+  }
+}

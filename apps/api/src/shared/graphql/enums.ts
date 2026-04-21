@@ -90,12 +90,13 @@ registerEnumType(TripDifficultyEnum, {
 export const SurfaceTypeEnum = {
   paved: 'paved',
   mixed: 'mixed',
-  'off-road': 'off-road',
+  off_road: 'off-road',
   unknown: 'unknown',
 } as const;
 registerEnumType(SurfaceTypeEnum, {
   name: 'SurfaceType',
   description: 'Road surface type for a route or trip.',
+  valuesMap: { off_road: { description: 'Off-road / unpaved surface' } },
 });
 
 export const DiscoverTripStatusEnum = {
