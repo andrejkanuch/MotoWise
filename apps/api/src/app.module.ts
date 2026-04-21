@@ -18,6 +18,7 @@ import { AiBudgetModule } from './modules/ai-budget/ai-budget.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
+import { DiscoverTripsModule } from './modules/discover-trips/discover-trips.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { EmailModule } from './modules/email/email.module';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module';
@@ -95,6 +96,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
+    DiscoverTripsModule,
     ExpensesModule,
     FuelLogsModule,
     FeedModule,
