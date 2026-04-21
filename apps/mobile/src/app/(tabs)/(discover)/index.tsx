@@ -3,6 +3,9 @@ import {
   DiscoverRoutesDocument,
   type DiscoverRoutesFilterInput,
   type DiscoverRoutesQuery,
+  DiscoverTripsDocument,
+  type DiscoverTripsFilterInput,
+  type DiscoverTripsQuery,
 } from '@motovault/graphql';
 import {
   COUNTRY_NAMES,
@@ -54,6 +57,7 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DiscoverTripCard } from '../../../components/discover/discover-trip-card';
 import { FeaturedRouteCard } from '../../../components/discover/featured-route-card';
 import { FilterChipRow } from '../../../components/discover/filter-chip-row';
 import { HorizontalRouteSection } from '../../../components/discover/horizontal-route-section';
@@ -71,6 +75,7 @@ import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 // --- Types ---
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+type TripNode = DiscoverTripsQuery['discoverTrips']['edges'][number]['node'];
 
 // --- Filter chip definitions ---
 
@@ -250,10 +255,10 @@ const DiscoverHeader = memo(function DiscoverHeader({
           }}
         >
           {filters.countryCode
-            ? `Routes in ${COUNTRY_NAMES[filters.countryCode]}`
+            ? `Trips in ${COUNTRY_NAMES[filters.countryCode]}`
             : filters.chips.size > 0
-              ? 'Filtered routes'
-              : 'Roads worth riding'}
+              ? 'Filtered trips'
+              : 'Trip templates'}
         </Text>
       </View>
     </View>
@@ -347,11 +352,48 @@ export default function DiscoverScreen() {
     return hasFilter ? filter : null;
   }, [filters]);
 
-  // --- Data fetching ---
+  // --- Data fetching (trips — new API) ---
 
+  const tripFilterInput = useMemo((): DiscoverTripsFilterInput | null => {
+    const filter: DiscoverTripsFilterInput = {};
+    let hasFilter = false;
+    if (filters.countryCode) {
+      filter.country = filters.countryCode.toLowerCase();
+      hasFilter = true;
+    }
+    if (filters.chips.has('paved')) { filter.surfaceType = 'paved' as any; hasFilter = true; }
+    if (filters.chips.has('mixed')) { filter.surfaceType = 'mixed' as any; hasFilter = true; }
+    if (filters.chips.has('off-road')) { filter.surfaceType = 'off_road' as any; hasFilter = true; }
+    return hasFilter ? filter : null;
+  }, [filters]);
+
+  const tripFilterKey = useMemo(() => JSON.stringify(tripFilterInput ?? {}), [tripFilterInput]);
+
+  const { data: tripData, isLoading: tripsLoading, fetchNextPage: fetchNextTrips, hasNextPage: hasNextTrips, isFetchingNextPage: isFetchingNextTrips } = useInfiniteQuery({
+    queryKey: ['discoverTrips', 'feed', tripFilterKey],
+    queryFn: ({ pageParam }) =>
+      gqlFetcher(DiscoverTripsDocument, {
+        filter: tripFilterInput,
+        first: 20,
+        after: pageParam ?? null,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => {
+      const pi = lastPage?.discoverTrips?.pageInfo;
+      return pi?.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allTrips = useMemo(() => {
+    if (!tripData?.pages) return [];
+    return tripData.pages.flatMap((p) => p?.discoverTrips?.edges?.map((e) => e.node) ?? []);
+  }, [tripData]);
+
+  // Legacy routes query — still used by horizontal sections (Editor's Picks, etc.)
   const filterKey = useMemo(() => JSON.stringify(filterInput ?? {}), [filterInput]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  const { data } = useInfiniteQuery({
     queryKey: queryKeys.routes.discover(filterKey),
     queryFn: ({ pageParam }) =>
       gqlFetcher(DiscoverRoutesDocument, {
@@ -372,22 +414,16 @@ export default function DiscoverScreen() {
     return data.pages.flatMap((p) => p?.discoverRoutes?.edges?.map((e) => e.node) ?? []);
   }, [data]);
 
-  // Featured route: first MotoVault Pick (when no filters active)
+  // Featured trip: first MotoVault Pick (when no filters active)
   const featuredRoute = useMemo(() => {
     if (filters.chips.size > 0 || filters.countryCode) return null;
     return allRoutes.find((r) => r.isMotovaultPick) ?? null;
   }, [allRoutes, filters]);
 
-  // Routes for the list (exclude featured to avoid duplication)
-  const listRoutes = useMemo(() => {
-    if (!featuredRoute) return allRoutes;
-    return allRoutes.filter((r) => r.id !== featuredRoute.id);
-  }, [allRoutes, featuredRoute]);
-
-  // --- GeoJSON for map pins ---
+  // --- GeoJSON for map pins (use trips data for pins) ---
 
   const routeGeoJSON = useMemo(() => {
-    const features = allRoutes
+    const features = allTrips
       .filter((r) => r.startLat != null && r.startLng != null)
       .map((r) => ({
         type: 'Feature' as const,
@@ -395,10 +431,10 @@ export default function DiscoverScreen() {
           type: 'Point' as const,
           coordinates: [r.startLng ?? 0, r.startLat ?? 0],
         },
-        properties: { id: r.id, name: r.name ?? 'Route', kind: 'route' },
+        properties: { id: r.id, name: r.title, kind: 'trip' },
       }));
     return { type: 'FeatureCollection' as const, features };
-  }, [allRoutes]);
+  }, [allTrips]);
 
   // --- Callbacks ---
 
@@ -445,8 +481,8 @@ export default function DiscoverScreen() {
   );
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (hasNextTrips && !isFetchingNextTrips) fetchNextTrips();
+  }, [hasNextTrips, isFetchingNextTrips, fetchNextTrips]);
 
   const toggleChip = useCallback((key: FilterKey) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -498,16 +534,15 @@ export default function DiscoverScreen() {
     router.push('/(modals)/create-trip');
   }, [router]);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: RouteNode; index: number }) => (
-      <RouteCard
-        route={item}
+  const renderTripItem = useCallback(
+    ({ item, index }: { item: TripNode; index: number }) => (
+      <DiscoverTripCard
+        trip={item}
         index={index}
         onPress={() => handleRoutePress(item.id)}
-        fuelStopsRequired={computeFuelStops(item.distanceM / 1000, tankLiters, kmPerLiter)}
       />
     ),
-    [handleRoutePress, tankLiters, kmPerLiter],
+    [handleRoutePress],
   );
 
   // --- Memoized header ---
@@ -656,10 +691,10 @@ export default function DiscoverScreen() {
         </View>
       </Animated.View>
 
-      {/* Route list */}
+      {/* Trip list */}
       <AnimatedFlatList
-        data={listRoutes}
-        renderItem={renderItem}
+        data={allTrips}
+        renderItem={renderTripItem}
         keyExtractor={(item) => item.id}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -668,7 +703,7 @@ export default function DiscoverScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={headerComponent}
         ListEmptyComponent={
-          isLoading ? (
+          tripsLoading ? (
             <ActivityIndicator
               size="large"
               color={palette.accent500}
@@ -718,7 +753,7 @@ export default function DiscoverScreen() {
           )
         }
         ListFooterComponent={
-          isFetchingNextPage ? (
+          isFetchingNextTrips ? (
             <ActivityIndicator
               size="small"
               color={palette.accent500}
