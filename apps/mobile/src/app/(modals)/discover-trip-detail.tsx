@@ -8,13 +8,23 @@ import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Award, Calendar, Copy, MapPin, Mountain, Star } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Award,
+  Calendar,
+  Copy,
+  MapPin,
+  Mountain,
+  Share2,
+  Star,
+} from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
+  Share,
   Text,
   useColorScheme,
   View,
@@ -160,6 +170,18 @@ export default function DiscoverTripDetailScreen() {
     cloneMutation.mutate();
   }, [cloneMutation]);
 
+  const handleShare = useCallback(async () => {
+    if (!trip) return;
+    try {
+      await Share.share({
+        message: `${trip.title} — ${trip.dayCount}-day motorcycle trip on MotoVault`,
+        url: `https://motovault.app/trips/${trip.countryCode}/${trip.regionCode ?? 'all'}/${trip.slug}`,
+      });
+    } catch {
+      // User cancelled
+    }
+  }, [trip]);
+
   // --- Group waypoints by day ---
 
   const waypointsByDay = useMemo(() => {
@@ -229,7 +251,17 @@ export default function DiscoverTripDetailScreen() {
           <Text style={{ fontSize: 18, fontWeight: '700', color: titleColor }} numberOfLines={1}>
             {trip.title}
           </Text>
+          {(trip.city || trip.regionCode) && (
+            <Text style={{ fontSize: 13, color: subtitleColor }} numberOfLines={1}>
+              {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode.toUpperCase()]
+                .filter(Boolean)
+                .join(', ')}
+            </Text>
+          )}
         </View>
+        <Pressable onPress={handleShare} hitSlop={12}>
+          <Share2 size={22} color={titleColor} />
+        </Pressable>
       </View>
 
       {/* Map with polyline */}
@@ -246,7 +278,14 @@ export default function DiscoverTripDetailScreen() {
             {routeLine ? (
               <>
                 <MapboxGL.Camera
-                  defaultSettings={{ padding: { paddingTop: 40, paddingBottom: 40, paddingLeft: 40, paddingRight: 40 } }}
+                  defaultSettings={{
+                    padding: {
+                      paddingTop: 40,
+                      paddingBottom: 40,
+                      paddingLeft: 40,
+                      paddingRight: 40,
+                    },
+                  }}
                   bounds={{
                     ne: [
                       Math.max(...routeLine.geometry.coordinates.map((c) => c[0])),
@@ -368,6 +407,30 @@ export default function DiscoverTripDetailScreen() {
               <Award size={12} color={palette.signature500} />
               <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
                 Pick
+              </Text>
+            </View>
+          )}
+
+          {/* Surface type */}
+          {trip.surfaceType && (
+            <View
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 10,
+                borderCurve: 'continuous',
+                backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: subtitleColor,
+                  textTransform: 'capitalize',
+                }}
+              >
+                {trip.surfaceType === 'off_road' ? 'Off-road' : trip.surfaceType}
               </Text>
             </View>
           )}
