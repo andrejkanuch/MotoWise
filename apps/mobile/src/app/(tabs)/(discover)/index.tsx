@@ -445,6 +445,13 @@ export default function DiscoverScreen() {
     [router],
   );
 
+  const handleTripPress = useCallback(
+    (discoverTripId: string) => {
+      router.push({ pathname: '/(modals)/discover-trip-detail', params: { discoverTripId } });
+    },
+    [router],
+  );
+
   const handleMarkerPress = useCallback(
     (routeId: string, routeName: string, lat: number, lng: number) => {
       if (process.env.EXPO_OS === 'ios') {
@@ -539,10 +546,10 @@ export default function DiscoverScreen() {
       <DiscoverTripCard
         trip={item}
         index={index}
-        onPress={() => handleRoutePress(item.id)}
+        onPress={() => handleTripPress(item.id)}
       />
     ),
-    [handleRoutePress],
+    [handleTripPress],
   );
 
   // --- Memoized header ---
