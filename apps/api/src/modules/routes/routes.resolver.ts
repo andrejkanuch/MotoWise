@@ -38,7 +38,9 @@ export class RoutesResolver {
   // Route Discovery
   // ==========================================
 
-  @Query(() => RouteConnection)
+  @Query(() => RouteConnection, {
+    deprecationReason: 'Use discoverTrips query instead. Removal target: 8 weeks post-OTA.',
+  })
   @Public()
   async discoverRoutes(
     @Args('filter', { type: () => DiscoverRoutesFilterInput, nullable: true })
@@ -47,6 +49,7 @@ export class RoutesResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteConnection> {
+    this.routesService.logDeprecatedUsage('discoverRoutes');
     return this.routesService.discoverRoutes(filter, first ?? 20, after);
   }
 
@@ -64,7 +67,10 @@ export class RoutesResolver {
     return this.routesService.routePathById(routeId);
   }
 
-  @Query(() => Route, { nullable: true })
+  @Query(() => Route, {
+    nullable: true,
+    deprecationReason: 'Use discoverTripBySlug query instead. Removal target: 8 weeks post-OTA.',
+  })
   @Public()
   async routeBySlug(
     @Args('country') country: string,
@@ -78,7 +84,9 @@ export class RoutesResolver {
     return this.routesService.findBySlug(country, region, slug);
   }
 
-  @Query(() => Route)
+  @Query(() => Route, {
+    deprecationReason: 'Use discoverTripById query instead. Removal target: 8 weeks post-OTA.',
+  })
   @Public()
   async routeDetail(
     @CurrentUser() user: AuthUser | null,
