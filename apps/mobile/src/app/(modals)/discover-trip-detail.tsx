@@ -4,11 +4,12 @@ import {
   DiscoverTripDetailDocument,
   type DiscoverTripDetailQuery,
 } from '@motovault/graphql';
+import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Award, Calendar, Copy, MapPin, Mountain, Star } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -22,7 +23,37 @@ import Animated, { FadeIn, FadeInUp, useReducedMotion } from 'react-native-reani
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
+
+/** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
+function decodePolylineToCoords(encoded: string): [number, number][] {
+  const points: [number, number][] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  while (index < encoded.length) {
+    let shift = 0;
+    let result = 0;
+    let byte: number;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    shift = 0;
+    result = 0;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push([lng / 1e5, lat / 1e5]);
+  }
+  return points;
+}
 
 type DiscoverTrip = NonNullable<DiscoverTripDetailQuery['discoverTripById']>;
 type Waypoint = DiscoverTrip['waypoints'][number];
@@ -73,6 +104,32 @@ export default function DiscoverTripDetailScreen() {
   });
 
   const trip = data?.discoverTripById;
+  const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
+
+  // --- Route line GeoJSON for Mapbox ---
+  const routeLine = useMemo(() => {
+    if (!trip?.polyline) return null;
+    const coords = decodePolylineToCoords(trip.polyline);
+    if (coords.length < 2) return null;
+    return {
+      type: 'Feature' as const,
+      geometry: { type: 'LineString' as const, coordinates: coords },
+      properties: {},
+    };
+  }, [trip?.polyline]);
+
+  // Waypoint GeoJSON markers
+  const waypointMarkers = useMemo(() => {
+    if (!trip) return null;
+    const features = trip.waypoints
+      .filter((wp) => wp.lat != null && wp.lng != null)
+      .map((wp) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [wp.lng, wp.lat] },
+        properties: { name: wp.name, type: wp.type },
+      }));
+    return { type: 'FeatureCollection' as const, features };
+  }, [trip]);
 
   // --- Clone mutation ---
 
@@ -174,6 +231,73 @@ export default function DiscoverTripDetailScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Map with polyline */}
+      {(routeLine || (trip.startLat != null && trip.startLng != null)) && (
+        <View style={{ height: 240 }}>
+          <MapboxGL.MapView
+            style={{ flex: 1 }}
+            styleURL={MAP_STYLES[mapStyle]}
+            compassEnabled={false}
+            logoEnabled={false}
+            attributionEnabled={false}
+            scaleBarEnabled={false}
+          >
+            {routeLine ? (
+              <>
+                <MapboxGL.Camera
+                  defaultSettings={{ padding: { paddingTop: 40, paddingBottom: 40, paddingLeft: 40, paddingRight: 40 } }}
+                  bounds={{
+                    ne: [
+                      Math.max(...routeLine.geometry.coordinates.map((c) => c[0])),
+                      Math.max(...routeLine.geometry.coordinates.map((c) => c[1])),
+                    ],
+                    sw: [
+                      Math.min(...routeLine.geometry.coordinates.map((c) => c[0])),
+                      Math.min(...routeLine.geometry.coordinates.map((c) => c[1])),
+                    ],
+                    paddingTop: 40,
+                    paddingBottom: 40,
+                    paddingLeft: 40,
+                    paddingRight: 40,
+                  }}
+                />
+                <MapboxGL.ShapeSource id="route-line" shape={routeLine}>
+                  <MapboxGL.LineLayer
+                    id="route-line-layer"
+                    style={{
+                      lineColor: palette.accent500,
+                      lineWidth: 4,
+                      lineCap: 'round',
+                      lineJoin: 'round',
+                    }}
+                  />
+                </MapboxGL.ShapeSource>
+              </>
+            ) : (
+              <MapboxGL.Camera
+                defaultSettings={{
+                  centerCoordinate: [trip.startLng!, trip.startLat!],
+                  zoomLevel: 10,
+                }}
+              />
+            )}
+            {waypointMarkers && waypointMarkers.features.length > 0 && (
+              <MapboxGL.ShapeSource id="waypoint-pins" shape={waypointMarkers}>
+                <MapboxGL.CircleLayer
+                  id="waypoint-dots"
+                  style={{
+                    circleColor: palette.accent500,
+                    circleRadius: 6,
+                    circleStrokeColor: palette.white,
+                    circleStrokeWidth: 2,
+                  }}
+                />
+              </MapboxGL.ShapeSource>
+            )}
+          </MapboxGL.MapView>
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 100 }}
