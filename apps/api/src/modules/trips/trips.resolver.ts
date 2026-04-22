@@ -31,12 +31,20 @@ import { TripShareTokenError } from './errors/trip-share-token.errors';
 import { SharedTrip } from './models/shared-trip.model';
 import { Trip, TripConnection, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
-import { TripsService } from './trips.service';
+import { TripLifecycleService } from './services/trip-lifecycle.service';
+import { TripParticipantsService } from './services/trip-participants.service';
+import { TripSharingService } from './services/trip-sharing.service';
+import { TripWaypointsService } from './services/trip-waypoints.service';
 
 @Resolver(() => Trip)
 @UseGuards(GqlAuthGuard)
 export class TripsResolver {
-  constructor(private readonly tripsService: TripsService) {}
+  constructor(
+    private readonly tripLifecycle: TripLifecycleService,
+    private readonly tripWaypoints: TripWaypointsService,
+    private readonly tripParticipants: TripParticipantsService,
+    private readonly tripSharing: TripSharingService,
+  ) {}
 
   // ==========================================
   // Queries
@@ -49,7 +57,7 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
-    return this.tripsService.getTrips(first ?? 20, after);
+    return this.tripLifecycle.getTrips(first ?? 20, after);
   }
 
   @Query(() => TripConnection)
@@ -59,7 +67,7 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
-    return this.tripsService.myTrips(user.id, first ?? 20, after);
+    return this.tripLifecycle.myTrips(user.id, first ?? 20, after);
   }
 
   @Query(() => Trip)
@@ -67,7 +75,7 @@ export class TripsResolver {
   async tripDetail(
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
-    return this.tripsService.tripDetail(tripId);
+    return this.tripLifecycle.tripDetail(tripId);
   }
 
   @Query(() => SharedTrip, { nullable: true })
@@ -76,7 +84,7 @@ export class TripsResolver {
   async tripByShareToken(@Args('shareToken') shareToken: string): Promise<SharedTrip | null> {
     const parsed = TripShareTokenSchema.safeParse(shareToken);
     if (!parsed.success) throw new TripShareTokenError('INVALID_FORMAT');
-    return this.tripsService.resolveTripByShareToken(parsed.data);
+    return this.tripSharing.resolveTripByShareToken(parsed.data);
   }
 
   // ==========================================
@@ -90,7 +98,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(CreateTripInputSchema))
     input: CreateTripInput,
   ): Promise<Trip> {
-    return this.tripsService.createTrip(user.id, input);
+    return this.tripLifecycle.createTrip(user.id, input);
   }
 
   @Mutation(() => Trip)
@@ -100,7 +108,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(CreateTripWithWaypointsInputSchema))
     input: CreateTripWithWaypointsInput,
   ): Promise<Trip> {
-    return this.tripsService.createTripWithWaypoints(user.id, input);
+    return this.tripLifecycle.createTripWithWaypoints(user.id, input);
   }
 
   @Mutation(() => Trip)
@@ -110,7 +118,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(UpdateTripInputSchema))
     input: UpdateTripInput,
   ): Promise<Trip> {
-    return this.tripsService.updateTrip(user.id, input.tripId, input);
+    return this.tripLifecycle.updateTrip(user.id, input.tripId, input);
   }
 
   @Mutation(() => Boolean)
@@ -119,7 +127,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripsService.deleteTrip(user.id, tripId);
+    return this.tripLifecycle.deleteTrip(user.id, tripId);
   }
 
   @Mutation(() => String)
@@ -128,7 +136,7 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<string> {
-    return this.tripsService.rotateTripShareToken(user.id, tripId);
+    return this.tripSharing.rotateTripShareToken(user.id, tripId);
   }
 
   @Mutation(() => Trip)
@@ -137,7 +145,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
-    return this.tripsService.publishTrip(user.id, tripId);
+    return this.tripLifecycle.publishTrip(user.id, tripId);
   }
 
   // ==========================================
@@ -151,7 +159,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(CreateWaypointInputSchema))
     input: CreateWaypointInput,
   ): Promise<TripWaypoint> {
-    return this.tripsService.addWaypoint(user.id, input);
+    return this.tripWaypoints.addWaypoint(user.id, input);
   }
 
   @Mutation(() => TripWaypoint)
@@ -161,7 +169,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(UpdateWaypointInputSchema))
     input: UpdateWaypointInput,
   ): Promise<TripWaypoint> {
-    return this.tripsService.updateWaypoint(user.id, input.waypointId, input);
+    return this.tripWaypoints.updateWaypoint(user.id, input.waypointId, input);
   }
 
   @Mutation(() => Boolean)
@@ -170,7 +178,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('waypointId', { type: () => ID }, ParseUUIDPipe) waypointId: string,
   ): Promise<boolean> {
-    return this.tripsService.removeWaypoint(user.id, waypointId);
+    return this.tripWaypoints.removeWaypoint(user.id, waypointId);
   }
 
   @Mutation(() => Boolean)
@@ -180,7 +188,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(ReorderWaypointsInputSchema))
     input: ReorderWaypointsInput,
   ): Promise<boolean> {
-    return this.tripsService.reorderWaypoints(user.id, input.tripId, input.waypointIds);
+    return this.tripWaypoints.reorderWaypoints(user.id, input.tripId, input.waypointIds);
   }
 
   // ==========================================
@@ -194,7 +202,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(JoinTripInputSchema))
     input: JoinTripInput,
   ): Promise<boolean> {
-    return this.tripsService.joinTrip(user.id, input.tripId, input.status, input.bikeId);
+    return this.tripParticipants.joinTrip(user.id, input.tripId, input.status, input.bikeId);
   }
 
   @Mutation(() => Boolean)
@@ -204,7 +212,7 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(UpdateParticipantStatusInputSchema))
     input: UpdateParticipantStatusInput,
   ): Promise<boolean> {
-    return this.tripsService.updateParticipantStatus(user.id, input.tripId, input.status);
+    return this.tripParticipants.updateParticipantStatus(user.id, input.tripId, input.status);
   }
 
   @Mutation(() => Boolean)
@@ -213,7 +221,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripsService.leaveTrip(user.id, tripId);
+    return this.tripParticipants.leaveTrip(user.id, tripId);
   }
 
   // ==========================================
@@ -227,7 +235,7 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
     @Args('invitedUserId', { type: () => ID }, ParseUUIDPipe) invitedUserId: string,
   ): Promise<boolean> {
-    return this.tripsService.inviteToTrip(user.id, tripId, invitedUserId);
+    return this.tripSharing.inviteToTrip(user.id, tripId, invitedUserId);
   }
 
   @Mutation(() => Boolean)
@@ -237,7 +245,7 @@ export class TripsResolver {
     @Args('inviteId', { type: () => ID }, ParseUUIDPipe) inviteId: string,
     @Args('accept') accept: boolean,
   ): Promise<boolean> {
-    return this.tripsService.respondToTripInvite(user.id, inviteId, accept);
+    return this.tripSharing.respondToTripInvite(user.id, inviteId, accept);
   }
 
   @Query(() => [TripInvite])
@@ -245,6 +253,6 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<TripInvite[]> {
-    return this.tripsService.listTripInvites(user.id, tripId);
+    return this.tripSharing.listTripInvites(user.id, tripId);
   }
 }
