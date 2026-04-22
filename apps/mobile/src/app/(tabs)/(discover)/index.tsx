@@ -3,10 +3,9 @@ import {
   DiscoverRoutesDocument,
   type DiscoverRoutesFilterInput,
   type DiscoverRoutesQuery,
-  DiscoverTripsDocument,
-  type DiscoverTripsFilterInput,
-  type DiscoverTripsQuery,
-  SurfaceType,
+  type TripTemplateFilterInput,
+  TripTemplatesDocument,
+  type TripTemplatesQuery,
 } from '@motovault/graphql';
 import {
   COUNTRY_NAMES,
@@ -73,7 +72,7 @@ import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 // --- Types ---
 
 type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
-type TripNode = DiscoverTripsQuery['discoverTrips']['edges'][number]['node'];
+type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 // --- Filter chip definitions ---
 
@@ -351,23 +350,23 @@ export default function DiscoverScreen() {
 
   // --- Data fetching (trips — new API) ---
 
-  const tripFilterInput = useMemo((): DiscoverTripsFilterInput | null => {
-    const filter: DiscoverTripsFilterInput = {};
+  const tripFilterInput = useMemo((): TripTemplateFilterInput | null => {
+    const filter: TripTemplateFilterInput = {};
     let hasFilter = false;
     if (filters.countryCode) {
       filter.country = filters.countryCode.toLowerCase();
       hasFilter = true;
     }
     if (filters.chips.has('paved')) {
-      filter.surfaceType = SurfaceType.Paved;
+      filter.surfaceType = 'paved';
       hasFilter = true;
     }
     if (filters.chips.has('mixed')) {
-      filter.surfaceType = SurfaceType.Mixed;
+      filter.surfaceType = 'mixed';
       hasFilter = true;
     }
     if (filters.chips.has('off-road')) {
-      filter.surfaceType = SurfaceType.OffRoad;
+      filter.surfaceType = 'off_road';
       hasFilter = true;
     }
     return hasFilter ? filter : null;
@@ -382,16 +381,16 @@ export default function DiscoverScreen() {
     hasNextPage: hasNextTrips,
     isFetchingNextPage: isFetchingNextTrips,
   } = useInfiniteQuery({
-    queryKey: ['discoverTrips', 'feed', tripFilterKey],
+    queryKey: queryKeys.tripTemplates.list(tripFilterKey),
     queryFn: ({ pageParam }) =>
-      gqlFetcher(DiscoverTripsDocument, {
+      gqlFetcher(TripTemplatesDocument, {
         filter: tripFilterInput,
         first: 20,
         after: pageParam ?? null,
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
-      const pi = lastPage?.discoverTrips?.pageInfo;
+      const pi = lastPage?.tripTemplates?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
     staleTime: 5 * 60 * 1000,
@@ -399,7 +398,7 @@ export default function DiscoverScreen() {
 
   const allTrips = useMemo(() => {
     if (!tripData?.pages) return [];
-    return tripData.pages.flatMap((p) => p?.discoverTrips?.edges?.map((e) => e.node) ?? []);
+    return tripData.pages.flatMap((p) => p?.tripTemplates?.edges?.map((e) => e.node) ?? []);
   }, [tripData]);
 
   // Legacy routes query — still used by horizontal sections (Editor's Picks, etc.)

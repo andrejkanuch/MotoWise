@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import type { DiscoverTripsQuery } from '@motovault/graphql';
+import type { TripTemplatesQuery } from '@motovault/graphql';
 import { Award, Calendar, Copy, Mountain, Star } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
@@ -7,7 +7,7 @@ import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { formatDistance } from '../../utils/ride-formatters';
 
-type TripNode = DiscoverTripsQuery['discoverTrips']['edges'][number]['node'];
+type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   easy: palette.success500,
@@ -115,7 +115,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             surfaceLabel={surfaceLabel}
           />
 
-          <ContributorLine contributor={trip.contributor} subtitleColor={subtitleColor} />
+          <ContributorLine contributor={trip.organiser} subtitleColor={subtitleColor} />
         </Pressable>
       </Animated.View>
     );
@@ -154,7 +154,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
           >
             {trip.title}
           </Text>
-          {trip.dayCount > 1 && (
+          {(trip.dayCount ?? 0) > 1 && (
             <View
               style={{
                 flexDirection: 'row',
@@ -184,7 +184,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
           surfaceLabel={surfaceLabel}
         />
 
-        <ContributorLine contributor={trip.contributor} subtitleColor={subtitleColor} />
+        <ContributorLine contributor={trip.organiser} subtitleColor={subtitleColor} />
       </Pressable>
     </Animated.View>
   );
@@ -290,7 +290,7 @@ function ContributorLine({
   contributor,
   subtitleColor,
 }: {
-  contributor: TripNode['contributor'];
+  contributor: TripNode['organiser'];
   subtitleColor: string;
 }) {
   if (!contributor) return null;

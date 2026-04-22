@@ -97,6 +97,20 @@ export const queryKeys = {
     detail: (id: string) => ['trips', 'detail', id] as const,
     my: ['trips', 'my'] as const,
   },
+  tripTemplates: {
+    all: ['tripTemplates'] as const,
+    list: (filters: string) => ['tripTemplates', 'list', filters] as const,
+  },
+  savedTrips: {
+    all: ['savedTrips'] as const,
+  },
+  isTripSaved: {
+    check: (tripId: string) => ['isTripSaved', tripId] as const,
+  },
+  tripReviews: {
+    all: ['tripReviews'] as const,
+    byTrip: (tripId: string) => ['tripReviews', 'byTrip', tripId] as const,
+  },
   subscription: {
     offerings: ['subscription', 'offerings'] as const,
   },
