@@ -4,7 +4,7 @@ import {
   ModerateDiscoverTripInputSchema,
   PublishTripToDiscoverInputSchema,
 } from '@motovault/types/validators';
-import { ForbiddenException, UseGuards } from '@nestjs/common';
+import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
@@ -24,15 +24,23 @@ import {
   DiscoverTripReview,
 } from './models/discover-trip.model';
 
+/**
+ * @deprecated This entire resolver is deprecated. New clients should use
+ * tripTemplates / tripReviews / savedTrips queries from TripsResolver instead.
+ * Kept for backward compatibility with old mobile app versions.
+ */
 @Resolver(() => DiscoverTrip)
 @UseGuards(GqlAuthGuard)
 export class DiscoverTripsResolver {
+  private readonly logger = new Logger(DiscoverTripsResolver.name);
+
   constructor(private readonly discoverTripsService: DiscoverTripsService) {}
 
   // ==========================================
   // Queries (Public — no auth required for browse/detail)
   // ==========================================
 
+  /** @deprecated Use tripTemplates query instead */
   @Query(() => DiscoverTripConnection)
   @Public()
   async discoverTrips(
@@ -42,10 +50,12 @@ export class DiscoverTripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<DiscoverTripConnection> {
+    this.logger.warn('DEPRECATED: discoverTrips called — use tripTemplates instead');
     const validated = filter ? DiscoverTripsFilterSchema.parse(filter) : undefined;
     return this.discoverTripsService.list(validated, first ?? 20, after);
   }
 
+  /** @deprecated Use tripTemplateBySlug query instead */
   @Query(() => DiscoverTrip)
   @Public()
   async discoverTripBySlug(
@@ -53,14 +63,17 @@ export class DiscoverTripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<DiscoverTrip> {
+    this.logger.warn('DEPRECATED: discoverTripBySlug called — use tripTemplateBySlug instead');
     const trip = await this.discoverTripsService.getBySlug(country, region, slug);
     this.discoverTripsService.incrementViewCount(trip.id);
     return trip;
   }
 
+  /** @deprecated Use tripTemplateById query instead */
   @Query(() => DiscoverTrip)
   @Public()
   async discoverTripById(@Args('id', { type: () => ID }) id: string): Promise<DiscoverTrip> {
+    this.logger.warn('DEPRECATED: discoverTripById called — use tripTemplateById instead');
     const trip = await this.discoverTripsService.getById(id);
     this.discoverTripsService.incrementViewCount(trip.id);
     return trip;
@@ -70,6 +83,7 @@ export class DiscoverTripsResolver {
   // Mutations (Auth required)
   // ==========================================
 
+  /** @deprecated Use publishTripTemplate mutation instead */
   @Mutation(() => DiscoverTrip)
   @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async publishTripToDiscover(
@@ -77,18 +91,22 @@ export class DiscoverTripsResolver {
     input: PublishTripToDiscoverInput,
     @CurrentUser() user: AuthUser,
   ): Promise<DiscoverTrip> {
+    this.logger.warn('DEPRECATED: publishTripToDiscover called — use publishTripTemplate instead');
     return this.discoverTripsService.publishTripToDiscover(input, user.id);
   }
 
+  /** @deprecated Use unpublishTripTemplate mutation instead */
   @Mutation(() => Boolean)
   @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async unpublishFromDiscover(
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<boolean> {
+    this.logger.warn('DEPRECATED: unpublishFromDiscover called — use unpublishTripTemplate instead');
     return this.discoverTripsService.unpublishFromDiscover(discoverTripId, user.id);
   }
 
+  /** @deprecated Use cloneTripTemplate mutation instead */
   @Mutation(() => ID, {
     description: "Clones a discover trip into the user's planner. Returns the new trip ID.",
   })
@@ -97,9 +115,11 @@ export class DiscoverTripsResolver {
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<string> {
+    this.logger.warn('DEPRECATED: cloneDiscoverTrip called — use cloneTripTemplate instead');
     return this.discoverTripsService.cloneDiscoverTrip(discoverTripId, user.id);
   }
 
+  /** @deprecated Use createTripReview mutation instead */
   @Mutation(() => DiscoverTripReview)
   @Throttle({ default: THROTTLE_PRESETS.COMMENT })
   async createDiscoverTripReview(
@@ -107,6 +127,7 @@ export class DiscoverTripsResolver {
     input: CreateDiscoverTripReviewInput,
     @CurrentUser() user: AuthUser,
   ): Promise<DiscoverTripReview> {
+    this.logger.warn('DEPRECATED: createDiscoverTripReview called — use createTripReview instead');
     return this.discoverTripsService.createReview(input, user.id);
   }
 
@@ -114,12 +135,14 @@ export class DiscoverTripsResolver {
   // Admin Mutations
   // ==========================================
 
+  /** @deprecated Use moderateTripTemplate mutation instead */
   @Mutation(() => DiscoverTrip, { description: 'Admin only: moderate a discover trip.' })
   async moderateDiscoverTrip(
     @Args('input', new ZodValidationPipe(ModerateDiscoverTripInputSchema))
     input: ModerateDiscoverTripInput,
     @CurrentUser() user: AuthUser,
   ): Promise<DiscoverTrip> {
+    this.logger.warn('DEPRECATED: moderateDiscoverTrip called — use moderateTripTemplate instead');
     if (user.role !== 'admin') throw new ForbiddenException('Admin access required');
     return this.discoverTripsService.moderateTrip({
       discoverTripId: input.discoverTripId,

@@ -1,4 +1,4 @@
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { Injectable, Logger, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
@@ -11,10 +11,17 @@ import { IsRouteSavedLoader } from './is-route-saved.loader';
 import { Route, RouteConnection } from './models/route.model';
 import { SavedRoutesService } from './saved-routes.service';
 
+/**
+ * @deprecated This entire resolver is deprecated. New clients should use
+ * savedTrips / saveTripTemplate / unsaveTripTemplate queries/mutations
+ * from TripsResolver instead. Kept for backward compatibility with old mobile app versions.
+ */
 @Resolver(() => Route)
 @UseGuards(GqlAuthGuard)
 @Injectable({ scope: Scope.REQUEST })
 export class SavedRoutesResolver {
+  private readonly logger = new Logger(SavedRoutesResolver.name);
+
   constructor(
     private readonly savedRoutesService: SavedRoutesService,
     private readonly isRouteSavedLoader: IsRouteSavedLoader,
@@ -24,6 +31,7 @@ export class SavedRoutesResolver {
   // Queries
   // ==========================================
 
+  /** @deprecated Use savedTrips query instead */
   @Query(() => RouteConnection, {
     description: "Paginated list of the authenticated user's saved routes",
   })
@@ -33,9 +41,11 @@ export class SavedRoutesResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteConnection> {
+    this.logger.warn('DEPRECATED: savedRoutes called — use savedTrips instead');
     return this.savedRoutesService.getUserSavedRoutes(user.id, first ?? 20, after);
   }
 
+  /** @deprecated Use publicSavedTrips query instead */
   @Query(() => RouteConnection, {
     description: 'Public saved routes for a user by handle (public_username)',
   })
@@ -46,6 +56,7 @@ export class SavedRoutesResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteConnection> {
+    this.logger.warn('DEPRECATED: publicSavedRoutes called — use publicSavedTrips instead');
     return this.savedRoutesService.getPublicSavedRoutes(handle, first ?? 20, after);
   }
 
