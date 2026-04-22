@@ -1522,11 +1522,16 @@ ${rteptElements}
                     onPress={() => {
                       if (process.env.EXPO_OS === 'ios')
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                      router.push('/(modals)/create-trip');
+                      // Same as clone: pass source id so create-trip sets sane dates (templates have
+                      // placeholder 1970 dates) and pre-fills route — user still edits title/dates.
+                      router.push({
+                        pathname: '/(modals)/create-trip',
+                        params: { cloneFromTripId: tripId },
+                      });
                     }}
                     accessibilityRole="button"
                     accessibilityLabel="Plan your own trip"
-                    accessibilityHint="Opens the trip planner with a blank trip. Set your own dates."
+                    accessibilityHint="Opens the trip planner with this route pre-filled. You set the dates."
                     style={({ pressed }) => ({
                       flexDirection: 'row',
                       alignItems: 'center',

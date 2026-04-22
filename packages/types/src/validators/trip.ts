@@ -177,6 +177,20 @@ const MAX_PAST_DAYS = 365; // startDate cannot be more than 1 year in the past
 const MAX_FUTURE_DAYS = 5 * 365; // endDate cannot be more than 5 years in the future
 const MAX_TRIP_SPAN_DAYS = 365; // maximum trip duration
 
+type TripDateRangeOptions = {
+  /**
+   * When true (default), startDate must be within the last `MAX_PAST_DAYS`.
+   * Set false for **update** mutation: templates use placeholder dates (e.g. epoch);
+   * organisers may also adjust older planned trips without re-creating them.
+   */
+  enforceStartNotTooFarInPast?: boolean;
+  /**
+   * When true (default for create), startDate must not be later than `MAX_FUTURE_DAYS` from now.
+   * Set false for **update** (same reasons as `enforceStartNotTooFarInPast`).
+   */
+  enforceStartNotTooFarInFuture?: boolean;
+};
+
 /**
  * Validates that a start/end date pair (as ISO date strings) falls within
  * the allowed planning window and the overall trip span is bounded.
@@ -186,11 +200,14 @@ function validateTripDateRange(
   ctx: z.RefinementCtx,
   startDate: string | undefined,
   endDate: string | undefined,
+  options: TripDateRangeOptions = {},
 ): void {
+  const { enforceStartNotTooFarInPast = true, enforceStartNotTooFarInFuture = true } = options;
   if (!startDate && !endDate) return;
 
   const now = Date.now();
   const minStart = now - MAX_PAST_DAYS * ONE_DAY_MS;
+  const maxStart = now + MAX_FUTURE_DAYS * ONE_DAY_MS;
   const maxEnd = now + MAX_FUTURE_DAYS * ONE_DAY_MS;
 
   let startMs: number | undefined;
@@ -206,10 +223,17 @@ function validateTripDateRange(
       });
       return;
     }
-    if (startMs < minStart) {
+    if (enforceStartNotTooFarInPast && startMs < minStart) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'startDate cannot be more than 1 year in the past',
+        path: ['startDate'],
+      });
+    }
+    if (enforceStartNotTooFarInFuture && startMs > maxStart) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'startDate cannot be more than 5 years in the future',
         path: ['startDate'],
       });
     }
@@ -273,6 +297,42 @@ const InlineWaypointSchema = z.object({
   periodOfDay: PeriodOfDaySchema.nullable().optional(),
 });
 
+type InlineWaypoint = z.infer<typeof InlineWaypointSchema>;
+
+/**
+ * Create-trip-with-waypoints: if any waypoints are sent, require a minimal routable set.
+ * Empty array is allowed (organiser adds stops after creation).
+ */
+function validateCreateTripWaypoints(ctx: z.RefinementCtx, waypoints: InlineWaypoint[]): void {
+  if (waypoints.length === 0) return;
+  if (waypoints.length < 2) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        'Add at least two waypoints (start and end) or save with no waypoints to add them later',
+      path: ['waypoints'],
+    });
+    return;
+  }
+  const hasStart = waypoints.some((w) => w.type === 'start');
+  const hasEnd = waypoints.some((w) => w.type === 'end');
+  if (!hasStart || !hasEnd) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Waypoints must include one start and one end',
+      path: ['waypoints'],
+    });
+  }
+  const sortOrders = waypoints.map((w) => w.sortOrder);
+  if (new Set(sortOrders).size !== sortOrders.length) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Each waypoint must have a unique sortOrder',
+      path: ['waypoints'],
+    });
+  }
+}
+
 // ==========================================
 // Template fields (is_template = true)
 // ==========================================
@@ -306,8 +366,18 @@ const TemplateFieldsSchema = z.object({
 
 export const CreateTripInputSchema = z
   .object({
-    title: z.string().min(1).max(100),
-    description: z.string().min(1).max(2000),
+    title: z
+      .string()
+      .min(1)
+      .max(100)
+      .transform((s) => stripHtml(s).trim())
+      .pipe(z.string().min(1).max(100)),
+    description: z
+      .string()
+      .min(1)
+      .max(2000)
+      .transform((s) => stripHtml(s).trim())
+      .pipe(z.string().min(1).max(2000)),
     startDate: z.string().date(),
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
@@ -315,7 +385,10 @@ export const CreateTripInputSchema = z
     visibility: TripVisibilitySchema.optional(),
   })
   .superRefine((data, ctx) => {
-    validateTripDateRange(ctx, data.startDate, data.endDate);
+    validateTripDateRange(ctx, data.startDate, data.endDate, {
+      enforceStartNotTooFarInPast: true,
+      enforceStartNotTooFarInFuture: true,
+    });
   });
 
 export type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
@@ -324,8 +397,18 @@ export type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
 
 export const CreateTripWithWaypointsInputSchema = z
   .object({
-    title: z.string().min(1).max(100),
-    description: z.string().min(1).max(2000),
+    title: z
+      .string()
+      .min(1)
+      .max(100)
+      .transform((s) => stripHtml(s).trim())
+      .pipe(z.string().min(1).max(100)),
+    description: z
+      .string()
+      .min(1)
+      .max(2000)
+      .transform((s) => stripHtml(s).trim())
+      .pipe(z.string().min(1).max(2000)),
     startDate: z.string().date(),
     endDate: z.string().date(),
     difficulty: TripDifficultySchema,
@@ -334,7 +417,11 @@ export const CreateTripWithWaypointsInputSchema = z
     waypoints: z.array(InlineWaypointSchema).min(0).max(25),
   })
   .superRefine((data, ctx) => {
-    validateTripDateRange(ctx, data.startDate, data.endDate);
+    validateTripDateRange(ctx, data.startDate, data.endDate, {
+      enforceStartNotTooFarInPast: true,
+      enforceStartNotTooFarInFuture: true,
+    });
+    validateCreateTripWaypoints(ctx, data.waypoints);
   });
 
 export type CreateTripWithWaypointsInput = z.infer<typeof CreateTripWithWaypointsInputSchema>;
@@ -354,7 +441,10 @@ export const UpdateTripInputSchema = z
     waypoints: z.array(InlineWaypointSchema).min(0).max(25).optional(),
   })
   .superRefine((data, ctx) => {
-    validateTripDateRange(ctx, data.startDate, data.endDate);
+    validateTripDateRange(ctx, data.startDate, data.endDate, {
+      enforceStartNotTooFarInPast: false,
+      enforceStartNotTooFarInFuture: false,
+    });
   });
 
 export type UpdateTripInput = z.infer<typeof UpdateTripInputSchema>;

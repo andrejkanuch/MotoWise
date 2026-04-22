@@ -63,6 +63,12 @@ import {
 import { getRouteSegments, type RouteLeg } from '../../utils/mapbox-directions';
 import type { GeocodingResult } from '../../utils/mapbox-geocoding';
 import { groupByPeriod, PERIOD_HINT, PERIOD_LABEL } from '../../utils/period-of-day';
+import {
+  datesForClonedTemplate,
+  getDefaultNewTripDateRange,
+  safeTripDatesFromApi,
+  validateTripFormDateRangeForSave,
+} from '../../utils/trip-form-dates';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
 
@@ -245,8 +251,31 @@ export default function CreateTripScreen() {
     setDifficulty(trip.difficulty as Difficulty);
     setMaxRiders(String(trip.maxRiders));
     if (isEditMode) {
-      setStartDate(new Date(`${trip.startDate}T09:00:00`));
-      setEndDate(new Date(`${trip.endDate}T18:00:00`));
+      const fromApi = safeTripDatesFromApi(trip.startDate, trip.endDate);
+      if (fromApi.ok) {
+        setStartDate(fromApi.start);
+        setEndDate(fromApi.end);
+      } else {
+        const { start, end } = getDefaultNewTripDateRange();
+        setStartDate(start);
+        setEndDate(end);
+      }
+    } else if (isCloneMode) {
+      if (trip.isTemplate) {
+        const { start, end } = datesForClonedTemplate(trip.dayCount);
+        setStartDate(start);
+        setEndDate(end);
+      } else {
+        const fromApi = safeTripDatesFromApi(trip.startDate, trip.endDate);
+        if (fromApi.ok) {
+          setStartDate(fromApi.start);
+          setEndDate(fromApi.end);
+        } else {
+          const { start, end } = getDefaultNewTripDateRange();
+          setStartDate(start);
+          setEndDate(end);
+        }
+      }
     }
     if (trip.visibility) {
       // A cloned trip starts private — user opts back into public explicitly.
@@ -310,9 +339,15 @@ export default function CreateTripScreen() {
     setEditingWaypoint(null);
   }, [editingWaypoint, editName, editType, editNotes, editPeriod]);
 
+  const dateRangeError = useMemo(
+    () => validateTripFormDateRangeForSave(startDate, endDate),
+    [startDate, endDate],
+  );
+
   const isValid =
     title.trim().length > 0 &&
     description.trim().length > 0 &&
+    !dateRangeError &&
     startDate <= endDate &&
     waypoints.length >= 2;
 
@@ -1281,6 +1316,17 @@ export default function CreateTripScreen() {
                         )}
                       </View>
                     </View>
+                    {dateRangeError ? (
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: palette.danger500,
+                          marginTop: 8,
+                        }}
+                      >
+                        {dateRangeError}
+                      </Text>
+                    ) : null}
                   </Animated.View>
 
                   {/* Difficulty */}

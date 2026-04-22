@@ -695,6 +695,28 @@ export class TripLifecycleService {
     if (input.description !== undefined) update.description = input.description;
     if (input.startDate !== undefined) update.start_date = input.startDate;
     if (input.endDate !== undefined) update.end_date = input.endDate;
+
+    // Cloned template rows use dates_pending + sentinel 1970-01-01. Saving real
+    // dates must clear the flag or chk_trips_date_range fails.
+    if (input.startDate !== undefined || input.endDate !== undefined) {
+      const { data: curDates, error: curErr } = await this.supabase
+        .from('trips')
+        .select('start_date, end_date')
+        .eq('id', tripId)
+        .single();
+      if (curErr) {
+        this.logger.error(`updateTrip load current dates: ${curErr.message} (${curErr.code})`);
+        throw new InternalServerErrorException('Failed to update trip');
+      }
+      const mergedStart = input.startDate ?? (curDates?.start_date as string);
+      const mergedEnd = input.endDate ?? (curDates?.end_date as string);
+      const SENTINEL = '1970-01-01';
+      if (mergedStart === SENTINEL && mergedEnd === SENTINEL) {
+        update.dates_pending = true;
+      } else {
+        update.dates_pending = false;
+      }
+    }
     if (input.difficulty !== undefined) update.difficulty = input.difficulty;
     if (input.maxRiders !== undefined) update.max_riders = input.maxRiders;
     if (input.visibility !== undefined) update.visibility = input.visibility;
@@ -723,6 +745,11 @@ export class TripLifecycleService {
 
     if (error) {
       this.logger.error(`updateTrip failed: ${error.message} (${error.code})`);
+      if (error.code === '23514') {
+        throw new BadRequestException(
+          'Invalid trip dates. The end date must be on or after the start date.',
+        );
+      }
       throw new InternalServerErrorException('Failed to update trip');
     }
 
