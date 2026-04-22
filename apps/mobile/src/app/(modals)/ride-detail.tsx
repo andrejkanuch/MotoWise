@@ -54,7 +54,7 @@ import {
   formatSpeed,
   formatTime,
 } from '../../utils/ride-formatters';
-import { enqueue } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 /** Decode Google-encoded polyline string to [lat, lng] pairs */
 function decodePolyline(encoded: string): [number, number][] {
@@ -234,7 +234,7 @@ export default function RideDetailScreen() {
         style: 'destructive',
         onPress: () => {
           trackEvent(AnalyticsEvent.RIDE_DELETED, { ride_id: rideId ?? '' });
-          enqueue('deleteRide', {
+          enqueueOrExecute('deleteRide', {
             variables: { id: rideId },
           });
           queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });

@@ -68,6 +68,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
       setJustCopied(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
     },
     onError: () => {
@@ -85,6 +86,7 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       setPlaintextToken(null);
       onClose();
     },

@@ -94,6 +94,17 @@ export class TripsResolver {
     return this.tripLifecycle.getTrips(first ?? 20, after);
   }
 
+  /** Upcoming public trips from real riders (non-templates) for Discover preview strip. */
+  @Query(() => TripConnection)
+  @Public()
+  async discoverRiderTrips(
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 5 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripConnection> {
+    return this.tripLifecycle.getDiscoverRiderTrips(first ?? 5, after);
+  }
+
   @Query(() => TripConnection)
   async myTrips(
     @CurrentUser() user: AuthUser,

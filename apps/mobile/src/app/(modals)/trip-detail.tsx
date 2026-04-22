@@ -414,6 +414,7 @@ export default function TripDetailScreen() {
   const invalidateTrip = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
   }, [queryClient, tripId]);
 
   const joinMutation = useMutation({
@@ -454,6 +455,9 @@ export default function TripDetailScreen() {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setPublishedToDiscover(true);
+      queryClient.invalidateQueries({ queryKey: queryKeys.tripTemplates.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
       Alert.alert(
         'Published to Discover',
         'Your trip is now a template that other riders can browse and clone.',
@@ -530,6 +534,7 @@ export default function TripDetailScreen() {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       Alert.alert('Cloned!', 'This trip has been added to your trips.');
     },
     onError: (err: Error) => {
@@ -1301,10 +1306,13 @@ ${rteptElements}
                       <MapPin size={16} color={palette.accent500} />
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
-                          {waypoints.find((w) => w.type === 'start')?.name ?? waypoints[0].name}
+                          {waypoints.find((w) => w.type === 'start')?.name ||
+                            waypoints[0].name ||
+                            'Start'}
                           {'  \u2192  '}
-                          {waypoints.find((w) => w.type === 'end')?.name ??
-                            waypoints[waypoints.length - 1].name}
+                          {waypoints.find((w) => w.type === 'end')?.name ||
+                            waypoints[waypoints.length - 1].name ||
+                            'End'}
                         </Text>
                         {trip.city && (
                           <Text style={{ fontSize: 12, color: subtitleColor }}>

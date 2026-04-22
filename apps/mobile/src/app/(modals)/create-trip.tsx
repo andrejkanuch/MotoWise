@@ -500,6 +500,7 @@ export default function CreateTripScreen() {
         waypoint_count: waypoints.length,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       router.back();
     },
@@ -527,6 +528,7 @@ export default function CreateTripScreen() {
         max_riders: Number.parseInt(maxRiders, 10) || 10,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       router.back();
     },
@@ -553,6 +555,7 @@ export default function CreateTripScreen() {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       router.back();
@@ -576,6 +579,7 @@ export default function CreateTripScreen() {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       router.back();
@@ -597,6 +601,7 @@ export default function CreateTripScreen() {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       queryClient.removeQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
       // Pop both the edit modal AND the trip-detail modal underneath it.

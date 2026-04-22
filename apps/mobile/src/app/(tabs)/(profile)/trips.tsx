@@ -316,6 +316,7 @@ export default function MyTripsScreen() {
     onSuccess: (_data, tripId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.removeQueries({ queryKey: queryKeys.trips.detail(tripId) });
     },
     onError: (err) => {

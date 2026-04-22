@@ -10,7 +10,7 @@ import {
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
-import { enqueue } from './ride-sync-queue';
+import { enqueueOrExecute } from './ride-sync-queue';
 
 // --- Constants ---
 
@@ -175,7 +175,7 @@ function processLocation(location: Location.LocationObject): void {
   const flushedChunk = appendWaypoint(rideId, waypoint);
   if (flushedChunk) {
     // Chunk was flushed to MMKV — queue for server upload
-    enqueue('uploadWaypoints', {
+    enqueueOrExecute('uploadWaypoints', {
       variables: { input: { rideId, waypoints: flushedChunk } },
     });
   }
@@ -210,7 +210,7 @@ function autoEndRide(idleSince: number): void {
   stopGPSListener();
   clearPointBuffer();
 
-  enqueue('endRide', {
+  enqueueOrExecute('endRide', {
     variables: {
       input: {
         rideId,

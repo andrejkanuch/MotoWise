@@ -96,6 +96,8 @@ export const queryKeys = {
     all: ['trips'] as const,
     detail: (id: string) => ['trips', 'detail', id] as const,
     my: ['trips', 'my'] as const,
+    /** Discover horizontal strip: upcoming non-template public trips. */
+    discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
   },
   tripTemplates: {
     all: ['tripTemplates'] as const,

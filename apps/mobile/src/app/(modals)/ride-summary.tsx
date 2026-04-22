@@ -47,7 +47,7 @@ import {
   formatSpeed,
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
-import { enqueue } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 /** Smart ride naming using time-of-day */
 function smartRideName(startedAt: number): string {
@@ -209,7 +209,7 @@ export default function RideSummaryScreen() {
     try {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
 
-      enqueue('updateRide', {
+      enqueueOrExecute('updateRide', {
         variables: {
           input: {
             rideId,

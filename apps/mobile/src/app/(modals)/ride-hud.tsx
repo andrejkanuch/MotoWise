@@ -31,7 +31,7 @@ import {
   getWaypointChunks,
   rideMMKV,
 } from '../../utils/ride-storage';
-import { enqueue } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -199,7 +199,7 @@ export default function RideHudScreen() {
     endRide();
     stopGPSListener();
 
-    enqueue('endRide', {
+    enqueueOrExecute('endRide', {
       mutationDocument: EndRideDocument,
       variables: {
         input: {

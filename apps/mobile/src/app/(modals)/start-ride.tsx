@@ -34,7 +34,7 @@ import { useRideStore } from '../../stores/ride.store';
 import { startGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';
-import { enqueue } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 export default function StartRideScreen() {
   const router = useRouter();
@@ -99,7 +99,7 @@ export default function StartRideScreen() {
   const handleEndUnfinished = useCallback(() => {
     const rideId = rideMMKV.getCurrentId();
     if (rideId) {
-      enqueue('endRide', {
+      enqueueOrExecute('endRide', {
         variables: {
           input: {
             rideId,
@@ -140,7 +140,7 @@ export default function StartRideScreen() {
       if (selectedBikeId) rideMMKV.setMotorcycleId(selectedBikeId);
       startRide();
 
-      enqueue('startRide', {
+      enqueueOrExecute('startRide', {
         mutationDocument: StartRideDocument,
         variables: {
           input: {

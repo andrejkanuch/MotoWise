@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { GetTripsDocument, type GetTripsQuery } from '@motovault/graphql';
+import { DiscoverRiderTripsDocument, type DiscoverRiderTripsQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { MapPin, Plus } from 'lucide-react-native';
@@ -10,7 +10,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { TripCard } from './trip-card';
 
-type TripNode = GetTripsQuery['getTrips']['edges'][number]['node'];
+type TripNode = DiscoverRiderTripsQuery['discoverRiderTrips']['edges'][number]['node'];
 
 export function TripSection() {
   const isDark = useColorScheme() === 'dark';
@@ -23,13 +23,13 @@ export function TripSection() {
   const createBorder = isDark ? palette.surfaceElevated : palette.neutral200;
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.trips.all,
-    queryFn: () => gqlFetcher(GetTripsDocument, { first: 5 }),
+    queryKey: queryKeys.trips.discoverRiderStrip,
+    queryFn: () => gqlFetcher(DiscoverRiderTripsDocument, { first: 5 }),
   });
 
-  const trips = useMemo(() => {
-    if (!data?.getTrips?.edges) return [];
-    return data.getTrips.edges.map((e) => e.node);
+  const trips = useMemo((): TripNode[] => {
+    if (!data?.discoverRiderTrips?.edges) return [];
+    return data.discoverRiderTrips.edges.map((e) => e.node);
   }, [data]);
 
   const handleTripPress = useCallback(
@@ -48,7 +48,6 @@ export function TripSection() {
       entering={reducedMotion ? undefined : FadeInUp.duration(300).delay(100)}
       style={{ gap: 10 }}
     >
-      {/* Header */}
       <View style={{ gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <MapPin size={18} color={palette.accent500} />
@@ -64,16 +63,13 @@ export function TripSection() {
           </Text>
         </View>
         <Text style={{ fontSize: 12, color: subtitleColor, marginLeft: 26 }}>
-          Clone a multi-day itinerary instead of planning from scratch.
+          Upcoming trips riders actually scheduled — not browseable templates.
         </Text>
       </View>
 
-      {/* Content */}
       {isLoading ? (
         <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 24 }} />
       ) : trips.length === 0 ? (
-        // Secondary style — the "Plan Trip" FAB is the primary entry point on
-        // this screen. This empty-state is a quiet inline nudge, not a duplicate CTA.
         <Pressable
           onPress={handleCreate}
           accessibilityRole="button"
@@ -96,7 +92,7 @@ export function TripSection() {
         >
           <MapPin size={16} color={subtitleColor} />
           <Text style={{ fontSize: 13, color: subtitleColor, flex: 1 }}>
-            No trips yet — tap Plan Trip to start one.
+            No upcoming public trips to show — tap Plan Trip to add yours.
           </Text>
         </Pressable>
       ) : (
@@ -106,7 +102,7 @@ export function TripSection() {
           style={{ marginHorizontal: -16 }}
           contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
         >
-          {trips.map((trip: TripNode, index: number) => (
+          {trips.map((trip, index) => (
             <TripCard
               key={trip.id}
               trip={trip}
@@ -115,7 +111,6 @@ export function TripSection() {
             />
           ))}
 
-          {/* Create button at end */}
           <Pressable
             onPress={handleCreate}
             accessibilityRole="button"

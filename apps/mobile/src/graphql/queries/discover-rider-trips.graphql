@@ -1,0 +1,38 @@
+query DiscoverRiderTrips($first: Int, $after: String) {
+  discoverRiderTrips(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        title
+        description
+        startDate
+        endDate
+        difficulty
+        maxRiders
+        participantCount
+        status
+        visibility
+        coverImageUrl
+        createdAt
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+        waypoints {
+          id
+          sortOrder
+          dayIndex
+          lat
+          lng
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

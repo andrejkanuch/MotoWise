@@ -93,12 +93,12 @@ export function enqueue(type: SyncOperationType, payload: Record<string, unknown
 export async function enqueueOrExecute(
   type: SyncOperationType,
   payload: Record<string, unknown>,
-  document: Parameters<typeof gqlFetcher>[0],
-  variables: Record<string, unknown>,
 ): Promise<void> {
   const networkState = await Network.getNetworkStateAsync();
   if (networkState.isConnected && networkState.isInternetReachable) {
     try {
+      const document = MUTATION_DOCUMENT_MAP[type];
+      const { variables } = payload as { variables: Record<string, unknown> };
       await gqlFetcher(document, variables as never);
       return;
     } catch (error) {

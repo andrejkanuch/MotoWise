@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection, TripWaypoint } from '../models/trip.model';
 
@@ -176,7 +177,10 @@ export async function verifyOrganiser(
 export class TripLifecycleService {
   private readonly logger = new Logger(TripLifecycleService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+  ) {}
 
   async getTrips(first: number, after?: string): Promise<TripConnection> {
     const limit = Math.min(first, 50);
@@ -208,6 +212,80 @@ export class TripLifecycleService {
 
     if (error) {
       this.logger.error(`getTrips failed: ${error.message} (${error.code})`);
+      throw new InternalServerErrorException('Failed to fetch trips');
+    }
+
+    const rows = (data ?? []) as unknown as TripRow[];
+    const hasNextPage = rows.length > limit;
+    const sliced = hasNextPage ? rows.slice(0, limit) : rows;
+
+    const edges = sliced.map((row) => {
+      const node = mapRowToTrip(row);
+      return {
+        node,
+        cursor: Buffer.from(`${row.start_date}|${row.id}`).toString('base64'),
+      };
+    });
+
+    const lastEdge = edges[edges.length - 1];
+
+    return {
+      edges,
+      pageInfo: {
+        hasNextPage,
+        endCursor: lastEdge?.cursor,
+      },
+    };
+  }
+
+  /**
+   * Discover “trips from riders” strip: real planned public trips only — not browseable
+   * templates, not data-migration rows, not placeholder dates, and not organised by admin seed users.
+   */
+  async getDiscoverRiderTrips(first: number, after?: string): Promise<TripConnection> {
+    const limit = Math.min(first, 50);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { data: adminRows, error: adminErr } = await this.supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('role', 'admin');
+    if (adminErr) {
+      this.logger.warn(`getDiscoverRiderTrips admin lookup: ${adminErr.message}`);
+    }
+    const adminIds = (adminRows ?? []).map((r: { id: string }) => r.id);
+
+    let query = this.supabase
+      .from('trips')
+      .select(TRIP_SELECT)
+      .eq('is_template', false)
+      .eq('dates_pending', false)
+      .is('migrated_from_discover_trip_id', null)
+      .in('status', ['published', 'active'])
+      .eq('visibility', 'public')
+      .gte('start_date', today)
+      .order('start_date', { ascending: true })
+      .order('id', { ascending: true })
+      .limit(limit + 1);
+
+    if (adminIds.length > 0) {
+      query = query.not('organiser_user_id', 'in', `(${adminIds.join(',')})`);
+    }
+
+    if (after) {
+      const decoded = Buffer.from(after, 'base64').toString('utf-8');
+      const [startDate, id] = decoded.split('|');
+      if (startDate && id) {
+        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
+      } else if (startDate) {
+        query = query.gt('start_date', startDate);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      this.logger.error(`getDiscoverRiderTrips failed: ${error.message} (${error.code})`);
       throw new InternalServerErrorException('Failed to fetch trips');
     }
 

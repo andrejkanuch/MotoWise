@@ -1195,6 +1195,7 @@ type Query {
   """Regions with population > 0 for a country slug"""
   browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
+  discoverRiderTrips(after: String, first: Int = 5): TripConnection!
   discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection! @deprecated(reason: "Use discoverTrips query instead. Removal target: 8 weeks post-OTA.")
   discoverTripById(id: ID!): DiscoverTrip!
   discoverTripBySlug(country: String!, region: String!, slug: String!): DiscoverTrip!

@@ -1,16 +1,13 @@
 import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
-import { Calendar, EyeOff, Globe, Lock, MapPin, User, Users } from 'lucide-react-native';
-import { type ComponentType, useMemo } from 'react';
-import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Calendar, MapPin } from 'lucide-react-native';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { computeTripCompleteness } from '../../utils/trip-completeness';
-import { CompletenessRing } from '../trip/completeness-ring';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -22,10 +19,6 @@ interface TripCardProps {
     startDate: string;
     endDate: string;
     difficulty: string;
-    participantCount: number;
-    maxRiders: number;
-    visibility?: string | null;
-    organiser: { displayName: string; avatarUrl?: string | null };
     waypoints?: { id: string; lat: number; lng: number }[] | null;
   };
   index: number;
@@ -48,25 +41,6 @@ const DIFFICULTY_LABELS = {
   expert: 'Expert',
 } as const;
 
-type VisibilityKey = 'private' | 'unlisted' | 'public';
-
-const VISIBILITY_STYLES: Record<
-  VisibilityKey,
-  { Icon: ComponentType<{ size?: number; color?: string }>; label: string; tint: string }
-> = {
-  private: { Icon: Lock, label: 'Private', tint: palette.neutral500 },
-  unlisted: { Icon: EyeOff, label: 'Link only', tint: palette.warning500 },
-  public: { Icon: Globe, label: 'Public', tint: palette.success500 },
-};
-
-function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
-  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  if (start === end) return s.toLocaleDateString('en-US', opts);
-  return `${s.toLocaleDateString('en-US', opts)} – ${e.toLocaleDateString('en-US', opts)}`;
-}
-
 function dayCount(start: string, end: string): number {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   return Math.max(1, Math.round(ms / 86_400_000) + 1);
@@ -79,41 +53,13 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
   const titleColor = isDark ? palette.white : palette.neutral950;
   const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
   const metaColor = isDark ? palette.neutral300 : palette.neutral500;
-  const avatarFallbackBg = isDark ? palette.neutral800 : palette.neutral200;
 
   const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof DIFFICULTY_COLORS;
   const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
   const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
 
-  // Harden against unknown visibility strings from the server.
-  const rawVis = (trip.visibility ?? 'private').toLowerCase();
-  const visibilityKey: VisibilityKey =
-    rawVis === 'public' || rawVis === 'unlisted' || rawVis === 'private'
-      ? (rawVis as VisibilityKey)
-      : 'private';
-  const vis = VISIBILITY_STYLES[visibilityKey];
-  const VisIcon = vis.Icon;
-
   const days = dayCount(trip.startDate, trip.endDate);
   const stopCount = trip.waypoints?.length ?? 0;
-  // Clamp so "7/5 riders" can't surface — happens if backend race lets extras in.
-  const maxRiders = Math.max(1, trip.maxRiders ?? 1);
-  const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
-
-  // P4.2 — planning-completeness ring, lives in the badge row as a passive nudge.
-  // Memoised so a parent re-render (e.g. scroll position in FlatList) doesn't
-  // recompute the dimensions/sort for every visible card.
-  const completeness = useMemo(
-    () =>
-      computeTripCompleteness({
-        description: trip.description,
-        waypointCount: stopCount,
-        dayCount: days,
-        participantCount,
-        maxRiders,
-      }),
-    [trip.description, stopCount, days, participantCount, maxRiders],
-  );
 
   const scale = useSharedValue(1);
   const pressStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -130,7 +76,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
     onPress();
   };
 
-  const a11yLabel = `${trip.title}, a ${diffLabel.toLowerCase()} ${days}-day trip with ${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}. ${participantCount} of ${maxRiders} riders signed up, led by ${trip.organiser.displayName}. ${vis.label}.`;
+  const a11yLabel = `${trip.title}, a ${diffLabel.toLowerCase()} ${days}-day trip with ${stopCount} ${stopCount === 1 ? 'stop' : 'stops'}.`;
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(250)}>
@@ -157,32 +103,9 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
           pressStyle,
         ]}
       >
-        {/* Badge row — visibility + difficulty (Trip badge dropped; section header already says so) */}
+        {/* Badge row — difficulty only (visibility, completeness ring hidden for seeded data) */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-              backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 8,
-              borderCurve: 'continuous',
-            }}
-            accessibilityLabel={`Visibility: ${vis.label}`}
-          >
-            <VisIcon size={10} color={vis.tint} />
-            <Text style={{ fontSize: 11, fontWeight: '700', color: vis.tint }}>{vis.label}</Text>
-          </View>
-
           <View style={{ flex: 1 }} />
-
-          {/* Planning-completeness ring — hidden at 100% so completed trips
-              feel done instead of cluttered with a flat 100 badge. */}
-          {completeness.percent < 100 && (
-            <CompletenessRing percent={completeness.percent} dark={isDark} size={26} stroke={2.5} />
-          )}
 
           <View
             style={{
@@ -219,7 +142,7 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
           </Text>
         ) : null}
 
-        {/* Stats strip */}
+        {/* Stats strip — days + stops only (riders hidden for seeded data) */}
         <View
           style={{
             flexDirection: 'row',
@@ -246,68 +169,6 @@ export function TripCard({ trip, index, onPress }: TripCardProps) {
               </Text>
             </View>
           )}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Users size={12} color={palette.accent500} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
-              {participantCount}
-              <Text style={{ fontWeight: '500', color: metaColor }}>/{maxRiders}</Text>
-            </Text>
-          </View>
-        </View>
-
-        {/* Meta row — dates + organiser */}
-        <View
-          style={{
-            marginTop: 'auto',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-            paddingTop: 4,
-          }}
-        >
-          <Text style={{ fontSize: 12, color: metaColor, fontWeight: '500' }} numberOfLines={1}>
-            {formatDateRange(trip.startDate, trip.endDate)}
-          </Text>
-          <View
-            style={{
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: metaColor,
-              opacity: 0.6,
-            }}
-          />
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 5,
-              flexShrink: 1,
-            }}
-          >
-            {trip.organiser.avatarUrl ? (
-              <Image
-                source={{ uri: trip.organiser.avatarUrl }}
-                style={{ width: 16, height: 16, borderRadius: 8 }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 8,
-                  backgroundColor: avatarFallbackBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <User size={10} color={metaColor} />
-              </View>
-            )}
-            <Text style={{ fontSize: 12, color: metaColor, flexShrink: 1 }} numberOfLines={1}>
-              {trip.organiser.displayName}
-            </Text>
-          </View>
         </View>
       </AnimatedPressable>
     </Animated.View>

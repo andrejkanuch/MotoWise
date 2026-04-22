@@ -61,6 +61,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
+import { drainQueue } from '../utils/ride-sync-queue';
 
 // Keep native splash visible until animated splash is ready
 SplashScreen.preventAutoHideAsync();
@@ -298,6 +299,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Drain ride sync queue on app resume + initial mount
+  useEffect(() => {
+    drainQueue();
+    const { AppState } = require('react-native');
+    const sub = AppState.addEventListener('change', (state: string) => {
+      if (state === 'active') drainQueue();
+    });
+    return () => sub.remove();
   }, []);
 
   // Initialize RevenueCat SDK with cleanup
