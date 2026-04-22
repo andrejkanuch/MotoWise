@@ -19,6 +19,7 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
@@ -139,6 +140,12 @@ export default function BikePhotoScreen() {
       nickname: nickname.trim() || undefined,
       photoUri: photoUri ?? undefined,
     });
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'bike_photo',
+      step_index: 6,
+      has_photo: !!photoUri,
+      has_nickname: !!nickname.trim(),
+    });
 
     router.replace('/(onboarding)/currency');
   };
@@ -147,6 +154,10 @@ export default function BikePhotoScreen() {
     setBikeData({
       ...(bikeData as NonNullable<typeof bikeData>),
       nickname: nickname.trim() || undefined,
+    });
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
+      step: 'bike_photo',
+      step_index: 6,
     });
 
     router.replace('/(onboarding)/currency');

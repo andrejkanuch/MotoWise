@@ -8,7 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3, Info, X } from 'lucide-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -35,6 +35,7 @@ import {
   useDashboardData,
   useExpenseDashboard,
 } from '../../../hooks/use-expense-dashboard';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -182,6 +183,10 @@ export default function ExpenseDashboardScreen() {
 
   const { dashboard, isPending, isError, refetch } = useExpenseDashboard(motorcycleId);
   const { filteredBuckets, periodTotal, categoryTotals } = useDashboardData(dashboard, period);
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.EXPENSE_DASHBOARD_VIEWED);
+  }, []);
 
   // Fetch bike data for purchase price (uses existing cache from garage tab)
   const { data: bikesData } = useQuery({

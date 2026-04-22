@@ -21,6 +21,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../../hooks/use-currency';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
@@ -91,6 +92,11 @@ export default function AddFuelLogScreen() {
         },
       }),
     onSuccess: () => {
+      trackEvent(AnalyticsEvent.FUEL_LOG_ADDED, {
+        motorcycle_id: motorcycleId,
+        volume_litres: fuelLitres,
+        cost: parsedCost ?? null,
+      });
       queryClient.invalidateQueries({ queryKey: ['fuel-logs', motorcycleId] });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),

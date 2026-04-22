@@ -9,6 +9,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CURRENCY_LIST } from '../../lib/currencies';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -40,6 +41,11 @@ export default function CurrencyScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'currency',
+      step_index: 7,
+      currency: selected,
+    });
     router.replace('/(onboarding)/smart-maintenance');
   };
 

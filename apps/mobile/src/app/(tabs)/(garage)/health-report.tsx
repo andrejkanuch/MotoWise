@@ -18,7 +18,7 @@ import {
   FileText,
   RefreshCw,
 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -32,6 +32,7 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HealthReportCard } from '../../../components/garage/HealthReportCard';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
@@ -49,6 +50,12 @@ export default function HealthReportScreen() {
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    if (bikeId) {
+      trackEvent(AnalyticsEvent.HEALTH_REPORT_VIEWED, { bike_id: bikeId });
+    }
+  }, [bikeId]);
 
   // Fetch bike info
   const { data: motorcyclesData } = useQuery({

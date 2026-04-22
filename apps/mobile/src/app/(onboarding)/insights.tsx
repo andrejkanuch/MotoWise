@@ -18,6 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
@@ -159,6 +160,12 @@ export default function InsightsScreen() {
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'insights',
+      step_index: 9,
+      insights_loaded: !!showCards,
+      insights_error: !!showError,
+    });
     router.replace('/(onboarding)/paywall');
   };
 

@@ -38,6 +38,7 @@ import {
   posthogClient,
   resetUser,
   sentryNavigationIntegration,
+  setUserProperties,
   trackEvent,
   trackScreen,
 } from '../lib/analytics';
@@ -58,6 +59,7 @@ import { clearPersistedQueryCache } from '../lib/query-persist';
 import { initRevenueCat, loginRevenueCat, logoutRevenueCat } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
+import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
 
 // Keep native splash visible until animated splash is ready
@@ -134,6 +136,21 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
       setMeasurementSystem(serverMeasurementSystem as typeof state.measurementSystem);
     }
   }, [serverCurrency, serverMeasurementSystem, setCurrency, setMeasurementSystem]);
+
+  // Sync user properties to PostHog for segmentation
+  const meData = meQuery.data?.me;
+  const isPro = useSubscriptionStore((s) => s.isPro);
+  useEffect(() => {
+    if (!session?.user?.id || !meData) return;
+    const prefs = meData.preferences as Record<string, unknown> | null | undefined;
+    setUserProperties({
+      experience_level: (prefs?.experienceLevel as string) ?? null,
+      is_pro: isPro,
+      currency: meData.currency ?? null,
+      locale: useAuthStore.getState().locale,
+      app_version: Application.nativeApplicationVersion ?? null,
+    });
+  }, [session?.user?.id, meData, isPro]);
 
   useEffect(() => {
     if (isLoading) return;

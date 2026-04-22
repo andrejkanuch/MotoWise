@@ -20,6 +20,7 @@ import {
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -107,6 +108,13 @@ export default function BikeModelScreen() {
       ...existingBikeData,
       model: modelName,
       ...(detectedType ? { type: detectedType } : {}),
+    });
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'bike_model',
+      step_index: 4,
+      bike_model: modelName,
+      is_custom_model: !!customModel.trim(),
+      type_auto_detected: !!detectedType,
     });
     router.replace('/(onboarding)/bike-type');
   };

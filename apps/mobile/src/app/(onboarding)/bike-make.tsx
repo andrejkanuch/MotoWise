@@ -19,6 +19,7 @@ import {
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -88,6 +89,12 @@ export default function BikeMakeScreen() {
       ...existingBikeData,
       make: customMake || selectedMake?.makeName || '',
       makeId: customMake ? 0 : (selectedMake?.makeId ?? 0),
+    });
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'bike_make',
+      step_index: 3,
+      bike_make: customMake || selectedMake?.makeName || '',
+      is_custom_make: !!customMake,
     });
     router.replace('/(onboarding)/bike-model');
   };

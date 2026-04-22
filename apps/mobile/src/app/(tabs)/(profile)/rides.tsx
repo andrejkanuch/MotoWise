@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { RideCard } from '../../../components/ride/ride-card';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
@@ -89,6 +90,10 @@ export default function RidesScreen() {
   const isDark = useColorScheme() === 'dark';
   const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.RIDES_HISTORY_VIEWED);
+  }, []);
 
   const system = useMeasurementSystem();
 

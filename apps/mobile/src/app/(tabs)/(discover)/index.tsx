@@ -514,21 +514,35 @@ export default function DiscoverScreen() {
           if (sk !== key) next.delete(sk);
         }
       }
-      if (next.has(key)) {
+      const wasActive = next.has(key);
+      if (wasActive) {
         next.delete(key);
       } else {
         next.add(key);
       }
+      trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
+        filter: key,
+        action: wasActive ? 'removed' : 'applied',
+        active_filters: [...next],
+      });
       return { ...prev, chips: next };
     });
   }, []);
 
   const toggleCountry = useCallback((key: SupportedCountryCode) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setFilters((prev) => ({
-      ...prev,
-      countryCode: prev.countryCode === key ? null : key,
-    }));
+    setFilters((prev) => {
+      const wasActive = prev.countryCode === key;
+      trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
+        filter: 'country',
+        country: key,
+        action: wasActive ? 'removed' : 'applied',
+      });
+      return {
+        ...prev,
+        countryCode: wasActive ? null : key,
+      };
+    });
   }, []);
 
   // --- Scroll animation ---

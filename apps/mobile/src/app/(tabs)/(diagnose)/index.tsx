@@ -32,6 +32,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -151,6 +152,10 @@ export default function DiagnoseScreen() {
   const motorcycles = motorcyclesData?.myMotorcycles ?? [];
 
   // monthlyDiagCount removed — diagnostics are now a paid feature, no free tier limit
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.DIAGNOSTIC_LIST_VIEWED);
+  }, []);
 
   // CTA glow pulse animation
   const glowOpacity = useSharedValue(0.3);
