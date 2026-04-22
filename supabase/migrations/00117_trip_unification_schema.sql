@@ -127,7 +127,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
 CREATE TRIGGER trg_trips_search_tsv
   BEFORE INSERT OR UPDATE OF title, description, city, is_template ON public.trips
   FOR EACH ROW
-  WHEN (NEW.is_template = true OR (OLD IS NOT NULL AND OLD.is_template IS DISTINCT FROM NEW.is_template))
+  WHEN (NEW.is_template = true)
   EXECUTE FUNCTION public.update_trip_search_tsv();
 
 -- ==========================================
