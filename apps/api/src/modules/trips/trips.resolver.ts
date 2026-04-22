@@ -51,9 +51,9 @@ export class TripsResolver {
     private readonly tripWaypoints: TripWaypointsService,
     private readonly tripParticipants: TripParticipantsService,
     private readonly tripSharing: TripSharingService,
-    private readonly tripTemplates: TripTemplatesService,
-    private readonly tripReviews: TripReviewsService,
-    private readonly tripSaves: TripSavesService,
+    private readonly tripTemplatesSvc: TripTemplatesService,
+    private readonly tripReviewsSvc: TripReviewsService,
+    private readonly tripSavesSvc: TripSavesService,
   ) {}
 
   // ==========================================
@@ -279,7 +279,7 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
-    return this.tripTemplates.listTemplates(filter, first ?? 20, after);
+    return this.tripTemplatesSvc.listTemplates(filter, first ?? 20, after);
   }
 
   @Query(() => Trip, { nullable: true })
@@ -289,7 +289,7 @@ export class TripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<Trip> {
-    return this.tripTemplates.getTemplateBySlug(country, region, slug);
+    return this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
   }
 
   // ==========================================
@@ -302,7 +302,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
-    return this.tripTemplates.publishAsTemplate(user.id, tripId);
+    return this.tripTemplatesSvc.publishAsTemplate(user.id, tripId);
   }
 
   @Mutation(() => Boolean)
@@ -311,7 +311,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripTemplates.unpublishTemplate(user.id, tripId);
+    return this.tripTemplatesSvc.unpublishTemplate(user.id, tripId);
   }
 
   @Mutation(() => ID, { description: 'Returns the new trip ID' })
@@ -320,7 +320,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<string> {
-    return this.tripTemplates.cloneTemplate(user.id, tripId);
+    return this.tripTemplatesSvc.cloneTemplate(user.id, tripId);
   }
 
   // ==========================================
@@ -335,8 +335,13 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
-    const connection = await this.tripReviews.getReviewsForTrip(tripId, first ?? 20, after);
-    return connection.edges.map((e: { node: TripReview }) => e.node);
+    const connection = await this.tripReviewsSvc.getReviewsForTrip(tripId, first ?? 20, after);
+    return connection.edges.map((e) => ({
+      ...e.node,
+      text: e.node.text ?? undefined,
+      bikeId: e.node.bikeId ?? undefined,
+      userId: e.node.userId ?? undefined,
+    }));
   }
 
   @Mutation(() => TripReview)
@@ -346,7 +351,8 @@ export class TripsResolver {
     @Args('input', new ZodValidationPipe(CreateTripReviewInputSchema))
     input: CreateTripReviewInput,
   ): Promise<TripReview> {
-    return this.tripReviews.createReview(user.id, input);
+    const review = await this.tripReviewsSvc.createReview(user.id, input);
+    return { ...review, text: review.text ?? undefined, bikeId: review.bikeId ?? undefined, userId: review.userId ?? undefined };
   }
 
   @Mutation(() => Boolean)
@@ -355,7 +361,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
   ): Promise<boolean> {
-    return this.tripReviews.deleteReview(user.id, reviewId);
+    return this.tripReviewsSvc.deleteReview(user.id, reviewId);
   }
 
   // ==========================================
@@ -368,7 +374,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripSaves.saveTrip(user.id, tripId);
+    return this.tripSavesSvc.saveTrip(user.id, tripId);
   }
 
   @Mutation(() => Boolean)
@@ -377,7 +383,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripSaves.unsaveTrip(user.id, tripId);
+    return this.tripSavesSvc.unsaveTrip(user.id, tripId);
   }
 
   @Query(() => Boolean)
@@ -385,7 +391,7 @@ export class TripsResolver {
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<boolean> {
-    return this.tripSaves.isTripSaved(user.id, tripId);
+    return this.tripSavesSvc.isTripSaved(user.id, tripId);
   }
 
   @Query(() => TripConnection)
@@ -395,6 +401,6 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
-    return this.tripSaves.savedTrips(user.id, first ?? 20, after);
+    return this.tripSavesSvc.savedTrips(user.id, first ?? 20, after);
   }
 }

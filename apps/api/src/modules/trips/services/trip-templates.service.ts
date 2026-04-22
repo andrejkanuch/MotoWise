@@ -370,18 +370,18 @@ export class TripTemplatesService {
     }
 
     // Increment clone_count on source (fire-and-forget via admin for atomic increment)
-    this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId }).then(({ error }) => {
+    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId })).then(({ error }) => {
       if (error) this.logger.error('Failed to increment clone_count', error);
-    }).catch((e) => this.logger.error('increment_trip_clone network error', e));
+    }).catch((e: unknown) => this.logger.error('increment_trip_clone network error', e));
 
     return newTrip.id;
   }
 
   async incrementViewCount(id: string): Promise<void> {
     // Fire-and-forget with admin client (no RLS needed)
-    this.supabaseAdmin.rpc('increment_trip_view', { p_id: id }).then(({ error }) => {
+    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_view', { p_id: id })).then(({ error }) => {
       if (error) this.logger.error('Failed to increment view count', error);
-    }).catch((e) => this.logger.error('increment_trip_view network error', e));
+    }).catch((e: unknown) => this.logger.error('increment_trip_view network error', e));
   }
 
   async moderateTemplate(userId: string, input: { tripId: string; isFlagged: boolean }): Promise<boolean> {
