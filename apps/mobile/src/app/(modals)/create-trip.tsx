@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   Calendar,
   ChevronDown,
+  Info,
   Map as MapIcon,
   Plus,
   Save,
@@ -97,17 +98,17 @@ const VISIBILITY_OPTIONS: { key: Visibility; label: string; description: string 
   {
     key: 'private',
     label: 'Private',
-    description: 'Only you and invited riders can see this trip',
+    description: 'Not on Discover. You and people you invite only.',
   },
   {
     key: 'unlisted',
     label: 'Unlisted',
-    description: 'Anyone with the link can view (and forward it). Not shown on Discover.',
+    description: 'Not on Discover. Anyone with the link can open it.',
   },
   {
     key: 'public',
     label: 'Public',
-    description: 'Listed in Discover for everyone to find',
+    description: 'On Discover. Anyone can find and view the listing.',
   },
 ];
 
@@ -664,6 +665,9 @@ export default function CreateTripScreen() {
     updateMutation.isPending ||
     updateAndPublishMutation.isPending ||
     deleteMutation.isPending;
+
+  const tripStatus = tripQuery.data?.tripDetail.status;
+  const isEditingDraft = isEditMode && tripStatus === 'draft';
   const sortedWaypoints = useMemo(
     () => [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder),
     [waypoints],
@@ -1377,7 +1381,7 @@ export default function CreateTripScreen() {
                     </View>
                   </Animated.View>
 
-                  {/* Visibility — privacy feature */}
+                  {/* Visibility — who can find / open the plan (separate from draft vs published) */}
                   <Animated.View
                     entering={reducedMotion ? undefined : FadeInUp.delay(225).duration(250)}
                   >
@@ -1386,10 +1390,21 @@ export default function CreateTripScreen() {
                         fontSize: 13,
                         fontWeight: '600',
                         color: labelColor,
-                        marginBottom: 6,
+                        marginBottom: 4,
                       }}
                     >
-                      Who can see this trip
+                      Visibility
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: subtitleColor,
+                        marginBottom: 8,
+                        lineHeight: 16,
+                      }}
+                    >
+                      Who can find or open this plan. You can change this any time; it is not the
+                      same as saving a draft or publishing.
                     </Text>
                     <View style={{ gap: 8 }}>
                       {VISIBILITY_OPTIONS.map((opt) => {
@@ -1535,7 +1550,7 @@ export default function CreateTripScreen() {
               )}
 
               {/* Published trip warning banner (edit mode only) */}
-              {isEditMode && tripQuery.data?.tripDetail.status === 'published' && (
+              {isEditMode && tripStatus === 'published' && (
                 <Animated.View
                   entering={reducedMotion ? undefined : FadeIn.duration(250)}
                   style={{
@@ -1556,12 +1571,43 @@ export default function CreateTripScreen() {
                 </Animated.View>
               )}
 
+              {/* Draft: explain "publish" (lifecycle) vs "public" (visibility) */}
+              {isEditMode && isEditingDraft && (
+                <Animated.View
+                  entering={reducedMotion ? undefined : FadeIn.duration(250)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                    backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                    paddingHorizontal: 12,
+                    paddingVertical: 11,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: inputBorder,
+                  }}
+                >
+                  <Info size={16} color={palette.accent500} style={{ marginTop: 1 }} />
+                  <Text style={{ fontSize: 12, color: subtitleColor, flex: 1, lineHeight: 18 }}>
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Draft</Text>
+                    {` stays in My Trips only. `}
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Publish</Text>
+                    {` makes it a live trip (for invites and the app). That is different from `}
+                    <Text style={{ fontWeight: '700', color: inputTextColor }}>Public</Text>
+                    {` above — you can publish a private trip (invite-only).`}
+                  </Text>
+                </Animated.View>
+              )}
+
               {/* Action buttons */}
               {isEditMode ? (
                 <View style={{ gap: 12, marginTop: 8 }}>
                   <View style={{ flexDirection: 'row', gap: 12 }}>
                     <Pressable
                       onPress={() => router.back()}
+                      accessibilityRole="button"
+                      accessibilityLabel="Close without saving"
                       style={{
                         flex: 1,
                         flexDirection: 'row',
@@ -1591,6 +1637,12 @@ export default function CreateTripScreen() {
                     <Pressable
                       onPress={() => updateMutation.mutate()}
                       disabled={!isValid || isSaving}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isEditingDraft
+                          ? 'Save draft, keep this trip in My Trips only'
+                          : 'Update trip, save your changes'
+                      }
                       style={{
                         flex: 1,
                         flexDirection: 'row',
@@ -1614,45 +1666,59 @@ export default function CreateTripScreen() {
                         <>
                           <Save size={16} color={palette.white} />
                           <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                            Save Changes
+                            {isEditingDraft ? 'Save draft' : 'Update trip'}
                           </Text>
                         </>
                       )}
                     </Pressable>
                   </View>
 
-                  {/* Publish — shown only when editing a draft trip */}
-                  {tripQuery.data?.tripDetail.status === 'draft' && (
-                    <Pressable
-                      onPress={() => updateAndPublishMutation.mutate()}
-                      disabled={!isValid || isSaving}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8,
-                        paddingVertical: 14,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        backgroundColor: isValid
-                          ? palette.success500
-                          : isDark
-                            ? palette.neutral800
-                            : palette.neutral300,
-                        opacity: isSaving ? 0.7 : 1,
-                      }}
-                    >
-                      {updateAndPublishMutation.isPending ? (
-                        <ActivityIndicator size="small" color={palette.white} />
-                      ) : (
-                        <>
-                          <Send size={16} color={palette.white} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                            Save &amp; Publish
-                          </Text>
-                        </>
-                      )}
-                    </Pressable>
+                  {/* Publish = draft → published (separate from Public visibility) */}
+                  {isEditingDraft && (
+                    <View style={{ gap: 4 }}>
+                      <Pressable
+                        onPress={() => updateAndPublishMutation.mutate()}
+                        disabled={!isValid || isSaving}
+                        accessibilityRole="button"
+                        accessibilityLabel="Publish trip, make it live with the visibility you set"
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          paddingVertical: 14,
+                          borderRadius: 14,
+                          borderCurve: 'continuous',
+                          backgroundColor: isValid
+                            ? palette.success500
+                            : isDark
+                              ? palette.neutral800
+                              : palette.neutral300,
+                          opacity: isSaving ? 0.7 : 1,
+                        }}
+                      >
+                        {updateAndPublishMutation.isPending ? (
+                          <ActivityIndicator size="small" color={palette.white} />
+                        ) : (
+                          <>
+                            <Send size={16} color={palette.white} />
+                            <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                              Publish
+                            </Text>
+                          </>
+                        )}
+                      </Pressable>
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          color: subtitleColor,
+                          textAlign: 'center',
+                          lineHeight: 15,
+                        }}
+                      >
+                        Moves this plan out of drafts. Uses the visibility you chose above.
+                      </Text>
+                    </View>
                   )}
 
                   {/* Delete — full width, danger outlined. Lives here (edit mode)
@@ -1689,78 +1755,96 @@ export default function CreateTripScreen() {
                   </Pressable>
                 </View>
               ) : (
-                <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-                  <Pressable
-                    onPress={() => saveMutation.mutate()}
-                    disabled={!isValid || isSaving}
-                    style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      borderWidth: 1,
-                      borderColor: isValid ? palette.accent500 : 'transparent',
-                      backgroundColor: isValid
-                        ? 'transparent'
-                        : isDark
-                          ? palette.neutral800
-                          : palette.neutral300,
-                      opacity: isSaving ? 0.7 : 1,
-                    }}
-                  >
-                    {saveMutation.isPending ? (
-                      <ActivityIndicator size="small" color={palette.accent500} />
-                    ) : (
-                      <>
-                        <Save size={16} color={isValid ? palette.accent500 : palette.white} />
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: '700',
-                            color: isValid ? palette.accent500 : palette.white,
-                          }}
-                        >
-                          Save Draft
-                        </Text>
-                      </>
-                    )}
-                  </Pressable>
+                <View style={{ gap: 6, marginTop: 8 }}>
+                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <Pressable
+                      onPress={() => saveMutation.mutate()}
+                      disabled={!isValid || isSaving}
+                      accessibilityRole="button"
+                      accessibilityLabel="Save as draft in My Trips"
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        paddingVertical: 14,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        borderWidth: 1,
+                        borderColor: isValid ? palette.accent500 : 'transparent',
+                        backgroundColor: isValid
+                          ? 'transparent'
+                          : isDark
+                            ? palette.neutral800
+                            : palette.neutral300,
+                        opacity: isSaving ? 0.7 : 1,
+                      }}
+                    >
+                      {saveMutation.isPending ? (
+                        <ActivityIndicator size="small" color={palette.accent500} />
+                      ) : (
+                        <>
+                          <Save size={16} color={isValid ? palette.accent500 : palette.white} />
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              fontWeight: '700',
+                              color: isValid ? palette.accent500 : palette.white,
+                            }}
+                          >
+                            Save Draft
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
 
-                  <Pressable
-                    onPress={() => publishMutation.mutate()}
-                    disabled={!isValid || isSaving}
+                    <Pressable
+                      onPress={() => publishMutation.mutate()}
+                      disabled={!isValid || isSaving}
+                      accessibilityRole="button"
+                      accessibilityLabel="Create trip and publish it live"
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        paddingVertical: 14,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        backgroundColor: isValid
+                          ? palette.accent500
+                          : isDark
+                            ? palette.neutral800
+                            : palette.neutral300,
+                        opacity: isSaving ? 0.7 : 1,
+                      }}
+                    >
+                      {publishMutation.isPending ? (
+                        <ActivityIndicator size="small" color={palette.white} />
+                      ) : (
+                        <>
+                          <Send size={16} color={palette.white} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                            Publish
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </View>
+                  <Text
                     style={{
-                      flex: 1,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: isValid
-                        ? palette.accent500
-                        : isDark
-                          ? palette.neutral800
-                          : palette.neutral300,
-                      opacity: isSaving ? 0.7 : 1,
+                      fontSize: 11,
+                      color: subtitleColor,
+                      textAlign: 'center',
+                      lineHeight: 15,
+                      paddingHorizontal: 4,
                     }}
                   >
-                    {publishMutation.isPending ? (
-                      <ActivityIndicator size="small" color={palette.white} />
-                    ) : (
-                      <>
-                        <Send size={16} color={palette.white} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                          Publish
-                        </Text>
-                      </>
-                    )}
-                  </Pressable>
+                    Save Draft keeps it in My Trips. Publish makes it a live trip with the
+                    visibility above.
+                  </Text>
                 </View>
               )}
             </View>
