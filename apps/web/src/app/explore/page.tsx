@@ -1,6 +1,5 @@
-import type { ExploreDiscoverRoutesQuery } from '@motovault/graphql';
-import { ExploreDiscoverRoutesDocument } from '@motovault/graphql';
-import type { ExploreRouteDbRow } from '@motovault/types';
+import type { TripTemplatesQuery } from '@motovault/graphql';
+import { TripTemplatesDocument } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
@@ -11,7 +10,7 @@ import { BASE_URL } from '@/lib/constants';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
-type ExploreRouteNode = ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 /* ── Constants ────────────────────────────────────────────────── */
 
@@ -31,16 +30,16 @@ const TOP_COUNTRIES = [
 ] as const;
 
 const TOP_ROUTES_SEO = [
-  { name: 'Pacific Coast Highway', href: '/route/us/ca/pacific-coast-highway' },
-  { name: 'Transfagarasan', href: '/route/ro/ag/transfgran' },
-  { name: 'Stelvio Pass', href: '/route/it/taa/stelvio-pass' },
-  { name: 'Grossglockner', href: '/route/at/k/grossglockner-hochalpenstrae' },
-  { name: 'Tail of the Dragon', href: '/route/us/tn/tail-of-the-dragon' },
-  { name: 'Col du Galibier', href: '/route/fr/paca/col-du-galibier' },
-  { name: 'Trollstigen', href: '/route/no/mr/trollstigen' },
-  { name: 'Sa Calobra', href: '/route/es/ib/sa-calobra' },
-  { name: 'Furka Pass', href: '/route/ch/vs/furka-pass' },
-  { name: 'Grimsel Pass', href: '/route/ch/vs/grimsel-pass' },
+  { name: 'Pacific Coast Highway', href: '/trips/us/ca/pacific-coast-highway' },
+  { name: 'Transfagarasan', href: '/trips/ro/ag/transfgran' },
+  { name: 'Stelvio Pass', href: '/trips/it/taa/stelvio-pass' },
+  { name: 'Grossglockner', href: '/trips/at/k/grossglockner-hochalpenstrae' },
+  { name: 'Tail of the Dragon', href: '/trips/us/tn/tail-of-the-dragon' },
+  { name: 'Col du Galibier', href: '/trips/fr/paca/col-du-galibier' },
+  { name: 'Trollstigen', href: '/trips/no/mr/trollstigen' },
+  { name: 'Sa Calobra', href: '/trips/es/ib/sa-calobra' },
+  { name: 'Furka Pass', href: '/trips/ch/vs/furka-pass' },
+  { name: 'Grimsel Pass', href: '/trips/ch/vs/grimsel-pass' },
 ] as const;
 
 const SECTION_SKELETON_KEYS = ['a', 'b', 'c', 'd'] as const;
@@ -93,52 +92,34 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/* ── Data (GraphQL API — public discoverRoutes) ─────────────────── */
+/* ── Data (GraphQL API — tripTemplates) ─────────────────────────── */
 
-function nodeToExploreRow(node: ExploreRouteNode): ExploreRouteDbRow {
-  return {
-    id: node.id,
-    name: node.name ?? null,
-    description: node.description ?? null,
-    distance_m: node.distanceM,
-    elevation_gain_m: node.elevationGainM ?? null,
-    surface_type: node.surfaceType ?? null,
-    curvature_index: node.curvatureIndex ?? null,
-    rating_avg: node.ratingAvg ?? null,
-    rating_count: node.ratingCount,
-    is_motovault_pick: node.isMotovaultPick,
-    editorial_description: node.editorialDescription ?? null,
-    slug: node.slug ?? null,
-    country_code: node.countryCode ?? null,
-    region_code: node.regionCode ?? null,
-  };
-}
-
-async function fetchExploreRoutes(
+async function fetchTripTemplates(
   first: number,
-  options: { countryCode?: string; motovaultPicksOnly?: boolean } = {},
-): Promise<ExploreRouteDbRow[]> {
+  options: { country?: string; difficulty?: string } = {},
+): Promise<TripTemplateNode[]> {
   try {
-    const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
+    const data = await gqlServerFetcher(TripTemplatesDocument, {
       filter: {
-        sortByRating: true,
-        ...(options.countryCode ? { countryCode: options.countryCode } : {}),
-        ...(options.motovaultPicksOnly ? { motovaultPicksOnly: true } : {}),
+        ...(options.country ? { country: options.country } : {}),
+        ...(options.difficulty ? { difficulty: options.difficulty } : {}),
       },
       first,
     });
-    return data.discoverRoutes.edges.map((e) => nodeToExploreRow(e.node));
+    return data.tripTemplates.edges.map((e) => e.node);
   } catch {
     return [];
   }
 }
 
-async function fetchStaffPicks(): Promise<ExploreRouteDbRow[]> {
-  return fetchExploreRoutes(6, { motovaultPicksOnly: true });
+async function fetchStaffPicks(): Promise<TripTemplateNode[]> {
+  // Staff picks: fetch featured/motovault-pick trips (difficulty filter not applicable here)
+  const all = await fetchTripTemplates(20);
+  return all.filter((t) => t.isMotovaultPick).slice(0, 6);
 }
 
-async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<ExploreRouteDbRow[]> {
-  return fetchExploreRoutes(limit, { countryCode });
+async function fetchTopTrips(limit = 8, countryCode?: string): Promise<TripTemplateNode[]> {
+  return fetchTripTemplates(limit, { country: countryCode });
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -148,16 +129,27 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
-function getDifficulty(route: ExploreRouteDbRow): { label: string; color: string } {
-  const ci = route.curvature_index ?? 0;
-  const elev = route.elevation_gain_m ?? 0;
-  if (ci >= 50 || elev >= 2000) return { label: 'Expert', color: 'text-red-400' };
-  if (ci >= 30 || elev >= 1000) return { label: 'Hard', color: 'text-orange-400' };
-  if (ci >= 15 || elev >= 500) return { label: 'Moderate', color: 'text-yellow-400' };
-  return { label: 'Easy', color: 'text-green-400' };
+function getDifficultyDisplay(difficulty: string): { label: string; color: string } {
+  switch (difficulty) {
+    case 'expert':
+      return { label: 'Expert', color: 'text-red-400' };
+    case 'hard':
+      return { label: 'Hard', color: 'text-orange-400' };
+    case 'moderate':
+      return { label: 'Moderate', color: 'text-yellow-400' };
+    default:
+      return { label: 'Easy', color: 'text-green-400' };
+  }
 }
 
-function estimateTime(distanceM: number, surfaceType?: string | null): string {
+function estimateTime(minutes: number | null | undefined, distanceM: number | null | undefined, surfaceType?: string | null): string {
+  if (minutes && minutes > 0) {
+    if (minutes < 60) return `${minutes} min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+  if (!distanceM) return '--';
   const avgSpeed = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
   const hours = distanceM / 1000 / avgSpeed;
   if (hours < 1) return `${Math.round(hours * 60)} min`;
@@ -166,7 +158,7 @@ function estimateTime(distanceM: number, surfaceType?: string | null): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-/* ── Route Card ──────────────────────────────────────────────── */
+/* ── Trip Template Card ──────────────────────────────────────── */
 
 const ROUTE_IMAGES = [
   '/images/route-card-placeholder.jpg',
@@ -174,26 +166,26 @@ const ROUTE_IMAGES = [
   '/images/route-forest.jpg',
 ];
 
-function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; priority?: boolean }) {
-  const difficulty = getDifficulty(route);
-  // Deterministic image based on route ID hash
-  const imageIndex = route.id.charCodeAt(0) % ROUTE_IMAGES.length;
+function TripCard({ trip, priority = false }: { trip: TripTemplateNode; priority?: boolean }) {
+  const difficulty = getDifficultyDisplay(trip.difficulty);
+  // Deterministic image based on trip ID hash
+  const imageIndex = trip.id.charCodeAt(0) % ROUTE_IMAGES.length;
   const imageSrc = ROUTE_IMAGES[imageIndex];
 
   return (
     <a
       href={
-        route.slug && route.country_code && route.region_code
-          ? `/route/${route.country_code}/${route.region_code}/${route.slug}`
-          : `/routes/${route.id}`
+        trip.slug && trip.countryCode && trip.regionCode
+          ? `/trips/${trip.countryCode.toLowerCase()}/${trip.regionCode.toLowerCase()}/${trip.slug}`
+          : `/trips/${trip.id}`
       }
       className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
-      {/* Route photo */}
+      {/* Trip photo */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={imageSrc}
-          alt={route.name ?? 'Route'}
+          alt={trip.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -202,11 +194,11 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
 
         {/* Save button */}
         <span className="absolute right-3 top-3">
-          <SaveRouteButton routeId={route.id} />
+          <SaveRouteButton routeId={trip.id} />
         </span>
 
         {/* Editor's Pick badge */}
-        {route.is_motovault_pick && (
+        {trip.isMotovaultPick && (
           <span className="absolute left-3 top-3 rounded-full bg-signature-500/90 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
             Editor&apos;s Pick
           </span>
@@ -216,18 +208,18 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
       {/* Content */}
       <div className="p-4">
         <h3 className="mb-0.5 truncate text-base font-semibold text-neutral-50 group-hover:text-primary-300 transition-colors">
-          {route.name ?? 'Unnamed Route'}
+          {trip.title}
         </h3>
 
-        {(route.editorial_description || route.description) && (
+        {trip.description && (
           <p className="mb-2 line-clamp-1 text-sm text-neutral-500">
-            {route.editorial_description ?? route.description}
+            {trip.description}
           </p>
         )}
 
-        {/* Stats row — matching AllTrails pattern: ★ 4.8 · ◆ Hard · 27 km · Est. 3h */}
+        {/* Stats row */}
         <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-400">
-          {route.rating_avg != null && (
+          {trip.averageRating != null && (
             <>
               <span className="flex items-center gap-0.5 text-signature-400">
                 <svg
@@ -239,16 +231,26 @@ function RouteCard({ route, priority = false }: { route: ExploreRouteDbRow; prio
                   <title>Rating</title>
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
                 </svg>
-                <span className="font-medium text-neutral-200">{route.rating_avg.toFixed(1)}</span>
+                <span className="font-medium text-neutral-200">{trip.averageRating.toFixed(1)}</span>
               </span>
               <span className="text-neutral-600">&middot;</span>
             </>
           )}
           <span className={difficulty.color}>{difficulty.label}</span>
           <span className="text-neutral-600">&middot;</span>
-          <span>{formatDistance(route.distance_m)}</span>
-          <span className="text-neutral-600">&middot;</span>
-          <span>Est. {estimateTime(route.distance_m, route.surface_type)}</span>
+          {trip.distanceM != null && trip.distanceM > 0 && (
+            <>
+              <span>{formatDistance(trip.distanceM)}</span>
+              <span className="text-neutral-600">&middot;</span>
+            </>
+          )}
+          <span>Est. {estimateTime(trip.estimatedDurationMinutes, trip.distanceM, trip.surfaceType)}</span>
+          {trip.dayCount != null && trip.dayCount > 1 && (
+            <>
+              <span className="text-neutral-600">&middot;</span>
+              <span>{trip.dayCount} days</span>
+            </>
+          )}
         </div>
       </div>
     </a>
@@ -276,10 +278,10 @@ function SectionSkeleton({ cols = 4 }: { cols?: number }) {
 /* ── Async sections ──────────────────────────────────────────── */
 
 async function NearYouSection({ countryCode }: { countryCode: string | undefined }) {
-  // If we have a country code, fetch routes for that country.
-  // If not, fetch top routes globally (no country filter).
-  const routes = await fetchTopRoutes(4, countryCode);
-  if (routes.length === 0) {
+  // If we have a country code, fetch trips for that country.
+  // If not, fetch top trips globally (no country filter).
+  const trips = await fetchTopTrips(4, countryCode);
+  if (trips.length === 0) {
     return null;
   }
   const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : null;
@@ -290,10 +292,10 @@ async function NearYouSection({ countryCode }: { countryCode: string | undefined
         <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
           {countryName ? (
             <>
-              Routes near <span className="text-primary-400">{countryName}</span>
+              Trips near <span className="text-primary-400">{countryName}</span>
             </>
           ) : (
-            'Popular routes'
+            'Popular trips'
           )}
         </h2>
         <a
@@ -304,8 +306,8 @@ async function NearYouSection({ countryCode }: { countryCode: string | undefined
         </a>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {routes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+        {trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
     </section>
@@ -335,26 +337,26 @@ async function StaffPicksSection() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {picks.map((route) => (
-          <RouteCard key={route.id} route={route} priority />
+        {picks.map((trip) => (
+          <TripCard key={trip.id} trip={trip} priority />
         ))}
       </div>
     </section>
   );
 }
 
-async function TopRoutesSection() {
-  const routes = await fetchTopRoutes(8);
-  if (routes.length === 0) return null;
+async function TopTripsSection() {
+  const trips = await fetchTopTrips(8);
+  if (trips.length === 0) return null;
 
   return (
     <section>
       <div className="mb-6 flex items-baseline justify-between">
-        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated routes</h2>
+        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated trips</h2>
       </div>
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {routes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+        {trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
     </section>
@@ -589,10 +591,10 @@ export default async function ExplorePage() {
           </div>
         </div>
 
-        {/* Top Routes */}
+        {/* Top Trips */}
         <div className="mt-20">
           <Suspense fallback={<SectionSkeleton cols={4} />}>
-            <TopRoutesSection />
+            <TopTripsSection />
           </Suspense>
         </div>
 

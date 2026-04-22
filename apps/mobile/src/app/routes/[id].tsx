@@ -4,16 +4,17 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 /**
- * Universal link: https://motovault.app/routes/:id → route detail modal (UUID).
+ * Universal link: https://motovault.app/routes/:id
+ * Redirects to trip-detail (unified trip model).
  */
 export default function RouteUuidDeepLinkScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
   useEffect(() => {
-    const routeId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
-    if (routeId) {
-      router.replace({ pathname: '/(modals)/route-detail', params: { routeId } });
+    const tripId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
+    if (tripId) {
+      router.replace({ pathname: '/(modals)/trip-detail', params: { tripId } });
     }
   }, [id, router]);
 

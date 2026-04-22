@@ -1,10 +1,11 @@
-import type { BrowsePlaceFieldsFragment, ExploreDiscoverRoutesQuery } from '@motovault/graphql';
+import type { BrowsePlaceFieldsFragment, ExploreDiscoverRoutesQuery, TripTemplatesQuery } from '@motovault/graphql';
 import {
   BrowseCountriesDocument,
   BrowseCountryBySlugDocument,
   BrowseExploreRegionDocument,
   BrowseRegionsByCountrySlugDocument,
   ExploreDiscoverRoutesDocument,
+  TripTemplatesDocument,
 } from '@motovault/graphql';
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
 import { gqlServerFetcher } from '@/lib/graphql-server';
@@ -155,4 +156,32 @@ export async function fetchRoutesByCountry(
     first: limit,
   });
   return data.discoverRoutes.edges.map((e) => discoverNodeToRouteListItem(e.node));
+}
+
+// ---- Trip Templates ----
+
+export type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
+
+/** Fetch trip templates for a given country. */
+export async function fetchTripTemplatesByCountry(
+  countryCode: string,
+  limit = 50,
+): Promise<TripTemplateNode[]> {
+  const data = await gqlServerFetcher(TripTemplatesDocument, {
+    filter: { country: countryCode.toLowerCase() },
+    first: limit,
+  });
+  return data.tripTemplates.edges.map((e) => e.node);
+}
+
+/** Fetch trip templates for a given country+region (via country filter — region filtering handled client-side). */
+export async function fetchTripTemplatesByRegion(
+  countryCode: string,
+  regionSlug: string,
+  limit = 50,
+): Promise<TripTemplateNode[]> {
+  // TripTemplateFilterInput does not have a region field currently,
+  // so we fetch by country and filter client-side.
+  const all = await fetchTripTemplatesByCountry(countryCode, limit);
+  return all.filter((t) => t.regionCode?.toLowerCase() === regionSlug.toLowerCase());
 }

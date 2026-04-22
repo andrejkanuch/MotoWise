@@ -55,7 +55,6 @@ import { DiscoverTripCard } from '../../../components/discover/discover-trip-car
 import { FilterChipRow } from '../../../components/discover/filter-chip-row';
 import { TripSection } from '../../../components/discover/trip-section';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
-import { useInspirationFilters } from '../../../hooks/use-inspiration-filters';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -97,6 +96,7 @@ interface DiscoverHeaderProps {
   filters: DiscoverFilters;
   onToggleChip: (key: FilterKey) => void;
   onToggleCountry: (key: SupportedCountryCode) => void;
+  onSearchSelect: (id: string) => void;
   showBelowFold: boolean;
 }
 
@@ -104,6 +104,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   filters,
   onToggleChip,
   onToggleCountry,
+  onSearchSelect,
   showBelowFold,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
@@ -117,7 +118,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   return (
     <View style={{ gap: 16, paddingTop: 8 }}>
       {/* Search */}
-      <TypeaheadSearch />
+      <TypeaheadSearch onRouteSelect={onSearchSelect} />
 
       {/* Filter chips */}
       <FilterChipRow
@@ -192,29 +193,11 @@ export default function DiscoverScreen() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  // Progressive unlock of below-fold queries. The main infinite list and
-  // SavedRoutes (inspiration seed) fire immediately; each 150 ms tick unlocks
-  // one carousel so cold-start doesn't burst 5–6 GraphQL RTTs in parallel.
-  // Stage map: 1 = Editor's Picks, 2 = Weekend, 3 = Seasonal + Because-you-liked.
-  const [fetchStage, setFetchStage] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setFetchStage((s) => {
-        if (s >= 3) {
-          clearInterval(id);
-          return s;
-        }
-        return s + 1;
-      });
-    }, 150);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
 
-  const inspiration = useInspirationFilters();
   const bg = isDark ? palette.neutral950 : palette.white;
 
   // --- Consolidated filter state ---
@@ -295,13 +278,6 @@ export default function DiscoverScreen() {
 
   // --- Callbacks ---
 
-  const handleRoutePress = useCallback(
-    (routeId: string) => {
-      router.push({ pathname: '/(modals)/route-detail', params: { routeId } });
-    },
-    [router],
-  );
-
   const handleTripPress = useCallback(
     (tripId: string) => {
       router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
@@ -310,12 +286,12 @@ export default function DiscoverScreen() {
   );
 
   const handleMarkerPress = useCallback(
-    (routeId: string, routeName: string, lat: number, lng: number) => {
+    (tripId: string, tripName: string, lat: number, lng: number) => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.selectionAsync();
       }
       const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      const open = () => handleRoutePress(routeId);
+      const open = () => handleTripPress(tripId);
       const copy = async () => {
         await Clipboard.setStringAsync(coords);
       };
@@ -323,7 +299,7 @@ export default function DiscoverScreen() {
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            title: routeName,
+            title: tripName,
             message: coords,
             options: ['View details', 'Copy coordinates', 'Cancel'],
             cancelButtonIndex: 2,
@@ -334,14 +310,14 @@ export default function DiscoverScreen() {
           },
         );
       } else {
-        Alert.alert(routeName, coords, [
+        Alert.alert(tripName, coords, [
           { text: 'View details', onPress: open },
           { text: 'Copy coordinates', onPress: copy },
           { text: 'Cancel', style: 'cancel' },
         ]);
       }
     },
-    [handleRoutePress],
+    [handleTripPress],
   );
 
   const handleLoadMore = useCallback(() => {
@@ -421,28 +397,29 @@ export default function DiscoverScreen() {
 
   // --- Memoized header ---
 
+  const handleSearchSelect = useCallback(
+    (id: string) => {
+      router.push({ pathname: '/(modals)/trip-detail', params: { tripId: id } });
+    },
+    [router],
+  );
+
   const headerComponent = useMemo(
     () => (
       <DiscoverHeader
         filters={filters}
         onToggleChip={toggleChip}
         onToggleCountry={toggleCountry}
-        featuredRoute={featuredRoute}
-        onRoutePress={handleRoutePress}
+        onSearchSelect={handleSearchSelect}
         showBelowFold={showBelowFold}
-        fetchStage={fetchStage}
-        inspiration={inspiration}
       />
     ),
     [
       filters,
       toggleChip,
       toggleCountry,
-      featuredRoute,
-      handleRoutePress,
+      handleSearchSelect,
       showBelowFold,
-      fetchStage,
-      inspiration,
     ],
   );
 
