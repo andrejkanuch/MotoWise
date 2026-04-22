@@ -13,7 +13,11 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { MAP_STYLES } from '../utils/map-styles';
-import { type GeocodingResult, searchPlaces } from '../utils/mapbox-geocoding';
+import {
+  type GeocodingResult,
+  reverseGeocodeFullPlaceName,
+  searchPlaces,
+} from '../utils/mapbox-geocoding';
 
 type SelectedLocation = {
   lat: number;
@@ -31,25 +35,6 @@ type MapPickerProps = {
 const DEFAULT_LAT = 48.1486;
 const DEFAULT_LNG = 17.1077;
 const DEFAULT_ZOOM = 13;
-
-async function reverseGeocode(lat: number, lng: number): Promise<string> {
-  const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
-  if (!token) return '';
-
-  try {
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&types=place,address,poi&limit=1&language=en`;
-    const response = await fetch(url);
-    if (!response.ok) return '';
-    const data = await response.json();
-    const feature = data.features?.[0];
-    return feature?.place_name ?? '';
-  } catch {
-    if (__DEV__) {
-      console.warn('[map-picker] Reverse geocode failed');
-    }
-    return '';
-  }
-}
 
 export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: MapPickerProps) {
   const cameraRef = useRef<MapboxGL.Camera>(null);
@@ -140,7 +125,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
       const [lng, lat] = coords;
 
       setIsReversing(true);
-      const address = await reverseGeocode(lat, lng);
+      const address = await reverseGeocodeFullPlaceName(lat, lng);
       setIsReversing(false);
 
       const name = address || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;

@@ -17,7 +17,8 @@ type SearchPlacesOptions = {
 
 type MapboxFeature = {
   id: string;
-  text: string;
+  /** Short label (locality, POI name, etc.) */
+  text?: string;
   place_name: string;
   center: [number, number];
   properties: { category?: string };
@@ -74,7 +75,7 @@ export async function searchPlaces(
 
     return data.features.map((feature) => ({
       id: feature.id,
-      name: feature.text,
+      name: feature.text ?? '',
       fullAddress: feature.place_name,
       lat: feature.center[1],
       lng: feature.center[0],
@@ -85,5 +86,67 @@ export async function searchPlaces(
       console.warn('[mapbox-geocoding] Request failed:', error);
     }
     return [];
+  }
+}
+
+const REVERSE_TYPES = 'place,address,poi';
+const REVERSE_LIMIT = '1';
+
+/**
+ * Short human label for a coordinate (Mapbox `feature.text`, e.g. locality or POI name).
+ * Returns "" if no token, network failure, or no result.
+ */
+export async function reverseGeocodeShortLabel(lat: number, lng: number): Promise<string> {
+  const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  if (!token) return '';
+
+  const url = `${MAPBOX_GEOCODING_BASE}/${lng},${lat}.json?${new URLSearchParams({
+    access_token: token,
+    types: REVERSE_TYPES,
+    limit: REVERSE_LIMIT,
+    language: 'en',
+  }).toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return '';
+    const data: MapboxGeocodingResponse = await response.json();
+    const f = data.features[0];
+    if (!f) return '';
+    const t = f.text?.trim();
+    if (t) return t;
+    return f.place_name?.split(',')[0]?.trim() ?? '';
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[mapbox-geocoding] reverseGeocodeShortLabel failed:', error);
+    }
+    return '';
+  }
+}
+
+/**
+ * Full Mapbox `place_name` for map center / long-form display.
+ */
+export async function reverseGeocodeFullPlaceName(lat: number, lng: number): Promise<string> {
+  const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  if (!token) return '';
+
+  const url = `${MAPBOX_GEOCODING_BASE}/${lng},${lat}.json?${new URLSearchParams({
+    access_token: token,
+    types: REVERSE_TYPES,
+    limit: REVERSE_LIMIT,
+    language: 'en',
+  }).toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return '';
+    const data: MapboxGeocodingResponse = await response.json();
+    return data.features[0]?.place_name ?? '';
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[mapbox-geocoding] reverseGeocodeFullPlaceName failed:', error);
+    }
+    return '';
   }
 }

@@ -93,6 +93,7 @@ import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
+import { useResolvedWaypointLabel } from '../../utils/waypoint-place-label';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -183,6 +184,137 @@ function AnimatedChevron({ collapsed, color }: { collapsed: boolean; color: stri
   return (
     <Animated.View style={style}>
       <ChevronUp size={16} color={color} />
+    </Animated.View>
+  );
+}
+
+function ItineraryWaypointRow({
+  wp,
+  index,
+  titleColor,
+  subtitleColor,
+  isDark,
+}: {
+  wp: TripWaypoint;
+  index: number;
+  titleColor: string;
+  subtitleColor: string;
+  isDark: boolean;
+}) {
+  const displayName = useResolvedWaypointLabel({
+    id: wp.id,
+    name: wp.name,
+    type: wp.type,
+    lat: wp.lat,
+    lng: wp.lng,
+  });
+  const wt = getWaypointIcon(wp.type);
+  return (
+    <Animated.View
+      entering={FadeInUp.delay(index * 40).duration(200)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        padding: 10,
+        marginBottom: 6,
+        borderRadius: 10,
+        borderCurve: 'continuous',
+        backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+      }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: wt.color,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <wt.Icon size={16} color={palette.white} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }} numberOfLines={2}>
+          {displayName}
+        </Text>
+        {wp.notes ? (
+          <Text
+            style={{
+              fontSize: 13,
+              color: subtitleColor,
+              marginTop: 2,
+            }}
+            numberOfLines={2}
+          >
+            {wp.notes}
+          </Text>
+        ) : null}
+      </View>
+    </Animated.View>
+  );
+}
+
+function TemplateRouteStartEndLine({
+  startWp,
+  endWp,
+  titleColor,
+  subtitleColor,
+  trip,
+  isDark,
+}: {
+  startWp: TripWaypoint;
+  endWp: TripWaypoint;
+  titleColor: string;
+  subtitleColor: string;
+  trip: TripDetailQuery['tripDetail'];
+  isDark: boolean;
+}) {
+  const startLabel = useResolvedWaypointLabel({
+    id: startWp.id,
+    name: startWp.name,
+    type: startWp.type,
+    lat: startWp.lat,
+    lng: startWp.lng,
+  });
+  const endLabel = useResolvedWaypointLabel({
+    id: endWp.id,
+    name: endWp.name,
+    type: endWp.type,
+    lat: endWp.lat,
+    lng: endWp.lng,
+  });
+  return (
+    <Animated.View entering={FadeInUp.delay(90).duration(220)}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          marginBottom: 20,
+          padding: 12,
+          borderRadius: 12,
+          borderCurve: 'continuous',
+          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+        }}
+      >
+        <MapPin size={16} color={palette.accent500} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
+            {startLabel}
+            {'  \u2192  '}
+            {endLabel}
+          </Text>
+          {trip.city ? (
+            <Text style={{ fontSize: 12, color: subtitleColor }}>
+              {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode?.toUpperCase()]
+                .filter(Boolean)
+                .join(', ')}
+            </Text>
+          ) : null}
+        </View>
+      </View>
     </Animated.View>
   );
 }
@@ -1296,47 +1428,23 @@ ${rteptElements}
                   </Animated.View>
                 )}
 
-                {/* Route start/end summary */}
-                {waypoints.length >= 2 && (
-                  <Animated.View entering={FadeInUp.delay(90).duration(220)}>
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 8,
-                        marginBottom: 20,
-                        padding: 12,
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-                      }}
-                    >
-                      <MapPin size={16} color={palette.accent500} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
-                          {waypoints.find((w) => w.type === 'start')?.name ||
-                            waypoints[0].name ||
-                            'Start'}
-                          {'  \u2192  '}
-                          {waypoints.find((w) => w.type === 'end')?.name ||
-                            waypoints[waypoints.length - 1].name ||
-                            'End'}
-                        </Text>
-                        {trip.city && (
-                          <Text style={{ fontSize: 12, color: subtitleColor }}>
-                            {[
-                              trip.city,
-                              trip.regionCode?.toUpperCase(),
-                              trip.countryCode?.toUpperCase(),
-                            ]
-                              .filter(Boolean)
-                              .join(', ')}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </Animated.View>
-                )}
+                {/* Route start/end — resolve generic Start/End to place names when possible */}
+                {(() => {
+                  if (waypoints.length < 2) return null;
+                  const first = waypoints[0];
+                  const last = waypoints[waypoints.length - 1];
+                  if (!first || !last) return null;
+                  return (
+                    <TemplateRouteStartEndLine
+                      startWp={waypoints.find((w) => w.type === 'start') ?? first}
+                      endWp={waypoints.find((w) => w.type === 'end') ?? last}
+                      titleColor={titleColor}
+                      subtitleColor={subtitleColor}
+                      trip={trip}
+                      isDark={isDark}
+                    />
+                  );
+                })()}
 
                 {/* Contributor / organiser attribution */}
                 <Animated.View
@@ -1776,60 +1884,16 @@ ${rteptElements}
                                 {group.label}
                               </Text>
                             )}
-                            {group.items.map((wp, index) => {
-                              const wt = getWaypointIcon(wp.type);
-                              return (
-                                <Animated.View
-                                  key={wp.id}
-                                  entering={FadeInUp.delay(index * 40).duration(200)}
-                                  style={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 12,
-                                    padding: 10,
-                                    marginBottom: 6,
-                                    borderRadius: 10,
-                                    borderCurve: 'continuous',
-                                    backgroundColor: isDark
-                                      ? palette.surfaceSubtle
-                                      : palette.neutral50,
-                                  }}
-                                >
-                                  <View
-                                    style={{
-                                      width: 32,
-                                      height: 32,
-                                      borderRadius: 16,
-                                      backgroundColor: wt.color,
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                  >
-                                    <wt.Icon size={16} color={palette.white} />
-                                  </View>
-                                  <View style={{ flex: 1 }}>
-                                    <Text
-                                      style={{ fontSize: 14, fontWeight: '600', color: titleColor }}
-                                      numberOfLines={1}
-                                    >
-                                      {wp.name}
-                                    </Text>
-                                    {wp.notes ? (
-                                      <Text
-                                        style={{
-                                          fontSize: 13,
-                                          color: subtitleColor,
-                                          marginTop: 2,
-                                        }}
-                                        numberOfLines={2}
-                                      >
-                                        {wp.notes}
-                                      </Text>
-                                    ) : null}
-                                  </View>
-                                </Animated.View>
-                              );
-                            })}
+                            {group.items.map((wp, index) => (
+                              <ItineraryWaypointRow
+                                key={wp.id}
+                                wp={wp}
+                                index={index}
+                                titleColor={titleColor}
+                                subtitleColor={subtitleColor}
+                                isDark={isDark}
+                              />
+                            ))}
                           </View>
                         ))}
                     </Animated.View>
