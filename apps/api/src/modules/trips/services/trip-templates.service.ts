@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
@@ -258,9 +259,8 @@ export class TripTemplatesService {
             const geoRes = await fetch(
               `https://api.mapbox.com/geocoding/v5/mapbox.places/${startWp.lng},${startWp.lat}.json?types=country&limit=1&access_token=${mapboxToken}`,
             );
-            const geoJson = await geoRes.json();
-            const cc = geoJson?.features?.[0]?.properties?.short_code;
-            if (cc && typeof cc === 'string') countryCode = cc.toLowerCase();
+            const cc = mapboxCountryShortCodeFromJson(await geoRes.json());
+            if (cc) countryCode = cc;
           }
         } catch (e) {
           this.logger.warn('Reverse geocode failed, using null country_code', e);
