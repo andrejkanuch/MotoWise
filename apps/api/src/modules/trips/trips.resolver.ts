@@ -11,8 +11,8 @@ import {
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
 } from '@motovault/types/validators';
-import { UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -42,9 +42,12 @@ import { TripSavesService } from './services/trip-saves.service';
 import { TripSharingService } from './services/trip-sharing.service';
 import { TripTemplatesService } from './services/trip-templates.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
+import { TripReviewsLoader } from './loaders/trip-reviews.loader';
+import { TripSavedLoader } from './loaders/trip-saved.loader';
 
 @Resolver(() => Trip)
 @UseGuards(GqlAuthGuard)
+@Injectable({ scope: Scope.REQUEST })
 export class TripsResolver {
   constructor(
     private readonly tripLifecycle: TripLifecycleService,
@@ -54,7 +57,28 @@ export class TripsResolver {
     private readonly tripTemplatesSvc: TripTemplatesService,
     private readonly tripReviewsSvc: TripReviewsService,
     private readonly tripSavesSvc: TripSavesService,
+    private readonly tripReviewsLoader: TripReviewsLoader,
+    private readonly tripSavedLoader: TripSavedLoader,
   ) {}
+
+  // ==========================================
+  // ResolveFields (DataLoader-backed, templates only)
+  // ==========================================
+
+  @ResolveField('reviews', () => [TripReview], { nullable: true })
+  async resolveReviews(@Parent() trip: Trip): Promise<TripReview[] | null> {
+    if (!trip.isTemplate) return null;
+    return this.tripReviewsLoader.load(trip.id);
+  }
+
+  @ResolveField('isSaved', () => Boolean, { nullable: true })
+  async resolveIsSaved(
+    @Parent() trip: Trip,
+    @CurrentUser() user?: AuthUser,
+  ): Promise<boolean | null> {
+    if (!trip.isTemplate || !user) return null;
+    return this.tripSavedLoader.forUser(user.id).load(trip.id);
+  }
 
   // ==========================================
   // Queries

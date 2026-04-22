@@ -283,97 +283,27 @@ export class TripTemplatesService {
   }
 
   async cloneTemplate(userId: string, tripId: string): Promise<string> {
-    // Fetch source template
-    const { data: source, error: sourceError } = await this.supabase
-      .from('trips')
-      .select(
-        'id, title, description, difficulty, max_riders, visibility, cover_image_url, country_code, region_code, city, polyline, distance_m, elevation_gain_m, estimated_duration_minutes, surface_type, curvature_index, day_count, start_lat, start_lng',
-      )
-      .eq('id', tripId)
-      .eq('is_template', true)
-      .eq('is_flagged', false)
-      .single();
+    // Atomic RPC: copies trip + waypoints + adds organiser participant + increments clone_count
+    const { data, error } = await this.supabaseAdmin.rpc('clone_trip_template', {
+      p_trip_id: tripId,
+      p_user_id: userId,
+    });
 
-    if (sourceError || !source) throw new NotFoundException('Template not found');
+    if (error) {
+      this.logger.error(`cloneTemplate RPC failed: ${error.message} (${error.code})`);
 
-    // Fetch source waypoints
-    const { data: waypoints } = await this.supabase
-      .from('trip_waypoints')
-      .select('sort_order, day_index, period_of_day, type, name, notes, lat, lng')
-      .eq('trip_id', tripId)
-      .order('day_index', { ascending: true })
-      .order('sort_order', { ascending: true });
+      // Map known PG error codes to user-friendly exceptions
+      if (error.code === 'P0002') throw new NotFoundException('Template not found');
+      if (error.code === 'P0003') throw new BadRequestException('You have already cloned this template');
 
-    // Create new draft trip from template
-    const EPOCH_DATE = '1970-01-01';
-    const { data: newTrip, error: insertError } = await this.supabase
-      .from('trips')
-      .insert({
-        organiser_user_id: userId,
-        title: source.title,
-        description: source.description,
-        difficulty: source.difficulty,
-        max_riders: source.max_riders,
-        visibility: 'private',
-        cover_image_url: source.cover_image_url,
-        start_date: EPOCH_DATE,
-        end_date: EPOCH_DATE,
-        dates_pending: true,
-        status: 'draft',
-        country_code: source.country_code,
-        region_code: source.region_code,
-        city: source.city,
-        polyline: source.polyline,
-        distance_m: source.distance_m,
-        elevation_gain_m: source.elevation_gain_m,
-        estimated_duration_minutes: source.estimated_duration_minutes,
-        surface_type: source.surface_type,
-        curvature_index: source.curvature_index,
-        day_count: source.day_count,
-        start_lat: source.start_lat,
-        start_lng: source.start_lng,
-        cloned_from_trip_id: tripId,
-      })
-      .select('id')
-      .single();
-
-    if (insertError || !newTrip) {
-      this.logger.error(`cloneTemplate insert failed: ${insertError?.message}`);
       throw new InternalServerErrorException('Failed to clone template');
     }
 
-    // Copy waypoints
-    if (waypoints && waypoints.length > 0) {
-      const waypointRows = waypoints.map((w) => ({
-        trip_id: newTrip.id,
-        sort_order: w.sort_order,
-        day_index: w.day_index ?? 0,
-        period_of_day: w.period_of_day ?? null,
-        type: w.type,
-        name: w.name,
-        notes: w.notes ?? null,
-        lat: w.lat,
-        lng: w.lng,
-      }));
-
-      const { error: wpError } = await this.supabase.from('trip_waypoints').insert(waypointRows);
-
-      if (wpError) {
-        this.logger.error(`cloneTemplate waypoints failed: ${wpError.message}`);
-        // Clean up orphaned trip
-        await this.supabase.from('trips').delete().eq('id', newTrip.id);
-        throw new InternalServerErrorException('Failed to clone template waypoints');
-      }
+    if (!data) {
+      throw new InternalServerErrorException('clone_trip_template returned no ID');
     }
 
-    // Increment clone_count on source (fire-and-forget via admin for atomic increment)
-    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId }))
-      .then(({ error }) => {
-        if (error) this.logger.error('Failed to increment clone_count', error);
-      })
-      .catch((e: unknown) => this.logger.error('increment_trip_clone network error', e));
-
-    return newTrip.id;
+    return data as string;
   }
 
   async incrementViewCount(id: string): Promise<void> {
