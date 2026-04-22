@@ -1,19 +1,19 @@
-query TripDetail($tripId: ID!) {
-  tripDetail(tripId: $tripId) {
+query TripBySlug($country: String!, $region: String!, $slug: String!) {
+  tripBySlug(country: $country, region: $region, slug: $slug) {
     id
+    slug
     title
     description
+    difficulty
+    dayCount
     startDate
     endDate
-    difficulty
     maxRiders
     participantCount
     status
     visibility
     coverImageUrl
-    createdAt
     isTemplate
-    slug
     polyline
     startLat
     startLng
@@ -25,7 +25,6 @@ query TripDetail($tripId: ID!) {
     estimatedDurationMinutes
     surfaceType
     curvatureIndex
-    dayCount
     isFeatured
     isMotovaultPick
     viewCount
@@ -34,9 +33,9 @@ query TripDetail($tripId: ID!) {
     reviewCount
     publishedAt
     isFlagged
-    isSaved
     clonedFromTripId
     forkedFromTripId
+    createdAt
     organiser {
       id
       displayName
@@ -55,16 +54,6 @@ query TripDetail($tripId: ID!) {
       lat
       lng
       createdAt
-    }
-    participants {
-      id
-      displayName
-      publicUsername
-      avatarUrl
-      role
-      status
-      bikeId
-      joinedAt
     }
   }
 }

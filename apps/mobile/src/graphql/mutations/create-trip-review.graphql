@@ -1,0 +1,12 @@
+mutation CreateTripReview($input: CreateTripReviewInput!) {
+  createTripReview(input: $input) {
+    id
+    rating
+    text
+    conditionTags
+    createdAt
+    tripId
+    userId
+    bikeId
+  }
+}

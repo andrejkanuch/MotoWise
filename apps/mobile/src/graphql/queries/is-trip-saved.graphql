@@ -1,0 +1,3 @@
+query IsTripSaved($tripId: ID!) {
+  isTripSaved(tripId: $tripId)
+}

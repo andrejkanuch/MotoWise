@@ -1,0 +1,9 @@
+mutation PublishAsTemplate($tripId: ID!) {
+  publishAsTemplate(tripId: $tripId) {
+    id
+    slug
+    isTemplate
+    publishedAt
+    status
+  }
+}

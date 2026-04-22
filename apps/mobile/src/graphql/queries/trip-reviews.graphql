@@ -1,0 +1,12 @@
+query TripReviews($tripId: ID!, $first: Int, $after: String) {
+  tripReviews(tripId: $tripId, first: $first, after: $after) {
+    id
+    rating
+    text
+    conditionTags
+    createdAt
+    tripId
+    userId
+    bikeId
+  }
+}

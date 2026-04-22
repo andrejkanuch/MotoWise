@@ -1,0 +1,3 @@
+mutation UnsaveTrip($tripId: ID!) {
+  unsaveTrip(tripId: $tripId)
+}
