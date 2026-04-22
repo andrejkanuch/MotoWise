@@ -333,7 +333,7 @@ export default async function TripPage({ params }: PageParams) {
               <div className="space-y-3">
                 {waypoints.map((wp, i) => (
                   <div
-                    key={wp.id ?? `${dayIndex}-${i}`}
+                    key={`${dayIndex}-${wp.name}-${i}`}
                     className="flex items-start gap-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700"
                   >
                     <div>
