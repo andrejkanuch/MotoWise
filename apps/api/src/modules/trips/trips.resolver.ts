@@ -1,10 +1,12 @@
 import {
   CreateTripInputSchema,
+  CreateTripReviewInputSchema,
   CreateTripWithWaypointsInputSchema,
   CreateWaypointInputSchema,
   JoinTripInputSchema,
   ReorderWaypointsInputSchema,
   TripShareTokenSchema,
+  TripTemplateFiltersSchema,
   UpdateParticipantStatusInputSchema,
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
@@ -20,20 +22,25 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { THROTTLE_PRESETS } from '../../config/constants';
 import { CreateTripInput } from './dto/create-trip.input';
+import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
 import { CreateWaypointInput } from './dto/create-waypoint.input';
 import { JoinTripInput } from './dto/join-trip.input';
 import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
+import { TripTemplateFilterInput } from './dto/trip-template-filter.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
 import { TripShareTokenError } from './errors/trip-share-token.errors';
 import { SharedTrip } from './models/shared-trip.model';
-import { Trip, TripConnection, TripWaypoint } from './models/trip.model';
+import { Trip, TripConnection, TripReview, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
 import { TripParticipantsService } from './services/trip-participants.service';
+import { TripReviewsService } from './services/trip-reviews.service';
+import { TripSavesService } from './services/trip-saves.service';
 import { TripSharingService } from './services/trip-sharing.service';
+import { TripTemplatesService } from './services/trip-templates.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
 
 @Resolver(() => Trip)
@@ -44,6 +51,9 @@ export class TripsResolver {
     private readonly tripWaypoints: TripWaypointsService,
     private readonly tripParticipants: TripParticipantsService,
     private readonly tripSharing: TripSharingService,
+    private readonly tripTemplates: TripTemplatesService,
+    private readonly tripReviews: TripReviewsService,
+    private readonly tripSaves: TripSavesService,
   ) {}
 
   // ==========================================
@@ -254,5 +264,132 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<TripInvite[]> {
     return this.tripSharing.listTripInvites(user.id, tripId);
+  }
+
+  // ==========================================
+  // Template Queries (Discover feed)
+  // ==========================================
+
+  @Query(() => TripConnection)
+  @Public()
+  async tripTemplates(
+    @Args('filter', { type: () => TripTemplateFilterInput, nullable: true })
+    filter?: TripTemplateFilterInput,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripConnection> {
+    return this.tripTemplates.listTemplates(filter, first ?? 20, after);
+  }
+
+  @Query(() => Trip, { nullable: true })
+  @Public()
+  async tripBySlug(
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('slug') slug: string,
+  ): Promise<Trip> {
+    return this.tripTemplates.getTemplateBySlug(country, region, slug);
+  }
+
+  // ==========================================
+  // Template Mutations
+  // ==========================================
+
+  @Mutation(() => Trip)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
+  async publishAsTemplate(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<Trip> {
+    return this.tripTemplates.publishAsTemplate(user.id, tripId);
+  }
+
+  @Mutation(() => Boolean)
+  async unpublishTemplate(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<boolean> {
+    return this.tripTemplates.unpublishTemplate(user.id, tripId);
+  }
+
+  @Mutation(() => ID, { description: 'Returns the new trip ID' })
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
+  async cloneTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<string> {
+    return this.tripTemplates.cloneTemplate(user.id, tripId);
+  }
+
+  // ==========================================
+  // Review Operations
+  // ==========================================
+
+  @Query(() => [TripReview])
+  @Public()
+  async tripReviews(
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripReview[]> {
+    const connection = await this.tripReviews.getReviewsForTrip(tripId, first ?? 20, after);
+    return connection;
+  }
+
+  @Mutation(() => TripReview)
+  async createTripReview(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(CreateTripReviewInputSchema))
+    input: CreateTripReviewInput,
+  ): Promise<TripReview> {
+    return this.tripReviews.createReview(user.id, input);
+  }
+
+  @Mutation(() => Boolean)
+  async deleteTripReview(
+    @CurrentUser() user: AuthUser,
+    @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
+  ): Promise<boolean> {
+    return this.tripReviews.deleteReview(user.id, reviewId);
+  }
+
+  // ==========================================
+  // Save/Bookmark Operations
+  // ==========================================
+
+  @Mutation(() => Boolean)
+  async saveTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<boolean> {
+    return this.tripSaves.saveTrip(user.id, tripId);
+  }
+
+  @Mutation(() => Boolean)
+  async unsaveTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<boolean> {
+    return this.tripSaves.unsaveTrip(user.id, tripId);
+  }
+
+  @Query(() => Boolean)
+  async isTripSaved(
+    @CurrentUser() user: AuthUser,
+    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+  ): Promise<boolean> {
+    return this.tripSaves.isTripSaved(user.id, tripId);
+  }
+
+  @Query(() => TripConnection)
+  async savedTrips(
+    @CurrentUser() user: AuthUser,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripConnection> {
+    return this.tripSaves.savedTrips(user.id, first ?? 20, after);
   }
 }
