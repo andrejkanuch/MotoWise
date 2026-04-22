@@ -114,8 +114,6 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
             difficultyColor={difficultyColor}
             surfaceLabel={surfaceLabel}
           />
-
-          <ContributorLine contributor={trip.organiser} subtitleColor={subtitleColor} />
         </Pressable>
       </Animated.View>
     );
@@ -183,8 +181,6 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
           difficultyColor={difficultyColor}
           surfaceLabel={surfaceLabel}
         />
-
-        <ContributorLine contributor={trip.organiser} subtitleColor={subtitleColor} />
       </Pressable>
     </Animated.View>
   );
@@ -281,23 +277,5 @@ function TripStats({
         </View>
       )}
     </View>
-  );
-}
-
-// --- Contributor line ---
-
-function ContributorLine({
-  contributor,
-  subtitleColor,
-}: {
-  contributor: TripNode['organiser'];
-  subtitleColor: string;
-}) {
-  if (!contributor) return null;
-  return (
-    <Text style={{ fontSize: 12, color: subtitleColor, marginTop: 8 }}>
-      {contributor.displayName}
-      {contributor.publicUsername ? ` @${contributor.publicUsername}` : ''}
-    </Text>
   );
 }

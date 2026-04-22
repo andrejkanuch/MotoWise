@@ -950,44 +950,46 @@ ${rteptElements}
                   {difficultyLabel}
                 </Text>
               </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                }}
-              >
-                {trip.visibility === 'public' ? (
-                  <Globe size={11} color={palette.success500} />
-                ) : trip.visibility === 'unlisted' ? (
-                  <EyeOff size={11} color={palette.warning500} />
-                ) : (
-                  <Lock size={11} color={palette.neutral500} />
-                )}
-                <Text
+              {!isTemplate && (
+                <View
                   style={{
-                    fontSize: 13,
-                    fontWeight: '700',
-                    color:
-                      trip.visibility === 'public'
-                        ? palette.success500
-                        : trip.visibility === 'unlisted'
-                          ? palette.warning500
-                          : palette.neutral500,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 8,
+                    borderCurve: 'continuous',
                   }}
                 >
-                  {trip.visibility === 'public'
-                    ? 'Public'
-                    : trip.visibility === 'unlisted'
-                      ? 'Link only'
-                      : 'Private'}
-                </Text>
-              </View>
+                  {trip.visibility === 'public' ? (
+                    <Globe size={11} color={palette.success500} />
+                  ) : trip.visibility === 'unlisted' ? (
+                    <EyeOff size={11} color={palette.warning500} />
+                  ) : (
+                    <Lock size={11} color={palette.neutral500} />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '700',
+                      color:
+                        trip.visibility === 'public'
+                          ? palette.success500
+                          : trip.visibility === 'unlisted'
+                            ? palette.warning500
+                            : palette.neutral500,
+                    }}
+                  >
+                    {trip.visibility === 'public'
+                      ? 'Public'
+                      : trip.visibility === 'unlisted'
+                        ? 'Link only'
+                        : 'Private'}
+                  </Text>
+                </View>
+              )}
             </Animated.View>
 
             {/* Stats bar — the at-a-glance decision data */}
@@ -1042,55 +1044,61 @@ ${rteptElements}
                   {waypoints.length === 1 ? 'stop' : 'stops'}
                 </Text>
               </View>
-              <View
-                style={{
-                  width: 1,
-                  alignSelf: 'stretch',
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
-                }}
-              />
-              <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-                <Text
+              {!isTemplate && (
+                <View
                   style={{
-                    fontSize: 18,
-                    fontWeight: '800',
-                    color: titleColor,
-                    letterSpacing: -0.3,
+                    width: 1,
+                    alignSelf: 'stretch',
+                    backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
                   }}
-                >
-                  {trip.participantCount + 1}
-                  <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
-                </Text>
-                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
-                  riders
-                </Text>
-              </View>
+                />
+              )}
+              {!isTemplate && (
+                <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: '800',
+                      color: titleColor,
+                      letterSpacing: -0.3,
+                    }}
+                  >
+                    {trip.participantCount + 1}
+                    <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
+                  </Text>
+                  <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
+                    riders
+                  </Text>
+                </View>
+              )}
             </Animated.View>
 
-            {/* Date + organiser compact row */}
-            <Animated.View
-              entering={FadeInUp.delay(120).duration(220)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 14,
-                flexWrap: 'wrap',
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Calendar size={13} color={palette.accent500} />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
-                  {formatDateRange(trip.startDate, trip.endDate)}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <User size={13} color={subtitleColor} />
-                <Text style={{ fontSize: 13, color: subtitleColor }}>
-                  Led by {trip.organiser.displayName}
-                </Text>
-              </View>
-            </Animated.View>
+            {/* Date + organiser compact row — hidden for templates */}
+            {!isTemplate && (
+              <Animated.View
+                entering={FadeInUp.delay(120).duration(220)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  marginBottom: 14,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={13} color={palette.accent500} />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
+                    {formatDateRange(trip.startDate, trip.endDate)}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <User size={13} color={subtitleColor} />
+                  <Text style={{ fontSize: 13, color: subtitleColor }}>
+                    Led by {trip.organiser.displayName}
+                  </Text>
+                </View>
+              </Animated.View>
+            )}
 
             {/* Description — now below the decision-relevant data */}
             {trip.description && (
