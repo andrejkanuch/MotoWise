@@ -11,6 +11,7 @@
     "garage": "Garaj",
     "faq": "SSS",
     "download": "Uygulamayi Indir",
+    "getTheApp": "Uygulamayi Indir",
     "login": "Giris Yap",
     "openMenu": "Navigasyon menusunu ac",
     "closeMenu": "Navigasyon menusunu kapat",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Sürücüler"
   },
   "Hero": {
     "line1": "MOTOSİKLETİNİ TAKİP ET.",
@@ -363,13 +365,15 @@
     "contactDescription": "Hesap silme veya veri gizliligi hakkinda herhangi bir sorunuz icin bize ulasin:"
   },
   "NotFound": {
+    "label": "Sayfa bulunamadi",
     "code": "404",
-    "message": "Bu sayfa mevcut degil.",
-    "backHome": "Ana Sayfaya Don"
+    "message": "Yanlis donus. Bu yol mevcut degil.",
+    "backHome": "Ana sayfaya don"
   },
   "Error": {
+    "label": "Hata",
     "title": "Bir seyler yanlis gitti",
-    "message": "Beklenmeyen bir hatayla karsilastik. Lutfen tekrar deneyin.",
+    "message": "Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.",
     "retry": "Tekrar dene"
   },
   "LanguageSwitcher": {

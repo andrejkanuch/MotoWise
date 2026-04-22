@@ -11,6 +11,7 @@
     "garage": "Garagem",
     "faq": "FAQ",
     "download": "Baixar o App",
+    "getTheApp": "Baixar o App",
     "login": "Entrar",
     "openMenu": "Abrir menu de navegação",
     "closeMenu": "Fechar menu de navegação",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Motociclistas"
   },
   "Hero": {
     "line1": "ACOMPANHE SUA MOTO.",
@@ -363,13 +365,15 @@
     "contactDescription": "Para dúvidas sobre exclusão de conta ou privacidade de dados, entre em contato conosco em"
   },
   "NotFound": {
+    "label": "Página não encontrada",
     "code": "404",
-    "message": "Esta página não existe.",
-    "backHome": "Voltar ao Início"
+    "message": "Curva errada. Esta estrada não existe.",
+    "backHome": "Voltar ao início"
   },
   "Error": {
+    "label": "Erro",
     "title": "Algo deu errado",
-    "message": "Encontramos um erro inesperado. Tente novamente.",
+    "message": "Ocorreu um erro inesperado. Tente novamente.",
     "retry": "Tentar novamente"
   },
   "LanguageSwitcher": {

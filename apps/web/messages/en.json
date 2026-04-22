@@ -17,6 +17,7 @@
     "compare": "Compare",
     "faq": "FAQ",
     "download": "Get the App",
+    "getTheApp": "Get the App",
     "login": "Log In",
     "openMenu": "Open navigation menu",
     "closeMenu": "Close navigation menu",
@@ -25,7 +26,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Riders"
   },
   "Hero": {
     "line1": "PLAN. TRACK.",
@@ -373,13 +375,15 @@
     "contactDescription": "For any questions about account deletion or data privacy, contact us at"
   },
   "NotFound": {
+    "label": "Page not found",
     "code": "404",
-    "message": "This page doesn't exist.",
-    "backHome": "Back to Home"
+    "message": "Wrong turn. This road doesn't exist.",
+    "backHome": "Ride back home"
   },
   "Error": {
+    "label": "Error",
     "title": "Something went wrong",
-    "message": "We encountered an unexpected error. Please try again.",
+    "message": "An unexpected error occurred. Please try again.",
     "retry": "Try again"
   },
   "LanguageSwitcher": {

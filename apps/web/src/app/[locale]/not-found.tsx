@@ -5,48 +5,139 @@ export default function NotFound() {
   const t = useTranslations('NotFound');
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 text-center bg-neutral-950 text-neutral-50">
-      {/* Speedometer needle */}
-      <div className="relative flex size-40 items-center justify-center" aria-hidden="true">
-        <svg viewBox="0 0 120 120" className="size-full" aria-hidden="true">
-          <path
-            d="M20 90 A50 50 0 1 1 100 90"
-            fill="none"
-            stroke="oklch(0.27 0 0)"
-            strokeWidth="6"
-            strokeLinecap="round"
-          />
-          <path
-            d="M20 90 A50 50 0 0 1 40 28"
-            fill="none"
-            stroke="oklch(0.60 0.16 45)"
-            strokeWidth="6"
-            strokeLinecap="round"
-          />
-          <line
-            x1="60"
-            y1="60"
-            x2="38"
-            y2="30"
-            stroke="oklch(0.60 0.16 45)"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <circle cx="60" cy="60" r="5" fill="oklch(0.60 0.16 45)" />
-        </svg>
+    <div
+      className="mv-marketing"
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '40px 24px',
+        background: 'var(--mv-bg)',
+        color: 'var(--mv-ink)',
+        textAlign: 'center',
+        overflow: 'hidden',
+        position: 'relative',
+        isolation: 'isolate',
+      }}
+    >
+      {/* Radial glow */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '800px',
+          height: '600px',
+          background:
+            'radial-gradient(ellipse 60% 50% at 50% 50%, oklch(0.76 0.18 60 / 0.06), transparent 70%)',
+          zIndex: -1,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Mono label */}
+      <div className="mv-section-meta" style={{ justifyContent: 'center', display: 'inline-flex' }}>
+        {t('label')}
       </div>
 
-      <div>
-        <h1 className="text-7xl font-extrabold tracking-tight text-warm-400">{t('code')}</h1>
-        <p className="mt-3 text-xl text-neutral-400">{t('message')}</p>
-      </div>
+      {/* Large 404 */}
+      <h1
+        style={{
+          fontSize: 'clamp(120px, 20vw, 240px)',
+          fontWeight: 500,
+          letterSpacing: '-0.06em',
+          lineHeight: 0.85,
+          margin: 0,
+          color: 'oklch(1 0 0 / 0.04)',
+          position: 'relative',
+        }}
+      >
+        <span
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background:
+              'linear-gradient(180deg, var(--mv-warm-400), var(--mv-warm-500), var(--mv-warm-900))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          {t('code')}
+        </span>
+        {t('code')}
+      </h1>
 
+      {/* Message */}
+      <p
+        style={{
+          marginTop: '32px',
+          fontSize: '18px',
+          color: 'var(--mv-ink-3)',
+          lineHeight: 1.55,
+          letterSpacing: '-0.01em',
+          maxWidth: '420px',
+        }}
+      >
+        {t('message')}
+      </p>
+
+      {/* CTA */}
       <Link
         href="/"
-        className="cta-primary rounded-full bg-warm-500 px-8 py-3 font-semibold text-neutral-950"
+        style={{
+          marginTop: '48px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '14px 28px',
+          borderRadius: '999px',
+          fontWeight: 600,
+          fontSize: '14px',
+          textDecoration: 'none',
+          letterSpacing: '-0.005em',
+          background: 'var(--mv-ink)',
+          color: 'oklch(0.15 0.02 55)',
+          border: 'none',
+          transition: 'opacity 0.2s',
+        }}
       >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
         {t('backHome')}
       </Link>
+
+      {/* Decorative road line */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '2px',
+          height: '120px',
+          background: 'linear-gradient(180deg, oklch(0.76 0.18 60 / 0.3), transparent)',
+        }}
+      />
     </div>
   );
 }

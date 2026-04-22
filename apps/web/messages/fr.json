@@ -11,6 +11,7 @@
     "garage": "Garage",
     "faq": "FAQ",
     "download": "Télécharger",
+    "getTheApp": "Télécharger",
     "login": "Connexion",
     "openMenu": "Ouvrir le menu de navigation",
     "closeMenu": "Fermer le menu de navigation",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Motards"
   },
   "Hero": {
     "line1": "SUIVEZ VOTRE MOTO.",
@@ -363,13 +365,15 @@
     "contactDescription": "Pour toute question sur la suppression de compte ou la confidentialité des données, contactez-nous à"
   },
   "NotFound": {
+    "label": "Page introuvable",
     "code": "404",
-    "message": "Cette page n'existe pas.",
-    "backHome": "Retour à l'Accueil"
+    "message": "Mauvais virage. Cette route n'existe pas.",
+    "backHome": "Retour à l'accueil"
   },
   "Error": {
+    "label": "Erreur",
     "title": "Quelque chose s'est mal passé",
-    "message": "Nous avons rencontré une erreur inattendue. Veuillez réessayer.",
+    "message": "Une erreur inattendue s'est produite. Veuillez réessayer.",
     "retry": "Réessayer"
   },
   "LanguageSwitcher": {

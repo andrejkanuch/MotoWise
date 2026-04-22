@@ -11,6 +11,7 @@
     "garage": "Garaz",
     "faq": "FAQ",
     "download": "Pobierz aplikacje",
+    "getTheApp": "Pobierz aplikacje",
     "login": "Zaloguj sie",
     "openMenu": "Otworz menu nawigacji",
     "closeMenu": "Zamknij menu nawigacji",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Motocykliści"
   },
   "Hero": {
     "line1": "ŚLEDŹ SWÓJ MOTOCYKL.",
@@ -363,13 +365,15 @@
     "contactDescription": "W przypadku pytan dotyczacych usuwania konta lub prywatnosci danych, skontaktuj sie z nami:"
   },
   "NotFound": {
+    "label": "Strona nie znaleziona",
     "code": "404",
-    "message": "Ta strona nie istnieje.",
+    "message": "Zly zakret. Ta droga nie istnieje.",
     "backHome": "Wroc na strone glowna"
   },
   "Error": {
+    "label": "Blad",
     "title": "Cos poszlo nie tak",
-    "message": "Napotkalismy nieoczekiwany blad. Sprobuj ponownie.",
+    "message": "Wystapil nieoczekiwany blad. Sprobuj ponownie.",
     "retry": "Sprobuj ponownie"
   },
   "LanguageSwitcher": {

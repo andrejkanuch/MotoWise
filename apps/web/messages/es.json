@@ -11,6 +11,7 @@
     "garage": "Garaje",
     "faq": "Preguntas frecuentes",
     "download": "Descargar App",
+    "getTheApp": "Descargar App",
     "login": "Iniciar Sesión",
     "openMenu": "Abrir menú de navegación",
     "closeMenu": "Cerrar menú de navegación",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "Motociclistas"
   },
   "Hero": {
     "line1": "CONTROLA TU MOTO.",
@@ -363,13 +365,15 @@
     "contactDescription": "Para cualquier pregunta sobre eliminación de cuenta o privacidad de datos, contáctanos en"
   },
   "NotFound": {
+    "label": "Página no encontrada",
     "code": "404",
-    "message": "Esta página no existe.",
-    "backHome": "Volver al Inicio"
+    "message": "Giro equivocado. Esta ruta no existe.",
+    "backHome": "Volver al inicio"
   },
   "Error": {
+    "label": "Error",
     "title": "Algo salió mal",
-    "message": "Encontramos un error inesperado. Por favor, inténtalo de nuevo.",
+    "message": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "retry": "Intentar de nuevo"
   },
   "LanguageSwitcher": {

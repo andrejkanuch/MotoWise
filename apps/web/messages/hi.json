@@ -11,6 +11,7 @@
     "garage": "गैराज",
     "faq": "FAQ",
     "download": "ऐप डाउनलोड करें",
+    "getTheApp": "ऐप डाउनलोड करें",
     "login": "लॉग इन",
     "openMenu": "नेविगेशन मेनू खोलें",
     "closeMenu": "नेविगेशन मेनू बंद करें",
@@ -23,7 +24,8 @@
     "tripPlanning": "Trip Planning",
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
-    "blog": "Blog"
+    "blog": "Blog",
+    "riders": "राइडर्स"
   },
   "Hero": {
     "line1": "अपनी बाइक ट्रैक करो।",
@@ -363,11 +365,13 @@
     "contactDescription": "अकाउंट डिलीशन या डेटा प्राइवेसी के बारे में किसी भी सवाल के लिए, हमसे संपर्क करें"
   },
   "NotFound": {
+    "label": "पेज नहीं मिला",
     "code": "404",
-    "message": "यह पेज मौजूद नहीं है।",
+    "message": "गलत मोड़। यह रास्ता मौजूद नहीं है।",
     "backHome": "होम पर वापस जाएं"
   },
   "Error": {
+    "label": "त्रुटि",
     "title": "कुछ गलत हो गया",
     "message": "एक अनपेक्षित त्रुटि हुई। कृपया फिर कोशिश करें।",
     "retry": "फिर कोशिश करें"

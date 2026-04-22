@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { CtaSection } from '@/components/marketing/cta-section';
+import { DiagnosticsDemo } from '@/components/marketing/diagnostics-demo';
 import { Faq } from '@/components/marketing/faq';
 import { FeaturesGrid } from '@/components/marketing/features-grid';
 import { Hero } from '@/components/marketing/hero';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
+import { ManifestoSection } from '@/components/marketing/manifesto-section';
+import { ProofSection } from '@/components/marketing/proof-section';
+import { TestimonialSection } from '@/components/marketing/testimonial-section';
 import { getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
   buildFAQPage,
@@ -67,9 +71,13 @@ export default async function HomePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <Hero />
+      <ManifestoSection />
       <FeaturesGrid />
-      <CtaSection />
+      <ProofSection />
+      <DiagnosticsDemo />
+      <TestimonialSection />
       <Faq />
+      <CtaSection />
     </>
   );
 }
