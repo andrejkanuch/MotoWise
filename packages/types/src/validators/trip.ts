@@ -25,34 +25,41 @@ export const TRIP_STATUS = {
 export const TripStatusSchema = z.enum(['draft', 'published', 'active', 'completed', 'archived']);
 export type TripStatus = z.infer<typeof TripStatusSchema>;
 
+// --- Surface Type ---
+// Unified — previously also in route.ts. Re-exported from route.ts for backward compat.
+
+export const SURFACE_TYPES = {
+  PAVED: 'paved',
+  MIXED: 'mixed',
+  OFF_ROAD: 'off-road',
+  UNKNOWN: 'unknown',
+} as const;
+
+export const SurfaceTypeSchema = z.enum(['paved', 'mixed', 'off-road', 'unknown']);
+export type SurfaceType = z.infer<typeof SurfaceTypeSchema>;
+
 // --- Waypoint Type ---
+// Reduced set after unification. Legacy types (photo, mechanical, ferry,
+// pass_summit, rally_point) are dropped — migrate existing data first.
 
 export const WAYPOINT_TYPE = {
   START: 'start',
   END: 'end',
+  STOP: 'stop',
   FUEL: 'fuel',
   FOOD: 'food',
-  SCENIC: 'scenic',
   OVERNIGHT: 'overnight',
-  PHOTO: 'photo',
-  MECHANICAL: 'mechanical',
-  FERRY: 'ferry',
-  PASS_SUMMIT: 'pass_summit',
-  RALLY_POINT: 'rally_point',
+  SCENIC: 'scenic',
 } as const;
 
 export const WaypointTypeSchema = z.enum([
   'start',
   'end',
+  'stop',
   'fuel',
   'food',
-  'scenic',
   'overnight',
-  'photo',
-  'mechanical',
-  'ferry',
-  'pass_summit',
-  'rally_point',
+  'scenic',
 ]);
 export type WaypointType = z.infer<typeof WaypointTypeSchema>;
 
@@ -140,6 +147,29 @@ export type ParticipantStatus = z.infer<typeof ParticipantStatusSchema>;
 export const TripVisibilitySchema = z.enum(['private', 'unlisted', 'public']);
 export type TripVisibility = z.infer<typeof TripVisibilitySchema>;
 
+// --- Condition Tags (unified from route-review.ts) ---
+
+export const CONDITION_TAGS = {
+  GOOD_SURFACE: 'Good Surface',
+  GRAVEL_HAZARD: 'Gravel Hazard',
+  CONSTRUCTION: 'Construction',
+  LOW_TRAFFIC: 'Low Traffic',
+  HEAVY_TRAFFIC: 'Heavy Traffic',
+  SCENIC: 'Scenic',
+  TECHNICAL_CURVES: 'Technical Curves',
+} as const;
+
+export const ConditionTagSchema = z.enum([
+  'Good Surface',
+  'Gravel Hazard',
+  'Construction',
+  'Low Traffic',
+  'Heavy Traffic',
+  'Scenic',
+  'Technical Curves',
+]);
+export type ConditionTag = z.infer<typeof ConditionTagSchema>;
+
 // --- Date range constants (trip planning window) ---
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -224,6 +254,54 @@ function validateTripDateRange(
   }
 }
 
+// --- Helpers ---
+
+/** Strip HTML tags from user-provided text (XSS prevention for JSONB content rendered on web) */
+const stripHtml = (v: string) => v.replace(/<[^>]*>/g, '');
+
+// --- Inline Waypoint (used in create/update trip batch) ---
+
+const InlineWaypointSchema = z.object({
+  type: WaypointTypeSchema,
+  name: z.string().min(1).max(200),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  notes: z.string().max(1000).optional(),
+  sortOrder: z.number().int().min(0).max(1000),
+  dayIndex: z.number().int().min(0).max(365).default(0),
+  /** @deprecated kept for backward compat — optional on new data */
+  periodOfDay: PeriodOfDaySchema.nullable().optional(),
+});
+
+// ==========================================
+// Template fields (is_template = true)
+// ==========================================
+// These fields are only populated for template trips (published to Discover).
+// All are optional/nullable so regular trips pass validation.
+
+const TemplateFieldsSchema = z.object({
+  isTemplate: z.boolean().optional().default(false),
+  slug: z.string().max(200).nullable().optional(),
+  countryCode: z.string().min(2).max(2).nullable().optional(),
+  regionCode: z.string().min(1).max(10).nullable().optional(),
+  city: z.string().max(100).nullable().optional(),
+  polyline: z.string().nullable().optional(),
+  distanceM: z.number().nonnegative().nullable().optional(),
+  elevationGainM: z.number().nonnegative().nullable().optional(),
+  estimatedDurationMinutes: z.number().int().nonnegative().nullable().optional(),
+  surfaceType: SurfaceTypeSchema.nullable().optional(),
+  curvatureIndex: z.number().min(0).max(10).nullable().optional(),
+  viewCount: z.number().int().nonnegative().optional().default(0),
+  cloneCount: z.number().int().nonnegative().optional().default(0),
+  isFeatured: z.boolean().optional().default(false),
+  isMotovaultPick: z.boolean().optional().default(false),
+  averageRating: z.number().min(0).max(5).nullable().optional(),
+  reviewCount: z.number().int().nonnegative().optional().default(0),
+  forkedFromTripId: z.string().uuid().nullable().optional(),
+  publishedAt: z.string().datetime().nullable().optional(),
+  isFlagged: z.boolean().optional().default(false),
+});
+
 // --- Create Trip ---
 
 export const CreateTripInputSchema = z
@@ -243,17 +321,6 @@ export const CreateTripInputSchema = z
 export type CreateTripInput = z.infer<typeof CreateTripInputSchema>;
 
 // --- Create Trip With Waypoints (batch) ---
-
-const InlineWaypointSchema = z.object({
-  type: WaypointTypeSchema,
-  name: z.string().min(1).max(200),
-  lat: z.number().min(-90).max(90),
-  lng: z.number().min(-180).max(180),
-  notes: z.string().max(1000).optional(),
-  sortOrder: z.number().int().min(0).max(1000),
-  dayIndex: z.number().int().min(0).max(365).default(0),
-  periodOfDay: PeriodOfDaySchema.nullable().optional(),
-});
 
 export const CreateTripWithWaypointsInputSchema = z
   .object({
@@ -303,6 +370,7 @@ export const CreateWaypointInputSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000),
   dayIndex: z.number().int().min(0).max(365).default(0),
+  /** @deprecated kept for backward compat — optional on new data */
   periodOfDay: PeriodOfDaySchema.optional(),
 });
 
@@ -319,6 +387,7 @@ export const UpdateWaypointInputSchema = z.object({
   notes: z.string().max(1000).optional(),
   sortOrder: z.number().int().min(0).max(1000).optional(),
   dayIndex: z.number().int().min(0).max(365).optional(),
+  /** @deprecated kept for backward compat — optional on new data */
   periodOfDay: PeriodOfDaySchema.nullable().optional(),
 });
 
@@ -416,3 +485,101 @@ export const ResolveTripByTokenResponseSchema = z
   })
   .strict();
 export type ResolveTripByTokenResponse = z.infer<typeof ResolveTripByTokenResponseSchema>;
+
+// ==========================================
+// Template-specific schemas (unified Discover)
+// ==========================================
+
+// --- Trip Template Waypoint (JSONB contract for template trips) ---
+
+export const TripTemplateWaypointSchema = z.object({
+  sortOrder: z.number().int(),
+  dayIndex: z.number().int().min(0),
+  type: WaypointTypeSchema,
+  name: z.string().min(1).max(200).transform(stripHtml),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  notes: z.string().max(1000).transform(stripHtml).nullable().optional(),
+});
+export type TripTemplateWaypoint = z.infer<typeof TripTemplateWaypointSchema>;
+
+// --- Publish As Template ---
+// Takes an existing trip and publishes it as a template (is_template = true).
+
+export const PublishAsTemplateInputSchema = z.object({
+  tripId: z.string().uuid(),
+});
+export type PublishAsTemplateInput = z.infer<typeof PublishAsTemplateInputSchema>;
+
+// --- Trip Review ---
+// Reviews on template trips (replaces discover_trip_reviews + route_reviews).
+
+export const TripReviewSchema = z.object({
+  tripId: z.string().uuid(),
+  userId: z.string().uuid().nullable().optional(),
+  rating: z.number().int().min(1).max(5),
+  text: z.string().min(1).max(500).transform(stripHtml).optional(),
+  conditionTags: z.array(ConditionTagSchema).max(10).optional(),
+  bikeId: z.string().uuid().optional(),
+  createdAt: z.string().datetime().optional(),
+});
+export type TripReview = z.infer<typeof TripReviewSchema>;
+
+// --- Create Trip Review (input for mutation) ---
+
+export const CreateTripReviewInputSchema = z.object({
+  tripId: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  text: z.string().min(1).max(500).transform(stripHtml).optional(),
+  conditionTags: z.array(ConditionTagSchema).max(10).optional(),
+  bikeId: z.string().uuid().optional(),
+});
+export type CreateTripReviewInput = z.infer<typeof CreateTripReviewInputSchema>;
+
+// --- Trip Save ---
+// Bookmark / save a template trip.
+
+export const TripSaveSchema = z.object({
+  tripId: z.string().uuid(),
+  userId: z.string().uuid(),
+  savedAt: z.string().datetime().optional(),
+});
+export type TripSave = z.infer<typeof TripSaveSchema>;
+
+// --- Trip Template Filters ---
+// Filters for browsing template trips (replaces DiscoverTripsFilter + DiscoverRoutesFilter).
+
+export const TripTemplateFiltersSchema = z.object({
+  country: z.string().min(2).max(2).optional(),
+  regionCode: z.string().min(1).max(10).optional(),
+  difficulty: TripDifficultySchema.optional(),
+  dayCountMin: z.number().int().min(1).optional(),
+  dayCountMax: z.number().int().min(1).optional(),
+  surfaceType: SurfaceTypeSchema.optional(),
+  searchText: z.string().max(200).trim().optional(),
+  minRating: z.number().min(0).max(5).optional(),
+  isFeatured: z.boolean().optional(),
+  isMotovaultPick: z.boolean().optional(),
+});
+export type TripTemplateFilters = z.infer<typeof TripTemplateFiltersSchema>;
+
+// --- Moderate Trip Template (Admin) ---
+
+export const ModerateTripTemplateInputSchema = z.object({
+  tripId: z.string().uuid(),
+  isFlagged: z.boolean(),
+});
+export type ModerateTripTemplateInput = z.infer<typeof ModerateTripTemplateInputSchema>;
+
+// --- Trip Slug Params (URL validation for template trips on web) ---
+
+export const TripSlugParamsSchema = z.object({
+  country: z.string().min(2).max(2), // ISO 3166-1 alpha-2
+  region: z.string().min(1).max(10), // ISO 3166-2 subdivision
+  slug: z.string().min(1).max(200),
+});
+export type TripSlugParams = z.infer<typeof TripSlugParamsSchema>;
+
+// Re-export TemplateFieldsSchema for consumers that need the raw shape
+export { TemplateFieldsSchema };
+export type TemplateFields = z.infer<typeof TemplateFieldsSchema>;

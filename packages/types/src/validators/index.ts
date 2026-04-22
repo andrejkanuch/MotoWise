@@ -15,6 +15,7 @@ export * from './motorcycle';
 export * from './quiz';
 export * from './ride';
 export * from './route';
+export * from './route-filters';
 export * from './route-review';
 export * from './route-web';
 export * from './seo-jsonld';

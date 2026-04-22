@@ -1,6 +1,23 @@
+// @deprecated — Use trip.ts with isTemplate filter instead. Kept for backward compat during migration.
+
 import { z } from 'zod';
-import { SurfaceTypeSchema } from './route';
-import { TripDifficultySchema, WaypointTypeSchema } from './trip';
+import {
+  type ConditionTag,
+  ConditionTagSchema,
+  type CreateTripReviewInput,
+  CreateTripReviewInputSchema,
+  type ModerateTripTemplateInput,
+  ModerateTripTemplateInputSchema,
+  type PublishAsTemplateInput,
+  PublishAsTemplateInputSchema,
+  SurfaceTypeSchema,
+  TripDifficultySchema,
+  type TripTemplateFilters,
+  TripTemplateFiltersSchema,
+  type TripTemplateWaypoint,
+  TripTemplateWaypointSchema,
+  WaypointTypeSchema,
+} from './trip';
 
 // --- Helpers ---
 
@@ -8,12 +25,13 @@ import { TripDifficultySchema, WaypointTypeSchema } from './trip';
 const stripHtml = (v: string) => v.replace(/<[^>]*>/g, '');
 
 // --- Discover Trip Status ---
+// @deprecated — templates use isFlagged boolean + publishedAt instead
 
 export const DiscoverTripStatusSchema = z.enum(['published', 'hidden', 'flagged', 'unpublished']);
 export type DiscoverTripStatus = z.infer<typeof DiscoverTripStatusSchema>;
 
 // --- Discover Trip Waypoint (JSONB contract) ---
-// Every service method reading JSONB waypoints must z.array(DiscoverTripWaypointSchema).parse()
+// @deprecated — Use TripTemplateWaypointSchema from trip.ts
 
 export const DiscoverTripWaypointSchema = z.object({
   sortOrder: z.number().int(),
@@ -27,6 +45,7 @@ export const DiscoverTripWaypointSchema = z.object({
 export type DiscoverTripWaypoint = z.infer<typeof DiscoverTripWaypointSchema>;
 
 // --- Publish Trip to Discover ---
+// @deprecated — Use PublishAsTemplateInputSchema from trip.ts
 
 export const PublishTripToDiscoverInputSchema = z.object({
   tripId: z.string().uuid(),
@@ -34,6 +53,7 @@ export const PublishTripToDiscoverInputSchema = z.object({
 export type PublishTripToDiscoverInput = z.infer<typeof PublishTripToDiscoverInputSchema>;
 
 // --- Discover Trips Filter ---
+// @deprecated — Use TripTemplateFiltersSchema from trip.ts
 
 export const DiscoverTripsFilterSchema = z.object({
   country: z.string().min(2).max(2).optional(),
@@ -46,6 +66,7 @@ export const DiscoverTripsFilterSchema = z.object({
 export type DiscoverTripsFilter = z.infer<typeof DiscoverTripsFilterSchema>;
 
 // --- Create Discover Trip Review ---
+// @deprecated — Use CreateTripReviewInputSchema from trip.ts
 
 export const CreateDiscoverTripReviewInputSchema = z.object({
   discoverTripId: z.string().uuid(),
@@ -57,9 +78,30 @@ export const CreateDiscoverTripReviewInputSchema = z.object({
 export type CreateDiscoverTripReviewInput = z.infer<typeof CreateDiscoverTripReviewInputSchema>;
 
 // --- Moderate Discover Trip (Admin) ---
+// @deprecated — Use ModerateTripTemplateInputSchema from trip.ts
 
 export const ModerateDiscoverTripInputSchema = z.object({
   discoverTripId: z.string().uuid(),
   status: z.enum(['published', 'hidden', 'flagged']),
 });
 export type ModerateDiscoverTripInput = z.infer<typeof ModerateDiscoverTripInputSchema>;
+
+// --- Re-exports for migration convenience ---
+// Consumers can import the new unified types from here during the transition.
+
+export {
+  // Schemas
+  TripTemplateWaypointSchema,
+  PublishAsTemplateInputSchema,
+  CreateTripReviewInputSchema,
+  TripTemplateFiltersSchema,
+  ModerateTripTemplateInputSchema,
+  ConditionTagSchema,
+  // Types
+  type TripTemplateWaypoint,
+  type PublishAsTemplateInput,
+  type CreateTripReviewInput,
+  type TripTemplateFilters,
+  type ModerateTripTemplateInput,
+  type ConditionTag,
+};

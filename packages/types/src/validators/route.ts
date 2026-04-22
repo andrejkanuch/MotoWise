@@ -1,16 +1,11 @@
 import { z } from 'zod';
 
 // --- Surface Type ---
+// Canonical definition is now in trip.ts. Re-export for backward compat.
+export { SURFACE_TYPES, SurfaceTypeSchema, type SurfaceType } from './trip';
 
-export const SURFACE_TYPES = {
-  PAVED: 'paved',
-  MIXED: 'mixed',
-  OFF_ROAD: 'off-road',
-  UNKNOWN: 'unknown',
-} as const;
-
-export const SurfaceTypeSchema = z.enum(['paved', 'mixed', 'off-road', 'unknown']);
-export type SurfaceType = z.infer<typeof SurfaceTypeSchema>;
+// Re-import for local use in this file
+import { SurfaceTypeSchema } from './trip';
 
 // --- Share Ride to Discover ---
 
