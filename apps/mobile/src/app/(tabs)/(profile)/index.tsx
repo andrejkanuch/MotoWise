@@ -85,11 +85,11 @@ function SectionHeader({ label }: { label: string }) {
   return (
     <Text
       style={{
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: '600',
         color: palette.neutral500,
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 1.2,
         marginBottom: 8,
         marginLeft: 4,
       }}
@@ -278,37 +278,59 @@ export default function ProfileScreen() {
       .toUpperCase()
       .slice(0, 2) ?? '?';
 
+  const editorialBg = isDark ? palette.editorialDarkBg : palette.editorialLightBg;
+  const editorialSurface = isDark ? palette.editorialDarkSurface : palette.editorialLightSurface;
+  const editorialInk = isDark ? palette.editorialDarkInk : palette.editorialLightInk;
+  const editorialInk2 = isDark ? palette.editorialDarkInk2 : palette.editorialLightInk2;
+  const editorialWarm = isDark ? palette.editorialDarkWarm : palette.editorialLightWarm;
+  const editorialLine = isDark ? palette.editorialDarkLine : palette.editorialLightLine;
+
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120, gap: 24 }}
+      style={{ flex: 1, backgroundColor: editorialBg }}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120, gap: 16 }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Editorial heading */}
+      <View style={{ paddingHorizontal: 4, paddingTop: 8 }}>
+        <Text
+          style={{
+            fontFamily: 'InstrumentSerif-Regular',
+            fontSize: 40,
+            color: editorialInk,
+            letterSpacing: -0.8,
+            lineHeight: 40,
+          }}
+        >
+          Profile
+        </Text>
+      </View>
+
       {/* User Card */}
       <Animated.View entering={FadeInUp.duration(400)}>
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: editorialSurface,
             borderRadius: 20,
             borderCurve: 'continuous',
-            padding: 24,
-            alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            padding: 20,
+            borderWidth: 1,
+            borderColor: editorialLine,
           }}
         >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <View
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
+              width: 60,
+              height: 60,
+              borderRadius: 30,
               borderCurve: 'continuous',
               overflow: 'hidden',
-              marginBottom: 14,
             }}
           >
             <LinearGradient
-              colors={[palette.primary500, palette.primary700]}
+              colors={[editorialWarm, palette.editorialPurple]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -317,19 +339,21 @@ export default function ProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 28, fontWeight: '700', color: palette.white }}>
+              <Text style={{ fontSize: 22, fontWeight: '600', color: '#fff' }}>
                 {initials}
               </Text>
             </LinearGradient>
           </View>
+          <View style={{ flex: 1 }}>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text
               selectable
               style={{
-                fontSize: 22,
-                fontWeight: '700',
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                fontSize: 17,
+                fontWeight: '600',
+                color: editorialInk,
+                letterSpacing: -0.1,
               }}
             >
               {user?.fullName ?? t('profile.rider')}
@@ -341,14 +365,16 @@ export default function ProfileScreen() {
           {user?.publicUsername && (
             <Text
               style={{
-                fontSize: 14,
-                color: isDark ? palette.neutral400 : palette.neutral500,
-                marginTop: 4,
+                fontSize: 13,
+                color: editorialInk2,
+                marginTop: 2,
               }}
             >
               @{user.publicUsername}
             </Text>
           )}
+          </View>
+          </View>
 
           {/* Action buttons row */}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>

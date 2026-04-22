@@ -1,18 +1,15 @@
-import { palette } from '@motovault/design-system';
 import type { ExperienceLevel } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Bike, Flame, Gauge } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
 
 const EXPERIENCE_LEVELS = [
   {
@@ -25,13 +22,13 @@ const EXPERIENCE_LEVELS = [
     key: 'intermediate' as ExperienceLevel,
     descKey: 'intermediateDesc',
     icon: Gauge,
-    color: palette.moduleSuspension,
+    color: ONBOARDING_COLORS.warm,
   },
   {
     key: 'advanced' as ExperienceLevel,
     descKey: 'advancedDesc',
     icon: Flame,
-    color: ONBOARDING_COLORS.warning,
+    color: ONBOARDING_COLORS.error,
   },
 ] as const;
 
@@ -61,33 +58,48 @@ export default function ExperienceScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={1} totalScreens={TOTAL_SCREENS} />
-
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 72, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.Text
-          entering={FadeInDown.duration(300)}
-          style={{
-            fontSize: 36,
-            fontWeight: '800',
-            color: ONBOARDING_COLORS.textPrimary,
-            letterSpacing: -0.5,
-            marginBottom: 8,
-          }}
-        >
-          {t('onboarding.experienceTitle')}
-        </Animated.Text>
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '600',
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              color: ONBOARDING_COLORS.warm,
+              marginBottom: 10,
+            }}
+          >
+            {t('onboarding.experienceTitle')}
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 36,
+              lineHeight: 38,
+              color: ONBOARDING_COLORS.textPrimary,
+              letterSpacing: -0.7,
+              marginBottom: 6,
+            }}
+          >
+            How experienced{'\n'}
+            <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
+              are you?
+            </Text>
+          </Text>
+        </Animated.View>
 
         <Animated.Text
           entering={FadeInUp.delay(150).duration(300)}
           style={{
-            fontSize: 17,
+            fontSize: 14,
             color: ONBOARDING_COLORS.textSecondary,
-            lineHeight: 24,
-            marginBottom: 40,
+            lineHeight: 20,
+            marginBottom: 32,
           }}
         >
           {t('onboarding.welcomeSubtitle')}

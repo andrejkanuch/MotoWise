@@ -1,5 +1,10 @@
 import '../global.css';
 import { LogBox } from 'react-native';
+import {
+  InstrumentSerif_400Regular,
+  InstrumentSerif_400Regular_Italic,
+} from '@expo-google-fonts/instrument-serif';
+import { useFonts } from 'expo-font';
 
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
@@ -237,6 +242,10 @@ export default function RootLayout() {
   const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   const [appReady, setAppReady] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'InstrumentSerif-Regular': InstrumentSerif_400Regular,
+    'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
+  });
   const navigationRef = useNavigationContainerRef();
   const pathname = usePathname();
   const previousPathname = useRef<string | undefined>(undefined);
@@ -303,10 +312,10 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
 
-  // Mark app as ready once auth state is resolved
+  // Mark app as ready once auth state is resolved and fonts are loaded
   useEffect(() => {
-    if (!isLoading) setAppReady(true);
-  }, [isLoading]);
+    if (!isLoading && fontsLoaded) setAppReady(true);
+  }, [isLoading, fontsLoaded]);
 
   useEffect(() => {
     const locale = useAuthStore.getState().locale;

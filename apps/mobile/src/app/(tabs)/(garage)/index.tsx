@@ -1,31 +1,29 @@
-import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Calendar, ChevronRight, Crown, Plus, Star, Wrench } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { Crown, MoreHorizontal, Plus } from 'lucide-react-native';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { ProGateModal } from '../../../components/ProGateModal';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
+import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-
-const BIKE_GRADIENT_PAIRS = [
-  ['#1a1a2e', '#16213e'] as const,
-  ['#1b2838', '#1e3a5f'] as const,
-  ['#2d1b2e', '#4a1942'] as const,
-  ['#1b2e1b', '#1e4d2b'] as const,
-  ['#2e2a1b', '#4d3319'] as const,
-] as const;
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -33,259 +31,14 @@ function haptic() {
   }
 }
 
-function BikeCard({
-  bike,
-  index,
-  onPress,
-  isDark,
-}: {
-  bike: {
-    id: string;
-    make: string;
-    model: string;
-    year: number;
-    nickname?: string | null;
-    isPrimary: boolean;
-    primaryPhotoUrl?: string | null;
-    createdAt: string;
-  };
-  index: number;
-  onPress: () => void;
-  isDark: boolean;
-}) {
-  const { t } = useTranslation();
-  const gradientPair = BIKE_GRADIENT_PAIRS[index % BIKE_GRADIENT_PAIRS.length];
-
-  return (
-    <Animated.View entering={FadeInUp.delay(index * 80).duration(400)}>
-      <Pressable
-        onPress={() => {
-          haptic();
-          onPress();
-        }}
-        accessibilityRole="button"
-        accessibilityLabel={`${bike.make} ${bike.model}, ${bike.year}`}
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.95 : 1,
-          transform: [{ scale: pressed ? 0.98 : 1 }],
-        })}
-      >
-        <View
-          style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 2px 12px rgba(0,0,0,0.08)',
-          }}
-        >
-          <View style={{ position: 'relative' }}>
-            {bike.primaryPhotoUrl ? (
-              <View style={{ height: 140 }}>
-                <Image
-                  source={{ uri: bike.primaryPhotoUrl }}
-                  style={{ width: '100%', height: 140 }}
-                  contentFit="cover"
-                  transition={200}
-                />
-                <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.35)']}
-                  style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 60,
-                  }}
-                />
-              </View>
-            ) : (
-              <LinearGradient
-                colors={isDark ? gradientPair : [palette.primary50, palette.primary100]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  height: 120,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <LottieMotorcycle animation="cardPlaceholder" size={120} loop speed={0.5} />
-              </LinearGradient>
-            )}
-
-            {bike.isPrimary && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  backgroundColor: palette.warning500,
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                  borderRadius: 20,
-                  borderCurve: 'continuous',
-                }}
-              >
-                <Star size={12} color={palette.white} strokeWidth={2.5} fill={palette.white} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>
-                  Primary
-                </Text>
-              </View>
-            )}
-          </View>
-
-          <View style={{ padding: 16 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                {bike.nickname && (
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: palette.primary500,
-                      marginBottom: 2,
-                    }}
-                  >
-                    &ldquo;{bike.nickname}&rdquo;
-                  </Text>
-                )}
-                <Text
-                  style={{
-                    fontSize: 19,
-                    fontWeight: '700',
-                    color: isDark ? palette.neutral50 : palette.neutral950,
-                  }}
-                  numberOfLines={1}
-                >
-                  {bike.make} {bike.model}
-                </Text>
-              </View>
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ChevronRight size={16} color={palette.neutral400} strokeWidth={2} />
-              </View>
-            </View>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 10 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Calendar size={13} color={palette.neutral400} strokeWidth={2} />
-                <Text style={{ fontSize: 13, color: palette.neutral500, fontWeight: '500' }}>
-                  {bike.year}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Wrench size={13} color={palette.neutral400} strokeWidth={2} />
-                <Text style={{ fontSize: 13, color: palette.neutral500, fontWeight: '500' }}>
-                  {t('garage.serviceRecords', { defaultValue: 'Service' })}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-function EmptyGarage({ onAdd, isDark }: { onAdd: () => void; isDark: boolean }) {
-  const { t } = useTranslation();
-
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 32,
-        paddingBottom: 80,
-      }}
-    >
-      <Animated.View entering={FadeInUp.duration(500)} style={{ alignItems: 'center' }}>
-        <LottieMotorcycle
-          animation="emptyGarage"
-          size={160}
-          loop={false}
-          style={{ marginBottom: 8 }}
-        />
-
-        <Text
-          style={{
-            fontSize: 22,
-            fontWeight: '700',
-            color: isDark ? palette.neutral50 : palette.neutral950,
-            textAlign: 'center',
-            marginBottom: 8,
-          }}
-        >
-          {t('garage.emptyTitle', { defaultValue: 'Your garage is empty' })}
-        </Text>
-        <Text
-          style={{
-            fontSize: 15,
-            color: palette.neutral500,
-            textAlign: 'center',
-            lineHeight: 22,
-            marginBottom: 32,
-          }}
-        >
-          {t('garage.emptySubtitle', {
-            defaultValue:
-              'Add your first motorcycle to get personalized diagnostics and maintenance tips',
-          })}
-        </Text>
-
-        <Pressable
-          onPress={() => {
-            haptic();
-            onAdd();
-          }}
-          style={{ borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' }}
-        >
-          <View
-            style={{
-              backgroundColor: palette.primary700,
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 28,
-              paddingVertical: 16,
-              gap: 10,
-            }}
-          >
-            <Plus size={20} color={palette.white} strokeWidth={2.5} />
-            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-              {t('garage.addFirstBike')}
-            </Text>
-          </View>
-        </Pressable>
-      </Animated.View>
-    </View>
-  );
-}
-
 export default function GarageScreen() {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme, isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
+  const [view, setView] = useState<'shelf' | 'grid'>('shelf');
+
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
@@ -296,6 +49,10 @@ export default function GarageScreen() {
   }, [refetch]);
 
   const motorcycles = data?.myMotorcycles ?? [];
+  const totalKm = motorcycles.reduce(
+    (sum, b) => sum + (b.currentMileage ?? 0),
+    0,
+  );
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
@@ -308,21 +65,15 @@ export default function GarageScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: theme.bg,
           padding: 20,
           paddingTop: insets.top + 20,
         }}
       >
         <SkeletonProvider>
-          {/* Title placeholder */}
           <Animated.View entering={FadeInUp.delay(0).duration(300)}>
             <Skeleton width="50%" height={16} borderRadius={6} />
           </Animated.View>
-          {/* Add button placeholder */}
-          <Animated.View entering={FadeInUp.delay(50).duration(300)} style={{ marginTop: 16 }}>
-            <Skeleton width="100%" height={48} borderRadius={14} />
-          </Animated.View>
-          {/* Bike card placeholders */}
           {[0, 1, 2].map((i) => (
             <Animated.View
               key={i}
@@ -342,33 +93,28 @@ export default function GarageScreen() {
       <View
         style={{
           flex: 1,
+          backgroundColor: theme.bg,
           alignItems: 'center',
           justifyContent: 'center',
           padding: 24,
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
         }}
       >
         <Text
-          style={{
-            fontSize: 16,
-            color: isDark ? palette.neutral50 : palette.neutral950,
-            marginBottom: 16,
-            textAlign: 'center',
-          }}
+          style={{ fontSize: 16, color: theme.ink, marginBottom: 16, textAlign: 'center' }}
         >
           {t('common.error')}
         </Text>
         <Pressable
           onPress={onRefresh}
           style={{
-            backgroundColor: palette.primary500,
+            backgroundColor: theme.warm,
             borderRadius: 12,
             borderCurve: 'continuous',
             paddingHorizontal: 24,
             paddingVertical: 12,
           }}
         >
-          <Text style={{ color: palette.white, fontSize: 15, fontWeight: '600' }}>
+          <Text style={{ color: '#1a1208', fontSize: 15, fontWeight: '600' }}>
             {t('common.retry')}
           </Text>
         </Pressable>
@@ -378,91 +124,662 @@ export default function GarageScreen() {
 
   if (motorcycles.length === 0) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-        }}
-      >
-        <EmptyGarage onAdd={handleAddBike} isDark={isDark} />
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 32,
+            paddingBottom: 80,
+          }}
+        >
+          <Animated.View entering={FadeInUp.duration(500)} style={{ alignItems: 'center' }}>
+            <LottieMotorcycle
+              animation="emptyGarage"
+              size={160}
+              loop={false}
+              style={{ marginBottom: 8 }}
+            />
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 28,
+                color: theme.ink,
+                textAlign: 'center',
+                marginBottom: 8,
+              }}
+            >
+              Your garage is empty
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: theme.ink3,
+                textAlign: 'center',
+                lineHeight: 20,
+                marginBottom: 32,
+              }}
+            >
+              Add your first motorcycle to get personalized diagnostics and maintenance
+            </Text>
+            <Pressable
+              onPress={handleAddBike}
+              style={{
+                backgroundColor: theme.warm,
+                borderRadius: 16,
+                borderCurve: 'continuous',
+                paddingHorizontal: 28,
+                paddingVertical: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              <Plus size={20} color="#1a1208" strokeWidth={2.5} />
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#1a1208' }}>
+                {t('garage.addFirstBike')}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
         <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: insets.bottom + 80 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={onRefresh}
-            tintColor={palette.primary500}
+            tintColor={theme.warm}
           />
         }
       >
-        <Animated.View entering={FadeInUp.duration(300)}>
-          <Text
+        {/* ── Masthead ── */}
+        <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 14 }}>
+          <View
             style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: palette.neutral500,
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
               marginBottom: 4,
             }}
           >
-            {motorcycles.length} {motorcycles.length === 1 ? 'motorcycle' : 'motorcycles'}
-          </Text>
-        </Animated.View>
-
-        <Animated.View entering={FadeInUp.delay(50).duration(300)}>
-          <Pressable
-            onPress={handleAddBike}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              paddingVertical: 14,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              borderWidth: 1.5,
-              borderColor: isDark ? palette.primary400 : palette.primary500,
-              borderStyle: 'dashed',
-            }}
-          >
-            {!isPro && motorcycles.length >= 1 ? (
-              <Crown size={18} color={palette.signature500} strokeWidth={2.5} />
-            ) : (
-              <Plus
-                size={18}
-                color={isDark ? palette.primary400 : palette.primary500}
-                strokeWidth={2.5}
-              />
-            )}
-            <Text
+            <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 8,
+                }}
+              >
+                <View style={{ width: 14, height: 1, backgroundColor: theme.ink3 }} />
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 2.2,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
+                  {motorcycles.length} bikes · {totalKm.toLocaleString()} km
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 46,
+                  color: theme.ink,
+                  letterSpacing: -1.2,
+                  lineHeight: 44,
+                }}
+              >
+                The{' '}
+                <Text
+                  style={{ fontFamily: 'InstrumentSerif-Italic', color: theme.warm2 }}
+                >
+                  Garage.
+                </Text>
+              </Text>
+            </View>
+            <Pressable
+              onPress={handleAddBike}
               style={{
-                fontSize: 15,
-                fontWeight: '600',
-                color: isDark ? palette.primary400 : palette.primary500,
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: theme.warm,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              {t('garage.addBike', { defaultValue: 'Add Motorcycle' })}
-            </Text>
-          </Pressable>
-        </Animated.View>
+              {!isPro && motorcycles.length >= 1 ? (
+                <Crown size={19} color="#1a1208" />
+              ) : (
+                <Plus size={19} color="#1a1208" />
+              )}
+            </Pressable>
+          </View>
+        </View>
 
-        {motorcycles.map((bike, index) => (
-          <BikeCard
-            key={bike.id}
-            bike={bike}
-            index={index}
-            isDark={isDark}
-            onPress={() => router.push(`/(tabs)/(garage)/bike/${bike.id}`)}
-          />
-        ))}
+        {/* ── View toggle ── */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingBottom: 18,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              padding: 3,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 10,
+              borderCurve: 'continuous',
+            }}
+          >
+            {(['shelf', 'grid'] as const).map((v) => (
+              <Pressable
+                key={v}
+                onPress={() => setView(v)}
+                style={{
+                  paddingVertical: 6,
+                  paddingHorizontal: 14,
+                  borderRadius: 7,
+                  borderCurve: 'continuous',
+                  backgroundColor: view === v ? theme.surface2 : 'transparent',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: view === v ? theme.ink : theme.ink3,
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {v}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={{ fontSize: 11, color: theme.ink3 }}>Sorted by primary</Text>
+        </View>
+
+        {view === 'shelf' ? (
+          <>
+            {/* ── SHELF VIEW — horizontal carousel ── */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}
+              decelerationRate="fast"
+              snapToInterval={312}
+            >
+              {motorcycles.map((bike, i) => (
+                <Animated.View
+                  key={bike.id}
+                  entering={FadeIn.delay(i * 100).duration(400)}
+                >
+                  <Pressable
+                    onPress={() => {
+                      haptic();
+                      router.push(`/(tabs)/(garage)/bike/${bike.id}`);
+                    }}
+                    style={{
+                      width: 300,
+                      aspectRatio: 3 / 4,
+                      borderRadius: 22,
+                      borderCurve: 'continuous',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Background */}
+                    {bike.primaryPhotoUrl ? (
+                      <Image
+                        source={{ uri: bike.primaryPhotoUrl }}
+                        style={{ position: 'absolute', width: '100%', height: '100%' }}
+                        contentFit="cover"
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          width: '100%',
+                          height: '100%',
+                          backgroundColor: theme.surface2,
+                        }}
+                      />
+                    )}
+                    {/* Gradient */}
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '35%',
+                        backgroundColor: `${theme.bg}50`,
+                      }}
+                    />
+                    <View
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '55%',
+                        backgroundColor: `${theme.bg}F0`,
+                      }}
+                    />
+
+                    {/* Primary badge */}
+                    {bike.isPrimary && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 14,
+                          left: 14,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 5,
+                          paddingVertical: 5,
+                          paddingHorizontal: 11,
+                          borderRadius: 999,
+                          backgroundColor: theme.warm,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: 3,
+                            backgroundColor: '#1a1208',
+                          }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '700',
+                            letterSpacing: 1.2,
+                            textTransform: 'uppercase',
+                            color: '#1a1208',
+                          }}
+                        >
+                          Primary
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* More button */}
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 14,
+                        right: 14,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 10,
+                        borderCurve: 'continuous',
+                        backgroundColor: 'rgba(0,0,0,0.35)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <MoreHorizontal size={14} color="#fff" />
+                    </View>
+
+                    {/* Bottom info */}
+                    <View style={{ position: 'absolute', bottom: 18, left: 18, right: 18 }}>
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: '#fff',
+                          opacity: 0.8,
+                          letterSpacing: 1.5,
+                          textTransform: 'uppercase',
+                          fontWeight: '600',
+                          marginBottom: 6,
+                        }}
+                      >
+                        N°{String(i + 1).padStart(2, '0')} · {bike.year}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: 'InstrumentSerif-Regular',
+                          fontSize: 28,
+                          color: '#fff',
+                          letterSpacing: -0.5,
+                          lineHeight: 28,
+                        }}
+                      >
+                        {bike.make}
+                      </Text>
+                      <Text
+                        style={{
+                          fontFamily: 'InstrumentSerif-Italic',
+                          fontSize: 28,
+                          color: theme.warm2,
+                          letterSpacing: -0.5,
+                          lineHeight: 28,
+                          marginBottom: 12,
+                        }}
+                      >
+                        {bike.model}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          paddingTop: 10,
+                          borderTopWidth: 1,
+                          borderTopColor: 'rgba(255,255,255,0.18)',
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 9,
+                              color: 'rgba(255,255,255,0.7)',
+                              fontWeight: '700',
+                              letterSpacing: 1,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            Odo
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: 'InstrumentSerif-Regular',
+                              fontSize: 20,
+                              color: '#fff',
+                              letterSpacing: -0.4,
+                            }}
+                          >
+                            {(bike.currentMileage ?? 0).toLocaleString()}{' '}
+                            <Text style={{ fontSize: 11, opacity: 0.7 }}>km</Text>
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 9,
+                              color: 'rgba(255,255,255,0.7)',
+                              fontWeight: '700',
+                              letterSpacing: 1,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            Since
+                          </Text>
+                          <Text
+                            style={{
+                              fontFamily: 'InstrumentSerif-Regular',
+                              fontSize: 20,
+                              color: '#fff',
+                              letterSpacing: -0.4,
+                            }}
+                          >
+                            {new Date(bike.createdAt).getFullYear()}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </Pressable>
+                </Animated.View>
+              ))}
+
+              {/* Add bike card */}
+              <Pressable
+                onPress={handleAddBike}
+                style={{
+                  width: 260,
+                  aspectRatio: 3 / 4,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  borderWidth: 1.5,
+                  borderStyle: 'dashed',
+                  borderColor: theme.line,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  backgroundColor: `${theme.surface}66`,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: theme.surface2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Plus size={22} color={theme.ink2} />
+                </View>
+                <Text style={{ fontSize: 13, color: theme.ink2, fontWeight: '600' }}>
+                  Add a bike
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: theme.ink3,
+                    textAlign: 'center',
+                    paddingHorizontal: 30,
+                  }}
+                >
+                  Up to 5 on the free plan
+                </Text>
+              </Pressable>
+            </ScrollView>
+
+            {/* ── Summary shelf ── */}
+            <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>
+              <ESectionMasthead label="By the numbers" />
+              <ECard pad={0}>
+                {[
+                  {
+                    label: 'Total kilometres',
+                    value: `${totalKm.toLocaleString()} km`,
+                  },
+                  {
+                    label: 'Oldest bike',
+                    value: motorcycles.length > 0
+                      ? `${Math.min(...motorcycles.map((b) => b.year))}`
+                      : '—',
+                  },
+                  { label: 'Open tasks', value: '—' },
+                ].map((r, i, a) => (
+                  <View
+                    key={r.label}
+                    style={{
+                      paddingVertical: 13,
+                      paddingHorizontal: 16,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottomWidth: i < a.length - 1 ? 1 : 0,
+                      borderBottomColor: theme.line2,
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, color: theme.ink2 }}>{r.label}</Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: theme.ink,
+                        fontWeight: '600',
+                        letterSpacing: -0.05,
+                      }}
+                    >
+                      {r.value}
+                    </Text>
+                  </View>
+                ))}
+              </ECard>
+            </View>
+          </>
+        ) : (
+          /* ── GRID VIEW — compact 2-up ── */
+          <View style={{ paddingHorizontal: 16 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+              {motorcycles.map((bike, i) => (
+                <Animated.View
+                  key={bike.id}
+                  entering={FadeInUp.delay(i * 80).duration(400)}
+                  style={{ width: '48%' }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      haptic();
+                      router.push(`/(tabs)/(garage)/bike/${bike.id}`);
+                    }}
+                    style={{
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      overflow: 'hidden',
+                      borderWidth: 1,
+                      borderColor: theme.line,
+                      backgroundColor: theme.surface,
+                    }}
+                  >
+                    <View style={{ height: 120, position: 'relative' }}>
+                      {bike.primaryPhotoUrl ? (
+                        <Image
+                          source={{ uri: bike.primaryPhotoUrl }}
+                          style={{ width: '100%', height: '100%' }}
+                          contentFit="cover"
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: theme.surface2,
+                          }}
+                        />
+                      )}
+                      {bike.isPrimary && (
+                        <View
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            left: 8,
+                            paddingVertical: 3,
+                            paddingHorizontal: 8,
+                            borderRadius: 999,
+                            backgroundColor: theme.warm,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 9,
+                              fontWeight: '700',
+                              letterSpacing: 1,
+                              textTransform: 'uppercase',
+                              color: '#1a1208',
+                            }}
+                          >
+                            Primary
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={{ padding: 12, paddingTop: 10 }}>
+                      <Text
+                        style={{
+                          fontSize: 9,
+                          color: theme.ink3,
+                          letterSpacing: 1,
+                          textTransform: 'uppercase',
+                          fontWeight: '600',
+                          marginBottom: 3,
+                        }}
+                      >
+                        {bike.year}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '600',
+                          color: theme.ink,
+                          letterSpacing: -0.1,
+                          lineHeight: 15,
+                        }}
+                      >
+                        {bike.make}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '500',
+                          color: theme.ink2,
+                          fontFamily: 'InstrumentSerif-Italic',
+                          marginTop: 1,
+                        }}
+                      >
+                        {bike.model}
+                      </Text>
+                      <View
+                        style={{
+                          marginTop: 8,
+                          paddingTop: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: theme.line2,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: theme.ink3,
+                          }}
+                        >
+                          {(bike.currentMileage ?? 0).toLocaleString()} km
+                        </Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                </Animated.View>
+              ))}
+              {/* Add bike grid cell */}
+              <View style={{ width: '48%' }}>
+                <Pressable
+                  onPress={handleAddBike}
+                  style={{
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    borderWidth: 1.5,
+                    borderStyle: 'dashed',
+                    borderColor: theme.line,
+                    aspectRatio: 3 / 4,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Plus size={22} color={theme.ink2} />
+                  <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
+                    Add bike
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
       <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>

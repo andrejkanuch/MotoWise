@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/instrument-serif": "^0.4.1",
     "@gorhom/bottom-sheet": "^5.2.8",
     "@motovault/design-system": "workspace:*",
     "@motovault/graphql": "workspace:*",

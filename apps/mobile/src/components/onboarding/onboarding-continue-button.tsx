@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
-import { ChevronRight } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { ArrowRight } from 'lucide-react-native';
+import { Pressable, Text } from 'react-native';
 import { triggerNotification } from '../../utils/haptics';
 import { ONBOARDING_COLORS } from './onboarding-colors';
 
@@ -29,15 +29,17 @@ export function OnboardingContinueButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       style={({ pressed }) => ({
-        backgroundColor: disabled ? ONBOARDING_COLORS.textDimmed : ONBOARDING_COLORS.textPrimary,
-        borderRadius: 20,
+        backgroundColor: disabled
+          ? ONBOARDING_COLORS.textDimmed
+          : ONBOARDING_COLORS.warm,
+        borderRadius: 16,
         borderCurve: 'continuous',
         paddingVertical: 18,
-        paddingHorizontal: 32,
+        paddingHorizontal: 22,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: 10,
         width: '100%',
         opacity: pressed && !disabled ? 0.9 : 1,
         transform: [{ scale: pressed && !disabled ? 0.98 : 1 }],
@@ -45,20 +47,19 @@ export function OnboardingContinueButton({
     >
       <Text
         style={{
-          fontSize: 17,
-          fontWeight: '700',
-          color: disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.background,
+          fontSize: 16,
+          fontWeight: '600',
+          color: disabled ? ONBOARDING_COLORS.textMuted : '#1a1208',
+          letterSpacing: -0.15,
         }}
       >
         {label}
       </Text>
       {showIcon ? (
-        <View>
-          <ChevronRight
-            size={20}
-            color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.background}
-          />
-        </View>
+        <ArrowRight
+          size={18}
+          color={disabled ? ONBOARDING_COLORS.textMuted : '#1a1208'}
+        />
       ) : null}
     </Pressable>
   );

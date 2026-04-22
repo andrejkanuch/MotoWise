@@ -1,5 +1,5 @@
-import { palette } from '@motovault/design-system';
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { ErrorFallback } from '../../components/error-fallback';
 import { captureException } from '../../lib/analytics';
 
@@ -13,7 +13,7 @@ export default function OnboardingLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: palette.surfaceDark },
+        contentStyle: { backgroundColor: ONBOARDING_COLORS.background },
         animation: 'slide_from_right',
       }}
     >

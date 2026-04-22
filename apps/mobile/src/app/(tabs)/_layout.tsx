@@ -9,7 +9,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { Bike, Compass, Home, Route, User } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -24,6 +24,7 @@ import { ErrorFallback } from '../../components/error-fallback';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
+import { useEditorialTheme } from '../../theme/editorial';
 
 const TAB_CONFIG = [
   { name: '(home)', icon: Home, labelKey: 'tabs.home' },
@@ -42,6 +43,7 @@ function formatElapsed(seconds: number): string {
 
 function RideFAB() {
   const router = useRouter();
+  const { t: rideTheme } = useEditorialTheme();
   const rideStatus = useRideStore((s) => s.status);
   const elapsedTime = useRideStore((s) => s.elapsedTime);
   const isActive = rideStatus === 'recording' || rideStatus === 'paused';
@@ -90,12 +92,14 @@ function RideFAB() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: palette.accent500,
+          backgroundColor: palette.editorialSuccess,
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: -28,
           borderCurve: 'continuous',
-          boxShadow: `0 4px 12px ${isActive ? 'rgba(45, 158, 120, 0.5)' : 'rgba(45, 158, 120, 0.3)'}`,
+          boxShadow: `0 10px 30px ${isActive ? 'rgba(78,186,111,0.5)' : 'rgba(78,186,111,0.3)'}`,
+          borderWidth: 3,
+          borderColor: rideTheme.bg,
         }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
@@ -106,7 +110,7 @@ function RideFAB() {
           style={{
             fontSize: 9,
             fontWeight: '700',
-            color: palette.accent500,
+            color: palette.editorialSuccess,
             marginTop: 2,
             fontVariant: ['tabular-nums'],
           }}
@@ -121,7 +125,7 @@ function RideFAB() {
 function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   // Badge count for garage tab
@@ -159,7 +163,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
         bottom: Math.max(insets.bottom, 12),
         left: 20,
         right: 20,
-        backgroundColor: isDark ? palette.tabBarDark : palette.tabBarLight,
+        backgroundColor: theme.bg,
         borderRadius: 28,
         flexDirection: 'row',
         alignItems: 'center',
@@ -218,7 +222,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
             <View>
               <Icon
                 size={22}
-                color={isFocused ? palette.tabActive : palette.tabInactive}
+                color={isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3}
                 strokeWidth={isFocused ? 2.5 : 1.8}
               />
               {showBadge && (
@@ -253,7 +257,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               style={{
                 fontSize: 10,
                 fontWeight: isFocused ? '700' : '500',
-                color: isFocused ? palette.tabActive : palette.tabInactive,
+                color: isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3,
                 marginTop: 3,
               }}
             >

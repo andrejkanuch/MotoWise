@@ -140,6 +140,43 @@ export const palette = {
   tabInactive: '#a39e98',
   tabBarLight: '#fffbf8',
   tabBarDark: '#1a1816',
+
+  // ── Editorial redesign tokens (warm magazine aesthetic) ──
+  // Dark mode
+  editorialDarkBg: '#1a1510',
+  editorialDarkBg2: '#110e0a',
+  editorialDarkSurface: '#231e18',
+  editorialDarkSurface2: '#2d271f',
+  editorialDarkSurface3: '#382f26',
+  editorialDarkInk: '#faf6f0',
+  editorialDarkInk2: '#c4bdb2',
+  editorialDarkInk3: '#8e8880',
+  editorialDarkInk4: '#5e5850',
+  editorialDarkLine: 'rgba(255,255,255,0.08)',
+  editorialDarkLine2: 'rgba(255,255,255,0.04)',
+  editorialDarkWarm: '#d4884a',
+  editorialDarkWarm2: '#e8a86a',
+
+  // Light mode
+  editorialLightBg: '#f8f6f2',
+  editorialLightBg2: '#f0ede8',
+  editorialLightSurface: '#ffffff',
+  editorialLightSurface2: '#f5f2ed',
+  editorialLightSurface3: '#eae6df',
+  editorialLightInk: '#1a1510',
+  editorialLightInk2: '#4a453e',
+  editorialLightInk3: '#7a746c',
+  editorialLightInk4: '#a49e96',
+  editorialLightLine: 'rgba(26,21,16,0.09)',
+  editorialLightLine2: 'rgba(26,21,16,0.05)',
+  editorialLightWarm: '#c47a3a',
+  editorialLightWarm2: '#d4944e',
+
+  // Shared semantic
+  editorialSuccess: '#4eba6f',
+  editorialDanger: '#d44a4a',
+  editorialInfo: '#4a8ad4',
+  editorialPurple: '#8a5ad4',
 } as const;
 
 export type Palette = typeof palette;

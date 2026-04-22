@@ -2,7 +2,7 @@ import { MotorcycleMakesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { ChevronRight, Search } from 'lucide-react-native';
+import { ArrowRight, ChevronRight, Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +17,9 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -26,19 +28,19 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
 const POPULAR_MAKES = [
-  'Honda',
-  'Yamaha',
-  'Kawasaki',
-  'Harley-Davidson',
-  'Suzuki',
   'BMW',
   'Ducati',
   'KTM',
+  'Harley-Davidson',
+  'Honda',
+  'Yamaha',
+  'Triumph',
 ];
 
 export default function BikeMakeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
   const existingBikeData = useOnboardingStore((s) => s.bikeData);
 
@@ -100,369 +102,413 @@ export default function BikeMakeScreen() {
   };
 
   const canContinue = !!(selectedMake || customMake.trim());
-
   const showDropdown = search.length > 0 && filteredMakes.length > 0;
   const showNoResults = search.length > 0 && filteredMakes.length === 0 && !makesResult.isLoading;
-  const showPopular = !search && !selectedMake && !customMake && popularMakeItems.length > 0;
+  const showGrid = !search && !selectedMake && !customMake && popularMakeItems.length > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={3} totalScreens={TOTAL_SCREENS} />
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={{ flex: 1, paddingHorizontal: 24, paddingTop: 48 }}>
-            <Animated.Text
-              entering={FadeInDown.duration(300)}
-              style={{
-                fontSize: 36,
-                fontWeight: '800',
-                color: ONBOARDING_COLORS.textPrimary,
-                letterSpacing: -0.5,
-                marginBottom: 12,
-              }}
-            >
-              {t('onboarding.bikeMakeTitle')}
-            </Animated.Text>
+          <View style={{ flex: 1 }}>
+            {/* Header */}
+            <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24 }}>
+              {/* Progress */}
+              <View style={{ flexDirection: 'row', gap: 4, marginBottom: 26 }}>
+                {[1, 2, 3].map((i) => (
+                  <View
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: 3,
+                      borderRadius: 2,
+                      backgroundColor:
+                        i === 1 ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+                    }}
+                  />
+                ))}
+              </View>
 
-            <Animated.Text
-              entering={FadeInUp.delay(100).duration(300)}
-              style={{
-                fontSize: 17,
-                color: ONBOARDING_COLORS.textSecondary,
-                lineHeight: 24,
-                marginBottom: 32,
-              }}
-            >
-              {t('onboarding.bikeMakeSubtitle')}
-            </Animated.Text>
-
-            {/* Selected make chip */}
-            {selectedMake && !search ? (
-              <Animated.View entering={FadeInUp.delay(150).duration(300)}>
-                <Pressable
-                  onPress={() => {
-                    setSelectedMake(null);
-                    setSearch(selectedMake.makeName);
-                  }}
+              <Animated.View entering={FadeInDown.duration(300)}>
+                <Text
                   style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.accent,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 16,
-                    marginBottom: 24,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
+                    fontSize: 11,
+                    fontWeight: '600',
+                    letterSpacing: 2,
+                    textTransform: 'uppercase',
+                    color: ONBOARDING_COLORS.warm,
+                    marginBottom: 10,
                   }}
                 >
-                  <Text
+                  Step 1 of 3
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 36,
+                    lineHeight: 38,
+                    color: ONBOARDING_COLORS.textPrimary,
+                    letterSpacing: -0.7,
+                    marginBottom: 6,
+                  }}
+                >
+                  What do you ride?
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: ONBOARDING_COLORS.textSecondary,
+                    lineHeight: 20,
+                  }}
+                >
+                  Pick your make — we'll pre-fill service intervals, torque specs,
+                  and common issues.
+                </Text>
+              </Animated.View>
+            </View>
+
+            {/* Content */}
+            <ScrollView
+              style={{ flex: 1, paddingTop: 24 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Selected make chip */}
+              {(selectedMake && !search) ? (
+                <Animated.View entering={FadeInUp.duration(200)}>
+                  <Pressable
+                    onPress={() => {
+                      setSelectedMake(null);
+                      setSearch(selectedMake.makeName);
+                    }}
                     style={{
-                      fontSize: 17,
-                      color: ONBOARDING_COLORS.textPrimary,
-                      fontWeight: '600',
+                      backgroundColor: `${ONBOARDING_COLORS.warm}24`,
+                      borderWidth: 1,
+                      borderColor: ONBOARDING_COLORS.warm,
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      padding: 18,
+                      marginBottom: 24,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
                     }}
                   >
-                    {selectedMake.makeName}
-                  </Text>
-                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
-                    {t('onboarding.tapToChange')}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-            ) : customMake && !search ? (
-              <Animated.View entering={FadeInUp.delay(150).duration(300)}>
-                <Pressable
-                  onPress={() => {
-                    setSearch(customMake);
-                    setCustomMake('');
-                  }}
-                  style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.accent,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 16,
-                    marginBottom: 24,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <View style={{ gap: 2 }}>
+                    <View
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        borderCurve: 'continuous',
+                        backgroundColor: ONBOARDING_COLORS.surface2,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '700',
+                          color: ONBOARDING_COLORS.textSecondary,
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        {selectedMake.makeName[0]}
+                      </Text>
+                    </View>
                     <Text
                       style={{
-                        fontSize: 17,
-                        color: ONBOARDING_COLORS.textPrimary,
+                        flex: 1,
+                        fontSize: 14,
                         fontWeight: '600',
+                        color: ONBOARDING_COLORS.textPrimary,
+                        letterSpacing: -0.1,
+                      }}
+                    >
+                      {selectedMake.makeName}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.ink3 }}>
+                      Tap to change
+                    </Text>
+                  </Pressable>
+                </Animated.View>
+              ) : (customMake && !search) ? (
+                <Animated.View entering={FadeInUp.duration(200)}>
+                  <Pressable
+                    onPress={() => {
+                      setSearch(customMake);
+                      setCustomMake('');
+                    }}
+                    style={{
+                      backgroundColor: `${ONBOARDING_COLORS.warm}24`,
+                      borderWidth: 1,
+                      borderColor: ONBOARDING_COLORS.warm,
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      padding: 18,
+                      marginBottom: 24,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        flex: 1,
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: ONBOARDING_COLORS.textPrimary,
                       }}
                     >
                       {customMake}
                     </Text>
-                    <Text
-                      style={{ fontSize: 12, color: ONBOARDING_COLORS.accent, fontWeight: '500' }}
-                    >
-                      {t('onboarding.customMakeLabel', { defaultValue: 'Custom' })}
+                    <Text style={{ fontSize: 11, color: ONBOARDING_COLORS.warm, fontWeight: '600' }}>
+                      Custom
                     </Text>
-                  </View>
-                  <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textMuted }}>
-                    {t('onboarding.tapToChange')}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-            ) : (
-              <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+                  </Pressable>
+                </Animated.View>
+              ) : null}
+
+              {/* Search bar (when no selection) */}
+              {!selectedMake && !customMake && (
                 <View
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 8,
-                    marginBottom: 10,
-                  }}
-                >
-                  <Search size={18} color={ONBOARDING_COLORS.textMuted} />
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: ONBOARDING_COLORS.textMuted,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    {t('onboarding.searchMake')}
-                  </Text>
-                </View>
-                <TextInput
-                  value={search}
-                  onChangeText={setSearch}
-                  placeholder={t('onboarding.searchMake')}
-                  placeholderTextColor={ONBOARDING_COLORS.textDimmed}
-                  autoFocus
-                  style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
+                    backgroundColor: ONBOARDING_COLORS.surface,
                     borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBorder,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    padding: 16,
-                    fontSize: 17,
-                    color: ONBOARDING_COLORS.textPrimary,
-                    marginBottom: 12,
-                  }}
-                />
-              </Animated.View>
-            )}
-
-            {/* Loading */}
-            {makesResult.isLoading && (
-              <ActivityIndicator color={ONBOARDING_COLORS.accent} style={{ marginVertical: 20 }} />
-            )}
-
-            {/* Error with retry */}
-            {makesResult.isError && (
-              <View style={{ alignItems: 'center', marginVertical: 20, gap: 12 }}>
-                <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
-                  {t('onboarding.makesLoadError')}
-                </Text>
-                <Pressable
-                  onPress={() => makesResult.refetch()}
-                  style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBorder,
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    paddingHorizontal: 20,
-                    paddingVertical: 10,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 15, fontWeight: '600', color: ONBOARDING_COLORS.accent }}
-                  >
-                    {t('common.retry')}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-
-            {/* Search results dropdown */}
-            {showDropdown && (
-              <Animated.View entering={FadeInUp.duration(200)}>
-                <View
-                  style={{
-                    backgroundColor: ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.cardBgSelected,
-                    borderRadius: 16,
-                    borderCurve: 'continuous',
-                    maxHeight: 300,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                    {filteredMakes.slice(0, 20).map((make) => (
-                      <Pressable
-                        key={make.makeId}
-                        onPress={() => handleSelectMake(make)}
-                        style={({ pressed }) => ({
-                          paddingHorizontal: 16,
-                          paddingVertical: 14,
-                          borderBottomWidth: 1,
-                          borderBottomColor: ONBOARDING_COLORS.cardBg,
-                          backgroundColor: pressed
-                            ? ONBOARDING_COLORS.cardBorderDefault
-                            : 'transparent',
-                        })}
-                      >
-                        <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.textPrimary }}>
-                          {make.makeName}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                </View>
-              </Animated.View>
-            )}
-
-            {/* No results */}
-            {showNoResults && (
-              <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8, marginTop: 4 }}>
-                <Text style={{ fontSize: 15, color: ONBOARDING_COLORS.textMuted }}>
-                  {t('onboarding.noMakesFound')}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    if (process.env.EXPO_OS === 'ios') {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    }
-                    setCustomMake(search);
-                    setSearch('');
-                    setSelectedMake(null);
-                  }}
-                  style={({ pressed }) => ({
-                    backgroundColor: pressed
-                      ? ONBOARDING_COLORS.cardBorder
-                      : ONBOARDING_COLORS.cardBg,
-                    borderWidth: 1,
-                    borderColor: ONBOARDING_COLORS.accent,
+                    borderColor: ONBOARDING_COLORS.line,
                     borderRadius: 14,
                     borderCurve: 'continuous',
-                    paddingHorizontal: 16,
-                    paddingVertical: 14,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: ONBOARDING_COLORS.accent,
-                      fontWeight: '600',
-                      flexShrink: 1,
-                    }}
-                  >
-                    {t('onboarding.useCustomMake', {
-                      make: search,
-                      defaultValue: "Use '{{make}}' as make",
-                    })}
-                  </Text>
-                  <ChevronRight size={18} color={ONBOARDING_COLORS.accent} />
-                </Pressable>
-              </Animated.View>
-            )}
-
-            {/* Popular makes */}
-            {showPopular && !makesResult.isLoading && (
-              <Animated.View entering={FadeInUp.delay(250).duration(300)}>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: ONBOARDING_COLORS.textMuted,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    marginBottom: 12,
+                    paddingHorizontal: 14,
+                    marginBottom: 16,
+                    gap: 10,
                   }}
                 >
-                  {t('onboarding.popularMakes')}
-                </Text>
-                <View style={{ gap: 8 }}>
-                  {popularMakeItems.map((make, index) => (
-                    <Animated.View
-                      key={make.makeId}
-                      entering={FadeInUp.delay(300 + index * 50).duration(250)}
-                    >
-                      <Pressable
-                        onPress={() => handleSelectMake(make)}
-                        style={({ pressed }) => ({
-                          backgroundColor: pressed
-                            ? ONBOARDING_COLORS.cardBorder
-                            : ONBOARDING_COLORS.cardBg,
-                          borderWidth: 1,
-                          borderColor: ONBOARDING_COLORS.cardBorder,
-                          borderRadius: 14,
-                          borderCurve: 'continuous',
-                          paddingHorizontal: 16,
-                          paddingVertical: 14,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        })}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            color: ONBOARDING_COLORS.textPrimary,
-                            fontWeight: '500',
-                          }}
-                        >
-                          {make.makeName}
-                        </Text>
-                        <ChevronRight size={18} color={ONBOARDING_COLORS.textDimmed} />
-                      </Pressable>
-                    </Animated.View>
-                  ))}
+                  <Search size={16} color={ONBOARDING_COLORS.ink3} />
+                  <TextInput
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder="Search makes..."
+                    placeholderTextColor={ONBOARDING_COLORS.ink3}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 14,
+                      fontSize: 15,
+                      color: ONBOARDING_COLORS.textPrimary,
+                    }}
+                  />
                 </View>
-              </Animated.View>
-            )}
+              )}
 
-            {/* Continue button */}
-            {canContinue && (
-              <View style={{ paddingHorizontal: 24, paddingBottom: 48 }}>
-                <Animated.View entering={FadeInUp.duration(250)}>
-                  <Pressable
-                    onPress={handleContinue}
-                    style={({ pressed }) => ({
-                      backgroundColor: ONBOARDING_COLORS.textPrimary,
+              {/* Loading */}
+              {makesResult.isLoading && (
+                <ActivityIndicator
+                  color={ONBOARDING_COLORS.warm}
+                  style={{ marginVertical: 20 }}
+                />
+              )}
+
+              {/* Search results dropdown */}
+              {showDropdown && (
+                <Animated.View entering={FadeInUp.duration(200)}>
+                  <View
+                    style={{
+                      backgroundColor: ONBOARDING_COLORS.surface,
+                      borderWidth: 1,
+                      borderColor: ONBOARDING_COLORS.line,
                       borderRadius: 16,
                       borderCurve: 'continuous',
-                      paddingVertical: 16,
-                      alignItems: 'center',
-                      opacity: pressed ? 0.85 : 1,
+                      maxHeight: 300,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                      {filteredMakes.slice(0, 20).map((make) => (
+                        <Pressable
+                          key={make.makeId}
+                          onPress={() => handleSelectMake(make)}
+                          style={({ pressed }) => ({
+                            paddingHorizontal: 16,
+                            paddingVertical: 14,
+                            borderBottomWidth: 1,
+                            borderBottomColor: ONBOARDING_COLORS.line,
+                            backgroundColor: pressed
+                              ? ONBOARDING_COLORS.surface2
+                              : 'transparent',
+                          })}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              color: ONBOARDING_COLORS.textPrimary,
+                              fontWeight: '500',
+                            }}
+                          >
+                            {make.makeName}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* No results — custom make */}
+              {showNoResults && (
+                <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8 }}>
+                  <Text style={{ fontSize: 14, color: ONBOARDING_COLORS.ink3, paddingLeft: 4 }}>
+                    No makes found
+                  </Text>
+                  <Pressable
+                    onPress={() => {
+                      if (process.env.EXPO_OS === 'ios') {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }
+                      setCustomMake(search);
+                      setSearch('');
+                      setSelectedMake(null);
+                    }}
+                    style={{
+                      backgroundColor: ONBOARDING_COLORS.surface,
+                      borderWidth: 1,
+                      borderColor: ONBOARDING_COLORS.warm,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      padding: 14,
                       flexDirection: 'row',
-                      justifyContent: 'center',
-                      gap: 8,
-                    })}
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
                   >
                     <Text
                       style={{
-                        fontSize: 17,
-                        fontWeight: '700',
-                        color: ONBOARDING_COLORS.background,
+                        fontSize: 14,
+                        color: ONBOARDING_COLORS.warm,
+                        fontWeight: '600',
+                        flexShrink: 1,
                       }}
                     >
-                      {t('onboarding.continue')}
+                      Use "{search}" as make
                     </Text>
-                    <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
+                    <ChevronRight size={16} color={ONBOARDING_COLORS.warm} />
                   </Pressable>
                 </Animated.View>
-              </View>
+              )}
+
+              {/* Popular makes grid — editorial 2-column layout */}
+              {showGrid && !makesResult.isLoading && (
+                <Animated.View entering={FadeInUp.delay(100).duration(300)}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      gap: 8,
+                    }}
+                  >
+                    {popularMakeItems.map((make, index) => (
+                      <Animated.View
+                        key={make.makeId}
+                        entering={FadeInUp.delay(150 + index * 50).duration(250)}
+                        style={{ width: '48.5%' }}
+                      >
+                        <Pressable
+                          onPress={() => handleSelectMake(make)}
+                          style={({ pressed }) => ({
+                            padding: 18,
+                            borderRadius: 16,
+                            borderCurve: 'continuous',
+                            backgroundColor: pressed
+                              ? ONBOARDING_COLORS.surface2
+                              : ONBOARDING_COLORS.surface,
+                            borderWidth: 1,
+                            borderColor: ONBOARDING_COLORS.line,
+                            gap: 10,
+                          })}
+                        >
+                          <View
+                            style={{
+                              width: 30,
+                              height: 30,
+                              borderRadius: 8,
+                              borderCurve: 'continuous',
+                              backgroundColor: ONBOARDING_COLORS.surface2,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: '700',
+                                color: ONBOARDING_COLORS.textSecondary,
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              {make.makeName[0]}
+                            </Text>
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: '600',
+                              color: ONBOARDING_COLORS.textPrimary,
+                              letterSpacing: -0.1,
+                            }}
+                          >
+                            {make.makeName}
+                          </Text>
+                        </Pressable>
+                      </Animated.View>
+                    ))}
+                    {/* + Other card */}
+                    <View style={{ width: '48.5%' }}>
+                      <Pressable
+                        onPress={() => {
+                          setSearch('');
+                        }}
+                        style={{
+                          padding: 18,
+                          borderRadius: 16,
+                          borderCurve: 'continuous',
+                          backgroundColor: ONBOARDING_COLORS.surface,
+                          borderWidth: 1,
+                          borderStyle: 'dashed',
+                          borderColor: ONBOARDING_COLORS.line,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minHeight: 88,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: ONBOARDING_COLORS.ink3,
+                          }}
+                        >
+                          + Other
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </Animated.View>
+              )}
+            </ScrollView>
+
+            {/* Bottom CTA */}
+            {canContinue && (
+              <Animated.View
+                entering={FadeInUp.duration(250)}
+                style={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 16 }}
+              >
+                <OnboardingContinueButton
+                  label={t('onboarding.continue')}
+                  onPress={handleContinue}
+                />
+              </Animated.View>
             )}
           </View>
         </TouchableWithoutFeedback>

@@ -1,6 +1,7 @@
 export const fontFamily = {
   sans: '"Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif',
   heading: '"Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif',
+  serif: '"Instrument Serif", "Georgia", serif',
   mono: '"Geist Mono", ui-monospace, monospace',
 } as const;
 
