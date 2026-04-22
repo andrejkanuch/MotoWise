@@ -273,7 +273,7 @@ export class TripsResolver {
   @Query(() => TripConnection)
   @Public()
   async tripTemplates(
-    @Args('filter', { type: () => TripTemplateFilterInput, nullable: true })
+    @Args('filter', { type: () => TripTemplateFilterInput, nullable: true }, new ZodValidationPipe(TripTemplateFiltersSchema))
     filter?: TripTemplateFilterInput,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
     first?: number,
@@ -306,6 +306,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async unpublishTemplate(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -335,10 +336,11 @@ export class TripsResolver {
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
     const connection = await this.tripReviews.getReviewsForTrip(tripId, first ?? 20, after);
-    return connection;
+    return connection.edges.map((e: { node: TripReview }) => e.node);
   }
 
   @Mutation(() => TripReview)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async createTripReview(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateTripReviewInputSchema))
@@ -348,6 +350,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async deleteTripReview(
     @CurrentUser() user: AuthUser,
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
@@ -360,6 +363,7 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async saveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -368,6 +372,7 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
+  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async unsaveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,

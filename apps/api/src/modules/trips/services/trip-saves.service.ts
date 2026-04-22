@@ -14,7 +14,7 @@ interface SaveRow {
   id: string;
   trip_id: string;
   user_id: string;
-  created_at: string;
+  saved_at: string;
 }
 
 @Injectable()
@@ -75,9 +75,9 @@ export class TripSavesService {
     // Fetch saved trip IDs with cursor pagination on the save timestamp
     let savesQuery = this.supabase
       .from('trip_saves')
-      .select('id, trip_id, created_at')
+      .select('id, trip_id, saved_at')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+      .order('saved_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(limit + 1);
 
@@ -85,7 +85,7 @@ export class TripSavesService {
       const decoded = this.decodeCursor(after);
       if (decoded) {
         savesQuery = savesQuery.or(
-          `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
+          `saved_at.lt.${decoded.savedAt},and(saved_at.eq.${decoded.savedAt},id.lt.${decoded.id})`,
         );
       }
     }
@@ -132,7 +132,7 @@ export class TripSavesService {
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow, userId),
-          cursor: this.encodeCursor(save.created_at, save.id),
+          cursor: this.encodeCursor(save.saved_at, save.id),
         };
       });
 
@@ -149,20 +149,20 @@ export class TripSavesService {
   // Helpers
   // ==========================================
 
-  private encodeCursor(createdAt: string, id: string): string {
-    return Buffer.from(`${createdAt}|${id}`).toString('base64');
+  private encodeCursor(savedAt: string, id: string): string {
+    return Buffer.from(`${savedAt}|${id}`).toString('base64');
   }
 
-  private decodeCursor(cursor: string): { createdAt: string; id: string } | null {
+  private decodeCursor(cursor: string): { savedAt: string; id: string } | null {
     try {
       const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
       const parts = decoded.split('|');
       if (parts.length !== 2) return null;
-      const [createdAt, id] = parts;
-      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(createdAt)) return null;
+      const [savedAt, id] = parts;
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(savedAt)) return null;
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
         return null;
-      return { createdAt, id };
+      return { savedAt, id };
     } catch {
       return null;
     }

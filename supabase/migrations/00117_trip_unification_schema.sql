@@ -125,8 +125,10 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
 
 CREATE TRIGGER trg_trips_search_tsv
-  BEFORE INSERT OR UPDATE ON public.trips
-  FOR EACH ROW EXECUTE FUNCTION public.update_trip_search_tsv();
+  BEFORE INSERT OR UPDATE OF title, description, city, is_template ON public.trips
+  FOR EACH ROW
+  WHEN (NEW.is_template = true OR (OLD IS NOT NULL AND OLD.is_template IS DISTINCT FROM NEW.is_template))
+  EXECUTE FUNCTION public.update_trip_search_tsv();
 
 -- ==========================================
 -- 4. TABLE: trip_reviews (unified)
@@ -268,6 +270,19 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
 
 REVOKE ALL ON FUNCTION public.increment_trip_view(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.increment_trip_view(UUID) TO service_role;
+
+-- Atomic clone count increment for templates
+CREATE OR REPLACE FUNCTION public.increment_trip_clone(p_trip_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.trips
+  SET clone_count = clone_count + 1
+  WHERE id = p_trip_id AND is_template = true;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
+
+REVOKE ALL ON FUNCTION public.increment_trip_clone(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.increment_trip_clone(UUID) TO service_role;
 
 -- ==========================================
 -- 9. COMMENTS

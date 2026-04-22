@@ -372,7 +372,7 @@ export class TripTemplatesService {
     // Increment clone_count on source (fire-and-forget via admin for atomic increment)
     this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId }).then(({ error }) => {
       if (error) this.logger.error('Failed to increment clone_count', error);
-    });
+    }).catch((e) => this.logger.error('increment_trip_clone network error', e));
 
     return newTrip.id;
   }
@@ -381,11 +381,18 @@ export class TripTemplatesService {
     // Fire-and-forget with admin client (no RLS needed)
     this.supabaseAdmin.rpc('increment_trip_view', { p_id: id }).then(({ error }) => {
       if (error) this.logger.error('Failed to increment view count', error);
-    });
+    }).catch((e) => this.logger.error('increment_trip_view network error', e));
   }
 
-  async moderateTemplate(input: { tripId: string; isFlagged: boolean }): Promise<boolean> {
-    // Admin-only: uses supabaseAdmin to bypass RLS
+  async moderateTemplate(userId: string, input: { tripId: string; isFlagged: boolean }): Promise<boolean> {
+    // Defense-in-depth: verify caller is admin even though resolver should guard this
+    const { data: caller } = await this.supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    if (caller?.role !== 'admin') throw new ForbiddenException('Admin only');
+
     const { data, error } = await this.supabaseAdmin
       .from('trips')
       .update({ is_flagged: input.isFlagged })

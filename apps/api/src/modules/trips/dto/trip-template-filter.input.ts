@@ -1,4 +1,4 @@
-import { Field, Float, InputType, Int } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()
 export class TripTemplateFilterInput {
@@ -19,13 +19,4 @@ export class TripTemplateFilterInput {
 
   @Field({ nullable: true })
   searchText?: string;
-
-  @Field(() => Float, { nullable: true })
-  minRating?: number;
-
-  @Field({ nullable: true })
-  isFeatured?: boolean;
-
-  @Field({ nullable: true })
-  isMotovaultPick?: boolean;
 }
