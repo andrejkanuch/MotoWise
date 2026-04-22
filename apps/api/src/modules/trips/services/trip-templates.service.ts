@@ -137,6 +137,41 @@ export class TripTemplatesService {
     };
   }
 
+  /**
+   * Discover typeahead returns `routes.id`. Template rows use `discover_trips.slug`
+   * (often different from `routes.slug` after sanitization), so slug path resolution
+   * can miss. This follows migrated_from_route_id → discover_trips → trips.
+   */
+  async getTemplateIdForRouteId(routeId: string): Promise<string | null> {
+    const { data: dt, error: dtError } = await this.supabaseAdmin
+      .from('discover_trips')
+      .select('id')
+      .eq('migrated_from_route_id', routeId)
+      .maybeSingle();
+
+    if (dtError) {
+      this.logger.warn(`getTemplateIdForRouteId discover_trips: ${dtError.message}`);
+      return null;
+    }
+    if (!dt?.id) {
+      return null;
+    }
+
+    const { data: trip, error: tripError } = await this.supabaseAdmin
+      .from('trips')
+      .select('id')
+      .eq('migrated_from_discover_trip_id', dt.id)
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .maybeSingle();
+
+    if (tripError) {
+      this.logger.warn(`getTemplateIdForRouteId trips: ${tripError.message}`);
+      return null;
+    }
+    return (trip?.id as string | undefined) ?? null;
+  }
+
   async getTemplateBySlug(country: string, region: string, slug: string): Promise<Trip> {
     const { data, error } = await this.supabase
       .from('trips')

@@ -1,28 +1,27 @@
 import { palette } from '@motovault/design-system';
 import {
+  TemplateTripIdForRouteDocument,
   type TripTemplateFilterInput,
   TripTemplatesDocument,
   type TripTemplatesQuery,
 } from '@motovault/graphql';
 import {
   COUNTRY_NAMES,
+  isSupportedCountry,
   SUPPORTED_COUNTRY_CODES,
   type SupportedCountryCode,
 } from '@motovault/types';
-import MapboxGL from '@rnmapbox/maps';
+import MapboxGL, { type Camera, type ShapeSource } from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   FlatList,
-  Platform,
   Pressable,
   Text,
   useColorScheme,
@@ -89,7 +88,8 @@ interface DiscoverHeaderProps {
   filters: DiscoverFilters;
   onToggleChip: (key: FilterKey) => void;
   onToggleCountry: (key: SupportedCountryCode) => void;
-  onSearchSelect: (id: string) => void;
+  onRouteSearchSelect: (routeId: string) => void | Promise<void>;
+  onPlaceSearchSelect: (countryCode: string, regionCode?: string) => void;
   showBelowFold: boolean;
 }
 
@@ -97,7 +97,8 @@ const DiscoverHeader = memo(function DiscoverHeader({
   filters,
   onToggleChip,
   onToggleCountry,
-  onSearchSelect,
+  onRouteSearchSelect,
+  onPlaceSearchSelect,
   showBelowFold,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
@@ -111,7 +112,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   return (
     <View style={{ gap: 16, paddingTop: 8 }}>
       {/* Search */}
-      <TypeaheadSearch onRouteSelect={onSearchSelect} />
+      <TypeaheadSearch onRouteSelect={onRouteSearchSelect} onPlaceSelect={onPlaceSearchSelect} />
 
       {/* Filter chips */}
       <FilterChipRow
@@ -176,6 +177,8 @@ export default function DiscoverScreen() {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const cameraRef = useRef<Camera>(null);
+  const shapeSourceRef = useRef<ShapeSource>(null);
   const reducedMotion = useReducedMotion();
   const [mapStyle] = useState(() => getDefaultMapStyle(isDark));
 
@@ -276,36 +279,36 @@ export default function DiscoverScreen() {
     [router],
   );
 
-  const handleMarkerPress = useCallback(
-    (tripId: string, tripName: string, lat: number, lng: number) => {
+  const handleMapPinPress = useCallback(
+    async (e: { features?: GeoJSON.Feature[] }) => {
+      const feature = e.features?.[0];
+      if (!feature?.properties) return;
+      const cluster = feature.properties.cluster;
+      const isCluster = cluster === true || cluster === 1 || cluster === 'true' || cluster === '1';
+      if (isCluster && shapeSourceRef.current) {
+        if (process.env.EXPO_OS === 'ios') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        try {
+          const zoom = await shapeSourceRef.current.getClusterExpansionZoom(feature);
+          const [lng, lat] = (feature.geometry as GeoJSON.Point).coordinates;
+          cameraRef.current?.setCamera({
+            centerCoordinate: [lng, lat],
+            zoomLevel: Math.min(zoom, 20),
+            animationDuration: 250,
+            animationMode: 'flyTo',
+          });
+        } catch {
+          // cluster expansion not available
+        }
+        return;
+      }
       if (process.env.EXPO_OS === 'ios') {
         Haptics.selectionAsync();
       }
-      const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      const open = () => handleTripPress(tripId);
-      const copy = async () => {
-        await Clipboard.setStringAsync(coords);
-      };
-
-      if (Platform.OS === 'ios') {
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            title: tripName,
-            message: coords,
-            options: ['View details', 'Copy coordinates', 'Cancel'],
-            cancelButtonIndex: 2,
-          },
-          (idx) => {
-            if (idx === 0) open();
-            else if (idx === 1) copy();
-          },
-        );
-      } else {
-        Alert.alert(tripName, coords, [
-          { text: 'View details', onPress: open },
-          { text: 'Copy coordinates', onPress: copy },
-          { text: 'Cancel', style: 'cancel' },
-        ]);
+      const tripId = String(feature.properties.id ?? '');
+      if (tripId) {
+        handleTripPress(tripId);
       }
     },
     [handleTripPress],
@@ -388,12 +391,42 @@ export default function DiscoverScreen() {
 
   // --- Memoized header ---
 
-  const handleSearchSelect = useCallback(
-    (id: string) => {
-      router.push({ pathname: '/(modals)/trip-detail', params: { tripId: id } });
+  // Typeahead returns routes.id; template trips use discover_trips.slug (not routes.slug)
+  const handleRouteSearchSelect = useCallback(
+    async (routeId: string) => {
+      try {
+        const { templateTripIdForRoute: tripId } = await gqlFetcher(
+          TemplateTripIdForRouteDocument,
+          {
+            routeId,
+          },
+        );
+        if (!tripId) {
+          Alert.alert(
+            'Not available',
+            'This route is not on Discover as a trip yet. Try another result.',
+          );
+          return;
+        }
+        router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Check your connection and try again';
+        Alert.alert('Could not open', msg);
+      }
     },
     [router],
   );
+
+  const handlePlaceSearchSelect = useCallback((countryCode: string, _regionCode?: string) => {
+    const upper = countryCode?.trim().toUpperCase() ?? '';
+    if (!isSupportedCountry(upper)) {
+      return;
+    }
+    setFilters((prev) => ({
+      ...prev,
+      countryCode: upper,
+    }));
+  }, []);
 
   const headerComponent = useMemo(
     () => (
@@ -401,11 +434,19 @@ export default function DiscoverScreen() {
         filters={filters}
         onToggleChip={toggleChip}
         onToggleCountry={toggleCountry}
-        onSearchSelect={handleSearchSelect}
+        onRouteSearchSelect={handleRouteSearchSelect}
+        onPlaceSearchSelect={handlePlaceSearchSelect}
         showBelowFold={showBelowFold}
       />
     ),
-    [filters, toggleChip, toggleCountry, handleSearchSelect, showBelowFold],
+    [
+      filters,
+      toggleChip,
+      toggleCountry,
+      handleRouteSearchSelect,
+      handlePlaceSearchSelect,
+      showBelowFold,
+    ],
   );
 
   return (
@@ -421,6 +462,7 @@ export default function DiscoverScreen() {
           scaleBarEnabled={false}
         >
           <MapboxGL.Camera
+            ref={cameraRef}
             defaultSettings={{
               centerCoordinate: [12.4964, 41.9028], // Rome — center of target markets
               zoomLevel: 4,
@@ -430,23 +472,13 @@ export default function DiscoverScreen() {
           {/* Route pins (clustered) — now tappable */}
           {routeGeoJSON.features.length > 0 && (
             <MapboxGL.ShapeSource
+              ref={shapeSourceRef}
               id="route-pins"
               shape={routeGeoJSON}
               cluster
               clusterRadius={50}
               clusterMaxZoomLevel={14}
-              onPress={(e) => {
-                const feature = e.features?.[0];
-                if (!feature || feature.properties?.cluster) return;
-                const routeId = feature.properties?.id as string | undefined;
-                const routeName = (feature.properties?.name as string | undefined) ?? 'Route';
-                const coords = (feature.geometry as unknown as { coordinates?: [number, number] })
-                  .coordinates;
-                const [lng, lat] = coords ?? [null, null];
-                if (routeId && lat != null && lng != null) {
-                  handleMarkerPress(routeId, routeName, lat, lng);
-                }
-              }}
+              onPress={handleMapPinPress}
             >
               <MapboxGL.CircleLayer
                 id="cluster-circles"
@@ -532,6 +564,7 @@ export default function DiscoverScreen() {
         data={allTrips}
         renderItem={renderTripItem}
         keyExtractor={(item) => item.id}
+        keyboardShouldPersistTaps="handled"
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 160 }}

@@ -331,6 +331,15 @@ export class TripsResolver {
     return this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
   }
 
+  /** Resolves a published route id to the Discover template trip id, if one exists. */
+  @Query(() => ID, { nullable: true })
+  @Public()
+  async templateTripIdForRoute(
+    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
+  ): Promise<string | null> {
+    return this.tripTemplatesSvc.getTemplateIdForRouteId(routeId);
+  }
+
   // ==========================================
   // Template Mutations
   // ==========================================
