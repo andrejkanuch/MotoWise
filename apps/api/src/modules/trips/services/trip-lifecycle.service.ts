@@ -34,6 +34,29 @@ export interface TripRow {
     avatar_url: string | null;
     is_public: boolean | null;
   } | null;
+  /** Present when the query uses {@link TRIP_DETAIL_SELECT} (or template listing). */
+  is_template?: boolean;
+  slug?: string | null;
+  country_code?: string | null;
+  region_code?: string | null;
+  city?: string | null;
+  polyline?: string | null;
+  distance_m?: number | null;
+  elevation_gain_m?: number | null;
+  estimated_duration_minutes?: number | null;
+  surface_type?: string | null;
+  curvature_index?: number | null;
+  view_count?: number;
+  clone_count?: number;
+  average_rating?: number | null;
+  review_count?: number;
+  is_featured?: boolean;
+  is_motovault_pick?: boolean;
+  published_at?: string | null;
+  is_flagged?: boolean;
+  day_count?: number | null;
+  start_lat?: number | null;
+  start_lng?: number | null;
 }
 
 /** Shape returned by trip_waypoints */
@@ -69,6 +92,14 @@ export interface ParticipantRow {
 export const TRIP_SELECT =
   'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
+/** Base TRIP_SELECT plus template & editorial columns (used by trip detail + template feeds). */
+export const TRIP_DETAIL_SELECT = `${TRIP_SELECT},
+  is_template, slug, country_code, region_code, city, polyline,
+  distance_m, elevation_gain_m, estimated_duration_minutes,
+  surface_type, curvature_index, view_count, clone_count,
+  average_rating, review_count, is_featured, is_motovault_pick,
+  published_at, is_flagged, day_count, start_lat, start_lng`;
+
 /**
  * Redact organiser PII fields when the organiser has is_public=false
  * and the caller is neither the organiser nor a participant.
@@ -98,7 +129,7 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     avatarUrl: row.users?.avatar_url ?? undefined,
   };
   const isPublic = row.users?.is_public !== false;
-  return {
+  const base: Trip = {
     id: row.id,
     title: row.title,
     description: row.description,
@@ -112,7 +143,6 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     coverImageUrl: row.cover_image_url ?? undefined,
     createdAt: row.created_at,
     organiser: redactOrganiser(organiser, isPublic, callerUserId, isParticipant),
-    // Template defaults (overridden by TripTemplatesService.mapTemplateRow)
     isTemplate: false,
     viewCount: 0,
     cloneCount: 0,
@@ -120,6 +150,36 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     isFeatured: false,
     isMotovaultPick: false,
     isFlagged: false,
+  };
+
+  if (!('is_template' in row)) {
+    return base;
+  }
+
+  return {
+    ...base,
+    isTemplate: row.is_template === true,
+    slug: row.slug ?? undefined,
+    countryCode: row.country_code ?? undefined,
+    regionCode: row.region_code ?? undefined,
+    city: row.city ?? undefined,
+    polyline: row.polyline ?? undefined,
+    distanceM: row.distance_m ?? undefined,
+    elevationGainM: row.elevation_gain_m ?? undefined,
+    estimatedDurationMinutes: row.estimated_duration_minutes ?? undefined,
+    surfaceType: row.surface_type ?? undefined,
+    curvatureIndex: row.curvature_index ?? undefined,
+    viewCount: row.view_count ?? 0,
+    cloneCount: row.clone_count ?? 0,
+    averageRating: row.average_rating ?? undefined,
+    reviewCount: row.review_count ?? 0,
+    isFeatured: row.is_featured ?? false,
+    isMotovaultPick: row.is_motovault_pick ?? false,
+    publishedAt: row.published_at ?? undefined,
+    isFlagged: row.is_flagged ?? false,
+    dayCount: row.day_count ?? undefined,
+    startLat: row.start_lat ?? undefined,
+    startLng: row.start_lng ?? undefined,
   };
 }
 
@@ -393,7 +453,7 @@ export class TripLifecycleService {
     //   (public to anyone, unlisted/private per invite rules)
     const { data: tripData, error: tripError } = await this.supabase
       .from('trips')
-      .select(TRIP_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('id', tripId)
       .single();
 

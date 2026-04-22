@@ -36,6 +36,7 @@ import {
   MapPin,
   Mountain,
   Pencil,
+  PenLine,
   Plus,
   Share2,
   Sparkles,
@@ -303,10 +304,14 @@ export default function TripDetailScreen() {
   }, [trip, waypoints, readiness, tripId]);
 
   const tripDays = useMemo(() => {
+    if (trip?.isTemplate) {
+      const dc = trip.dayCount;
+      if (dc != null && dc > 0) return dc;
+    }
     if (!trip?.startDate || !trip?.endDate) return 1;
     const ms = new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime();
     return Math.max(1, Math.round(ms / 86_400_000) + 1);
-  }, [trip?.startDate, trip?.endDate]);
+  }, [trip?.isTemplate, trip?.dayCount, trip?.startDate, trip?.endDate]);
 
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
 
@@ -331,13 +336,14 @@ export default function TripDetailScreen() {
 
   const formatDayDate = useCallback(
     (dayIndex: number): string => {
+      if (trip?.isTemplate) return `Day ${dayIndex + 1}`;
       if (!trip?.startDate) return `Day ${dayIndex + 1}`;
       const date = new Date(trip.startDate);
       date.setDate(date.getDate() + dayIndex);
       const formatted = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
       return `Day ${dayIndex + 1} — ${formatted}`;
     },
-    [trip?.startDate],
+    [trip?.isTemplate, trip?.startDate],
   );
 
   const waypointCoords = useMemo<[number, number][]>(
@@ -829,31 +835,33 @@ ${rteptElements}
             gap: 6,
           }}
         >
-          <Pressable
-            onPress={() => {
-              if (process.env.EXPO_OS === 'ios')
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setAssistantOpen(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Ask trip assistant"
-            style={{ alignItems: 'center', gap: 3 }}
-          >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                borderCurve: 'continuous',
-                backgroundColor: palette.signature500,
-                alignItems: 'center',
-                justifyContent: 'center',
+          {!isTemplate && (
+            <Pressable
+              onPress={() => {
+                if (process.env.EXPO_OS === 'ios')
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setAssistantOpen(true);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Ask trip assistant"
+              style={{ alignItems: 'center', gap: 3 }}
             >
-              <Sparkles size={18} color={palette.white} />
-            </View>
-            <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>AI</Text>
-          </Pressable>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.signature500,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Sparkles size={18} color={palette.white} />
+              </View>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>AI</Text>
+            </Pressable>
+          )}
           {isOrganiser && (
             <Pressable
               onPress={() =>
@@ -1367,7 +1375,7 @@ ${rteptElements}
                   </View>
                 </Animated.View>
 
-                {/* Template action buttons — Clone + Save/Unsave */}
+                {/* Template action buttons — clone itinerary or start a blank trip */}
                 <Animated.View
                   entering={FadeInUp.delay(110).duration(220)}
                   style={{ gap: 10, marginBottom: 20 }}
@@ -1402,6 +1410,40 @@ ${rteptElements}
                       )}
                     </Pressable>
                   )}
+                  <Pressable
+                    onPress={() => {
+                      if (process.env.EXPO_OS === 'ios')
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      router.push('/(modals)/create-trip');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Plan your own trip"
+                    accessibilityHint="Opens the trip planner with a blank trip. Set your own dates."
+                    style={({ pressed }) => ({
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1.5,
+                      borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                      opacity: pressed ? 0.9 : 1,
+                    })}
+                  >
+                    <PenLine size={17} color={isDark ? palette.white : palette.neutral950} />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: isDark ? palette.white : palette.neutral950,
+                      }}
+                    >
+                      Plan your own trip
+                    </Text>
+                  </Pressable>
                   <Pressable
                     onPress={handleToggleSave}
                     disabled={saveMutation.isPending || unsaveMutation.isPending}
@@ -1668,8 +1710,19 @@ ${rteptElements}
                     marginBottom: 4,
                   }}
                 >
-                  Itinerary
+                  {isTemplate ? 'Sample itinerary' : 'Itinerary'}
                 </Text>
+                {isTemplate && (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: subtitleColor,
+                      marginBottom: 8,
+                    }}
+                  >
+                    You set dates when you clone or plan. Below is the suggested day-by-day flow.
+                  </Text>
+                )}
                 {waypointsByDay.map(([dayIndex, dayWaypoints], sectionIdx) => {
                   const isCollapsed = !!collapsedDays[dayIndex];
                   return (
@@ -2137,7 +2190,7 @@ ${rteptElements}
         {/* Sticky primary CTA — one unambiguous action per screen.
             Hidden while the assistant or ride-this sheets are open so it
             doesn't bleed through over their input/footer rows. */}
-        {navWaypoints.length >= 2 && !assistantOpen && !rideThis.visible && (
+        {navWaypoints.length >= 2 && !isTemplate && !assistantOpen && !rideThis.visible && (
           <RideThisStickyCta onPress={rideThis.open} subtitle={`${navWaypoints.length} stops`} />
         )}
 

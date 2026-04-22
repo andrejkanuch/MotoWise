@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { TripTemplatesQuery } from '@motovault/graphql';
-import { Award, Calendar, Copy, Mountain, Star } from 'lucide-react-native';
+import { Award, Copy, Mountain, Route, Star } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
@@ -165,7 +165,7 @@ export const DiscoverTripCard = memo(function DiscoverTripCard({
                 borderCurve: 'continuous',
               }}
             >
-              <Calendar size={10} color={palette.white} />
+              <Route size={10} color={palette.white} />
               <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>
                 {trip.dayCount}d
               </Text>

@@ -11,18 +11,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
-import { mapRowToTrip, TRIP_SELECT, type TripRow } from './trip-lifecycle.service';
+import { mapRowToTrip, TRIP_DETAIL_SELECT, type TripRow } from './trip-lifecycle.service';
 
-// --- Template-specific columns appended to the base TRIP_SELECT ---
+/** Template listing/detail rows: same select as {@link TRIP_DETAIL_SELECT}. */
+const TEMPLATE_SELECT = TRIP_DETAIL_SELECT;
 
-const TEMPLATE_SELECT = `${TRIP_SELECT},
-  is_template, slug, country_code, region_code, city, polyline,
-  distance_m, elevation_gain_m, estimated_duration_minutes,
-  surface_type, curvature_index, view_count, clone_count,
-  average_rating, review_count, is_featured, is_motovault_pick,
-  published_at, is_flagged, day_count, start_lat, start_lng`;
-
-/** Extended row shape for template queries (base TripRow + template fields) */
+/** Extended row shape for template queries (base TripRow + required template fields) */
 interface TemplateRow extends TripRow {
   is_template: boolean;
   slug: string | null;
@@ -349,40 +343,7 @@ export class TripTemplatesService {
    * fields. Uses the base mapRowToTrip for core fields.
    */
   private mapTemplateRow(row: TemplateRow): Trip {
-    const base = mapRowToTrip(row);
-
-    // Extend with template-specific fields (these are available on Trip
-    // via optional fields added by the template resolver).
-    return {
-      ...base,
-      // Template-specific fields cast onto the Trip shape.
-      // The resolver will expose these via @ResolveField or the model
-      // will be extended in a future step.
-      ...({
-        isTemplate: row.is_template,
-        slug: row.slug ?? undefined,
-        countryCode: row.country_code ?? undefined,
-        regionCode: row.region_code ?? undefined,
-        city: row.city ?? undefined,
-        polyline: row.polyline ?? undefined,
-        distanceM: row.distance_m ?? undefined,
-        elevationGainM: row.elevation_gain_m ?? undefined,
-        estimatedDurationMinutes: row.estimated_duration_minutes ?? undefined,
-        surfaceType: row.surface_type ?? undefined,
-        curvatureIndex: row.curvature_index ?? undefined,
-        viewCount: row.view_count,
-        cloneCount: row.clone_count,
-        averageRating: row.average_rating ?? undefined,
-        reviewCount: row.review_count,
-        isFeatured: row.is_featured,
-        isMotovaultPick: row.is_motovault_pick,
-        publishedAt: row.published_at ?? undefined,
-        isFlagged: row.is_flagged,
-        dayCount: row.day_count ?? undefined,
-        startLat: row.start_lat ?? undefined,
-        startLng: row.start_lng ?? undefined,
-      } as Record<string, unknown>),
-    } as Trip;
+    return mapRowToTrip(row);
   }
 
   private generateSlug(title: string): string {
