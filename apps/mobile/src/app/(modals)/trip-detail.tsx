@@ -395,8 +395,7 @@ export default function TripDetailScreen() {
   const [publishedToDiscover, setPublishedToDiscover] = useState(false);
 
   const publishToDiscoverMutation = useMutation({
-    mutationFn: () =>
-      gqlFetcher(PublishTripToDiscoverDocument, { input: { tripId } }),
+    mutationFn: () => gqlFetcher(PublishTripToDiscoverDocument, { input: { tripId } }),
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -691,10 +690,7 @@ ${rteptElements}
             </Pressable>
           )}
           {isOrganiser && (
-            <Pressable
-              onPress={handleOpenShareSheet}
-              style={{ alignItems: 'center', gap: 3 }}
-            >
+            <Pressable onPress={handleOpenShareSheet} style={{ alignItems: 'center', gap: 3 }}>
               <View
                 style={{
                   width: 44,

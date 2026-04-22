@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- Surface Type ---
 // Canonical definition is now in trip.ts. Re-export for backward compat.
-export { SURFACE_TYPES, SurfaceTypeSchema, type SurfaceType } from './trip';
+export { SURFACE_TYPES, type SurfaceType, SurfaceTypeSchema } from './trip';
 
 // Re-import for local use in this file
 import { SurfaceTypeSchema } from './trip';

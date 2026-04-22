@@ -530,11 +530,14 @@ export default function DiscoverTripDetailScreen() {
               <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
                 {trip.waypoints.find((w) => w.type === 'start')?.name ?? trip.waypoints[0].name}
                 {'  →  '}
-                {trip.waypoints.find((w) => w.type === 'end')?.name ?? trip.waypoints[trip.waypoints.length - 1].name}
+                {trip.waypoints.find((w) => w.type === 'end')?.name ??
+                  trip.waypoints[trip.waypoints.length - 1].name}
               </Text>
               {trip.countryCode && (
                 <Text style={{ fontSize: 12, color: subtitleColor }}>
-                  {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode.toUpperCase()].filter(Boolean).join(', ')}
+                  {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode.toUpperCase()]
+                    .filter(Boolean)
+                    .join(', ')}
                 </Text>
               )}
             </View>
@@ -608,14 +611,22 @@ export default function DiscoverTripDetailScreen() {
                       paddingLeft: 16,
                     }}
                   >
-                    <MapPin size={16} color={wp.type === 'start' ? palette.success500 : wp.type === 'end' ? palette.danger500 : palette.accent500} style={{ marginTop: 2 }} />
+                    <MapPin
+                      size={16}
+                      color={
+                        wp.type === 'start'
+                          ? palette.success500
+                          : wp.type === 'end'
+                            ? palette.danger500
+                            : palette.accent500
+                      }
+                      style={{ marginTop: 2 }}
+                    />
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
                         {WAYPOINT_ICONS[wp.type] ?? wp.type}
                       </Text>
-                      <Text
-                        style={{ fontSize: 12, color: subtitleColor }}
-                      >
+                      <Text style={{ fontSize: 12, color: subtitleColor }}>
                         {wp.lat.toFixed(4)}, {wp.lng.toFixed(4)}
                       </Text>
                       {wp.notes && (

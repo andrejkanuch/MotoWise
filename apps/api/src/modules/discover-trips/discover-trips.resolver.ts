@@ -102,7 +102,9 @@ export class DiscoverTripsResolver {
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<boolean> {
-    this.logger.warn('DEPRECATED: unpublishFromDiscover called — use unpublishTripTemplate instead');
+    this.logger.warn(
+      'DEPRECATED: unpublishFromDiscover called — use unpublishTripTemplate instead',
+    );
     return this.discoverTripsService.unpublishFromDiscover(discoverTripId, user.id);
   }
 

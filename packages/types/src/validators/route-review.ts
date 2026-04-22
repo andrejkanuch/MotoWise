@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // --- Condition Tags ---
 // Canonical definition is now in trip.ts. Re-export for backward compat.
-export { CONDITION_TAGS, ConditionTagSchema, type ConditionTag } from './trip';
+export { CONDITION_TAGS, type ConditionTag, ConditionTagSchema } from './trip';
 
 // Re-import for local use in this file
 import { ConditionTagSchema } from './trip';

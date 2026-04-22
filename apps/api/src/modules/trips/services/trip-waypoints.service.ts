@@ -9,7 +9,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripWaypoint } from '../models/trip.model';
-import { type WaypointRow, mapRowToWaypoint, verifyOrganiser } from './trip-lifecycle.service';
+import { mapRowToWaypoint, verifyOrganiser, type WaypointRow } from './trip-lifecycle.service';
 
 @Injectable()
 export class TripWaypointsService {

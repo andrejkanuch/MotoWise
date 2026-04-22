@@ -273,7 +273,11 @@ export class TripsResolver {
   @Query(() => TripConnection)
   @Public()
   async tripTemplates(
-    @Args('filter', { type: () => TripTemplateFilterInput, nullable: true }, new ZodValidationPipe(TripTemplateFiltersSchema))
+    @Args(
+      'filter',
+      { type: () => TripTemplateFilterInput, nullable: true },
+      new ZodValidationPipe(TripTemplateFiltersSchema),
+    )
     filter?: TripTemplateFilterInput,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
     first?: number,
@@ -352,7 +356,12 @@ export class TripsResolver {
     input: CreateTripReviewInput,
   ): Promise<TripReview> {
     const review = await this.tripReviewsSvc.createReview(user.id, input);
-    return { ...review, text: review.text ?? undefined, bikeId: review.bikeId ?? undefined, userId: review.userId ?? undefined };
+    return {
+      ...review,
+      text: review.text ?? undefined,
+      bikeId: review.bikeId ?? undefined,
+      userId: review.userId ?? undefined,
+    };
   }
 
   @Mutation(() => Boolean)

@@ -11,7 +11,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
-import { type TripRow, TRIP_SELECT, mapRowToTrip } from './trip-lifecycle.service';
+import { mapRowToTrip, TRIP_SELECT, type TripRow } from './trip-lifecycle.service';
 
 // --- Template-specific columns appended to the base TRIP_SELECT ---
 
@@ -240,8 +240,7 @@ export class TripTemplatesService {
     }
 
     // Compute start coords
-    const startWp =
-      waypoints?.find((w) => w.type === 'start') ?? (waypoints ? waypoints[0] : null);
+    const startWp = waypoints?.find((w) => w.type === 'start') ?? (waypoints ? waypoints[0] : null);
 
     // Publish: SET is_template=true + published_at=now()
     const update: Record<string, unknown> = {
@@ -357,9 +356,7 @@ export class TripTemplatesService {
         lng: w.lng,
       }));
 
-      const { error: wpError } = await this.supabase
-        .from('trip_waypoints')
-        .insert(waypointRows);
+      const { error: wpError } = await this.supabase.from('trip_waypoints').insert(waypointRows);
 
       if (wpError) {
         this.logger.error(`cloneTemplate waypoints failed: ${wpError.message}`);
@@ -370,21 +367,28 @@ export class TripTemplatesService {
     }
 
     // Increment clone_count on source (fire-and-forget via admin for atomic increment)
-    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId })).then(({ error }) => {
-      if (error) this.logger.error('Failed to increment clone_count', error);
-    }).catch((e: unknown) => this.logger.error('increment_trip_clone network error', e));
+    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_clone', { p_trip_id: tripId }))
+      .then(({ error }) => {
+        if (error) this.logger.error('Failed to increment clone_count', error);
+      })
+      .catch((e: unknown) => this.logger.error('increment_trip_clone network error', e));
 
     return newTrip.id;
   }
 
   async incrementViewCount(id: string): Promise<void> {
     // Fire-and-forget with admin client (no RLS needed)
-    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_view', { p_id: id })).then(({ error }) => {
-      if (error) this.logger.error('Failed to increment view count', error);
-    }).catch((e: unknown) => this.logger.error('increment_trip_view network error', e));
+    Promise.resolve(this.supabaseAdmin.rpc('increment_trip_view', { p_id: id }))
+      .then(({ error }) => {
+        if (error) this.logger.error('Failed to increment view count', error);
+      })
+      .catch((e: unknown) => this.logger.error('increment_trip_view network error', e));
   }
 
-  async moderateTemplate(userId: string, input: { tripId: string; isFlagged: boolean }): Promise<boolean> {
+  async moderateTemplate(
+    userId: string,
+    input: { tripId: string; isFlagged: boolean },
+  ): Promise<boolean> {
     // Defense-in-depth: verify caller is admin even though resolver should guard this
     const { data: caller } = await this.supabaseAdmin
       .from('users')
@@ -472,8 +476,7 @@ export class TripTemplatesService {
       const [publishedAt, id] = parts;
       // Validate to prevent PostgREST filter injection via crafted cursors
       if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(publishedAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
-        return null;
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
       return { publishedAt, id };
     } catch {
       return null;

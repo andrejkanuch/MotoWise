@@ -1,13 +1,8 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
-import { type TripRow, TRIP_SELECT, mapRowToTrip } from './trip-lifecycle.service';
+import { mapRowToTrip, TRIP_SELECT, type TripRow } from './trip-lifecycle.service';
 
 /** Row shape for trip_saves join */
 interface SaveRow {
@@ -160,8 +155,7 @@ export class TripSavesService {
       if (parts.length !== 2) return null;
       const [savedAt, id] = parts;
       if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(savedAt)) return null;
-      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
-        return null;
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
       return { savedAt, id };
     } catch {
       return null;

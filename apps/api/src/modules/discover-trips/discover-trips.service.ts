@@ -287,7 +287,12 @@ export class DiscoverTripsService {
 
     if (existing) {
       // Re-publish: update existing snapshot (slug stays immutable)
-      const { slug: _slug, source_trip_id: _src, contributor_user_id: _cuid, ...updatePayload } = payload;
+      const {
+        slug: _slug,
+        source_trip_id: _src,
+        contributor_user_id: _cuid,
+        ...updatePayload
+      } = payload;
       const result = await this.supabase
         .from('discover_trips')
         .update(updatePayload)

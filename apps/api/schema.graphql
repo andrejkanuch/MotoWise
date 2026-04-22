@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -292,6 +296,14 @@ input CreateTripInput {
   maxRiders: Int!
   startDate: String!
   title: String!
+}
+
+input CreateTripReviewInput {
+  bikeId: ID
+  conditionTags: [String!]
+  rating: Int!
+  text: String
+  tripId: ID!
 }
 
 input CreateTripSuggestionInput {
@@ -977,6 +989,9 @@ type Mutation {
   Clones a discover trip into the user's planner. Returns the new trip ID.
   """
   cloneDiscoverTrip(discoverTripId: ID!): ID!
+
+  """Returns the new trip ID"""
+  cloneTrip(tripId: ID!): ID!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createComment(input: CreateCommentInput!): Comment!
@@ -990,6 +1005,7 @@ type Mutation {
   createRouteReview(input: CreateRouteReviewInput!): RouteReview!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   createTrip(input: CreateTripInput!): Trip!
+  createTripReview(input: CreateTripReviewInput!): TripReview!
   createTripSuggestion(input: CreateTripSuggestionInput!): TripSuggestion!
   createTripWithWaypoints(input: CreateTripWithWaypointsInput!): Trip!
   deleteAccount: Boolean!
@@ -1002,6 +1018,7 @@ type Mutation {
   deleteRide(id: String!): Boolean!
   deleteTaskPhoto(photoId: ID!): Boolean!
   deleteTrip(tripId: ID!): Boolean!
+  deleteTripReview(reviewId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
   exportRouteGPX(routeId: ID!): GPXExportResult!
   flagComment(commentId: ID!): Boolean!
@@ -1024,6 +1041,7 @@ type Mutation {
 
   """Admin only: moderate a discover trip."""
   moderateDiscoverTrip(input: ModerateDiscoverTripInput!): DiscoverTrip!
+  publishAsTemplate(tripId: ID!): Trip!
   publishTrip(tripId: ID!): Trip!
   publishTripToDiscover(input: PublishTripToDiscoverInput!): DiscoverTrip!
   regenerateRideSummary(rideId: String!): RideSummary!
@@ -1039,6 +1057,7 @@ type Mutation {
 
   """Save a route to your collection"""
   saveRouteToCollection(routeId: ID!): Boolean!
+  saveTrip(tripId: ID!): Boolean!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
@@ -1051,9 +1070,11 @@ type Mutation {
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishFromDiscover(discoverTripId: ID!): Boolean!
+  unpublishTemplate(tripId: ID!): Boolean!
 
   """Remove a saved route from your collection"""
   unsaveRouteFromCollection(routeId: ID!): Boolean!
+  unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
@@ -1202,6 +1223,7 @@ type Query {
 
   """Check if the authenticated user has saved a specific route"""
   isRouteSaved(routeId: ID!): Boolean!
+  isTripSaved(tripId: ID!): Boolean!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
@@ -1232,15 +1254,19 @@ type Query {
 
   """Paginated list of the authenticated user's saved routes"""
   savedRoutes(after: String, first: Int = 20): RouteConnection!
+  savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
   sitemapPublishedRoutes: [SitemapRouteEntry!]!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   tripByShareToken(shareToken: String!): SharedTrip
+  tripBySlug(country: String!, region: String!, slug: String!): Trip
   tripDetail(tripId: ID!): Trip!
   tripInvites(tripId: ID!): [TripInvite!]!
+  tripReviews(after: String, first: Int = 20, tripId: ID!): [TripReview!]!
   tripSuggestions(tripId: ID!): [TripSuggestion!]!
+  tripTemplates(after: String, filter: TripTemplateFilterInput, first: Int = 20): TripConnection!
   user: User!
 }
 
@@ -1687,19 +1713,45 @@ type TriggeredMaintenanceTask {
 }
 
 type Trip {
+  averageRating: Float
+  city: String
+  cloneCount: Int!
+  clonedFromTripId: ID
+  countryCode: String
   coverImageUrl: String
   createdAt: String!
+  curvatureIndex: Float
+  dayCount: Int
   description: String!
   difficulty: String!
+  distanceM: Int
+  elevationGainM: Int
   endDate: String!
+  estimatedDurationMinutes: Int
+  forkedFromTripId: ID
   id: ID!
+  isFeatured: Boolean!
+  isFlagged: Boolean!
+  isMotovaultPick: Boolean!
+  isSaved: Boolean
+  isTemplate: Boolean!
   maxRiders: Int!
   organiser: TripOrganiser!
   participantCount: Int!
   participants: [TripParticipant!]
+  polyline: String
+  publishedAt: String
+  regionCode: String
+  reviewCount: Int!
+  reviews: [TripReview!]
+  slug: String
   startDate: String!
+  startLat: Float
+  startLng: Float
   status: String!
+  surfaceType: String
   title: String!
+  viewCount: Int!
   visibility: String!
   waypoints: [TripWaypoint!]
 }
@@ -1762,6 +1814,17 @@ type TripParticipant {
   status: String!
 }
 
+type TripReview {
+  bikeId: String
+  conditionTags: [String!]
+  createdAt: String!
+  id: ID!
+  rating: Int!
+  text: String
+  tripId: ID!
+  userId: ID
+}
+
 type TripSuggestion {
   author: TripSuggestionAuthor!
   createdAt: String!
@@ -1807,6 +1870,15 @@ enum TripSuggestionStatus {
   pending
   rejected
   withdrawn
+}
+
+input TripTemplateFilterInput {
+  country: String
+  dayCountMax: Int
+  dayCountMin: Int
+  difficulty: String
+  searchText: String
+  surfaceType: String
 }
 
 type TripWaypoint {
