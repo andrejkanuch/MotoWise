@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -32,6 +33,7 @@ export function WaitlistForm() {
       if (json.errors) throw new Error(json.errors?.[0]?.message ?? 'Unknown error');
 
       setStatus('success');
+      trackEvent(WebEvent.WAITLIST_SIGNUP, { email: email.trim() });
       setEmail('');
     } catch {
       setStatus('error');

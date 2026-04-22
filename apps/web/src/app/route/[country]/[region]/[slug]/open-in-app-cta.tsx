@@ -32,7 +32,9 @@ export function OpenInAppCta() {
       <div className="flex flex-col gap-2">
         <a
           href={STORE_URLS.ios}
-          onClick={() => trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform: 'ios' })}
+          onClick={() =>
+            trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform: 'ios' })
+          }
           className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
           style={{ backgroundColor: palette.signature500, color: palette.white }}
         >
@@ -40,7 +42,12 @@ export function OpenInAppCta() {
         </a>
         <a
           href={STORE_URLS.android}
-          onClick={() => trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform: 'android' })}
+          onClick={() =>
+            trackEvent(WebEvent.OPEN_IN_APP_CLICKED, {
+              source: 'route_detail',
+              platform: 'android',
+            })
+          }
           className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:text-neutral-100"
           style={{ border: `1px solid ${palette.neutral800}` }}
         >
@@ -58,7 +65,9 @@ export function OpenInAppCta() {
     <div>
       <a
         href={url}
-        onClick={() => trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform })}
+        onClick={() =>
+          trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform })
+        }
         className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
         style={{ backgroundColor: palette.signature500, color: palette.white }}
       >

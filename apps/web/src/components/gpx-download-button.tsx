@@ -4,6 +4,7 @@ import { palette } from '@motovault/design-system';
 import { Download, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthModal } from '@/components/auth-modal';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const EXPORT_MUTATION = /* GraphQL */ `
@@ -119,6 +120,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
         setRemaining(remaining - 1);
       }
 
+      trackEvent(WebEvent.GPX_DOWNLOAD_CLICKED, { route_id: routeId });
       setToast({ message: result.message, type: 'success' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to download GPX';

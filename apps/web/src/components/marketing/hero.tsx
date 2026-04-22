@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import posthog from 'posthog-js';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { STORE_LINKS } from './store-buttons';
 
 export function Hero() {
@@ -48,7 +48,7 @@ export function Hero() {
             <a
               href={STORE_LINKS.appStore}
               onClick={() => {
-                posthog.capture('app_download_clicked', { platform: 'ios', location: 'hero' });
+                trackEvent(WebEvent.APP_STORE_CLICK, { platform: 'ios', location: 'hero' });
               }}
               aria-label="Download on the App Store"
               className="cta-primary cta-glow inline-flex items-center gap-2.5 rounded-full bg-warm-500 px-7 py-3.5 text-base font-semibold text-neutral-950 shadow-lg shadow-warm-500/20 transition-colors hover:bg-warm-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"
@@ -68,7 +68,7 @@ export function Hero() {
             <a
               href={STORE_LINKS.googlePlay}
               onClick={() => {
-                posthog.capture('app_download_clicked', { platform: 'android', location: 'hero' });
+                trackEvent(WebEvent.APP_STORE_CLICK, { platform: 'android', location: 'hero' });
               }}
               aria-label="Get it on Google Play"
               className="cta-secondary inline-flex items-center gap-2.5 rounded-full border-2 border-neutral-600 px-7 py-3.5 text-base font-medium text-neutral-300 transition-colors hover:border-neutral-400 hover:text-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950"

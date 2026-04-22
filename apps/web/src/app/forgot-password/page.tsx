@@ -2,8 +2,8 @@
 
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
-import posthog from 'posthog-js';
 import { useMemo, useState } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 export default function ForgotPasswordPage() {
   const supabase = useMemo(
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     if (error) {
       setError(error.message);
     } else {
-      posthog.capture('password_reset_requested');
+      trackEvent(WebEvent.PASSWORD_RESET_REQUESTED);
       setSuccess(true);
     }
     setLoading(false);

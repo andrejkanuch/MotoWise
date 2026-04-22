@@ -5,6 +5,7 @@ import { MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 type User = MeQuery['me'];
@@ -30,6 +31,11 @@ export default function ProfilePage() {
 
   const user: User | undefined = meData?.me;
   const bikes: Motorcycle[] = bikesData?.myMotorcycles ?? [];
+
+  // Track profile view on mount
+  useEffect(() => {
+    trackEvent(WebEvent.PROFILE_VIEWED);
+  }, []);
 
   // If no public profile set up, redirect to edit
   useEffect(() => {

@@ -1,8 +1,8 @@
 'use client';
 
 import { palette } from '@motovault/design-system';
-import posthog from 'posthog-js';
 import { useEffect, useRef } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 interface ReviewSoftWallProps {
   /** Total number of reviews for the route (includes those behind the wall). */
@@ -24,7 +24,7 @@ export function ReviewSoftWall({ reviewCountTotal, hasMore, onSignUp }: ReviewSo
   useEffect(() => {
     if (hasMore && !hasFiredShown.current) {
       hasFiredShown.current = true;
-      posthog.capture('review_softwall.shown', {
+      trackEvent(WebEvent.REVIEW_SOFTWALL_SHOWN, {
         review_count_total: reviewCountTotal,
       });
     }
@@ -33,7 +33,7 @@ export function ReviewSoftWall({ reviewCountTotal, hasMore, onSignUp }: ReviewSo
   if (!hasMore) return null;
 
   const handleCtaClick = () => {
-    posthog.capture('review_softwall.cta_clicked', {
+    trackEvent(WebEvent.REVIEW_SOFTWALL_CTA_CLICKED, {
       review_count_total: reviewCountTotal,
     });
     onSignUp();

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { AuthModal } from '@/components/auth-modal';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
@@ -77,6 +78,7 @@ export function SaveRouteButton({
             routeId,
           });
           setSaved(true);
+          trackEvent(WebEvent.ROUTE_SAVED_WEB, { route_id: routeId });
         }
       } catch {
         // Silently fail

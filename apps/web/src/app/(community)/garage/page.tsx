@@ -4,7 +4,9 @@ import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Bike, Calendar, CircleDollarSign, Gauge, PenTool, Settings, Wrench } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect } from 'react';
 import { SaveRouteButton } from '@/components/save-route-button';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const SAVED_ROUTES_QUERY = /* GraphQL */ `
@@ -33,6 +35,10 @@ const SAVED_ROUTES_QUERY = /* GraphQL */ `
 ` as never;
 
 export default function GaragePage() {
+  useEffect(() => {
+    trackEvent(WebEvent.GARAGE_VIEWED);
+  }, []);
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['garage', 'motorcycles'],
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
