@@ -4,8 +4,8 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Crown, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import posthog from 'posthog-js';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 const PLAN_CONFIG = {
   monthly: {
@@ -80,7 +80,7 @@ function CheckoutContent() {
     setLoading(true);
     setError('');
 
-    posthog.capture('checkout_initiated', { plan: selectedPlan });
+    trackEvent(WebEvent.CHECKOUT_INITIATED, { plan: selectedPlan });
 
     try {
       const { Purchases } = await import('@revenuecat/purchases-js');
@@ -113,7 +113,7 @@ function CheckoutContent() {
         customerEmail: userEmail ?? undefined,
       });
 
-      posthog.capture('checkout_completed', {
+      trackEvent(WebEvent.CHECKOUT_COMPLETED, {
         plan: selectedPlan,
         transaction_id: result.storeTransaction.storeTransactionId,
       });
@@ -124,7 +124,7 @@ function CheckoutContent() {
 
       if (err instanceof PurchasesError) {
         if (err.errorCode === ErrorCode.UserCancelledError) {
-          posthog.capture('checkout_cancelled', { plan: selectedPlan });
+          trackEvent(WebEvent.CHECKOUT_CANCELLED, { plan: selectedPlan });
           router.push('/pro/checkout/cancel');
           return;
         }

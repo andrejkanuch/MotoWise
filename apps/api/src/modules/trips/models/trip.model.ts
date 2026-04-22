@@ -82,6 +82,33 @@ export class TripParticipant {
 }
 
 @ObjectType()
+export class TripReview {
+  @Field(() => ID)
+  id: string;
+
+  @Field(() => ID)
+  tripId: string;
+
+  @Field(() => ID, { nullable: true })
+  userId?: string;
+
+  @Field(() => Int)
+  rating: number;
+
+  @Field({ nullable: true })
+  text?: string;
+
+  @Field(() => [String], { nullable: true })
+  conditionTags?: string[];
+
+  @Field({ nullable: true })
+  bikeId?: string;
+
+  @Field()
+  createdAt: string;
+}
+
+@ObjectType()
 export class Trip {
   @Field(() => ID)
   id: string;
@@ -110,7 +137,6 @@ export class Trip {
   @Field()
   status: string;
 
-  // Trip/Ride visibility feature
   @Field()
   visibility: string;
 
@@ -128,6 +154,86 @@ export class Trip {
 
   @Field(() => [TripParticipant], { nullable: true })
   participants?: TripParticipant[];
+
+  // Template fields (populated when is_template = true)
+
+  @Field({ defaultValue: false })
+  isTemplate: boolean;
+
+  @Field({ nullable: true })
+  slug?: string;
+
+  @Field({ nullable: true })
+  countryCode?: string;
+
+  @Field({ nullable: true })
+  regionCode?: string;
+
+  @Field({ nullable: true })
+  city?: string;
+
+  @Field({ nullable: true })
+  polyline?: string;
+
+  @Field(() => Int, { nullable: true })
+  distanceM?: number;
+
+  @Field(() => Int, { nullable: true })
+  elevationGainM?: number;
+
+  @Field(() => Int, { nullable: true })
+  estimatedDurationMinutes?: number;
+
+  @Field({ nullable: true })
+  surfaceType?: string;
+
+  @Field(() => Float, { nullable: true })
+  curvatureIndex?: number;
+
+  @Field(() => Int, { nullable: true })
+  dayCount?: number;
+
+  @Field(() => Float, { nullable: true })
+  startLat?: number;
+
+  @Field(() => Float, { nullable: true })
+  startLng?: number;
+
+  @Field(() => Int, { defaultValue: 0 })
+  viewCount: number;
+
+  @Field(() => Int, { defaultValue: 0 })
+  cloneCount: number;
+
+  @Field(() => Float, { nullable: true })
+  averageRating?: number;
+
+  @Field(() => Int, { defaultValue: 0 })
+  reviewCount: number;
+
+  @Field({ defaultValue: false })
+  isFeatured: boolean;
+
+  @Field({ defaultValue: false })
+  isMotovaultPick: boolean;
+
+  @Field({ nullable: true })
+  publishedAt?: string;
+
+  @Field({ defaultValue: false })
+  isFlagged: boolean;
+
+  @Field(() => ID, { nullable: true })
+  clonedFromTripId?: string;
+
+  @Field(() => ID, { nullable: true })
+  forkedFromTripId?: string;
+
+  @Field(() => [TripReview], { nullable: true })
+  reviews?: TripReview[];
+
+  @Field({ nullable: true })
+  isSaved?: boolean;
 }
 
 @ObjectType()

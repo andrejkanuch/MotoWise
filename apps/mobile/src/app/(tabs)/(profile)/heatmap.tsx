@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
@@ -59,6 +60,10 @@ export default function RideHeatmapScreen() {
       return pi?.hasNextPage ? (pi.endCursor ?? null) : null;
     },
   });
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.HEATMAP_VIEWED);
+  }, []);
 
   const pagesLoaded = data?.pages?.length ?? 0;
   const capReached = pagesLoaded >= MAX_PAGES;

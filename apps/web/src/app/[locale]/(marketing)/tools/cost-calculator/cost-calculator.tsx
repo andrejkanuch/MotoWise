@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import posthog from 'posthog-js';
 import { useCallback, useMemo } from 'react';
 import { Link } from '@/i18n/navigation';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 const BIKE_TYPES = {
   sport: { mpg: 40 },
@@ -306,7 +306,9 @@ export function CostCalculator({ labels }: { labels: Labels }) {
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
-                      posthog.capture('cost_calculator_result_shared', {
+                      trackEvent(WebEvent.TOOL_USED, {
+                        tool: 'cost_calculator',
+                        action: 'result_shared',
                         bike_type: bikeType,
                         annual_mileage: mileage,
                         maintenance_tier: maintenance,

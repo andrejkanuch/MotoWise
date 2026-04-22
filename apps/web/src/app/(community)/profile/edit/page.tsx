@@ -4,8 +4,8 @@ import type { MeQuery } from '@motovault/graphql';
 import { MeDocument, UpdateMyProfileDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import posthog from 'posthog-js';
 import { useEffect, useState } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
@@ -53,7 +53,7 @@ export default function EditProfilePage() {
         },
       }),
     onSuccess: () => {
-      posthog.capture('profile_updated', {
+      trackEvent(WebEvent.PROFILE_EDITED, {
         is_public: isPublic,
         has_bio: bio.trim().length > 0,
         has_city: city.trim().length > 0,

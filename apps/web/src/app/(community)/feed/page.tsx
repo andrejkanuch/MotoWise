@@ -3,7 +3,8 @@
 import type { GetRideFeedQuery } from '@motovault/graphql';
 import { GetRideFeedDocument, ToggleKudosDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import posthog from 'posthog-js';
+import { useEffect } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 import { formatDate, formatDistance } from '@/lib/format-utils';
 import { gqlFetcher } from '@/lib/graphql-client';
 
@@ -21,6 +22,10 @@ function computeDuration(startedAt: string, endedAt: string | null | undefined):
 export default function FeedPage() {
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    trackEvent(WebEvent.FEED_VIEWED);
+  }, []);
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
     useInfiniteQuery({
       queryKey: ['rideFeed'],
@@ -34,7 +39,7 @@ export default function FeedPage() {
   const kudosMutation = useMutation({
     mutationFn: (rideId: string) => gqlFetcher(ToggleKudosDocument, { rideId }),
     onSuccess: (_data, rideId) => {
-      posthog.capture('kudos_toggled', { ride_id: rideId });
+      trackEvent(WebEvent.KUDOS_TOGGLED, { ride_id: rideId });
       queryClient.invalidateQueries({ queryKey: ['rideFeed'] });
     },
   });

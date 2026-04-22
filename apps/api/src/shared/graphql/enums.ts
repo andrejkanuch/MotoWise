@@ -73,3 +73,39 @@ registerEnumType(AssistantMessageRoleEnum, {
   name: 'AssistantMessageRole',
   description: 'Role of a message in the trip assistant conversation.',
 });
+
+// --- Discover Trip Enums ---
+
+export const TripDifficultyEnum = {
+  easy: 'easy',
+  moderate: 'moderate',
+  challenging: 'challenging',
+  expert: 'expert',
+} as const;
+registerEnumType(TripDifficultyEnum, {
+  name: 'TripDifficulty',
+  description: 'Difficulty rating for a trip or discover template.',
+});
+
+export const SurfaceTypeEnum = {
+  paved: 'paved',
+  mixed: 'mixed',
+  off_road: 'off-road',
+  unknown: 'unknown',
+} as const;
+registerEnumType(SurfaceTypeEnum, {
+  name: 'SurfaceType',
+  description: 'Road surface type for a route or trip.',
+  valuesMap: { off_road: { description: 'Off-road / unpaved surface' } },
+});
+
+export const DiscoverTripStatusEnum = {
+  published: 'published',
+  hidden: 'hidden',
+  flagged: 'flagged',
+  unpublished: 'unpublished',
+} as const;
+registerEnumType(DiscoverTripStatusEnum, {
+  name: 'DiscoverTripStatus',
+  description: 'Status of a discover trip template.',
+});

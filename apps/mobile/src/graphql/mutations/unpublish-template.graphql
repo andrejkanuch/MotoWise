@@ -1,0 +1,3 @@
+mutation UnpublishTemplate($tripId: ID!) {
+  unpublishTemplate(tripId: $tripId)
+}

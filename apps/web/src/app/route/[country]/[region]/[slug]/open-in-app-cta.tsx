@@ -1,6 +1,8 @@
 'use client';
 
+import { palette } from '@motovault/design-system';
 import { useEffect, useState } from 'react';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 const STORE_URLS = {
   ios: 'https://apps.apple.com/us/app/motovault/id6760291360',
@@ -17,24 +19,6 @@ function detectPlatform(): Platform {
   return 'unknown';
 }
 
-const btnStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 10,
-  padding: '14px 22px',
-  borderRadius: 999,
-  fontWeight: 600,
-  fontSize: 14,
-  textDecoration: 'none',
-  border: 'none',
-  cursor: 'pointer',
-  fontFamily: 'inherit',
-  letterSpacing: '-0.005em',
-  transition: 'transform .2s cubic-bezier(0.2, 0.8, 0.2, 1), background .25s',
-  background: 'oklch(0.98 0.006 80)',
-  color: 'oklch(0.15 0.02 55)',
-};
-
 export function OpenInAppCta() {
   const [platform, setPlatform] = useState<Platform>('unknown');
 
@@ -42,24 +26,35 @@ export function OpenInAppCta() {
     setPlatform(detectPlatform());
   }, []);
 
+  // Show both stores if we can't detect, or the specific one
   if (platform === 'unknown') {
     return (
-      <a href={STORE_URLS.ios} style={btnStyle}>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      <div className="flex flex-col gap-2">
+        <a
+          href={STORE_URLS.ios}
+          onClick={() =>
+            trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform: 'ios' })
+          }
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
+          style={{ backgroundColor: palette.signature500, color: palette.white }}
         >
-          <title>Open in App</title>
-          <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-        </svg>
-        <span style={{ position: 'relative', zIndex: 1 }}>Open in App</span>
-      </a>
+          App Store
+        </a>
+        <a
+          href={STORE_URLS.android}
+          onClick={() =>
+            trackEvent(WebEvent.OPEN_IN_APP_CLICKED, {
+              source: 'route_detail',
+              platform: 'android',
+            })
+          }
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:text-neutral-100"
+          style={{ border: `1px solid ${palette.neutral800}` }}
+        >
+          Google Play
+        </a>
+        <p className="text-xs text-neutral-600">Navigation, tracking, fuel stops</p>
+      </div>
     );
   }
 
@@ -67,21 +62,18 @@ export function OpenInAppCta() {
   const label = platform === 'ios' ? 'Open in App' : 'Get on Google Play';
 
   return (
-    <a href={url} style={btnStyle}>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+    <div>
+      <a
+        href={url}
+        onClick={() =>
+          trackEvent(WebEvent.OPEN_IN_APP_CLICKED, { source: 'route_detail', platform })
+        }
+        className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-opacity hover:opacity-90"
+        style={{ backgroundColor: palette.signature500, color: palette.white }}
       >
-        <title>{label}</title>
-        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-      </svg>
-      <span style={{ position: 'relative', zIndex: 1 }}>{label}</span>
-    </a>
+        {label}
+      </a>
+      <p className="mt-2 text-xs text-neutral-600">Navigation, tracking, fuel stops</p>
+    </div>
   );
 }

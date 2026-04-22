@@ -1,10 +1,16 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { palette } from '@motovault/design-system';
 import {
+  CloneTripDocument,
+  CreateTripReviewDocument,
   JoinTripDocument,
   LeaveTripDocument,
+  PublishTripToDiscoverDocument,
+  SaveTripDocument,
   TripDetailDocument,
   type TripDetailQuery,
+  TripReviewsDocument,
+  UnsaveTripDocument,
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,18 +20,26 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import {
   ArrowLeft,
+  Award,
+  Bookmark,
+  BookmarkCheck,
   Calendar,
   CheckCircle,
   ChevronUp,
+  Compass,
+  Copy,
   EyeOff,
   Globe,
   HelpCircle,
   Lock,
   LogOut,
+  MapPin,
+  Mountain,
   Pencil,
   Plus,
   Share2,
   Sparkles,
+  Star,
   User,
   Users,
   XCircle,
@@ -36,8 +50,10 @@ import {
   Alert,
   Image,
   Pressable,
+  ScrollView,
   Share,
   Text,
+  TextInput,
   useColorScheme,
   View,
 } from 'react-native';
@@ -60,6 +76,7 @@ import { SuggestionsSection } from '../../components/trip/suggestions-section';
 import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
+import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useRideThis } from '../../hooks/use-ride-this';
@@ -75,6 +92,7 @@ import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
+import { formatDistance, formatElevation } from '../../utils/ride-formatters';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | (infer W)[]
@@ -111,6 +129,42 @@ const STATUS_ICONS = {
   declined: { Icon: XCircle, color: palette.danger500 },
 } as const;
 
+const SURFACE_LABELS: Record<string, string> = {
+  paved: 'Paved',
+  mixed: 'Mixed',
+  off_road: 'Off-road',
+  gravel: 'Gravel',
+};
+
+/** Decode Google-encoded polyline string to [lng, lat] for Mapbox */
+function decodePolylineToCoords(encoded: string): [number, number][] {
+  const points: [number, number][] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  while (index < encoded.length) {
+    let shift = 0;
+    let result = 0;
+    let byte: number;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    shift = 0;
+    result = 0;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push([lng / 1e5, lat / 1e5]);
+  }
+  return points;
+}
+
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
@@ -145,12 +199,15 @@ export default function TripDetailScreen() {
   const [shareSheetVisible, setShareSheetVisible] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
 
+  const system = useMeasurementSystem();
+
   const bg = isDark ? palette.neutral950 : palette.white;
   const titleColor = isDark ? palette.white : palette.neutral950;
   const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
   const sheetBg = isDark ? palette.cardDark : palette.white;
   const sectionLabelColor = isDark ? palette.neutral500 : palette.neutral400;
   const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
+  const cardBg = isDark ? palette.cardDark : palette.neutral50;
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.trips.detail(tripId),
@@ -390,6 +447,177 @@ export default function TripDetailScreen() {
     ]);
   }, [leaveMutation]);
 
+  const [publishedToDiscover, setPublishedToDiscover] = useState(false);
+
+  const publishToDiscoverMutation = useMutation({
+    mutationFn: () => gqlFetcher(PublishTripToDiscoverDocument, { input: { tripId } }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setPublishedToDiscover(true);
+      Alert.alert(
+        'Published to Discover',
+        'Your trip is now a template that other riders can browse and clone.',
+      );
+    },
+    onError: (err: Error) => {
+      if (err.message?.includes('Quality gate')) {
+        Alert.alert(
+          'Not Ready Yet',
+          'Add at least 2 waypoints, a title, description, and difficulty before publishing.',
+        );
+      } else if (err.message?.includes('already published')) {
+        setPublishedToDiscover(true);
+      } else {
+        Alert.alert('Publish Failed', err.message ?? 'Please try again.');
+      }
+    },
+  });
+
+  const handlePublishToDiscover = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      'Publish to Discover?',
+      'This will create a public template of your trip. Dates, riders, and personal notes are never shared.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Publish', onPress: () => publishToDiscoverMutation.mutate() },
+      ],
+    );
+  }, [publishToDiscoverMutation]);
+
+  // ── Template-specific state & mutations ──────────────────────────────
+  const isTemplate = trip?.isTemplate === true;
+  const [isSaved, setIsSaved] = useState(false);
+  useEffect(() => {
+    if (trip) setIsSaved(!!trip.isSaved);
+  }, [trip]);
+
+  // Polyline-based route line for template map preview
+  const polylineRoute = useMemo(() => {
+    if (!trip?.polyline) return null;
+    const coords = decodePolylineToCoords(trip.polyline);
+    if (coords.length < 2) return null;
+    return {
+      type: 'Feature' as const,
+      geometry: { type: 'LineString' as const, coordinates: coords },
+      properties: {},
+    };
+  }, [trip?.polyline]);
+
+  const polylineBounds = useMemo(() => {
+    if (!polylineRoute) return undefined;
+    const coords = polylineRoute.geometry.coordinates;
+    let minLng = Infinity;
+    let maxLng = -Infinity;
+    let minLat = Infinity;
+    let maxLat = -Infinity;
+    for (const [lng, lat] of coords) {
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+    }
+    return {
+      ne: [maxLng, maxLat] as [number, number],
+      sw: [minLng, minLat] as [number, number],
+    };
+  }, [polylineRoute]);
+
+  // Clone template mutation
+  const cloneMutation = useMutation({
+    mutationFn: () => gqlFetcher(CloneTripDocument, { tripId }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
+      Alert.alert('Cloned!', 'This trip has been added to your trips.');
+    },
+    onError: (err: Error) => {
+      if (err.message?.includes('already cloned')) {
+        Alert.alert('Already Cloned', 'You have already cloned this trip.');
+      } else {
+        Alert.alert('Clone Failed', err.message ?? 'Please try again.');
+      }
+    },
+  });
+
+  const handleCloneTemplate = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    cloneMutation.mutate();
+  }, [cloneMutation]);
+
+  // Save / unsave mutations
+  const saveMutation = useMutation({
+    mutationFn: () => gqlFetcher(SaveTripDocument, { tripId }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setIsSaved(true);
+      invalidateTrip();
+    },
+  });
+
+  const unsaveMutation = useMutation({
+    mutationFn: () => gqlFetcher(UnsaveTripDocument, { tripId }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setIsSaved(false);
+      invalidateTrip();
+    },
+  });
+
+  const handleToggleSave = useCallback(() => {
+    if (isSaved) {
+      unsaveMutation.mutate();
+    } else {
+      saveMutation.mutate();
+    }
+  }, [isSaved, saveMutation, unsaveMutation]);
+
+  // Reviews query for template
+  const {
+    data: reviewsData,
+    isLoading: reviewsLoading,
+  } = useQuery({
+    queryKey: queryKeys.tripReviews.byTrip(tripId),
+    queryFn: () => gqlFetcher(TripReviewsDocument, { tripId, first: 10 }),
+    enabled: !!tripId && isTemplate,
+  });
+
+  const reviews = reviewsData?.tripReviews ?? [];
+
+  // Write review state
+  const [reviewFormVisible, setReviewFormVisible] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+
+  const createReviewMutation = useMutation({
+    mutationFn: () =>
+      gqlFetcher(CreateTripReviewDocument, {
+        input: { tripId, rating: reviewRating, text: reviewText || undefined },
+      }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setReviewFormVisible(false);
+      setReviewText('');
+      setReviewRating(5);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tripReviews.byTrip(tripId),
+      });
+      invalidateTrip();
+    },
+    onError: (err: Error) => {
+      Alert.alert('Review Failed', err.message ?? 'Please try again.');
+    },
+  });
+
+  const handleSubmitReview = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    createReviewMutation.mutate();
+  }, [createReviewMutation]);
+
   const handleOpenShareSheet = useCallback(() => {
     if (!trip) return;
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -505,10 +733,10 @@ ${rteptElements}
           attributionEnabled={false}
           scaleBarEnabled={false}
         >
-          {bounds && (
+          {(polylineBounds ?? bounds) && (
             <MapboxGL.Camera
               bounds={{
-                ...bounds,
+                ...(polylineBounds ?? bounds)!,
                 paddingBottom: 200,
                 paddingTop: 60,
                 paddingLeft: 40,
@@ -518,8 +746,9 @@ ${rteptElements}
               animationDuration={500}
             />
           )}
-          {routeGeoJSON && (
-            <MapboxGL.ShapeSource id="trip-route" shape={routeGeoJSON}>
+          {/* Polyline route for templates, Directions route for regular trips */}
+          {(polylineRoute ?? routeGeoJSON) && (
+            <MapboxGL.ShapeSource id="trip-route" shape={(polylineRoute ?? routeGeoJSON)!}>
               <MapboxGL.LineLayer
                 id="trip-route-layer"
                 style={{
@@ -594,7 +823,7 @@ ${rteptElements}
             top: insets.top + 8,
             right: 12,
             flexDirection: 'row',
-            gap: 8,
+            gap: 6,
           }}
         >
           <Pressable
@@ -605,18 +834,22 @@ ${rteptElements}
             }}
             accessibilityRole="button"
             accessibilityLabel="Ask trip assistant"
-            accessibilityHint="Opens an AI chat scoped to this trip"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              borderCurve: 'continuous',
-              backgroundColor: palette.signature500,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={{ alignItems: 'center', gap: 3 }}
           >
-            <Sparkles size={20} color={palette.white} />
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                borderCurve: 'continuous',
+                backgroundColor: palette.signature500,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Sparkles size={18} color={palette.white} />
+            </View>
+            <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>AI</Text>
           </Pressable>
           {isOrganiser && (
             <Pressable
@@ -626,33 +859,40 @@ ${rteptElements}
                   params: { tripId: trip.id },
                 } as never)
               }
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderCurve: 'continuous',
-                backgroundColor: palette.neutral950,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              style={{ alignItems: 'center', gap: 3 }}
             >
-              <Pencil size={18} color={palette.white} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.neutral950,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Pencil size={16} color={palette.white} />
+              </View>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Edit</Text>
             </Pressable>
           )}
           {isOrganiser && (
-            <Pressable
-              onPress={handleOpenShareSheet}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                borderCurve: 'continuous',
-                backgroundColor: palette.neutral950,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Share2 size={18} color={palette.white} />
+            <Pressable onPress={handleOpenShareSheet} style={{ alignItems: 'center', gap: 3 }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: palette.neutral950,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Share2 size={16} color={palette.white} />
+              </View>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Share</Text>
             </Pressable>
           )}
         </View>
@@ -820,7 +1060,7 @@ ${rteptElements}
                     letterSpacing: -0.3,
                   }}
                 >
-                  {trip.participantCount}
+                  {trip.participantCount + 1}
                   <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
                 </Text>
                 <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
@@ -863,21 +1103,521 @@ ${rteptElements}
               </Animated.View>
             )}
 
-            {/* Pre-ride readiness — fed by waypoints/bike/visibility. */}
-            <Animated.View entering={FadeInUp.delay(30).duration(250)}>
-              <ReadinessRing report={readiness} onShareBrief={handleShareBrief} />
-            </Animated.View>
+            {/* ── Template-specific sections ──────────────────────────── */}
+            {isTemplate && (
+              <>
+                {/* Template badges — surface, MotoVault Pick, etc. */}
+                <Animated.View
+                  entering={FadeInUp.delay(40).duration(220)}
+                  style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: 8,
+                    marginBottom: 14,
+                  }}
+                >
+                  {trip.surfaceType && (
+                    <View
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 10,
+                        borderCurve: 'continuous',
+                        backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '600',
+                          color: subtitleColor,
+                        }}
+                      >
+                        {SURFACE_LABELS[trip.surfaceType] ?? trip.surfaceType}
+                      </Text>
+                    </View>
+                  )}
+                  {trip.isMotovaultPick && (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 10,
+                        borderCurve: 'continuous',
+                        backgroundColor: `${palette.signature500}18`,
+                      }}
+                    >
+                      <Award size={12} color={palette.signature500} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
+                        MotoVault Pick
+                      </Text>
+                    </View>
+                  )}
+                </Animated.View>
 
-            {/* Offline pack — download tiles + trip payload for the ride. */}
-            <Animated.View entering={FadeInUp.delay(40).duration(250)}>
-              <OfflinePackButton
-                status={offline.status}
-                progress={offline.progress}
-                meta={offline.meta}
-                onDownload={offline.download}
-                onRemove={offline.remove}
-              />
-            </Animated.View>
+                {/* Template stats — distance, elevation, rating, clones */}
+                <Animated.View
+                  entering={FadeInUp.delay(60).duration(220)}
+                  style={{
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: 16,
+                    marginBottom: 20,
+                    padding: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: cardBg,
+                  }}
+                >
+                  {trip.distanceM != null && (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: titleColor,
+                          fontVariant: ['tabular-nums'],
+                        }}
+                      >
+                        {formatDistance(trip.distanceM, system)}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>Distance</Text>
+                    </View>
+                  )}
+                  {(trip.elevationGainM ?? 0) > 0 && (
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <Mountain size={14} color={palette.accent500} />
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: '700',
+                            color: titleColor,
+                            fontVariant: ['tabular-nums'],
+                          }}
+                        >
+                          {formatElevation(trip.elevationGainM ?? 0, system)}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>Elevation</Text>
+                    </View>
+                  )}
+                  {trip.estimatedDurationMinutes != null && trip.estimatedDurationMinutes > 0 && (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '700',
+                          color: titleColor,
+                          fontVariant: ['tabular-nums'],
+                        }}
+                      >
+                        {trip.estimatedDurationMinutes >= 60
+                          ? `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60}m`
+                          : `${trip.estimatedDurationMinutes}m`}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>Duration</Text>
+                    </View>
+                  )}
+                  {trip.averageRating != null && trip.reviewCount != null && trip.reviewCount > 0 && (
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <Star size={14} color={palette.warning500} fill={palette.warning500} />
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                          {trip.averageRating.toFixed(1)}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>
+                        {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
+                      </Text>
+                    </View>
+                  )}
+                  {trip.viewCount != null && trip.viewCount > 0 && (
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                        {trip.viewCount}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>Views</Text>
+                    </View>
+                  )}
+                  {trip.cloneCount != null && trip.cloneCount > 0 && (
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                        <Copy size={14} color={bodyColor} />
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                          {trip.cloneCount}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: subtitleColor }}>Clones</Text>
+                    </View>
+                  )}
+                </Animated.View>
+
+                {/* Curvature index badge */}
+                {trip.curvatureIndex != null && trip.curvatureIndex > 0 && (
+                  <Animated.View
+                    entering={FadeInUp.delay(80).duration(220)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginBottom: 14,
+                    }}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
+                      Curvature index: {trip.curvatureIndex.toFixed(1)}
+                    </Text>
+                  </Animated.View>
+                )}
+
+                {/* Route start/end summary */}
+                {waypoints.length >= 2 && (
+                  <Animated.View entering={FadeInUp.delay(90).duration(220)}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 20,
+                        padding: 12,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+                      }}
+                    >
+                      <MapPin size={16} color={palette.accent500} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
+                          {waypoints.find((w) => w.type === 'start')?.name ?? waypoints[0].name}
+                          {'  \u2192  '}
+                          {waypoints.find((w) => w.type === 'end')?.name ??
+                            waypoints[waypoints.length - 1].name}
+                        </Text>
+                        {trip.city && (
+                          <Text style={{ fontSize: 12, color: subtitleColor }}>
+                            {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode?.toUpperCase()]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                  </Animated.View>
+                )}
+
+                {/* Contributor / organiser attribution */}
+                <Animated.View
+                  entering={FadeInUp.delay(100).duration(220)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 20,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      borderCurve: 'continuous',
+                      backgroundColor: palette.accent500,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                      {(trip.organiser.displayName ?? 'O').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
+                      {trip.organiser.displayName}
+                    </Text>
+                    {trip.organiser.publicUsername && (
+                      <Text style={{ fontSize: 12, color: subtitleColor }}>
+                        @{trip.organiser.publicUsername}
+                      </Text>
+                    )}
+                  </View>
+                </Animated.View>
+
+                {/* Template action buttons — Clone + Save/Unsave */}
+                <Animated.View
+                  entering={FadeInUp.delay(110).duration(220)}
+                  style={{ gap: 10, marginBottom: 20 }}
+                >
+                  {!isOrganiser && (
+                    <Pressable
+                      onPress={handleCloneTemplate}
+                      disabled={cloneMutation.isPending}
+                      accessibilityRole="button"
+                      accessibilityLabel="Clone to My Trips"
+                      style={({ pressed }) => ({
+                        backgroundColor: palette.accent500,
+                        paddingVertical: 14,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        gap: 8,
+                        opacity: pressed ? 0.9 : 1,
+                      })}
+                    >
+                      {cloneMutation.isPending ? (
+                        <ActivityIndicator size="small" color={palette.white} />
+                      ) : (
+                        <>
+                          <Copy size={18} color={palette.white} />
+                          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                            Clone to My Trips
+                          </Text>
+                        </>
+                      )}
+                    </Pressable>
+                  )}
+                  <Pressable
+                    onPress={handleToggleSave}
+                    disabled={saveMutation.isPending || unsaveMutation.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel={isSaved ? 'Unsave trip' : 'Save trip'}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: isSaved ? palette.warning500 : (isDark ? palette.neutral700 : palette.neutral300),
+                    }}
+                  >
+                    {saveMutation.isPending || unsaveMutation.isPending ? (
+                      <ActivityIndicator size="small" color={subtitleColor} />
+                    ) : isSaved ? (
+                      <>
+                        <BookmarkCheck size={16} color={palette.warning500} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
+                          Saved
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Bookmark size={16} color={isDark ? palette.white : palette.neutral950} />
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: '700',
+                            color: isDark ? palette.white : palette.neutral950,
+                          }}
+                        >
+                          Save for Later
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </Animated.View>
+
+                {/* Reviews section */}
+                <Animated.View
+                  entering={FadeInUp.delay(120).duration(220)}
+                  style={{ marginBottom: 20 }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: titleColor,
+                      marginBottom: 12,
+                    }}
+                  >
+                    Reviews
+                  </Text>
+                  {reviewsLoading ? (
+                    <ActivityIndicator size="small" color={palette.accent500} />
+                  ) : reviews.length === 0 ? (
+                    <Text style={{ fontSize: 13, color: subtitleColor, marginBottom: 12 }}>
+                      No reviews yet. Be the first to share your experience!
+                    </Text>
+                  ) : (
+                    reviews.map((review, idx) => (
+                      <Animated.View
+                        key={review.id}
+                        entering={FadeInUp.delay(idx * 40).duration(200)}
+                        style={{
+                          padding: 12,
+                          marginBottom: 8,
+                          borderRadius: 12,
+                          borderCurve: 'continuous',
+                          backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              color={palette.warning500}
+                              fill={i < review.rating ? palette.warning500 : 'transparent'}
+                            />
+                          ))}
+                        </View>
+                        {review.text && (
+                          <Text style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }}>
+                            {review.text}
+                          </Text>
+                        )}
+                        <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </Text>
+                      </Animated.View>
+                    ))
+                  )}
+
+                  {/* Write review toggle */}
+                  {!reviewFormVisible ? (
+                    <Pressable
+                      onPress={() => {
+                        if (process.env.EXPO_OS === 'ios')
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setReviewFormVisible(true);
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        paddingVertical: 12,
+                        borderRadius: 12,
+                        borderCurve: 'continuous',
+                        borderWidth: 1,
+                        borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                        marginTop: 4,
+                      }}
+                    >
+                      <Star size={14} color={palette.accent500} />
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
+                        Write a Review
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Animated.View
+                      entering={FadeInUp.duration(200)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                        marginTop: 8,
+                      }}
+                    >
+                      {/* Rating selector */}
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Pressable
+                            key={n}
+                            onPress={() => {
+                              if (process.env.EXPO_OS === 'ios')
+                                Haptics.selectionAsync();
+                              setReviewRating(n);
+                            }}
+                          >
+                            <Star
+                              size={24}
+                              color={palette.warning500}
+                              fill={n <= reviewRating ? palette.warning500 : 'transparent'}
+                            />
+                          </Pressable>
+                        ))}
+                      </View>
+                      <TextInput
+                        value={reviewText}
+                        onChangeText={setReviewText}
+                        placeholder="Share your experience..."
+                        placeholderTextColor={subtitleColor}
+                        multiline
+                        style={{
+                          fontSize: 14,
+                          color: titleColor,
+                          minHeight: 60,
+                          padding: 10,
+                          borderRadius: 10,
+                          borderCurve: 'continuous',
+                          backgroundColor: isDark ? palette.cardDark : palette.white,
+                          textAlignVertical: 'top',
+                          marginBottom: 10,
+                        }}
+                      />
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <Pressable
+                          onPress={() => setReviewFormVisible(false)}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 10,
+                            borderRadius: 10,
+                            borderCurve: 'continuous',
+                            alignItems: 'center',
+                            borderWidth: 1,
+                            borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                          }}
+                        >
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: subtitleColor }}>
+                            Cancel
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={handleSubmitReview}
+                          disabled={createReviewMutation.isPending}
+                          style={{
+                            flex: 1,
+                            paddingVertical: 10,
+                            borderRadius: 10,
+                            borderCurve: 'continuous',
+                            alignItems: 'center',
+                            backgroundColor: palette.accent500,
+                          }}
+                        >
+                          {createReviewMutation.isPending ? (
+                            <ActivityIndicator size="small" color={palette.white} />
+                          ) : (
+                            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+                              Submit
+                            </Text>
+                          )}
+                        </Pressable>
+                      </View>
+                    </Animated.View>
+                  )}
+                </Animated.View>
+              </>
+            )}
+
+            {/* ── Regular trip sections (non-template) ───────────────── */}
+            {!isTemplate && (
+              <>
+                {/* Pre-ride readiness — fed by waypoints/bike/visibility. */}
+                <Animated.View entering={FadeInUp.delay(30).duration(250)}>
+                  <ReadinessRing report={readiness} onShareBrief={handleShareBrief} />
+                </Animated.View>
+
+                {/* Offline pack — download tiles + trip payload for the ride. */}
+                <Animated.View entering={FadeInUp.delay(40).duration(250)}>
+                  <OfflinePackButton
+                    status={offline.status}
+                    progress={offline.progress}
+                    meta={offline.meta}
+                    onDownload={offline.download}
+                    onRemove={offline.remove}
+                  />
+                </Animated.View>
+              </>
+            )}
 
             {/* Day-by-day itinerary */}
             {waypointsByDay.length > 0 && (
@@ -1012,8 +1752,8 @@ ${rteptElements}
 
             {/* Nav handoff lives on the sticky "Ride this" CTA, not inside the sheet. */}
 
-            {/* Participants */}
-            {trip.participants && trip.participants.length > 0 && (
+            {/* Participants — only for regular trips (non-template) */}
+            {!isTemplate && trip.participants && trip.participants.length > 0 && (
               <Animated.View
                 entering={FadeInUp.delay(100).duration(250)}
                 style={{ marginBottom: 16 }}
@@ -1026,9 +1766,49 @@ ${rteptElements}
                     marginBottom: 8,
                   }}
                 >
-                  Riders ({trip.participantCount})
+                  Riders ({trip.participantCount + 1})
                 </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {/* Organizer — always shown first */}
+                  <View style={{ alignItems: 'center', gap: 4, width: 64 }}>
+                    {trip.organiser.avatarUrl ? (
+                      <Image
+                        source={{ uri: trip.organiser.avatarUrl }}
+                        style={{ width: 36, height: 36, borderRadius: 18 }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: palette.accent500,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: palette.white }}>
+                          {(trip.organiser.displayName ?? 'O').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <Text
+                      style={{ fontSize: 11, color: subtitleColor, textAlign: 'center' }}
+                      numberOfLines={1}
+                    >
+                      {trip.organiser.displayName ?? 'Organizer'}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        fontWeight: '700',
+                        color: palette.accent500,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Lead
+                    </Text>
+                  </View>
                   {trip.participants.map((p) => {
                     const statusInfo =
                       STATUS_ICONS[p.status as keyof typeof STATUS_ICONS] ?? STATUS_ICONS.going;
@@ -1110,20 +1890,81 @@ ${rteptElements}
             )}
 
             {/* P5.1 — async waypoint suggestions */}
-            <SuggestionsSection
-              suggestions={tripSuggestions.suggestions}
-              isLoading={tripSuggestions.isLoading}
-              canDecide={canDecideSuggestions}
-              currentUserId={userId ?? undefined}
-              onRespond={tripSuggestions.respond}
-              respondingIds={tripSuggestions.respondingIds}
-            />
+            {!isTemplate && (
+              <SuggestionsSection
+                suggestions={tripSuggestions.suggestions}
+                isLoading={tripSuggestions.isLoading}
+                canDecide={canDecideSuggestions}
+                currentUserId={userId ?? undefined}
+                onRespond={tripSuggestions.respond}
+                respondingIds={tripSuggestions.respondingIds}
+              />
+            )}
 
-            {/* Action buttons */}
-            <Animated.View
+            {/* Action buttons — non-template trips only */}
+            {!isTemplate && <Animated.View
               entering={FadeInUp.delay(150).duration(250)}
               style={{ gap: 10, marginBottom: 20 }}
             >
+              {/* Publish to Discover — organizer only, when trip has enough content */}
+              {isOrganiser && !publishedToDiscover && waypoints.length >= 2 && (
+                <Pressable
+                  onPress={handlePublishToDiscover}
+                  disabled={publishToDiscoverMutation.isPending}
+                  accessibilityRole="button"
+                  accessibilityLabel="Publish to Discover"
+                  accessibilityHint="Makes this trip a template other riders can browse and clone"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: palette.accent500,
+                  }}
+                >
+                  {publishToDiscoverMutation.isPending ? (
+                    <ActivityIndicator size="small" color={palette.white} />
+                  ) : (
+                    <>
+                      <Compass size={16} color={palette.white} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                        Publish to Discover
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              {/* Published indicator */}
+              {isOrganiser && publishedToDiscover && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                  }}
+                >
+                  <CheckCircle size={16} color={palette.success500} />
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '700',
+                      color: palette.success500,
+                    }}
+                  >
+                    Published on Discover
+                  </Text>
+                </View>
+              )}
+
               {/* Clone — available to anyone viewing someone else's public trip. */}
               {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
                 <Pressable
@@ -1240,7 +2081,7 @@ ${rteptElements}
                   </Text>
                 </Pressable>
               )}
-            </Animated.View>
+            </Animated.View>}
 
             {/* Comments */}
             <CommentList tripId={tripId} />

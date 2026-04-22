@@ -13,6 +13,7 @@ import { MileageSlider } from '../../components/onboarding/mileage-slider';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
@@ -72,6 +73,13 @@ export default function BikeTypeScreen() {
       type: selectedType,
       currentMileage: mileage ?? 0,
       mileageUnit: unit,
+    });
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'bike_type',
+      step_index: 5,
+      bike_type: selectedType,
+      current_mileage: mileage ?? 0,
+      mileage_unit: unit,
     });
     router.replace('/(onboarding)/bike-photo');
   };

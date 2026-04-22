@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import posthog from 'posthog-js';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const NAV_LINKS = [
@@ -23,7 +23,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
     setSigningOut(true);
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
-    posthog.reset();
+    resetUser();
     router.push('/login');
   }, [signingOut, router]);
 

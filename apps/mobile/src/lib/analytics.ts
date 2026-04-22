@@ -79,13 +79,29 @@ export function setCrashReportingEnabled(enabled: boolean) {
 
 // ---- User Identification (anonymous) --------------------------------
 
-export function identifyUser(userId: string) {
+export function identifyUser(
+  userId: string,
+  properties?: {
+    experience_level?: string;
+    bike_count?: number;
+    is_pro?: boolean;
+    currency?: string;
+    locale?: string;
+    app_version?: string;
+  },
+) {
   if (analyticsEnabled && posthogClient) {
-    posthogClient.identify(userId);
+    posthogClient.identify(userId, properties);
   }
   if (crashReportingEnabled && SENTRY_DSN) {
     Sentry.setUser({ id: userId });
   }
+}
+
+/** Update user properties on the already-identified user (e.g. after purchase, bike add). */
+export function setUserProperties(properties: Record<string, JsonType>) {
+  if (!analyticsEnabled || !posthogClient) return;
+  posthogClient.capture('$set', { $set: properties });
 }
 
 export function resetUser() {
@@ -107,22 +123,32 @@ export const AnalyticsEvent = {
   // Onboarding
   ONBOARDING_STARTED: 'onboarding_started',
   ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
+  ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
   ONBOARDING_DROPPED_OFF: 'onboarding_dropped_off',
 
-  // Feature usage
+  // Feature usage — Diagnostics
   DIAGNOSTIC_STARTED: 'diagnostic_started',
   DIAGNOSTIC_COMPLETED: 'diagnostic_completed',
+  DIAGNOSTIC_LIST_VIEWED: 'diagnostic_list_viewed',
+
+  // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
   ARTICLE_READ: 'article_read',
   QUIZ_STARTED: 'quiz_started',
   QUIZ_COMPLETED: 'quiz_completed',
+
+  // Feature usage — Garage
   GARAGE_BIKE_ADDED: 'garage_bike_added',
   GARAGE_BIKE_REMOVED: 'garage_bike_removed',
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
   EXPENSE_ADDED: 'expense_added',
+  EXPENSE_DELETED: 'expense_deleted',
+  EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
+  FUEL_LOG_ADDED: 'fuel_log_added',
+  HEALTH_REPORT_VIEWED: 'health_report_viewed',
 
   // Rides
   RIDE_STARTED: 'ride_started',
@@ -140,6 +166,8 @@ export const AnalyticsEvent = {
 
   // Discovery
   DISCOVER_TAB_VIEWED: 'discover_tab_viewed',
+  DISCOVER_FILTER_APPLIED: 'discover_filter_applied',
+  DISCOVER_SEARCH_USED: 'discover_search_used',
 
   // Community
   GROUP_RIDE_CREATED: 'group_ride_created',
@@ -164,6 +192,7 @@ export const AnalyticsEvent = {
 
   // Subscription funnel
   PAYWALL_VIEWED: 'paywall_viewed',
+  PAYWALL_DISMISSED: 'paywall_dismissed',
   PURCHASE_STARTED: 'purchase_started',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',
@@ -175,6 +204,14 @@ export const AnalyticsEvent = {
   // What's New
   WHATS_NEW_VIEWED: 'whats_new_viewed',
   WHATS_NEW_DISMISSED: 'whats_new_dismissed',
+
+  // Profile & Settings
+  PROFILE_EDITED: 'profile_edited',
+  SETTINGS_CHANGED: 'settings_changed',
+  HEATMAP_VIEWED: 'heatmap_viewed',
+  RIDES_HISTORY_VIEWED: 'rides_history_viewed',
+  USER_FOLLOWED: 'user_followed',
+  USER_UNFOLLOWED: 'user_unfollowed',
 
   // Navigation
   SCREEN_VIEWED: 'screen_viewed',

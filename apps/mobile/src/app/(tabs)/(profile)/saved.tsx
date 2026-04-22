@@ -1,9 +1,5 @@
 import { palette } from '@motovault/design-system';
-import {
-  SavedRoutesDocument,
-  type SavedRoutesQuery,
-  UnsaveRouteDocument,
-} from '@motovault/graphql';
+import { SavedTripsDocument, type SavedTripsQuery, UnsaveTripDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Bookmark, Compass, Mountain, Route, Star } from 'lucide-react-native';
@@ -29,16 +25,16 @@ import { formatDistance } from '../../../utils/ride-formatters';
 
 const PAGE_SIZE = 20;
 
-type SavedRouteEdge = SavedRoutesQuery['savedRoutes']['edges'][number];
-type SavedRouteNode = SavedRouteEdge['node'];
+type SavedTripEdge = SavedTripsQuery['savedTrips']['edges'][number];
+type SavedTripNode = SavedTripEdge['node'];
 
-function SavedRouteCard({
-  route,
+function SavedTripCard({
+  trip,
   index,
   onPress,
   onLongPress,
 }: {
-  route: SavedRouteNode;
+  trip: SavedTripNode;
   index: number;
   onPress: () => void;
   onLongPress: () => void;
@@ -54,11 +50,11 @@ function SavedRouteCard({
   const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
 
   const surfaceLabel =
-    route.surfaceType === 'paved'
+    trip.surfaceType === 'paved'
       ? 'Paved'
-      : route.surfaceType === 'mixed'
+      : trip.surfaceType === 'mixed'
         ? 'Mixed'
-        : route.surfaceType === 'off-road'
+        : trip.surfaceType === 'off_road'
           ? 'Off-road'
           : null;
 
@@ -71,7 +67,7 @@ function SavedRouteCard({
           onLongPress();
         }}
         accessibilityRole="button"
-        accessibilityLabel={`Saved route: ${route.name ?? 'Unnamed route'}`}
+        accessibilityLabel={`Saved trip: ${trip.title}`}
         style={({ pressed }) => ({
           backgroundColor: pressed ? pressedBg : cardBg,
           borderRadius: 16,
@@ -89,25 +85,27 @@ function SavedRouteCard({
             style={{ flex: 1, fontSize: 15, fontWeight: '700', color: titleColor }}
             numberOfLines={1}
           >
-            {route.name ?? 'Unnamed Route'}
+            {trip.title}
           </Text>
           <Bookmark size={14} color={palette.accent500} fill={palette.accent500} />
         </View>
 
         {/* Stats row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: statColor,
-              fontVariant: ['tabular-nums'],
-            }}
-          >
-            {formatDistance(route.distanceM, system)}
-          </Text>
+          {trip.distanceM != null && (
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '600',
+                color: statColor,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
+              {formatDistance(trip.distanceM, system)}
+            </Text>
+          )}
 
-          {(route.elevationGainM ?? 0) > 0 && (
+          {(trip.elevationGainM ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Mountain size={12} color={palette.accent500} />
               <Text
@@ -118,7 +116,7 @@ function SavedRouteCard({
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {Math.round(route.elevationGainM ?? 0)}m
+                {Math.round(trip.elevationGainM ?? 0)}m
               </Text>
             </View>
           )}
@@ -127,7 +125,7 @@ function SavedRouteCard({
             <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
           )}
 
-          {route.ratingAvg != null && (route.ratingCount ?? 0) > 0 && (
+          {trip.averageRating != null && trip.reviewCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
               <Star size={12} color={palette.warning500} fill={palette.warning500} />
               <Text
@@ -138,18 +136,18 @@ function SavedRouteCard({
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {route.ratingAvg.toFixed(1)}
+                {trip.averageRating.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor }}>({route.ratingCount})</Text>
+              <Text style={{ fontSize: 11, color: subtitleColor }}>({trip.reviewCount})</Text>
             </View>
           )}
         </View>
 
-        {/* Contributor */}
-        {route.contributor && (
+        {/* Organiser */}
+        {trip.organiser && (
           <Text style={{ fontSize: 12, color: subtitleColor }}>
-            by {route.contributor.displayName}
-            {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+            by {trip.organiser.displayName}
+            {trip.organiser.publicUsername ? ` @${trip.organiser.publicUsername}` : ''}
           </Text>
         )}
       </Pressable>
@@ -163,66 +161,69 @@ export default function SavedScreen() {
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
-    useInfiniteQuery<SavedRoutesQuery>({
-      queryKey: queryKeys.routes.saved,
+    useInfiniteQuery<SavedTripsQuery>({
+      queryKey: queryKeys.savedTrips.all,
       queryFn: ({ pageParam }) =>
-        gqlFetcher(SavedRoutesDocument, {
+        gqlFetcher(SavedTripsDocument, {
           first: PAGE_SIZE,
           after: (pageParam as string) ?? null,
         }),
       initialPageParam: undefined as string | undefined,
       getNextPageParam: (lastPage) => {
-        const pageInfo = lastPage?.savedRoutes?.pageInfo;
+        const pageInfo = lastPage?.savedTrips?.pageInfo;
         if (!pageInfo?.hasNextPage) return undefined;
         return pageInfo.endCursor ?? undefined;
       },
     });
 
   const unsaveMutation = useMutation({
-    mutationFn: (routeId: string) => gqlFetcher(UnsaveRouteDocument, { routeId }),
+    mutationFn: (tripId: string) => gqlFetcher(UnsaveTripDocument, { tripId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.routes.saved });
+      queryClient.invalidateQueries({ queryKey: queryKeys.savedTrips.all });
     },
   });
 
-  const allEdges = useMemo<SavedRouteEdge[]>(
-    () => (data?.pages ?? []).flatMap((page) => page?.savedRoutes?.edges ?? []),
+  const allEdges = useMemo<SavedTripEdge[]>(
+    () => (data?.pages ?? []).flatMap((page) => page?.savedTrips?.edges ?? []),
     [data?.pages],
   );
 
-  const handleRoutePress = useCallback(
-    (routeId: string) => {
+  const handleTripPress = useCallback(
+    (tripId: string) => {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
-      router.push({ pathname: '/(modals)/route-detail' as const, params: { routeId } } as any);
+      router.push({
+        pathname: '/(modals)/trip-detail' as const,
+        params: { tripId },
+      } as any);
     },
     [router],
   );
 
   const handleLongPress = useCallback(
-    (route: SavedRouteNode) => {
+    (trip: SavedTripNode) => {
       if (process.env.EXPO_OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            options: ['Share Route', 'Remove from Saved', 'Cancel'],
+            options: ['Share Trip', 'Remove from Saved', 'Cancel'],
             destructiveButtonIndex: 1,
             cancelButtonIndex: 2,
-            title: route.name ?? 'Route',
+            title: trip.title,
           },
           (buttonIndex) => {
             if (buttonIndex === 0) {
               Share.share({
-                message: `Check out this route on MotoVault: ${route.name ?? 'Unnamed Route'}`,
+                message: `Check out this trip on MotoVault: ${trip.title}`,
               });
             } else if (buttonIndex === 1) {
               triggerImpact();
-              unsaveMutation.mutate(route.id);
+              unsaveMutation.mutate(trip.id);
             }
           },
         );
       } else {
         // Android fallback: just unsave for now
         triggerImpact();
-        unsaveMutation.mutate(route.id);
+        unsaveMutation.mutate(trip.id);
       }
     },
     [unsaveMutation],
@@ -235,15 +236,15 @@ export default function SavedScreen() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: SavedRouteEdge; index: number }) => (
-      <SavedRouteCard
-        route={item.node}
+    ({ item, index }: { item: SavedTripEdge; index: number }) => (
+      <SavedTripCard
+        trip={item.node}
         index={index}
-        onPress={() => handleRoutePress(item.node.id)}
+        onPress={() => handleTripPress(item.node.id)}
         onLongPress={() => handleLongPress(item.node)}
       />
     ),
-    [handleRoutePress, handleLongPress],
+    [handleTripPress, handleLongPress],
   );
 
   const renderEmpty = useCallback(() => {
@@ -275,7 +276,7 @@ export default function SavedScreen() {
             textAlign: 'center',
           }}
         >
-          No saved routes yet
+          No saved trips yet
         </Text>
         <Text
           style={{
@@ -285,7 +286,7 @@ export default function SavedScreen() {
             lineHeight: 22,
           }}
         >
-          Browse routes on the Discover tab and save the ones you want to ride later.
+          Browse trips on the Discover tab and save the ones you want to ride later.
         </Text>
         <Pressable
           onPress={() => {
@@ -294,7 +295,7 @@ export default function SavedScreen() {
             router.push('/(tabs)/(discover)' as any);
           }}
           accessibilityRole="button"
-          accessibilityLabel="Explore Routes"
+          accessibilityLabel="Explore Trips"
           style={({ pressed }) => ({
             backgroundColor: palette.primary700,
             borderRadius: 20,
@@ -311,7 +312,7 @@ export default function SavedScreen() {
         >
           <Compass size={20} color={palette.white} />
           <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
-            Explore Routes
+            Explore Trips
           </Text>
         </Pressable>
       </Animated.View>
@@ -367,7 +368,7 @@ export default function SavedScreen() {
             letterSpacing: -0.5,
           }}
         >
-          Saved Routes
+          Saved Trips
         </Text>
         <View
           style={{
@@ -386,7 +387,7 @@ export default function SavedScreen() {
               fontVariant: ['tabular-nums'],
             }}
           >
-            {allEdges.length} route{allEdges.length !== 1 ? 's' : ''}
+            {allEdges?.length ?? 0} trip{(allEdges?.length ?? 0) !== 1 ? 's' : ''}
           </Text>
         </View>
       </View>
@@ -397,7 +398,7 @@ export default function SavedScreen() {
         </View>
       ) : (
         <FlatList
-          data={allEdges}
+          data={allEdges ?? []}
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{

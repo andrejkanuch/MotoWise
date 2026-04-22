@@ -67,6 +67,11 @@ export class RoutesService {
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
   ) {}
 
+  /** Log when deprecated resolvers are called (replace with PostHog in production) */
+  logDeprecatedUsage(queryName: string): void {
+    this.logger.warn(`DEPRECATED: ${queryName} called — use discoverTrips equivalent`);
+  }
+
   async discoverRoutes(
     filter: DiscoverRoutesFilterInput | undefined,
     first: number,

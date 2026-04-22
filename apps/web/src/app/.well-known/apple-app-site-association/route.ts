@@ -30,6 +30,7 @@ export async function GET() {
             { '/': '/ride/*', comment: 'Public ride pages → app' },
             { '/': '/routes/*', comment: 'Route UUID pages → app' },
             { '/': '/route/*', comment: 'Canonical route slug pages → app' },
+            { '/': '/trips/*', comment: 'Trip template pages → app' },
           ],
         },
       ],

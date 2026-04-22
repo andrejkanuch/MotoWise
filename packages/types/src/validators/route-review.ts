@@ -1,28 +1,11 @@
 import { z } from 'zod';
 
 // --- Condition Tags ---
+// Canonical definition is now in trip.ts. Re-export for backward compat.
+export { CONDITION_TAGS, type ConditionTag, ConditionTagSchema } from './trip';
 
-export const CONDITION_TAGS = {
-  GOOD_SURFACE: 'Good Surface',
-  GRAVEL_HAZARD: 'Gravel Hazard',
-  CONSTRUCTION: 'Construction',
-  LOW_TRAFFIC: 'Low Traffic',
-  HEAVY_TRAFFIC: 'Heavy Traffic',
-  SCENIC: 'Scenic',
-  TECHNICAL_CURVES: 'Technical Curves',
-} as const;
-
-export const ConditionTagSchema = z.enum([
-  'Good Surface',
-  'Gravel Hazard',
-  'Construction',
-  'Low Traffic',
-  'Heavy Traffic',
-  'Scenic',
-  'Technical Curves',
-]);
-
-export type ConditionTag = z.infer<typeof ConditionTagSchema>;
+// Re-import for local use in this file
+import { ConditionTagSchema } from './trip';
 
 // --- Create Route Review ---
 

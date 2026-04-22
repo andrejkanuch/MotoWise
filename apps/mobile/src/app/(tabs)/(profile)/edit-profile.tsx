@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -151,6 +152,7 @@ export default function EditProfileScreen() {
     }) => gqlFetcher(UpdateMyProfileDocument, { input }),
     onSuccess: () => {
       hapticSuccess();
+      trackEvent(AnalyticsEvent.PROFILE_EDITED);
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
       // Update initial values so isDirty resets
       initialValuesRef.current = { publicUsername, displayName, bio, city, isPublic };

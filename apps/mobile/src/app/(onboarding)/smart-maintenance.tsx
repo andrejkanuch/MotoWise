@@ -19,6 +19,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { OnboardingCard } from '../../components/onboarding/onboarding-card';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 import { TOTAL_SCREENS } from './_config';
 
@@ -161,6 +162,17 @@ export default function SmartMaintenanceScreen() {
     if (toggles.maintenanceReminders && reminderChannel) {
       store.setReminderChannel(reminderChannel);
     }
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+      step: 'smart_maintenance',
+      step_index: 8,
+      maintenance_style: maintStyle,
+      maintenance_reminders: toggles.maintenanceReminders,
+      seasonal_tips: toggles.seasonalTips,
+      recall_alerts: toggles.recallAlerts,
+      weekly_summary: toggles.weeklySummary,
+      last_service: lastService,
+      reminder_channel: reminderChannel,
+    });
     router.replace('/(onboarding)/insights');
   };
 

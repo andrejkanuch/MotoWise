@@ -12,6 +12,31 @@ query TripDetail($tripId: ID!) {
     visibility
     coverImageUrl
     createdAt
+    isTemplate
+    slug
+    polyline
+    startLat
+    startLng
+    countryCode
+    regionCode
+    city
+    distanceM
+    elevationGainM
+    estimatedDurationMinutes
+    surfaceType
+    curvatureIndex
+    dayCount
+    isFeatured
+    isMotovaultPick
+    viewCount
+    cloneCount
+    averageRating
+    reviewCount
+    publishedAt
+    isFlagged
+    isSaved
+    clonedFromTripId
+    forkedFromTripId
     organiser {
       id
       displayName

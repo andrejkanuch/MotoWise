@@ -1,8 +1,8 @@
 import { palette } from '@motovault/design-system';
 import {
-  DiscoverRoutesDocument,
-  type DiscoverRoutesFilterInput,
-  type DiscoverRoutesQuery,
+  type TripTemplateFilterInput,
+  TripTemplatesDocument,
+  type TripTemplatesQuery,
 } from '@motovault/graphql';
 import {
   COUNTRY_NAMES,
@@ -17,11 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
   Award,
-  CalendarDays,
   Compass,
-  Leaf,
   Plus,
-  Sparkles,
   Star,
   TrendingUp,
   Wind,
@@ -54,23 +51,18 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FeaturedRouteCard } from '../../../components/discover/featured-route-card';
+import { DiscoverTripCard } from '../../../components/discover/discover-trip-card';
 import { FilterChipRow } from '../../../components/discover/filter-chip-row';
-import { HorizontalRouteSection } from '../../../components/discover/horizontal-route-section';
-import { RouteCard } from '../../../components/discover/route-card';
 import { TripSection } from '../../../components/discover/trip-section';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
-import { useInspirationFilters } from '../../../hooks/use-inspiration-filters';
-import { usePrimaryBikeFuelData } from '../../../hooks/use-primary-bike-fuel-data';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { computeFuelStops } from '../../../utils/fuel-range';
 import { getDefaultMapStyle, MAP_STYLES } from '../../../utils/map-styles';
 
 // --- Types ---
 
-type RouteNode = DiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 // --- Filter chip definitions ---
 
@@ -104,26 +96,16 @@ interface DiscoverHeaderProps {
   filters: DiscoverFilters;
   onToggleChip: (key: FilterKey) => void;
   onToggleCountry: (key: SupportedCountryCode) => void;
-  featuredRoute: RouteNode | null;
-  onRoutePress: (routeId: string) => void;
+  onSearchSelect: (id: string) => void;
   showBelowFold: boolean;
-  /** Progressive unlock level for below-the-fold queries. Each stage enables
-   * one more horizontal carousel so cold-start doesn't fire 4 parallel
-   * `DiscoverRoutes` RTTs on top of the main infinite query + savedRoutes.
-   * 0 = none, 1 = editor picks, 2 = weekend, 3 = seasonal + becauseYouLiked. */
-  fetchStage: number;
-  inspiration: ReturnType<typeof useInspirationFilters>;
 }
 
 const DiscoverHeader = memo(function DiscoverHeader({
   filters,
   onToggleChip,
   onToggleCountry,
-  featuredRoute,
-  onRoutePress,
+  onSearchSelect,
   showBelowFold,
-  fetchStage,
-  inspiration,
 }: DiscoverHeaderProps) {
   const isDark = useColorScheme() === 'dark';
   const headerColor = isDark ? palette.white : palette.neutral950;
@@ -136,84 +118,19 @@ const DiscoverHeader = memo(function DiscoverHeader({
   return (
     <View style={{ gap: 16, paddingTop: 8 }}>
       {/* Search */}
-      <TypeaheadSearch onRouteSelect={onRoutePress} />
+      <TypeaheadSearch onRouteSelect={onSearchSelect} />
 
       {/* Filter chips */}
       <FilterChipRow
         chips={FILTER_CHIPS}
         activeKeys={filters.chips}
         onToggle={onToggleChip}
-        accessibilityGroupLabel="Route filters"
+        accessibilityGroupLabel="Trip filters"
       />
-
-      {/* Featured route / Road of the Week */}
-      {featuredRoute && (
-        <FeaturedRouteCard route={featuredRoute} onPress={() => onRoutePress(featuredRoute.id)} />
-      )}
 
       {/* Below-fold content — deferred by one frame for faster first paint */}
       {showBelowFold && (
         <>
-          {/* Editor's Picks */}
-          <HorizontalRouteSection
-            title="Editor's Picks"
-            icon={Award}
-            iconColor={palette.signature500}
-            queryKey={queryKeys.routes.editorPicks}
-            filter={{ motovaultPicksOnly: true, sortByRating: true }}
-            first={10}
-            staleTime={10 * 60 * 1000}
-            enabled={fetchStage >= 1}
-            onRoutePress={onRoutePress}
-          />
-
-          {/* Inspiration sections — hidden as soon as the user filters/searches. */}
-          {filters.chips.size === 0 && !filters.countryCode && (
-            <>
-              <HorizontalRouteSection
-                title="Ride this weekend"
-                icon={CalendarDays}
-                iconColor={palette.accent500}
-                queryKey={['routes', 'inspiration', 'weekend'] as const}
-                filter={inspiration.weekend}
-                first={10}
-                staleTime={10 * 60 * 1000}
-                enabled={fetchStage >= 2}
-                onRoutePress={onRoutePress}
-              />
-
-              <HorizontalRouteSection
-                title={inspiration.season.label}
-                icon={Leaf}
-                iconColor={palette.success500}
-                queryKey={['routes', 'inspiration', 'season', inspiration.season.label] as const}
-                filter={inspiration.season.filter}
-                first={10}
-                staleTime={30 * 60 * 1000}
-                enabled={fetchStage >= 3}
-                onRoutePress={onRoutePress}
-              />
-
-              {inspiration.becauseYouLiked && (
-                <HorizontalRouteSection
-                  title={
-                    inspiration.becauseYouLiked.anchorName
-                      ? `Because you liked ${inspiration.becauseYouLiked.anchorName}`
-                      : 'Similar to your saves'
-                  }
-                  icon={Sparkles}
-                  iconColor={palette.accent500}
-                  queryKey={['routes', 'inspiration', 'similar-to-saved'] as const}
-                  filter={inspiration.becauseYouLiked.filter}
-                  first={10}
-                  staleTime={10 * 60 * 1000}
-                  enabled={fetchStage >= 3}
-                  onRoutePress={onRoutePress}
-                />
-              )}
-            </>
-          )}
-
           {/* Country chips */}
           <View style={{ gap: 8 }}>
             <Text
@@ -250,10 +167,10 @@ const DiscoverHeader = memo(function DiscoverHeader({
           }}
         >
           {filters.countryCode
-            ? `Routes in ${COUNTRY_NAMES[filters.countryCode]}`
+            ? `Trips in ${COUNTRY_NAMES[filters.countryCode]}`
             : filters.chips.size > 0
-              ? 'Filtered routes'
-              : 'Roads worth riding'}
+              ? 'Filtered trips'
+              : 'Trip templates'}
         </Text>
       </View>
     </View>
@@ -276,30 +193,11 @@ export default function DiscoverScreen() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  // Progressive unlock of below-fold queries. The main infinite list and
-  // SavedRoutes (inspiration seed) fire immediately; each 150 ms tick unlocks
-  // one carousel so cold-start doesn't burst 5–6 GraphQL RTTs in parallel.
-  // Stage map: 1 = Editor's Picks, 2 = Weekend, 3 = Seasonal + Because-you-liked.
-  const [fetchStage, setFetchStage] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => {
-      setFetchStage((s) => {
-        if (s >= 3) {
-          clearInterval(id);
-          return s;
-        }
-        return s + 1;
-      });
-    }, 150);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
 
-  const { tankLiters, kmPerLiter } = usePrimaryBikeFuelData();
-  const inspiration = useInspirationFilters();
   const bg = isDark ? palette.neutral950 : palette.white;
 
   // --- Consolidated filter state ---
@@ -308,86 +206,64 @@ export default function DiscoverScreen() {
     countryCode: null,
   });
 
-  const filterInput = useMemo((): DiscoverRoutesFilterInput | null => {
-    const filter: DiscoverRoutesFilterInput = {};
-    let hasFilter = false;
+  // --- Data fetching (trips) ---
 
-    if (filters.chips.has('popular')) {
-      filter.sortByRating = true;
-      hasFilter = true;
-    }
-    if (filters.chips.has('picks')) {
-      filter.motovaultPicksOnly = true;
-      hasFilter = true;
-    }
-    if (filters.chips.has('twisty')) {
-      filter.minTwistScore = 6;
+  const tripFilterInput = useMemo((): TripTemplateFilterInput | null => {
+    const filter: TripTemplateFilterInput = {};
+    let hasFilter = false;
+    if (filters.countryCode) {
+      filter.country = filters.countryCode.toLowerCase();
       hasFilter = true;
     }
     if (filters.chips.has('paved')) {
-      filter.surfaceTypes = ['paved'];
+      filter.surfaceType = 'paved';
       hasFilter = true;
     }
     if (filters.chips.has('mixed')) {
-      filter.surfaceTypes = ['mixed'];
+      filter.surfaceType = 'mixed';
       hasFilter = true;
     }
     if (filters.chips.has('off-road')) {
-      filter.surfaceTypes = ['off-road'];
-      hasFilter = true;
-    }
-    if (filters.chips.has('highly-rated')) {
-      filter.highlyRatedOnly = true;
-      hasFilter = true;
-    }
-    if (filters.countryCode) {
-      filter.countryCode = filters.countryCode.toLowerCase();
+      filter.surfaceType = 'off_road';
       hasFilter = true;
     }
     return hasFilter ? filter : null;
   }, [filters]);
 
-  // --- Data fetching ---
+  const tripFilterKey = useMemo(() => JSON.stringify(tripFilterInput ?? {}), [tripFilterInput]);
 
-  const filterKey = useMemo(() => JSON.stringify(filterInput ?? {}), [filterInput]);
-
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: queryKeys.routes.discover(filterKey),
+  const {
+    data: tripData,
+    isLoading: tripsLoading,
+    fetchNextPage: fetchNextTrips,
+    hasNextPage: hasNextTrips,
+    isFetchingNextPage: isFetchingNextTrips,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.tripTemplates.list(tripFilterKey),
     queryFn: ({ pageParam }) =>
-      gqlFetcher(DiscoverRoutesDocument, {
-        filter: filterInput,
+      gqlFetcher(TripTemplatesDocument, {
+        filter: tripFilterInput,
         first: 20,
         after: pageParam ?? null,
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => {
-      const pi = lastPage?.discoverRoutes?.pageInfo;
+      const pi = lastPage?.tripTemplates?.pageInfo;
       return pi?.hasNextPage ? (pi.endCursor ?? undefined) : undefined;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  const allRoutes = useMemo(() => {
-    if (!data?.pages) return [];
-    return data.pages.flatMap((p) => p?.discoverRoutes?.edges?.map((e) => e.node) ?? []);
-  }, [data]);
+  const allTrips = useMemo(() => {
+    if (!tripData?.pages) return [];
+    return tripData.pages.flatMap((p) => p?.tripTemplates?.edges?.map((e) => e.node) ?? []);
+  }, [tripData]);
 
-  // Featured route: first MotoVault Pick (when no filters active)
-  const featuredRoute = useMemo(() => {
-    if (filters.chips.size > 0 || filters.countryCode) return null;
-    return allRoutes.find((r) => r.isMotovaultPick) ?? null;
-  }, [allRoutes, filters]);
 
-  // Routes for the list (exclude featured to avoid duplication)
-  const listRoutes = useMemo(() => {
-    if (!featuredRoute) return allRoutes;
-    return allRoutes.filter((r) => r.id !== featuredRoute.id);
-  }, [allRoutes, featuredRoute]);
-
-  // --- GeoJSON for map pins ---
+  // --- GeoJSON for map pins (use trips data for pins) ---
 
   const routeGeoJSON = useMemo(() => {
-    const features = allRoutes
+    const features = allTrips
       .filter((r) => r.startLat != null && r.startLng != null)
       .map((r) => ({
         type: 'Feature' as const,
@@ -395,27 +271,27 @@ export default function DiscoverScreen() {
           type: 'Point' as const,
           coordinates: [r.startLng ?? 0, r.startLat ?? 0],
         },
-        properties: { id: r.id, name: r.name ?? 'Route', kind: 'route' },
+        properties: { id: r.id, name: r.title, kind: 'trip' },
       }));
     return { type: 'FeatureCollection' as const, features };
-  }, [allRoutes]);
+  }, [allTrips]);
 
   // --- Callbacks ---
 
-  const handleRoutePress = useCallback(
-    (routeId: string) => {
-      router.push({ pathname: '/(modals)/route-detail', params: { routeId } });
+  const handleTripPress = useCallback(
+    (tripId: string) => {
+      router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
     },
     [router],
   );
 
   const handleMarkerPress = useCallback(
-    (routeId: string, routeName: string, lat: number, lng: number) => {
+    (tripId: string, tripName: string, lat: number, lng: number) => {
       if (process.env.EXPO_OS === 'ios') {
         Haptics.selectionAsync();
       }
       const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      const open = () => handleRoutePress(routeId);
+      const open = () => handleTripPress(tripId);
       const copy = async () => {
         await Clipboard.setStringAsync(coords);
       };
@@ -423,7 +299,7 @@ export default function DiscoverScreen() {
       if (Platform.OS === 'ios') {
         ActionSheetIOS.showActionSheetWithOptions(
           {
-            title: routeName,
+            title: tripName,
             message: coords,
             options: ['View details', 'Copy coordinates', 'Cancel'],
             cancelButtonIndex: 2,
@@ -434,19 +310,19 @@ export default function DiscoverScreen() {
           },
         );
       } else {
-        Alert.alert(routeName, coords, [
+        Alert.alert(tripName, coords, [
           { text: 'View details', onPress: open },
           { text: 'Copy coordinates', onPress: copy },
           { text: 'Cancel', style: 'cancel' },
         ]);
       }
     },
-    [handleRoutePress],
+    [handleTripPress],
   );
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (hasNextTrips && !isFetchingNextTrips) fetchNextTrips();
+  }, [hasNextTrips, isFetchingNextTrips, fetchNextTrips]);
 
   const toggleChip = useCallback((key: FilterKey) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -459,21 +335,35 @@ export default function DiscoverScreen() {
           if (sk !== key) next.delete(sk);
         }
       }
-      if (next.has(key)) {
+      const wasActive = next.has(key);
+      if (wasActive) {
         next.delete(key);
       } else {
         next.add(key);
       }
+      trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
+        filter: key,
+        action: wasActive ? 'removed' : 'applied',
+        active_filters: [...next],
+      });
       return { ...prev, chips: next };
     });
   }, []);
 
   const toggleCountry = useCallback((key: SupportedCountryCode) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setFilters((prev) => ({
-      ...prev,
-      countryCode: prev.countryCode === key ? null : key,
-    }));
+    setFilters((prev) => {
+      const wasActive = prev.countryCode === key;
+      trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
+        filter: 'country',
+        country: key,
+        action: wasActive ? 'removed' : 'applied',
+      });
+      return {
+        ...prev,
+        countryCode: wasActive ? null : key,
+      };
+    });
   }, []);
 
   // --- Scroll animation ---
@@ -498,19 +388,21 @@ export default function DiscoverScreen() {
     router.push('/(modals)/create-trip');
   }, [router]);
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: RouteNode; index: number }) => (
-      <RouteCard
-        route={item}
-        index={index}
-        onPress={() => handleRoutePress(item.id)}
-        fuelStopsRequired={computeFuelStops(item.distanceM / 1000, tankLiters, kmPerLiter)}
-      />
+  const renderTripItem = useCallback(
+    ({ item, index }: { item: TripNode; index: number }) => (
+      <DiscoverTripCard trip={item} index={index} onPress={() => handleTripPress(item.id)} />
     ),
-    [handleRoutePress, tankLiters, kmPerLiter],
+    [handleTripPress],
   );
 
   // --- Memoized header ---
+
+  const handleSearchSelect = useCallback(
+    (id: string) => {
+      router.push({ pathname: '/(modals)/trip-detail', params: { tripId: id } });
+    },
+    [router],
+  );
 
   const headerComponent = useMemo(
     () => (
@@ -518,22 +410,16 @@ export default function DiscoverScreen() {
         filters={filters}
         onToggleChip={toggleChip}
         onToggleCountry={toggleCountry}
-        featuredRoute={featuredRoute}
-        onRoutePress={handleRoutePress}
+        onSearchSelect={handleSearchSelect}
         showBelowFold={showBelowFold}
-        fetchStage={fetchStage}
-        inspiration={inspiration}
       />
     ),
     [
       filters,
       toggleChip,
       toggleCountry,
-      featuredRoute,
-      handleRoutePress,
+      handleSearchSelect,
       showBelowFold,
-      fetchStage,
-      inspiration,
     ],
   );
 
@@ -656,10 +542,10 @@ export default function DiscoverScreen() {
         </View>
       </Animated.View>
 
-      {/* Route list */}
+      {/* Trip list */}
       <AnimatedFlatList
-        data={listRoutes}
-        renderItem={renderItem}
+        data={allTrips}
+        renderItem={renderTripItem}
         keyExtractor={(item) => item.id}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -668,7 +554,7 @@ export default function DiscoverScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={headerComponent}
         ListEmptyComponent={
-          isLoading ? (
+          tripsLoading ? (
             <ActivityIndicator
               size="large"
               color={palette.accent500}
@@ -718,7 +604,7 @@ export default function DiscoverScreen() {
           )
         }
         ListFooterComponent={
-          isFetchingNextPage ? (
+          isFetchingNextTrips ? (
             <ActivityIndicator
               size="small"
               color={palette.accent500}

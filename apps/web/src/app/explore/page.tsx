@@ -1,17 +1,16 @@
-import type { ExploreDiscoverRoutesQuery } from '@motovault/graphql';
-import { ExploreDiscoverRoutesDocument } from '@motovault/graphql';
-import type { ExploreRouteDbRow } from '@motovault/types';
+import type { TripTemplatesQuery } from '@motovault/graphql';
+import { TripTemplatesDocument } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Suspense } from 'react';
-import { ExploreSearchBar } from '@/components/explore-search-bar';
 import { SaveRouteButton } from '@/components/save-route-button';
+import { TypeaheadSearch } from '@/components/typeahead-search';
 import { BASE_URL } from '@/lib/constants';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
-type ExploreRouteNode = ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
+type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 /* ── Constants ────────────────────────────────────────────────── */
 
@@ -31,16 +30,16 @@ const TOP_COUNTRIES = [
 ] as const;
 
 const TOP_ROUTES_SEO = [
-  { name: 'Pacific Coast Highway', href: '/route/us/ca/pacific-coast-highway' },
-  { name: 'Transfagarasan', href: '/route/ro/ag/transfgran' },
-  { name: 'Stelvio Pass', href: '/route/it/taa/stelvio-pass' },
-  { name: 'Grossglockner', href: '/route/at/k/grossglockner-hochalpenstrae' },
-  { name: 'Tail of the Dragon', href: '/route/us/tn/tail-of-the-dragon' },
-  { name: 'Col du Galibier', href: '/route/fr/paca/col-du-galibier' },
-  { name: 'Trollstigen', href: '/route/no/mr/trollstigen' },
-  { name: 'Sa Calobra', href: '/route/es/ib/sa-calobra' },
-  { name: 'Furka Pass', href: '/route/ch/vs/furka-pass' },
-  { name: 'Grimsel Pass', href: '/route/ch/vs/grimsel-pass' },
+  { name: 'Pacific Coast Highway', href: '/trips/us/ca/pacific-coast-highway' },
+  { name: 'Transfagarasan', href: '/trips/ro/ag/transfgran' },
+  { name: 'Stelvio Pass', href: '/trips/it/taa/stelvio-pass' },
+  { name: 'Grossglockner', href: '/trips/at/k/grossglockner-hochalpenstrae' },
+  { name: 'Tail of the Dragon', href: '/trips/us/tn/tail-of-the-dragon' },
+  { name: 'Col du Galibier', href: '/trips/fr/paca/col-du-galibier' },
+  { name: 'Trollstigen', href: '/trips/no/mr/trollstigen' },
+  { name: 'Sa Calobra', href: '/trips/es/ib/sa-calobra' },
+  { name: 'Furka Pass', href: '/trips/ch/vs/furka-pass' },
+  { name: 'Grimsel Pass', href: '/trips/ch/vs/grimsel-pass' },
 ] as const;
 
 const SECTION_SKELETON_KEYS = ['a', 'b', 'c', 'd'] as const;
@@ -93,52 +92,34 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/* ── Data (GraphQL API — public discoverRoutes) ─────────────────── */
+/* ── Data (GraphQL API — tripTemplates) ─────────────────────────── */
 
-function nodeToExploreRow(node: ExploreRouteNode): ExploreRouteDbRow {
-  return {
-    id: node.id,
-    name: node.name ?? null,
-    description: node.description ?? null,
-    distance_m: node.distanceM,
-    elevation_gain_m: node.elevationGainM ?? null,
-    surface_type: node.surfaceType ?? null,
-    curvature_index: node.curvatureIndex ?? null,
-    rating_avg: node.ratingAvg ?? null,
-    rating_count: node.ratingCount,
-    is_motovault_pick: node.isMotovaultPick,
-    editorial_description: node.editorialDescription ?? null,
-    slug: node.slug ?? null,
-    country_code: node.countryCode ?? null,
-    region_code: node.regionCode ?? null,
-  };
-}
-
-async function fetchExploreRoutes(
+async function fetchTripTemplates(
   first: number,
-  options: { countryCode?: string; motovaultPicksOnly?: boolean } = {},
-): Promise<ExploreRouteDbRow[]> {
+  options: { country?: string; difficulty?: string } = {},
+): Promise<TripTemplateNode[]> {
   try {
-    const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
+    const data = await gqlServerFetcher(TripTemplatesDocument, {
       filter: {
-        sortByRating: true,
-        ...(options.countryCode ? { countryCode: options.countryCode } : {}),
-        ...(options.motovaultPicksOnly ? { motovaultPicksOnly: true } : {}),
+        ...(options.country ? { country: options.country } : {}),
+        ...(options.difficulty ? { difficulty: options.difficulty } : {}),
       },
       first,
     });
-    return data.discoverRoutes.edges.map((e) => nodeToExploreRow(e.node));
+    return data.tripTemplates.edges.map((e) => e.node);
   } catch {
     return [];
   }
 }
 
-async function fetchStaffPicks(): Promise<ExploreRouteDbRow[]> {
-  return fetchExploreRoutes(6, { motovaultPicksOnly: true });
+async function fetchStaffPicks(): Promise<TripTemplateNode[]> {
+  // Staff picks: fetch featured/motovault-pick trips (difficulty filter not applicable here)
+  const all = await fetchTripTemplates(20);
+  return all.filter((t) => t.isMotovaultPick).slice(0, 6);
 }
 
-async function fetchTopRoutes(limit = 8, countryCode?: string): Promise<ExploreRouteDbRow[]> {
-  return fetchExploreRoutes(limit, { countryCode });
+async function fetchTopTrips(limit = 8, countryCode?: string): Promise<TripTemplateNode[]> {
+  return fetchTripTemplates(limit, { country: countryCode });
 }
 
 /* ── Helpers ──────────────────────────────────────────────────── */
@@ -148,16 +129,27 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
-function getDifficulty(route: ExploreRouteDbRow): { label: string; cls: string } {
-  const ci = route.curvature_index ?? 0;
-  const elev = route.elevation_gain_m ?? 0;
-  if (ci >= 50 || elev >= 2000) return { label: 'Expert', cls: 'epic' };
-  if (ci >= 30 || elev >= 1000) return { label: 'Hard', cls: 'hard' };
-  if (ci >= 15 || elev >= 500) return { label: 'Moderate', cls: 'med' };
-  return { label: 'Easy', cls: 'easy' };
+function getDifficultyDisplay(difficulty: string): { label: string; color: string } {
+  switch (difficulty) {
+    case 'expert':
+      return { label: 'Expert', color: 'text-red-400' };
+    case 'hard':
+      return { label: 'Hard', color: 'text-orange-400' };
+    case 'moderate':
+      return { label: 'Moderate', color: 'text-yellow-400' };
+    default:
+      return { label: 'Easy', color: 'text-green-400' };
+  }
 }
 
-function estimateTime(distanceM: number, surfaceType?: string | null): string {
+function estimateTime(minutes: number | null | undefined, distanceM: number | null | undefined, surfaceType?: string | null): string {
+  if (minutes && minutes > 0) {
+    if (minutes < 60) return `${minutes} min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+  if (!distanceM) return '--';
   const avgSpeed = surfaceType === 'off-road' ? 25 : surfaceType === 'mixed' ? 40 : 60;
   const hours = distanceM / 1000 / avgSpeed;
   if (hours < 1) return `${Math.round(hours * 60)} min`;
@@ -166,14 +158,7 @@ function estimateTime(distanceM: number, surfaceType?: string | null): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-function routeHref(route: ExploreRouteDbRow): string {
-  if (route.slug && route.country_code && route.region_code) {
-    return `/route/${route.country_code}/${route.region_code}/${route.slug}`;
-  }
-  return `/routes/${route.id}`;
-}
-
-/* ── Route Card ──────────────────────────────────────────────── */
+/* ── Trip Template Card ──────────────────────────────────────── */
 
 const ROUTE_IMAGES = [
   '/images/route-card-placeholder.jpg',
@@ -181,227 +166,91 @@ const ROUTE_IMAGES = [
   '/images/route-forest.jpg',
 ];
 
-function RouteCard({
-  route,
-  priority = false,
-  featured = false,
-}: {
-  route: ExploreRouteDbRow;
-  priority?: boolean;
-  featured?: boolean;
-}) {
-  const difficulty = getDifficulty(route);
-  const imageIndex = route.id.charCodeAt(0) % ROUTE_IMAGES.length;
+function TripCard({ trip, priority = false }: { trip: TripTemplateNode; priority?: boolean }) {
+  const difficulty = getDifficultyDisplay(trip.difficulty);
+  // Deterministic image based on trip ID hash
+  const imageIndex = trip.id.charCodeAt(0) % ROUTE_IMAGES.length;
   const imageSrc = ROUTE_IMAGES[imageIndex];
 
   return (
     <a
-      href={routeHref(route)}
-      style={{
-        position: 'relative',
-        display: 'block',
-        aspectRatio: featured ? '4/5' : '4/3',
-        borderRadius: 'var(--mv-radius)',
-        overflow: 'hidden',
-        background: 'var(--mv-surface)',
-        cursor: 'pointer',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'transform 0.5s var(--mv-ease)',
-      }}
-      className="group"
+      href={
+        trip.slug && trip.countryCode && trip.regionCode
+          ? `/trips/${trip.countryCode.toLowerCase()}/${trip.regionCode.toLowerCase()}/${trip.slug}`
+          : `/trips/${trip.id}`
+      }
+      className="group relative block overflow-hidden rounded-2xl bg-neutral-900 transition-all duration-300 hover:ring-1 hover:ring-neutral-700"
     >
-      {/* Background image */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          transition: 'transform 0.8s var(--mv-ease-expo), filter 0.4s',
-          filter: 'saturate(0.9) brightness(0.6)',
-        }}
-        className="group-hover:scale-[1.06] group-hover:brightness-[0.72] group-hover:saturate-100"
-      >
+      {/* Trip photo */}
+      <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={imageSrc}
-          alt={route.name ?? 'Route'}
+          alt={trip.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           priority={priority}
         />
+
+        {/* Save button */}
+        <span className="absolute right-3 top-3">
+          <SaveRouteButton routeId={trip.id} />
+        </span>
+
+        {/* Editor's Pick badge */}
+        {trip.isMotovaultPick && (
+          <span className="absolute left-3 top-3 rounded-full bg-signature-500/90 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+            Editor&apos;s Pick
+          </span>
+        )}
       </div>
 
-      {/* Gradient overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(180deg, oklch(0.08 0.008 55 / 0.5) 0%, transparent 30%, transparent 45%, oklch(0.08 0.008 55 / 0.95) 100%)',
-          zIndex: 1,
-        }}
-        aria-hidden="true"
-      />
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="mb-0.5 truncate text-base font-semibold text-neutral-50 group-hover:text-primary-300 transition-colors">
+          {trip.title}
+        </h3>
 
-      {/* Save button */}
-      <span style={{ position: 'absolute', right: 20, top: 20, zIndex: 3 }}>
-        <SaveRouteButton routeId={route.id} />
-      </span>
-
-      {/* Editor's Pick badge */}
-      {route.is_motovault_pick && (
-        <span
-          style={{
-            position: 'absolute',
-            top: 22,
-            left: 20,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '5px 12px 5px 5px',
-            background: 'oklch(0.1 0.008 55 / 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 999,
-            fontFamily: 'var(--font-geist-mono, monospace)',
-            fontSize: 10,
-            color: 'var(--mv-warm-400)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const,
-            zIndex: 2,
-          }}
-        >
-          <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <title>Star</title>
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-          </svg>
-          Editor&apos;s Pick
-        </span>
-      )}
-
-      {/* Country badge */}
-      {route.country_code && (
-        <span
-          style={{
-            position: 'absolute',
-            top: 22,
-            left: route.is_motovault_pick ? 'auto' : 20,
-            right: route.is_motovault_pick ? 'auto' : 'auto',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '5px 12px 5px 5px',
-            background: 'oklch(0.1 0.008 55 / 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 999,
-            fontFamily: 'var(--font-geist-mono, monospace)',
-            fontSize: 10,
-            color: 'var(--mv-ink-2)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const,
-            zIndex: 2,
-            ...(route.is_motovault_pick ? { top: 60, left: 20 } : {}),
-          }}
-        >
-          {COUNTRY_NAMES[route.country_code] ?? route.country_code}
-        </span>
-      )}
-
-      {/* Body content */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 24,
-          right: 24,
-          bottom: 24,
-          zIndex: 2,
-        }}
-      >
-        <div
-          style={{
-            fontSize: featured ? 26 : 20,
-            fontWeight: 500,
-            letterSpacing: '-0.02em',
-            lineHeight: 1.08,
-          }}
-        >
-          {route.name ?? 'Unnamed Route'}
-        </div>
+        {trip.description && (
+          <p className="mb-2 line-clamp-1 text-sm text-neutral-500">
+            {trip.description}
+          </p>
+        )}
 
         {/* Stats row */}
-        <div
-          style={{
-            marginTop: 14,
-            display: 'flex',
-            gap: 12,
-            flexWrap: 'wrap' as const,
-            fontFamily: 'var(--font-geist-mono, monospace)',
-            fontSize: 10,
-            color: 'var(--mv-ink-2)',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase' as const,
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                background: 'var(--mv-warm-500)',
-              }}
-            />
-            {formatDistance(route.distance_m)}
-          </span>
-          {route.elevation_gain_m != null && route.elevation_gain_m > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: '50%',
-                  background: 'var(--mv-warm-500)',
-                }}
-              />
-              {route.elevation_gain_m.toLocaleString()}m elev
-            </span>
+        <div className="flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-400">
+          {trip.averageRating != null && (
+            <>
+              <span className="flex items-center gap-0.5 text-signature-400">
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <title>Rating</title>
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+                </svg>
+                <span className="font-medium text-neutral-200">{trip.averageRating.toFixed(1)}</span>
+              </span>
+              <span className="text-neutral-600">&middot;</span>
+            </>
           )}
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                background: 'var(--mv-warm-500)',
-              }}
-            />
-            {estimateTime(route.distance_m, route.surface_type)}
-          </span>
-          {route.rating_avg != null && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: '50%',
-                  background: 'var(--mv-warm-500)',
-                }}
-              />
-              {route.rating_avg.toFixed(1)} rating
-            </span>
+          <span className={difficulty.color}>{difficulty.label}</span>
+          <span className="text-neutral-600">&middot;</span>
+          {trip.distanceM != null && trip.distanceM > 0 && (
+            <>
+              <span>{formatDistance(trip.distanceM)}</span>
+              <span className="text-neutral-600">&middot;</span>
+            </>
           )}
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                background: 'var(--mv-warm-500)',
-              }}
-            />
-            {difficulty.label}
-          </span>
+          <span>Est. {estimateTime(trip.estimatedDurationMinutes, trip.distanceM, trip.surfaceType)}</span>
+          {trip.dayCount != null && trip.dayCount > 1 && (
+            <>
+              <span className="text-neutral-600">&middot;</span>
+              <span>{trip.dayCount} days</span>
+            </>
+          )}
         </div>
       </div>
     </a>
@@ -412,18 +261,15 @@ function RouteCard({
 
 function SectionSkeleton({ cols = 4 }: { cols?: number }) {
   return (
-    <div className={cols === 3 ? 'mv-grid-3' : 'mv-grid-4'} style={{ gap: 20 }}>
+    <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-${cols}`}>
       {SECTION_SKELETON_KEYS.slice(0, cols).map((slot) => (
-        <div
-          key={slot}
-          style={{
-            aspectRatio: '4/3',
-            borderRadius: 'var(--mv-radius)',
-            background: 'var(--mv-surface)',
-            border: '1px solid var(--mv-line)',
-            animation: 'pulse 2s ease-in-out infinite',
-          }}
-        />
+        <div key={slot} className="animate-pulse overflow-hidden rounded-2xl bg-neutral-900">
+          <div className="aspect-[4/3] bg-neutral-800/60" />
+          <div className="space-y-2 p-4">
+            <div className="h-4 w-3/4 rounded bg-neutral-800" />
+            <div className="h-3 w-1/2 rounded bg-neutral-800/60" />
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -432,77 +278,36 @@ function SectionSkeleton({ cols = 4 }: { cols?: number }) {
 /* ── Async sections ──────────────────────────────────────────── */
 
 async function NearYouSection({ countryCode }: { countryCode: string | undefined }) {
-  const routes = await fetchTopRoutes(4, countryCode);
-  if (routes.length === 0) return null;
+  // If we have a country code, fetch trips for that country.
+  // If not, fetch top trips globally (no country filter).
+  const trips = await fetchTopTrips(4, countryCode);
+  if (trips.length === 0) {
+    return null;
+  }
   const countryName = countryCode ? (COUNTRY_NAMES[countryCode] ?? countryCode) : null;
 
   return (
-    <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          gap: 40,
-          marginBottom: 40,
-        }}
-      >
-        <div>
-          <div className="mv-section-meta">
-            {countryName ? `Routes in ${countryName}` : 'Popular routes'}
-          </div>
-          <h2
-            style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.05,
-              marginTop: 10,
-            }}
-          >
-            {countryName ? (
-              <>
-                Routes near{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {countryName}.
-                </span>
-              </>
-            ) : (
-              <>
-                Trending{' '}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  this week.
-                </span>
-              </>
-            )}
-          </h2>
-        </div>
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
+          {countryName ? (
+            <>
+              Trips near <span className="text-primary-400">{countryName}</span>
+            </>
+          ) : (
+            'Popular trips'
+          )}
+        </h2>
         <a
           href="/explore"
-          style={{
-            fontFamily: 'var(--font-geist-mono, monospace)',
-            fontSize: 11,
-            color: 'var(--mv-ink-2)',
-            textDecoration: 'none',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 16px',
-            borderRadius: 999,
-            border: '1px solid var(--mv-line)',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap',
-          }}
+          className="text-sm font-medium text-neutral-400 transition-colors hover:text-neutral-200"
         >
           View all &rarr;
         </a>
       </div>
-
-      <div className="mv-grid-4" style={{ gap: 20 }}>
-        {routes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
     </section>
@@ -514,104 +319,44 @@ async function StaffPicksSection() {
   if (picks.length === 0) return null;
 
   return (
-    <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          gap: 40,
-          marginBottom: 40,
-        }}
-      >
-        <div>
-          <div className="mv-section-meta">The bucket list</div>
-          <h2
-            style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.05,
-              marginTop: 10,
-            }}
-          >
-            Editor&apos;s picks,{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              ridden by thousands.
-            </span>
-          </h2>
-          <p
-            style={{
-              color: 'var(--mv-ink-3)',
-              fontSize: 14,
-              maxWidth: 360,
-              lineHeight: 1.55,
-              marginTop: 12,
-            }}
-          >
-            The greatest hits, with rider notes on best season, corners to watch, and where to stop
-            for coffee.
-          </p>
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-signature-500/20">
+            <svg
+              className="h-4 w-4 text-signature-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <title>Editor&apos;s picks</title>
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+            </svg>
+          </span>
+          <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Editor&apos;s Picks</h2>
         </div>
       </div>
-
-      <div className="mv-grid-3" style={{ gap: 20 }}>
-        {picks.map((route) => (
-          <RouteCard key={route.id} route={route} priority featured />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {picks.map((trip) => (
+          <TripCard key={trip.id} trip={trip} priority />
         ))}
       </div>
     </section>
   );
 }
 
-async function TopRoutesSection() {
-  const routes = await fetchTopRoutes(8);
-  if (routes.length === 0) return null;
+async function TopTripsSection() {
+  const trips = await fetchTopTrips(8);
+  if (trips.length === 0) return null;
 
   return (
-    <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          gap: 40,
-          marginBottom: 40,
-        }}
-      >
-        <div>
-          <div className="mv-section-meta">All routes</div>
-          <h2
-            style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.05,
-              marginTop: 10,
-            }}
-          >
-            Browse{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              the atlas.
-            </span>
-          </h2>
-          <p
-            style={{
-              color: 'var(--mv-ink-3)',
-              fontSize: 14,
-              maxWidth: 360,
-              lineHeight: 1.55,
-              marginTop: 12,
-            }}
-          >
-            Filter, sort, scan. Click any route for the full map, elevation profile and rider notes.
-          </p>
-        </div>
+    <section>
+      <div className="mb-6 flex items-baseline justify-between">
+        <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">Top rated trips</h2>
       </div>
-
-      <div className="mv-grid-4" style={{ gap: 20 }}>
-        {routes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {trips.map((trip) => (
+          <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
     </section>
@@ -620,6 +365,7 @@ async function TopRoutesSection() {
 
 /* ── JSON-LD ──────────────────────────────────────────────────── */
 
+/** WebSite only — no SearchAction (explore has no URL-backed search results page). */
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
@@ -627,9 +373,20 @@ const jsonLd = {
   name: 'MotoVault',
 };
 
-/* ── Country detection ──────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────────────── */
 
+/**
+ * Detect the user's country from request headers.
+ *
+ * Priority order:
+ * 1. Cloudflare `cf-ipcountry` — set when behind Cloudflare
+ * 2. Vercel `x-vercel-ip-country` — set on Vercel deployments
+ * 3. Render / generic `x-country-code` — custom proxy header
+ * 4. Accept-Language header — parse primary language locale (e.g. "sk" → "SK")
+ * 5. Fallback to undefined (show global content, no "near you" bias)
+ */
 function detectCountry(hdrs: Headers): string | undefined {
+  // Direct geo headers from CDN/proxy
   const cf = hdrs.get('cf-ipcountry');
   if (cf && cf !== 'XX' && cf !== 'T1') return cf.toUpperCase();
 
@@ -639,11 +396,14 @@ function detectCountry(hdrs: Headers): string | undefined {
   const custom = hdrs.get('x-country-code');
   if (custom) return custom.toUpperCase();
 
+  // Infer from Accept-Language (best effort — language ≠ country but usually close)
   const acceptLang = hdrs.get('accept-language');
   if (acceptLang) {
+    // Parse first locale with region: "sk-SK,sk;q=0.9,en-US;q=0.8" → "SK"
     const regionMatch = acceptLang.match(/[a-z]{2}-([A-Z]{2})/);
     if (regionMatch) return regionMatch[1];
 
+    // Fallback: map primary language to likely country
     const langMatch = acceptLang.match(/^([a-z]{2})/);
     if (langMatch) {
       const LANG_TO_COUNTRY: Record<string, string> = {
@@ -686,14 +446,12 @@ function detectCountry(hdrs: Headers): string | undefined {
   return undefined;
 }
 
-/* ── Page ─────────────────────────────────────────────────────── */
-
 export default async function ExplorePage() {
   const hdrs = await headers();
   const countryCode = detectCountry(hdrs);
 
   return (
-    <>
+    <div className="min-h-screen bg-neutral-950 text-neutral-50">
       {/* JSON-LD */}
       <script
         type="application/ld+json"
@@ -703,716 +461,222 @@ export default async function ExplorePage() {
         }}
       />
 
-      {/* ===== SEARCH HERO ===== */}
-      <section
-        style={{
-          position: 'relative',
-          padding: '140px 40px 56px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="mv-section-meta" style={{ margin: 0 }}>
-            Explore &middot; rider-curated atlas
-          </div>
-        </div>
-
-        <h1
-          style={{
-            fontSize: 'clamp(44px, 6.5vw, 88px)',
-            fontWeight: 500,
-            lineHeight: 0.95,
-            letterSpacing: '-0.04em',
-            margin: '18px 0 0',
-            maxWidth: 1100,
-          }}
-        >
-          Where are you{' '}
-          <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-            riding next?
-          </span>
-        </h1>
-
-        <p
-          style={{
-            marginTop: 20,
-            color: 'var(--mv-ink-2)',
-            fontSize: 17,
-            maxWidth: 680,
-            lineHeight: 1.5,
-            letterSpacing: '-0.005em',
-          }}
-        >
-          Search 12,000+ routes from riders in 40 countries. Pick a pass, a coastline, a country —
-          or just an evening escape after work.
-        </p>
-
-        <Suspense>
-          <ExploreSearchBar />
-        </Suspense>
-      </section>
-
-      {/* ===== STATS BAR ===== */}
-      <div
-        style={{
-          maxWidth: 'var(--mv-container)',
-          margin: '40px auto 0',
-          padding: '0 40px',
-        }}
-      >
+      {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden sm:min-h-[80vh]">
+        {/* Background — real hero photo with dark overlay */}
+        <Image
+          src="/images/hero-explore.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-neutral-950/50" aria-hidden="true" />
+        {/* Subtle noise texture */}
+        <div className="grain-overlay pointer-events-none absolute inset-0" aria-hidden="true" />
+        {/* Bottom fade to content */}
         <div
-          className="mv-grid-4"
-          style={{
-            gap: 2,
-            background: 'var(--mv-line)',
-            border: '1px solid var(--mv-line)',
-            borderRadius: 20,
-            overflow: 'hidden',
-          }}
-        >
-          {[
-            { value: '12,4', serif: '32', label: 'Routes shared' },
-            { value: '40', serif: '+', label: 'Countries represented' },
-            { value: '1.8', serif: 'M', label: 'Kilometers logged' },
-            { value: '340', serif: 'k', label: 'Riders contributing' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              style={{
-                background: 'oklch(0.13 0.01 55)',
-                padding: '24px 28px',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 28,
-                  fontWeight: 500,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                }}
-              >
-                {stat.value}
-                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  {stat.serif}
-                </span>
-              </div>
-              <div
-                style={{
-                  marginTop: 8,
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: 10,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase' as const,
-                }}
-              >
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+          className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-neutral-950 to-transparent"
+          aria-hidden="true"
+        />
 
-      {/* ===== COUNTRIES ===== */}
-      <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            gap: 40,
-            marginBottom: 40,
-          }}
-        >
-          <div>
-            <div className="mv-section-meta">Browse by country</div>
-            <h2
-              style={{
-                fontSize: 'clamp(32px, 4vw, 48px)',
-                fontWeight: 500,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.05,
-                marginTop: 10,
-              }}
-            >
-              Where{' '}
-              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                riders ride.
-              </span>
-            </h2>
-            <p
-              style={{
-                color: 'var(--mv-ink-3)',
-                fontSize: 14,
-                maxWidth: 360,
-                lineHeight: 1.55,
-                marginTop: 12,
-              }}
-            >
-              The twelve most-explored countries on MotoVault this season. Tap in for routes, passes
-              and rider notes.
-            </p>
-          </div>
+        <div className="relative z-10 mx-auto max-w-3xl px-4 text-center sm:px-6">
+          <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-signature-400">
+            Curated by riders, for riders
+          </p>
+          <h1 className="mb-6 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-tight">
+            Discover your
+            <br />
+            next ride
+          </h1>
+          <p className="mb-10 text-lg text-neutral-400 sm:text-xl">
+            Browse the best motorcycle routes worldwide &mdash; from alpine passes to coastal
+            highways.
+          </p>
+
+          {/* Search bar — typeahead with Google-style dropdown */}
+          <TypeaheadSearch />
+
           <a
             href="/explore"
-            style={{
-              fontFamily: 'var(--font-geist-mono, monospace)',
-              fontSize: 11,
-              color: 'var(--mv-ink-2)',
-              textDecoration: 'none',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 16px',
-              borderRadius: 999,
-              border: '1px solid var(--mv-line)',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap',
-            }}
+            className="mt-4 inline-block text-sm font-medium text-neutral-400 underline decoration-neutral-700 underline-offset-4 hover:text-neutral-200 hover:decoration-neutral-500 transition-colors"
           >
-            All 40 countries &rarr;
+            Explore nearby routes
           </a>
-        </div>
-
-        <div className="mv-grid-4" style={{ gap: 14 }}>
-          {TOP_COUNTRIES.map(({ code, emoji }) => (
-            <a
-              key={code}
-              href={`/explore/${code.toLowerCase()}`}
-              className="group"
-              style={{
-                position: 'relative',
-                aspectRatio: '1/1.1',
-                borderRadius: 16,
-                overflow: 'hidden',
-                background: 'var(--mv-surface)',
-                border: '1px solid var(--mv-line)',
-                cursor: 'pointer',
-                transition: 'transform 0.4s var(--mv-ease), border-color 0.3s',
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              {/* Dark background */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(145deg, oklch(0.14 0.012 55), oklch(0.09 0.008 55))',
-                }}
-              />
-              {/* Bottom gradient */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background:
-                    'linear-gradient(180deg, transparent 40%, oklch(0.08 0.008 55 / 0.96) 100%)',
-                  zIndex: 1,
-                }}
-              />
-              {/* Content */}
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  padding: 18,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  zIndex: 2,
-                }}
-              >
-                <span
-                  style={{ fontSize: 28, alignSelf: 'flex-start' }}
-                  role="img"
-                  aria-label={COUNTRY_NAMES[code]}
-                >
-                  {emoji}
-                </span>
-                <div>
-                  <div
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 500,
-                      letterSpacing: '-0.02em',
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {COUNTRY_NAMES[code]}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontFamily: 'var(--font-geist-mono, monospace)',
-                      fontSize: 10,
-                      color: 'var(--mv-ink-2)',
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase' as const,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 4,
-                        height: 4,
-                        borderRadius: '50%',
-                        background: 'var(--mv-warm-500)',
-                      }}
-                    />
-                    Explore routes
-                  </div>
-                </div>
-              </div>
-            </a>
-          ))}
         </div>
       </section>
 
-      {/* ===== EDITOR'S PICKS ===== */}
-      <Suspense fallback={<SectionSkeleton cols={3} />}>
-        <StaffPicksSection />
-      </Suspense>
+      {/* ━━━ CONTENT SECTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Near You — 20px top margin to connect with hero */}
+        <div className="mt-8">
+          <Suspense fallback={<SectionSkeleton cols={4} />}>
+            <NearYouSection countryCode={countryCode} />
+          </Suspense>
+        </div>
 
-      {/* ===== NEAR YOU / POPULAR ===== */}
-      <Suspense fallback={<SectionSkeleton cols={4} />}>
-        <NearYouSection countryCode={countryCode} />
-      </Suspense>
+        {/* Editor's Picks */}
+        <div className="mt-20">
+          <Suspense fallback={<SectionSkeleton cols={3} />}>
+            <StaffPicksSection />
+          </Suspense>
+        </div>
 
-      {/* ===== APP PROMOTION ===== */}
-      <div
-        style={{
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-          padding: '0 40px 90px',
-        }}
-      >
-        <div
-          className="mv-grid-2"
-          style={{
-            position: 'relative',
-            borderRadius: 24,
-            overflow: 'hidden',
-            background: 'linear-gradient(145deg, oklch(0.14 0.012 55), oklch(0.09 0.008 55))',
-            border: '1px solid var(--mv-line)',
-            padding: 40,
-            gap: 40,
-          }}
-        >
-          <div>
-            <div className="mv-section-meta" style={{ marginBottom: 16 }}>
-              MotoVault App
-            </div>
-            <h2
-              style={{
-                fontSize: 'clamp(28px, 3.5vw, 40px)',
-                fontWeight: 500,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.05,
-              }}
-            >
-              Track every ride,{' '}
-              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                share every road.
-              </span>
-            </h2>
-            <p
-              style={{
-                color: 'var(--mv-ink-2)',
-                fontSize: 14,
-                lineHeight: 1.6,
-                marginTop: 16,
-                maxWidth: 360,
-              }}
-            >
-              Record rides with live GPS tracking, log expenses, diagnose issues with AI, and
-              discover routes shared by riders worldwide.
-            </p>
-            <div style={{ marginTop: 24, display: 'flex', gap: 10 }}>
-              <a
-                href="https://apps.apple.com/us/app/motovault/id6760291360"
-                className="mv-btn mv-btn-primary"
-              >
-                <span>App Store</span>
-              </a>
-              <a
-                href="https://play.google.com/store/apps/details?id=com.motovault.app"
-                className="mv-btn mv-btn-ghost"
-              >
-                Google Play
-              </a>
+        {/* App Promotion — breaks the card pattern */}
+        <div className="mt-24">
+          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-primary-950/30">
+            <div className="grid items-center gap-8 p-8 sm:grid-cols-2 sm:p-12 lg:p-16">
+              <div>
+                <p className="mb-2 text-sm font-medium uppercase tracking-widest text-signature-400">
+                  MotoVault App
+                </p>
+                <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Track every ride.
+                  <br />
+                  Share every road.
+                </h2>
+                <p className="mb-6 max-w-md text-neutral-400">
+                  Record rides with live GPS tracking, log expenses, diagnose issues with AI, and
+                  discover routes shared by riders worldwide.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="https://apps.apple.com/us/app/motovault/id6760291360"
+                    className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Apple App Store</title>
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                    </svg>
+                    App Store
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=com.motovault.app"
+                    className="inline-flex items-center gap-2 rounded-xl bg-neutral-50 px-5 py-3 text-sm font-semibold text-neutral-900 transition-colors hover:bg-white"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <title>Google Play</title>
+                      <path d="M3.18 23.73c-.5-.32-.68-.84-.68-1.43V1.7c0-.59.18-1.11.68-1.43L13.84 12 3.18 23.73zm1.8.6L16.92 13.6l-2.79-2.79L4.98 24.33zm17.28-11.37c.53.3.74.71.74 1.04s-.21.74-.74 1.04l-3.21 1.81-3.07-3.07 3.07-3.07 3.21 1.25zM4.98-.33L14.13 10.4l2.79-2.79L4.98-.33z" />
+                    </svg>
+                    Google Play
+                  </a>
+                </div>
+              </div>
+              <div className="relative mx-auto w-56 sm:w-64">
+                <div className="overflow-hidden rounded-[2rem] border-2 border-neutral-700 bg-neutral-900">
+                  {/* biome-ignore lint/performance/noImgElement: decorative marketing image */}
+                  <img
+                    src="/screenshots/trip-detail-hero.png"
+                    alt="MotoVault trip planning — Dolomites Loop route map"
+                    width={1170}
+                    height={2532}
+                    className="block w-full"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{ position: 'relative', display: 'grid', placeItems: 'center' }}>
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: 280,
-                aspectRatio: '9/19.5',
-                borderRadius: 40,
-                background: '#080808',
-                padding: 8,
-                boxShadow: '0 50px 100px -20px oklch(0 0 0 / 0.7)',
-              }}
-            >
-              {/* Notch */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 100,
-                  height: 26,
-                  background: '#000',
-                  borderRadius: 999,
-                  zIndex: 3,
-                }}
-              />
-              <div
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: 32,
-                  overflow: 'hidden',
-                  background: '#111',
-                  position: 'relative',
-                }}
+        </div>
+
+        {/* Top Trips */}
+        <div className="mt-20">
+          <Suspense fallback={<SectionSkeleton cols={4} />}>
+            <TopTripsSection />
+          </Suspense>
+        </div>
+
+        {/* Top Countries */}
+        <div className="mt-20">
+          <h2 className="mb-6 text-xl font-bold text-neutral-50 sm:text-2xl">Explore by country</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {TOP_COUNTRIES.map(({ code, emoji }) => (
+              <a
+                key={code}
+                href={`/explore/${code.toLowerCase()}`}
+                className="group flex items-center gap-3 rounded-xl border border-neutral-800/50 bg-neutral-900/50 px-4 py-4 transition-all hover:border-neutral-700 hover:bg-neutral-800/50 active:scale-[0.98]"
               >
-                {/* biome-ignore lint/performance/noImgElement: decorative marketing image */}
-                <img
-                  src="/screenshots/trip-detail-hero.png"
-                  alt="MotoVault trip planning — Dolomites Loop route map"
-                  width={1170}
-                  height={2532}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    objectPosition: 'top',
-                  }}
-                  loading="lazy"
-                />
-              </div>
+                <span className="text-2xl" role="img" aria-label={COUNTRY_NAMES[code]}>
+                  {emoji}
+                </span>
+                <span className="text-sm font-medium text-neutral-300 group-hover:text-neutral-100 transition-colors">
+                  {COUNTRY_NAMES[code]}
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* ━━━ SEO FOOTER — "Ride anywhere" ━━━━━━━━━━━━━━━━━━━ */}
+        <div className="mt-24 border-t border-neutral-800/50 pt-16 pb-20">
+          <h2 className="mb-10 text-2xl font-bold tracking-tight sm:text-3xl">Ride anywhere</h2>
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top routes
+              </h3>
+              <ul className="space-y-2">
+                {TOP_ROUTES_SEO.map((route) => (
+                  <li key={route.name}>
+                    <a
+                      href={route.href}
+                      className="text-sm text-neutral-400 transition-colors hover:text-neutral-200"
+                    >
+                      {route.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top regions
+              </h3>
+              <ul className="space-y-2">
+                {TOP_REGIONS_SEO.map((region) => (
+                  <li key={region.name}>
+                    <a
+                      href={region.href}
+                      className="text-sm text-neutral-400 transition-colors hover:text-neutral-200"
+                    >
+                      {region.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                Top countries
+              </h3>
+              <ul className="space-y-2">
+                {TOP_COUNTRIES.map(({ code }) => (
+                  <li key={code}>
+                    <a
+                      href={`/explore/${code.toLowerCase()}`}
+                      className="text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
+                    >
+                      {COUNTRY_NAMES[code]}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       </div>
-
-      {/* ===== TOP ROUTES ===== */}
-      <Suspense fallback={<SectionSkeleton cols={4} />}>
-        <TopRoutesSection />
-      </Suspense>
-
-      {/* ===== CURATED THEMES ===== */}
-      <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            gap: 40,
-            marginBottom: 40,
-          }}
-        >
-          <div>
-            <div className="mv-section-meta">Curated collections</div>
-            <h2
-              style={{
-                fontSize: 'clamp(32px, 4vw, 48px)',
-                fontWeight: 500,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.05,
-                marginTop: 10,
-              }}
-            >
-              Ride by{' '}
-              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                theme.
-              </span>
-            </h2>
-          </div>
-        </div>
-
-        <div className="mv-grid-3" style={{ gap: 16 }}>
-          {[
-            {
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <title>Mountain</title>
-                  <path d="M3 18l6-12 4 8 3-4 5 8z" />
-                </svg>
-              ),
-              title: 'Mountain Passes',
-              body: 'Hairpins, altitude, thin air. The passes that make Europe and the Americas a motorcycle paradise.',
-              count: '2,340 routes',
-            },
-            {
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <title>Coast</title>
-                  <path d="M2 12c2-3 5-5 10-5s8 2 10 5c-2 3-5 5-10 5S4 15 2 12z" />
-                </svg>
-              ),
-              title: 'Coastal Roads',
-              body: 'Salt air, ocean views, endless curves. Ride the line between land and sea.',
-              count: '1,890 routes',
-            },
-            {
-              icon: (
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  aria-hidden="true"
-                >
-                  <title>Clock</title>
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              ),
-              title: 'Weekend Escapes',
-              body: 'Quick getaways you can fit into a Saturday. Close to cities, far from monotony.',
-              count: '3,120 routes',
-            },
-          ].map((theme) => (
-            <a
-              key={theme.title}
-              href={`/explore?q=${encodeURIComponent(theme.title)}`}
-              style={{
-                padding: '28px 28px 26px',
-                background: 'var(--mv-surface)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: 18,
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 220,
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: 'oklch(0.76 0.18 60 / 0.12)',
-                  border: '1px solid oklch(0.76 0.18 60 / 0.3)',
-                  color: 'var(--mv-warm-400)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  marginBottom: 20,
-                }}
-              >
-                {theme.icon}
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 500,
-                  letterSpacing: '-0.01em',
-                  lineHeight: 1.2,
-                }}
-              >
-                {theme.title}
-              </div>
-              <div
-                style={{
-                  color: 'var(--mv-ink-3)',
-                  fontSize: 13,
-                  lineHeight: 1.55,
-                  marginTop: 8,
-                  flex: 1,
-                }}
-              >
-                {theme.body}
-              </div>
-              <div
-                style={{
-                  marginTop: 20,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingTop: 18,
-                  borderTop: '1px solid var(--mv-line)',
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: 10,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase' as const,
-                }}
-              >
-                <span>{theme.count}</span>
-                <span style={{ color: 'var(--mv-warm-400)' }}>Explore &rarr;</span>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* ===== SEO FOOTER — "Ride anywhere" ===== */}
-      <section
-        style={{
-          padding: '0 40px 120px',
-          maxWidth: 'var(--mv-container)',
-          margin: '0 auto',
-        }}
-      >
-        <div
-          style={{
-            borderTop: '1px solid var(--mv-line)',
-            paddingTop: 60,
-          }}
-        >
-          <div className="mv-section-meta">Ride anywhere</div>
-          <h2
-            style={{
-              fontSize: 'clamp(32px, 4vw, 48px)',
-              fontWeight: 500,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.05,
-              marginTop: 10,
-              marginBottom: 40,
-            }}
-          >
-            The complete{' '}
-            <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              atlas.
-            </span>
-          </h2>
-          <div className="mv-grid-3" style={{ gap: 40 }}>
-            <div>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: 11,
-                  color: 'var(--mv-ink-4)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase' as const,
-                  marginBottom: 18,
-                }}
-              >
-                Top routes
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {TOP_ROUTES_SEO.map((route) => (
-                  <a
-                    key={route.name}
-                    href={route.href}
-                    style={{
-                      color: 'var(--mv-ink-2)',
-                      textDecoration: 'none',
-                      fontSize: 14,
-                      padding: '6px 0',
-                      transition: 'color 0.2s, transform 0.2s',
-                      letterSpacing: '-0.005em',
-                      display: 'block',
-                    }}
-                  >
-                    {route.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: 11,
-                  color: 'var(--mv-ink-4)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase' as const,
-                  marginBottom: 18,
-                }}
-              >
-                Top regions
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {TOP_REGIONS_SEO.map((region) => (
-                  <a
-                    key={region.name}
-                    href={region.href}
-                    style={{
-                      color: 'var(--mv-ink-2)',
-                      textDecoration: 'none',
-                      fontSize: 14,
-                      padding: '6px 0',
-                      transition: 'color 0.2s, transform 0.2s',
-                      letterSpacing: '-0.005em',
-                      display: 'block',
-                    }}
-                  >
-                    {region.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: 11,
-                  color: 'var(--mv-ink-4)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase' as const,
-                  marginBottom: 18,
-                }}
-              >
-                Top countries
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {TOP_COUNTRIES.map(({ code }) => (
-                  <a
-                    key={code}
-                    href={`/explore/${code.toLowerCase()}`}
-                    style={{
-                      color: 'var(--mv-ink-2)',
-                      textDecoration: 'none',
-                      fontSize: 14,
-                      padding: '6px 0',
-                      transition: 'color 0.2s, transform 0.2s',
-                      letterSpacing: '-0.005em',
-                      display: 'block',
-                    }}
-                  >
-                    {COUNTRY_NAMES[code]}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </>
+    </div>
   );
 }

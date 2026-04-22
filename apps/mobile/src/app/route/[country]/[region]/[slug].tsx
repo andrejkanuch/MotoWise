@@ -7,7 +7,8 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 
 /**
- * Universal link: https://motovault.app/route/:country/:region/:slug → resolve id → route detail.
+ * Universal link: https://motovault.app/route/:country/:region/:slug
+ * Resolves the slug to an ID, then redirects to trip-detail (unified trip model).
  */
 export default function RouteSlugDeepLinkScreen() {
   const { country, region, slug } = useLocalSearchParams<{
@@ -33,7 +34,7 @@ export default function RouteSlugDeepLinkScreen() {
   useEffect(() => {
     if (navigatedRef.current || !routeId) return;
     navigatedRef.current = true;
-    router.replace({ pathname: '/(modals)/route-detail', params: { routeId } });
+    router.replace({ pathname: '/(modals)/trip-detail', params: { tripId: routeId } });
   }, [routeId, router]);
 
   useEffect(() => {

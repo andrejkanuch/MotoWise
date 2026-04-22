@@ -3,8 +3,8 @@
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
-import posthog from 'posthog-js';
 import { useMemo, useState } from 'react';
+import { identifyUser, trackEvent, WebEvent } from '@/lib/analytics';
 
 /* ------------------------------------------------------------------ */
 /*  CSS variable tokens (from marketing design-system.css / login.html) */
@@ -50,19 +50,19 @@ export default function SignUpPage() {
     }
     setLoading(true);
     setError('');
-    posthog.capture('sign_up_submitted', { method: 'email' });
+    trackEvent(WebEvent.SIGN_UP_SUBMITTED, { method: 'email' });
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setError(error.message);
       setLoading(false);
-      posthog.capture('sign_up_error', { method: 'email', error_message: error.message });
+      trackEvent(WebEvent.SIGN_UP_ERROR, { method: 'email', error_message: error.message });
     } else if (data.user && !data.session) {
-      posthog.identify(data.user.id);
+      identifyUser(data.user.id);
       setSuccess(true);
       setLoading(false);
     } else {
       if (data.user) {
-        posthog.identify(data.user.id);
+        identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
       window.location.href = params.get('redirect') || '/feed';
@@ -71,7 +71,7 @@ export default function SignUpPage() {
 
   const handleGoogleSignIn = async () => {
     setOauthLoading('google');
-    posthog.capture('sign_up_oauth_clicked', { provider: 'google' });
+    trackEvent(WebEvent.SIGN_UP_OAUTH_CLICKED, { provider: 'google' });
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -82,7 +82,7 @@ export default function SignUpPage() {
 
   const handleAppleSignIn = async () => {
     setOauthLoading('apple');
-    posthog.capture('sign_up_oauth_clicked', { provider: 'apple' });
+    trackEvent(WebEvent.SIGN_UP_OAUTH_CLICKED, { provider: 'apple' });
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {

@@ -10,6 +10,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } f
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 
@@ -409,6 +410,10 @@ export default function SettingsScreen() {
                   onPress={() => {
                     haptic();
                     setExperienceLevel(level);
+                    trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+                      setting: 'experience_level',
+                      value: level,
+                    });
                   }}
                   style={{
                     flex: 1,
@@ -712,6 +717,10 @@ export default function SettingsScreen() {
                   onPress={() => {
                     haptic();
                     setMaintenanceStyle(style);
+                    trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+                      setting: 'maintenance_style',
+                      value: style,
+                    });
                   }}
                   style={{
                     flex: 1,

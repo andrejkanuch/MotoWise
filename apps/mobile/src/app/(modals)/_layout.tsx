@@ -20,10 +20,6 @@ export default function ModalsLayout() {
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
       <Stack.Screen
-        name="route-detail"
-        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
-      />
-      <Stack.Screen
         name="group-ride-detail"
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />

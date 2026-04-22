@@ -1,4 +1,4 @@
-import { SitemapPublishedRoutesDocument } from '@motovault/graphql';
+import { SitemapPublishedRoutesDocument, TripTemplatesDocument } from '@motovault/graphql';
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
@@ -110,6 +110,18 @@ async function getPublishedRoutes() {
   }
 }
 
+/** Trip templates for /trips/ URLs. */
+async function getTripTemplates() {
+  try {
+    const data = await gqlServerFetcher(TripTemplatesDocument, { first: 500 });
+    return data.tripTemplates.edges
+      .map((e) => e.node)
+      .filter((t) => t.slug && t.countryCode && t.regionCode);
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries = pages.map((path) => ({
     url: getLocalizedUrl('en', path),
@@ -168,7 +180,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date('2026-04-11'),
   }));
 
-  // ---- Route Discovery pages ----
+  // ---- Trip Template pages ----
+  const tripTemplates = await getTripTemplates();
+
+  const tripTemplateEntries = tripTemplates.map((t) => ({
+    url: `${host}/trips/${t.countryCode!.toLowerCase()}/${t.regionCode!.toLowerCase()}/${t.slug!.toLowerCase()}`,
+    lastModified: t.publishedAt ? new Date(t.publishedAt) : new Date(),
+  }));
+
+  // ---- Route Discovery pages (legacy — kept for SEO redirect coverage) ----
   const routes = await getPublishedRoutes();
 
   // Derive unique countries and regions from route data (URLs use lowercase segments)
@@ -206,6 +226,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogEntries,
     bikeIndexEntry,
     ...bikeLeafEntries,
+    ...tripTemplateEntries,
     ...exploreEntry,
     ...countryEntries,
     ...regionEntries,

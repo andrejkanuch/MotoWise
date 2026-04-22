@@ -1,0 +1,42 @@
+query SavedTrips($first: Int, $after: String) {
+  savedTrips(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        slug
+        title
+        description
+        difficulty
+        dayCount
+        startLat
+        startLng
+        countryCode
+        regionCode
+        city
+        distanceM
+        elevationGainM
+        surfaceType
+        isFeatured
+        isMotovaultPick
+        viewCount
+        cloneCount
+        averageRating
+        reviewCount
+        publishedAt
+        isTemplate
+        isSaved
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

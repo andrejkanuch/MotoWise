@@ -1,6 +1,8 @@
 import { BarChart3, Brain, Crown, PartyPopper, Route, Shield, Wrench, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { CheckoutTracker } from '@/components/checkout-tracker';
+import { WebEvent } from '@/lib/analytics';
 
 export const metadata: Metadata = {
   title: 'Welcome to Pro!',
@@ -19,6 +21,7 @@ const PRO_FEATURES = [
 export default function CheckoutSuccessPage() {
   return (
     <div className="dark flex min-h-screen items-center justify-center bg-neutral-950 px-4 pb-32 pt-24 text-neutral-50">
+      <CheckoutTracker event={WebEvent.CHECKOUT_COMPLETED} />
       <div className="w-full max-w-[480px] text-center">
         <div className="success-enter rounded-2xl border border-warm-500/30 bg-neutral-900/50 p-8 md:p-10">
           {/* Icon */}

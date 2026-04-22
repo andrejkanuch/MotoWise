@@ -1,0 +1,42 @@
+query TripTemplates($filter: TripTemplateFilterInput, $first: Int, $after: String) {
+  tripTemplates(filter: $filter, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        slug
+        title
+        description
+        difficulty
+        dayCount
+        startLat
+        startLng
+        countryCode
+        regionCode
+        city
+        distanceM
+        elevationGainM
+        surfaceType
+        curvatureIndex
+        estimatedDurationMinutes
+        isFeatured
+        isMotovaultPick
+        viewCount
+        cloneCount
+        averageRating
+        reviewCount
+        publishedAt
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

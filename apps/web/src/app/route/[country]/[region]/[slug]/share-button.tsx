@@ -1,5 +1,7 @@
 'use client';
 
+import { trackEvent, WebEvent } from '@/lib/analytics';
+
 interface ShareButtonProps {
   routeName: string;
   variant?: 'icon' | 'full';
@@ -26,6 +28,7 @@ const iconBtnStyle: React.CSSProperties = {
 
 export function ShareButton({ routeName, variant = 'icon' }: ShareButtonProps) {
   const handleShare = () => {
+    trackEvent(WebEvent.SHARE_BUTTON_CLICKED, { source: 'route_detail' });
     if (navigator.share) {
       navigator.share({ title: routeName, url: window.location.href });
     } else {

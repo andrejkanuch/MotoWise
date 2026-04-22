@@ -14,5 +14,9 @@ export const canonicalCountry = (country: string) => `${BASE_URL}/explore/${coun
 /** Canonical URL for the explore index page: /explore */
 export const canonicalExplore = () => `${BASE_URL}/explore`;
 
+/** Canonical URL for a trip template page: /trips/{country}/{region}/{slug} */
+export const canonicalTrip = (country: string, region: string, slug: string) =>
+  `${BASE_URL}/trips/${country}/${region}/${slug}`;
+
 /** Site root canonical URL. */
 export const baseCanonical = () => BASE_URL;

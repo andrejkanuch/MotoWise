@@ -5,9 +5,11 @@ import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   type ExploreRouteWithMap,
+  type TripTemplateNode,
   fetchCountryBySlug,
   fetchExploreRoutesByCountry,
   fetchRegionsByCountrySlug,
+  fetchTripTemplatesByCountry,
 } from '@/lib/fetch-places';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 
@@ -461,6 +463,94 @@ function RouteCard({ route, index }: { route: ExploreRouteWithMap; index: number
   );
 }
 
+/* ── Trip Template Card ─────────────────────────────────────── */
+
+function getDifficultyDisplay(difficulty: string): { label: string; colorClass: string } {
+  switch (difficulty) {
+    case 'expert':
+      return { label: 'Expert', colorClass: 'bg-red-500/15 text-red-400' };
+    case 'hard':
+      return { label: 'Hard', colorClass: 'bg-orange-500/15 text-orange-400' };
+    case 'moderate':
+      return { label: 'Moderate', colorClass: 'bg-yellow-500/15 text-yellow-400' };
+    default:
+      return { label: 'Easy', colorClass: 'bg-green-500/15 text-green-400' };
+  }
+}
+
+function TripTemplateCard({ trip, index }: { trip: TripTemplateNode; index: number }) {
+  const diff = getDifficultyDisplay(trip.difficulty);
+
+  return (
+    <a
+      href={
+        trip.slug && trip.countryCode && trip.regionCode
+          ? `/trips/${trip.countryCode.toLowerCase()}/${trip.regionCode.toLowerCase()}/${trip.slug}`
+          : `/trips/${trip.id}`
+      }
+      className="route-card group relative flex flex-col overflow-hidden rounded-xl border border-neutral-800/40 bg-neutral-900/40 transition-all duration-300 hover:border-neutral-700/60 hover:bg-neutral-900/60"
+      style={{ animationDelay: `${Math.min(index * 80, 500)}ms` }}
+    >
+      <div className="flex flex-1 flex-col p-5">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-neutral-50 transition-colors group-hover:text-warm-400">
+          {trip.title}
+        </h3>
+
+        {trip.description && (
+          <p className="mt-1.5 line-clamp-2 text-sm text-neutral-400">{trip.description}</p>
+        )}
+
+        {/* Stats */}
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-neutral-300">
+          {trip.distanceM != null && trip.distanceM > 0 && (
+            <span className="flex items-center gap-1">
+              <DistanceIcon />
+              {formatDistance(trip.distanceM)}
+            </span>
+          )}
+          {trip.elevationGainM != null && (
+            <span className="flex items-center gap-1">
+              <ElevationIcon />
+              {formatElevation(trip.elevationGainM)}
+            </span>
+          )}
+          {trip.estimatedDurationMinutes != null && trip.estimatedDurationMinutes > 0 && (
+            <span className="flex items-center gap-1">
+              <ClockIcon />
+              {trip.estimatedDurationMinutes < 60
+                ? `${trip.estimatedDurationMinutes} min`
+                : `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60 > 0 ? `${trip.estimatedDurationMinutes % 60}m` : ''}`}
+            </span>
+          )}
+          {trip.dayCount != null && trip.dayCount > 1 && (
+            <span>{trip.dayCount} days</span>
+          )}
+        </div>
+
+        {/* Rating + difficulty */}
+        <div className="mt-auto flex items-center gap-2.5 pt-3">
+          {trip.averageRating != null && trip.reviewCount > 0 && (
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5" aria-hidden="true">
+                {([0, 1, 2, 3, 4] as const).map((i) => (
+                  <StarIcon key={`${trip.id}-star-${i}`} filled={i < Math.round(trip.averageRating!)} />
+                ))}
+              </div>
+              <span className="text-xs text-neutral-300">{trip.averageRating.toFixed(1)}</span>
+            </div>
+          )}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
+            {diff.label}
+          </span>
+          {trip.surfaceType && trip.surfaceType !== 'unknown' && (
+            <span className="text-xs text-neutral-400">{surfaceLabel(trip.surfaceType)}</span>
+          )}
+        </div>
+      </div>
+    </a>
+  );
+}
+
 /* ── Page ─────────────────────────────────────────────────────── */
 
 export default async function CountryPage({ params }: PageProps) {
@@ -468,9 +558,10 @@ export default async function CountryPage({ params }: PageProps) {
   const country = await fetchCountryBySlug(countrySlug);
   if (!country) notFound();
 
-  const [regions, topRoutes] = await Promise.all([
+  const [regions, topRoutes, tripTemplates] = await Promise.all([
     fetchRegionsByCountrySlug(countrySlug),
     fetchExploreRoutesByCountry(country.countryCode, 12),
+    fetchTripTemplatesByCountry(country.countryCode, 12),
   ]);
 
   const featured = topRoutes[0] ?? null;
@@ -591,13 +682,29 @@ export default async function CountryPage({ params }: PageProps) {
       )}
 
       {/* Divider */}
-      {topRoutes.length > 0 && (
+      {(tripTemplates.length > 0 || topRoutes.length > 0) && (
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="h-px bg-neutral-800/40" />
         </div>
       )}
 
-      {/* Routes */}
+      {/* Trip Templates */}
+      {tripTemplates.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-8 pb-12 sm:px-6">
+          <div className="mb-6 flex items-baseline justify-between">
+            <h2 className="text-xl font-bold text-neutral-50 sm:text-2xl">
+              Trip Templates in {country.name}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {tripTemplates.map((trip, i) => (
+              <TripTemplateCard key={trip.id} trip={trip} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Routes (legacy — kept during transition) */}
       {topRoutes.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 pt-8 pb-24 sm:px-6">
           <div className="mb-6 flex items-baseline justify-between">
@@ -625,7 +732,7 @@ export default async function CountryPage({ params }: PageProps) {
       )}
 
       {/* Empty state */}
-      {topRoutes.length === 0 && (
+      {topRoutes.length === 0 && tripTemplates.length === 0 && (
         <section className="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-900/50">
             <svg

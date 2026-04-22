@@ -1,6 +1,8 @@
 import { ArrowLeft, Crown } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { CheckoutTracker } from '@/components/checkout-tracker';
+import { WebEvent } from '@/lib/analytics';
 
 export const metadata: Metadata = {
   title: 'Checkout Cancelled',
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
 export default function CheckoutCancelPage() {
   return (
     <div className="dark flex min-h-screen items-center justify-center bg-neutral-950 px-4 pb-32 pt-24 text-neutral-50">
+      <CheckoutTracker event={WebEvent.CHECKOUT_CANCELLED} />
       <div className="w-full max-w-[420px] text-center">
         <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-8 md:p-10">
           {/* Icon */}

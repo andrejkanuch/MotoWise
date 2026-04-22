@@ -1,8 +1,8 @@
 'use client';
 
-import posthog from 'posthog-js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '@/i18n/navigation';
+import { trackEvent, WebEvent } from '@/lib/analytics';
 
 interface Category {
   id: string;
@@ -112,7 +112,9 @@ export function TclocsChecklist({
       setElapsedMs(time);
       if (timerRef.current) clearInterval(timerRef.current);
 
-      posthog.capture('tclocs_checklist_completed', {
+      trackEvent(WebEvent.TOOL_USED, {
+        tool: 'tclocs_checklist',
+        action: 'completed',
         completion_time_ms: time,
         total_items: totalItems,
       });
@@ -253,7 +255,9 @@ export function TclocsChecklist({
       </div>
     </body></html>`;
 
-    posthog.capture('tclocs_pdf_downloaded', {
+    trackEvent(WebEvent.TOOL_USED, {
+      tool: 'tclocs_checklist',
+      action: 'pdf_downloaded',
       items_checked: totalChecked,
       total_items: totalItems,
       all_complete: allComplete,

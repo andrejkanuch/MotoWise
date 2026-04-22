@@ -1,0 +1,10 @@
+mutation CreateDiscoverTripReview($input: CreateDiscoverTripReviewInput!) {
+  createDiscoverTripReview(input: $input) {
+    id
+    discoverTripId
+    rating
+    text
+    conditionTags
+    createdAt
+  }
+}

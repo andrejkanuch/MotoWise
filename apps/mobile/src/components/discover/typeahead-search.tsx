@@ -5,6 +5,7 @@ import { Globe, MapPin, Route, Search, X } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 
@@ -71,22 +72,32 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
 
   const handleRoutePress = useCallback(
     (route: RouteResult) => {
+      trackEvent(AnalyticsEvent.DISCOVER_SEARCH_USED, {
+        query: debouncedText,
+        result_type: 'route',
+        result_count: routes.length + places.length,
+      });
       setSearchText('');
       setDebouncedText('');
       inputRef.current?.blur();
       onRouteSelect(route.id);
     },
-    [onRouteSelect],
+    [onRouteSelect, debouncedText, routes.length, places.length],
   );
 
   const handlePlacePress = useCallback(
     (place: PlaceResult) => {
+      trackEvent(AnalyticsEvent.DISCOVER_SEARCH_USED, {
+        query: debouncedText,
+        result_type: 'place',
+        result_count: routes.length + places.length,
+      });
       setSearchText('');
       setDebouncedText('');
       inputRef.current?.blur();
       onPlaceSelect?.(place.countryCode ?? '', place.regionCode ?? undefined);
     },
-    [onPlaceSelect],
+    [onPlaceSelect, debouncedText, routes.length, places.length],
   );
 
   const handleClear = useCallback(() => {
