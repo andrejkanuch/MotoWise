@@ -97,7 +97,7 @@ BEGIN
   SELECT COUNT(*) INTO dst_reviews FROM public.trip_reviews;
   RAISE NOTICE 'Reviews: source=%, migrated=%', src_reviews, dst_reviews;
 
-  SELECT COUNT(*) INTO src_saves FROM public.saved_routes;
+  SELECT COUNT(*) INTO src_saves FROM public.route_saves;
   SELECT COUNT(*) INTO dst_saves FROM public.trip_saves;
   RAISE NOTICE 'Saves: source=%, migrated=%', src_saves, dst_saves;
 
