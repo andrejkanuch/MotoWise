@@ -1,3 +1,30 @@
+import { redirect } from 'next/navigation';
+import { fetchRouteDetail } from '@/lib/fetch-route-detail';
+
+/**
+ * 301 redirect: /routes/:id -> /trips/:id (or /trips/:country/:region/:slug if available)
+ *
+ * Old route-by-ID URLs are permanently redirected to the unified /trips/ path.
+ * We attempt to look up the route to build the canonical slug-based URL.
+ * If not found, we redirect to the generic /trips/:id path.
+ */
+export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  // Try to resolve the slug-based canonical URL
+  const route = await fetchRouteDetail(id);
+  if (route?.slug && route?.countryCode && route?.regionCode) {
+    redirect(
+      `/trips/${route.countryCode.toLowerCase()}/${route.regionCode.toLowerCase()}/${route.slug}`,
+    );
+  }
+
+  // Fallback: redirect to /trips/:id
+  redirect(`/trips/${id}`);
+}
+
+/* ── Original implementation preserved for reference during migration ──
+
 import { palette } from '@motovault/design-system';
 import type { RouteReview } from '@motovault/types';
 import type { Metadata } from 'next';
@@ -9,7 +36,7 @@ import { formatDate, formatDistance } from '@/lib/format-utils';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { RouteDetailReviews } from './route-detail-reviews';
 
-export async function generateMetadata({
+export async function generateMetadata_DEPRECATED({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -41,8 +68,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+function RouteDetailPage_DEPRECATED({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = params;
 
   const [route, reviewsData, supabase] = await Promise.all([
     fetchRouteDetail(id),
@@ -246,3 +273,5 @@ function buildRouteJsonLd(
 
   return nodes;
 }
+
+── End of original implementation ── */

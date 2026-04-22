@@ -1,3 +1,23 @@
+import { redirect } from 'next/navigation';
+
+/**
+ * 301 redirect: /route/:country/:region/:slug -> /trips/:country/:region/:slug
+ *
+ * Old route URLs are permanently redirected to the unified /trips/ path.
+ * The original page component is preserved below (commented out) for reference
+ * during the migration period.
+ */
+export default async function RouteDetailPage({
+  params,
+}: {
+  params: Promise<{ country: string; region: string; slug: string }>;
+}) {
+  const { slug, country, region } = await params;
+  redirect(`/trips/${country}/${region}/${slug}`);
+}
+
+/* ── Original implementation preserved for reference during migration ──
+
 import { palette } from '@motovault/design-system';
 import type { RouteBySlugPagePayload, RouteReview } from '@motovault/types';
 import type { Metadata } from 'next';
@@ -605,3 +625,5 @@ function ConditionTagBadge({ tag, count }: { tag: string; count: number }) {
     </span>
   );
 }
+
+── End of original implementation ── */
