@@ -41,10 +41,6 @@ export default function ModalsLayout() {
         options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
       />
       <Stack.Screen
-        name="discover-trip-detail"
-        options={{ presentation: 'fullScreenModal', gestureEnabled: true, headerShown: false }}
-      />
-      <Stack.Screen
         name="recalls"
         options={{ presentation: 'formSheet', gestureEnabled: true, headerShown: false }}
       />

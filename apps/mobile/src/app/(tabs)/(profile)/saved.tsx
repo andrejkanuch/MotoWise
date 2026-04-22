@@ -192,8 +192,8 @@ export default function SavedScreen() {
     (tripId: string) => {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
       router.push({
-        pathname: '/(modals)/discover-trip-detail' as const,
-        params: { discoverTripId: tripId },
+        pathname: '/(modals)/trip-detail' as const,
+        params: { tripId },
       } as any);
     },
     [router],
