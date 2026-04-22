@@ -111,6 +111,14 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     coverImageUrl: row.cover_image_url ?? undefined,
     createdAt: row.created_at,
     organiser: redactOrganiser(organiser, isPublic, callerUserId, isParticipant),
+    // Template defaults (overridden by TripTemplatesService.mapTemplateRow)
+    isTemplate: false,
+    viewCount: 0,
+    cloneCount: 0,
+    reviewCount: 0,
+    isFeatured: false,
+    isMotovaultPick: false,
+    isFlagged: false,
   };
 }
 
