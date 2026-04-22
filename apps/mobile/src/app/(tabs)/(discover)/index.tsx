@@ -15,14 +15,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import {
-  Award,
-  Compass,
-  Plus,
-  Star,
-  TrendingUp,
-  Wind,
-} from 'lucide-react-native';
+import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActionSheetIOS,
@@ -193,7 +186,6 @@ export default function DiscoverScreen() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-
   useEffect(() => {
     trackEvent(AnalyticsEvent.DISCOVER_TAB_VIEWED);
   }, []);
@@ -258,7 +250,6 @@ export default function DiscoverScreen() {
     if (!tripData?.pages) return [];
     return tripData.pages.flatMap((p) => p?.tripTemplates?.edges?.map((e) => e.node) ?? []);
   }, [tripData]);
-
 
   // --- GeoJSON for map pins (use trips data for pins) ---
 
@@ -414,13 +405,7 @@ export default function DiscoverScreen() {
         showBelowFold={showBelowFold}
       />
     ),
-    [
-      filters,
-      toggleChip,
-      toggleCountry,
-      handleSearchSelect,
-      showBelowFold,
-    ],
+    [filters, toggleChip, toggleCountry, handleSearchSelect, showBelowFold],
   );
 
   return (

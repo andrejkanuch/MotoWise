@@ -214,6 +214,7 @@ export default async function TripPage({ params }: PageParams) {
       {/* JSON-LD */}
       <script
         type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
@@ -286,7 +287,7 @@ export default async function TripPage({ params }: PageParams) {
         )}
         {(trip.elevationGainM ?? 0) > 0 && (
           <div>
-            <p className="text-2xl font-bold">{Math.round(trip.elevationGainM!)} m</p>
+            <p className="text-2xl font-bold">{Math.round(trip.elevationGainM ?? 0)} m</p>
             <p className="text-sm text-gray-500">Elevation</p>
           </div>
         )}
@@ -332,7 +333,7 @@ export default async function TripPage({ params }: PageParams) {
               <div className="space-y-3">
                 {waypoints.map((wp, i) => (
                   <div
-                    key={`${dayIndex}-${i}`}
+                    key={wp.id ?? `${dayIndex}-${i}`}
                     className="flex items-start gap-3 pl-4 border-l-2 border-gray-200 dark:border-gray-700"
                   >
                     <div>

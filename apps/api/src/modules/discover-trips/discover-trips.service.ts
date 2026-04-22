@@ -13,7 +13,6 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import {
   DiscoverTripAlreadyClonedError,
-  DiscoverTripAlreadyPublishedError,
   DiscoverTripNotFoundError,
   DiscoverTripNotOwnedError,
   DiscoverTripQualityGateError,
@@ -282,8 +281,8 @@ export class DiscoverTripsService {
       status: 'published' as const,
     };
 
-    let inserted;
-    let insertError;
+    let inserted: unknown;
+    let insertError: unknown;
 
     if (existing) {
       // Re-publish: update existing snapshot (slug stays immutable)

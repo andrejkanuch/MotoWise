@@ -4,7 +4,12 @@ import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
-import { type TripTemplateNode, fetchRegionBySlug, fetchRoutesByRegion, fetchTripTemplatesByRegion } from '@/lib/fetch-places';
+import {
+  fetchRegionBySlug,
+  fetchRoutesByRegion,
+  fetchTripTemplatesByRegion,
+  type TripTemplateNode,
+} from '@/lib/fetch-places';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;

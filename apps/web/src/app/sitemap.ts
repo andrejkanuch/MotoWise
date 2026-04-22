@@ -184,7 +184,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const tripTemplates = await getTripTemplates();
 
   const tripTemplateEntries = tripTemplates.map((t) => ({
-    url: `${host}/trips/${t.countryCode!.toLowerCase()}/${t.regionCode!.toLowerCase()}/${t.slug!.toLowerCase()}`,
+    url: `${host}/trips/${(t.countryCode ?? '').toLowerCase()}/${(t.regionCode ?? '').toLowerCase()}/${(t.slug ?? '').toLowerCase()}`,
     lastModified: t.publishedAt ? new Date(t.publishedAt) : new Date(),
   }));
 

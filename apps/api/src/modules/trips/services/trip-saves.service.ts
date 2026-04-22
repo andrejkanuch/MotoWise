@@ -1,7 +1,7 @@
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
-import type { Trip, TripConnection } from '../models/trip.model';
+import type { TripConnection } from '../models/trip.model';
 import { mapRowToTrip, TRIP_SELECT, type TripRow } from './trip-lifecycle.service';
 
 /** Row shape for trip_saves join */
@@ -124,6 +124,7 @@ export class TripSavesService {
     const edges = sliced
       .filter((save) => tripMap.has(save.trip_id))
       .map((save) => {
+        // biome-ignore lint/style/noNonNullAssertion: guarded by tripMap.has() filter above
         const tripRow = tripMap.get(save.trip_id)!;
         return {
           node: mapRowToTrip(tripRow, userId),

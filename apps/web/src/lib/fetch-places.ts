@@ -1,4 +1,8 @@
-import type { BrowsePlaceFieldsFragment, ExploreDiscoverRoutesQuery, TripTemplatesQuery } from '@motovault/graphql';
+import type {
+  BrowsePlaceFieldsFragment,
+  ExploreDiscoverRoutesQuery,
+  TripTemplatesQuery,
+} from '@motovault/graphql';
 import {
   BrowseCountriesDocument,
   BrowseCountryBySlugDocument,

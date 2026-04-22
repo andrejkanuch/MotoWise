@@ -32,6 +32,8 @@ import { UpdateParticipantStatusInput } from './dto/update-participant-status.in
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
 import { TripShareTokenError } from './errors/trip-share-token.errors';
+import { TripReviewsLoader } from './loaders/trip-reviews.loader';
+import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { SharedTrip } from './models/shared-trip.model';
 import { Trip, TripConnection, TripReview, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
@@ -42,8 +44,6 @@ import { TripSavesService } from './services/trip-saves.service';
 import { TripSharingService } from './services/trip-sharing.service';
 import { TripTemplatesService } from './services/trip-templates.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
-import { TripReviewsLoader } from './loaders/trip-reviews.loader';
-import { TripSavedLoader } from './loaders/trip-saved.loader';
 
 @Resolver(() => Trip)
 @UseGuards(GqlAuthGuard)

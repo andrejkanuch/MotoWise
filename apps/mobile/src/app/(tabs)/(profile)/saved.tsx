@@ -190,10 +190,10 @@ export default function SavedScreen() {
 
   const handleTripPress = useCallback(
     (tripId: string) => {
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
       router.push({
         pathname: '/(modals)/trip-detail' as const,
         params: { tripId },
+        // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
       } as any);
     },
     [router],

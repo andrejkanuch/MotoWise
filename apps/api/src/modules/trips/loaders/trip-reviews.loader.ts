@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
-import DataLoader from 'dataloader';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import DataLoader from 'dataloader';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripReview } from '../models/trip.model';
 

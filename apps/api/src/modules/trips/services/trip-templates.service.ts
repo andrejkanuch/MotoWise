@@ -294,7 +294,8 @@ export class TripTemplatesService {
 
       // Map known PG error codes to user-friendly exceptions
       if (error.code === 'P0002') throw new NotFoundException('Template not found');
-      if (error.code === 'P0003') throw new BadRequestException('You have already cloned this template');
+      if (error.code === 'P0003')
+        throw new BadRequestException('You have already cloned this template');
 
       throw new InternalServerErrorException('Failed to clone template');
     }

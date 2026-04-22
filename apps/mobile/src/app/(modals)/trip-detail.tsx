@@ -50,7 +50,6 @@ import {
   Alert,
   Image,
   Pressable,
-  ScrollView,
   Share,
   Text,
   TextInput,
@@ -576,10 +575,7 @@ export default function TripDetailScreen() {
   }, [isSaved, saveMutation, unsaveMutation]);
 
   // Reviews query for template
-  const {
-    data: reviewsData,
-    isLoading: reviewsLoading,
-  } = useQuery({
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
     queryKey: queryKeys.tripReviews.byTrip(tripId),
     queryFn: () => gqlFetcher(TripReviewsDocument, { tripId, first: 10 }),
     enabled: !!tripId && isTemplate,
@@ -736,6 +732,7 @@ ${rteptElements}
           {(polylineBounds ?? bounds) && (
             <MapboxGL.Camera
               bounds={{
+                // biome-ignore lint/style/noNonNullAssertion: guarded by conditional render above
                 ...(polylineBounds ?? bounds)!,
                 paddingBottom: 200,
                 paddingTop: 60,
@@ -748,6 +745,7 @@ ${rteptElements}
           )}
           {/* Polyline route for templates, Directions route for regular trips */}
           {(polylineRoute ?? routeGeoJSON) && (
+            // biome-ignore lint/style/noNonNullAssertion: guarded by truthy check above
             <MapboxGL.ShapeSource id="trip-route" shape={(polylineRoute ?? routeGeoJSON)!}>
               <MapboxGL.LineLayer
                 id="trip-route-layer"
@@ -1151,7 +1149,9 @@ ${rteptElements}
                       }}
                     >
                       <Award size={12} color={palette.signature500} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}>
+                      <Text
+                        style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}
+                      >
                         MotoVault Pick
                       </Text>
                     </View>
@@ -1222,19 +1222,21 @@ ${rteptElements}
                       <Text style={{ fontSize: 11, color: subtitleColor }}>Duration</Text>
                     </View>
                   )}
-                  {trip.averageRating != null && trip.reviewCount != null && trip.reviewCount > 0 && (
-                    <View style={{ alignItems: 'center' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                        <Star size={14} color={palette.warning500} fill={palette.warning500} />
-                        <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
-                          {trip.averageRating.toFixed(1)}
+                  {trip.averageRating != null &&
+                    trip.reviewCount != null &&
+                    trip.reviewCount > 0 && (
+                      <View style={{ alignItems: 'center' }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                          <Star size={14} color={palette.warning500} fill={palette.warning500} />
+                          <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                            {trip.averageRating.toFixed(1)}
+                          </Text>
+                        </View>
+                        <Text style={{ fontSize: 11, color: subtitleColor }}>
+                          {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>
-                        {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
-                      </Text>
-                    </View>
-                  )}
+                    )}
                   {trip.viewCount != null && trip.viewCount > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
@@ -1298,7 +1300,11 @@ ${rteptElements}
                         </Text>
                         {trip.city && (
                           <Text style={{ fontSize: 12, color: subtitleColor }}>
-                            {[trip.city, trip.regionCode?.toUpperCase(), trip.countryCode?.toUpperCase()]
+                            {[
+                              trip.city,
+                              trip.regionCode?.toUpperCase(),
+                              trip.countryCode?.toUpperCase(),
+                            ]
                               .filter(Boolean)
                               .join(', ')}
                           </Text>
@@ -1395,7 +1401,11 @@ ${rteptElements}
                       borderCurve: 'continuous',
                       backgroundColor: 'transparent',
                       borderWidth: 1,
-                      borderColor: isSaved ? palette.warning500 : (isDark ? palette.neutral700 : palette.neutral300),
+                      borderColor: isSaved
+                        ? palette.warning500
+                        : isDark
+                          ? palette.neutral700
+                          : palette.neutral300,
                     }}
                   >
                     {saveMutation.isPending || unsaveMutation.isPending ? (
@@ -1403,7 +1413,9 @@ ${rteptElements}
                     ) : isSaved ? (
                       <>
                         <BookmarkCheck size={16} color={palette.warning500} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
+                        <Text
+                          style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}
+                        >
                           Saved
                         </Text>
                       </>
@@ -1458,9 +1470,17 @@ ${rteptElements}
                           backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
                         }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            marginBottom: 4,
+                          }}
+                        >
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
+                              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size star rating array
                               key={i}
                               size={14}
                               color={palette.warning500}
@@ -1523,8 +1543,7 @@ ${rteptElements}
                           <Pressable
                             key={n}
                             onPress={() => {
-                              if (process.env.EXPO_OS === 'ios')
-                                Haptics.selectionAsync();
+                              if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
                               setReviewRating(n);
                             }}
                           >
@@ -1902,186 +1921,188 @@ ${rteptElements}
             )}
 
             {/* Action buttons — non-template trips only */}
-            {!isTemplate && <Animated.View
-              entering={FadeInUp.delay(150).duration(250)}
-              style={{ gap: 10, marginBottom: 20 }}
-            >
-              {/* Publish to Discover — organizer only, when trip has enough content */}
-              {isOrganiser && !publishedToDiscover && waypoints.length >= 2 && (
-                <Pressable
-                  onPress={handlePublishToDiscover}
-                  disabled={publishToDiscoverMutation.isPending}
-                  accessibilityRole="button"
-                  accessibilityLabel="Publish to Discover"
-                  accessibilityHint="Makes this trip a template other riders can browse and clone"
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: palette.accent500,
-                  }}
-                >
-                  {publishToDiscoverMutation.isPending ? (
-                    <ActivityIndicator size="small" color={palette.white} />
-                  ) : (
-                    <>
-                      <Compass size={16} color={palette.white} />
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                        Publish to Discover
-                      </Text>
-                    </>
-                  )}
-                </Pressable>
-              )}
-
-              {/* Published indicator */}
-              {isOrganiser && publishedToDiscover && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
-                  }}
-                >
-                  <CheckCircle size={16} color={palette.success500} />
-                  <Text
+            {!isTemplate && (
+              <Animated.View
+                entering={FadeInUp.delay(150).duration(250)}
+                style={{ gap: 10, marginBottom: 20 }}
+              >
+                {/* Publish to Discover — organizer only, when trip has enough content */}
+                {isOrganiser && !publishedToDiscover && waypoints.length >= 2 && (
+                  <Pressable
+                    onPress={handlePublishToDiscover}
+                    disabled={publishToDiscoverMutation.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel="Publish to Discover"
+                    accessibilityHint="Makes this trip a template other riders can browse and clone"
                     style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: palette.success500,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: palette.accent500,
                     }}
                   >
-                    Published on Discover
-                  </Text>
-                </View>
-              )}
+                    {publishToDiscoverMutation.isPending ? (
+                      <ActivityIndicator size="small" color={palette.white} />
+                    ) : (
+                      <>
+                        <Compass size={16} color={palette.white} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                          Publish to Discover
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                )}
 
-              {/* Clone — available to anyone viewing someone else's public trip. */}
-              {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
-                <Pressable
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(modals)/create-trip',
-                      params: { cloneFromTripId: tripId },
-                    })
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel="Clone this trip"
-                  accessibilityHint="Opens the planner pre-filled with this trip's waypoints"
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: isDark ? palette.neutral700 : palette.neutral300,
-                  }}
-                >
-                  <Plus size={16} color={isDark ? palette.white : palette.neutral950} />
-                  <Text
+                {/* Published indicator */}
+                {isOrganiser && publishedToDiscover && (
+                  <View
                     style={{
-                      fontSize: 15,
-                      fontWeight: '700',
-                      color: isDark ? palette.white : palette.neutral950,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
                     }}
                   >
-                    Clone this trip
-                  </Text>
-                </Pressable>
-              )}
+                    <CheckCircle size={16} color={palette.success500} />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: palette.success500,
+                      }}
+                    >
+                      Published on Discover
+                    </Text>
+                  </View>
+                )}
 
-              {/* Join (going) */}
-              {!myParticipant && !isOrganiser && (
-                <Pressable
-                  onPress={() => joinMutation.mutate('going')}
-                  disabled={actionLoading}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: palette.accent500,
-                  }}
-                >
-                  {actionLoading ? (
-                    <ActivityIndicator size="small" color={palette.white} />
-                  ) : (
-                    <>
-                      <Users size={16} color={palette.white} />
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                        I'm in
-                      </Text>
-                    </>
-                  )}
-                </Pressable>
-              )}
+                {/* Clone — available to anyone viewing someone else's public trip. */}
+                {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
+                  <Pressable
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(modals)/create-trip',
+                        params: { cloneFromTripId: tripId },
+                      })
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="Clone this trip"
+                    accessibilityHint="Opens the planner pre-filled with this trip's waypoints"
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                    }}
+                  >
+                    <Plus size={16} color={isDark ? palette.white : palette.neutral950} />
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: '700',
+                        color: isDark ? palette.white : palette.neutral950,
+                      }}
+                    >
+                      Clone this trip
+                    </Text>
+                  </Pressable>
+                )}
 
-              {/* Maybe */}
-              {!myParticipant && !isOrganiser && (
-                <Pressable
-                  onPress={() => joinMutation.mutate('maybe')}
-                  disabled={actionLoading}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: palette.warning500,
-                  }}
-                >
-                  <HelpCircle size={16} color={palette.warning500} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
-                    Maybe
-                  </Text>
-                </Pressable>
-              )}
+                {/* Join (going) */}
+                {!myParticipant && !isOrganiser && (
+                  <Pressable
+                    onPress={() => joinMutation.mutate('going')}
+                    disabled={actionLoading}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: palette.accent500,
+                    }}
+                  >
+                    {actionLoading ? (
+                      <ActivityIndicator size="small" color={palette.white} />
+                    ) : (
+                      <>
+                        <Users size={16} color={palette.white} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                          I'm in
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                )}
 
-              {/* Leave */}
-              {myParticipant && !isOrganiser && (
-                <Pressable
-                  onPress={handleLeave}
-                  disabled={actionLoading}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    paddingVertical: 14,
-                    borderRadius: 14,
-                    borderCurve: 'continuous',
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: palette.danger500,
-                  }}
-                >
-                  <LogOut size={16} color={palette.danger500} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                    Leave
-                  </Text>
-                </Pressable>
-              )}
-            </Animated.View>}
+                {/* Maybe */}
+                {!myParticipant && !isOrganiser && (
+                  <Pressable
+                    onPress={() => joinMutation.mutate('maybe')}
+                    disabled={actionLoading}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: palette.warning500,
+                    }}
+                  >
+                    <HelpCircle size={16} color={palette.warning500} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
+                      Maybe
+                    </Text>
+                  </Pressable>
+                )}
+
+                {/* Leave */}
+                {myParticipant && !isOrganiser && (
+                  <Pressable
+                    onPress={handleLeave}
+                    disabled={actionLoading}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: palette.danger500,
+                    }}
+                  >
+                    <LogOut size={16} color={palette.danger500} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                      Leave
+                    </Text>
+                  </Pressable>
+                )}
+              </Animated.View>
+            )}
 
             {/* Comments */}
             <CommentList tripId={tripId} />

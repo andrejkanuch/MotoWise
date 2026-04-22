@@ -5,11 +5,11 @@ import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL, getHreflangMap } from '@/lib/constants';
 import {
   type ExploreRouteWithMap,
-  type TripTemplateNode,
   fetchCountryBySlug,
   fetchExploreRoutesByCountry,
   fetchRegionsByCountrySlug,
   fetchTripTemplatesByCountry,
+  type TripTemplateNode,
 } from '@/lib/fetch-places';
 import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 
@@ -522,9 +522,7 @@ function TripTemplateCard({ trip, index }: { trip: TripTemplateNode; index: numb
                 : `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60 > 0 ? `${trip.estimatedDurationMinutes % 60}m` : ''}`}
             </span>
           )}
-          {trip.dayCount != null && trip.dayCount > 1 && (
-            <span>{trip.dayCount} days</span>
-          )}
+          {trip.dayCount != null && trip.dayCount > 1 && <span>{trip.dayCount} days</span>}
         </div>
 
         {/* Rating + difficulty */}
@@ -533,7 +531,10 @@ function TripTemplateCard({ trip, index }: { trip: TripTemplateNode; index: numb
             <div className="flex items-center gap-1">
               <div className="flex items-center gap-0.5" aria-hidden="true">
                 {([0, 1, 2, 3, 4] as const).map((i) => (
-                  <StarIcon key={`${trip.id}-star-${i}`} filled={i < Math.round(trip.averageRating!)} />
+                  <StarIcon
+                    key={`${trip.id}-star-${i}`}
+                    filled={i < Math.round(trip.averageRating ?? 0)}
+                  />
                 ))}
               </div>
               <span className="text-xs text-neutral-300">{trip.averageRating.toFixed(1)}</span>
