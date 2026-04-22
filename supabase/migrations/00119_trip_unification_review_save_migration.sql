@@ -59,7 +59,7 @@ SELECT
   t.id,
   rs.user_id,
   rs.saved_at
-FROM public.saved_routes rs
+FROM public.route_saves rs
 JOIN public.discover_trips dt ON dt.migrated_from_route_id = rs.route_id
 JOIN public.trips t ON t.migrated_from_discover_trip_id = dt.id
 ON CONFLICT (trip_id, user_id) DO NOTHING;
