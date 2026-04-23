@@ -1,5 +1,6 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
+import { captureException } from './analytics';
 import { extractGraphQLMessage, hasGraphQLCode } from './graphql-errors';
 import { supabase } from './supabase';
 
@@ -42,6 +43,10 @@ export const queryClient = new QueryClient({
         supabase.auth.refreshSession();
         return;
       }
+      captureException(error, {
+        queryKey: JSON.stringify(query?.queryKey),
+        source: 'queryCache.onError',
+      });
       if (query?.meta?.showErrorAlert === false) return;
       if (query?.state.data !== undefined) return;
       Alert.alert('Error', extractGraphQLMessage(error));
@@ -49,6 +54,10 @@ export const queryClient = new QueryClient({
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
+      captureException(error, {
+        mutationKey: JSON.stringify(mutation.options.mutationKey),
+        source: 'mutationCache.onError',
+      });
       if (mutation.options.onError) return;
       if (mutation.meta?.showErrorAlert === false) return;
       Alert.alert('Error', extractGraphQLMessage(error));

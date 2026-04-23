@@ -2,7 +2,7 @@ import { palette } from '@motovault/design-system';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -112,9 +112,12 @@ interface AnimatedSplashProps {
   children: React.ReactNode;
 }
 
+const MAX_SPLASH_MS = 10000; // Failsafe: never show splash longer than 10s
+
 export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
   const [showApp, setShowApp] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
+  const forcedExit = useRef(false);
 
   // ── Shared values ──────────────────────────────────────────────
   const arcProgress = useSharedValue(0); // 0→1: arc draws in
@@ -144,6 +147,18 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
   const onSplashComplete = useCallback(() => {
     setSplashDone(true);
   }, []);
+
+  // ── Failsafe: force-exit splash if isReady never arrives ──────
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!forcedExit.current && !splashDone) {
+        forcedExit.current = true;
+        setShowApp(true);
+        setSplashDone(true);
+      }
+    }, MAX_SPLASH_MS);
+    return () => clearTimeout(timeout);
+  }, [splashDone]);
 
   // ── Entrance animation ─────────────────────────────────────────
   // biome-ignore lint/correctness/useExhaustiveDependencies: animation shared values are stable refs

@@ -32,6 +32,7 @@ import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
 import {
   AnalyticsEvent,
+  captureException,
   identifyUser,
   initPostHog,
   initSentry,
@@ -102,6 +103,7 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     enabled: !!session,
     retry: 1,
     retryDelay: 1000,
+    meta: { showErrorAlert: false },
   });
 
   const preferences = meQuery.data?.me?.preferences as
@@ -254,6 +256,19 @@ export default function RootLayout() {
     }
   }, [navigationRef]);
 
+  // Safety timeout: if auth takes too long, unblock the splash anyway
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (useAuthStore.getState().isLoading) {
+        captureException(new Error('Auth hydration timeout — forcing app ready'), {
+          source: 'RootLayout.authTimeout',
+        });
+        setLoading(false);
+      }
+    }, 8000);
+    return () => clearTimeout(timeout);
+  }, [setLoading]);
+
   useEffect(() => {
     supabase.auth
       .getSession()
@@ -261,7 +276,8 @@ export default function RootLayout() {
         setSession(session);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((error) => {
+        captureException(error, { source: 'supabase.auth.getSession' });
         setLoading(false);
       });
 
