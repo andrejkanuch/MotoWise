@@ -495,15 +495,23 @@ export default function EditBikeScreen() {
               onPress={handleSave}
               disabled={!isDirty || !isValid || updateMutation.isPending}
               hitSlop={8}
+              style={{
+                backgroundColor: isDirty && isValid ? theme.warm : isDark ? palette.neutral700 : palette.neutral200,
+                paddingHorizontal: 16,
+                paddingVertical: 7,
+                borderRadius: 18,
+                borderCurve: 'continuous',
+                opacity: isDirty && isValid ? 1 : 0.5,
+              }}
             >
               {updateMutation.isPending ? (
-                <ActivityIndicator size="small" color={theme.warm} />
+                <ActivityIndicator size="small" color={palette.white} />
               ) : (
                 <Text
                   style={{
-                    fontSize: 17,
+                    fontSize: 15,
                     fontWeight: '600',
-                    color: isDirty && isValid ? theme.warm : theme.ink3,
+                    color: isDirty && isValid ? palette.white : theme.ink3,
                   }}
                 >
                   {t('common.save', { defaultValue: 'Save' })}

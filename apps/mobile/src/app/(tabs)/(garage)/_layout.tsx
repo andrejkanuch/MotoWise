@@ -84,6 +84,10 @@ export default function GarageLayout() {
           title: t('garage.editBike', { defaultValue: 'Edit Motorcycle' }),
           presentation: 'card',
           headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          },
           headerBackButtonDisplayMode: 'default',
         }}
       />
@@ -106,6 +110,10 @@ export default function GarageLayout() {
           title: t('expenses.dashboard', { defaultValue: 'Expense Insights' }),
           presentation: 'card',
           headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          },
           headerBackButtonDisplayMode: 'default',
         }}
       />
@@ -114,6 +122,10 @@ export default function GarageLayout() {
         options={{
           title: t('bikeHub.allTasks', { defaultValue: 'All Tasks' }),
           headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          },
           headerBackButtonDisplayMode: 'default',
         }}
       />
