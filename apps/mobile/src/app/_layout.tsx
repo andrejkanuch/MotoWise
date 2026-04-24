@@ -242,7 +242,9 @@ export default function RootLayout() {
   const { setSession, setLoading, isLoading } = useAuthStore();
   const notificationResponseListener = useRef<Notifications.EventSubscription | null>(null);
   const [appReady, setAppReady] = useState(false);
-  const [fontsLoaded] = useFonts({
+
+  // Load editorial fonts — don't block splash on this; text uses system fallback until loaded
+  useFonts({
     'InstrumentSerif-Regular': InstrumentSerif_400Regular,
     'InstrumentSerif-Italic': InstrumentSerif_400Regular_Italic,
   });
@@ -312,10 +314,10 @@ export default function RootLayout() {
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
 
-  // Mark app as ready once auth state is resolved and fonts are loaded
+  // Mark app as ready once auth state is resolved
   useEffect(() => {
-    if (!isLoading && fontsLoaded) setAppReady(true);
-  }, [isLoading, fontsLoaded]);
+    if (!isLoading) setAppReady(true);
+  }, [isLoading]);
 
   useEffect(() => {
     const locale = useAuthStore.getState().locale;
