@@ -161,18 +161,12 @@ export class UsersService {
   async completeOnboarding(userId: string, input: CompleteOnboardingInput): Promise<User> {
     const preferences = {
       onboardingCompleted: true,
-      experienceLevel: input.experienceLevel,
-      ridingGoals: input.ridingGoals,
-      ...(input.ridingFrequency && { ridingFrequency: input.ridingFrequency }),
-      ...(input.maintenanceStyle && { maintenanceStyle: input.maintenanceStyle }),
-      learningFormats: input.learningFormats,
-      ...(input.annualRepairSpend && { annualRepairSpend: input.annualRepairSpend }),
-      ...(input.reminderChannel && { reminderChannel: input.reminderChannel }),
-      ...(input.lastServiceDate && { lastServiceDate: input.lastServiceDate }),
+      riderType: input.riderType,
+      goals: input.goals,
+      ...(input.measurementSystem && { measurementSystem: input.measurementSystem }),
       maintenanceReminders: input.maintenanceReminders ?? true,
       seasonalTips: input.seasonalTips ?? false,
       recallAlerts: input.recallAlerts ?? false,
-      weeklySummary: input.weeklySummary ?? false,
     };
 
     const { error } = await this.supabase.rpc('complete_onboarding', {
@@ -181,11 +175,11 @@ export class UsersService {
       p_bike_make: input.bikeMake ?? null,
       p_bike_model: input.bikeModel ?? null,
       p_bike_year: input.bikeYear ?? null,
-      p_bike_type: input.bikeType ?? null,
-      p_bike_mileage: input.bikeMileage ?? null,
+      p_bike_type: null,
+      p_bike_mileage: null,
       p_bike_nickname: input.bikeNickname ?? null,
       p_bike_photo_url: input.bikePhotoUrl ?? null,
-      p_mileage_unit: input.bikeMileageUnit ?? null,
+      p_mileage_unit: null,
       p_currency: input.currency ?? null,
     });
 

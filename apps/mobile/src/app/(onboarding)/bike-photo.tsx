@@ -3,19 +3,10 @@ import * as Haptics from 'expo-haptics';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Camera, ChevronRight, Image as ImageIcon, SkipForward, Tag, X } from 'lucide-react-native';
+import { Camera, ChevronLeft, Image as ImageIcon, SkipForward, X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
@@ -23,9 +14,10 @@ import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
+const SCREEN_INDEX = 3;
+
 /** Crop to 4:3 center and compress */
 async function cropAndCompress(uri: string): Promise<string> {
-  // First get the image dimensions by loading a resize-only pass
   const {
     width,
     height,
@@ -42,13 +34,11 @@ async function cropAndCompress(uri: string): Promise<string> {
     | { crop: { originX: number; originY: number; width: number; height: number } }
     | undefined;
   if (currentAspect > targetAspect) {
-    // Wider than 4:3 — crop sides
     const cropWidth = height * targetAspect;
     cropAction = {
       crop: { originX: (width - cropWidth) / 2, originY: 0, width: cropWidth, height },
     };
   } else if (currentAspect < targetAspect) {
-    // Taller than 4:3 — crop top/bottom
     const cropHeight = width / targetAspect;
     cropAction = {
       crop: { originX: 0, originY: (height - cropHeight) / 2, width, height: cropHeight },
@@ -71,7 +61,6 @@ export default function BikePhotoScreen() {
   const bikeData = useOnboardingStore((s) => s.bikeData);
   const setBikeData = useOnboardingStore((s) => s.setBikeData);
 
-  const [nickname, setNickname] = useState(bikeData?.nickname ?? '');
   const [photoUri, setPhotoUri] = useState<string | null>(bikeData?.photoUri ?? null);
 
   const bikeLabel = [bikeData?.year, bikeData?.make, bikeData?.model].filter(Boolean).join(' ');
@@ -120,7 +109,6 @@ export default function BikePhotoScreen() {
   );
 
   const handleTakePhoto = useCallback(() => pickImage('camera'), [pickImage]);
-
   const handleChooseFromLibrary = useCallback(() => pickImage('library'), [pickImage]);
 
   const handleRetake = () => {
@@ -137,134 +125,110 @@ export default function BikePhotoScreen() {
 
     setBikeData({
       ...(bikeData as NonNullable<typeof bikeData>),
-      nickname: nickname.trim() || undefined,
       photoUri: photoUri ?? undefined,
     });
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'bike_photo',
-      step_index: 6,
+      step_index: SCREEN_INDEX,
       has_photo: !!photoUri,
-      has_nickname: !!nickname.trim(),
     });
 
-    router.replace('/(onboarding)/currency');
+    router.replace('/(onboarding)/preferences');
   };
 
   const handleSkip = () => {
     setBikeData({
       ...(bikeData as NonNullable<typeof bikeData>),
-      nickname: nickname.trim() || undefined,
     });
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'bike_photo',
-      step_index: 6,
+      step_index: SCREEN_INDEX,
     });
 
-    router.replace('/(onboarding)/currency');
+    router.replace('/(onboarding)/preferences');
   };
-
-  const displayName = nickname.trim() || bikeLabel;
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={6} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={SCREEN_INDEX} totalScreens={TOTAL_SCREENS} />
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
+      {/* Back button */}
+      <Pressable
+        onPress={() => router.back()}
+        hitSlop={12}
+        style={{
+          paddingHorizontal: 24,
+          paddingTop: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 4,
+        }}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 120 }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
-          <Animated.Text
-            entering={FadeInDown.duration(300)}
+        <ChevronLeft size={22} color={ONBOARDING_COLORS.textSecondary} />
+      </Pressable>
+
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 24, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Title */}
+        <Animated.View entering={FadeInDown.duration(300)}>
+          <Text
             style={{
-              fontSize: 28,
-              fontWeight: '800',
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 40,
+              lineHeight: 44,
               color: ONBOARDING_COLORS.textPrimary,
-              letterSpacing: -0.5,
-              marginBottom: 32,
+              letterSpacing: -0.8,
+              marginBottom: 8,
             }}
           >
-            {t('onboarding.bikePhotoTitle')}
-          </Animated.Text>
-
-          {/* Nickname input */}
-          <Animated.View entering={FadeInUp.delay(100).duration(300)}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 10,
-              }}
-            >
-              <Tag size={18} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                {t('onboarding.nicknamePlaceholder')}
-              </Text>
-            </View>
-            <TextInput
-              value={nickname}
-              onChangeText={setNickname}
-              placeholder={t('onboarding.nicknamePlaceholder')}
-              placeholderTextColor={ONBOARDING_COLORS.textDimmed}
-              style={{
-                backgroundColor: ONBOARDING_COLORS.cardBg,
-                borderWidth: 1,
-                borderColor: ONBOARDING_COLORS.cardBorder,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                padding: 16,
-                fontSize: 17,
-                color: ONBOARDING_COLORS.textPrimary,
-                marginBottom: 32,
-              }}
-            />
-          </Animated.View>
-
-          {/* Photo section */}
-          <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+            Add a photo of{'\n'}
             <Text
               style={{
-                fontSize: 17,
-                fontWeight: '700',
-                color: ONBOARDING_COLORS.textPrimary,
-                marginBottom: 16,
+                fontFamily: 'InstrumentSerif-Italic',
+                color: ONBOARDING_COLORS.warm2,
               }}
             >
-              {t('onboarding.bikePhotoSubtitle')}
+              your ride.
             </Text>
+          </Text>
+        </Animated.View>
 
-            {photoUri ? (
-              /* Photo preview */
-              <Animated.View entering={FadeIn.duration(300)}>
-                <View
-                  style={{
-                    borderRadius: 20,
-                    borderCurve: 'continuous',
-                    overflow: 'hidden',
-                    marginBottom: 16,
-                  }}
-                >
-                  <Image
-                    source={{ uri: photoUri }}
-                    style={{ width: '100%', aspectRatio: 4 / 3 }}
-                    resizeMode="cover"
-                  />
-                  {/* Bike info overlay */}
+        {/* Subtitle */}
+        <Animated.Text
+          entering={FadeIn.delay(100).duration(250)}
+          style={{
+            fontSize: 15,
+            lineHeight: 21,
+            color: ONBOARDING_COLORS.textSecondary,
+            marginBottom: 32,
+          }}
+        >
+          {t('onboarding.bikePhotoSubtitle')}
+        </Animated.Text>
+
+        {/* Photo section */}
+        <Animated.View entering={FadeInUp.delay(200).duration(300)}>
+          {photoUri ? (
+            /* Photo preview */
+            <Animated.View entering={FadeIn.duration(300)}>
+              <View
+                style={{
+                  borderRadius: 20,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                  marginBottom: 16,
+                }}
+              >
+                <Image
+                  source={{ uri: photoUri }}
+                  style={{ width: '100%', aspectRatio: 4 / 3 }}
+                  resizeMode="cover"
+                />
+                {/* Bike info overlay */}
+                {bikeLabel ? (
                   <View
                     style={{
                       position: 'absolute',
@@ -284,113 +248,142 @@ export default function BikePhotoScreen() {
                       }}
                       numberOfLines={1}
                     >
-                      {displayName}
+                      {bikeLabel}
                     </Text>
-                    {nickname.trim() && bikeLabel ? (
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          color: ONBOARDING_COLORS.textSecondary,
-                          marginTop: 2,
-                        }}
-                        numberOfLines={1}
-                      >
-                        {bikeLabel}
-                      </Text>
-                    ) : null}
                   </View>
-                </View>
+                ) : null}
+              </View>
 
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <Pressable
-                    onPress={handleContinue}
-                    style={({ pressed }) => ({
-                      flex: 1,
-                      backgroundColor: ONBOARDING_COLORS.textPrimary,
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      paddingVertical: 14,
-                      alignItems: 'center',
-                      opacity: pressed ? 0.85 : 1,
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      gap: 6,
-                    })}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Pressable
+                  onPress={handleContinue}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    backgroundColor: ONBOARDING_COLORS.warm,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    opacity: pressed ? 0.85 : 1,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    gap: 6,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '700',
+                      color: '#1a1208',
+                    }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '700',
-                        color: ONBOARDING_COLORS.background,
-                      }}
-                    >
-                      {t('onboarding.looksGreat')}
-                    </Text>
-                  </Pressable>
+                    {t('onboarding.looksGreat')}
+                  </Text>
+                </Pressable>
 
-                  <Pressable
-                    onPress={handleRetake}
-                    style={({ pressed }) => ({
-                      backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
-                      borderRadius: 16,
-                      borderCurve: 'continuous',
-                      paddingVertical: 14,
-                      paddingHorizontal: 20,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      opacity: pressed ? 0.85 : 1,
-                      flexDirection: 'row',
-                      gap: 6,
-                    })}
+                <Pressable
+                  onPress={handleRetake}
+                  style={({ pressed }) => ({
+                    backgroundColor: ONBOARDING_COLORS.cardBorderDefault,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    paddingVertical: 14,
+                    paddingHorizontal: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.85 : 1,
+                    flexDirection: 'row',
+                    gap: 6,
+                  })}
+                >
+                  <X size={18} color={ONBOARDING_COLORS.textSecondary} />
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '600',
+                      color: ONBOARDING_COLORS.textSecondary,
+                    }}
                   >
-                    <X size={18} color={ONBOARDING_COLORS.textSecondary} />
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: '600',
-                        color: ONBOARDING_COLORS.textSecondary,
-                      }}
-                    >
-                      {t('onboarding.retakePhoto')}
-                    </Text>
-                  </Pressable>
+                    {t('onboarding.retakePhoto')}
+                  </Text>
+                </Pressable>
+              </View>
+            </Animated.View>
+          ) : (
+            /* Dashed upload area + camera/library buttons */
+            <View style={{ gap: 16 }}>
+              {/* Large dashed-border upload area */}
+              <Pressable
+                onPress={handleChooseFromLibrary}
+                style={({ pressed }) => ({
+                  borderWidth: 2,
+                  borderColor: ONBOARDING_COLORS.cardBorder,
+                  borderStyle: 'dashed',
+                  borderRadius: 20,
+                  borderCurve: 'continuous',
+                  paddingVertical: 48,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  opacity: pressed ? 0.7 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                })}
+              >
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    borderCurve: 'continuous',
+                    backgroundColor: ONBOARDING_COLORS.accentBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ImageIcon size={26} color={ONBOARDING_COLORS.accent} />
                 </View>
-              </Animated.View>
-            ) : (
-              /* Photo picker buttons */
-              <View style={{ gap: 12 }}>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: '600',
+                    color: ONBOARDING_COLORS.textPrimary,
+                  }}
+                >
+                  {t('onboarding.tapToAddPhoto')}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: ONBOARDING_COLORS.textMuted,
+                  }}
+                >
+                  {t('onboarding.cameraOrLibrary')}
+                </Text>
+              </Pressable>
+
+              {/* Camera + Library buttons */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <Pressable
                   onPress={handleTakePhoto}
                   style={({ pressed }) => ({
+                    flex: 1,
                     backgroundColor: ONBOARDING_COLORS.cardBg,
                     borderWidth: 1,
                     borderColor: ONBOARDING_COLORS.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
-                    paddingVertical: 18,
-                    paddingHorizontal: 20,
+                    paddingVertical: 16,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 12,
+                    justifyContent: 'center',
+                    gap: 8,
                     transform: [{ scale: pressed ? 0.97 : 1 }],
                   })}
                 >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      borderCurve: 'continuous',
-                      backgroundColor: ONBOARDING_COLORS.accentBg,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Camera size={22} color={ONBOARDING_COLORS.accent} />
-                  </View>
+                  <Camera size={20} color={ONBOARDING_COLORS.accent} />
                   <Text
                     style={{
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: '600',
                       color: ONBOARDING_COLORS.textPrimary,
                     }}
@@ -402,35 +395,24 @@ export default function BikePhotoScreen() {
                 <Pressable
                   onPress={handleChooseFromLibrary}
                   style={({ pressed }) => ({
+                    flex: 1,
                     backgroundColor: ONBOARDING_COLORS.cardBg,
                     borderWidth: 1,
                     borderColor: ONBOARDING_COLORS.cardBorder,
                     borderRadius: 16,
                     borderCurve: 'continuous',
-                    paddingVertical: 18,
-                    paddingHorizontal: 20,
+                    paddingVertical: 16,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: 12,
+                    justifyContent: 'center',
+                    gap: 8,
                     transform: [{ scale: pressed ? 0.97 : 1 }],
                   })}
                 >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      borderCurve: 'continuous',
-                      backgroundColor: `${palette.moduleSuspension}26`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ImageIcon size={22} color={ONBOARDING_COLORS.accent} />
-                  </View>
+                  <ImageIcon size={20} color={palette.moduleSuspension} />
                   <Text
                     style={{
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: '600',
                       color: ONBOARDING_COLORS.textPrimary,
                     }}
@@ -439,64 +421,63 @@ export default function BikePhotoScreen() {
                   </Text>
                 </Pressable>
               </View>
-            )}
-          </Animated.View>
-        </ScrollView>
+            </View>
+          )}
+        </Animated.View>
+      </ScrollView>
 
-        {/* Bottom buttons (only when no photo preview) */}
-        {!photoUri && (
-          <View style={{ paddingHorizontal: 24, paddingBottom: 48, gap: 12 }}>
-            <Pressable
-              onPress={handleContinue}
-              style={({ pressed }) => ({
-                backgroundColor: ONBOARDING_COLORS.textPrimary,
-                borderRadius: 16,
-                borderCurve: 'continuous',
-                paddingVertical: 16,
-                alignItems: 'center',
-                opacity: pressed ? 0.85 : 1,
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 8,
-              })}
+      {/* Bottom buttons (only when no photo preview) */}
+      {!photoUri && (
+        <View style={{ paddingHorizontal: 24, paddingBottom: 48, gap: 12 }}>
+          <Pressable
+            onPress={handleContinue}
+            style={({ pressed }) => ({
+              backgroundColor: ONBOARDING_COLORS.warm,
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              paddingVertical: 16,
+              alignItems: 'center',
+              opacity: pressed ? 0.85 : 1,
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 8,
+            })}
+          >
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: '700',
+                color: '#1a1208',
+              }}
             >
-              <Text
-                style={{
-                  fontSize: 17,
-                  fontWeight: '700',
-                  color: ONBOARDING_COLORS.background,
-                }}
-              >
-                {t('onboarding.continue')}
-              </Text>
-              <ChevronRight size={20} color={ONBOARDING_COLORS.background} />
-            </Pressable>
+              {t('onboarding.continue')}
+            </Text>
+          </Pressable>
 
-            <Pressable
-              onPress={handleSkip}
-              style={({ pressed }) => ({
-                paddingVertical: 12,
-                alignItems: 'center',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: 6,
-                opacity: pressed ? 0.6 : 1,
-              })}
+          <Pressable
+            onPress={handleSkip}
+            style={({ pressed }) => ({
+              paddingVertical: 12,
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              gap: 6,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <SkipForward size={16} color={ONBOARDING_COLORS.textMuted} />
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '600',
+                color: ONBOARDING_COLORS.textMuted,
+              }}
             >
-              <SkipForward size={16} color={ONBOARDING_COLORS.textMuted} />
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: ONBOARDING_COLORS.textMuted,
-                }}
-              >
-                {t('onboarding.addLater')}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-      </KeyboardAvoidingView>
+              {t('onboarding.skipAddLater')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }

@@ -147,9 +147,8 @@ describe('UsersService', () => {
       });
 
       const input = {
-        experienceLevel: 'intermediate',
-        ridingGoals: ['commuting'],
-        learningFormats: ['articles'],
+        riderType: 'daily_rider',
+        goals: ['maintenance'],
         bikeMake: 'Honda',
         bikeModel: 'CB500F',
         bikeYear: 2023,
@@ -163,7 +162,7 @@ describe('UsersService', () => {
           p_user_id: userId,
           p_preferences: expect.objectContaining({
             onboardingCompleted: true,
-            experienceLevel: 'intermediate',
+            riderType: 'daily_rider',
           }),
           p_bike_make: 'Honda',
           p_bike_model: 'CB500F',

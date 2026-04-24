@@ -55,6 +55,24 @@ export const ExperienceLevel = {
 } as const;
 export type ExperienceLevel = (typeof ExperienceLevel)[keyof typeof ExperienceLevel];
 
+export const RiderType = {
+  DAILY_RIDER: 'daily_rider',
+  TOURER: 'tourer',
+  WRENCH: 'wrench',
+  COLLECTOR: 'collector',
+} as const;
+export type RiderType = (typeof RiderType)[keyof typeof RiderType];
+
+export const OnboardingGoal = {
+  MAINTENANCE: 'maintenance',
+  EXPENSES: 'expenses',
+  RIDES: 'rides',
+  TRIPS: 'trips',
+  HISTORY: 'history',
+  RECALLS: 'recalls',
+} as const;
+export type OnboardingGoal = (typeof OnboardingGoal)[keyof typeof OnboardingGoal];
+
 export const MaintenanceTaskStatus = {
   PENDING: 'pending',
   IN_PROGRESS: 'in_progress',

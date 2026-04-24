@@ -18,7 +18,7 @@ export default function WelcomeScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
-    router.push('/(onboarding)/experience');
+    router.push('/(onboarding)/rider-type');
   };
 
   return (
@@ -113,7 +113,7 @@ export default function WelcomeScreen() {
               marginBottom: 18,
             }}
           >
-            The rider's companion
+            THE RIDER'S COMPANION
           </Animated.Text>
 
           <Animated.View entering={FadeInUp.delay(200).duration(400)}>
@@ -150,8 +150,7 @@ export default function WelcomeScreen() {
               marginBottom: 32,
             }}
           >
-            Keep your garage, trips, and maintenance in one thoughtfully-made place — built for
-            riders who care.
+            Your garage, your trips, your service history — kept beautifully in one place.
           </Animated.Text>
 
           <Animated.View entering={FadeIn.delay(500).duration(300)}>
@@ -183,26 +182,6 @@ export default function WelcomeScreen() {
               </Text>
               <ArrowRight size={18} color="#1a1208" />
             </Pressable>
-
-            <Text
-              style={{
-                textAlign: 'center',
-                marginTop: 16,
-                fontSize: 13,
-                color: '#fff',
-                opacity: 0.7,
-              }}
-            >
-              Have an account?{' '}
-              <Text
-                style={{
-                  color: ONBOARDING_COLORS.warm2,
-                  fontWeight: '600',
-                }}
-              >
-                Sign in
-              </Text>
-            </Text>
           </Animated.View>
         </View>
       </View>
