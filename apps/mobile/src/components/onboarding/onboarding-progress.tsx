@@ -13,6 +13,7 @@ interface OnboardingProgressProps {
  */
 export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProgressProps) {
   const insets = useSafeAreaInsets();
+  const steps = Array.from({ length: totalScreens }, (_, i) => `step-${i}`);
 
   return (
     <View
@@ -23,16 +24,15 @@ export function OnboardingProgress({ screenIndex, totalScreens }: OnboardingProg
         paddingTop: insets.top + 12,
       }}
     >
-      {Array.from({ length: totalScreens }, (_, i) => (
+      {steps.map((key, i) => (
         <View
-          key={i}
+          key={key}
           style={{
             flex: 1,
             height: 3,
             borderRadius: 2,
             borderCurve: 'continuous',
-            backgroundColor:
-              i <= screenIndex ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+            backgroundColor: i <= screenIndex ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
           }}
         />
       ))}

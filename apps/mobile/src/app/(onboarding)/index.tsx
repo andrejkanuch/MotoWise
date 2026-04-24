@@ -35,7 +35,9 @@ export default function WelcomeScreen() {
         }}
       >
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&q=80&auto=format&fit=crop' }}
+          source={{
+            uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&q=80&auto=format&fit=crop',
+          }}
           style={{ width: '100%', height: '100%', opacity: 0.65 }}
           contentFit="cover"
           contentPosition="center"
@@ -148,8 +150,8 @@ export default function WelcomeScreen() {
               marginBottom: 32,
             }}
           >
-            Keep your garage, trips, and maintenance in one thoughtfully-made
-            place — built for riders who care.
+            Keep your garage, trips, and maintenance in one thoughtfully-made place — built for
+            riders who care.
           </Animated.Text>
 
           <Animated.View entering={FadeIn.delay(500).duration(300)}>

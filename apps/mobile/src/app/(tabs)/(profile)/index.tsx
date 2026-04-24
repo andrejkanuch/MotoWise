@@ -320,60 +320,57 @@ export default function ProfileScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 30,
-              borderCurve: 'continuous',
-              overflow: 'hidden',
-            }}
-          >
-            <LinearGradient
-              colors={[editorialWarm, palette.editorialPurple]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <View
               style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                borderCurve: 'continuous',
+                overflow: 'hidden',
               }}
             >
-              <Text style={{ fontSize: 22, fontWeight: '600', color: '#fff' }}>
-                {initials}
-              </Text>
-            </LinearGradient>
-          </View>
-          <View style={{ flex: 1 }}>
+              <LinearGradient
+                colors={[editorialWarm, palette.editorialPurple]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 22, fontWeight: '600', color: '#fff' }}>{initials}</Text>
+              </LinearGradient>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text
+                  selectable
+                  style={{
+                    fontSize: 17,
+                    fontWeight: '600',
+                    color: editorialInk,
+                    letterSpacing: -0.1,
+                  }}
+                >
+                  {user?.fullName ?? t('profile.rider')}
+                </Text>
+                {isPro && <ProBadge />}
+              </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text
-              selectable
-              style={{
-                fontSize: 17,
-                fontWeight: '600',
-                color: editorialInk,
-                letterSpacing: -0.1,
-              }}
-            >
-              {user?.fullName ?? t('profile.rider')}
-            </Text>
-            {isPro && <ProBadge />}
-          </View>
-
-          {/* Public profile info */}
-          {user?.publicUsername && (
-            <Text
-              style={{
-                fontSize: 13,
-                color: editorialInk2,
-                marginTop: 2,
-              }}
-            >
-              @{user.publicUsername}
-            </Text>
-          )}
-          </View>
+              {/* Public profile info */}
+              {user?.publicUsername && (
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: editorialInk2,
+                    marginTop: 2,
+                  }}
+                >
+                  @{user.publicUsername}
+                </Text>
+              )}
+            </View>
           </View>
 
           {/* Action buttons row */}

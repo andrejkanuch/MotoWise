@@ -15,13 +15,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useEditorialTheme } from '../../theme/editorial';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapPicker from '../../components/map-picker';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
 
 type Difficulty = 'easy' | 'moderate' | 'challenging';
 

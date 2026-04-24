@@ -10,14 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Wrench } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -26,8 +19,8 @@ import {
 } from '../../../components/bike-hub/swipeable-task-card';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';

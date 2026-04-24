@@ -35,8 +35,8 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function EditBikeScreen() {
   const { t } = useTranslation();
   const { symbol: currencySymbol } = useCurrency();

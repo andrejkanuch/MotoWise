@@ -29,9 +29,7 @@ export function OnboardingContinueButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       style={({ pressed }) => ({
-        backgroundColor: disabled
-          ? ONBOARDING_COLORS.textDimmed
-          : ONBOARDING_COLORS.warm,
+        backgroundColor: disabled ? ONBOARDING_COLORS.textDimmed : ONBOARDING_COLORS.warm,
         borderRadius: 16,
         borderCurve: 'continuous',
         paddingVertical: 18,
@@ -56,10 +54,7 @@ export function OnboardingContinueButton({
         {label}
       </Text>
       {showIcon ? (
-        <ArrowRight
-          size={18}
-          color={disabled ? ONBOARDING_COLORS.textMuted : '#1a1208'}
-        />
+        <ArrowRight size={18} color={disabled ? ONBOARDING_COLORS.textMuted : '#1a1208'} />
       ) : null}
     </Pressable>
   );

@@ -21,15 +21,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
-import { useEditorialTheme } from '../../theme/editorial';
+import { ActivityIndicator, Alert, Image, Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -37,6 +29,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
 
 function formatDateTime(iso: string): string {

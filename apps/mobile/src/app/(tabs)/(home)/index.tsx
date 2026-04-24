@@ -20,7 +20,7 @@ import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
-import { useEditorialTheme, tint } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 // ── Weekly bar chart (Mon–Sun) ──
 function WeekBars({ values }: { values: number[] }) {
@@ -33,10 +33,7 @@ function WeekBars({ values }: { values: number[] }) {
         const h = v === 0 ? 3 : Math.max(10, (v / max) * 70);
         const active = v > 0;
         return (
-          <View
-            key={`${days[i]}-${i}`}
-            style={{ flex: 1, alignItems: 'center', gap: 5 }}
-          >
+          <View key={days[i]} style={{ flex: 1, alignItems: 'center', gap: 5 }}>
             <View
               style={{
                 width: '100%',
@@ -47,9 +44,7 @@ function WeekBars({ values }: { values: number[] }) {
                 opacity: active ? 1 : 0.7,
               }}
             />
-            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>
-              {days[i]}
-            </Text>
+            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>{days[i]}</Text>
           </View>
         );
       })}
@@ -79,13 +74,11 @@ export default function HomeScreen() {
     bikeNames,
     articles,
     recentRides,
-    ridesTotalDistance,
     router,
   } = useHomeData();
 
   const hour = new Date().getHours();
-  const greet =
-    hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const dateLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -94,21 +87,14 @@ export default function HomeScreen() {
 
   // Compute next service days
   const nextServiceDays = nextService?.dueDate
-    ? Math.max(
-        0,
-        Math.floor(
-          (new Date(nextService.dueDate).getTime() - Date.now()) / 86400000,
-        ),
-      )
+    ? Math.max(0, Math.floor((new Date(nextService.dueDate).getTime() - Date.now()) / 86400000))
     : null;
 
   // This month stats from rides
   const thisMonthStats = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthRides = recentRides.filter(
-      (r) => new Date(r.startedAt) >= monthStart,
-    );
+    const monthRides = recentRides.filter((r) => new Date(r.startedAt) >= monthStart);
     const distanceKm = Math.round(
       monthRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0) / 1000,
     );
@@ -147,16 +133,10 @@ export default function HomeScreen() {
         }}
       >
         <SkeletonProvider>
-          <Animated.View
-            entering={FadeInUp.delay(0).duration(300)}
-            style={{ marginTop: 16 }}
-          >
+          <Animated.View entering={FadeInUp.delay(0).duration(300)} style={{ marginTop: 16 }}>
             <Skeleton width="60%" height={24} borderRadius={8} />
           </Animated.View>
-          <Animated.View
-            entering={FadeInUp.delay(50).duration(300)}
-            style={{ marginTop: 8 }}
-          >
+          <Animated.View entering={FadeInUp.delay(50).duration(300)} style={{ marginTop: 8 }}>
             <Skeleton width="40%" height={16} borderRadius={6} />
           </Animated.View>
           {[0, 1, 2].map((i) => (
@@ -215,9 +195,7 @@ export default function HomeScreen() {
             paddingVertical: 12,
           }}
         >
-          <Text style={{ color: '#1a1208', fontWeight: '600' }}>
-            {t('common.retry')}
-          </Text>
+          <Text style={{ color: '#1a1208', fontWeight: '600' }}>{t('common.retry')}</Text>
         </Pressable>
       </View>
     );
@@ -230,11 +208,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 110, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.warm}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
         {/* ═══ 1. Top bar ═══ */}
@@ -264,18 +238,12 @@ export default function HomeScreen() {
                 borderColor: theme.line,
               }}
             >
-              <Text
-                style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}
-              >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}>
                 {avatarInitial}
               </Text>
             </View>
             <View>
-              <Text
-                style={{ fontSize: 11, color: theme.ink3, letterSpacing: 0.2 }}
-              >
-                {greet}
-              </Text>
+              <Text style={{ fontSize: 11, color: theme.ink3, letterSpacing: 0.2 }}>{greet}</Text>
               <Text
                 style={{
                   fontSize: 15,
@@ -351,9 +319,7 @@ export default function HomeScreen() {
               marginBottom: 10,
             }}
           >
-            <View
-              style={{ width: 18, height: 1, backgroundColor: theme.ink3 }}
-            />
+            <View style={{ width: 18, height: 1, backgroundColor: theme.ink3 }} />
             <Text
               style={{
                 fontSize: 10,
@@ -445,12 +411,7 @@ export default function HomeScreen() {
 
                 {/* Smooth gradient overlay — light top, clear middle, solid bottom for text */}
                 <LinearGradient
-                  colors={[
-                    `${theme.bg}30`,
-                    `${theme.bg}10`,
-                    `${theme.bg}80`,
-                    theme.bg,
-                  ]}
+                  colors={[`${theme.bg}30`, `${theme.bg}10`, `${theme.bg}80`, theme.bg]}
                   locations={[0, 0.25, 0.65, 1]}
                   style={{
                     position: 'absolute',
@@ -649,9 +610,7 @@ export default function HomeScreen() {
                             lineHeight: 22,
                           }}
                         >
-                          {nextServiceDays != null
-                            ? String(nextServiceDays)
-                            : '—'}
+                          {nextServiceDays != null ? String(nextServiceDays) : '—'}
                         </Text>
                         <Text
                           style={{
@@ -766,10 +725,7 @@ export default function HomeScreen() {
                 >
                   {priorityAction.title}
                 </Text>
-                <Text
-                  style={{ fontSize: 11, color: theme.ink3, marginTop: 1 }}
-                  numberOfLines={1}
-                >
+                <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 1 }} numberOfLines={1}>
                   {priorityAction.subtitle}
                 </Text>
               </View>
@@ -1019,9 +975,7 @@ export default function HomeScreen() {
                 >
                   <Text style={{ fontSize: 10, color: theme.ink3 }}>0</Text>
                   <Text style={{ fontSize: 10, color: theme.ink3 }}>300</Text>
-                  <Text style={{ fontSize: 10, color: theme.ink3 }}>
-                    600 km goal
-                  </Text>
+                  <Text style={{ fontSize: 10, color: theme.ink3 }}>600 km goal</Text>
                 </View>
               </View>
             </ECard>
@@ -1127,14 +1081,9 @@ export default function HomeScreen() {
                         >
                           {task.title}
                         </Text>
-                        <Text
-                          style={{ fontSize: 11, color: theme.ink3 }}
-                          numberOfLines={1}
-                        >
+                        <Text style={{ fontSize: 11, color: theme.ink3 }} numberOfLines={1}>
                           {dueText}
-                          {bikeNames[task.motorcycleId]
-                            ? ` · ${bikeNames[task.motorcycleId]}`
-                            : ''}
+                          {bikeNames[task.motorcycleId] ? ` · ${bikeNames[task.motorcycleId]}` : ''}
                         </Text>
                       </View>
                       <View
@@ -1170,9 +1119,7 @@ export default function HomeScreen() {
               contentContainerStyle={{ gap: 10, paddingRight: 16 }}
             >
               {motorcycles
-                .filter(
-                  (b: { id: string }) => b.id !== primaryBike?.id,
-                )
+                .filter((b: { id: string }) => b.id !== primaryBike?.id)
                 .map(
                   (b: {
                     id: string;

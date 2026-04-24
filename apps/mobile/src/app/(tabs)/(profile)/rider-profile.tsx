@@ -6,12 +6,12 @@ import { Check } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { useEditorialTheme } from '../../../theme/editorial';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ScreenHeader } from '../../../components/profile/shared';
 import { useUpdateUserPreferences } from '../../../hooks/use-update-user-preferences';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];

@@ -32,9 +32,9 @@ import { CompletenessRing } from '../../../components/trip/completeness-ring';
 import { Avatar } from '../../../components/ui/avatar';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import { computeTripCompleteness } from '../../../utils/trip-completeness';
-import { useEditorialTheme } from '../../../theme/editorial';
 
 const PAGE_SIZE = 20;
 

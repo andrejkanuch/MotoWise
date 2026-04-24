@@ -6,8 +6,9 @@
  *   const { t, isDark } = useEditorialTheme();
  *   <View style={{ backgroundColor: t.bg, borderColor: t.line }} />
  */
-import { useColorScheme } from 'nativewind';
+
 import { palette } from '@motovault/design-system';
+import { useColorScheme } from 'nativewind';
 
 const dark = {
   bg: palette.editorialDarkBg,

@@ -1,10 +1,10 @@
 import '../global.css';
-import { LogBox } from 'react-native';
 import {
   InstrumentSerif_400Regular,
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
 import { useFonts } from 'expo-font';
+import { LogBox } from 'react-native';
 
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 

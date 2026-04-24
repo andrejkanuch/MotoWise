@@ -13,8 +13,8 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
-import { triggerImpact } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact } from '../../../utils/haptics';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 const PRIORITY_META: Record<string, { color: string }> = {

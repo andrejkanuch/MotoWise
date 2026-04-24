@@ -15,22 +15,14 @@ import {
   Zap,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { useEditorialTheme } from '../../theme/editorial';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
+import { useEditorialTheme } from '../../theme/editorial';
 import { startGPSListener } from '../../utils/ride-location';
 import { checkAndRequestPermissions } from '../../utils/ride-permissions';
 import { rideMMKV } from '../../utils/ride-storage';

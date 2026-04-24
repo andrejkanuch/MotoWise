@@ -19,7 +19,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { useEditorialTheme } from '../../../theme/editorial';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -36,6 +35,7 @@ import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const SEVERITY_COLORS = {
   critical: {
@@ -408,11 +408,7 @@ export default function DiagnoseScreen() {
                       borderCurve: 'continuous',
                     }}
                   >
-                    <Icon
-                      size={16}
-                      color={eTheme.ink3}
-                      strokeWidth={1.5}
-                    />
+                    <Icon size={16} color={eTheme.ink3} strokeWidth={1.5} />
                     <Text
                       style={{
                         fontSize: 13,
@@ -607,11 +603,7 @@ export default function DiagnoseScreen() {
                           >
                             {'\u25CF'}
                           </Text>
-                          <Clock
-                            size={10}
-                            color={eTheme.ink3}
-                            strokeWidth={2}
-                          />
+                          <Clock size={10} color={eTheme.ink3} strokeWidth={2} />
                           <Text
                             style={{
                               fontSize: 12,

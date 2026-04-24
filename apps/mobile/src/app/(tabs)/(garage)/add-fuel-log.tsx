@@ -7,15 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Check, Droplets, Gauge, Plus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../../hooks/use-currency';
@@ -23,8 +15,8 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 /**
  * MOT-137: Fuel fill-up entry + history screen.

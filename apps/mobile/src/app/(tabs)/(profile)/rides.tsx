@@ -6,14 +6,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
@@ -24,13 +17,13 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
   formatDuration as fmtDuration,
   formatDistanceValue,
 } from '../../../utils/ride-formatters';
-import { useEditorialTheme } from '../../../theme/editorial';
 
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;

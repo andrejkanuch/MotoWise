@@ -21,8 +21,8 @@ import {
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const CATEGORIES = [
   'fuel',

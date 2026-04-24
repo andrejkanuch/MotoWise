@@ -18,15 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Award, Compass, Plus, Star, TrendingUp, Wind } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
 import Animated, {
   Extrapolation,
   FadeInUp,
@@ -38,6 +30,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof FlatList;

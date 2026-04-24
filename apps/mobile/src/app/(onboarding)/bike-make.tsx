@@ -2,7 +2,7 @@ import { MotorcycleMakesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { ArrowRight, ChevronRight, Search } from 'lucide-react-native';
+import { ChevronRight, Search } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,22 +20,12 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
 
-const POPULAR_MAKES = [
-  'BMW',
-  'Ducati',
-  'KTM',
-  'Harley-Davidson',
-  'Honda',
-  'Yamaha',
-  'Triumph',
-];
+const POPULAR_MAKES = ['BMW', 'Ducati', 'KTM', 'Harley-Davidson', 'Honda', 'Yamaha', 'Triumph'];
 
 export default function BikeMakeScreen() {
   const { t } = useTranslation();
@@ -164,8 +154,8 @@ export default function BikeMakeScreen() {
                     lineHeight: 20,
                   }}
                 >
-                  Pick your make — we'll pre-fill service intervals, torque specs,
-                  and common issues.
+                  Pick your make — we'll pre-fill service intervals, torque specs, and common
+                  issues.
                 </Text>
               </Animated.View>
             </View>
@@ -177,7 +167,7 @@ export default function BikeMakeScreen() {
               keyboardShouldPersistTaps="handled"
             >
               {/* Selected make chip */}
-              {(selectedMake && !search) ? (
+              {selectedMake && !search ? (
                 <Animated.View entering={FadeInUp.duration(200)}>
                   <Pressable
                     onPress={() => {
@@ -235,7 +225,7 @@ export default function BikeMakeScreen() {
                     </Text>
                   </Pressable>
                 </Animated.View>
-              ) : (customMake && !search) ? (
+              ) : customMake && !search ? (
                 <Animated.View entering={FadeInUp.duration(200)}>
                   <Pressable
                     onPress={() => {
@@ -265,7 +255,9 @@ export default function BikeMakeScreen() {
                     >
                       {customMake}
                     </Text>
-                    <Text style={{ fontSize: 11, color: ONBOARDING_COLORS.warm, fontWeight: '600' }}>
+                    <Text
+                      style={{ fontSize: 11, color: ONBOARDING_COLORS.warm, fontWeight: '600' }}
+                    >
                       Custom
                     </Text>
                   </Pressable>
@@ -306,10 +298,7 @@ export default function BikeMakeScreen() {
 
               {/* Loading */}
               {makesResult.isLoading && (
-                <ActivityIndicator
-                  color={ONBOARDING_COLORS.warm}
-                  style={{ marginVertical: 20 }}
-                />
+                <ActivityIndicator color={ONBOARDING_COLORS.warm} style={{ marginVertical: 20 }} />
               )}
 
               {/* Search results dropdown */}
@@ -336,9 +325,7 @@ export default function BikeMakeScreen() {
                             paddingVertical: 14,
                             borderBottomWidth: 1,
                             borderBottomColor: ONBOARDING_COLORS.line,
-                            backgroundColor: pressed
-                              ? ONBOARDING_COLORS.surface2
-                              : 'transparent',
+                            backgroundColor: pressed ? ONBOARDING_COLORS.surface2 : 'transparent',
                           })}
                         >
                           <Text

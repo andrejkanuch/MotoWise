@@ -222,7 +222,9 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
             <View>
               <Icon
                 size={22}
-                color={isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3}
+                color={
+                  isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3
+                }
                 strokeWidth={isFocused ? 2.5 : 1.8}
               />
               {showBadge && (
@@ -257,7 +259,11 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               style={{
                 fontSize: 10,
                 fontWeight: isFocused ? '700' : '500',
-                color: isFocused ? (config.name === '(garage)' ? theme.warm : theme.ink) : theme.ink3,
+                color: isFocused
+                  ? config.name === '(garage)'
+                    ? theme.warm
+                    : theme.ink
+                  : theme.ink3,
                 marginTop: 3,
               }}
             >

@@ -11,10 +11,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  Calendar,
   Camera,
   ChevronDown,
   ChevronLeft,
@@ -22,7 +20,6 @@ import {
   Edit3,
   Gauge,
   MoreHorizontal,
-  Star,
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -36,7 +33,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -53,10 +49,10 @@ import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upl
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
-import { useEditorialTheme, tint } from '../../../../theme/editorial';
+import { useEditorialTheme } from '../../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
 
-function InfoRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
+function InfoRow({ label, value }: { label: string; value: string; isDark?: boolean }) {
   const { t: theme } = useEditorialTheme();
   return (
     <View
@@ -70,10 +66,7 @@ function InfoRow({ label, value, isDark }: { label: string; value: string; isDar
       }}
     >
       <Text style={{ fontSize: 14, color: theme.ink3 }}>{label}</Text>
-      <Text
-        selectable
-        style={{ fontSize: 15, fontWeight: '600', color: theme.ink }}
-      >
+      <Text selectable style={{ fontSize: 15, fontWeight: '600', color: theme.ink }}>
         {value}
       </Text>
     </View>
@@ -91,7 +84,6 @@ export default function BikeDetailScreen() {
   const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
   const session = useAuthStore((s) => s.session);
 
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -537,11 +529,7 @@ export default function BikeDetailScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.warm}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
         {/* 1. Hero — editorial full-bleed photo */}
@@ -582,14 +570,20 @@ export default function BikeDetailScreen() {
               <View
                 style={{
                   position: 'absolute',
-                  top: 0, left: 0, right: 0, height: '30%',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '30%',
                   backgroundColor: `${theme.bg}80`,
                 }}
               />
               <View
                 style={{
                   position: 'absolute',
-                  bottom: 0, left: 0, right: 0, height: '45%',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '45%',
                   backgroundColor: theme.bg,
                 }}
               />
@@ -668,7 +662,8 @@ export default function BikeDetailScreen() {
           style={{ paddingHorizontal: 20, marginTop: -40, position: 'relative' }}
         >
           <Text style={{ fontSize: 11, color: theme.ink3, marginBottom: 4, fontWeight: '500' }}>
-            {bike.year}{bike.nickname ? ` · "${bike.nickname}"` : ''}
+            {bike.year}
+            {bike.nickname ? ` · "${bike.nickname}"` : ''}
           </Text>
           <Text
             selectable
@@ -681,8 +676,7 @@ export default function BikeDetailScreen() {
               marginBottom: 14,
             }}
           >
-            {bike.make}{' '}
-            <Text style={{ fontFamily: 'InstrumentSerif-Italic' }}>{bike.model}</Text>
+            {bike.make} <Text style={{ fontFamily: 'InstrumentSerif-Italic' }}>{bike.model}</Text>
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18, alignItems: 'center' }}>
@@ -811,11 +805,7 @@ export default function BikeDetailScreen() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Edit3
-              size={18}
-              color={theme.ink2}
-              strokeWidth={2}
-            />
+            <Edit3 size={18} color={theme.ink2} strokeWidth={2} />
             <Text
               style={{
                 fontSize: 11,
@@ -840,11 +830,7 @@ export default function BikeDetailScreen() {
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <MoreHorizontal
-              size={16}
-              color={theme.ink2}
-              strokeWidth={2}
-            />
+            <MoreHorizontal size={16} color={theme.ink2} strokeWidth={2} />
             <Text
               style={{
                 fontSize: 11,

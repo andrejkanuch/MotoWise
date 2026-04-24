@@ -28,8 +28,8 @@ import { formatCurrencyInput } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { incrementTaskCount, maybeRequestReview } from '../../../lib/store-review';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 function humanizeInterval(days: number): string {
   if (days >= 365) {

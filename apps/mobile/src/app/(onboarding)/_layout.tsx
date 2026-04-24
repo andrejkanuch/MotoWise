@@ -1,6 +1,6 @@
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
-import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { ErrorFallback } from '../../components/error-fallback';
+import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { captureException } from '../../lib/analytics';
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {

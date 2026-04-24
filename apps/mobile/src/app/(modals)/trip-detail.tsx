@@ -57,7 +57,6 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useEditorialTheme } from '../../theme/editorial';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -87,6 +86,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { cacheTripPayload } from '../../lib/offline-trips';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';

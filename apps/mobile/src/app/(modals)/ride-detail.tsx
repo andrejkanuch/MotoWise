@@ -25,15 +25,7 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  Pressable,
-  Share,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Pressable, Share, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -44,6 +36,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
 import { cycleMapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
 import {
   formatDistance,
@@ -54,7 +47,6 @@ import {
   formatTime,
 } from '../../utils/ride-formatters';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
-import { useEditorialTheme } from '../../theme/editorial';
 
 /** Decode Google-encoded polyline string to [lat, lng] pairs */
 function decodePolyline(encoded: string): [number, number][] {

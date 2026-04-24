@@ -2,23 +2,20 @@
  * Editorial UI primitives — Card, Chip, Button, Section, Stat, Divider, Priority.
  * Matches the warm magazine aesthetic from the design preview.
  */
-import { type ReactNode } from 'react';
+
+import * as Haptics from 'expo-haptics';
+import type { ReactNode } from 'react';
 import {
+  Platform,
   Pressable,
-  Text,
-  View,
   type StyleProp,
-  type ViewStyle,
+  Text,
   type TextStyle,
+  View,
+  type ViewStyle,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
-import {
-  type EditorialTokens,
-  tint,
-  useEditorialTheme,
-} from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 
 // ── Card ──
 export function ECard({
@@ -56,8 +53,7 @@ export function ECard({
   const wrapped = onPress ? (
     <Pressable
       onPress={() => {
-        if (Platform.OS === 'ios')
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (Platform.OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
       }}
     >
@@ -68,11 +64,7 @@ export function ECard({
   );
 
   if (delay != null) {
-    return (
-      <Animated.View entering={FadeInUp.delay(delay).duration(300)}>
-        {wrapped}
-      </Animated.View>
-    );
+    return <Animated.View entering={FadeInUp.delay(delay).duration(300)}>{wrapped}</Animated.View>;
   }
   return wrapped;
 }
@@ -114,8 +106,7 @@ export function EButton({
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS === 'ios')
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (Platform.OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress?.();
       }}
       style={[
@@ -170,7 +161,7 @@ export function EChip({
   const { t } = useEditorialTheme();
   const pad = size === 'sm' ? { v: 5, h: 10 } : { v: 7, h: 12 };
   const fs = size === 'sm' ? 11 : 12;
-  const bg = active ? color ?? t.warm : t.surface2;
+  const bg = active ? (color ?? t.warm) : t.surface2;
   const fg = active ? '#1a1208' : t.ink2;
 
   return (
@@ -231,9 +222,7 @@ export function ESectionMasthead({
         </Text>
         {kicker ? (
           <>
-            <View
-              style={{ width: 14, height: 1, backgroundColor: t.line }}
-            />
+            <View style={{ width: 14, height: 1, backgroundColor: t.line }} />
             <Text
               style={{
                 fontSize: 10,
@@ -249,9 +238,7 @@ export function ESectionMasthead({
       </View>
       {action ? (
         <Pressable onPress={onAction}>
-          <Text style={{ fontSize: 11, color: t.ink2, fontWeight: '600' }}>
-            {action} →
-          </Text>
+          <Text style={{ fontSize: 11, color: t.ink2, fontWeight: '600' }}>{action} →</Text>
         </Pressable>
       ) : null}
     </View>
@@ -302,9 +289,7 @@ export function ESectionHeader({
           ) : null}
           {action ? (
             <Pressable onPress={onAction}>
-              <Text style={{ fontSize: 12, color: t.ink2, fontWeight: '500' }}>
-                {action}
-              </Text>
+              <Text style={{ fontSize: 12, color: t.ink2, fontWeight: '500' }}>{action}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -315,15 +300,7 @@ export function ESectionHeader({
 }
 
 // ── Stat tile ──
-export function EStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: string;
-}) {
+export function EStat({ label, value, tone }: { label: string; value: string; tone?: string }) {
   const { t } = useEditorialTheme();
   return (
     <View
@@ -505,13 +482,7 @@ export function EKicker({
 }
 
 // ── Progress bar ──
-export function EProgressBar({
-  value,
-  color,
-}: {
-  value: number;
-  color?: string;
-}) {
+export function EProgressBar({ value, color }: { value: number; color?: string }) {
   const { t } = useEditorialTheme();
   return (
     <View

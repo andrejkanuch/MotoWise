@@ -8,12 +8,12 @@ import { Calendar, Check, DollarSign, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useEditorialTheme } from '../../theme/editorial';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { formatCurrencyInput } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;

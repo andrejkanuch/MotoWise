@@ -6,13 +6,7 @@ import { useRouter } from 'expo-router';
 import { Crown, MoreHorizontal, Plus } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
@@ -33,7 +27,7 @@ function haptic() {
 
 export default function GarageScreen() {
   const { t } = useTranslation();
-  const { t: theme, isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
@@ -49,10 +43,7 @@ export default function GarageScreen() {
   }, [refetch]);
 
   const motorcycles = data?.myMotorcycles ?? [];
-  const totalKm = motorcycles.reduce(
-    (sum, b) => sum + (b.currentMileage ?? 0),
-    0,
-  );
+  const totalKm = motorcycles.reduce((sum, b) => sum + (b.currentMileage ?? 0), 0);
 
   const handleAddBike = () => {
     if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
@@ -99,9 +90,7 @@ export default function GarageScreen() {
           padding: 24,
         }}
       >
-        <Text
-          style={{ fontSize: 16, color: theme.ink, marginBottom: 16, textAlign: 'center' }}
-        >
+        <Text style={{ fontSize: 16, color: theme.ink, marginBottom: 16, textAlign: 'center' }}>
           {t('common.error')}
         </Text>
         <Pressable
@@ -195,11 +184,7 @@ export default function GarageScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={onRefresh}
-            tintColor={theme.warm}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
         {/* ── Masthead ── */}
@@ -244,9 +229,7 @@ export default function GarageScreen() {
                 }}
               >
                 The{' '}
-                <Text
-                  style={{ fontFamily: 'InstrumentSerif-Italic', color: theme.warm2 }}
-                >
+                <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: theme.warm2 }}>
                   Garage.
                 </Text>
               </Text>
@@ -332,10 +315,7 @@ export default function GarageScreen() {
               snapToInterval={312}
             >
               {motorcycles.map((bike, i) => (
-                <Animated.View
-                  key={bike.id}
-                  entering={FadeIn.delay(i * 100).duration(400)}
-                >
+                <Animated.View key={bike.id} entering={FadeIn.delay(i * 100).duration(400)}>
                   <Pressable
                     onPress={() => {
                       haptic();
@@ -599,9 +579,10 @@ export default function GarageScreen() {
                   },
                   {
                     label: 'Oldest bike',
-                    value: motorcycles.length > 0
-                      ? `${Math.min(...motorcycles.map((b) => b.year))}`
-                      : '—',
+                    value:
+                      motorcycles.length > 0
+                        ? `${Math.min(...motorcycles.map((b) => b.year))}`
+                        : '—',
                   },
                   { label: 'Open tasks', value: '—' },
                 ].map((r, i, a) => (

@@ -18,21 +18,13 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Share,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
+import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import {
   cycleMapStyle as cycleMapStyleFn,
@@ -47,7 +39,6 @@ import {
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
-import { useEditorialTheme } from '../../theme/editorial';
 
 /** Smart ride naming using time-of-day */
 function smartRideName(startedAt: number): string {

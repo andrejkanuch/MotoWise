@@ -21,11 +21,11 @@ import {
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProGateModal } from '../../../components/ProGateModal';
-import { useEditorialTheme } from '../../../theme/editorial';
 import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {

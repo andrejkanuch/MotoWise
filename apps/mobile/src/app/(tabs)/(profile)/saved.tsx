@@ -19,9 +19,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import { formatDistance } from '../../../utils/ride-formatters';
-import { useEditorialTheme } from '../../../theme/editorial';
 
 const PAGE_SIZE = 20;
 

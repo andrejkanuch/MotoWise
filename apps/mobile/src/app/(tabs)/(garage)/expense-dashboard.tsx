@@ -9,15 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BarChart3, Info, X } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -39,6 +31,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const PERIOD_LABELS: Record<Period, string> = {
   thisYear: 'This Year',
@@ -377,11 +370,7 @@ export default function ExpenseDashboardScreen() {
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={onRefresh}
-          tintColor={eTheme.warm}
-        />
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={eTheme.warm} />
       }
     >
       {/* Period Selector */}

@@ -39,7 +39,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useEditorialTheme } from '../../theme/editorial';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -56,6 +55,7 @@ import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypo
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { useEditorialTheme } from '../../theme/editorial';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
