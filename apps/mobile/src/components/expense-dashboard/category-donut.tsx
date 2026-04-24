@@ -1,9 +1,9 @@
-import { palette } from '@motovault/design-system';
 import { ChevronRight } from 'lucide-react-native';
 import { memo, useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useCurrency } from '../../hooks/use-currency';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
+import { useEditorialTheme } from '../../theme/editorial';
 
 const MIN_SEGMENT_FLEX = 2;
 
@@ -18,16 +18,12 @@ interface CategoryDonutProps {
 export const CategoryDonut = memo(function CategoryDonut({
   categoryTotals,
   totalAmount,
-  isDark,
   selectedCategory,
   onCategoryPress,
 }: CategoryDonutProps) {
   const { format: formatCurrency } = useCurrency();
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const bgColor = isDark ? palette.neutral900 : palette.neutral50;
-  const separatorColor = isDark ? palette.neutral700 : palette.neutral200;
+  const { t: theme } = useEditorialTheme();
 
-  // Sort by largest share first
   const sorted = useMemo(
     () => [...categoryTotals].sort((a, b) => b.total - a.total),
     [categoryTotals],
@@ -35,7 +31,6 @@ export const CategoryDonut = memo(function CategoryDonut({
 
   if (sorted.length === 0 || totalAmount <= 0) return null;
 
-  // Compute percentages for bar segments — enforce minimum flex for visibility
   const segments = sorted.map((cat) => {
     const rawPct = (cat.total / totalAmount) * 100;
     return {
@@ -43,11 +38,10 @@ export const CategoryDonut = memo(function CategoryDonut({
       total: cat.total,
       pct: rawPct,
       flex: Math.max(rawPct, MIN_SEGMENT_FLEX),
-      color: CATEGORY_COLORS[cat.category] ?? palette.neutral400,
+      color: CATEGORY_COLORS[cat.category] ?? theme.ink3,
     };
   });
 
-  // Build accessibility description for the proportional bar
   const barDescription = segments
     .map((seg) => `${CATEGORY_LABELS[seg.category] ?? seg.category}: ${seg.pct.toFixed(0)}%`)
     .join(', ');
@@ -65,7 +59,7 @@ export const CategoryDonut = memo(function CategoryDonut({
           borderCurve: 'continuous',
           overflow: 'hidden',
           gap: 2,
-          backgroundColor: bgColor,
+          backgroundColor: theme.surface2,
         }}
       >
         {segments.map((seg) => (
@@ -85,10 +79,10 @@ export const CategoryDonut = memo(function CategoryDonut({
       <View style={{ marginTop: 16 }}>
         {sorted.map((cat, index) => {
           const pct = totalAmount > 0 ? ((cat.total / totalAmount) * 100).toFixed(0) : '0';
-          const color = CATEGORY_COLORS[cat.category] ?? palette.neutral400;
+          const color = CATEGORY_COLORS[cat.category] ?? theme.ink3;
           const label = CATEGORY_LABELS[cat.category] ?? cat.category;
-
           const isSelected = selectedCategory === cat.category;
+
           return (
             <View key={cat.category}>
               <Pressable
@@ -98,13 +92,11 @@ export const CategoryDonut = memo(function CategoryDonut({
                 style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
-                  height: 56,
+                  height: 52,
                   backgroundColor: isSelected
                     ? `${color}12`
                     : pressed
-                      ? isDark
-                        ? 'rgba(255,255,255,0.04)'
-                        : 'rgba(0,0,0,0.03)'
+                      ? `${theme.ink}06`
                       : 'transparent',
                   borderRadius: 10,
                   borderCurve: 'continuous',
@@ -116,7 +108,7 @@ export const CategoryDonut = memo(function CategoryDonut({
                 <View
                   style={{
                     width: 4,
-                    height: 32,
+                    height: 28,
                     borderRadius: 2,
                     borderCurve: 'continuous',
                     backgroundColor: color,
@@ -124,15 +116,14 @@ export const CategoryDonut = memo(function CategoryDonut({
                 />
 
                 {/* Category info */}
-                <View style={{ flex: 1, marginLeft: 16 }}>
+                <View style={{ flex: 1, marginLeft: 14 }}>
                   <Text
                     numberOfLines={1}
                     ellipsizeMode="tail"
                     style={{
-                      fontFamily: 'PlusJakartaSans-Medium',
+                      fontSize: 15,
                       fontWeight: '500',
-                      fontSize: 16,
-                      color: textColor,
+                      color: theme.ink,
                     }}
                   >
                     {label}
@@ -140,43 +131,37 @@ export const CategoryDonut = memo(function CategoryDonut({
                 </View>
 
                 {/* Amount + percentage */}
-                <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
-                  <Text
-                    style={{
-                      fontFamily: 'PlusJakartaSans-SemiBold',
-                      fontWeight: '600',
-                      fontSize: 16,
-                      color: textColor,
-                    }}
-                  >
-                    {formatCurrency(cat.total)}
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: 'PlusJakartaSans-Regular',
-                      fontWeight: '400',
-                      fontSize: 12,
-                      color: palette.neutral500,
-                      marginTop: 2,
-                    }}
-                  >
-                    {pct}%
-                  </Text>
-                </View>
-                <ChevronRight
-                  size={16}
-                  color={isDark ? palette.neutral600 : palette.neutral400}
-                  style={{ marginLeft: 8 }}
-                />
+                <Text
+                  style={{
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 16,
+                    color: theme.ink,
+                    marginLeft: 8,
+                  }}
+                >
+                  {formatCurrency(cat.total)}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: theme.ink3,
+                    marginLeft: 8,
+                    minWidth: 32,
+                    textAlign: 'right',
+                  }}
+                >
+                  {pct}%
+                </Text>
+                <ChevronRight size={14} color={theme.ink3} style={{ marginLeft: 4 }} />
               </Pressable>
 
               {/* Separator */}
               {index < sorted.length - 1 && (
                 <View
                   style={{
-                    height: 1,
-                    backgroundColor: separatorColor,
-                    marginLeft: 40,
+                    height: 0.5,
+                    backgroundColor: theme.line,
+                    marginLeft: 22,
                   }}
                 />
               )}

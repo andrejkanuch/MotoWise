@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react';
 import { Text, View } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../lib/expense-constants';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface MonthlyBucket {
   month: number;
@@ -42,7 +43,9 @@ const MONTH_LABELS = [
   'Dec',
 ];
 
-export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: MonthlyTrendProps) {
+export const MonthlyTrend = memo(function MonthlyTrend({ buckets }: MonthlyTrendProps) {
+  const { t: theme, isDark } = useEditorialTheme();
+
   const { stackData, maxValue, allZero, presentCategories } = useMemo(() => {
     const isEmpty = buckets.length === 0 || buckets.every((b) => b.total === 0);
     if (isEmpty) return { stackData: [], maxValue: 400, allZero: true, presentCategories: [] };
@@ -76,40 +79,18 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
 
   if (allZero) return null;
 
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-  const axisLabelColor = isDark ? palette.neutral500 : palette.neutral400;
-  const rulesColor = isDark ? palette.neutral700 : palette.neutral200;
-  const legendColor = isDark ? palette.neutral400 : palette.neutral500;
-
   return (
     <View
       accessibilityLabel="Monthly expense trend chart"
       style={{
-        backgroundColor: cardBg,
-        borderRadius: 12,
+        backgroundColor: theme.surface,
+        borderRadius: 14,
         borderCurve: 'continuous',
         padding: 16,
-        ...(!isDark
-          ? {
-              shadowColor: palette.black,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.04,
-              shadowRadius: 8,
-            }
-          : {}),
+        borderWidth: 1,
+        borderColor: theme.line,
       }}
     >
-      <Text
-        style={{
-          fontFamily: 'PlusJakartaSans-SemiBold',
-          fontWeight: '600',
-          fontSize: 16,
-          color: isDark ? palette.white : palette.neutral950,
-          marginBottom: 16,
-        }}
-      >
-        Monthly Trend
-      </Text>
       <BarChart
         stackData={stackData}
         barWidth={24}
@@ -120,18 +101,16 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
         rulesType="dashed"
         dashWidth={4}
         dashGap={4}
-        rulesColor={rulesColor}
+        rulesColor={isDark ? palette.neutral700 : palette.neutral200}
         yAxisColor="transparent"
         xAxisColor="transparent"
         xAxisLabelTextStyle={{
-          fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 12,
-          color: axisLabelColor,
+          fontSize: 11,
+          color: theme.ink3,
         }}
         yAxisTextStyle={{
-          fontFamily: 'PlusJakartaSans-Regular',
-          fontSize: 12,
-          color: axisLabelColor,
+          fontSize: 11,
+          color: theme.ink3,
         }}
         isAnimated
         animationDuration={300}
@@ -157,16 +136,7 @@ export const MonthlyTrend = memo(function MonthlyTrend({ buckets, isDark }: Mont
                 backgroundColor: CATEGORY_COLORS[cat],
               }}
             />
-            <Text
-              style={{
-                fontFamily: 'PlusJakartaSans-Regular',
-                fontWeight: '400',
-                fontSize: 12,
-                color: legendColor,
-              }}
-            >
-              {CATEGORY_LABELS[cat]}
-            </Text>
+            <Text style={{ fontSize: 12, color: theme.ink3 }}>{CATEGORY_LABELS[cat]}</Text>
           </View>
         ))}
       </View>

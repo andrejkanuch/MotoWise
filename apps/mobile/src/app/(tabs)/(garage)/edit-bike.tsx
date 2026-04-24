@@ -12,7 +12,17 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Camera, Search, Trash2 } from 'lucide-react-native';
+import {
+  Bike,
+  Camera,
+  Check,
+  DollarSign,
+  Fingerprint,
+  Gauge,
+  Search,
+  Star,
+  Trash2,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -28,7 +38,7 @@ import {
   View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../../../hooks/use-currency';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -42,7 +52,7 @@ export default function EditBikeScreen() {
   const { symbol: currencySymbol } = useCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
 
@@ -409,43 +419,75 @@ export default function EditBikeScreen() {
   };
 
   // --- Styles ---
-  const bgColor = isDark ? palette.neutral950 : palette.neutral50;
-  const cardBg = isDark ? palette.neutral800 : palette.white;
-  const textColor = isDark ? palette.neutral50 : palette.neutral950;
-  const secondaryText = palette.neutral500;
+  const cardBg = theme.surface;
+  const textColor = theme.ink;
+  const separator = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
 
-  const inputStyle = {
-    backgroundColor: isDark ? palette.neutral800 : palette.white,
-    borderRadius: 14,
-    borderCurve: 'continuous' as const,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: textColor,
-  };
-
-  const labelStyle = {
-    fontSize: 13,
-    fontWeight: '600' as const,
-    color: secondaryText,
+  const sectionLabel = {
+    fontSize: 10 as const,
+    fontWeight: '700' as const,
+    letterSpacing: 1.5,
     textTransform: 'uppercase' as const,
-    letterSpacing: 0.5,
+    color: theme.ink3,
     marginBottom: 8,
     marginLeft: 4,
   };
 
-  const sectionTitleStyle = {
-    fontSize: 13,
-    fontWeight: '700' as const,
-    color: secondaryText,
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.8,
-    marginBottom: 12,
-    marginLeft: 4,
+  const cardStyle = {
+    backgroundColor: cardBg,
+    borderRadius: 14,
+    borderCurve: 'continuous' as const,
+    overflow: 'hidden' as const,
+    boxShadow: isDark ? 'none' : ('0 1px 3px rgba(0,0,0,0.06)' as const),
+  };
+
+  const rowStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  };
+
+  const iconBadge = (bg: string) => ({
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderCurve: 'continuous' as const,
+    backgroundColor: bg,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  });
+
+  const rowLabel = {
+    fontSize: 15,
+    fontWeight: '500' as const,
+    color: textColor,
+    flex: 1,
+  };
+
+  const inputInRow = {
+    fontSize: 15,
+    fontWeight: '500' as const,
+    color: textColor,
+    minWidth: 100,
+    paddingVertical: 4,
+    textAlign: 'right' as const,
+  };
+
+  const dropdownContainer = {
+    backgroundColor: cardBg,
+    borderWidth: 1,
+    borderColor: isDark ? palette.neutral700 : palette.neutral200,
+    borderRadius: 14,
+    borderCurve: 'continuous' as const,
+    marginTop: 6,
+    maxHeight: 220,
+    overflow: 'hidden' as const,
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: bgColor }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -455,13 +497,13 @@ export default function EditBikeScreen() {
               hitSlop={8}
             >
               {updateMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.primary500} />
+                <ActivityIndicator size="small" color={theme.warm} />
               ) : (
                 <Text
                   style={{
                     fontSize: 17,
                     fontWeight: '600',
-                    color: isDirty && isValid ? palette.primary500 : palette.neutral400,
+                    color: isDirty && isValid ? theme.warm : theme.ink3,
                   }}
                 >
                   {t('common.save', { defaultValue: 'Save' })}
@@ -483,13 +525,13 @@ export default function EditBikeScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* ─── Photo Section ─── */}
-        <Animated.View entering={FadeInUp.duration(350)}>
+        <Animated.View entering={FadeIn.duration(300)}>
           <Pressable onPress={handlePickPhoto} disabled={uploadingPhoto}>
             {photoUrl ? (
-              <View style={{ height: 200, position: 'relative' }}>
+              <View style={{ height: 220, position: 'relative' }}>
                 <Image
                   source={{ uri: photoUrl }}
-                  style={{ width: '100%', height: 200 }}
+                  style={{ width: '100%', height: 220 }}
                   contentFit="cover"
                 />
                 {uploadingPhoto && (
@@ -504,6 +546,17 @@ export default function EditBikeScreen() {
                     <ActivityIndicator size="large" color={palette.white} />
                   </View>
                 )}
+                <LinearGradient
+                  colors={['transparent', theme.bg]}
+                  locations={[0.5, 1]}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 80,
+                  }}
+                />
                 <View
                   style={{
                     position: 'absolute',
@@ -522,90 +575,128 @@ export default function EditBikeScreen() {
                 </View>
               </View>
             ) : (
-              <LinearGradient
-                colors={
-                  isDark
-                    ? [palette.neutral800, palette.neutral900]
-                    : [palette.neutral200, palette.neutral300]
-                }
+              <View
                 style={{
-                  height: 200,
+                  height: 180,
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
+                  backgroundColor: theme.surface,
                 }}
               >
                 {uploadingPhoto ? (
-                  <ActivityIndicator size="large" color={palette.primary500} />
+                  <ActivityIndicator size="large" color={theme.warm} />
                 ) : (
                   <>
-                    <Camera size={36} color={secondaryText} strokeWidth={1.5} />
-                    <Text style={{ fontSize: 15, color: secondaryText, fontWeight: '500' }}>
+                    <Camera size={36} color={theme.ink3} strokeWidth={1.5} />
+                    <Text style={{ fontSize: 15, color: theme.ink3, fontWeight: '500' }}>
                       {t('garage.addPhoto', { defaultValue: 'Add Photo' })}
                     </Text>
                   </>
                 )}
-              </LinearGradient>
+              </View>
             )}
           </Pressable>
         </Animated.View>
 
-        <View style={{ padding: 20, gap: 32 }}>
-          {/* ─── Identity Section ─── */}
-          <Animated.View entering={FadeInUp.delay(50).duration(350)} style={{ gap: 16 }}>
-            <Text style={sectionTitleStyle}>
+        {/* Editorial header */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 12, marginBottom: 20 }}>
+          <Text
+            style={{
+              fontSize: 10,
+              fontWeight: '700',
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              color: theme.ink3,
+              marginBottom: 6,
+            }}
+          >
+            — GARAGE
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 32,
+                color: theme.ink,
+                letterSpacing: -0.6,
+              }}
+            >
+              Edit{' '}
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'InstrumentSerif-Italic',
+                fontSize: 32,
+                color: theme.warm,
+                letterSpacing: -0.6,
+              }}
+            >
+              motorcycle.
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ paddingHorizontal: 16, gap: 24 }}>
+          {/* ─── Identity — grouped card ─── */}
+          <Animated.View entering={FadeInDown.delay(50).duration(250)}>
+            <Text style={sectionLabel}>
               {t('garage.identitySection', { defaultValue: 'Identity' })}
             </Text>
-
-            <View>
-              <Text style={labelStyle}>{t('garage.nickname', { defaultValue: 'Nickname' })}</Text>
-              <TextInput
-                value={nickname}
-                onChangeText={setNickname}
-                placeholder={t('garage.nicknamePlaceholder', {
-                  defaultValue: 'e.g. "Black Beauty"',
-                })}
-                placeholderTextColor={palette.neutral400}
-                style={inputStyle}
-              />
-            </View>
-
-            <View>
-              <Text style={labelStyle}>{t('garage.year', { defaultValue: 'Year' })}</Text>
-              <TextInput
-                value={year}
-                onChangeText={(text) => {
-                  setYear(text.replace(/[^0-9]/g, '').slice(0, 4));
-                  setSelectedModel(null);
-                  setModelSearch('');
-                }}
-                keyboardType="number-pad"
-                placeholder="2024"
-                placeholderTextColor={palette.neutral400}
-                maxLength={4}
-                style={inputStyle}
-              />
-            </View>
-
-            {/* Make — NHTSA Autocomplete */}
-            <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginBottom: 8,
-                  marginLeft: 4,
-                }}
-              >
-                <Search size={14} color={secondaryText} />
-                <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>
-                  {t('garage.make', { defaultValue: 'Make' })}
-                </Text>
+            <View style={cardStyle}>
+              {/* Nickname */}
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.primary900 : palette.primary50)}>
+                  <Bike size={16} color={palette.primary500} strokeWidth={2} />
+                </View>
+                <TextInput
+                  value={nickname}
+                  onChangeText={setNickname}
+                  placeholder={t('garage.nicknamePlaceholder', {
+                    defaultValue: 'e.g. "Black Beauty"',
+                  })}
+                  placeholderTextColor={palette.neutral400}
+                  style={{ ...rowLabel, paddingVertical: 2 }}
+                />
               </View>
 
+              <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
+
+              {/* Year */}
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
+                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
+                </View>
+                <Text style={rowLabel}>{t('garage.year', { defaultValue: 'Year' })}</Text>
+                <TextInput
+                  value={year}
+                  onChangeText={(text) => {
+                    setYear(text.replace(/[^0-9]/g, '').slice(0, 4));
+                    setSelectedModel(null);
+                    setModelSearch('');
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="2024"
+                  placeholderTextColor={palette.neutral400}
+                  maxLength={4}
+                  style={inputInRow}
+                />
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* ─── Make & Model ─── */}
+          <Animated.View entering={FadeInDown.delay(100).duration(250)}>
+            <Text style={sectionLabel}>
+              {t('garage.makeModel', { defaultValue: 'Make & Model' })}
+            </Text>
+
+            {/* Make */}
+            <View style={cardStyle}>
               {makesResult.isLoading ? (
-                <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+                <View style={{ ...rowStyle, justifyContent: 'center' }}>
+                  <ActivityIndicator color={theme.warm} />
+                </View>
               ) : selectedMake && !makeSearch ? (
                 <Pressable
                   onPress={() => {
@@ -614,152 +705,69 @@ export default function EditBikeScreen() {
                     setSelectedModel(null);
                     setModelSearch('');
                   }}
-                  style={{
-                    ...inputStyle,
-                    borderWidth: 1.5,
-                    borderColor: palette.primary500,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
+                  style={rowStyle}
                 >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: textColor,
-                    }}
-                  >
-                    {selectedMake.makeName}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  </View>
+                  <Text style={rowLabel}>{selectedMake.makeName}</Text>
+                  <Text style={{ fontSize: 12, color: theme.ink3 }}>
                     {t('garage.tapToChange', { defaultValue: 'Tap to change' })}
                   </Text>
                 </Pressable>
               ) : (
-                <>
+                <View style={rowStyle}>
+                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  </View>
                   <TextInput
                     value={makeSearch}
                     onChangeText={setMakeSearch}
                     placeholder={t('garage.searchMake', { defaultValue: 'Search make...' })}
                     placeholderTextColor={palette.neutral400}
                     autoCapitalize="words"
-                    style={inputStyle}
+                    style={{ ...rowLabel, paddingVertical: 2 }}
                   />
-                  {makeSearch.length > 0 && filteredMakes.length > 0 ? (
-                    <View
-                      style={{
-                        backgroundColor: cardBg,
-                        borderWidth: 1,
-                        borderColor: isDark ? palette.neutral700 : palette.neutral200,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        marginTop: 6,
-                        maxHeight: 220,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                        {filteredMakes
-                          .slice(0, 20)
-                          .map((m: { makeId: number; makeName: string }) => (
-                            <Pressable
-                              key={m.makeId}
-                              onPress={() => {
-                                triggerImpact();
-                                setSelectedMake(m);
-                                setSelectedModel(null);
-                                setMakeSearch('');
-                                setModelSearch('');
-                              }}
-                              style={({ pressed }) => ({
-                                paddingHorizontal: 16,
-                                paddingVertical: 13,
-                                borderBottomWidth: 1,
-                                borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
-                                backgroundColor: pressed
-                                  ? isDark
-                                    ? palette.neutral700
-                                    : palette.neutral100
-                                  : 'transparent',
-                              })}
-                            >
-                              <Text style={{ fontSize: 15, color: textColor }}>{m.makeName}</Text>
-                            </Pressable>
-                          ))}
-                      </ScrollView>
-                    </View>
-                  ) : makeSearch.length > 0 ? (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: palette.neutral400,
-                        marginTop: 8,
-                        marginLeft: 4,
-                      }}
-                    >
-                      {t('garage.noMakesFound', { defaultValue: 'No makes found' })}
-                    </Text>
-                  ) : null}
-                </>
+                </View>
               )}
-            </View>
 
-            {/* Model — NHTSA Autocomplete */}
-            <View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginBottom: 8,
-                  marginLeft: 4,
-                }}
-              >
-                <Search size={14} color={secondaryText} />
-                <Text style={{ ...labelStyle, marginBottom: 0, marginLeft: 0 }}>
-                  {t('garage.model', { defaultValue: 'Model' })}
-                </Text>
-              </View>
+              <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
 
+              {/* Model */}
               {!selectedMake || !validYear ? (
-                <View style={{ ...inputStyle, opacity: 0.4 }}>
-                  <Text style={{ fontSize: 16, color: palette.neutral400 }}>
+                <View style={{ ...rowStyle, opacity: 0.4 }}>
+                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  </View>
+                  <Text style={rowLabel}>
                     {t('garage.searchModel', { defaultValue: 'Search model...' })}
                   </Text>
                 </View>
               ) : modelsResult.isLoading ? (
-                <ActivityIndicator color={palette.primary500} style={{ marginVertical: 16 }} />
+                <View style={{ ...rowStyle, justifyContent: 'center' }}>
+                  <ActivityIndicator color={theme.warm} />
+                </View>
               ) : selectedModel && !modelSearch ? (
                 <Pressable
                   onPress={() => {
                     setModelSearch(selectedModel.modelName);
                     setSelectedModel(null);
                   }}
-                  style={{
-                    ...inputStyle,
-                    borderWidth: 1.5,
-                    borderColor: palette.primary500,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
+                  style={rowStyle}
                 >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: '600',
-                      color: textColor,
-                    }}
-                  >
-                    {selectedModel.modelName}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  </View>
+                  <Text style={rowLabel}>{selectedModel.modelName}</Text>
+                  <Text style={{ fontSize: 12, color: theme.ink3 }}>
                     {t('garage.tapToChange', { defaultValue: 'Tap to change' })}
                   </Text>
                 </Pressable>
               ) : (
-                <>
+                <View style={rowStyle}>
+                  <View style={iconBadge(isDark ? palette.indigoBg : palette.primary50)}>
+                    <Search size={16} color={palette.indigo500} strokeWidth={2} />
+                  </View>
                   <TextInput
                     value={modelSearch}
                     onChangeText={(text) => {
@@ -769,154 +777,172 @@ export default function EditBikeScreen() {
                     placeholder={t('garage.searchModel', { defaultValue: 'Search model...' })}
                     placeholderTextColor={palette.neutral400}
                     autoCapitalize="words"
-                    style={inputStyle}
+                    style={{ ...rowLabel, paddingVertical: 2 }}
                   />
-                  {filteredModels.length > 0 ? (
-                    <View
-                      style={{
-                        backgroundColor: cardBg,
-                        borderWidth: 1,
-                        borderColor: isDark ? palette.neutral700 : palette.neutral200,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        marginTop: 6,
-                        maxHeight: 220,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
-                        {filteredModels
-                          .slice(0, 20)
-                          .map((m: { modelId: number; modelName: string }) => (
-                            <Pressable
-                              key={m.modelId}
-                              onPress={() => {
-                                triggerImpact();
-                                setSelectedModel(m);
-                                setModelSearch('');
-                              }}
-                              style={({ pressed }) => ({
-                                paddingHorizontal: 16,
-                                paddingVertical: 13,
-                                borderBottomWidth: 1,
-                                borderBottomColor: isDark ? palette.neutral700 : palette.neutral100,
-                                backgroundColor: pressed
-                                  ? isDark
-                                    ? palette.neutral700
-                                    : palette.neutral100
-                                  : 'transparent',
-                              })}
-                            >
-                              <Text style={{ fontSize: 15, color: textColor }}>{m.modelName}</Text>
-                            </Pressable>
-                          ))}
-                      </ScrollView>
-                    </View>
-                  ) : models.length > 0 && modelSearch.length > 0 ? (
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: palette.neutral400,
-                        marginTop: 8,
-                        marginLeft: 4,
-                      }}
-                    >
-                      {t('garage.noModelsFound', { defaultValue: 'No models found' })}
-                    </Text>
-                  ) : null}
-                </>
+                </View>
               )}
             </View>
-          </Animated.View>
 
-          {/* ─── Odometer Section ─── */}
-          <Animated.View entering={FadeInUp.delay(100).duration(350)} style={{ gap: 16 }}>
-            <Text style={sectionTitleStyle}>
-              {t('garage.odometerSection', { defaultValue: 'Odometer' })}
-            </Text>
-
-            <View>
-              <Text style={labelStyle}>
-                {t('garage.currentMileage', { defaultValue: 'Current Mileage' })}
-              </Text>
-              <TextInput
-                value={mileage}
-                onChangeText={(text) => setMileage(text.replace(/[^0-9]/g, ''))}
-                keyboardType="number-pad"
-                placeholder="0"
-                placeholderTextColor={palette.neutral400}
-                style={inputStyle}
-              />
-            </View>
-
-            <View>
-              <Text style={labelStyle}>{t('garage.mileageUnit', { defaultValue: 'Unit' })}</Text>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
-                  borderRadius: 12,
-                  borderCurve: 'continuous',
-                  padding: 3,
-                }}
-              >
-                {(['mi', 'km'] as const).map((unit) => (
-                  <Pressable
-                    key={unit}
-                    onPress={() => {
-                      triggerImpact();
-                      setMileageUnit(unit);
-                    }}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 10,
-                      borderRadius: 10,
-                      borderCurve: 'continuous',
-                      backgroundColor:
-                        mileageUnit === unit
+            {/* Make dropdown */}
+            {!selectedMake && makeSearch.length > 0 && filteredMakes.length > 0 && (
+              <View style={dropdownContainer}>
+                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                  {filteredMakes.slice(0, 20).map((m: { makeId: number; makeName: string }) => (
+                    <Pressable
+                      key={m.makeId}
+                      onPress={() => {
+                        triggerImpact();
+                        setSelectedMake(m);
+                        setSelectedModel(null);
+                        setMakeSearch('');
+                        setModelSearch('');
+                      }}
+                      style={({ pressed }) => ({
+                        paddingHorizontal: 16,
+                        paddingVertical: 13,
+                        borderBottomWidth: 0.5,
+                        borderBottomColor: separator,
+                        backgroundColor: pressed
                           ? isDark
                             ? palette.neutral700
-                            : palette.white
+                            : palette.neutral100
                           : 'transparent',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text
+                      })}
+                    >
+                      <Text style={{ fontSize: 15, color: textColor }}>{m.makeName}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {!selectedMake && makeSearch.length > 0 && filteredMakes.length === 0 && (
+              <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 8, marginLeft: 4 }}>
+                {t('garage.noMakesFound', { defaultValue: 'No makes found' })}
+              </Text>
+            )}
+
+            {/* Model dropdown */}
+            {selectedMake && !selectedModel && filteredModels.length > 0 && (
+              <View style={{ ...dropdownContainer, marginTop: 6 }}>
+                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                  {filteredModels.slice(0, 20).map((m: { modelId: number; modelName: string }) => (
+                    <Pressable
+                      key={m.modelId}
+                      onPress={() => {
+                        triggerImpact();
+                        setSelectedModel(m);
+                        setModelSearch('');
+                      }}
+                      style={({ pressed }) => ({
+                        paddingHorizontal: 16,
+                        paddingVertical: 13,
+                        borderBottomWidth: 0.5,
+                        borderBottomColor: separator,
+                        backgroundColor: pressed
+                          ? isDark
+                            ? palette.neutral700
+                            : palette.neutral100
+                          : 'transparent',
+                      })}
+                    >
+                      <Text style={{ fontSize: 15, color: textColor }}>{m.modelName}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+            {selectedMake &&
+              !selectedModel &&
+              models.length > 0 &&
+              modelSearch.length > 0 &&
+              filteredModels.length === 0 && (
+                <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 8, marginLeft: 4 }}>
+                  {t('garage.noModelsFound', { defaultValue: 'No models found' })}
+                </Text>
+              )}
+          </Animated.View>
+
+          {/* ─── Odometer — grouped card ─── */}
+          <Animated.View entering={FadeInDown.delay(125).duration(250)}>
+            <Text style={sectionLabel}>
+              {t('garage.odometerSection', { defaultValue: 'Odometer' })}
+            </Text>
+            <View style={cardStyle}>
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
+                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
+                </View>
+                <Text style={rowLabel}>
+                  {t('garage.currentMileage', { defaultValue: 'Mileage' })}
+                </Text>
+                <TextInput
+                  value={mileage}
+                  onChangeText={(text) => setMileage(text.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={palette.neutral400}
+                  style={inputInRow}
+                />
+                {mileage ? (
+                  <Text style={{ fontSize: 13, color: theme.ink3 }}>{mileageUnit}</Text>
+                ) : null}
+              </View>
+
+              <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
+
+              {/* Unit toggle */}
+              <View style={{ ...rowStyle, gap: 8 }}>
+                {(['mi', 'km'] as const).map((unit) => {
+                  const selected = mileageUnit === unit;
+                  return (
+                    <Pressable
+                      key={unit}
+                      onPress={() => {
+                        triggerImpact();
+                        setMileageUnit(unit);
+                      }}
                       style={{
-                        fontSize: 15,
-                        fontWeight: mileageUnit === unit ? '700' : '500',
-                        color: mileageUnit === unit ? textColor : secondaryText,
+                        flex: 1,
+                        paddingVertical: 10,
+                        borderRadius: 10,
+                        borderCurve: 'continuous',
+                        alignItems: 'center',
+                        backgroundColor: selected ? `${theme.warm}18` : theme.surface2,
+                        borderWidth: selected ? 1 : 0,
+                        borderColor: selected ? theme.warm : 'transparent',
                       }}
                     >
-                      {unit === 'mi'
-                        ? t('garage.miles', { defaultValue: 'Miles' })
-                        : t('garage.kilometers', { defaultValue: 'Kilometers' })}
-                    </Text>
-                  </Pressable>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: selected ? '700' : '500',
+                          color: selected ? theme.warm : theme.ink3,
+                        }}
+                      >
+                        {unit === 'mi'
+                          ? t('garage.miles', { defaultValue: 'Miles' })
+                          : t('garage.kilometers', { defaultValue: 'Kilometers' })}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
           </Animated.View>
 
-          {/* ─── Purchase Info Section ─── */}
-          <Animated.View entering={FadeInUp.delay(150).duration(350)} style={{ gap: 16 }}>
-            <Text style={sectionTitleStyle}>
+          {/* ─── Purchase Info — grouped card ─── */}
+          <Animated.View entering={FadeInDown.delay(150).duration(250)}>
+            <Text style={sectionLabel}>
               {t('garage.purchaseInfoSection', { defaultValue: 'Purchase Info' })}
             </Text>
-
-            <View>
-              <Text style={labelStyle}>
-                {t('garage.purchasePrice', { defaultValue: 'Purchase Price' })}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '700',
-                    color: textColor,
-                    marginRight: 8,
-                  }}
-                >
+            <View style={cardStyle}>
+              {/* Purchase price */}
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
+                  <DollarSign size={16} color={palette.success500} strokeWidth={2} />
+                </View>
+                <Text style={rowLabel}>{t('garage.purchasePrice', { defaultValue: 'Price' })}</Text>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: textColor }}>
                   {currencySymbol}
                 </Text>
                 <TextInput
@@ -931,115 +957,151 @@ export default function EditBikeScreen() {
                   keyboardType="decimal-pad"
                   placeholder="0.00"
                   placeholderTextColor={palette.neutral400}
-                  style={[inputStyle, { flex: 1 }]}
+                  style={inputInRow}
+                />
+              </View>
+
+              <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
+
+              {/* VIN */}
+              <View style={rowStyle}>
+                <View style={iconBadge(isDark ? palette.primary900 : palette.primary50)}>
+                  <Fingerprint size={16} color={palette.primary500} strokeWidth={2} />
+                </View>
+                <Text style={{ ...rowLabel, flex: 0, marginRight: 8 }}>VIN</Text>
+                <TextInput
+                  value={vin}
+                  onChangeText={(text) => setVin(text.toUpperCase().slice(0, 17))}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  placeholder="17-character VIN"
+                  placeholderTextColor={palette.neutral400}
+                  maxLength={17}
+                  style={{ ...inputInRow, flex: 1, textAlign: 'left' }}
                 />
               </View>
             </View>
-
-            {/* VIN — MOT-142 */}
-            <View>
-              <Text style={labelStyle}>
-                {t('garage.vin', { defaultValue: 'VIN' })}
-                <Text style={{ fontWeight: '400', color: secondaryText }}>
-                  {' '}
-                  ({t('common.optional', { defaultValue: 'optional' })})
-                </Text>
-              </Text>
-              <TextInput
-                value={vin}
-                onChangeText={(text) => setVin(text.toUpperCase().slice(0, 17))}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                placeholder="17-character VIN"
-                placeholderTextColor={palette.neutral400}
-                style={inputStyle}
-                maxLength={17}
-              />
-              {!vinIsValid && (
-                <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 6 }}>
-                  {t('garage.vinInvalid', {
-                    defaultValue: 'VIN must be 17 uppercase characters (no I, O, or Q)',
-                  })}
-                </Text>
-              )}
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: secondaryText,
-                  marginTop: 6,
-                }}
-              >
-                {t('garage.vinHelp', {
-                  defaultValue: 'Used for NHTSA safety recall lookups.',
+            {!vinIsValid && (
+              <Text style={{ fontSize: 12, color: palette.danger500, marginTop: 6, marginLeft: 4 }}>
+                {t('garage.vinInvalid', {
+                  defaultValue: 'VIN must be 17 uppercase characters (no I, O, or Q)',
                 })}
               </Text>
-            </View>
+            )}
+            <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 6, marginLeft: 4 }}>
+              {t('garage.vinHelp', { defaultValue: 'Used for NHTSA safety recall lookups.' })}
+            </Text>
           </Animated.View>
 
-          {/* ─── Settings Section ─── */}
-          <Animated.View entering={FadeInUp.delay(200).duration(350)} style={{ gap: 12 }}>
-            <Text style={sectionTitleStyle}>
+          {/* ─── Settings — grouped card ─── */}
+          <Animated.View entering={FadeInDown.delay(175).duration(250)}>
+            <Text style={sectionLabel}>
               {t('garage.settingsSection', { defaultValue: 'Settings' })}
             </Text>
-
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: cardBg,
-                borderRadius: 14,
-                borderCurve: 'continuous',
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-              }}
-            >
-              <Text style={{ fontSize: 16, color: textColor }}>
-                {t('garage.setPrimary', { defaultValue: 'Primary Motorcycle' })}
-              </Text>
-              <Switch
-                value={isPrimary}
-                onValueChange={(v) => {
-                  triggerImpact();
-                  setIsPrimary(v);
+            <View style={cardStyle}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  justifyContent: 'space-between',
                 }}
-                trackColor={{ false: palette.neutral300, true: palette.primary500 }}
-                thumbColor={palette.white}
-              />
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={iconBadge(isDark ? `${theme.warm}30` : `${theme.warm}20`)}>
+                    <Star size={16} color={theme.warm} strokeWidth={2} />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      fontWeight: '500',
+                      color: textColor,
+                    }}
+                  >
+                    {t('garage.setPrimary', { defaultValue: 'Primary Motorcycle' })}
+                  </Text>
+                </View>
+                <Switch
+                  value={isPrimary}
+                  onValueChange={(v) => {
+                    triggerImpact();
+                    setIsPrimary(v);
+                  }}
+                  trackColor={{
+                    false: isDark ? palette.neutral700 : palette.neutral200,
+                    true: theme.warm,
+                  }}
+                />
+              </View>
             </View>
-            <Text
-              style={{
-                fontSize: 13,
-                color: secondaryText,
-                marginLeft: 4,
-                lineHeight: 18,
-              }}
-            >
+            <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 6, marginLeft: 4 }}>
               {t('garage.primaryExplanation', {
                 defaultValue: 'When set as primary, this bike appears first in your garage',
               })}
             </Text>
           </Animated.View>
 
+          {/* ─── Save + Cancel footer ─── */}
+          <Animated.View entering={FadeInDown.delay(200).duration(250)}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              <Pressable
+                onPress={() => router.back()}
+                style={{ paddingVertical: 16, paddingHorizontal: 12 }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
+                  {t('common.cancel', { defaultValue: 'Cancel' })}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSave}
+                disabled={!isDirty || !isValid || updateMutation.isPending}
+                style={{
+                  flex: 1,
+                  backgroundColor:
+                    isDirty && isValid
+                      ? theme.warm
+                      : isDark
+                        ? palette.neutral700
+                        : palette.neutral300,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: 16,
+                  gap: 8,
+                }}
+              >
+                {updateMutation.isPending ? (
+                  <ActivityIndicator size="small" color={palette.white} />
+                ) : (
+                  <Check size={18} color={palette.white} strokeWidth={2.5} />
+                )}
+                <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                  {updateMutation.isPending
+                    ? t('common.saving', { defaultValue: 'Saving...' })
+                    : t('common.save', { defaultValue: 'Save' })}
+                </Text>
+              </Pressable>
+            </View>
+          </Animated.View>
+
           {/* ─── Danger Zone ─── */}
-          <Animated.View entering={FadeInUp.delay(200).duration(350)} style={{ gap: 12 }}>
-            <Text
-              style={{
-                ...sectionTitleStyle,
-                color: palette.danger500,
-              }}
-            >
+          <Animated.View entering={FadeInDown.delay(225).duration(250)} style={{ gap: 8 }}>
+            <Text style={{ ...sectionLabel, color: palette.danger500 }}>
               {t('garage.dangerZone', { defaultValue: 'Danger Zone' })}
             </Text>
-
             <Pressable
               onPress={handleDelete}
               disabled={deleteMutation.isPending}
               style={{
-                backgroundColor: palette.danger500,
+                backgroundColor: `${palette.danger500}18`,
+                borderWidth: 1,
+                borderColor: palette.danger500,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                paddingVertical: 16,
+                paddingVertical: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1048,25 +1110,17 @@ export default function EditBikeScreen() {
               }}
             >
               {deleteMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.white} />
+                <ActivityIndicator size="small" color={palette.danger500} />
               ) : (
-                <Trash2 size={18} color={palette.white} strokeWidth={2} />
+                <Trash2 size={16} color={palette.danger500} strokeWidth={2} />
               )}
-              <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.danger500 }}>
                 {deleteMutation.isPending
                   ? t('garage.deleting', { defaultValue: 'Deleting...' })
                   : t('garage.deleteMotorcycle', { defaultValue: 'Delete Motorcycle' })}
               </Text>
             </Pressable>
-
-            <Text
-              style={{
-                fontSize: 13,
-                color: secondaryText,
-                marginLeft: 4,
-                lineHeight: 18,
-              }}
-            >
+            <Text style={{ fontSize: 12, color: theme.ink3, marginLeft: 4, lineHeight: 18 }}>
               {t('garage.deleteExplanation', {
                 defaultValue:
                   'This will permanently delete all maintenance tasks, expenses, and photos',

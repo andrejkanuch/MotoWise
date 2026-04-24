@@ -1,7 +1,7 @@
-import { palette } from '@motovault/design-system';
 import { memo } from 'react';
 import { Text, View } from 'react-native';
 import { useCurrency } from '../../hooks/use-currency';
+import { useEditorialTheme } from '../../theme/editorial';
 
 interface SummaryCardsProps {
   avgPerMonth: number;
@@ -16,12 +16,9 @@ export const SummaryCards = memo(function SummaryCards({
   expenseCount,
   costPerUnit,
   unitLabel,
-  isDark,
 }: SummaryCardsProps) {
   const { format: formatCurrency } = useCurrency();
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const pillBg = isDark ? palette.neutral800 : palette.white;
-  const borderColor = isDark ? 'transparent' : palette.neutral200;
+  const { t: theme } = useEditorialTheme();
 
   const pills = [
     {
@@ -49,33 +46,32 @@ export const SummaryCards = memo(function SummaryCards({
           accessibilityLabel={`${pill.label}: ${pill.value}`}
           style={{
             flex: 1,
-            backgroundColor: pillBg,
-            borderRadius: 12,
+            backgroundColor: theme.surface,
+            borderRadius: 14,
             borderCurve: 'continuous',
             padding: 12,
             borderWidth: 1,
-            borderColor,
+            borderColor: theme.line,
           }}
         >
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-Medium',
-              fontWeight: '500',
-              fontSize: 12,
-              color: palette.neutral500,
+              fontSize: 10,
+              fontWeight: '700',
+              color: theme.ink3,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 4,
+              letterSpacing: 1.2,
+              marginBottom: 6,
             }}
           >
             {pill.label}
           </Text>
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontWeight: '600',
-              fontSize: 20,
-              color: textColor,
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 22,
+              color: theme.ink,
+              letterSpacing: -0.3,
             }}
             numberOfLines={1}
             adjustsFontSizeToFit

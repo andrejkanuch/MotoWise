@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
+  FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -31,7 +32,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 const PERIOD_LABELS: Record<Period, string> = {
   thisYear: 'This Year',
@@ -39,19 +40,8 @@ const PERIOD_LABELS: Record<Period, string> = {
   allTime: 'All Time',
 };
 
-function EmptyState({
-  bgColor,
-  textColor,
-  subtextColor,
-  copperColor,
-  motorcycleId,
-}: {
-  bgColor: string;
-  textColor: string;
-  subtextColor: string;
-  copperColor: string;
-  motorcycleId: string;
-}) {
+function EmptyState({ motorcycleId }: { motorcycleId: string }) {
+  const { t: theme } = useEditorialTheme();
   const ctaScale = useSharedValue(1);
   const ctaAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: ctaScale.value }],
@@ -64,19 +54,18 @@ function EmptyState({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 40,
-        backgroundColor: bgColor,
+        backgroundColor: theme.bg,
       }}
     >
       <Animated.View entering={FadeIn.delay(100).duration(400)}>
-        <BarChart3 size={48} color={subtextColor} />
+        <BarChart3 size={48} color={theme.ink3} />
       </Animated.View>
       <Animated.View entering={FadeInUp.delay(200).duration(300)}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 20,
-            color: textColor,
+            fontFamily: 'InstrumentSerif-Regular',
+            fontSize: 24,
+            color: theme.ink,
             marginTop: 16,
             textAlign: 'center',
           }}
@@ -87,10 +76,8 @@ function EmptyState({
       <Animated.View entering={FadeInUp.delay(280).duration(300)}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontWeight: '400',
             fontSize: 14,
-            color: subtextColor,
+            color: theme.ink3,
             marginTop: 8,
             textAlign: 'center',
             maxWidth: 280,
@@ -119,7 +106,7 @@ function EmptyState({
           accessibilityLabel="Add your first expense"
           accessibilityRole="button"
           style={{
-            backgroundColor: copperColor,
+            backgroundColor: theme.warm,
             paddingHorizontal: 32,
             height: 48,
             borderRadius: 24,
@@ -131,7 +118,6 @@ function EmptyState({
         >
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
               fontWeight: '600',
               fontSize: 16,
               color: palette.white,
@@ -144,11 +130,9 @@ function EmptyState({
       <Animated.View entering={FadeIn.delay(500).duration(300)}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontWeight: '400',
-            fontSize: 12,
-            color: palette.neutral500,
-            fontStyle: 'italic',
+            fontFamily: 'InstrumentSerif-Italic',
+            fontSize: 13,
+            color: theme.ink3,
             marginTop: 12,
           }}
         >
@@ -170,7 +154,7 @@ export default function ExpenseDashboardScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
-  const { t: eTheme, isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const { format: formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
 
@@ -189,6 +173,7 @@ export default function ExpenseDashboardScreen() {
   });
   const bike = (bikesData?.myMotorcycles ?? []).find((m: { id: string }) => m.id === motorcycleId);
   const purchasePrice = bike?.purchasePrice as number | null | undefined;
+  const bikeName = bike ? `${bike.make ?? ''} ${bike.model ?? ''}`.trim() : '';
 
   // Fetch individual expenses for category drill-down
   const { data: expensesData } = useQuery({
@@ -238,17 +223,6 @@ export default function ExpenseDashboardScreen() {
     }
   }, [queryClient, motorcycleId]);
 
-  // Theme colors
-  const bgColor = eTheme.bg;
-  const textColor = eTheme.ink;
-  const subtextColor = eTheme.ink3;
-  const tertiaryColor = palette.neutral500;
-  const pillBg = eTheme.surface;
-  const pillActiveBg = eTheme.surface2;
-  const pillActiveText = eTheme.ink;
-  const pillInactiveText = eTheme.ink3;
-  const copperColor = eTheme.warm;
-
   if (isPending) {
     return (
       <View
@@ -256,10 +230,10 @@ export default function ExpenseDashboardScreen() {
           flex: 1,
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: bgColor,
+          backgroundColor: theme.bg,
         }}
       >
-        <ActivityIndicator size="large" color={palette.primary500} />
+        <ActivityIndicator size="large" color={theme.warm} />
       </View>
     );
   }
@@ -272,15 +246,14 @@ export default function ExpenseDashboardScreen() {
           justifyContent: 'center',
           alignItems: 'center',
           padding: 40,
-          backgroundColor: bgColor,
+          backgroundColor: theme.bg,
         }}
       >
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-SemiBold',
-            fontWeight: '600',
-            fontSize: 16,
-            color: subtextColor,
+            fontFamily: 'InstrumentSerif-Regular',
+            fontSize: 20,
+            color: theme.ink2,
             textAlign: 'center',
             marginBottom: 16,
           }}
@@ -292,7 +265,7 @@ export default function ExpenseDashboardScreen() {
           accessibilityLabel="Retry loading expense data"
           accessibilityRole="button"
           style={{
-            backgroundColor: palette.primary500,
+            backgroundColor: theme.warm,
             paddingHorizontal: 24,
             paddingVertical: 12,
             borderRadius: 12,
@@ -301,7 +274,6 @@ export default function ExpenseDashboardScreen() {
         >
           <Text
             style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
               fontWeight: '600',
               fontSize: 14,
               color: palette.white,
@@ -316,15 +288,7 @@ export default function ExpenseDashboardScreen() {
 
   // Empty state
   if (!dashboard || dashboard.expenseCount === 0) {
-    return (
-      <EmptyState
-        bgColor={bgColor}
-        textColor={textColor}
-        subtextColor={subtextColor}
-        copperColor={copperColor}
-        motorcycleId={motorcycleId}
-      />
-    );
+    return <EmptyState motorcycleId={motorcycleId} />;
   }
 
   const mileageNum = currentMileage ? Number(currentMileage) : null;
@@ -360,29 +324,58 @@ export default function ExpenseDashboardScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: bgColor }}
+      style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
         paddingHorizontal: 20,
         paddingBottom: 100,
-        // headerTransparent: true doesn't auto-inset on Android
         ...(process.env.EXPO_OS === 'android' && { paddingTop: 56 }),
       }}
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={eTheme.warm} />
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
       }
     >
+      {/* Editorial Header */}
+      <Animated.View entering={FadeInDown.duration(300)} style={{ marginTop: 12 }}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+            color: theme.ink3,
+          }}
+        >
+          EXPENSE INSIGHTS
+        </Text>
+        {bikeName ? (
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 28,
+              color: theme.ink,
+              marginTop: 4,
+              letterSpacing: -0.5,
+            }}
+          >
+            {bikeName}
+          </Text>
+        ) : null}
+      </Animated.View>
+
       {/* Period Selector */}
-      <Animated.View entering={FadeInUp.duration(300)} style={{ marginTop: 16 }}>
+      <Animated.View entering={FadeInUp.delay(40).duration(300)} style={{ marginTop: 20 }}>
         <View
           accessibilityRole="tablist"
           accessibilityLabel="Expense period selector"
           style={{
             flexDirection: 'row',
-            backgroundColor: pillBg,
-            borderRadius: 12,
+            backgroundColor: theme.surface,
+            borderRadius: 14,
             borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: theme.line,
             padding: 4,
           }}
         >
@@ -395,28 +388,19 @@ export default function ExpenseDashboardScreen() {
               accessibilityState={{ selected: period === option }}
               style={{
                 flex: 1,
-                paddingVertical: 8,
-                borderRadius: 8,
+                paddingVertical: 10,
+                borderRadius: 10,
                 borderCurve: 'continuous',
-                backgroundColor: period === option ? pillActiveBg : 'transparent',
+                backgroundColor: period === option ? theme.surface2 : 'transparent',
                 alignItems: 'center',
-                ...(period === option && !isDark
-                  ? {
-                      shadowColor: palette.black,
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.08,
-                      shadowRadius: 2,
-                    }
-                  : {}),
               }}
             >
               <Text
                 style={{
-                  fontFamily:
-                    period === option ? 'PlusJakartaSans-SemiBold' : 'PlusJakartaSans-Medium',
                   fontWeight: period === option ? '600' : '500',
-                  fontSize: 14,
-                  color: period === option ? pillActiveText : pillInactiveText,
+                  fontSize: 13,
+                  letterSpacing: period === option ? 0 : -0.1,
+                  color: period === option ? theme.ink : theme.ink3,
                 }}
               >
                 {PERIOD_LABELS[option]}
@@ -426,14 +410,12 @@ export default function ExpenseDashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* Hero Area */}
-      <Animated.View entering={FadeInUp.delay(60).duration(300)} style={{ marginTop: 24 }}>
+      {/* Hero Total */}
+      <Animated.View entering={FadeInUp.delay(80).duration(300)} style={{ marginTop: 28 }}>
         <Text
           style={{
-            fontFamily: 'PlusJakartaSans-Regular',
-            fontWeight: '400',
-            fontSize: 14,
-            color: subtextColor,
+            fontSize: 13,
+            color: theme.ink3,
           }}
         >
           {periodContextLabel}
@@ -444,12 +426,11 @@ export default function ExpenseDashboardScreen() {
           numberOfLines={1}
           accessibilityLabel={`Total: ${formatCurrency(periodTotal)}`}
           style={{
-            fontFamily: 'PlusJakartaSans-Bold',
-            fontWeight: '700',
-            fontSize: 44,
-            color: textColor,
+            fontFamily: 'InstrumentSerif-Regular',
+            fontSize: 48,
+            color: theme.ink,
             letterSpacing: -1.5,
-            marginTop: 4,
+            marginTop: 2,
           }}
         >
           {formatCurrency(periodTotal)}
@@ -459,10 +440,9 @@ export default function ExpenseDashboardScreen() {
           <Text
             accessibilityLabel={`${yoyChange <= 0 ? 'Down' : 'Up'} ${Math.abs(yoyChange).toFixed(0)} percent versus last year`}
             style={{
-              fontFamily: 'PlusJakartaSans-Medium',
-              fontWeight: '500',
               fontSize: 14,
-              color: yoyChange <= 0 ? palette.success500 : palette.warning500,
+              fontWeight: '500',
+              color: yoyChange <= 0 ? theme.success : theme.danger,
               marginTop: 4,
             }}
           >
@@ -470,19 +450,20 @@ export default function ExpenseDashboardScreen() {
           </Text>
         )}
 
+        {/* Top category pill */}
         {topCategory && topCategory.total > 0 && (
           <View
             accessibilityLabel={`Top category: ${CATEGORY_LABELS[topCategory.category] ?? topCategory.category}, ${formatCurrency(topCategory.total)}${topCategoryPct ? `, ${topCategoryPct} percent` : ''}`}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: eTheme.surface,
+              backgroundColor: tint(theme.warm, 0.15),
               borderRadius: 20,
               borderCurve: 'continuous',
               paddingHorizontal: 12,
-              paddingVertical: 8,
+              paddingVertical: 7,
               alignSelf: 'flex-start',
-              marginTop: 20,
+              marginTop: 16,
             }}
           >
             <View
@@ -490,17 +471,16 @@ export default function ExpenseDashboardScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: CATEGORY_COLORS[topCategory.category] ?? palette.neutral400,
+                backgroundColor: CATEGORY_COLORS[topCategory.category] ?? theme.ink3,
               }}
             />
             <Text
               numberOfLines={1}
               style={{
-                fontFamily: 'PlusJakartaSans-Medium',
                 fontWeight: '500',
                 fontSize: 12,
-                color: subtextColor,
-                marginLeft: 4,
+                color: theme.ink2,
+                marginLeft: 6,
                 flexShrink: 1,
               }}
             >
@@ -508,11 +488,10 @@ export default function ExpenseDashboardScreen() {
             </Text>
             <Text
               style={{
-                fontFamily: 'PlusJakartaSans-SemiBold',
-                fontWeight: '600',
-                fontSize: 12,
-                color: textColor,
-                marginLeft: 4,
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 13,
+                color: theme.ink,
+                marginLeft: 6,
               }}
             >
               {formatCurrency(topCategory.total)}
@@ -520,10 +499,8 @@ export default function ExpenseDashboardScreen() {
             {topCategoryPct && (
               <Text
                 style={{
-                  fontFamily: 'PlusJakartaSans-Regular',
-                  fontWeight: '400',
-                  fontSize: 12,
-                  color: tertiaryColor,
+                  fontSize: 11,
+                  color: theme.ink3,
                   marginLeft: 4,
                 }}
               >
@@ -534,68 +511,93 @@ export default function ExpenseDashboardScreen() {
         )}
       </Animated.View>
 
-      {/* Purchase Price / Total Cost of Ownership */}
+      {/* Total Cost of Ownership */}
       {purchasePrice != null && purchasePrice > 0 ? (
-        <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 20 }}>
+        <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
           <View
             style={{
-              backgroundColor: eTheme.surface,
-              borderRadius: 16,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
               borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
               padding: 16,
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '600',
-                color: subtextColor,
+                fontSize: 10,
+                fontWeight: '700',
+                letterSpacing: 1.5,
                 textTransform: 'uppercase',
-                letterSpacing: 0.5,
+                color: theme.ink3,
                 marginBottom: 8,
               }}
             >
-              Total Cost of Ownership
+              TOTAL COST OF OWNERSHIP
             </Text>
             <Text
               style={{
-                fontSize: 28,
-                fontWeight: '700',
-                color: textColor,
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 32,
+                color: theme.ink,
                 fontVariant: ['tabular-nums'],
                 letterSpacing: -0.5,
               }}
             >
               {formatCurrency(purchasePrice + dashboard.allTimeTotal)}
             </Text>
-            <View style={{ flexDirection: 'row', marginTop: 8, gap: 16 }}>
+            <View
+              style={{
+                height: 1,
+                backgroundColor: theme.line,
+                marginVertical: 12,
+              }}
+            />
+            <View style={{ flexDirection: 'row', gap: 16 }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: subtextColor }}>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
                   Bike Purchase
                 </Text>
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontWeight: '600',
-                    color: textColor,
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 18,
+                    color: theme.ink,
                     fontVariant: ['tabular-nums'],
-                    marginTop: 2,
+                    marginTop: 4,
                   }}
                 >
                   {formatCurrency(purchasePrice)}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 11, fontWeight: '500', color: subtextColor }}>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    color: theme.ink3,
+                  }}
+                >
                   All Expenses
                 </Text>
                 <Text
                   style={{
-                    fontSize: 15,
-                    fontWeight: '600',
-                    color: textColor,
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 18,
+                    color: theme.ink,
                     fontVariant: ['tabular-nums'],
-                    marginTop: 2,
+                    marginTop: 4,
                   }}
                 >
                   {formatCurrency(dashboard.allTimeTotal)}
@@ -605,7 +607,7 @@ export default function ExpenseDashboardScreen() {
           </View>
         </Animated.View>
       ) : (
-        <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 20 }}>
+        <Animated.View entering={FadeInUp.delay(120).duration(300)} style={{ marginTop: 24 }}>
           <Pressable
             onPress={() => {
               if (process.env.EXPO_OS === 'ios')
@@ -618,21 +620,23 @@ export default function ExpenseDashboardScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: isDark ? `${palette.primary500}15` : `${palette.primary500}08`,
-              borderRadius: 12,
+              backgroundColor: tint(theme.warm, 0.1),
+              borderRadius: 14,
               borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: tint(theme.warm, 0.2),
               padding: 14,
               gap: 10,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
           >
-            <Info size={18} color={palette.primary500} />
+            <Info size={18} color={theme.warm} />
             <Text
               style={{
                 flex: 1,
                 fontSize: 13,
                 fontWeight: '500',
-                color: eTheme.warm,
+                color: theme.ink2,
               }}
             >
               Add your bike's purchase price in Edit Bike to see total cost of ownership
@@ -642,7 +646,7 @@ export default function ExpenseDashboardScreen() {
       )}
 
       {/* Summary Metric Pills */}
-      <Animated.View entering={FadeInUp.delay(140).duration(300)} style={{ marginTop: 16 }}>
+      <Animated.View entering={FadeInUp.delay(160).duration(300)} style={{ marginTop: 16 }}>
         <SummaryCards
           avgPerMonth={avgPerMonth}
           expenseCount={dashboard.expenseCount}
@@ -652,35 +656,29 @@ export default function ExpenseDashboardScreen() {
         />
       </Animated.View>
 
-      {/* Category Breakdown — card treatment for visual separation from hero */}
-      <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 32 }}>
-        <View
+      {/* Category Breakdown */}
+      <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 32 }}>
+        <Text
           style={{
-            backgroundColor: eTheme.surface,
-            borderRadius: 12,
-            borderCurve: 'continuous',
-            padding: 16,
-            ...(!isDark
-              ? {
-                  shadowColor: palette.black,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.04,
-                  shadowRadius: 8,
-                }
-              : {}),
+            fontFamily: 'InstrumentSerif-Italic',
+            fontSize: 22,
+            color: theme.warm2,
+            marginBottom: 14,
+            paddingLeft: 2,
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans-SemiBold',
-              fontWeight: '600',
-              fontSize: 16,
-              color: textColor,
-              marginBottom: 16,
-            }}
-          >
-            By Category
-          </Text>
+          By category
+        </Text>
+        <View
+          style={{
+            backgroundColor: theme.surface,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            borderWidth: 1,
+            borderColor: theme.line,
+            padding: 16,
+          }}
+        >
           <CategoryDonut
             categoryTotals={categoryTotals}
             totalAmount={periodTotal}
@@ -696,18 +694,12 @@ export default function ExpenseDashboardScreen() {
         <Animated.View entering={FadeInUp.duration(250)} style={{ marginTop: 16 }}>
           <View
             style={{
-              backgroundColor: eTheme.surface,
-              borderRadius: 12,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
               borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
               padding: 16,
-              ...(!isDark
-                ? {
-                    shadowColor: palette.black,
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 8,
-                  }
-                : {}),
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -716,27 +708,27 @@ export default function ExpenseDashboardScreen() {
                   width: 10,
                   height: 10,
                   borderRadius: 5,
-                  backgroundColor: CATEGORY_COLORS[selectedCategory] ?? palette.neutral400,
+                  backgroundColor: CATEGORY_COLORS[selectedCategory] ?? theme.ink3,
                   marginRight: 8,
                 }}
               />
               <Text
                 style={{
-                  fontFamily: 'PlusJakartaSans-SemiBold',
-                  fontWeight: '600',
-                  fontSize: 16,
-                  color: textColor,
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 18,
+                  color: theme.ink,
                   flex: 1,
                 }}
               >
-                {CATEGORY_LABELS[selectedCategory] ?? selectedCategory} ({categoryExpenses.length})
+                {CATEGORY_LABELS[selectedCategory] ?? selectedCategory}{' '}
+                <Text style={{ fontSize: 14, color: theme.ink3 }}>({categoryExpenses.length})</Text>
               </Text>
               <Pressable
                 onPress={() => setSelectedCategory(null)}
                 hitSlop={12}
                 accessibilityLabel="Close expense list"
               >
-                <X size={18} color={subtextColor} />
+                <X size={18} color={theme.ink3} />
               </Pressable>
             </View>
 
@@ -746,7 +738,7 @@ export default function ExpenseDashboardScreen() {
                   <View
                     style={{
                       height: 1,
-                      backgroundColor: isDark ? palette.neutral700 : palette.neutral200,
+                      backgroundColor: theme.line,
                       marginVertical: 1,
                     }}
                   />
@@ -762,10 +754,9 @@ export default function ExpenseDashboardScreen() {
                     <Text
                       numberOfLines={1}
                       style={{
-                        fontFamily: 'PlusJakartaSans-Medium',
                         fontWeight: '500',
                         fontSize: 14,
-                        color: textColor,
+                        color: theme.ink,
                       }}
                     >
                       {expense.description ||
@@ -773,10 +764,8 @@ export default function ExpenseDashboardScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontFamily: 'PlusJakartaSans-Regular',
-                        fontWeight: '400',
                         fontSize: 12,
-                        color: subtextColor,
+                        color: theme.ink3,
                         marginTop: 2,
                       }}
                     >
@@ -789,10 +778,9 @@ export default function ExpenseDashboardScreen() {
                   </View>
                   <Text
                     style={{
-                      fontFamily: 'PlusJakartaSans-SemiBold',
-                      fontWeight: '600',
-                      fontSize: 15,
-                      color: textColor,
+                      fontFamily: 'InstrumentSerif-Regular',
+                      fontSize: 16,
+                      color: theme.ink,
                       marginLeft: 12,
                     }}
                   >
@@ -806,7 +794,18 @@ export default function ExpenseDashboardScreen() {
       )}
 
       {/* Monthly Trend */}
-      <Animated.View entering={FadeInUp.delay(240).duration(300)} style={{ marginTop: 16 }}>
+      <Animated.View entering={FadeInUp.delay(260).duration(300)} style={{ marginTop: 24 }}>
+        <Text
+          style={{
+            fontFamily: 'InstrumentSerif-Italic',
+            fontSize: 22,
+            color: theme.warm2,
+            marginBottom: 14,
+            paddingLeft: 2,
+          }}
+        >
+          Monthly trend
+        </Text>
         <MonthlyTrend buckets={filteredBuckets} isDark={isDark} />
       </Animated.View>
     </ScrollView>
