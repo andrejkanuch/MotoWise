@@ -17,6 +17,7 @@ import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { presentPaywall } from '../../../lib/subscription';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -217,7 +218,8 @@ export default function GarageScreen() {
                     color: theme.ink3,
                   }}
                 >
-                  {motorcycles.length} bikes · {totalKm.toLocaleString()} km
+                  {motorcycles.length} {motorcycles.length === 1 ? 'bike' : 'bikes'} ·{' '}
+                  {totalKm.toLocaleString()} km
                 </Text>
               </View>
               <Text
@@ -236,7 +238,7 @@ export default function GarageScreen() {
               </Text>
             </View>
             <Pressable
-              onPress={handleAddBike}
+              onPress={!isPro && motorcycles.length >= 1 ? () => presentPaywall() : handleAddBike}
               style={{
                 width: 40,
                 height: 40,
@@ -519,7 +521,7 @@ export default function GarageScreen() {
               <Pressable
                 onPress={handleAddBike}
                 style={{
-                  width: 260,
+                  width: 300,
                   aspectRatio: 3 / 4,
                   borderRadius: 22,
                   borderCurve: 'continuous',

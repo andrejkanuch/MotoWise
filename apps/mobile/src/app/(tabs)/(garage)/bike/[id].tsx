@@ -684,7 +684,7 @@ export default function BikeDetailScreen() {
               fontSize: 36,
               color: theme.ink,
               letterSpacing: -0.7,
-              lineHeight: 36,
+              lineHeight: 40,
               marginBottom: 14,
             }}
           >
