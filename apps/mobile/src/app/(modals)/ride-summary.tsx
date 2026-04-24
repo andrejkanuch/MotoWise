@@ -1,20 +1,22 @@
 import { palette } from '@motovault/design-system';
 import MapboxGL from '@rnmapbox/maps';
+import { useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   Clock,
   Compass,
   Gauge,
   Map as MapIcon,
-  Mountain,
   Receipt,
   Route,
   Share2,
   Trash2,
+  TrendingUp,
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -23,6 +25,7 @@ import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-rean
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { queryKeys } from '../../lib/query-keys';
 import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
@@ -67,6 +70,7 @@ export default function RideSummaryScreen() {
     maxSpeedMps: string;
     avgSpeedMps: string;
     elevationGain: string;
+    elevationLoss: string;
     startedAt: string;
     motorcycleId: string;
   }>();
@@ -77,9 +81,11 @@ export default function RideSummaryScreen() {
   const maxSpeedMps = Number(params.maxSpeedMps) || 0;
   const avgSpeedMps = Number(params.avgSpeedMps) || 0;
   const elevationGain = Number(params.elevationGain) || 0;
+  const elevationLoss = Number(params.elevationLoss) || 0;
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
 
+  const queryClient = useQueryClient();
   const { isDark } = useEditorialTheme();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));
@@ -211,6 +217,9 @@ export default function RideSummaryScreen() {
 
       clearRideData(rideId);
 
+      // Invalidate rides cache so the list shows the new ride
+      queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
+
       trackEvent(AnalyticsEvent.RIDE_COMPLETED, {
         distance_m: distanceM,
         duration_s: durationS,
@@ -239,7 +248,7 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover]);
+  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover, queryClient]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
@@ -263,9 +272,10 @@ export default function RideSummaryScreen() {
   const stats = [
     { icon: Route, label: 'Distance', value: formatDistance(distanceM, system) },
     { icon: Clock, label: 'Moving Time', value: formatDuration(durationS) },
-    { icon: Gauge, label: 'Avg Speed', value: formatSpeed(avgSpeedMps, system) },
+    { icon: TrendingUp, label: 'Avg Speed', value: formatSpeed(avgSpeedMps, system) },
     { icon: Gauge, label: 'Max Speed', value: formatSpeed(maxSpeedMps, system) },
-    { icon: Mountain, label: 'Elevation', value: formatElevation(elevationGain, system) },
+    { icon: ArrowUp, label: 'Ascent', value: formatElevation(elevationGain, system) },
+    { icon: ArrowDown, label: 'Descent', value: formatElevation(elevationLoss, system) },
   ];
 
   return (

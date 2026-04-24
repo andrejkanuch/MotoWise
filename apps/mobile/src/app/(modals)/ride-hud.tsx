@@ -1,5 +1,6 @@
 import { palette } from '@motovault/design-system';
 import { EndRideDocument } from '@motovault/graphql';
+import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
@@ -23,7 +24,12 @@ import { HudSpeed } from '../../components/ride/hud-speed';
 import { useLeanAngle } from '../../hooks/use-lean-angle';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { useRideStore } from '../../stores/ride.store';
-import { formatDistance, formatElapsed, formatSpeed } from '../../utils/ride-formatters';
+import {
+  formatDistance,
+  formatElapsed,
+  formatElevation,
+  formatSpeed,
+} from '../../utils/ride-formatters';
 import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
 import {
   flushBufferToMMKV,
@@ -46,6 +52,9 @@ export default function RideHudScreen() {
   const status = useRideStore((s) => s.status);
   const distance = useRideStore((s) => s.distance);
   const currentSpeed = useRideStore((s) => s.currentSpeed);
+  const maxSpeed = useRideStore((s) => s.maxSpeed);
+  const elevationGain = useRideStore((s) => s.elevationGain);
+  const currentAltitude = useRideStore((s) => s.currentAltitude);
   const isNightMode = useRideStore((s) => s.isNightMode);
   const isBatterySaver = useRideStore((s) => s.isBatterySaver);
   const toggleNight = useRideStore((s) => s.toggleNightMode);
@@ -60,6 +69,8 @@ export default function RideHudScreen() {
   const [sparklineMode, setSparklineMode] = useState<SparklineMode>('speed');
   const [speedHistory, setSpeedHistory] = useState<number[]>([]);
   const [altitudeHistory, setAltitudeHistory] = useState<number[]>([]);
+  const [liveWaypoints, setLiveWaypoints] = useState<Waypoint[]>([]);
+  const [gpsAccuracy, setGpsAccuracy] = useState(0);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedRef = useRef(0);
 
@@ -71,15 +82,11 @@ export default function RideHudScreen() {
   // Lean angle sensor
   const { smoothLean, peakLeft, peakRight } = useLeanAngle();
 
-  // Track max speed + current speed via refs (avoids re-render/interval reset)
-  const maxSpeedRef = useRef(0);
+  // Track current speed via ref for sparkline intervals (avoids re-render dep)
   const currentSpeedRef = useRef(currentSpeed);
   currentSpeedRef.current = currentSpeed;
-  if (currentSpeed > maxSpeedRef.current) {
-    maxSpeedRef.current = currentSpeed;
-  }
 
-  // Collect sparkline data every ~5 seconds (stable interval — no currentSpeed dep)
+  // Collect sparkline data + live waypoints every ~5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (isPaused) return;
@@ -98,6 +105,14 @@ export default function RideHudScreen() {
             return next.length > 300 ? next.slice(-300) : next;
           });
         }
+        setGpsAccuracy(lastPoint.accuracy ?? 0);
+      }
+
+      // Update live route polyline from chunks + buffer
+      const rideId = rideMMKV.getCurrentId();
+      if (rideId) {
+        const chunks = getWaypointChunks(rideId);
+        setLiveWaypoints([...chunks.flat(), ...buffer]);
       }
     }, 5000);
 
@@ -226,6 +241,7 @@ export default function RideHudScreen() {
         maxSpeedMps: String(maxSpeed),
         avgSpeedMps: String(avgSpeed),
         elevationGain: String(Math.round(elevGain)),
+        elevationLoss: String(Math.round(elevLoss)),
         startedAt: rideMMKV.getStartedAt()?.toString() ?? '',
         motorcycleId: rideMMKV.getMotorcycleId() ?? '',
       },
@@ -401,7 +417,7 @@ export default function RideHudScreen() {
 
       {/* Map zone — takes all remaining space */}
       <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 1 }}>
-        <HudMap waypoints={[]} gpsAccuracy={0} />
+        <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} />
       </Animated.View>
 
       {/* Speed hero — fixed height, no absolute glow bleed */}
@@ -429,44 +445,70 @@ export default function RideHudScreen() {
         />
       </View>
 
-      {/* Stats strip — all 4 stats always visible */}
-      <View
-        style={{
-          flexDirection: 'row',
-          marginHorizontal: 20,
-          backgroundColor: palette.surfaceHover,
-          borderRadius: 16,
-          borderCurve: 'continuous',
-          overflow: 'hidden',
-        }}
-      >
-        <StatCell
-          label="DIST"
-          value={formatDistance(distance, system)}
-          textColor={textColor}
-          labelColor={labelColor}
-        />
-        <StatDivider isNightMode={isNightMode} />
-        <StatCell
-          label="TIME"
-          value={formatElapsed(elapsedSeconds)}
-          textColor={textColor}
-          labelColor={labelColor}
-        />
-        <StatDivider isNightMode={isNightMode} />
-        <StatCell
-          label="AVG"
-          value={formatSpeed(avgSpeedDisplay, system)}
-          textColor={textColor}
-          labelColor={labelColor}
-        />
-        <StatDivider isNightMode={isNightMode} />
-        <StatCell
-          label="MAX"
-          value={formatSpeed(maxSpeedRef.current, system)}
-          textColor={textColor}
-          labelColor={labelColor}
-        />
+      {/* Stats strip — 6 stats in two rows */}
+      <View style={{ marginHorizontal: 20, gap: 1 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: palette.surfaceHover,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+          }}
+        >
+          <StatCell
+            label="DIST"
+            value={formatDistance(distance, system)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+          <StatDivider isNightMode={isNightMode} />
+          <StatCell
+            label="TIME"
+            value={formatElapsed(elapsedSeconds)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+          <StatDivider isNightMode={isNightMode} />
+          <StatCell
+            label="AVG"
+            value={formatSpeed(avgSpeedDisplay, system)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+        </View>
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: palette.surfaceHover,
+            borderBottomLeftRadius: 16,
+            borderBottomRightRadius: 16,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+          }}
+        >
+          <StatCell
+            label="MAX"
+            value={formatSpeed(maxSpeed, system)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+          <StatDivider isNightMode={isNightMode} />
+          <StatCell
+            label="ELEV"
+            value={formatElevation(elevationGain, system)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+          <StatDivider isNightMode={isNightMode} />
+          <StatCell
+            label="ALT"
+            value={formatElevation(currentAltitude, system)}
+            textColor={textColor}
+            labelColor={labelColor}
+          />
+        </View>
       </View>
 
       {/* Bottom controls — fixed at bottom */}

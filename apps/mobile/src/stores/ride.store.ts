@@ -10,6 +10,13 @@ interface RideState {
   currentSpeed: number;
   elapsedTime: number;
   distance: number;
+  maxSpeed: number;
+  elevationGain: number;
+  elevationLoss: number;
+  currentAltitude: number;
+  maxAltitude: number;
+  minAltitude: number;
+  stopCount: number;
   recordingSubState: RecordingSubState;
   isNightMode: boolean;
   isBatterySaver: boolean;
@@ -21,17 +28,31 @@ interface RideState {
   updateSpeed: (speed: number) => void;
   updateDistance: (distance: number) => void;
   updateElapsedTime: (time: number) => void;
+  updateMaxSpeed: (speed: number) => void;
+  updateElevation: (gain: number, loss: number, current: number, max: number, min: number) => void;
+  updateStopCount: (count: number) => void;
   toggleNightMode: () => void;
   toggleBatterySaver: () => void;
   setPermissionLevel: (level: PermissionLevel) => void;
   hydrate: () => void;
 }
 
-export const useRideStore = create<RideState>()((set) => ({
-  status: 'idle',
+const INITIAL_STATS = {
   currentSpeed: 0,
   elapsedTime: 0,
   distance: 0,
+  maxSpeed: 0,
+  elevationGain: 0,
+  elevationLoss: 0,
+  currentAltitude: 0,
+  maxAltitude: 0,
+  minAltitude: 0,
+  stopCount: 0,
+} as const;
+
+export const useRideStore = create<RideState>()((set) => ({
+  status: 'idle',
+  ...INITIAL_STATS,
   recordingSubState: 'moving',
   isNightMode: false,
   isBatterySaver: false,
@@ -39,9 +60,7 @@ export const useRideStore = create<RideState>()((set) => ({
   startRide: () =>
     set({
       status: 'recording',
-      currentSpeed: 0,
-      elapsedTime: 0,
-      distance: 0,
+      ...INITIAL_STATS,
       recordingSubState: 'moving',
     }),
   pauseRide: () => {
@@ -56,6 +75,10 @@ export const useRideStore = create<RideState>()((set) => ({
   updateSpeed: (currentSpeed) => set({ currentSpeed }),
   updateDistance: (distance) => set({ distance }),
   updateElapsedTime: (elapsedTime) => set({ elapsedTime }),
+  updateMaxSpeed: (maxSpeed) => set((s) => (maxSpeed > s.maxSpeed ? { maxSpeed } : s)),
+  updateElevation: (elevationGain, elevationLoss, currentAltitude, maxAltitude, minAltitude) =>
+    set({ elevationGain, elevationLoss, currentAltitude, maxAltitude, minAltitude }),
+  updateStopCount: (stopCount) => set({ stopCount }),
   toggleNightMode: () => set((state) => ({ isNightMode: !state.isNightMode })),
   toggleBatterySaver: () => set((state) => ({ isBatterySaver: !state.isBatterySaver })),
   setPermissionLevel: (permissionLevel) => set({ permissionLevel }),

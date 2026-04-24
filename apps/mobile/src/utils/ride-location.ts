@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { useRideStore } from '../stores/ride.store';
+import { gpsFilter } from './ride-gps-filter';
 import {
   appendWaypoint,
   clearPointBuffer,
@@ -57,11 +58,14 @@ export async function startGPSListener(
   const rideId = rideMMKV.getCurrentId();
   if (rideId) restoreBufferFromMMKV(rideId);
 
+  // Reset GPS filter for fresh ride
+  gpsFilter.reset();
+
   locationSubscription = await Location.watchPositionAsync(
     {
-      accuracy: Location.Accuracy.High,
-      distanceInterval: 10,
-      timeInterval: 5000,
+      accuracy: Location.Accuracy.BestForNavigation,
+      distanceInterval: 5,
+      timeInterval: 1000,
       mayShowUserSettingsDialog: false,
     },
     (location) => {
@@ -86,9 +90,9 @@ export async function toggleBatterySaver(enabled: boolean): Promise<void> {
     locationSubscription.remove();
     locationSubscription = await Location.watchPositionAsync(
       {
-        accuracy: enabled ? Location.Accuracy.Balanced : Location.Accuracy.High,
-        distanceInterval: enabled ? 20 : 10,
-        timeInterval: enabled ? 10000 : 5000,
+        accuracy: enabled ? Location.Accuracy.Balanced : Location.Accuracy.BestForNavigation,
+        distanceInterval: enabled ? 15 : 5,
+        timeInterval: enabled ? 5000 : 1000,
         mayShowUserSettingsDialog: false,
       },
       (location) => {
@@ -99,17 +103,17 @@ export async function toggleBatterySaver(enabled: boolean): Promise<void> {
   }
 }
 
-// --- Location processing (auto-pause + waypoint storage) ---
+// --- Location processing (auto-pause + filtering + stats + waypoint storage) ---
 
 function processLocation(location: Location.LocationObject): void {
   const rideId = rideMMKV.getCurrentId();
   if (!rideId) return;
 
-  const speedMps = location.coords.speed ?? 0;
+  const rawSpeed = location.coords.speed ?? 0;
   const currentPos = { lat: location.coords.latitude, lng: location.coords.longitude };
 
   // --- Auto-pause logic ---
-  if (speedMps < AUTO_PAUSE_SPEED_THRESHOLD) {
+  if (rawSpeed < AUTO_PAUSE_SPEED_THRESHOLD) {
     if (!zeroSpeedTimer) {
       zeroSpeedTimer = Date.now();
       zeroSpeedAnchor = currentPos;
@@ -138,7 +142,8 @@ function processLocation(location: Location.LocationObject): void {
         if (autoPauseDuration > FORGOT_TO_STOP_AUTO_END_MS) {
           autoEndRide(continuousAutoPauseStart);
           return;
-        } else if (autoPauseDuration > FORGOT_TO_STOP_NOTIFY_MS && !forgotToStopNotified) {
+        }
+        if (autoPauseDuration > FORGOT_TO_STOP_NOTIFY_MS && !forgotToStopNotified) {
           showForgotToStopNotification();
           forgotToStopNotified = true;
         }
@@ -161,14 +166,50 @@ function processLocation(location: Location.LocationObject): void {
     }
   }
 
+  // --- Apply GPS filter (Kalman + smoothing + drift prevention) ---
+  const filtered = gpsFilter.process(
+    location.coords.latitude,
+    location.coords.longitude,
+    location.coords.altitude,
+    location.coords.speed,
+    location.coords.heading,
+    location.coords.accuracy,
+    location.timestamp,
+  );
+
+  // If the filter rejects the point (poor accuracy, drift, teleport), skip it
+  if (!filtered) return;
+
+  // --- Update live stats in Zustand store ---
+  const store = useRideStore.getState();
+  store.updateSpeed(filtered.speed);
+  store.updateMaxSpeed(filtered.speed);
+
+  // Accumulate distance
+  if (filtered.segmentDistance > 0) {
+    store.updateDistance(store.distance + filtered.segmentDistance);
+  }
+
+  // Update elevation stats from filter
+  const gpsStats = gpsFilter.stats;
+  store.updateElevation(
+    gpsStats.totalAscent,
+    gpsStats.totalDescent,
+    filtered.smoothedAltitude ?? 0,
+    gpsStats.maxAltitude,
+    gpsStats.minAltitude,
+  );
+
+  store.updateStopCount(gpsStats.stopCount);
+
   // --- Write waypoint to in-memory buffer, flush to MMKV chunk at CHUNK_SIZE ---
   const waypoint: Waypoint = {
-    latitude: location.coords.latitude,
-    longitude: location.coords.longitude,
-    altitude: location.coords.altitude,
-    speedMps: location.coords.speed ?? 0,
-    heading: location.coords.heading ?? 0,
-    accuracy: location.coords.accuracy ?? 0,
+    latitude: filtered.latitude,
+    longitude: filtered.longitude,
+    altitude: filtered.smoothedAltitude,
+    speedMps: filtered.speed,
+    heading: filtered.heading,
+    accuracy: filtered.accuracy,
     recordedAt: new Date(location.timestamp).toISOString(),
   };
 
