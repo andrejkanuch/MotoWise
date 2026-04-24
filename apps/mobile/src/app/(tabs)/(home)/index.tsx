@@ -26,7 +26,8 @@ import { tint, useEditorialTheme } from '../../../theme/editorial';
 function WeekBars({ values }: { values: number[] }) {
   const { t: theme } = useEditorialTheme();
   const max = Math.max(...values, 1);
-  const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 80 }}>
       {values.map((v, i) => {
@@ -44,7 +45,9 @@ function WeekBars({ values }: { values: number[] }) {
                 opacity: active ? 1 : 0.7,
               }}
             />
-            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>{days[i]}</Text>
+            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>
+              {dayLabels[i]}
+            </Text>
           </View>
         );
       })}
