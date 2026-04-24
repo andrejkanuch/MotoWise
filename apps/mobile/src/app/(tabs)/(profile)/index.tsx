@@ -27,6 +27,7 @@ import {
   Lock,
   LogOut,
   Map as MapRoute,
+  Megaphone,
   Moon,
   Navigation,
   Palette,
@@ -1075,6 +1076,12 @@ export default function ProfileScreen() {
             label={t('profile.subscriptions')}
             isDark={isDark}
             onPress={() => presentPaywall()}
+          />
+          <SettingsRow
+            icon={Megaphone}
+            label={t('whatsNew.badge')}
+            isDark={isDark}
+            onPress={() => router.push('/(modals)/whats-new' as never)}
           />
           <SettingsRow
             icon={HelpCircle}

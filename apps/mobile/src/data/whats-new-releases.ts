@@ -1,6 +1,14 @@
 import { palette } from '@motovault/design-system';
 import type { LucideIcon } from 'lucide-react-native';
-import { Map as MapIcon, MessageCircle, Route, Users } from 'lucide-react-native';
+import {
+  Gauge,
+  Map as MapIcon,
+  MessageCircle,
+  Navigation,
+  Paintbrush,
+  Route,
+  Users,
+} from 'lucide-react-native';
 
 export interface WhatsNewSlide {
   icon: LucideIcon;
@@ -20,6 +28,35 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.0.0',
+    slides: [
+      {
+        icon: Paintbrush,
+        iconColor: palette.editorialDarkWarm,
+        titleKey: 'whatsNew.v300.redesignTitle' as const,
+        descriptionKey: 'whatsNew.v300.redesignDesc' as const,
+      },
+      {
+        icon: Navigation,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v300.rideRecordingTitle' as const,
+        descriptionKey: 'whatsNew.v300.rideRecordingDesc' as const,
+      },
+      {
+        icon: Gauge,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v300.liveStatsTitle' as const,
+        descriptionKey: 'whatsNew.v300.liveStatsDesc' as const,
+      },
+      {
+        icon: MapIcon,
+        iconColor: palette.editorialInfo,
+        titleKey: 'whatsNew.v300.tripPlannerTitle' as const,
+        descriptionKey: 'whatsNew.v300.tripPlannerDesc' as const,
+      },
+    ],
+  },
   {
     version: '2.5.0',
     slides: [
@@ -57,4 +94,9 @@ export type WhatsNewSlideEntry = WhatsNewReleaseEntry['slides'][number];
 /** Find the release entry for a given version, or null if none exists. */
 export function getWhatsNewRelease(version: string): WhatsNewReleaseEntry | null {
   return WHATS_NEW_RELEASES.find((r) => r.version === version) ?? null;
+}
+
+/** Return the most recent release (first entry in the array). */
+export function getLatestRelease(): WhatsNewReleaseEntry {
+  return WHATS_NEW_RELEASES[0];
 }
