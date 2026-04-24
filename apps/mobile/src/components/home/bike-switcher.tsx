@@ -3,16 +3,10 @@ import { Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
-
-interface Bike {
-  id: string;
-  make: string;
-  model: string;
-  primaryPhotoUrl?: string | null;
-}
+import type { HomeMotorcycle } from './home-types';
 
 interface BikeSwitcherProps {
-  bikes: Bike[];
+  bikes: HomeMotorcycle[];
   selectedIndex: number;
   onSelect: (index: number) => void;
   onAddBike: () => void;

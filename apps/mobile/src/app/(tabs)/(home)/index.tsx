@@ -54,7 +54,7 @@ export default function HomeScreen() {
 
   // Find primary bike index on first render
   const primaryIdx = useMemo(() => {
-    const idx = motorcycles.findIndex((b: { isPrimary: boolean }) => b.isPrimary);
+    const idx = motorcycles.findIndex((b) => b.isPrimary);
     return idx >= 0 ? idx : 0;
   }, [motorcycles]);
 
@@ -65,24 +65,22 @@ export default function HomeScreen() {
   // Compute next service days for the active bike
   const nextServiceForBike = useMemo(() => {
     if (!activeBike) return null;
-    const bikeId = (activeBike as { id: string }).id;
     const upcoming = sortedTasks.find(
-      (task) => !task.relative.isOverdue && task.motorcycleId === bikeId,
+      (task) => !task.relative.isOverdue && task.motorcycleId === activeBike.id,
     );
     return upcoming ?? nextService;
   }, [activeBike, sortedTasks, nextService]);
 
-  const nextServiceDays = nextServiceForBike?.dueDate
-    ? Math.max(
-        0,
-        Math.floor((new Date(nextServiceForBike.dueDate).getTime() - Date.now()) / 86400000),
-      )
-    : null;
+  const nextServiceDays = useMemo(() => {
+    if (!nextServiceForBike?.dueDate) return null;
+    return Math.max(
+      0,
+      Math.floor((new Date(nextServiceForBike.dueDate).getTime() - Date.now()) / 86400000),
+    );
+  }, [nextServiceForBike]);
 
   // Health score for active bike
-  const healthScore = activeBike
-    ? (bikeHealthScores[(activeBike as { id: string }).id] ?? 100)
-    : 100;
+  const healthScore = activeBike ? (bikeHealthScores[activeBike.id] ?? 100) : 100;
 
   // ── Loading ──
   if (isLoading) {
@@ -279,14 +277,7 @@ export default function HomeScreen() {
         {/* 3. Bike switcher — horizontal pill row */}
         {hasMotorcycles && (
           <BikeSwitcher
-            bikes={
-              motorcycles as {
-                id: string;
-                make: string;
-                model: string;
-                primaryPhotoUrl?: string | null;
-              }[]
-            }
+            bikes={motorcycles}
             selectedIndex={activeBikeIdx}
             onSelect={setSelectedBikeIdx}
             onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
@@ -301,7 +292,7 @@ export default function HomeScreen() {
                 router.navigate({
                   pathname: '/(tabs)/(garage)/bike/[id]',
                   params: {
-                    id: (activeBike as { id: string }).id,
+                    id: activeBike.id,
                     _ts: Date.now().toString(),
                   },
                 })
@@ -316,9 +307,9 @@ export default function HomeScreen() {
                   aspectRatio: 5 / 4,
                 }}
               >
-                {(activeBike as { primaryPhotoUrl?: string | null }).primaryPhotoUrl ? (
+                {activeBike.primaryPhotoUrl ? (
                   <Image
-                    source={{ uri: (activeBike as { primaryPhotoUrl: string }).primaryPhotoUrl }}
+                    source={{ uri: activeBike.primaryPhotoUrl }}
                     style={{ position: 'absolute', width: '100%', height: '100%' }}
                     contentFit="cover"
                   />
@@ -398,14 +389,14 @@ export default function HomeScreen() {
                       marginBottom: 2,
                     }}
                   >
-                    {(activeBike as { make: string }).make}{' '}
+                    {activeBike.make}{' '}
                     <Text
                       style={{
                         fontFamily: 'InstrumentSerif-Italic',
                         color: theme.warm2,
                       }}
                     >
-                      {(activeBike as { model: string }).model}
+                      {activeBike.model}
                     </Text>
                   </Text>
 
@@ -444,8 +435,8 @@ export default function HomeScreen() {
                             lineHeight: 22,
                           }}
                         >
-                          {(activeBike as { currentMileage?: number | null }).currentMileage != null
-                            ? `${((activeBike as { currentMileage: number }).currentMileage / 1000).toFixed(1)}k`
+                          {activeBike.currentMileage != null
+                            ? `${(activeBike.currentMileage / 1000).toFixed(1)}k`
                             : '—'}
                         </Text>
                         <Text
@@ -679,7 +670,7 @@ export default function HomeScreen() {
                     if (activeBike) {
                       router.push({
                         pathname: '/(tabs)/(garage)/add-expense',
-                        params: { motorcycleId: (activeBike as { id: string }).id },
+                        params: { motorcycleId: activeBike.id },
                       });
                     }
                   },

@@ -18,14 +18,14 @@ interface FocusHistoryProps {
 }
 
 function formatDuration(seconds: number | null): string {
-  if (!seconds) return '--';
+  if (seconds == null) return '--';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
 function formatDistance(meters: number | null): string {
-  if (!meters) return '--';
+  if (meters == null) return '--';
   const km = meters / 1000;
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }

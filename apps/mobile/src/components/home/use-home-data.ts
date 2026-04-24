@@ -5,7 +5,6 @@ import {
   MyMotorcyclesDocument,
   MyRidesDocument,
   type MyRidesQuery,
-  SearchArticlesDocument,
 } from '@motovault/graphql';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -32,13 +31,6 @@ export function useHomeData() {
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
   });
-  const articlesQuery = useQuery({
-    queryKey: queryKeys.articles.list({ sortBy: 'popular' }),
-    queryFn: () =>
-      gqlFetcher(SearchArticlesDocument, {
-        input: { first: 6 },
-      }),
-  });
   const maintenanceQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
@@ -49,32 +41,25 @@ export function useHomeData() {
   });
 
   const user = meQuery.data?.me;
-  const preferences = user?.preferences as
+  const _preferences = user?.preferences as
     | { onboardingCompleted?: boolean; experienceLevel?: string }
     | null
     | undefined;
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
-  const articles = articlesQuery.data?.searchArticles?.edges ?? [];
   const allTasks = maintenanceQuery.data?.allMaintenanceTasks ?? [];
   const ridesData = ridesQuery.data as MyRidesQuery | undefined;
   const ridesEdges = ridesData?.myRides?.edges ?? [];
 
-  const showSetupCta = !preferences?.onboardingCompleted || motorcycles.length === 0;
   const hasMotorcycles = motorcycles.length > 0;
   const isLoading = meQuery.isLoading || bikesQuery.isLoading;
   const hasCriticalError = meQuery.isError || bikesQuery.isError;
-  const isRefreshing =
-    meQuery.isRefetching ||
-    bikesQuery.isRefetching ||
-    articlesQuery.isRefetching ||
-    ridesQuery.isRefetching;
+  const isRefreshing = meQuery.isRefetching || bikesQuery.isRefetching || ridesQuery.isRefetching;
   const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
 
   const onRefresh = useCallback(() => {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me }),
       queryClient.invalidateQueries({ queryKey: queryKeys.motorcycles.all }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.articles.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.allUser }),
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.list('home') }),
     ]).then(() => {
@@ -91,95 +76,80 @@ export function useHomeData() {
   const bikeNames = useMemo(() => {
     const names: Record<string, string> = {};
     for (const m of motorcycles) {
-      names[m.id] = `${(m as { make: string }).make} ${(m as { model: string }).model}`;
+      names[m.id] = `${m.make} ${m.model}`;
     }
     return names;
   }, [motorcycles]);
 
-  // Map rides for the widget
+  // Map rides — only fields consumed by FocusStats and FocusHistory
   const recentRides = useMemo(() => {
     return ridesEdges.map((edge) => {
       const node = edge.node;
-      const bikeName = node.motorcycleId ? (bikeNames[node.motorcycleId] ?? null) : null;
       return {
         id: node.id,
-        userId: '',
-        status: node.status,
         name: node.name ?? null,
         startedAt: node.startedAt,
-        endedAt: node.endedAt ?? null,
         durationS: node.durationS ?? null,
         distanceM: node.distanceM ?? null,
-        maxSpeedMps: node.maxSpeedMps ?? null,
         avgSpeedMps: node.avgSpeedMps ?? null,
-        elevationGain: node.elevationGain ?? null,
-        elevationLoss: null,
-        pausedDurationS: node.pausedDurationS ?? 0,
-        autoPausedDurationS: node.autoPausedDurationS ?? 0,
-        routePolyline: null,
-        gpsQuality: node.gpsQuality ?? null,
-        mileageApplied: false,
-        isPublic: false,
         motorcycleId: node.motorcycleId ?? null,
-        createdAt: node.startedAt,
-        updatedAt: node.startedAt,
-        routeThumbnailUri: node.routeThumbnailUri ?? null,
-        bikeName,
+        bikeName: node.motorcycleId ? (bikeNames[node.motorcycleId] ?? null) : null,
       };
     });
   }, [ridesEdges, bikeNames]);
 
-  const ridesTotalDistance = useMemo(() => {
-    return recentRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0);
-  }, [recentRides]);
+  // Single pass: compute per-bike health scores AND fleet health together
+  const { fleetHealth, bikeHealthScores } = useMemo(() => {
+    if (motorcycles.length === 0) {
+      return { fleetHealth: null, bikeHealthScores: {} as Record<string, number> };
+    }
 
-  const fleetHealth: FleetHealth | null = useMemo(() => {
-    if (motorcycles.length === 0) return null;
-
-    const bikeScores = motorcycles.map((bike: { id: string; isPrimary: boolean }) => {
-      const bikeTasks = allTasks.filter(
-        (t: { motorcycleId: string }) => t.motorcycleId === bike.id,
-      );
-      const score = computeHealthScore(bikeTasks);
-      return { bikeId: bike.id, isPrimary: bike.isPrimary, ...score };
-    });
-
+    const scores: Record<string, number> = {};
     let totalWeight = 0;
     let weightedScore = 0;
     let totalOverdue = 0;
     let totalUrgent = 0;
     let anyHasData = false;
+    let needsAttention = 0;
 
-    for (const bs of bikeScores) {
-      const weight = bs.isPrimary ? 1.5 : 1;
-      if (bs.hasData) {
-        weightedScore += bs.score * weight;
+    for (const bike of motorcycles) {
+      const bikeTasks = allTasks.filter(
+        (task: { motorcycleId: string }) => task.motorcycleId === bike.id,
+      );
+      const result = computeHealthScore(bikeTasks);
+      scores[bike.id] = result.hasData ? result.score : 100;
+
+      const weight = bike.isPrimary ? 1.5 : 1;
+      if (result.hasData) {
+        weightedScore += result.score * weight;
         totalWeight += weight;
         anyHasData = true;
       }
-      totalOverdue += bs.overdueTasks;
-      totalUrgent += bs.urgentTasks;
+      totalOverdue += result.overdueTasks;
+      totalUrgent += result.urgentTasks;
+      if (result.overdueTasks > 0 || (result.hasData && result.score < 60)) {
+        needsAttention++;
+      }
     }
 
     const avgScore = totalWeight > 0 ? Math.round(weightedScore / totalWeight) : 0;
-    const needsAttention = bikeScores.filter(
-      (bs) => bs.overdueTasks > 0 || (bs.hasData && bs.score < 60),
-    ).length;
 
-    return {
+    const fleet: FleetHealth = {
       score: avgScore,
       hasData: anyHasData,
       bikeCount: motorcycles.length,
       needsAttention,
       totalOverdue,
       totalUrgent,
-      upcomingTasks: allTasks.filter((t: { status: string; dueDate?: string | null }) => {
-        if (t.status !== 'pending' && t.status !== 'in_progress') return false;
-        if (!t.dueDate) return false;
-        const days = Math.floor((new Date(t.dueDate).getTime() - Date.now()) / 86400000);
+      upcomingTasks: allTasks.filter((task: { status: string; dueDate?: string | null }) => {
+        if (task.status !== 'pending' && task.status !== 'in_progress') return false;
+        if (!task.dueDate) return false;
+        const days = Math.floor((new Date(task.dueDate).getTime() - Date.now()) / 86400000);
         return days >= 0 && days <= 7;
       }).length,
     };
+
+    return { fleetHealth: fleet, bikeHealthScores: scores };
   }, [motorcycles, allTasks]);
 
   const sortedTasks: TaskWithRelative[] = useMemo(() => {
@@ -250,7 +220,6 @@ export function useHomeData() {
       };
     }
 
-    // Skip learning CTA — Learn tab is accessible from bottom navigation
     return {
       type: 'allClear',
       title: t('home.priorityAllClearTitle'),
@@ -262,28 +231,12 @@ export function useHomeData() {
     };
   }, [hasMotorcycles, sortedTasks, bikeNames, t, router]);
 
-  const primaryBike =
-    motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) ?? motorcycles[0] ?? null;
-
-  // Per-bike health scores for the "Ready %" metric
-  const bikeHealthScores = useMemo(() => {
-    const scores: Record<string, number> = {};
-    for (const bike of motorcycles) {
-      const bikeTasks = allTasks.filter(
-        (t: { motorcycleId: string }) => t.motorcycleId === (bike as { id: string }).id,
-      );
-      const result = computeHealthScore(bikeTasks);
-      scores[(bike as { id: string }).id] = result.hasData ? result.score : 100;
-    }
-    return scores;
-  }, [motorcycles, allTasks]);
-
   const nextService = useMemo(() => {
     const upcoming = sortedTasks.find((t) => !t.relative.isOverdue);
     return upcoming ?? null;
   }, [sortedTasks]);
 
-  const subtitleInfo = getContextualSubtitleKey(
+  const _subtitleInfo = getContextualSubtitleKey(
     greeting.subtitleKey,
     fleetHealth?.totalOverdue ?? 0,
     fleetHealth?.upcomingTasks ?? 0,
@@ -292,7 +245,6 @@ export function useHomeData() {
   const greetingText = firstName
     ? t(greeting.key, { name: firstName })
     : t('home.greetingFallback');
-  const subtitleText = String(t(subtitleInfo.key as never, subtitleInfo.opts as never));
 
   return {
     isLoading,
@@ -301,21 +253,14 @@ export function useHomeData() {
     isRefreshing,
     onRefresh,
     greetingText,
-    subtitleText,
     avatarInitial,
     hasMotorcycles,
-    showSetupCta,
-    fleetHealth,
-    singleBikeName: motorcycles.length === 1 ? bikeNames[motorcycles[0].id] : undefined,
     priorityAction,
     motorcycles,
-    primaryBike,
     nextService,
     sortedTasks,
     bikeNames,
-    articles,
     recentRides,
-    ridesTotalDistance,
     bikeHealthScores,
     router,
   };

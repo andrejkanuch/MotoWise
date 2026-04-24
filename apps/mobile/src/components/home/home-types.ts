@@ -1,4 +1,8 @@
+import type { MyMotorcyclesQuery } from '@motovault/graphql';
 import type { AlertTriangle } from 'lucide-react-native';
+
+/** Single motorcycle from the MyMotorcycles query — used across home components. */
+export type HomeMotorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 
 export type PriorityAction = {
   type: 'overdue' | 'upcoming' | 'learning' | 'allClear';
