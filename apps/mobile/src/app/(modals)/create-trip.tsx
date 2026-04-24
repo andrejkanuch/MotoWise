@@ -1171,7 +1171,7 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Description
+                      Description *
                     </Text>
                     <TextInput
                       value={description}

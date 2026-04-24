@@ -192,8 +192,14 @@ export default function ProfileScreen() {
   });
   const motorcycles = bikesQuery.data?.myMotorcycles ?? [];
 
-  const handleAddBike = () => {
-    if (!requireAccess('MAX_BIKES', motorcycles.length)) return;
+  const handleAddBike = async () => {
+    if (!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES) {
+      haptic();
+      const result = await presentPaywall({
+        requiredEntitlementIdentifier: 'pro',
+      });
+      if (result !== 'purchased' && result !== 'restored') return;
+    }
     haptic();
     router.navigate('/(tabs)/(garage)');
   };
