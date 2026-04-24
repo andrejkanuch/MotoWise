@@ -1,4 +1,3 @@
-import { requestNotificationPermission } from '../../lib/notifications';
 import { useRouter } from 'expo-router';
 import { Bell, ChevronLeft, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
@@ -10,6 +9,7 @@ import { OnboardingContinueButton } from '../../components/onboarding/onboarding
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { requestNotificationPermission } from '../../lib/notifications';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
 interface NotificationRowProps {
