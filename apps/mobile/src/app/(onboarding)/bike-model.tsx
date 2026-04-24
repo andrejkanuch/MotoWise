@@ -24,7 +24,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
+import { TOTAL_SCREENS } from '../../config/onboarding';
 
 function detectTypeFromModel(modelName: string): MotorcycleType | null {
   const lower = modelName.toLowerCase();

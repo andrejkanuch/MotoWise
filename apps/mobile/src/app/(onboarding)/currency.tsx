@@ -12,7 +12,7 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CURRENCY_LIST } from '../../lib/currencies';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
+import { TOTAL_SCREENS } from '../../config/onboarding';
 
 function detectCurrency(): Currency {
   try {

@@ -3,152 +3,70 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   interpolate,
   runOnJS,
-  type SharedValue,
-  useAnimatedProps,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
-  withDelay,
-  withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, {
   Circle,
   Defs,
   G,
-  Line,
   Path,
+  RadialGradient,
   Stop,
-  LinearGradient as SvgGradient,
+  LinearGradient as SvgLinearGradient,
 } from 'react-native-svg';
 
-const AnimatedG = Animated.createAnimatedComponent(G);
+const heroRider = require('../assets/images/hero-rider.jpg');
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+// ── MW mark path (zigzag script mark from logo) ──
+const MW_MARK_PATH =
+  'M 14 74 C 14 74, 20 40, 26 30 C 30 23, 36 24, 38 32 C 40 42, 42 62, 44 72 C 45 78, 50 78, 52 72 C 54 60, 58 42, 62 34 C 65 27, 71 27, 73 34 C 75 44, 77 62, 79 72 C 80 77, 85 77, 87 72 C 89 66, 90 58, 92 48';
 
-// ── Tachometer geometry ──────────────────────────────────────────
-const TACH_SIZE = 240;
-const TACH_CENTER = TACH_SIZE / 2;
-const TACH_RADIUS = 100;
-const TACH_STROKE = 3;
-
-// Arc spans 240° (from 150° to 390°, i.e. 7 o'clock to 5 o'clock)
-const ARC_START_DEG = 150;
-const ARC_SWEEP_DEG = 240;
-const ARC_START_RAD = (ARC_START_DEG * Math.PI) / 180;
-const ARC_END_RAD = ((ARC_START_DEG + ARC_SWEEP_DEG) * Math.PI) / 180;
-
-// Arc circumference for dash animation
-const ARC_LENGTH = (ARC_SWEEP_DEG / 360) * 2 * Math.PI * TACH_RADIUS;
-
-// Needle geometry
-const NEEDLE_LENGTH = 78;
-const NEEDLE_INNER = 18;
-
-// Tick marks (major at 0,2,4,6,8,10,12 — "x1000 RPM")
-const TICK_COUNT = 13;
-const TICKS = Array.from({ length: TICK_COUNT }, (_, i) => {
-  const fraction = i / (TICK_COUNT - 1);
-  const angle = ARC_START_RAD + fraction * (ARC_END_RAD - ARC_START_RAD);
-  const isMajor = i % 2 === 0;
-  const isRedzone = i >= 10; // Last 3 ticks are redline
-  const innerR = isMajor ? TACH_RADIUS - 14 : TACH_RADIUS - 9;
-  const outerR = TACH_RADIUS - 2;
-  return {
-    x1: TACH_CENTER + innerR * Math.cos(angle),
-    y1: TACH_CENTER + innerR * Math.sin(angle),
-    x2: TACH_CENTER + outerR * Math.cos(angle),
-    y2: TACH_CENTER + outerR * Math.sin(angle),
-    isMajor,
-    isRedzone,
-    label: isMajor ? `${i}` : null,
-    labelX: TACH_CENTER + (TACH_RADIUS - 26) * Math.cos(angle),
-    labelY: TACH_CENTER + (TACH_RADIUS - 26) * Math.sin(angle),
-  };
-});
-
-// Redzone arc (last ~20% of sweep)
-const REDZONE_START_FRAC = 10 / 12;
-const REDZONE_START_RAD = ARC_START_RAD + REDZONE_START_FRAC * (ARC_END_RAD - ARC_START_RAD);
+// ── Ring arc geometry ──
+const RING_SIZE = 200;
+const RING_CENTER = RING_SIZE / 2;
+const RING_RADIUS = 82;
 
 function describeArc(cx: number, cy: number, r: number, startRad: number, endRad: number): string {
-  const x1 = cx + r * Math.cos(startRad);
-  const y1 = cy + r * Math.sin(startRad);
-  const x2 = cx + r * Math.cos(endRad);
-  const y2 = cy + r * Math.sin(endRad);
-  const sweep = endRad - startRad;
-  const largeArc = sweep > Math.PI ? 1 : 0;
-  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+  const x1 = cx + Math.cos(startRad) * r;
+  const y1 = cy + Math.sin(startRad) * r;
+  const x2 = cx + Math.cos(endRad) * r;
+  const y2 = cy + Math.sin(endRad) * r;
+  const large = Math.abs(endRad - startRad) > Math.PI ? 1 : 0;
+  const sweep = endRad > startRad ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} ${sweep} ${x2} ${y2}`;
 }
-
-// Full arc path
-const FULL_ARC_D = describeArc(TACH_CENTER, TACH_CENTER, TACH_RADIUS, ARC_START_RAD, ARC_END_RAD);
-// Redzone arc path
-const REDZONE_ARC_D = describeArc(
-  TACH_CENTER,
-  TACH_CENTER,
-  TACH_RADIUS,
-  REDZONE_START_RAD,
-  ARC_END_RAD,
-);
-
-// Road lines for motion effect
-const ROAD_LINES = Array.from({ length: 6 }, (_, i) => ({
-  id: i,
-  y: SCREEN_HEIGHT * 0.55 + i * 45,
-  width: 60 + Math.random() * 80,
-  delay: i * 80,
-  opacity: 0.04 + Math.random() * 0.06,
-}));
 
 interface AnimatedSplashProps {
   isReady: boolean;
   children: React.ReactNode;
 }
 
-const MAX_SPLASH_MS = 10000; // Failsafe: never show splash longer than 10s
+const DURATION = 3200;
+const MAX_SPLASH_MS = 10000;
 
 export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
   const [showApp, setShowApp] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
   const forcedExit = useRef(false);
 
-  // ── Shared values ──────────────────────────────────────────────
-  const arcProgress = useSharedValue(0); // 0→1: arc draws in
-  const needleAngle = useSharedValue(0); // 0→1: needle position (0=min, 1=redline)
-  const tickOpacity = useSharedValue(0);
-  const redzoneOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(0.7);
-  const logoOpacity = useSharedValue(0);
-  const taglineOpacity = useSharedValue(0);
-  const taglineY = useSharedValue(12);
-  const centerGlowOpacity = useSharedValue(0);
-  const centerGlowScale = useSharedValue(0.3);
+  // Master timeline 0→1 over DURATION ms
+  const t = useSharedValue(0);
   const splashOpacity = useSharedValue(1);
   const splashScale = useSharedValue(1);
-  const rpmTextOpacity = useSharedValue(0);
-  const roadLineProgress = useSharedValue(0);
-  const versionOpacity = useSharedValue(0);
-
-  const triggerHaptic = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  }, []);
-
-  const triggerLightHaptic = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
 
   const onSplashComplete = useCallback(() => {
     setSplashDone(true);
   }, []);
 
-  // ── Failsafe: force-exit splash if isReady never arrives ──────
+  // Failsafe
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!forcedExit.current && !splashDone) {
@@ -160,153 +78,128 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
     return () => clearTimeout(timeout);
   }, [splashDone]);
 
-  // ── Entrance animation ─────────────────────────────────────────
+  // Entrance animation — single timeline drives everything
   // biome-ignore lint/correctness/useExhaustiveDependencies: animation shared values are stable refs
   useEffect(() => {
     SplashScreen.hideAsync();
 
-    // Phase 1 (0-400ms): Arc draws in with ticks
-    arcProgress.value = withTiming(1, {
-      duration: 700,
-      easing: Easing.bezier(0.16, 1, 0.3, 1),
+    t.value = withTiming(1, {
+      duration: DURATION,
+      easing: Easing.linear,
     });
-    tickOpacity.value = withDelay(
-      100,
-      withTiming(1, { duration: 400, easing: Easing.out(Easing.cubic) }),
-    );
 
-    // Phase 2 (200-900ms): Needle sweeps to redline then settles to idle
-    needleAngle.value = withDelay(
-      200,
-      withSequence(
-        // Sweep up to redline (0 → 0.92) — aggressive acceleration curve
-        withTiming(0.92, {
-          duration: 600,
-          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-        }),
-        // Haptic at redline — overshoot slightly
-        withSpring(0.15, {
-          damping: 10,
-          stiffness: 120,
-          mass: 0.6,
-        }),
-      ),
-    );
-
-    // Phase 2b: Redzone glows when needle arrives
-    redzoneOpacity.value = withDelay(
-      550,
-      withSequence(
-        withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) }),
-        withDelay(400, withTiming(0.5, { duration: 300 })),
-      ),
-    );
-
-    // Haptic at redline peak
-    setTimeout(() => triggerHaptic(), 800);
-    setTimeout(() => triggerLightHaptic(), 200);
-
-    // Phase 3 (500-1000ms): Center glow + logo appear
-    centerGlowOpacity.value = withDelay(
-      500,
-      withSequence(
-        withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) }),
-        withTiming(0.4, { duration: 500 }),
-      ),
-    );
-    centerGlowScale.value = withDelay(
-      500,
-      withSequence(
-        withTiming(1.2, { duration: 300, easing: Easing.out(Easing.cubic) }),
-        withTiming(1, { duration: 500 }),
-      ),
-    );
-
-    logoOpacity.value = withDelay(600, withTiming(1, { duration: 400 }));
-    logoScale.value = withDelay(600, withSpring(1, { damping: 14, stiffness: 100, mass: 0.7 }));
-
-    // Phase 4 (800-1200ms): Tagline + RPM label
-    taglineOpacity.value = withDelay(800, withTiming(1, { duration: 350 }));
-    taglineY.value = withDelay(
-      800,
-      withTiming(0, { duration: 350, easing: Easing.out(Easing.cubic) }),
-    );
-    rpmTextOpacity.value = withDelay(700, withTiming(0.3, { duration: 300 }));
-
-    // Ambient: Road lines drift
-    roadLineProgress.value = withDelay(
-      300,
-      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.cubic) }),
-    );
-
-    // Version
-    versionOpacity.value = withDelay(900, withTiming(0.3, { duration: 300 }));
+    // Haptic at mark reveal (~40% of timeline)
+    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), DURATION * 0.45);
   }, []);
 
-  // ── Exit animation (when app is ready) ─────────────────────────
+  // Exit animation
   useEffect(() => {
     if (!isReady) return;
+    const minDelay = Math.max(0, DURATION + 200);
     const timer = setTimeout(() => {
       setShowApp(true);
-      // Accelerate out: scale up + fade (like launching forward)
-      splashScale.value = withTiming(1.15, {
-        duration: 500,
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      splashScale.value = withTiming(1.08, {
+        duration: 400,
         easing: Easing.bezier(0.4, 0, 1, 1),
       });
-      splashOpacity.value = withTiming(0, { duration: 500, easing: Easing.in(Easing.cubic) }, () =>
+      splashOpacity.value = withTiming(0, { duration: 400, easing: Easing.in(Easing.cubic) }, () =>
         runOnJS(onSplashComplete)(),
       );
-    }, 1400);
+    }, minDelay);
     return () => clearTimeout(timer);
   }, [isReady, splashOpacity, splashScale, onSplashComplete]);
 
-  // ── Animated props ──────────────────────────────────────────────
-  const arcAnimatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: ARC_LENGTH * (1 - arcProgress.value),
-  }));
+  // ── Derived progress values ──
+  const easeOut3 = (x: number) => {
+    'worklet';
+    return 1 - (1 - x) ** 3;
+  };
+  const easeInOut2 = (x: number) => {
+    'worklet';
+    return x < 0.5 ? 2 * x * x : 1 - (-2 * x + 2) ** 2 / 2;
+  };
+  const clamp01 = (x: number) => {
+    'worklet';
+    return Math.max(0, Math.min(1, x));
+  };
 
-  const tickAnimatedProps = useAnimatedProps(() => ({
-    opacity: tickOpacity.value,
-  }));
-
-  const redzoneAnimatedProps = useAnimatedProps(() => ({
-    opacity: redzoneOpacity.value,
-  }));
-
-  // ── Animated styles ─────────────────────────────────────────────
-  const needleStyle = useAnimatedStyle(() => {
-    const angleDeg = ARC_START_DEG + needleAngle.value * ARC_SWEEP_DEG;
-    return {
-      transform: [{ rotate: `${angleDeg + 90}deg` }],
-    };
+  // Ken-Burns: zoom starts tight, settles
+  const heroScale = useDerivedValue(() => {
+    const p = easeInOut2(t.value);
+    return 1.18 + (1.02 - 1.18) * p;
+  });
+  const heroPanX = useDerivedValue(() => {
+    const p = easeInOut2(t.value);
+    return -40 + (10 - -40) * p;
   });
 
-  const logoStyle = useAnimatedStyle(() => ({
-    opacity: logoOpacity.value,
-    transform: [{ scale: logoScale.value }],
+  // Element reveals
+  const pMask = useDerivedValue(() => easeOut3(clamp01(t.value / 0.15)));
+  const pMark = useDerivedValue(() => easeOut3(clamp01((t.value - 0.4) / 0.22)));
+  const pWord = useDerivedValue(() => easeOut3(clamp01((t.value - 0.55) / 0.22)));
+  const pEyebrow = useDerivedValue(() => easeOut3(clamp01((t.value - 0.72) / 0.22)));
+  const pBar = useDerivedValue(() => easeInOut2(clamp01((t.value - 0.78) / 0.22)));
+
+  // Ring sweep
+  const ringArc = useDerivedValue(() => easeInOut2(clamp01((t.value - 0.25) / 0.35)));
+  const ringSpin = useDerivedValue(() => ((t.value * DURATION) / 1000) * 90);
+
+  // Warm light streak
+  const warmLightOpacity = useDerivedValue(() => {
+    const p = easeInOut2(t.value);
+    return 0.3 + (1 - 0.3) * p;
+  });
+
+  // ── Animated styles ──
+  const heroStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: heroScale.value }, { translateX: heroPanX.value }],
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: centerGlowOpacity.value,
-    transform: [{ scale: centerGlowScale.value }],
+  const warmLightStyle = useAnimatedStyle(() => ({
+    opacity: warmLightOpacity.value,
   }));
 
-  const taglineStyle = useAnimatedStyle(() => ({
-    opacity: taglineOpacity.value,
-    transform: [{ translateY: taglineY.value }],
+  const veilStyle = useAnimatedStyle(() => ({
+    opacity: pMask.value,
+  }));
+
+  const markStyle = useAnimatedStyle(() => ({
+    opacity: pMark.value,
+    transform: [{ scale: 0.55 + (1 - 0.55) * pMark.value }],
+  }));
+
+  const sweepRingStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(ringArc.value, [0, 1], [0.2, 1]),
+    transform: [{ rotate: `${ringSpin.value}deg` }],
+  }));
+
+  const treadRingStyle = useAnimatedStyle(() => ({
+    opacity: pMark.value * 0.4,
+    transform: [{ rotate: `${-ringSpin.value * 0.4}deg` }],
+  }));
+
+  const wordStyle = useAnimatedStyle(() => ({
+    opacity: pWord.value,
+    transform: [{ translateY: interpolate(pWord.value, [0, 1], [14, 0]) }],
+  }));
+
+  const eyebrowStyle = useAnimatedStyle(() => ({
+    opacity: pEyebrow.value,
+    transform: [{ translateY: interpolate(pEyebrow.value, [0, 1], [8, 0]) }],
+  }));
+
+  const barTrackStyle = useAnimatedStyle(() => ({
+    opacity: pEyebrow.value,
+  }));
+
+  const barFillStyle = useAnimatedStyle(() => ({
+    width: pBar.value * 120,
   }));
 
   const splashStyle = useAnimatedStyle(() => ({
     opacity: splashOpacity.value,
     transform: [{ scale: splashScale.value }],
-  }));
-
-  const rpmStyle = useAnimatedStyle(() => ({
-    opacity: rpmTextOpacity.value,
-  }));
-
-  const versionStyle = useAnimatedStyle(() => ({
-    opacity: versionOpacity.value,
   }));
 
   if (splashDone) return <>{children}</>;
@@ -316,191 +209,173 @@ export function AnimatedSplash({ isReady, children }: AnimatedSplashProps) {
       {showApp && children}
 
       <Animated.View style={[styles.overlay, splashStyle]} pointerEvents="none">
-        <LinearGradient
-          colors={[
-            palette.primary950,
-            '#0c1a38',
-            palette.primary900,
-            '#0c1a38',
-            palette.primary950,
-          ]}
-          locations={[0, 0.25, 0.5, 0.75, 1]}
-          style={styles.gradient}
-        >
-          {/* Subtle ambient glow behind tach */}
-          <View style={styles.ambientGlow} />
+        {/* Hero image with Ken-Burns zoom/pan */}
+        <Animated.View style={[styles.heroImageWrap, heroStyle]}>
+          <Image source={heroRider} style={styles.heroImage} resizeMode="cover" />
+        </Animated.View>
 
-          {/* Road lines drifting past */}
-          {ROAD_LINES.map((line) => (
-            <RoadLine key={line.id} line={line} progress={roadLineProgress} />
-          ))}
+        {/* Warm directional light streak (top-right) */}
+        <Animated.View style={[styles.warmLight, warmLightStyle]}>
+          <LinearGradient
+            colors={['rgba(212,136,74,0.25)', 'transparent']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0.5, y: 0.5 }}
+            end={{ x: 0, y: 1 }}
+          />
+        </Animated.View>
 
-          {/* ── Tachometer ─────────────────────────────── */}
-          <View style={styles.tachContainer}>
-            {/* Center glow pulse */}
-            <Animated.View style={[styles.centerGlow, glowStyle]} />
+        {/* Dark veil gradient */}
+        <Animated.View style={[StyleSheet.absoluteFill, veilStyle]}>
+          <LinearGradient
+            colors={[
+              'rgba(17,14,10,0.8)',
+              'rgba(17,14,10,0.25)',
+              'rgba(17,14,10,0.12)',
+              'rgba(17,14,10,0.8)',
+              'rgba(17,14,10,1)',
+            ]}
+            locations={[0, 0.2, 0.45, 0.78, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
 
-            <Svg width={TACH_SIZE} height={TACH_SIZE}>
+        {/* Vignette */}
+        <View style={styles.vignette}>
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.55)']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0.5, y: 0.5 }}
+            end={{ x: 0.5, y: 0 }}
+          />
+        </View>
+
+        {/* Center stack */}
+        <View style={styles.centerStack}>
+          {/* Ring cluster around MW mark */}
+          <View style={styles.ringContainer}>
+            <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
               <Defs>
-                <SvgGradient id="arcGrad" x1="0" y1="0" x2="1" y2="1">
-                  <Stop offset="0" stopColor={palette.primary400} stopOpacity="0.6" />
-                  <Stop offset="0.6" stopColor={palette.signature400} stopOpacity="0.9" />
-                  <Stop offset="1" stopColor={palette.signature500} stopOpacity="0.7" />
-                </SvgGradient>
-                <SvgGradient id="redzoneGrad" x1="0" y1="0" x2="1" y2="0">
-                  <Stop offset="0" stopColor={palette.signature500} stopOpacity="0.8" />
-                  <Stop offset="1" stopColor={palette.danger500} stopOpacity="1" />
-                </SvgGradient>
+                <SvgLinearGradient id="heroArc" x1="0" y1="0" x2="1" y2="0">
+                  <Stop offset="0%" stopColor={palette.editorialDarkWarm} stopOpacity={0} />
+                  <Stop offset="50%" stopColor={palette.editorialDarkWarm} stopOpacity={1} />
+                  <Stop offset="100%" stopColor={palette.editorialDarkWarm2} stopOpacity={1} />
+                </SvgLinearGradient>
+                <RadialGradient id="heroHub" cx="0.5" cy="0.5" r="0.5">
+                  <Stop offset="0%" stopColor={palette.editorialDarkWarm} stopOpacity={0.5} />
+                  <Stop offset="70%" stopColor={palette.editorialDarkWarm} stopOpacity={0.05} />
+                  <Stop offset="100%" stopColor={palette.editorialDarkWarm} stopOpacity={0} />
+                </RadialGradient>
               </Defs>
 
-              {/* Track (background arc) */}
-              <Path
-                d={FULL_ARC_D}
-                stroke="rgba(255,255,255,0.06)"
-                strokeWidth={TACH_STROKE}
-                fill="none"
-                strokeLinecap="round"
-              />
+              {/* Hub glow */}
+              <Circle cx={RING_CENTER} cy={RING_CENTER} r={90} fill="url(#heroHub)" opacity={0.9} />
 
-              {/* Animated arc */}
-              <AnimatedPath
-                d={FULL_ARC_D}
-                stroke="url(#arcGrad)"
-                strokeWidth={TACH_STROKE}
-                fill="none"
-                strokeLinecap="round"
-                strokeDasharray={ARC_LENGTH}
-                animatedProps={arcAnimatedProps}
-              />
-
-              {/* Redzone arc overlay */}
-              <AnimatedG animatedProps={redzoneAnimatedProps}>
-                <Path
-                  d={REDZONE_ARC_D}
-                  stroke="url(#redzoneGrad)"
-                  strokeWidth={TACH_STROKE + 1}
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </AnimatedG>
-
-              {/* Tick marks */}
-              <AnimatedG animatedProps={tickAnimatedProps}>
-                {TICKS.map((tick) => (
-                  <Line
-                    key={`tick-${tick.x1.toFixed(2)}`}
-                    x1={tick.x1}
-                    y1={tick.y1}
-                    x2={tick.x2}
-                    y2={tick.y2}
-                    stroke={
-                      tick.isRedzone
-                        ? palette.danger500
-                        : tick.isMajor
-                          ? 'rgba(255,255,255,0.5)'
-                          : 'rgba(255,255,255,0.2)'
-                    }
-                    strokeWidth={tick.isMajor ? 1.5 : 0.8}
-                    strokeLinecap="round"
-                  />
-                ))}
-              </AnimatedG>
-
-              {/* Center hub dot */}
+              {/* Base ring */}
               <Circle
-                cx={TACH_CENTER}
-                cy={TACH_CENTER}
-                r={4}
-                fill={palette.signature500}
-                opacity={0.8}
+                cx={RING_CENTER}
+                cy={RING_CENTER}
+                r={RING_RADIUS}
+                fill="none"
+                stroke="rgba(255,255,255,0.15)"
+                strokeWidth={1}
+              />
+
+              {/* Dark plate behind mark */}
+              <Circle
+                cx={RING_CENTER}
+                cy={RING_CENTER}
+                r={56}
+                fill="rgba(17,14,10,0.78)"
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth={1}
               />
             </Svg>
 
-            {/* Needle (positioned over SVG center, rotated) */}
-            <Animated.View style={[styles.needleContainer, needleStyle]}>
-              <LinearGradient
-                colors={[palette.signature400, palette.signature600]}
-                style={styles.needle}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-              />
-              {/* Needle tail (below center) */}
-              <View style={styles.needleTail} />
+            {/* Rotating sweep arc (animated separately) */}
+            <Animated.View style={[styles.ringSvgOverlay, sweepRingStyle]}>
+              <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+                <Defs>
+                  <SvgLinearGradient id="sweepArc" x1="0" y1="0" x2="1" y2="0">
+                    <Stop offset="0%" stopColor={palette.editorialDarkWarm} stopOpacity={0} />
+                    <Stop offset="50%" stopColor={palette.editorialDarkWarm} stopOpacity={1} />
+                    <Stop offset="100%" stopColor={palette.editorialDarkWarm2} stopOpacity={1} />
+                  </SvgLinearGradient>
+                </Defs>
+                <G transform={`translate(${RING_CENTER}, ${RING_CENTER})`}>
+                  <Path
+                    d={describeArc(0, 0, RING_RADIUS, -Math.PI * 0.85, -Math.PI * 0.15)}
+                    stroke="url(#sweepArc)"
+                    strokeWidth={2.2}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </G>
+              </Svg>
             </Animated.View>
 
-            {/* RPM label below tach */}
-            <Animated.View style={[styles.rpmLabel, rpmStyle]}>
-              <Text style={styles.rpmText}>× 1000 r/min</Text>
+            {/* Counter-rotating dashed tread */}
+            <Animated.View style={[styles.ringSvgOverlay, treadRingStyle]}>
+              <Svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+                <Circle
+                  cx={RING_CENTER}
+                  cy={RING_CENTER}
+                  r={68}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth={1}
+                  strokeDasharray="2 7"
+                />
+              </Svg>
+            </Animated.View>
+
+            {/* MW mark */}
+            <Animated.View style={[styles.markOverlay, markStyle]}>
+              <Svg width={100} height={100} viewBox="0 0 100 100">
+                <G transform="translate(-3, -0.5)">
+                  <Path
+                    d={MW_MARK_PATH}
+                    fill="none"
+                    stroke={palette.editorialDarkInk}
+                    strokeWidth={9.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </G>
+              </Svg>
             </Animated.View>
           </View>
 
-          {/* ── Logo (centered in tach) ────────────────── */}
-          <Animated.View style={[styles.logoWrap, logoStyle]}>
-            <Text style={styles.logoText}>
-              Moto<Text style={styles.logoAccent}>Vault</Text>
-            </Text>
+          {/* Wordmark */}
+          <Animated.View style={[styles.wordmarkWrap, wordStyle]}>
+            <Text style={styles.wordMoto}>Moto</Text>
+            <Text style={styles.wordVault}>Vault</Text>
           </Animated.View>
 
-          {/* ── Tagline ────────────────────────────────── */}
-          <Animated.View style={[styles.taglineWrap, taglineStyle]}>
-            <View style={styles.accentDash} />
-            <Text style={styles.tagline}>Your bike, understood</Text>
-            <View style={styles.accentDash} />
+          {/* Eyebrow tagline */}
+          <Animated.View style={[styles.eyebrowWrap, eyebrowStyle]}>
+            <View style={styles.eyebrowDash} />
+            <Text style={styles.eyebrowText}>Every bike has a story</Text>
+            <View style={styles.eyebrowDash} />
           </Animated.View>
 
-          {/* Version */}
-          <Animated.View style={[styles.versionWrap, versionStyle]}>
-            <Text style={styles.versionText}>v2.5.0</Text>
+          {/* Bottom progress bar */}
+          <Animated.View style={[styles.barTrack, barTrackStyle]}>
+            <Animated.View style={[styles.barFill, barFillStyle]}>
+              <LinearGradient
+                colors={[
+                  palette.editorialDarkWarm2,
+                  palette.editorialDarkWarm,
+                  palette.editorialDarkWarm2,
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={StyleSheet.absoluteFill}
+              />
+            </Animated.View>
           </Animated.View>
-        </LinearGradient>
+        </View>
       </Animated.View>
     </View>
-  );
-}
-
-/** Drifting road line for ambient motion */
-function RoadLine({
-  line,
-  progress,
-}: {
-  line: (typeof ROAD_LINES)[number];
-  progress: SharedValue<number>;
-}) {
-  const style = useAnimatedStyle(() => {
-    const delayed = Math.max(
-      0,
-      (progress.value - line.delay / 1800) * (1800 / (1800 - line.delay)),
-    );
-    return {
-      opacity: interpolate(delayed, [0, 0.2, 0.7, 1], [0, line.opacity, line.opacity, 0]),
-      transform: [
-        {
-          translateX: interpolate(delayed, [0, 1], [SCREEN_WIDTH * 0.6, -line.width * 2]),
-        },
-      ],
-    };
-  });
-
-  return (
-    <Animated.View
-      style={[
-        {
-          position: 'absolute',
-          top: line.y,
-          right: 0,
-          width: line.width,
-          height: 1,
-        },
-        style,
-      ]}
-    >
-      <LinearGradient
-        colors={['transparent', `rgba(212,98,46,0.25)`, 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={{ flex: 1 }}
-      />
-    </Animated.View>
   );
 }
 
@@ -509,104 +384,104 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 999,
+    backgroundColor: palette.editorialDarkBg2,
+    overflow: 'hidden',
   },
-  gradient: {
-    flex: 1,
+  heroImageWrap: {
+    position: 'absolute',
+    top: -40,
+    left: -40,
+    right: -40,
+    bottom: -40,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.55,
+  },
+  warmLight: {
+    position: 'absolute',
+    top: '-10%',
+    right: '-15%',
+    width: '65%',
+    height: '70%',
+  },
+  vignette: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  centerStack: {
+    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 40,
   },
-  ambientGlow: {
-    position: 'absolute',
-    width: SCREEN_WIDTH * 0.9,
-    height: SCREEN_WIDTH * 0.9,
-    borderRadius: SCREEN_WIDTH * 0.45,
-    backgroundColor: 'rgba(51,102,230,0.03)',
-  },
-  tachContainer: {
-    width: TACH_SIZE,
-    height: TACH_SIZE,
+  ringContainer: {
+    width: RING_SIZE,
+    height: RING_SIZE,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 28,
   },
-  centerGlow: {
+  ringSvgOverlay: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(212,98,46,0.08)',
+    width: RING_SIZE,
+    height: RING_SIZE,
   },
-  needleContainer: {
+  markOverlay: {
     position: 'absolute',
-    alignItems: 'center',
-    width: 3,
-    height: NEEDLE_LENGTH + NEEDLE_INNER,
-    top: TACH_CENTER - NEEDLE_LENGTH,
-    left: TACH_CENTER - 1.5,
-    transformOrigin: `1.5px ${NEEDLE_LENGTH}px`,
+    width: 100,
+    height: 100,
   },
-  needle: {
-    width: 2.5,
-    height: NEEDLE_LENGTH,
-    borderRadius: 1.25,
+  wordmarkWrap: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
   },
-  needleTail: {
-    width: 2,
-    height: NEEDLE_INNER,
-    borderRadius: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+  wordMoto: {
+    fontWeight: '600',
+    fontSize: 36,
+    letterSpacing: -0.8,
+    color: '#fff',
   },
-  rpmLabel: {
-    position: 'absolute',
-    bottom: 30,
-  },
-  rpmText: {
-    fontSize: 9,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.25)',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  logoWrap: {
-    marginTop: -10,
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 34,
-    fontWeight: '800',
-    color: palette.white,
+  wordVault: {
+    fontFamily: 'InstrumentSerif-Italic',
+    fontSize: 44,
     letterSpacing: -0.5,
+    color: palette.editorialDarkWarm,
+    marginLeft: 3,
   },
-  logoAccent: {
-    color: palette.signature400,
-  },
-  taglineWrap: {
+  eyebrowWrap: {
+    marginTop: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    gap: 12,
+    gap: 10,
   },
-  accentDash: {
-    width: 20,
-    height: 1.5,
-    borderRadius: 1,
-    backgroundColor: palette.signature500,
-    opacity: 0.4,
+  eyebrowDash: {
+    width: 22,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.4)',
   },
-  tagline: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.35)',
-    letterSpacing: 2.5,
+  eyebrowText: {
+    fontSize: 10.5,
+    letterSpacing: 3,
     textTransform: 'uppercase',
+    color: 'rgba(255,255,255,0.7)',
   },
-  versionWrap: {
+  barTrack: {
     position: 'absolute',
-    bottom: '10%',
+    bottom: 62,
+    width: 120,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
   },
-  versionText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.2)',
-    letterSpacing: 1,
+  barFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    borderRadius: 2,
+    overflow: 'hidden',
   },
 });

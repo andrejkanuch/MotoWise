@@ -21,7 +21,7 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-import { TOTAL_SCREENS } from './_config';
+import { TOTAL_SCREENS } from '../../config/onboarding';
 
 const TYPE_COLORS: Record<string, string> = {
   maintenance: ONBOARDING_COLORS.warning,

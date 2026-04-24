@@ -28,7 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     url: 'https://u.expo.dev/359ae282-329d-455d-b9f3-64919afad0b4',
   },
   splash: {
-    backgroundColor: '#04070e',
+    backgroundColor: '#1a1510',
   },
   plugins: [
     [
@@ -66,12 +66,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        image: './src/assets/images/MotoVault.png',
-        imageWidth: 200,
-        backgroundColor: '#04070e',
+        backgroundColor: '#1a1510',
         dark: {
-          image: './src/assets/images/MotoVault.png',
-          backgroundColor: '#04070e',
+          backgroundColor: '#1a1510',
         },
       },
     ],
