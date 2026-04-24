@@ -86,7 +86,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { cacheTripPayload } from '../../lib/offline-trips';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import { MAP_STYLES } from '../../utils/map-styles';
 import { getRouteSegments } from '../../utils/mapbox-directions';
 import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
@@ -101,21 +101,6 @@ type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
   | undefined
   ? W
   : never;
-
-const DIFFICULTY_COLORS = {
-  easy: { bg: palette.successBgLight, bgDark: palette.successBgDark, text: palette.success500 },
-  moderate: { bg: palette.warningBgLight, bgDark: palette.warningBgDark, text: palette.warning500 },
-  challenging: {
-    bg: palette.dangerBgLight,
-    bgDark: palette.dangerBgDark,
-    text: palette.danger500,
-  },
-  expert: {
-    bg: palette.signatureBgLight,
-    bgDark: palette.signatureBgDark,
-    text: palette.signature500,
-  },
-} as const;
 
 const DIFFICULTY_LABELS = {
   easy: 'Chill',
@@ -193,7 +178,6 @@ function ItineraryWaypointRow({
   index,
   titleColor,
   subtitleColor,
-  isDark,
 }: {
   wp: TripWaypoint;
   index: number;
@@ -201,6 +185,7 @@ function ItineraryWaypointRow({
   subtitleColor: string;
   isDark: boolean;
 }) {
+  const { t: wt2 } = useEditorialTheme();
   const displayName = useResolvedWaypointLabel({
     id: wp.id,
     name: wp.name,
@@ -220,7 +205,9 @@ function ItineraryWaypointRow({
         marginBottom: 6,
         borderRadius: 10,
         borderCurve: 'continuous',
-        backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+        backgroundColor: wt2.surface,
+        borderWidth: 1,
+        borderColor: wt2.line,
       }}
     >
       <View
@@ -262,7 +249,6 @@ function TemplateRouteStartEndLine({
   titleColor,
   subtitleColor,
   trip,
-  isDark,
 }: {
   startWp: TripWaypoint;
   endWp: TripWaypoint;
@@ -271,6 +257,7 @@ function TemplateRouteStartEndLine({
   trip: TripDetailQuery['tripDetail'];
   isDark: boolean;
 }) {
+  const { t } = useEditorialTheme();
   const startLabel = useResolvedWaypointLabel({
     id: startWp.id,
     name: startWp.name,
@@ -296,10 +283,12 @@ function TemplateRouteStartEndLine({
           padding: 12,
           borderRadius: 12,
           borderCurve: 'continuous',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: t.surface,
+          borderWidth: 1,
+          borderColor: t.line,
         }}
       >
-        <MapPin size={16} color={palette.accent500} />
+        <MapPin size={16} color={t.warm} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '600', color: titleColor }}>
             {startLabel}
@@ -320,7 +309,7 @@ function TemplateRouteStartEndLine({
 }
 
 export default function TripDetailScreen() {
-  const { isDark } = useEditorialTheme();
+  const { t, isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -333,13 +322,11 @@ export default function TripDetailScreen() {
 
   const system = useMeasurementSystem();
 
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const sheetBg = isDark ? palette.cardDark : palette.white;
-  const sectionLabelColor = isDark ? palette.neutral500 : palette.neutral400;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const cardBg = isDark ? palette.cardDark : palette.neutral50;
+  const bg = t.bg;
+  const titleColor = t.ink;
+  const subtitleColor = t.ink3;
+  const sheetBg = t.surface;
+  const bodyColor = t.ink2;
 
   const { data, isLoading } = useQuery({
     queryKey: queryKeys.trips.detail(tripId),
@@ -545,8 +532,7 @@ export default function TripDetailScreen() {
 
   const difficultyKey = (
     trip?.difficulty ?? 'easy'
-  ).toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const difficultyStyle = DIFFICULTY_COLORS[difficultyKey] ?? DIFFICULTY_COLORS.easy;
+  ).toLowerCase() as keyof typeof DIFFICULTY_LABELS;
   const difficultyLabel = DIFFICULTY_LABELS[difficultyKey] ?? 'Chill';
 
   const invalidateTrip = useCallback(() => {
@@ -855,7 +841,7 @@ ${rteptElements}
         exiting={FadeOut.duration(180)}
         style={{ flex: 1, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}
       >
-        <ActivityIndicator size="large" color={palette.accent500} />
+        <ActivityIndicator size="large" color={t.warm} />
       </Animated.View>
     );
   }
@@ -893,7 +879,7 @@ ${rteptElements}
               <MapboxGL.LineLayer
                 id="trip-route-layer"
                 style={{
-                  lineColor: palette.accent500,
+                  lineColor: t.warm,
                   lineWidth: 4,
                   lineCap: 'round',
                   lineJoin: 'round',
@@ -949,12 +935,14 @@ ${rteptElements}
               height: 48,
               borderRadius: 24,
               borderCurve: 'continuous',
-              backgroundColor: palette.neutral950,
+              backgroundColor: tint(t.bg, 0.7),
+              borderWidth: 1,
+              borderColor: t.line,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <ArrowLeft size={20} color={palette.white} />
+            <ArrowLeft size={20} color={t.ink} />
           </Pressable>
         </View>
 
@@ -984,14 +972,16 @@ ${rteptElements}
                   height: 44,
                   borderRadius: 22,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.signature500,
+                  backgroundColor: tint(t.bg, 0.7),
+                  borderWidth: 1,
+                  borderColor: t.line,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Sparkles size={18} color={palette.white} />
+                <Sparkles size={18} color={t.warm} />
               </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>AI</Text>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>AI</Text>
             </Pressable>
           )}
           {isOrganiser && (
@@ -1010,14 +1000,16 @@ ${rteptElements}
                   height: 44,
                   borderRadius: 22,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.neutral950,
+                  backgroundColor: tint(t.bg, 0.7),
+                  borderWidth: 1,
+                  borderColor: t.line,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Pencil size={16} color={palette.white} />
+                <Pencil size={16} color={t.ink} />
               </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Edit</Text>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>Edit</Text>
             </Pressable>
           )}
           {isOrganiser && (
@@ -1028,14 +1020,16 @@ ${rteptElements}
                   height: 44,
                   borderRadius: 22,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.neutral950,
+                  backgroundColor: tint(t.bg, 0.7),
+                  borderWidth: 1,
+                  borderColor: t.line,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Share2 size={16} color={palette.white} />
+                <Share2 size={16} color={t.ink} />
               </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: palette.white }}>Share</Text>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>Share</Text>
             </Pressable>
           )}
         </View>
@@ -1051,7 +1045,7 @@ ${rteptElements}
             borderCurve: 'continuous',
           }}
           handleIndicatorStyle={{
-            backgroundColor: isDark ? palette.neutral600 : palette.neutral300,
+            backgroundColor: t.line,
           }}
         >
           <BottomSheetScrollView
@@ -1061,10 +1055,11 @@ ${rteptElements}
             <Animated.Text
               entering={FadeInUp.duration(220)}
               style={{
-                fontSize: 24,
-                fontWeight: '800',
-                color: titleColor,
-                letterSpacing: -0.5,
+                fontFamily: 'InstrumentSerif-Regular',
+                fontSize: 30,
+                color: t.ink,
+                letterSpacing: -0.6,
+                lineHeight: 32,
                 marginBottom: 10,
               }}
             >
@@ -1084,14 +1079,14 @@ ${rteptElements}
             >
               <View
                 style={{
-                  backgroundColor: isDark ? difficultyStyle.bgDark : difficultyStyle.bg,
+                  backgroundColor: tint(t.warm, 0.18),
                   paddingHorizontal: 10,
                   paddingVertical: 4,
                   borderRadius: 8,
                   borderCurve: 'continuous',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: difficultyStyle.text }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: t.warm }}>
                   {difficultyLabel}
                 </Text>
               </View>
@@ -1101,19 +1096,21 @@ ${rteptElements}
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 4,
-                    backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                    backgroundColor: t.surface2,
                     paddingHorizontal: 10,
                     paddingVertical: 4,
                     borderRadius: 8,
                     borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: t.line,
                   }}
                 >
                   {trip.visibility === 'public' ? (
-                    <Globe size={11} color={palette.success500} />
+                    <Globe size={11} color={t.success} />
                   ) : trip.visibility === 'unlisted' ? (
-                    <EyeOff size={11} color={palette.warning500} />
+                    <EyeOff size={11} color={t.warm} />
                   ) : (
-                    <Lock size={11} color={palette.neutral500} />
+                    <Lock size={11} color={t.ink3} />
                   )}
                   <Text
                     style={{
@@ -1121,10 +1118,10 @@ ${rteptElements}
                       fontWeight: '700',
                       color:
                         trip.visibility === 'public'
-                          ? palette.success500
+                          ? t.success
                           : trip.visibility === 'unlisted'
-                            ? palette.warning500
-                            : palette.neutral500,
+                            ? t.warm
+                            : t.ink3,
                     }}
                   >
                     {trip.visibility === 'public'
@@ -1143,7 +1140,9 @@ ${rteptElements}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+                backgroundColor: t.surface,
+                borderWidth: 1,
+                borderColor: t.line,
                 paddingHorizontal: 14,
                 paddingVertical: 12,
                 borderRadius: 14,
@@ -1155,15 +1154,22 @@ ${rteptElements}
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontWeight: '800',
-                    color: titleColor,
-                    letterSpacing: -0.3,
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 20,
+                    color: t.ink,
                   }}
                 >
                   {tripDays}
                 </Text>
-                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: t.ink3,
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
                   {tripDays === 1 ? 'day' : 'days'}
                 </Text>
               </View>
@@ -1171,21 +1177,28 @@ ${rteptElements}
                 style={{
                   width: 1,
                   alignSelf: 'stretch',
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                  backgroundColor: t.line,
                 }}
               />
               <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                 <Text
                   style={{
-                    fontSize: 18,
-                    fontWeight: '800',
-                    color: titleColor,
-                    letterSpacing: -0.3,
+                    fontFamily: 'InstrumentSerif-Regular',
+                    fontSize: 20,
+                    color: t.ink,
                   }}
                 >
                   {waypoints.length}
                 </Text>
-                <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: t.ink3,
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.8,
+                  }}
+                >
                   {waypoints.length === 1 ? 'stop' : 'stops'}
                 </Text>
               </View>
@@ -1194,7 +1207,7 @@ ${rteptElements}
                   style={{
                     width: 1,
                     alignSelf: 'stretch',
-                    backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                    backgroundColor: t.line,
                   }}
                 />
               )}
@@ -1202,16 +1215,23 @@ ${rteptElements}
                 <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
                   <Text
                     style={{
-                      fontSize: 18,
-                      fontWeight: '800',
-                      color: titleColor,
-                      letterSpacing: -0.3,
+                      fontFamily: 'InstrumentSerif-Regular',
+                      fontSize: 20,
+                      color: t.ink,
                     }}
                   >
                     {trip.participantCount + 1}
-                    <Text style={{ color: subtitleColor }}>/{trip.maxRiders}</Text>
+                    <Text style={{ color: t.ink3 }}>/{trip.maxRiders}</Text>
                   </Text>
-                  <Text style={{ fontSize: 13, color: subtitleColor, fontWeight: '600' }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: t.ink3,
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.8,
+                    }}
+                  >
                     riders
                   </Text>
                 </View>
@@ -1231,7 +1251,7 @@ ${rteptElements}
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Calendar size={13} color={palette.accent500} />
+                  <Calendar size={13} color={t.warm} />
                   <Text style={{ fontSize: 13, fontWeight: '600', color: subtitleColor }}>
                     {formatDateRange(trip.startDate, trip.endDate)}
                   </Text>
@@ -1274,7 +1294,9 @@ ${rteptElements}
                         paddingVertical: 4,
                         borderRadius: 10,
                         borderCurve: 'continuous',
-                        backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                        backgroundColor: t.surface2,
+                        borderWidth: 1,
+                        borderColor: t.line,
                       }}
                     >
                       <Text
@@ -1298,13 +1320,11 @@ ${rteptElements}
                         paddingVertical: 4,
                         borderRadius: 10,
                         borderCurve: 'continuous',
-                        backgroundColor: `${palette.signature500}18`,
+                        backgroundColor: tint(t.warm, 0.18),
                       }}
                     >
-                      <Award size={12} color={palette.signature500} />
-                      <Text
-                        style={{ fontSize: 12, fontWeight: '700', color: palette.signature500 }}
-                      >
+                      <Award size={12} color={t.warm} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: t.warm }}>
                         MotoVault Pick
                       </Text>
                     </View>
@@ -1322,49 +1342,51 @@ ${rteptElements}
                     padding: 14,
                     borderRadius: 14,
                     borderCurve: 'continuous',
-                    backgroundColor: cardBg,
+                    backgroundColor: t.surface,
+                    borderWidth: 1,
+                    borderColor: t.line,
                   }}
                 >
                   {trip.distanceM != null && (
                     <View style={{ alignItems: 'center' }}>
                       <Text
                         style={{
-                          fontSize: 16,
-                          fontWeight: '700',
-                          color: titleColor,
+                          fontFamily: 'InstrumentSerif-Regular',
+                          fontSize: 18,
+                          color: t.ink,
                           fontVariant: ['tabular-nums'],
                         }}
                       >
                         {formatDistance(trip.distanceM, system)}
                       </Text>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>Distance</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>Distance</Text>
                     </View>
                   )}
                   {(trip.elevationGainM ?? 0) > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                        <Mountain size={14} color={palette.accent500} />
+                        <Mountain size={14} color={t.warm} />
                         <Text
                           style={{
-                            fontSize: 16,
-                            fontWeight: '700',
-                            color: titleColor,
+                            fontFamily: 'InstrumentSerif-Regular',
+                            fontSize: 18,
+                            color: t.ink,
                             fontVariant: ['tabular-nums'],
                           }}
                         >
                           {formatElevation(trip.elevationGainM ?? 0, system)}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>Elevation</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>Elevation</Text>
                     </View>
                   )}
                   {trip.estimatedDurationMinutes != null && trip.estimatedDurationMinutes > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <Text
                         style={{
-                          fontSize: 16,
-                          fontWeight: '700',
-                          color: titleColor,
+                          fontFamily: 'InstrumentSerif-Regular',
+                          fontSize: 18,
+                          color: t.ink,
                           fontVariant: ['tabular-nums'],
                         }}
                       >
@@ -1372,7 +1394,7 @@ ${rteptElements}
                           ? `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60}m`
                           : `${trip.estimatedDurationMinutes}m`}
                       </Text>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>Duration</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>Duration</Text>
                     </View>
                   )}
                   {trip.averageRating != null &&
@@ -1380,33 +1402,51 @@ ${rteptElements}
                     trip.reviewCount > 0 && (
                       <View style={{ alignItems: 'center' }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                          <Star size={14} color={palette.warning500} fill={palette.warning500} />
-                          <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                          <Star size={14} color={t.warm} fill={t.warm} />
+                          <Text
+                            style={{
+                              fontFamily: 'InstrumentSerif-Regular',
+                              fontSize: 18,
+                              color: t.ink,
+                            }}
+                          >
                             {trip.averageRating.toFixed(1)}
                           </Text>
                         </View>
-                        <Text style={{ fontSize: 11, color: subtitleColor }}>
+                        <Text style={{ fontSize: 11, color: t.ink3 }}>
                           {trip.reviewCount} {trip.reviewCount === 1 ? 'review' : 'reviews'}
                         </Text>
                       </View>
                     )}
                   {trip.viewCount != null && trip.viewCount > 0 && (
                     <View style={{ alignItems: 'center' }}>
-                      <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                      <Text
+                        style={{
+                          fontFamily: 'InstrumentSerif-Regular',
+                          fontSize: 18,
+                          color: t.ink,
+                        }}
+                      >
                         {trip.viewCount}
                       </Text>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>Views</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>Views</Text>
                     </View>
                   )}
                   {trip.cloneCount != null && trip.cloneCount > 0 && (
                     <View style={{ alignItems: 'center' }}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                        <Copy size={14} color={bodyColor} />
-                        <Text style={{ fontSize: 16, fontWeight: '700', color: titleColor }}>
+                        <Copy size={14} color={t.ink2} />
+                        <Text
+                          style={{
+                            fontFamily: 'InstrumentSerif-Regular',
+                            fontSize: 18,
+                            color: t.ink,
+                          }}
+                        >
                           {trip.cloneCount}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: subtitleColor }}>Clones</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>Clones</Text>
                     </View>
                   )}
                 </Animated.View>
@@ -1462,7 +1502,7 @@ ${rteptElements}
                       height: 32,
                       borderRadius: 16,
                       borderCurve: 'continuous',
-                      backgroundColor: palette.accent500,
+                      backgroundColor: t.warm,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -1495,7 +1535,7 @@ ${rteptElements}
                       accessibilityRole="button"
                       accessibilityLabel="Clone to My Trips"
                       style={({ pressed }) => ({
-                        backgroundColor: palette.accent500,
+                        backgroundColor: t.success,
                         paddingVertical: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
@@ -1540,18 +1580,18 @@ ${rteptElements}
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: 'transparent',
-                      borderWidth: 1.5,
-                      borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                      backgroundColor: t.surface2,
+                      borderWidth: 1,
+                      borderColor: t.line,
                       opacity: pressed ? 0.9 : 1,
                     })}
                   >
-                    <PenLine size={17} color={isDark ? palette.white : palette.neutral950} />
+                    <PenLine size={17} color={t.ink} />
                     <Text
                       style={{
                         fontSize: 15,
                         fontWeight: '700',
-                        color: isDark ? palette.white : palette.neutral950,
+                        color: t.ink,
                       }}
                     >
                       Plan your own trip
@@ -1572,32 +1612,26 @@ ${rteptElements}
                       borderCurve: 'continuous',
                       backgroundColor: 'transparent',
                       borderWidth: 1,
-                      borderColor: isSaved
-                        ? palette.warning500
-                        : isDark
-                          ? palette.neutral700
-                          : palette.neutral300,
+                      borderColor: isSaved ? t.warm : t.line,
                     }}
                   >
                     {saveMutation.isPending || unsaveMutation.isPending ? (
-                      <ActivityIndicator size="small" color={subtitleColor} />
+                      <ActivityIndicator size="small" color={t.ink3} />
                     ) : isSaved ? (
                       <>
-                        <BookmarkCheck size={16} color={palette.warning500} />
-                        <Text
-                          style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}
-                        >
+                        <BookmarkCheck size={16} color={t.warm} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>
                           Saved
                         </Text>
                       </>
                     ) : (
                       <>
-                        <Bookmark size={16} color={isDark ? palette.white : palette.neutral950} />
+                        <Bookmark size={16} color={t.ink} />
                         <Text
                           style={{
                             fontSize: 15,
                             fontWeight: '700',
-                            color: isDark ? palette.white : palette.neutral950,
+                            color: t.ink,
                           }}
                         >
                           Save for Later
@@ -1614,16 +1648,18 @@ ${rteptElements}
                 >
                   <Text
                     style={{
-                      fontSize: 16,
+                      fontSize: 11,
                       fontWeight: '700',
-                      color: titleColor,
+                      color: t.ink2,
                       marginBottom: 12,
+                      textTransform: 'uppercase',
+                      letterSpacing: 2.2,
                     }}
                   >
                     Reviews
                   </Text>
                   {reviewsLoading ? (
-                    <ActivityIndicator size="small" color={palette.accent500} />
+                    <ActivityIndicator size="small" color={t.warm} />
                   ) : reviews.length === 0 ? (
                     <Text style={{ fontSize: 13, color: subtitleColor, marginBottom: 12 }}>
                       No reviews yet. Be the first to share your experience!
@@ -1638,7 +1674,9 @@ ${rteptElements}
                           marginBottom: 8,
                           borderRadius: 12,
                           borderCurve: 'continuous',
-                          backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                          backgroundColor: t.surface,
+                          borderWidth: 1,
+                          borderColor: t.line,
                         }}
                       >
                         <View
@@ -1654,8 +1692,8 @@ ${rteptElements}
                               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size star rating array
                               key={i}
                               size={14}
-                              color={palette.warning500}
-                              fill={i < review.rating ? palette.warning500 : 'transparent'}
+                              color={t.warm}
+                              fill={i < review.rating ? t.warm : 'transparent'}
                             />
                           ))}
                         </View>
@@ -1688,11 +1726,11 @@ ${rteptElements}
                         borderRadius: 12,
                         borderCurve: 'continuous',
                         borderWidth: 1,
-                        borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                        borderColor: t.line,
                         marginTop: 4,
                       }}
                     >
-                      <Star size={14} color={palette.accent500} />
+                      <Star size={14} color={t.warm} />
                       <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
                         Write a Review
                       </Text>
@@ -1704,7 +1742,9 @@ ${rteptElements}
                         padding: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
-                        backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral50,
+                        backgroundColor: t.surface,
+                        borderWidth: 1,
+                        borderColor: t.line,
                         marginTop: 8,
                       }}
                     >
@@ -1720,8 +1760,8 @@ ${rteptElements}
                           >
                             <Star
                               size={24}
-                              color={palette.warning500}
-                              fill={n <= reviewRating ? palette.warning500 : 'transparent'}
+                              color={t.warm}
+                              fill={n <= reviewRating ? t.warm : 'transparent'}
                             />
                           </Pressable>
                         ))}
@@ -1739,7 +1779,7 @@ ${rteptElements}
                           padding: 10,
                           borderRadius: 10,
                           borderCurve: 'continuous',
-                          backgroundColor: isDark ? palette.cardDark : palette.white,
+                          backgroundColor: t.bg,
                           textAlignVertical: 'top',
                           marginBottom: 10,
                         }}
@@ -1754,10 +1794,10 @@ ${rteptElements}
                             borderCurve: 'continuous',
                             alignItems: 'center',
                             borderWidth: 1,
-                            borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                            borderColor: t.line,
                           }}
                         >
-                          <Text style={{ fontSize: 14, fontWeight: '600', color: subtitleColor }}>
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink3 }}>
                             Cancel
                           </Text>
                         </Pressable>
@@ -1770,7 +1810,7 @@ ${rteptElements}
                             borderRadius: 10,
                             borderCurve: 'continuous',
                             alignItems: 'center',
-                            backgroundColor: palette.accent500,
+                            backgroundColor: t.warm,
                           }}
                         >
                           {createReviewMutation.isPending ? (
@@ -1817,10 +1857,12 @@ ${rteptElements}
               >
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: sectionLabelColor,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: t.ink2,
                     marginBottom: 4,
+                    textTransform: 'uppercase',
+                    letterSpacing: 2.2,
                   }}
                 >
                   {isTemplate ? 'Sample itinerary' : 'Itinerary'}
@@ -1850,7 +1892,9 @@ ${rteptElements}
                           flexDirection: 'row',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                          backgroundColor: t.surface,
+                          borderWidth: 1,
+                          borderColor: t.line,
                           borderRadius: 12,
                           borderCurve: 'continuous',
                           paddingHorizontal: 16,
@@ -1859,7 +1903,13 @@ ${rteptElements}
                           marginBottom: 8,
                         }}
                       >
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
+                        <Text
+                          style={{
+                            fontFamily: 'InstrumentSerif-Regular',
+                            fontSize: 17,
+                            color: t.ink,
+                          }}
+                        >
                           {formatDayDate(dayIndex)}
                         </Text>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1917,10 +1967,12 @@ ${rteptElements}
               >
                 <Text
                   style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: sectionLabelColor,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: t.ink2,
                     marginBottom: 8,
+                    textTransform: 'uppercase',
+                    letterSpacing: 2.2,
                   }}
                 >
                   Riders ({trip.participantCount + 1})
@@ -1939,7 +1991,7 @@ ${rteptElements}
                           width: 36,
                           height: 36,
                           borderRadius: 18,
-                          backgroundColor: palette.accent500,
+                          backgroundColor: t.warm,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -1950,7 +2002,7 @@ ${rteptElements}
                       </View>
                     )}
                     <Text
-                      style={{ fontSize: 11, color: subtitleColor, textAlign: 'center' }}
+                      style={{ fontSize: 11, color: t.ink3, textAlign: 'center' }}
                       numberOfLines={1}
                     >
                       {trip.organiser.displayName ?? 'Organizer'}
@@ -1959,7 +2011,7 @@ ${rteptElements}
                       style={{
                         fontSize: 9,
                         fontWeight: '700',
-                        color: palette.accent500,
+                        color: t.warm,
                         textTransform: 'uppercase',
                       }}
                     >
@@ -1997,7 +2049,7 @@ ${rteptElements}
                                 width: 36,
                                 height: 36,
                                 borderRadius: 18,
-                                backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                                backgroundColor: t.surface2,
                                 alignItems: 'center',
                                 justifyContent: 'center',
                               }}
@@ -2032,7 +2084,7 @@ ${rteptElements}
                             style={{
                               fontSize: 11,
                               fontWeight: '700',
-                              color: palette.accent500,
+                              color: t.warm,
                               textAlign: 'center',
                             }}
                           >
@@ -2080,7 +2132,7 @@ ${rteptElements}
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: palette.accent500,
+                      backgroundColor: t.warm,
                     }}
                   >
                     {publishToDiscoverMutation.isPending ? (
@@ -2107,15 +2159,17 @@ ${rteptElements}
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                      backgroundColor: t.surface2,
+                      borderWidth: 1,
+                      borderColor: t.line,
                     }}
                   >
-                    <CheckCircle size={16} color={palette.success500} />
+                    <CheckCircle size={16} color={t.success} />
                     <Text
                       style={{
                         fontSize: 15,
                         fontWeight: '700',
-                        color: palette.success500,
+                        color: t.success,
                       }}
                     >
                       Published on Discover
@@ -2143,17 +2197,17 @@ ${rteptElements}
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: 'transparent',
+                      backgroundColor: t.surface2,
                       borderWidth: 1,
-                      borderColor: isDark ? palette.neutral700 : palette.neutral300,
+                      borderColor: t.line,
                     }}
                   >
-                    <Plus size={16} color={isDark ? palette.white : palette.neutral950} />
+                    <Plus size={16} color={t.ink} />
                     <Text
                       style={{
                         fontSize: 15,
                         fontWeight: '700',
-                        color: isDark ? palette.white : palette.neutral950,
+                        color: t.ink,
                       }}
                     >
                       Clone this trip
@@ -2174,7 +2228,7 @@ ${rteptElements}
                       paddingVertical: 14,
                       borderRadius: 14,
                       borderCurve: 'continuous',
-                      backgroundColor: palette.accent500,
+                      backgroundColor: t.success,
                     }}
                   >
                     {actionLoading ? (
@@ -2205,13 +2259,11 @@ ${rteptElements}
                       borderCurve: 'continuous',
                       backgroundColor: 'transparent',
                       borderWidth: 1,
-                      borderColor: palette.warning500,
+                      borderColor: t.warm,
                     }}
                   >
-                    <HelpCircle size={16} color={palette.warning500} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.warning500 }}>
-                      Maybe
-                    </Text>
+                    <HelpCircle size={16} color={t.warm} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>Maybe</Text>
                   </Pressable>
                 )}
 
@@ -2230,13 +2282,11 @@ ${rteptElements}
                       borderCurve: 'continuous',
                       backgroundColor: 'transparent',
                       borderWidth: 1,
-                      borderColor: palette.danger500,
+                      borderColor: t.danger,
                     }}
                   >
-                    <LogOut size={16} color={palette.danger500} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
-                      Leave
-                    </Text>
+                    <LogOut size={16} color={t.danger} />
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.danger }}>Leave</Text>
                   </Pressable>
                 )}
               </Animated.View>

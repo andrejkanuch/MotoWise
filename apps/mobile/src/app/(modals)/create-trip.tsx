@@ -1,5 +1,4 @@
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { palette } from '@motovault/design-system';
 import {
   CreateTripWithWaypointsDocument,
   DeleteTripDocument,
@@ -55,7 +54,7 @@ import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypo
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import {
   cycleMapStyle as cycleMapStyleFn,
   getDefaultMapStyle,
@@ -112,12 +111,7 @@ const VISIBILITY_OPTIONS: { key: Visibility; label: string; description: string 
   },
 ];
 
-const DIFFICULTY_COLORS = {
-  easy: palette.success500,
-  moderate: palette.warning500,
-  challenging: palette.danger500,
-  expert: palette.danger500,
-} as const;
+// Difficulty colors are computed inside the component using editorial tokens (t.success, t.warm, t.danger)
 
 function formatSegmentDistance(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)} m`;
@@ -144,7 +138,7 @@ function tempId(): string {
 }
 
 export default function CreateTripScreen() {
-  const { isDark } = useEditorialTheme();
+  const { t, isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -169,18 +163,26 @@ export default function CreateTripScreen() {
     enabled: !!sourceTripId,
   });
 
-  // Theme colors
-  const bg = isDark ? palette.neutral950 : palette.white;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const inputBg = isDark ? palette.cardDark : palette.neutral100;
-  const inputBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const inputTextColor = isDark ? palette.white : palette.neutral950;
-  const placeholderColor = isDark ? palette.neutral600 : palette.neutral400;
-  const labelColor = isDark ? palette.neutral300 : palette.neutral600;
-  const chipBg = isDark ? palette.neutral800 : palette.neutral200;
-  const chipSelectedBg = isDark ? palette.surfaceElevated : palette.neutral100;
-  const sheetBg = isDark ? palette.cardDark : palette.white;
+  // Difficulty colors — editorial tokens
+  const difficultyColors: Record<Difficulty, string> = {
+    easy: t.success,
+    moderate: t.warm,
+    challenging: t.danger,
+    expert: t.danger,
+  };
+
+  // Theme colors — editorial tokens
+  const bg = t.bg;
+  const titleColor = t.ink;
+  const subtitleColor = t.ink3;
+  const inputBg = t.surface2;
+  const inputBorder = t.line;
+  const inputTextColor = t.ink;
+  const placeholderColor = t.ink4;
+  const labelColor = t.ink2;
+  const chipBg = t.surface2;
+  const chipSelectedBg = t.surface;
+  const sheetBg = t.surface;
 
   // Map state
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
@@ -789,7 +791,7 @@ export default function CreateTripScreen() {
               <MapboxGL.LineLayer
                 id="trip-route-line-layer"
                 style={{
-                  lineColor: palette.accent500,
+                  lineColor: t.warm,
                   lineWidth: routeGeometry ? 4 : 3,
                   lineCap: 'round',
                   lineJoin: 'round',
@@ -811,12 +813,12 @@ export default function CreateTripScreen() {
                     borderRadius: 14,
                     backgroundColor: wt.color,
                     borderWidth: 2.5,
-                    borderColor: palette.white,
+                    borderColor: '#fff',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <wt.Icon size={14} color={palette.white} />
+                  <wt.Icon size={14} color={'#fff'} />
                 </View>
               </MapboxGL.MarkerView>
             );
@@ -842,12 +844,12 @@ export default function CreateTripScreen() {
               height: 48,
               borderRadius: 24,
               borderCurve: 'continuous',
-              backgroundColor: palette.surfaceOverlay,
+              backgroundColor: tint(t.bg, 0.7),
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <ArrowLeft size={20} color={palette.white} />
+            <ArrowLeft size={20} color={t.ink} />
           </Pressable>
         </View>
 
@@ -870,12 +872,12 @@ export default function CreateTripScreen() {
               height: 48,
               borderRadius: 24,
               borderCurve: 'continuous',
-              backgroundColor: palette.surfaceOverlay,
+              backgroundColor: tint(t.bg, 0.7),
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <MapIcon size={18} color={palette.white} />
+            <MapIcon size={18} color={t.ink} />
           </Pressable>
         </View>
 
@@ -890,7 +892,7 @@ export default function CreateTripScreen() {
             borderCurve: 'continuous',
           }}
           handleIndicatorStyle={{
-            backgroundColor: isDark ? palette.neutral600 : palette.neutral300,
+            backgroundColor: t.line,
           }}
           enableDynamicSizing={false}
         >
@@ -903,7 +905,9 @@ export default function CreateTripScreen() {
               entering={reducedMotion ? undefined : FadeIn.duration(200)}
               style={{ paddingHorizontal: 20, paddingBottom: 12 }}
             >
-              <Text style={{ fontSize: 18, fontWeight: '700', color: titleColor }}>
+              <Text
+                style={{ fontFamily: 'InstrumentSerif-Regular', fontSize: 22, color: titleColor }}
+              >
                 {title.trim() || (isEditMode ? 'Edit Trip' : 'New Trip')}
               </Text>
               <Text style={{ fontSize: 13, color: subtitleColor, marginTop: 2 }}>
@@ -975,12 +979,7 @@ export default function CreateTripScreen() {
                     }
                   }
                   const dayHours = dayDurationS / 3600;
-                  const rideTimeColor =
-                    dayHours > 6
-                      ? palette.danger500
-                      : dayHours > 4
-                        ? palette.warning500
-                        : palette.success500;
+                  const rideTimeColor = dayHours > 6 ? t.danger : dayHours > 4 ? t.warm : t.success;
 
                   return (
                     <View key={`day-${formatDayDate(startDate, dayIndex)}`}>
@@ -990,7 +989,9 @@ export default function CreateTripScreen() {
                           flexDirection: 'row',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                          backgroundColor: t.surface,
+                          borderWidth: 1,
+                          borderColor: t.line,
                           borderRadius: 12,
                           borderCurve: 'continuous',
                           paddingHorizontal: 16,
@@ -1002,13 +1003,19 @@ export default function CreateTripScreen() {
                       >
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                           <Calendar size={16} color={titleColor} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: titleColor }}>
+                          <Text
+                            style={{
+                              fontFamily: 'InstrumentSerif-Regular',
+                              fontSize: 17,
+                              color: titleColor,
+                            }}
+                          >
                             Day {dayIndex + 1} · {formatDayDate(startDate, dayIndex)}
                           </Text>
                         </View>
                         {dayWaypoints.length > 0 && dayDurationS > 0 && (
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            <Text style={{ fontSize: 12, fontWeight: '600', color: subtitleColor }}>
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink3 }}>
                               {formatSegmentDistance(dayDistanceM)}
                             </Text>
                             <Text style={{ fontSize: 12, fontWeight: '700', color: rideTimeColor }}>
@@ -1116,13 +1123,11 @@ export default function CreateTripScreen() {
                   borderCurve: 'continuous',
                   borderWidth: 1.5,
                   borderStyle: 'dashed',
-                  borderColor: palette.accent500,
+                  borderColor: t.warm,
                 }}
               >
-                <Plus size={18} color={palette.accent500} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
-                  Add Day
-                </Text>
+                <Plus size={18} color={t.warm} />
+                <Text style={{ fontSize: 14, fontWeight: '600', color: t.warm }}>Add Day</Text>
               </Pressable>
             )}
 
@@ -1144,11 +1149,11 @@ export default function CreateTripScreen() {
                   alignSelf: 'flex-start',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.accent500 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: t.warm }}>
                   {showDetails ? 'Less details' : 'More details'}
                 </Text>
                 <Animated.View style={chevronStyle}>
-                  <ChevronDown size={16} color={palette.accent500} />
+                  <ChevronDown size={16} color={t.warm} />
                 </Animated.View>
               </Pressable>
 
@@ -1225,7 +1230,7 @@ export default function CreateTripScreen() {
                                 gap: 8,
                               }}
                             >
-                              <Calendar size={16} color={palette.accent500} />
+                              <Calendar size={16} color={t.warm} />
                               <Text style={{ fontSize: 14, color: inputTextColor }}>
                                 {startDate.toLocaleDateString(undefined, {
                                   month: 'short',
@@ -1261,7 +1266,7 @@ export default function CreateTripScreen() {
                               }
                             }}
                             themeVariant={isDark ? 'dark' : 'light'}
-                            accentColor={palette.signature500}
+                            accentColor={t.warm}
                           />
                         )}
                       </View>
@@ -1293,7 +1298,7 @@ export default function CreateTripScreen() {
                                 gap: 8,
                               }}
                             >
-                              <Calendar size={16} color={palette.accent500} />
+                              <Calendar size={16} color={t.warm} />
                               <Text style={{ fontSize: 14, color: inputTextColor }}>
                                 {endDate.toLocaleDateString(undefined, {
                                   month: 'short',
@@ -1321,7 +1326,7 @@ export default function CreateTripScreen() {
                             minimumDate={startDate}
                             onChange={(_e, d) => d && setEndDate(d)}
                             themeVariant={isDark ? 'dark' : 'light'}
-                            accentColor={palette.signature500}
+                            accentColor={t.warm}
                           />
                         )}
                       </View>
@@ -1330,7 +1335,7 @@ export default function CreateTripScreen() {
                       <Text
                         style={{
                           fontSize: 13,
-                          color: palette.danger500,
+                          color: t.danger,
                           marginTop: 8,
                         }}
                       >
@@ -1356,7 +1361,7 @@ export default function CreateTripScreen() {
                     <View style={{ flexDirection: 'row', gap: 10 }}>
                       {DIFFICULTIES.map((d) => {
                         const isSelected = difficulty === d.key;
-                        const accentColor = DIFFICULTY_COLORS[d.key];
+                        const accentColor = difficultyColors[d.key];
                         return (
                           <Pressable
                             key={d.key}
@@ -1424,7 +1429,7 @@ export default function CreateTripScreen() {
                               borderRadius: 12,
                               borderCurve: 'continuous',
                               borderWidth: 1.5,
-                              borderColor: isSelected ? palette.accent500 : inputBorder,
+                              borderColor: isSelected ? t.warm : inputBorder,
                               backgroundColor: isSelected ? chipSelectedBg : chipBg,
                             }}
                           >
@@ -1439,7 +1444,7 @@ export default function CreateTripScreen() {
                                 style={{
                                   fontSize: 14,
                                   fontWeight: '700',
-                                  color: isSelected ? palette.accent500 : inputTextColor,
+                                  color: isSelected ? t.warm : inputTextColor,
                                 }}
                               >
                                 {opt.label}
@@ -1450,7 +1455,7 @@ export default function CreateTripScreen() {
                                     width: 16,
                                     height: 16,
                                     borderRadius: 8,
-                                    backgroundColor: palette.accent500,
+                                    backgroundColor: t.warm,
                                   }}
                                 />
                               )}
@@ -1509,13 +1514,13 @@ export default function CreateTripScreen() {
                     style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: palette.danger500,
+                      color: t.danger,
                       textAlign: 'center',
                     }}
                   >
                     Failed to save trip
                   </Text>
-                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {saveMutation.error?.message || 'Check your connection and try again'}
                   </Text>
                 </View>
@@ -1526,13 +1531,13 @@ export default function CreateTripScreen() {
                     style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: palette.danger500,
+                      color: t.danger,
                       textAlign: 'center',
                     }}
                   >
                     Failed to publish trip
                   </Text>
-                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {publishMutation.error?.message || 'Check your connection and try again'}
                   </Text>
                 </View>
@@ -1543,13 +1548,13 @@ export default function CreateTripScreen() {
                     style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: palette.danger500,
+                      color: t.danger,
                       textAlign: 'center',
                     }}
                   >
                     Failed to update trip
                   </Text>
-                  <Text style={{ fontSize: 13, color: palette.danger500, textAlign: 'center' }}>
+                  <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
                     {updateMutation.error?.message || 'Check your connection and try again'}
                   </Text>
                 </View>
@@ -1563,15 +1568,15 @@ export default function CreateTripScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 10,
-                    backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
+                    backgroundColor: tint(t.warm, 0.12),
                     paddingHorizontal: 14,
                     paddingVertical: 12,
                     borderRadius: 12,
                     borderCurve: 'continuous',
                   }}
                 >
-                  <AlertTriangle size={16} color={palette.warning500} />
-                  <Text style={{ fontSize: 13, color: palette.warning500, flex: 1 }}>
+                  <AlertTriangle size={16} color={t.warm} />
+                  <Text style={{ fontSize: 13, color: t.warm, flex: 1 }}>
                     Editing a published trip. Changes will be visible to participants.
                   </Text>
                 </Animated.View>
@@ -1585,7 +1590,7 @@ export default function CreateTripScreen() {
                     flexDirection: 'row',
                     alignItems: 'flex-start',
                     gap: 10,
-                    backgroundColor: isDark ? palette.neutral900 : palette.neutral100,
+                    backgroundColor: t.surface2,
                     paddingHorizontal: 12,
                     paddingVertical: 11,
                     borderRadius: 12,
@@ -1594,7 +1599,7 @@ export default function CreateTripScreen() {
                     borderColor: inputBorder,
                   }}
                 >
-                  <Info size={16} color={palette.accent500} style={{ marginTop: 1 }} />
+                  <Info size={16} color={t.warm} style={{ marginTop: 1 }} />
                   <Text style={{ fontSize: 12, color: subtitleColor, flex: 1, lineHeight: 18 }}>
                     <Text style={{ fontWeight: '700', color: inputTextColor }}>Draft</Text>
                     {` stays in My Trips only. `}
@@ -1624,7 +1629,7 @@ export default function CreateTripScreen() {
                         borderRadius: 14,
                         borderCurve: 'continuous',
                         borderWidth: 1,
-                        borderColor: isDark ? palette.neutral600 : palette.neutral300,
+                        borderColor: t.line,
                         backgroundColor: 'transparent',
                       }}
                     >
@@ -1658,20 +1663,16 @@ export default function CreateTripScreen() {
                         paddingVertical: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
-                        backgroundColor: isValid
-                          ? palette.accent500
-                          : isDark
-                            ? palette.neutral800
-                            : palette.neutral300,
+                        backgroundColor: isValid ? t.warm : isDark ? t.surface2 : t.line,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
                       {updateMutation.isPending ? (
-                        <ActivityIndicator size="small" color={palette.white} />
+                        <ActivityIndicator size="small" color={'#fff'} />
                       ) : (
                         <>
-                          <Save size={16} color={palette.white} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                          <Save size={16} color={'#fff'} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
                             {isEditingDraft ? 'Save draft' : 'Update trip'}
                           </Text>
                         </>
@@ -1695,20 +1696,16 @@ export default function CreateTripScreen() {
                           paddingVertical: 14,
                           borderRadius: 14,
                           borderCurve: 'continuous',
-                          backgroundColor: isValid
-                            ? palette.success500
-                            : isDark
-                              ? palette.neutral800
-                              : palette.neutral300,
+                          backgroundColor: isValid ? t.success : isDark ? t.surface2 : t.line,
                           opacity: isSaving ? 0.7 : 1,
                         }}
                       >
                         {updateAndPublishMutation.isPending ? (
-                          <ActivityIndicator size="small" color={palette.white} />
+                          <ActivityIndicator size="small" color={'#fff'} />
                         ) : (
                           <>
-                            <Send size={16} color={palette.white} />
-                            <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                            <Send size={16} color={'#fff'} />
+                            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
                               Publish
                             </Text>
                           </>
@@ -1743,17 +1740,17 @@ export default function CreateTripScreen() {
                       borderRadius: 14,
                       borderCurve: 'continuous',
                       borderWidth: 1,
-                      borderColor: palette.danger500,
+                      borderColor: t.danger,
                       backgroundColor: 'transparent',
                       opacity: isSaving ? 0.6 : 1,
                     }}
                   >
                     {deleteMutation.isPending ? (
-                      <ActivityIndicator size="small" color={palette.danger500} />
+                      <ActivityIndicator size="small" color={t.danger} />
                     ) : (
                       <>
-                        <Trash2 size={16} color={palette.danger500} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.danger500 }}>
+                        <Trash2 size={16} color={t.danger} />
+                        <Text style={{ fontSize: 15, fontWeight: '700', color: t.danger }}>
                           Delete trip
                         </Text>
                       </>
@@ -1778,25 +1775,21 @@ export default function CreateTripScreen() {
                         borderRadius: 14,
                         borderCurve: 'continuous',
                         borderWidth: 1,
-                        borderColor: isValid ? palette.accent500 : 'transparent',
-                        backgroundColor: isValid
-                          ? 'transparent'
-                          : isDark
-                            ? palette.neutral800
-                            : palette.neutral300,
+                        borderColor: isValid ? t.warm : 'transparent',
+                        backgroundColor: isValid ? 'transparent' : isDark ? t.surface2 : t.line,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
                       {saveMutation.isPending ? (
-                        <ActivityIndicator size="small" color={palette.accent500} />
+                        <ActivityIndicator size="small" color={t.warm} />
                       ) : (
                         <>
-                          <Save size={16} color={isValid ? palette.accent500 : palette.white} />
+                          <Save size={16} color={isValid ? t.warm : '#fff'} />
                           <Text
                             style={{
                               fontSize: 15,
                               fontWeight: '700',
-                              color: isValid ? palette.accent500 : palette.white,
+                              color: isValid ? t.warm : '#fff',
                             }}
                           >
                             Save Draft
@@ -1819,20 +1812,16 @@ export default function CreateTripScreen() {
                         paddingVertical: 14,
                         borderRadius: 14,
                         borderCurve: 'continuous',
-                        backgroundColor: isValid
-                          ? palette.accent500
-                          : isDark
-                            ? palette.neutral800
-                            : palette.neutral300,
+                        backgroundColor: isValid ? t.warm : isDark ? t.surface2 : t.line,
                         opacity: isSaving ? 0.7 : 1,
                       }}
                     >
                       {publishMutation.isPending ? (
-                        <ActivityIndicator size="small" color={palette.white} />
+                        <ActivityIndicator size="small" color={'#fff'} />
                       ) : (
                         <>
-                          <Send size={16} color={palette.white} />
-                          <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                          <Send size={16} color={'#fff'} />
+                          <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
                             Publish
                           </Text>
                         </>
@@ -1867,7 +1856,7 @@ export default function CreateTripScreen() {
           <View
             style={{
               flex: 1,
-              backgroundColor: isDark ? palette.neutral950 : palette.white,
+              backgroundColor: t.bg,
             }}
           >
             {/* Header */}
@@ -1883,8 +1872,8 @@ export default function CreateTripScreen() {
             >
               <Text
                 style={{
-                  fontSize: 18,
-                  fontWeight: '700',
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 22,
                   color: titleColor,
                 }}
               >
@@ -1898,19 +1887,19 @@ export default function CreateTripScreen() {
                   height: 32,
                   borderRadius: 16,
                   borderCurve: 'continuous',
-                  backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+                  backgroundColor: t.surface2,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <X size={16} color={isDark ? palette.neutral400 : palette.neutral500} />
+                <X size={16} color={t.ink3} />
               </Pressable>
             </View>
 
             <View
               style={{
                 height: 1,
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                backgroundColor: t.line,
                 marginHorizontal: 20,
               }}
             />
@@ -1959,7 +1948,7 @@ export default function CreateTripScreen() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                  backgroundColor: t.line,
                 }}
               />
 
@@ -1981,7 +1970,7 @@ export default function CreateTripScreen() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                  backgroundColor: t.line,
                 }}
               />
 
@@ -2012,12 +2001,8 @@ export default function CreateTripScreen() {
                           borderRadius: 10,
                           borderCurve: 'continuous',
                           borderWidth: 1,
-                          borderColor: selected ? palette.accent500 : inputBorder,
-                          backgroundColor: selected
-                            ? `${palette.accent500}1A`
-                            : isDark
-                              ? palette.surfaceSubtle
-                              : palette.white,
+                          borderColor: selected ? t.warm : inputBorder,
+                          backgroundColor: selected ? tint(t.warm, 0.1) : t.surface2,
                           alignItems: 'center',
                         }}
                       >
@@ -2025,7 +2010,7 @@ export default function CreateTripScreen() {
                           style={{
                             fontSize: 13,
                             fontWeight: '600',
-                            color: selected ? palette.accent500 : labelColor,
+                            color: selected ? t.warm : labelColor,
                           }}
                         >
                           {PERIOD_LABEL[p]}
@@ -2042,7 +2027,7 @@ export default function CreateTripScreen() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                  backgroundColor: t.line,
                 }}
               />
 
@@ -2085,7 +2070,7 @@ export default function CreateTripScreen() {
               <View
                 style={{
                   height: 1,
-                  backgroundColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                  backgroundColor: t.line,
                 }}
               />
 
@@ -2096,7 +2081,7 @@ export default function CreateTripScreen() {
                   paddingVertical: 14,
                   borderRadius: 14,
                   borderCurve: 'continuous',
-                  backgroundColor: palette.signature500,
+                  backgroundColor: t.warm,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -2105,7 +2090,7 @@ export default function CreateTripScreen() {
                   style={{
                     fontSize: 16,
                     fontWeight: '700',
-                    color: palette.white,
+                    color: '#fff',
                   }}
                 >
                   Done
