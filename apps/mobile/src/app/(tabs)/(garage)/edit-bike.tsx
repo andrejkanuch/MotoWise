@@ -496,7 +496,12 @@ export default function EditBikeScreen() {
               disabled={!isDirty || !isValid || updateMutation.isPending}
               hitSlop={8}
               style={{
-                backgroundColor: isDirty && isValid ? theme.warm : isDark ? palette.neutral700 : palette.neutral200,
+                backgroundColor:
+                  isDirty && isValid
+                    ? theme.warm
+                    : isDark
+                      ? palette.neutral700
+                      : palette.neutral200,
                 paddingHorizontal: 16,
                 paddingVertical: 7,
                 borderRadius: 18,
