@@ -17,8 +17,8 @@ import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
-import { presentPaywall } from '../../../lib/subscription';
 import { queryKeys } from '../../../lib/query-keys';
+import { presentPaywall } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
