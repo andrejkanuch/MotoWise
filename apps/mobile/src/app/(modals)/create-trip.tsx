@@ -415,8 +415,10 @@ export default function CreateTripScreen() {
 
   const handleGeocodingSelect = useCallback(
     (result: GeocodingResult) => {
+      const type =
+        waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
-        type: 'scenic',
+        type,
         name: result.name,
         lat: result.lat,
         lng: result.lng,
@@ -433,8 +435,10 @@ export default function CreateTripScreen() {
     (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
       const [lng, lat] = event.geometry.coordinates;
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const type =
+        waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
-        type: 'scenic',
+        type,
         name: `Stop ${waypoints.length + 1}`,
         lat,
         lng,
@@ -496,6 +500,10 @@ export default function CreateTripScreen() {
   // Build the batch input shared by save and publish
   const buildTripInput = useCallback(() => {
     const sorted = [...waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
+    // Ensure first waypoint is 'start' and last is 'end' so Zod validation passes.
+    // Users add stops via search/long-press which default to 'scenic'.
+    const hasStart = sorted.some((w) => w.type === 'start');
+    const hasEnd = sorted.some((w) => w.type === 'end');
     return {
       title: title.trim(),
       description: description.trim(),
@@ -504,9 +512,14 @@ export default function CreateTripScreen() {
       difficulty,
       maxRiders: Number.parseInt(maxRiders, 10) || 10,
       visibility,
-      waypoints: sorted.map((wp) => ({
+      waypoints: sorted.map((wp, i) => ({
         sortOrder: wp.sortOrder,
-        type: wp.type,
+        type:
+          !hasStart && i === 0
+            ? 'start'
+            : !hasEnd && i === sorted.length - 1
+              ? 'end'
+              : wp.type,
         name: wp.name,
         notes: wp.notes || undefined,
         lat: wp.lat,
