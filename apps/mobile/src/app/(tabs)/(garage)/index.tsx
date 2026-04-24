@@ -141,7 +141,7 @@ export default function GarageScreen() {
                 marginBottom: 8,
               }}
             >
-              Your garage is empty
+              {t('garage.emptyTitle')}
             </Text>
             <Text
               style={{
@@ -152,7 +152,7 @@ export default function GarageScreen() {
                 marginBottom: 32,
               }}
             >
-              Add your first motorcycle to get personalized diagnostics and maintenance
+              {t('garage.emptySubtitle')}
             </Text>
             <Pressable
               onPress={handleAddBike}
@@ -218,8 +218,11 @@ export default function GarageScreen() {
                     color: theme.ink3,
                   }}
                 >
-                  {motorcycles.length} {motorcycles.length === 1 ? 'bike' : 'bikes'} ·{' '}
-                  {totalKm.toLocaleString()} km
+                  {motorcycles.length}{' '}
+                  {motorcycles.length === 1
+                    ? t('garage.bike', { defaultValue: 'bike' })
+                    : t('garage.bikes', { defaultValue: 'bikes' })}{' '}
+                  · {totalKm.toLocaleString()} km
                 </Text>
               </View>
               <Text
@@ -231,9 +234,9 @@ export default function GarageScreen() {
                   lineHeight: 54,
                 }}
               >
-                The{' '}
+                {t('garage.mastheadThe')}{' '}
                 <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: theme.warm2 }}>
-                  Garage.
+                  {t('garage.mastheadGarage')}
                 </Text>
               </Text>
             </View>
@@ -279,32 +282,34 @@ export default function GarageScreen() {
               borderCurve: 'continuous',
             }}
           >
-            {(['shelf', 'grid'] as const).map((v) => (
+            {[
+              { key: 'shelf' as const, label: t('garage.viewShelf') },
+              { key: 'grid' as const, label: t('garage.viewGrid') },
+            ].map((v) => (
               <Pressable
-                key={v}
-                onPress={() => setView(v)}
+                key={v.key}
+                onPress={() => setView(v.key)}
                 style={{
                   paddingVertical: 6,
                   paddingHorizontal: 14,
                   borderRadius: 7,
                   borderCurve: 'continuous',
-                  backgroundColor: view === v ? theme.surface2 : 'transparent',
+                  backgroundColor: view === v.key ? theme.surface2 : 'transparent',
                 }}
               >
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: '600',
-                    color: view === v ? theme.ink : theme.ink3,
-                    textTransform: 'capitalize',
+                    color: view === v.key ? theme.ink : theme.ink3,
                   }}
                 >
-                  {v}
+                  {v.label}
                 </Text>
               </Pressable>
             ))}
           </View>
-          <Text style={{ fontSize: 11, color: theme.ink3 }}>Sorted by primary</Text>
+          <Text style={{ fontSize: 11, color: theme.ink3 }}>{t('garage.sortedByPrimary')}</Text>
         </View>
 
         {view === 'shelf' ? (
@@ -395,7 +400,7 @@ export default function GarageScreen() {
                             color: '#1a1208',
                           }}
                         >
-                          Primary
+                          {t('garage.primary')}
                         </Text>
                       </View>
                     )}
@@ -474,7 +479,7 @@ export default function GarageScreen() {
                               textTransform: 'uppercase',
                             }}
                           >
-                            Odo
+                            {t('garage.odo')}
                           </Text>
                           <Text
                             style={{
@@ -498,7 +503,7 @@ export default function GarageScreen() {
                               textTransform: 'uppercase',
                             }}
                           >
-                            Since
+                            {t('garage.since')}
                           </Text>
                           <Text
                             style={{
@@ -547,7 +552,7 @@ export default function GarageScreen() {
                   <Plus size={22} color={theme.ink2} />
                 </View>
                 <Text style={{ fontSize: 13, color: theme.ink2, fontWeight: '600' }}>
-                  Add a bike
+                  {t('garage.addBike')}
                 </Text>
                 <Text
                   style={{
@@ -557,28 +562,28 @@ export default function GarageScreen() {
                     paddingHorizontal: 30,
                   }}
                 >
-                  Up to 5 on the free plan
+                  {t('garage.freePlanLimit')}
                 </Text>
               </Pressable>
             </ScrollView>
 
             {/* ── Summary shelf ── */}
             <View style={{ paddingHorizontal: 16, paddingTop: 20 }}>
-              <ESectionMasthead label="By the numbers" />
+              <ESectionMasthead label={t('garage.byTheNumbers')} />
               <ECard pad={0}>
                 {[
                   {
-                    label: 'Total kilometres',
+                    label: t('garage.totalKilometres'),
                     value: `${totalKm.toLocaleString()} km`,
                   },
                   {
-                    label: 'Oldest bike',
+                    label: t('garage.oldestBike'),
                     value:
                       motorcycles.length > 0
                         ? `${Math.min(...motorcycles.map((b) => b.year))}`
                         : '—',
                   },
-                  { label: 'Open tasks', value: '—' },
+                  { label: t('garage.openTasks'), value: '—' },
                 ].map((r, i, a) => (
                   <View
                     key={r.label}
@@ -669,7 +674,7 @@ export default function GarageScreen() {
                               color: '#1a1208',
                             }}
                           >
-                            Primary
+                            {t('garage.primary')}
                           </Text>
                         </View>
                       )}
@@ -748,7 +753,7 @@ export default function GarageScreen() {
                 >
                   <Plus size={22} color={theme.ink2} />
                   <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
-                    Add bike
+                    {t('garage.addBike')}
                   </Text>
                 </Pressable>
               </View>

@@ -26,6 +26,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -84,32 +85,41 @@ interface LocalWaypoint {
   periodOfDay?: 'morning' | 'afternoon' | 'evening' | null;
 }
 
-const DIFFICULTIES: { key: Difficulty; label: string }[] = [
-  { key: 'easy', label: 'Easy' },
-  { key: 'moderate', label: 'Moderate' },
-  { key: 'challenging', label: 'Challenging' },
-  { key: 'expert', label: 'Expert' },
-];
+// biome-ignore lint: helper functions need a simplified i18n type
+type TI18n = (key: string, opts?: Record<string, unknown>) => string;
+
+function getDifficulties(i18n: TI18n): { key: Difficulty; label: string }[] {
+  return [
+    { key: 'easy', label: i18n('trips.difficultyLabelEasy') },
+    { key: 'moderate', label: i18n('trips.difficultyLabelModerate') },
+    { key: 'challenging', label: i18n('trips.difficultyLabelChallenging') },
+    { key: 'expert', label: i18n('trips.difficultyLabelExpert') },
+  ];
+}
 
 type Visibility = 'private' | 'unlisted' | 'public';
 
-const VISIBILITY_OPTIONS: { key: Visibility; label: string; description: string }[] = [
-  {
-    key: 'private',
-    label: 'Private',
-    description: 'Not on Discover. You and people you invite only.',
-  },
-  {
-    key: 'unlisted',
-    label: 'Unlisted',
-    description: 'Not on Discover. Anyone with the link can open it.',
-  },
-  {
-    key: 'public',
-    label: 'Public',
-    description: 'On Discover. Anyone can find and view the listing.',
-  },
-];
+function getVisibilityOptions(
+  i18n: TI18n,
+): { key: Visibility; label: string; description: string }[] {
+  return [
+    {
+      key: 'private',
+      label: i18n('trips.visibilityPrivate'),
+      description: i18n('trips.visibilityPrivateDesc'),
+    },
+    {
+      key: 'unlisted',
+      label: i18n('trips.visibilityUnlisted'),
+      description: i18n('trips.visibilityUnlistedDesc'),
+    },
+    {
+      key: 'public',
+      label: i18n('trips.visibilityPublic'),
+      description: i18n('trips.visibilityPublicDesc'),
+    },
+  ];
+}
 
 // Difficulty colors are computed inside the component using editorial tokens (t.success, t.warm, t.danger)
 
@@ -139,6 +149,7 @@ function tempId(): string {
 
 export default function CreateTripScreen() {
   const { t, isDark } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -1127,7 +1138,9 @@ export default function CreateTripScreen() {
                 }}
               >
                 <Plus size={18} color={t.warm} />
-                <Text style={{ fontSize: 14, fontWeight: '600', color: t.warm }}>Add Day</Text>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: t.warm }}>
+                  {i18n('trips.addDay')}
+                </Text>
               </Pressable>
             )}
 
@@ -1359,7 +1372,7 @@ export default function CreateTripScreen() {
                       Difficulty
                     </Text>
                     <View style={{ flexDirection: 'row', gap: 10 }}>
-                      {DIFFICULTIES.map((d) => {
+                      {getDifficulties(i18n as TI18n).map((d) => {
                         const isSelected = difficulty === d.key;
                         const accentColor = difficultyColors[d.key];
                         return (
@@ -1418,7 +1431,7 @@ export default function CreateTripScreen() {
                       same as saving a draft or publishing.
                     </Text>
                     <View style={{ gap: 8 }}>
-                      {VISIBILITY_OPTIONS.map((opt) => {
+                      {getVisibilityOptions(i18n as TI18n).map((opt) => {
                         const isSelected = visibility === opt.key;
                         return (
                           <Pressable
@@ -1641,7 +1654,7 @@ export default function CreateTripScreen() {
                           color: subtitleColor,
                         }}
                       >
-                        Cancel
+                        {i18n('common.cancel')}
                       </Text>
                     </Pressable>
 
@@ -1673,7 +1686,7 @@ export default function CreateTripScreen() {
                         <>
                           <Save size={16} color={'#fff'} />
                           <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
-                            {isEditingDraft ? 'Save draft' : 'Update trip'}
+                            {isEditingDraft ? i18n('trips.saveDraft') : i18n('trips.updateTrip')}
                           </Text>
                         </>
                       )}
@@ -1706,7 +1719,7 @@ export default function CreateTripScreen() {
                           <>
                             <Send size={16} color={'#fff'} />
                             <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
-                              Publish
+                              {i18n('trips.publish')}
                             </Text>
                           </>
                         )}
@@ -1719,7 +1732,7 @@ export default function CreateTripScreen() {
                           lineHeight: 15,
                         }}
                       >
-                        Moves this plan out of drafts. Uses the visibility you chose above.
+                        {i18n('trips.publishHint')}
                       </Text>
                     </View>
                   )}
@@ -1751,7 +1764,7 @@ export default function CreateTripScreen() {
                       <>
                         <Trash2 size={16} color={t.danger} />
                         <Text style={{ fontSize: 15, fontWeight: '700', color: t.danger }}>
-                          Delete trip
+                          {i18n('trips.deleteTrip')}
                         </Text>
                       </>
                     )}
@@ -1792,7 +1805,7 @@ export default function CreateTripScreen() {
                               color: isValid ? t.warm : '#fff',
                             }}
                           >
-                            Save Draft
+                            {i18n('trips.saveDraft')}
                           </Text>
                         </>
                       )}
@@ -1822,7 +1835,7 @@ export default function CreateTripScreen() {
                         <>
                           <Send size={16} color={'#fff'} />
                           <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
-                            Publish
+                            {i18n('trips.publish')}
                           </Text>
                         </>
                       )}
@@ -1928,7 +1941,7 @@ export default function CreateTripScreen() {
                 <TextInput
                   value={editName}
                   onChangeText={setEditName}
-                  placeholder="Stop name"
+                  placeholder={i18n('trips.stopNamePlaceholder')}
                   placeholderTextColor={placeholderColor}
                   maxLength={100}
                   style={{

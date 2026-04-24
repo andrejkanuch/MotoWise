@@ -643,7 +643,7 @@ export default function BikeDetailScreen() {
                 >
                   <ChevronLeft size={16} color={palette.white} />
                   <Text style={{ fontSize: 13, color: palette.white, fontWeight: '500' }}>
-                    Garage
+                    {t('tabs.garage')}
                   </Text>
                 </Pressable>
                 {!uploadingPhoto && (
@@ -742,7 +742,7 @@ export default function BikeDetailScreen() {
                         }}
                       />
                       <Text style={{ fontSize: 12, fontWeight: '600', color: healthColor }}>
-                        {healthScore.score}% ready
+                        {t('garage.percentReady', { score: healthScore.score })}
                       </Text>
                     </>
                   );
@@ -990,7 +990,7 @@ export default function BikeDetailScreen() {
                 letterSpacing: -0.4,
               }}
             >
-              View →
+              {t('bikeHub.viewAnalytics')}
             </Text>
           </Pressable>
         </Animated.View>

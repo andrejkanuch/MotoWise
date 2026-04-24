@@ -15,6 +15,7 @@ import {
 } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -43,14 +44,21 @@ type TripNode = TripEdge['node'];
 
 type VisibilityKey = 'private' | 'unlisted' | 'public';
 
-const VISIBILITY_STYLES: Record<
+// biome-ignore lint: helper functions need a simplified i18n type
+type TFn = (key: string, opts?: Record<string, unknown>) => string;
+
+function getVisibilityStyles(
+  t: TFn,
+): Record<
   VisibilityKey,
   { Icon: ComponentType<{ size?: number; color?: string }>; label: string; tint: string }
-> = {
-  private: { Icon: Lock, label: 'Private', tint: palette.neutral500 },
-  unlisted: { Icon: EyeOff, label: 'Link only', tint: palette.warning500 },
-  public: { Icon: Globe, label: 'Public', tint: palette.success500 },
-};
+> {
+  return {
+    private: { Icon: Lock, label: t('trips.visibilityPrivate'), tint: palette.neutral500 },
+    unlisted: { Icon: EyeOff, label: t('trips.visibilityUnlisted'), tint: palette.warning500 },
+    public: { Icon: Globe, label: t('trips.visibilityPublic'), tint: palette.success500 },
+  };
+}
 
 const DIFFICULTY_COLORS = {
   easy: palette.success500,
@@ -59,12 +67,14 @@ const DIFFICULTY_COLORS = {
   expert: palette.signature500,
 } as const;
 
-const DIFFICULTY_LABELS = {
-  easy: 'Chill',
-  moderate: 'Spirited',
-  challenging: 'Technical',
-  expert: 'Expert',
-} as const;
+function getDifficultyLabels(t: TFn) {
+  return {
+    easy: t('trips.difficultyEasy'),
+    moderate: t('trips.difficultyModerate'),
+    challenging: t('trips.difficultyChallenging'),
+    expert: t('trips.difficultyExpert'),
+  } as const;
+}
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
@@ -91,6 +101,7 @@ function MyTripCard({
   onLongPress: () => void;
 }) {
   const { isDark } = useEditorialTheme();
+  const { t } = useTranslation();
 
   const cardBg = isDark ? palette.cardDark : palette.white;
   const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
@@ -101,14 +112,15 @@ function MyTripCard({
 
   const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof DIFFICULTY_COLORS;
   const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
-  const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
+  const diffLabels = getDifficultyLabels(t as TFn);
+  const diffLabel = diffLabels[diffKey] ?? diffLabels.easy;
 
   const rawVis = (trip.visibility ?? 'private').toLowerCase();
   const visKey: VisibilityKey =
     rawVis === 'public' || rawVis === 'unlisted' || rawVis === 'private'
       ? (rawVis as VisibilityKey)
       : 'private';
-  const vis = VISIBILITY_STYLES[visKey];
+  const vis = getVisibilityStyles(t as TFn)[visKey];
   const VisIcon = vis.Icon;
 
   const isDraft = trip.status === 'draft';
@@ -173,7 +185,7 @@ function MyTripCard({
                   letterSpacing: 0.5,
                 }}
               >
-                DRAFT
+                {t('trips.draft')}
               </Text>
             </View>
           ) : (
@@ -227,7 +239,7 @@ function MyTripCard({
           }}
           numberOfLines={1}
         >
-          {trip.title || 'Untitled trip'}
+          {trip.title || t('trips.untitledTrip')}
         </Text>
 
         {/* Stats strip */}
@@ -245,7 +257,7 @@ function MyTripCard({
               <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
                 {stopCount}
                 <Text style={{ fontWeight: '500', color: metaColor }}>
-                  {stopCount === 1 ? ' stop' : ' stops'}
+                  {stopCount === 1 ? ` ${t('trips.stopSingular')}` : ` ${t('trips.stopPlural')}`}
                 </Text>
               </Text>
             </View>
@@ -297,6 +309,7 @@ export default function MyTripsScreen() {
   const insets = useSafeAreaInsets();
   const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<MyTripsQuery>({
@@ -321,8 +334,8 @@ export default function MyTripsScreen() {
     },
     onError: (err) => {
       Alert.alert(
-        'Could not delete',
-        err instanceof Error && err.message ? err.message : 'Check your connection and try again.',
+        t('trips.deleteFailed'),
+        err instanceof Error && err.message ? err.message : t('trips.deleteFailedMessage'),
       );
     },
   });
@@ -355,21 +368,21 @@ export default function MyTripsScreen() {
     (trip: TripNode) => {
       const options =
         trip.status === 'draft'
-          ? ['Continue Editing', 'Delete Draft', 'Cancel']
-          : ['Share', 'Edit', 'Delete Trip', 'Cancel'];
+          ? [t('trips.continueEditing'), t('trips.deleteDraft'), t('common.cancel')]
+          : [t('trips.share'), t('trips.edit'), t('trips.deleteTrip'), t('common.cancel')];
       const destructiveIndex = trip.status === 'draft' ? 1 : 2;
       const cancelIndex = options.length - 1;
 
       const confirmDelete = () => {
         Alert.alert(
-          trip.status === 'draft' ? 'Delete this draft?' : 'Delete this trip?',
+          trip.status === 'draft' ? t('trips.confirmDeleteDraft') : t('trips.confirmDeleteTrip'),
           trip.status === 'draft'
-            ? 'The draft and all its stops will be gone.'
-            : "The route, every stop, and all the riders on it will be gone. Can't be undone.",
+            ? t('trips.confirmDeleteDraftMessage')
+            : t('trips.confirmDeleteTripMessage'),
           [
-            { text: 'Cancel', style: 'cancel' },
+            { text: t('common.cancel'), style: 'cancel' },
             {
-              text: 'Delete',
+              text: t('common.delete'),
               style: 'destructive',
               onPress: () => deleteMutation.mutate(trip.id),
             },
@@ -383,7 +396,7 @@ export default function MyTripsScreen() {
             options,
             destructiveButtonIndex: destructiveIndex,
             cancelButtonIndex: cancelIndex,
-            title: trip.title || 'Trip',
+            title: trip.title || t('trips.untitledTrip'),
           },
           (i) => {
             if (trip.status === 'draft') {
@@ -392,7 +405,7 @@ export default function MyTripsScreen() {
             } else {
               if (i === 0) {
                 Share.share({
-                  message: `Check out this trip on MotoVault: ${trip.title}`,
+                  message: t('trips.shareMessage', { title: trip.title }),
                 });
               } else if (i === 1) {
                 router.push({ pathname: '/(modals)/create-trip', params: { tripId: trip.id } });
@@ -404,7 +417,7 @@ export default function MyTripsScreen() {
         confirmDelete();
       }
     },
-    [deleteMutation, handleTripPress, router],
+    [deleteMutation, handleTripPress, router, t],
   );
 
   const handleLoadMore = useCallback(() => {
@@ -452,7 +465,7 @@ export default function MyTripsScreen() {
             textAlign: 'center',
           }}
         >
-          No trips yet
+          {t('trips.emptyTitle')}
         </Text>
         <Text
           style={{
@@ -462,7 +475,7 @@ export default function MyTripsScreen() {
             lineHeight: 22,
           }}
         >
-          Plan a multi-day ride with stops, then share it with your crew.
+          {t('trips.emptySubtitle')}
         </Text>
         <Pressable
           onPress={() => {
@@ -470,7 +483,7 @@ export default function MyTripsScreen() {
             router.push('/(modals)/create-trip');
           }}
           accessibilityRole="button"
-          accessibilityLabel="Plan a Trip"
+          accessibilityLabel={t('trips.planATrip')}
           style={({ pressed }) => ({
             backgroundColor: palette.primary700,
             borderRadius: 20,
@@ -486,11 +499,13 @@ export default function MyTripsScreen() {
           })}
         >
           <Plus size={20} color={palette.white} />
-          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>Plan a Trip</Text>
+          <Text style={{ color: palette.white, fontSize: 16, fontWeight: '700' }}>
+            {t('trips.planATrip')}
+          </Text>
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, isDark, router]);
+  }, [isLoading, isDark, router, t]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
@@ -524,7 +539,7 @@ export default function MyTripsScreen() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t('common.goBack')}
           style={{
             width: 40,
             height: 40,
@@ -546,7 +561,7 @@ export default function MyTripsScreen() {
             letterSpacing: -0.5,
           }}
         >
-          My Trips
+          {t('trips.myTrips')}
         </Text>
         <Pressable
           onPress={() => {
@@ -554,7 +569,7 @@ export default function MyTripsScreen() {
             router.push('/(modals)/create-trip');
           }}
           accessibilityRole="button"
-          accessibilityLabel="Plan a new trip"
+          accessibilityLabel={t('trips.planATrip')}
           style={{
             width: 40,
             height: 40,
@@ -594,7 +609,7 @@ export default function MyTripsScreen() {
               }}
             />
             <Text style={{ fontSize: 12, fontWeight: '700', color: palette.warning500 }}>
-              {draftCount} draft{draftCount !== 1 ? 's' : ''} — tap to finish
+              {t('trips.draftCount', { count: draftCount })}
             </Text>
           </View>
         </View>

@@ -46,6 +46,7 @@ import {
   XCircle,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -310,6 +311,7 @@ function TemplateRouteStartEndLine({
 
 export default function TripDetailScreen() {
   const { t, isDark } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -1009,7 +1011,9 @@ ${rteptElements}
               >
                 <Pencil size={16} color={t.ink} />
               </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>Edit</Text>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>
+                {i18n('trips.edit')}
+              </Text>
             </Pressable>
           )}
           {isOrganiser && (
@@ -1029,7 +1033,9 @@ ${rteptElements}
               >
                 <Share2 size={16} color={t.ink} />
               </View>
-              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>Share</Text>
+              <Text style={{ fontSize: 9, fontWeight: '600', color: t.ink }}>
+                {i18n('trips.share')}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -1359,7 +1365,7 @@ ${rteptElements}
                       >
                         {formatDistance(trip.distanceM, system)}
                       </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>Distance</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.distance')}</Text>
                     </View>
                   )}
                   {(trip.elevationGainM ?? 0) > 0 && (
@@ -1377,7 +1383,7 @@ ${rteptElements}
                           {formatElevation(trip.elevationGainM ?? 0, system)}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>Elevation</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.elevation')}</Text>
                     </View>
                   )}
                   {trip.estimatedDurationMinutes != null && trip.estimatedDurationMinutes > 0 && (
@@ -1394,7 +1400,7 @@ ${rteptElements}
                           ? `${Math.floor(trip.estimatedDurationMinutes / 60)}h ${trip.estimatedDurationMinutes % 60}m`
                           : `${trip.estimatedDurationMinutes}m`}
                       </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>Duration</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.duration')}</Text>
                     </View>
                   )}
                   {trip.averageRating != null &&
@@ -1429,7 +1435,7 @@ ${rteptElements}
                       >
                         {trip.viewCount}
                       </Text>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>Views</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.views')}</Text>
                     </View>
                   )}
                   {trip.cloneCount != null && trip.cloneCount > 0 && (
@@ -1446,7 +1452,7 @@ ${rteptElements}
                           {trip.cloneCount}
                         </Text>
                       </View>
-                      <Text style={{ fontSize: 11, color: t.ink3 }}>Clones</Text>
+                      <Text style={{ fontSize: 11, color: t.ink3 }}>{i18n('trips.clones')}</Text>
                     </View>
                   )}
                 </Animated.View>
@@ -2263,7 +2269,9 @@ ${rteptElements}
                     }}
                   >
                     <HelpCircle size={16} color={t.warm} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>Maybe</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>
+                      {i18n('trips.maybe')}
+                    </Text>
                   </Pressable>
                 )}
 
@@ -2286,7 +2294,9 @@ ${rteptElements}
                     }}
                   >
                     <LogOut size={16} color={t.danger} />
-                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.danger }}>Leave</Text>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: t.danger }}>
+                      {i18n('trips.leave')}
+                    </Text>
                   </Pressable>
                 )}
               </Animated.View>

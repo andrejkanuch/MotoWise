@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 import { ECard } from '../ui/editorial';
@@ -46,6 +47,7 @@ function WeekBars({ values }: { values: number[] }) {
 
 export function FocusStats({ recentRides }: FocusStatsProps) {
   const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const router = useRouter();
 
   const thisMonthStats = useMemo(() => {
@@ -98,7 +100,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
               textTransform: 'uppercase',
             }}
           >
-            {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+            {new Date().toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
             <Text
@@ -112,7 +114,9 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
             >
               {thisMonthStats.distanceKm}
             </Text>
-            <Text style={{ fontSize: 13, color: theme.ink3, fontWeight: '500' }}>/ 600 km</Text>
+            <Text style={{ fontSize: 13, color: theme.ink3, fontWeight: '500' }}>
+              {t('home.monthlyGoalSuffix', { goal: 600 })}
+            </Text>
           </View>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
@@ -126,7 +130,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
               textTransform: 'uppercase',
             }}
           >
-            Rides
+            {t('home.ridesLabel')}
           </Text>
           <Text
             style={{
@@ -171,7 +175,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
         >
           <Text style={{ fontSize: 10, color: theme.ink3 }}>0</Text>
           <Text style={{ fontSize: 10, color: theme.ink3 }}>300</Text>
-          <Text style={{ fontSize: 10, color: theme.ink3 }}>600 km goal</Text>
+          <Text style={{ fontSize: 10, color: theme.ink3 }}>{t('home.kmGoal', { goal: 600 })}</Text>
         </View>
       </View>
 
@@ -200,9 +204,9 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
               color: theme.ink3,
             }}
           >
-            Last 7 days
+            {t('home.last7Days')}
           </Text>
-          <Text style={{ fontSize: 11, color: theme.ink3 }}>km / day</Text>
+          <Text style={{ fontSize: 11, color: theme.ink3 }}>{t('home.kmPerDay')}</Text>
         </View>
         <WeekBars values={weeklyKm} />
       </View>
@@ -212,7 +216,9 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
         onPress={() => router.push('/(tabs)/(garage)/expense-dashboard')}
         style={{ marginTop: 14 }}
       >
-        <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>Open analytics →</Text>
+        <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
+          {t('home.openAnalytics')}
+        </Text>
       </Pressable>
     </ECard>
   );

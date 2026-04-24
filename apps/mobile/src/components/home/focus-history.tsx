@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 import { ECard } from '../ui/editorial';
@@ -32,18 +33,19 @@ function formatDistance(meters: number | null): string {
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 export function FocusHistory({ rides }: FocusHistoryProps) {
   const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
   const router = useRouter();
 
   if (rides.length === 0) {
     return (
       <ECard pad={16}>
         <Text style={{ fontSize: 13, color: theme.ink3, textAlign: 'center', paddingVertical: 20 }}>
-          No rides recorded yet
+          {t('home.noRidesRecorded')}
         </Text>
       </ECard>
     );
@@ -70,10 +72,12 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
             color: theme.ink3,
           }}
         >
-          Recent rides
+          {t('home.recentRides')}
         </Text>
         <Pressable onPress={() => router.push('/(tabs)/(profile)/rides')}>
-          <Text style={{ fontSize: 11, color: theme.warm, fontWeight: '600' }}>See all →</Text>
+          <Text style={{ fontSize: 11, color: theme.warm, fontWeight: '600' }}>
+            {t('home.seeAllRides')}
+          </Text>
         </Pressable>
       </View>
 
@@ -113,11 +117,13 @@ export function FocusHistory({ rides }: FocusHistoryProps) {
               }}
               numberOfLines={1}
             >
-              {ride.name ?? 'Ride'}
+              {ride.name ?? t('home.defaultRideName')}
             </Text>
             <Text style={{ fontSize: 11, color: theme.ink3 }} numberOfLines={1}>
               {formatDate(ride.startedAt)} · {formatDuration(ride.durationS)}
-              {ride.avgSpeedMps ? ` · avg ${Math.round(ride.avgSpeedMps * 3.6)} km/h` : ''}
+              {ride.avgSpeedMps
+                ? ` · ${t('home.avgSpeed', { speed: Math.round(ride.avgSpeedMps * 3.6) })}`
+                : ''}
             </Text>
           </View>
           <Text

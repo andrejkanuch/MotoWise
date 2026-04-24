@@ -1,12 +1,13 @@
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text } from 'react-native';
 import { useEditorialTheme } from '../../theme/editorial';
 
 export type FocusTab = 'stats' | 'trip' | 'history';
 
-const TABS: { id: FocusTab; label: string }[] = [
-  { id: 'stats', label: 'This month' },
-  { id: 'trip', label: 'Upcoming trip' },
-  { id: 'history', label: 'Ride history' },
+const TAB_KEYS = [
+  { id: 'stats' as FocusTab, key: 'home.focusThisMonth' as const },
+  { id: 'trip' as FocusTab, key: 'home.focusUpcomingTrip' as const },
+  { id: 'history' as FocusTab, key: 'home.focusRideHistory' as const },
 ];
 
 interface FocusPickerProps {
@@ -16,6 +17,7 @@ interface FocusPickerProps {
 
 export function FocusPicker({ active, onSelect }: FocusPickerProps) {
   const { t: theme } = useEditorialTheme();
+  const { t } = useTranslation();
 
   return (
     <ScrollView
@@ -23,7 +25,7 @@ export function FocusPicker({ active, onSelect }: FocusPickerProps) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ gap: 6, paddingBottom: 2 }}
     >
-      {TABS.map((tab) => {
+      {TAB_KEYS.map((tab) => {
         const isActive = active === tab.id;
         return (
           <Pressable
@@ -46,7 +48,7 @@ export function FocusPicker({ active, onSelect }: FocusPickerProps) {
                 color: isActive ? theme.bg : theme.ink3,
               }}
             >
-              {tab.label}
+              {t(tab.key)}
             </Text>
           </Pressable>
         );

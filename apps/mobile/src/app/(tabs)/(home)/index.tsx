@@ -45,8 +45,13 @@ export default function HomeScreen() {
   const [focusTab, setFocusTab] = useState<FocusTab>('stats');
 
   const hour = new Date().getHours();
-  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const dateLabel = new Date().toLocaleDateString('en-US', {
+  const greet =
+    hour < 12
+      ? t('home.greetingMorningShort')
+      : hour < 18
+        ? t('home.greetingAfternoonShort')
+        : t('home.greetingEveningShort');
+  const dateLabel = new Date().toLocaleDateString(undefined, {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -251,14 +256,14 @@ export default function HomeScreen() {
               letterSpacing: -0.8,
             }}
           >
-            Today in your{' '}
+            {t('home.mastheadTitle')}{' '}
             <Text
               style={{
                 fontFamily: 'InstrumentSerif-Italic',
                 color: theme.warm2,
               }}
             >
-              garage.
+              {t('home.mastheadGarage')}
             </Text>
           </Text>
         </View>
@@ -372,7 +377,7 @@ export default function HomeScreen() {
                         color: '#fff',
                       }}
                     >
-                      Ready to ride
+                      {t('home.readyToRideBadge')}
                     </Text>
                   </View>
                 </View>
@@ -423,7 +428,7 @@ export default function HomeScreen() {
                           marginBottom: 3,
                         }}
                       >
-                        Odo
+                        {t('home.odo')}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
@@ -446,7 +451,7 @@ export default function HomeScreen() {
                             fontWeight: '500',
                           }}
                         >
-                          km
+                          {activeBike.mileageUnit ?? 'km'}
                         </Text>
                       </View>
                     </View>
@@ -472,7 +477,7 @@ export default function HomeScreen() {
                           marginBottom: 3,
                         }}
                       >
-                        Next service
+                        {t('home.nextServiceLabel')}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
@@ -493,7 +498,7 @@ export default function HomeScreen() {
                             fontWeight: '500',
                           }}
                         >
-                          days
+                          {t('home.days')}
                         </Text>
                       </View>
                     </View>
@@ -519,7 +524,7 @@ export default function HomeScreen() {
                           marginBottom: 3,
                         }}
                       >
-                        Ready
+                        {t('home.readyLabel')}
                       </Text>
                       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
@@ -652,19 +657,19 @@ export default function HomeScreen() {
               {[
                 {
                   icon: Sparkles,
-                  label: 'Diagnose',
+                  label: t('home.actionDiagnose'),
                   color: theme.warm,
                   onPress: () => router.push('/(tabs)/(diagnose)'),
                 },
                 {
                   icon: Wrench,
-                  label: 'Add task',
+                  label: t('home.actionAddTask'),
                   color: theme.info,
                   onPress: () => router.push('/(tabs)/(garage)'),
                 },
                 {
                   icon: DollarSign,
-                  label: 'Expense',
+                  label: t('home.expenses'),
                   color: theme.success,
                   onPress: () => {
                     if (activeBike) {
@@ -677,7 +682,7 @@ export default function HomeScreen() {
                 },
                 {
                   icon: MapPin,
-                  label: 'Plan',
+                  label: t('home.actionPlan'),
                   color: theme.purple,
                   onPress: () => router.push('/(tabs)/(discover)'),
                 },
@@ -724,8 +729,8 @@ export default function HomeScreen() {
         {hasMotorcycles && sortedTasks.length > 0 && (
           <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
             <ESectionMasthead
-              label="Upcoming"
-              action="All tasks"
+              label={t('home.upcoming')}
+              action={t('home.allTasks')}
               onAction={() => router.navigate('/(tabs)/(garage)')}
             />
             <View style={{ gap: 8 }}>
@@ -738,8 +743,8 @@ export default function HomeScreen() {
                       : theme.info;
                 const relDays = task.relative.daysAway;
                 const dueText = task.relative.isOverdue
-                  ? `Overdue by ${Math.abs(relDays)} days`
-                  : `Due in ${relDays} days`;
+                  ? t('home.overdueByDays', { count: Math.abs(relDays) })
+                  : t('home.dueInDays', { count: relDays });
                 return (
                   <ECard
                     key={task.id}
@@ -834,7 +839,7 @@ export default function HomeScreen() {
                       marginBottom: 6,
                     }}
                   >
-                    Plan your next trip
+                    {t('home.planNextTrip')}
                   </Text>
                   <Text
                     style={{
@@ -844,10 +849,10 @@ export default function HomeScreen() {
                       marginBottom: 14,
                     }}
                   >
-                    Discover curated routes and plan your weekend ride
+                    {t('home.planNextTripDesc')}
                   </Text>
                   <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
-                    Explore routes →
+                    {t('home.exploreRoutes')}
                   </Text>
                 </Pressable>
               )}
