@@ -107,7 +107,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
                 fontSize: 44,
                 color: theme.ink,
                 letterSpacing: -0.6,
-                lineHeight: 42,
+                lineHeight: 48,
               }}
             >
               {thisMonthStats.distanceKm}
