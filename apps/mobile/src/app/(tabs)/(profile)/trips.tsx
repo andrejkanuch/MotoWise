@@ -44,7 +44,6 @@ type TripNode = TripEdge['node'];
 
 type VisibilityKey = 'private' | 'unlisted' | 'public';
 
-// biome-ignore lint: helper functions need a simplified i18n type
 type TFn = (key: string, opts?: Record<string, unknown>) => string;
 
 function getVisibilityStyles(

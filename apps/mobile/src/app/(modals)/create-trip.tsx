@@ -85,7 +85,6 @@ interface LocalWaypoint {
   periodOfDay?: 'morning' | 'afternoon' | 'evening' | null;
 }
 
-// biome-ignore lint: helper functions need a simplified i18n type
 type TI18n = (key: string, opts?: Record<string, unknown>) => string;
 
 function getDifficulties(i18n: TI18n): { key: Difficulty; label: string }[] {
