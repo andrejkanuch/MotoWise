@@ -31,13 +31,12 @@ export default function GarageLayout() {
         headerTitleStyle: { color: isDark ? palette.neutral50 : palette.neutral950 },
       }}
     >
-      <Stack.Screen name="index" options={{ title: t('tabs.garage') }} />
+      <Stack.Screen name="index" options={{ title: t('tabs.garage'), headerShown: false }} />
       <Stack.Screen
         name="bike/[id]"
         options={{
           title: t('garage.bikeDetails', { defaultValue: 'Bike Details' }),
-          headerLargeTitle: false,
-          headerBackButtonDisplayMode: 'default',
+          headerShown: false,
         }}
       />
       <Stack.Screen

@@ -447,12 +447,11 @@ export default function HomeScreen() {
                 <LinearGradient
                   colors={[
                     `${theme.bg}30`,
-                    'transparent',
-                    'transparent',
-                    `${theme.bg}CC`,
-                    `${theme.bg}F5`,
+                    `${theme.bg}10`,
+                    `${theme.bg}80`,
+                    theme.bg,
                   ]}
-                  locations={[0, 0.25, 0.5, 0.75, 1]}
+                  locations={[0, 0.25, 0.65, 1]}
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -512,7 +511,7 @@ export default function HomeScreen() {
                 <View
                   style={{
                     position: 'absolute',
-                    bottom: 18,
+                    bottom: 24,
                     left: 20,
                     right: 20,
                   }}
