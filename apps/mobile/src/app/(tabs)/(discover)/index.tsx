@@ -24,9 +24,9 @@ import {
   FlatList,
   Pressable,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useEditorialTheme } from '../../../theme/editorial';
 import Animated, {
   Extrapolation,
   FadeInUp,
@@ -101,7 +101,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
   onPlaceSearchSelect,
   showBelowFold,
 }: DiscoverHeaderProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const headerColor = isDark ? palette.white : palette.neutral950;
 
   const countryActiveKeys = useMemo(
@@ -174,7 +174,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
 // --- Main screen ---
 
 export default function DiscoverScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const cameraRef = useRef<Camera>(null);

@@ -15,9 +15,9 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useEditorialTheme } from '../../../theme/editorial';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -177,7 +177,7 @@ export default function ExpenseDashboardScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
-  const isDark = useColorScheme() === 'dark';
+  const { t: eTheme, isDark } = useEditorialTheme();
   const { format: formatCurrency } = useCurrency();
   const queryClient = useQueryClient();
 
@@ -246,15 +246,15 @@ export default function ExpenseDashboardScreen() {
   }, [queryClient, motorcycleId]);
 
   // Theme colors
-  const bgColor = isDark ? palette.neutral900 : palette.neutral50;
-  const textColor = isDark ? palette.white : palette.neutral950;
-  const subtextColor = isDark ? palette.neutral400 : palette.neutral500;
+  const bgColor = eTheme.bg;
+  const textColor = eTheme.ink;
+  const subtextColor = eTheme.ink3;
   const tertiaryColor = palette.neutral500;
-  const pillBg = isDark ? palette.neutral800 : palette.neutral200;
-  const pillActiveBg = isDark ? palette.neutral700 : palette.white;
-  const pillActiveText = isDark ? palette.white : palette.neutral950;
-  const pillInactiveText = isDark ? palette.neutral400 : palette.neutral500;
-  const copperColor = isDark ? palette.signature500 : palette.signature400;
+  const pillBg = eTheme.surface;
+  const pillActiveBg = eTheme.surface2;
+  const pillActiveText = eTheme.ink;
+  const pillInactiveText = eTheme.ink3;
+  const copperColor = eTheme.warm;
 
   if (isPending) {
     return (
@@ -380,7 +380,7 @@ export default function ExpenseDashboardScreen() {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={onRefresh}
-          tintColor={isDark ? palette.white : palette.primary500}
+          tintColor={eTheme.warm}
         />
       }
     >
@@ -487,7 +487,7 @@ export default function ExpenseDashboardScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral200,
+              backgroundColor: eTheme.surface,
               borderRadius: 20,
               borderCurve: 'continuous',
               paddingHorizontal: 12,
@@ -550,7 +550,7 @@ export default function ExpenseDashboardScreen() {
         <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ marginTop: 20 }}>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: eTheme.surface,
               borderRadius: 16,
               borderCurve: 'continuous',
               padding: 16,
@@ -643,7 +643,7 @@ export default function ExpenseDashboardScreen() {
                 flex: 1,
                 fontSize: 13,
                 fontWeight: '500',
-                color: isDark ? palette.primary400 : palette.primary600,
+                color: eTheme.warm,
               }}
             >
               Add your bike's purchase price in Edit Bike to see total cost of ownership
@@ -667,7 +667,7 @@ export default function ExpenseDashboardScreen() {
       <Animated.View entering={FadeInUp.delay(180).duration(300)} style={{ marginTop: 32 }}>
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: eTheme.surface,
             borderRadius: 12,
             borderCurve: 'continuous',
             padding: 16,
@@ -707,7 +707,7 @@ export default function ExpenseDashboardScreen() {
         <Animated.View entering={FadeInUp.duration(250)} style={{ marginTop: 16 }}>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: eTheme.surface,
               borderRadius: 12,
               borderCurve: 'continuous',
               padding: 16,

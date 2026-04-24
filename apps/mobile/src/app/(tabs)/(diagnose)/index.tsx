@@ -18,7 +18,8 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, RefreshControl, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { useEditorialTheme } from '../../../theme/editorial';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -104,7 +105,8 @@ export default function DiagnoseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
+  const { t: eTheme, isDark: colorSchemeDark } = useEditorialTheme();
+  const colorScheme = colorSchemeDark ? 'dark' : 'light';
   const isDark = colorScheme === 'dark';
   const { showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
   const queryClient = useQueryClient();
@@ -181,7 +183,7 @@ export default function DiagnoseScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: eTheme.bg }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80, paddingTop: insets.top }}
@@ -204,7 +206,7 @@ export default function DiagnoseScreen() {
               fontSize: 28,
               fontWeight: '800',
               letterSpacing: -0.5,
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              color: eTheme.ink,
             }}
           >
             {t('tabs.diagnose')}
@@ -212,7 +214,7 @@ export default function DiagnoseScreen() {
           <Text
             style={{
               fontSize: 14,
-              color: isDark ? palette.neutral400 : palette.neutral500,
+              color: eTheme.ink3,
               marginTop: 4,
             }}
           >
@@ -353,7 +355,7 @@ export default function DiagnoseScreen() {
                   fontSize: 17,
                   fontWeight: '600',
                   marginTop: 16,
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: eTheme.ink,
                 }}
               >
                 {t('diagnose.emptyTitle')}
@@ -361,7 +363,7 @@ export default function DiagnoseScreen() {
               <Text
                 style={{
                   fontSize: 14,
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: eTheme.ink3,
                   marginTop: 6,
                   textAlign: 'center',
                   maxWidth: 260,
@@ -382,7 +384,7 @@ export default function DiagnoseScreen() {
                   fontWeight: '600',
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
-                  color: isDark ? palette.neutral500 : palette.neutral400,
+                  color: eTheme.ink3,
                   marginBottom: 16,
                 }}
               >
@@ -408,7 +410,7 @@ export default function DiagnoseScreen() {
                   >
                     <Icon
                       size={16}
-                      color={isDark ? palette.neutral400 : palette.neutral500}
+                      color={eTheme.ink3}
                       strokeWidth={1.5}
                     />
                     <Text
@@ -437,7 +439,7 @@ export default function DiagnoseScreen() {
                   fontWeight: '600',
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
-                  color: isDark ? palette.neutral500 : palette.neutral400,
+                  color: eTheme.ink3,
                   marginBottom: 12,
                 }}
               >
@@ -507,7 +509,7 @@ export default function DiagnoseScreen() {
                 fontWeight: '600',
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
-                color: isDark ? palette.neutral500 : palette.neutral400,
+                color: eTheme.ink3,
                 marginBottom: 12,
               }}
             >
@@ -572,7 +574,7 @@ export default function DiagnoseScreen() {
                           style={{
                             fontSize: 15,
                             fontWeight: '600',
-                            color: isDark ? palette.neutral50 : palette.neutral950,
+                            color: eTheme.ink,
                           }}
                           numberOfLines={1}
                         >
@@ -590,7 +592,7 @@ export default function DiagnoseScreen() {
                             <Text
                               style={{
                                 fontSize: 12,
-                                color: isDark ? palette.neutral400 : palette.neutral500,
+                                color: eTheme.ink3,
                               }}
                               numberOfLines={1}
                             >
@@ -607,13 +609,13 @@ export default function DiagnoseScreen() {
                           </Text>
                           <Clock
                             size={10}
-                            color={isDark ? palette.neutral500 : palette.neutral400}
+                            color={eTheme.ink3}
                             strokeWidth={2}
                           />
                           <Text
                             style={{
                               fontSize: 12,
-                              color: isDark ? palette.neutral500 : palette.neutral400,
+                              color: eTheme.ink3,
                             }}
                           >
                             {new Date(diag.createdAt).toLocaleDateString()}

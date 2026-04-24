@@ -17,8 +17,10 @@ import {
   Calendar,
   Camera,
   ChevronDown,
+  ChevronLeft,
   DollarSign,
   Edit3,
+  Gauge,
   MoreHorizontal,
   Star,
   Wrench,
@@ -34,7 +36,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  useColorScheme,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -52,9 +53,11 @@ import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upl
 import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
+import { useEditorialTheme, tint } from '../../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
 
 function InfoRow({ label, value, isDark }: { label: string; value: string; isDark: boolean }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <View
       style={{
@@ -63,17 +66,13 @@ function InfoRow({ label, value, isDark }: { label: string; value: string; isDar
         alignItems: 'center',
         paddingVertical: 12,
         borderBottomWidth: 0.5,
-        borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+        borderBottomColor: theme.line,
       }}
     >
-      <Text style={{ fontSize: 14, color: palette.neutral500 }}>{label}</Text>
+      <Text style={{ fontSize: 14, color: theme.ink3 }}>{label}</Text>
       <Text
         selectable
-        style={{
-          fontSize: 15,
-          fontWeight: '600',
-          color: isDark ? palette.neutral50 : palette.neutral950,
-        }}
+        style={{ fontSize: 15, fontWeight: '600', color: theme.ink }}
       >
         {value}
       </Text>
@@ -89,7 +88,7 @@ export default function BikeDetailScreen() {
     _ts?: string;
   }>();
   const router = useRouter();
-  const isDark = useColorScheme() === 'dark';
+  const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
@@ -502,10 +501,10 @@ export default function BikeDetailScreen() {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: theme.bg,
         }}
       >
-        <ActivityIndicator size="large" color={palette.primary500} />
+        <ActivityIndicator size="large" color={theme.warm} />
       </View>
     );
   }
@@ -517,11 +516,11 @@ export default function BikeDetailScreen() {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: theme.bg,
           padding: 24,
         }}
       >
-        <Text style={{ fontSize: 16, color: palette.neutral500, textAlign: 'center' }}>
+        <Text style={{ fontSize: 16, color: theme.ink3, textAlign: 'center' }}>
           {t('notFound.message', { defaultValue: 'Not found' })}
         </Text>
       </View>
@@ -532,186 +531,177 @@ export default function BikeDetailScreen() {
   const bikeName = `${bike.year} ${bike.make} ${bike.model}`;
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
-        contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor={isDark ? palette.white : palette.primary500}
+            tintColor={theme.warm}
           />
         }
       >
-        {/* 1. Hero — photo or gradient placeholder */}
+        {/* 1. Hero — editorial full-bleed photo */}
         <Animated.View entering={FadeInUp.duration(400)}>
           <Pressable onPress={handleAddPhoto} disabled={uploadingPhoto}>
-            {hasPhoto ? (
-              <View style={{ height: 240, position: 'relative' }}>
+            <View style={{ position: 'relative', height: 320 }}>
+              {hasPhoto ? (
                 <Image
                   source={{ uri: bike.primaryPhotoUrl ?? undefined }}
-                  style={{ width: screenWidth, height: 240 }}
+                  style={{ position: 'absolute', width: '100%', height: '100%' }}
                   contentFit="cover"
                   transition={300}
                 />
-                <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.5)']}
+              ) : (
+                <View
                   style={{
                     position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 80,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: theme.surface2,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
-                {uploadingPhoto && (
-                  <View
-                    style={{
-                      ...StyleSheet.absoluteFillObject,
-                      backgroundColor: 'rgba(0,0,0,0.45)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ActivityIndicator size="large" color={palette.white} />
-                    <Text
-                      style={{
-                        color: palette.white,
-                        fontSize: 14,
-                        fontWeight: '600',
-                        marginTop: 8,
-                      }}
-                    >
-                      {t('garage.uploadingPhoto', { defaultValue: 'Uploading...' })}
-                    </Text>
-                  </View>
-                )}
+                >
+                  {uploadingPhoto ? (
+                    <ActivityIndicator size="large" color={theme.warm} />
+                  ) : (
+                    <View style={{ alignItems: 'center', gap: 8 }}>
+                      <Camera size={26} color={theme.ink3} strokeWidth={1.5} />
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: theme.ink3 }}>
+                        {t('garage.addPhoto', { defaultValue: 'Add Photo' })}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+              {/* Gradient overlay */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0, height: '30%',
+                  backgroundColor: `${theme.bg}80`,
+                }}
+              />
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 0, left: 0, right: 0, height: '45%',
+                  backgroundColor: theme.bg,
+                }}
+              />
+
+              {/* Upload overlay */}
+              {uploadingPhoto && hasPhoto && (
+                <View
+                  style={{
+                    ...StyleSheet.absoluteFillObject,
+                    backgroundColor: 'rgba(0,0,0,0.45)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ActivityIndicator size="large" color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 }}>
+                    {t('garage.uploadingPhoto', { defaultValue: 'Uploading...' })}
+                  </Text>
+                </View>
+              )}
+
+              {/* Top bar */}
+              <View
+                style={{
+                  position: 'absolute',
+                  top: insets.top + 8,
+                  left: 16,
+                  right: 16,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Pressable
+                  onPress={() => router.back()}
+                  style={{
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    paddingLeft: 10,
+                    backgroundColor: `${theme.bg}99`,
+                    borderRadius: 999,
+                    borderWidth: 1,
+                    borderColor: theme.line,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <ChevronLeft size={16} color="#fff" />
+                  <Text style={{ fontSize: 13, color: '#fff', fontWeight: '500' }}>Garage</Text>
+                </Pressable>
                 {!uploadingPhoto && (
                   <Pressable
                     onPress={handleAddPhoto}
                     style={{
-                      position: 'absolute',
-                      bottom: 12,
-                      right: 16,
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: `${theme.bg}99`,
+                      borderWidth: 1,
+                      borderColor: theme.line,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Camera size={20} color={palette.white} strokeWidth={2} />
+                    <Camera size={16} color="#fff" />
                   </Pressable>
                 )}
               </View>
-            ) : (
-              <LinearGradient
-                colors={isDark ? ['#1a1a2e', '#16213e'] : [palette.primary50, palette.primary100]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{
-                  height: 200,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                }}
-              >
-                {uploadingPhoto ? (
-                  <ActivityIndicator size="large" color={palette.primary500} />
-                ) : (
-                  <View style={{ alignItems: 'center', gap: 8 }}>
-                    <View
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Camera
-                        size={26}
-                        color={isDark ? palette.neutral300 : palette.neutral500}
-                        strokeWidth={1.5}
-                      />
-                    </View>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        fontWeight: '600',
-                        color: isDark ? palette.neutral400 : palette.neutral500,
-                      }}
-                    >
-                      {t('garage.addPhoto', { defaultValue: 'Add Photo' })}
-                    </Text>
-                  </View>
-                )}
-              </LinearGradient>
-            )}
-
-            {bike.isPrimary && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 16,
-                  left: 16,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  backgroundColor: palette.warning500,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 20,
-                  borderCurve: 'continuous',
-                }}
-              >
-                <Star size={13} color={palette.white} strokeWidth={2.5} fill={palette.white} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: palette.white }}>
-                  {t('garage.primary', { defaultValue: 'Primary' })}
-                </Text>
-              </View>
-            )}
+            </View>
           </Pressable>
         </Animated.View>
 
-        {/* 2. Bike name/year info + Quick Stats */}
+        {/* 2. Bike meta — lifted over hero (editorial) */}
         <Animated.View
           entering={FadeInUp.delay(80).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 20 }}
+          style={{ paddingHorizontal: 20, marginTop: -40, position: 'relative' }}
         >
-          {bike.nickname && (
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: palette.primary500,
-                marginBottom: 4,
-              }}
-            >
-              &ldquo;{bike.nickname}&rdquo;
-            </Text>
-          )}
+          <Text style={{ fontSize: 11, color: theme.ink3, marginBottom: 4, fontWeight: '500' }}>
+            {bike.year}{bike.nickname ? ` · "${bike.nickname}"` : ''}
+          </Text>
           <Text
             selectable
             style={{
-              fontSize: 26,
-              fontWeight: '800',
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 36,
+              color: theme.ink,
+              letterSpacing: -0.7,
+              lineHeight: 36,
+              marginBottom: 14,
             }}
           >
-            {bike.make} {bike.model}
+            {bike.make}{' '}
+            <Text style={{ fontFamily: 'InstrumentSerif-Italic' }}>{bike.model}</Text>
           </Text>
 
-          <View style={{ flexDirection: 'row', gap: 16, marginTop: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Calendar size={14} color={palette.neutral400} strokeWidth={2} />
-              <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
-                {bike.year}
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18, alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                backgroundColor: theme.surface,
+                borderWidth: 1,
+                borderColor: theme.line,
+                borderRadius: 999,
+              }}
+            >
+              <Gauge size={13} color={theme.ink2} />
+              <Text style={{ fontSize: 12, color: theme.ink2, fontWeight: '600' }}>
+                {(bike.currentMileage ?? 0).toLocaleString()} {bike.mileageUnit ?? 'km'}
               </Text>
             </View>
             {tasks.length > 0 && healthScore.hasData && (
@@ -723,7 +713,7 @@ export default function BikeDetailScreen() {
                   isDark={isDark}
                   size={20}
                 />
-                <Text style={{ fontSize: 14, color: palette.neutral500, fontWeight: '500' }}>
+                <Text style={{ fontSize: 14, color: theme.ink3, fontWeight: '500' }}>
                   {healthScore.score}%
                 </Text>
               </View>
@@ -740,7 +730,7 @@ export default function BikeDetailScreen() {
           />
         </Animated.View>
 
-        {/* 3. Quick Actions — 4 buttons */}
+        {/* 3. Quick Actions — editorial 4-button grid */}
         <Animated.View
           entering={FadeInUp.delay(100).duration(400)}
           style={{
@@ -762,17 +752,17 @@ export default function BikeDetailScreen() {
             style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
-              gap: 4,
+              gap: 5,
               paddingVertical: 12,
-              backgroundColor: palette.primary500,
-              borderRadius: 12,
+              backgroundColor: theme.warm,
+              borderRadius: 14,
               borderCurve: 'continuous',
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <Wrench size={16} color={palette.white} strokeWidth={2.5} />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: palette.white }}>
-              {t('maintenance.addTask', { defaultValue: 'Add Task' })}
+            <Wrench size={18} color="#1a1208" />
+            <Text style={{ fontSize: 11, fontWeight: '600', color: '#1a1208' }}>
+              {t('maintenance.addTask', { defaultValue: 'Add task' })}
             </Text>
           </Pressable>
 
@@ -787,26 +777,18 @@ export default function BikeDetailScreen() {
             style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
-              gap: 4,
+              gap: 5,
               paddingVertical: 12,
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-              borderRadius: 12,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 14,
               borderCurve: 'continuous',
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
-            <DollarSign
-              size={16}
-              color={isDark ? palette.neutral300 : palette.neutral600}
-              strokeWidth={2.5}
-            />
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral600,
-              }}
-            >
+            <DollarSign size={18} color={theme.ink2} />
+            <Text style={{ fontSize: 11, fontWeight: '600', color: theme.ink2 }}>
               {t('garage.addExpense', { defaultValue: 'Expense' })}
             </Text>
           </Pressable>
@@ -819,24 +801,26 @@ export default function BikeDetailScreen() {
             style={({ pressed }) => ({
               flex: 1,
               alignItems: 'center',
-              gap: 4,
+              gap: 5,
               paddingVertical: 12,
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
-              borderRadius: 12,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              borderRadius: 14,
               borderCurve: 'continuous',
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
             <Edit3
-              size={16}
-              color={isDark ? palette.neutral300 : palette.neutral600}
+              size={18}
+              color={theme.ink2}
               strokeWidth={2}
             />
             <Text
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral600,
+                color: theme.ink2,
               }}
             >
               {t('common.edit', { defaultValue: 'Edit' })}
@@ -850,7 +834,7 @@ export default function BikeDetailScreen() {
               alignItems: 'center',
               gap: 4,
               paddingVertical: 12,
-              backgroundColor: isDark ? palette.neutral800 : palette.neutral100,
+              backgroundColor: theme.surface,
               borderRadius: 12,
               borderCurve: 'continuous',
               transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -858,14 +842,14 @@ export default function BikeDetailScreen() {
           >
             <MoreHorizontal
               size={16}
-              color={isDark ? palette.neutral300 : palette.neutral600}
+              color={theme.ink2}
               strokeWidth={2}
             />
             <Text
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: isDark ? palette.neutral300 : palette.neutral600,
+                color: theme.ink2,
               }}
             >
               {t('common.more', { defaultValue: 'More' })}
@@ -913,7 +897,7 @@ export default function BikeDetailScreen() {
               justifyContent: 'space-between',
               paddingVertical: 14,
               paddingHorizontal: 16,
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: showDetails ? 0 : 16,
               borderTopLeftRadius: 16,
               borderTopRightRadius: 16,
@@ -924,7 +908,7 @@ export default function BikeDetailScreen() {
               style={{
                 fontSize: 15,
                 fontWeight: '700',
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
               }}
             >
               {t('garage.tab_details', { defaultValue: 'Details' })}
@@ -941,7 +925,7 @@ export default function BikeDetailScreen() {
             <Animated.View entering={FadeIn.duration(200)}>
               <View
                 style={{
-                  backgroundColor: isDark ? palette.neutral800 : palette.white,
+                  backgroundColor: theme.surface,
                   borderBottomLeftRadius: 16,
                   borderBottomRightRadius: 16,
                   borderCurve: 'continuous',
