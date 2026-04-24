@@ -1,5 +1,6 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useQueryClient } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -183,37 +184,63 @@ export default function BuildingScreen() {
         paddingTop: insets.top,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 28,
+        paddingHorizontal: 32,
       }}
     >
-      {/* Pulsing ring */}
-      <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: 48 }}>
+      {/* App icon with pulsing ring */}
+      <View
+        style={{
+          width: 140,
+          height: 140,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 40,
+        }}
+      >
+        {/* Pulsing outer ring */}
         <Animated.View
           style={[
             {
               position: 'absolute',
-              width: 100,
-              height: 100,
-              borderRadius: 50,
+              width: 140,
+              height: 140,
+              borderRadius: 70,
               borderCurve: 'continuous',
-              borderWidth: 2,
+              borderWidth: 1.5,
               borderColor: ONBOARDING_COLORS.warm,
             },
             ringStyle,
           ]}
         />
+        {/* Static inner ring */}
         <View
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
+            width: 120,
+            height: 120,
+            borderRadius: 60,
             borderCurve: 'continuous',
-            backgroundColor: ONBOARDING_COLORS.accentBg,
+            borderWidth: 1.5,
+            borderColor: `${ONBOARDING_COLORS.warm}60`,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 32 }}>🏍️</Text>
+          {/* App icon */}
+          <View
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 22,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+            }}
+          >
+            <Image
+              source={require('../../assets/images/MotoVault.png')}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+            />
+          </View>
         </View>
       </View>
 
@@ -222,12 +249,12 @@ export default function BuildingScreen() {
         <Text
           style={{
             fontFamily: 'InstrumentSerif-Regular',
-            fontSize: 40,
-            lineHeight: 44,
+            fontSize: 42,
+            lineHeight: 48,
             color: ONBOARDING_COLORS.textPrimary,
             letterSpacing: -0.8,
             textAlign: 'center',
-            marginBottom: 8,
+            marginBottom: 10,
           }}
         >
           Building your{'\n'}
@@ -242,24 +269,30 @@ export default function BuildingScreen() {
         </Text>
       </Animated.View>
 
-      {/* Subtitle */}
-      <Animated.Text
-        entering={FadeIn.delay(100).duration(250)}
-        style={{
-          fontSize: 15,
-          lineHeight: 21,
-          color: ONBOARDING_COLORS.textSecondary,
-          textAlign: 'center',
-          marginBottom: 40,
-        }}
-      >
-        {bikeLabel
-          ? t('onboarding.buildingSubtitle', { bike: bikeLabel })
-          : t('onboarding.buildingSubtitleDefault')}
-      </Animated.Text>
+      {/* Subtitle with bold bike name */}
+      <Animated.View entering={FadeIn.delay(100).duration(250)}>
+        <Text
+          style={{
+            fontSize: 15,
+            lineHeight: 21,
+            color: ONBOARDING_COLORS.textSecondary,
+            textAlign: 'center',
+            marginBottom: 48,
+          }}
+        >
+          Setting up{' '}
+          {bikeLabel ? (
+            <Text style={{ fontWeight: '700', color: ONBOARDING_COLORS.textPrimary }}>
+              {bikeLabel}
+            </Text>
+          ) : (
+            t('onboarding.buildingSubtitleDefault')
+          )}
+        </Text>
+      </Animated.View>
 
       {/* Progress steps */}
-      <View style={{ alignSelf: 'stretch', gap: 16 }}>
+      <View style={{ alignSelf: 'stretch', gap: 20, paddingHorizontal: 8 }}>
         {PROGRESS_STEPS.map((step, index) =>
           visibleSteps.includes(index) ? (
             <Animated.View
@@ -268,25 +301,25 @@ export default function BuildingScreen() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 12,
+                gap: 14,
               }}
             >
               <View
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
                   borderCurve: 'continuous',
-                  backgroundColor: ONBOARDING_COLORS.accentBg,
+                  backgroundColor: ONBOARDING_COLORS.warm,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Check size={16} color={ONBOARDING_COLORS.warm} />
+                <Check size={18} color="#fff" strokeWidth={3} />
               </View>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: '500',
                   color: ONBOARDING_COLORS.textSecondary,
                 }}
