@@ -362,7 +362,7 @@ export default function BikePhotoScreen() {
               </Pressable>
 
               {/* Camera + Library buttons */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ gap: 12 }}>
                 <Pressable
                   onPress={handleTakePhoto}
                   style={({ pressed }) => ({
