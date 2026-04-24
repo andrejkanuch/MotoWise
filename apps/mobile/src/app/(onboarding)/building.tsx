@@ -20,6 +20,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
 import { queryKeys } from '../../lib/query-keys';
+import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -103,6 +104,11 @@ export default function BuildingScreen() {
         let bikePhotoUrl: string | undefined;
         if (bikeData?.photoUri && session?.user?.id) {
           try {
+            // Ensure Supabase client has the session token for storage RLS
+            await supabase.auth.setSession({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+            });
             const tempId = `onboarding-${Date.now()}`;
             const result = await uploadBikePhoto(bikeData.photoUri, session.user.id, tempId);
             bikePhotoUrl = result.publicUrl;
