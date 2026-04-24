@@ -25,7 +25,6 @@ import {
   Switch,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -37,12 +36,13 @@ import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 export default function EditBikeScreen() {
   const { t } = useTranslation();
   const { symbol: currencySymbol } = useCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const session = useAuthStore((s) => s.session);
 

@@ -16,7 +16,6 @@ import {
   RefreshControl,
   ScrollView,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -28,6 +27,7 @@ import {
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 type Task = MaintenanceTasksByMotorcycleQuery['maintenanceTasks'][number];
 type FilterTab = 'all' | 'overdue' | 'upcoming' | 'completed';
@@ -44,7 +44,7 @@ export default function BikeTasksScreen() {
     mileageUnit?: string;
   }>();
   const router = useRouter();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
 

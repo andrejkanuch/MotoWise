@@ -17,11 +17,11 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProGateModal } from '../../../components/ProGateModal';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -37,7 +37,7 @@ export default function AddBikeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { requireAccess, showPaywall, blockedFeature, dismissPaywall } = useProGate();
 
   const [year, setYear] = useState('');

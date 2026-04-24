@@ -12,7 +12,6 @@ import {
   Pressable,
   RefreshControl,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -31,6 +30,7 @@ import {
   formatDuration as fmtDuration,
   formatDistanceValue,
 } from '../../../utils/ride-formatters';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
@@ -87,7 +87,7 @@ function useRideStats(edges: RideEdge[]) {
 export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
 

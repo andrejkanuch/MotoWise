@@ -27,9 +27,9 @@ import {
   Image,
   Pressable,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
@@ -62,7 +62,7 @@ const DIFFICULTY_COLORS = {
 } as const;
 
 export default function GroupRideDetailScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

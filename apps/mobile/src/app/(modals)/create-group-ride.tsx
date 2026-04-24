@@ -13,9 +13,9 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapPicker from '../../components/map-picker';
@@ -38,7 +38,7 @@ const DIFFICULTY_COLORS = {
 } as const;
 
 export default function CreateGroupRideScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

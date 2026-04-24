@@ -16,13 +16,13 @@ import {
   Switch,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -48,7 +48,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function EditProfileScreen() {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   // Load current profile data

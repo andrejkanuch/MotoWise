@@ -30,7 +30,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -42,6 +41,7 @@ import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const MODULES = [
   { key: 'engine', icon: Cog, color: palette.moduleEngine, category: 'engine-basics' },
@@ -68,7 +68,7 @@ export default function LearnScreen() {
   const router = useRouter();
   const { q } = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');

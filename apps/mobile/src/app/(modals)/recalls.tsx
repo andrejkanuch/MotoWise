@@ -10,12 +10,12 @@ import {
   Pressable,
   ScrollView,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { useEditorialTheme } from '../../theme/editorial';
 
 /**
  * MOT-142: Safety recall results screen.
@@ -27,7 +27,7 @@ import { gqlFetcher } from '../../lib/graphql-client';
  */
 export default function RecallsScreen() {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const { motorcycleId, bikeName } = useLocalSearchParams<{
     motorcycleId: string;

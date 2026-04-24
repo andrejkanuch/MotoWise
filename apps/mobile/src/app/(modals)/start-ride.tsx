@@ -22,12 +22,12 @@ import {
   Pressable,
   ScrollView,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { useEditorialTheme } from '../../theme/editorial';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useRideStore } from '../../stores/ride.store';
@@ -38,7 +38,7 @@ import { enqueueOrExecute } from '../../utils/ride-sync-queue';
 
 export default function StartRideScreen() {
   const router = useRouter();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const startRide = useRideStore((s) => s.startRide);
   const [selectedBikeId, setSelectedBikeId] = useState<string | null>(null);

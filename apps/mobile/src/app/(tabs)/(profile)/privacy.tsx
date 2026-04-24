@@ -18,7 +18,6 @@ import {
   ScrollView,
   Switch,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -33,6 +32,7 @@ import {
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { supabase } from '../../../lib/supabase';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 type PrivacyPrefs = {
   analyticsEnabled: boolean;
@@ -122,7 +122,7 @@ function ToggleRow({
 export default function PrivacyScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const meQuery = useQuery({

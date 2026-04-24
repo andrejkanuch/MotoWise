@@ -54,10 +54,10 @@ import {
   Share,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useEditorialTheme } from '../../theme/editorial';
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -320,7 +320,7 @@ function TemplateRouteStartEndLine({
 }
 
 export default function TripDetailScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

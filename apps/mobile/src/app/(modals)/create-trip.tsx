@@ -37,9 +37,9 @@ import {
   ScrollView as RNScrollView,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   FadeIn,
@@ -144,7 +144,7 @@ function tempId(): string {
 }
 
 export default function CreateTripScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

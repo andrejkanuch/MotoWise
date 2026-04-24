@@ -26,7 +26,6 @@ import {
   Switch,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
@@ -48,6 +47,7 @@ import {
 } from '../../utils/ride-formatters';
 import { clearRideData, getPointBuffer, getWaypointChunks } from '../../utils/ride-storage';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { useEditorialTheme } from '../../theme/editorial';
 
 /** Smart ride naming using time-of-day */
 function smartRideName(startedAt: number): string {
@@ -89,7 +89,7 @@ export default function RideSummaryScreen() {
   const startedAtMs = Number(params.startedAt) || Date.now();
   const motorcycleId = params.motorcycleId ?? '';
 
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));
   const [isSaving, setIsSaving] = useState(false);

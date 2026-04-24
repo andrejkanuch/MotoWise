@@ -6,9 +6,10 @@ import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, ChevronUp, Mail, MessageCircle } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -116,7 +117,7 @@ function FAQItem({
 export default function SupportScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
 
   const handleContactSupport = useCallback(() => {
     haptic();

@@ -14,7 +14,6 @@ import {
   Switch,
   Text,
   TextInput,
-  useColorScheme,
   View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -25,6 +24,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 /**
  * MOT-137: Fuel fill-up entry + history screen.
@@ -40,7 +40,7 @@ import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 export default function AddFuelLogScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const system = useMeasurementSystem();
   const queryClient = useQueryClient();

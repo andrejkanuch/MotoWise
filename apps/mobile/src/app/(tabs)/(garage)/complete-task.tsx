@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Check, DollarSign, Gauge, Wrench } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, {
   FadeIn,
@@ -29,6 +29,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { incrementTaskCount, maybeRequestReview } from '../../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 function humanizeInterval(days: number): string {
   if (days >= 365) {
@@ -45,7 +46,7 @@ function humanizeInterval(days: number): string {
 export default function CompleteTaskScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 

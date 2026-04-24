@@ -32,7 +32,6 @@ import {
   Pressable,
   Share,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -55,6 +54,7 @@ import {
   formatTime,
 } from '../../utils/ride-formatters';
 import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { useEditorialTheme } from '../../theme/editorial';
 
 /** Decode Google-encoded polyline string to [lat, lng] pairs */
 function decodePolyline(encoded: string): [number, number][] {
@@ -102,7 +102,7 @@ const STAT_CHART_MAP: Record<string, ChartType | null> = {
 };
 
 export default function RideDetailScreen() {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

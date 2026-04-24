@@ -12,7 +12,6 @@ import {
   RefreshControl,
   Share,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -22,6 +21,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact } from '../../../utils/haptics';
 import { formatDistance } from '../../../utils/ride-formatters';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const PAGE_SIZE = 20;
 
@@ -39,7 +39,7 @@ function SavedTripCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const system = useMeasurementSystem();
 
   const cardBg = isDark ? palette.cardDark : palette.white;
@@ -158,7 +158,7 @@ function SavedTripCard({
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<SavedTripsQuery>({

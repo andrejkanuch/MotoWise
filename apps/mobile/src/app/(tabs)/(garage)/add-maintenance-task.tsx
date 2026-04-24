@@ -6,7 +6,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, Gauge, Plus, Repeat } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Switch, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
@@ -14,6 +14,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
 import { triggerImpact } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
 const PRIORITY_META: Record<string, { color: string }> = {
@@ -36,7 +37,7 @@ export default function AddMaintenanceTaskScreen() {
     motorcycleId: string;
     bikeName?: string;
   }>();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');

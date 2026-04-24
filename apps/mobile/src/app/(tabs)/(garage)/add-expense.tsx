@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Camera, Check, ChevronDown, DollarSign, Plus, Tag } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ExpensePhotoGallery } from '../../../components/ExpensePhotoGallery';
@@ -22,6 +22,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 const CATEGORIES = [
   'fuel',
@@ -52,7 +53,7 @@ function formatDate(date: Date): string {
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 

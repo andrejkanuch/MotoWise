@@ -7,7 +7,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Check, DollarSign, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEditorialTheme } from '../../theme/editorial';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useCurrency } from '../../hooks/use-currency';
 import { formatCurrencyInput } from '../../lib/expense-constants';
@@ -35,7 +36,7 @@ function formatDate(date: Date): string {
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 

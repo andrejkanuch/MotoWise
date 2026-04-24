@@ -6,11 +6,12 @@ import { router } from 'expo-router';
 import { ArrowLeft, Bell, BookOpen, Megaphone, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Switch, Text, useColorScheme, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { useEditorialTheme } from '../../../theme/editorial';
 
 type NotificationPrefs = {
   newArticles: boolean;
@@ -108,7 +109,7 @@ function ToggleRow({
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const meQuery = useQuery({

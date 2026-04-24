@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { ErrorFallback } from '../../../components/error-fallback';
 import { captureException } from '../../../lib/analytics';
 
@@ -12,7 +12,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 
 export default function GarageLayout() {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
+  const { isDark } = useEditorialTheme();
 
   const sheetSurface = isDark ? palette.neutral900 : palette.neutral50;
   const sheetContentStyle = { backgroundColor: sheetSurface };
