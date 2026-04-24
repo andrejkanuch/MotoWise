@@ -176,7 +176,7 @@ export default function ProfileScreen() {
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { isPro, requireAccess, showPaywall, blockedFeature, dismissPaywall } = useProGate();
+  const { isPro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
 
