@@ -47,6 +47,7 @@ export default function BuildingScreen() {
   const seasonalTips = useOnboardingStore((s) => s.seasonalTips);
   const recallAlerts = useOnboardingStore((s) => s.recallAlerts);
   const currency = useOnboardingStore((s) => s.currency);
+  const session = useAuthStore((s) => s.session);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
 
   const [visibleSteps, setVisibleSteps] = useState<number[]>([]);
@@ -100,10 +101,10 @@ export default function BuildingScreen() {
       try {
         // Upload photo if available
         let bikePhotoUrl: string | undefined;
-        if (bikeData?.photoUri) {
+        if (bikeData?.photoUri && session?.user?.id) {
           try {
-            // Use a temporary ID for onboarding upload
-            const result = await uploadBikePhoto(bikeData.photoUri, 'onboarding', 'temp');
+            const tempId = `onboarding-${Date.now()}`;
+            const result = await uploadBikePhoto(bikeData.photoUri, session.user.id, tempId);
             bikePhotoUrl = result.publicUrl;
           } catch (photoError) {
             console.warn('Photo upload failed, continuing without photo:', photoError);
