@@ -5,9 +5,9 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
+import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { presentPaywall } from '../../lib/subscription';
-import { TOTAL_SCREENS } from '../../config/onboarding';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
