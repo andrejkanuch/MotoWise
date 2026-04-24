@@ -443,15 +443,16 @@ export default function HomeScreen() {
                   />
                 )}
 
-                {/* Smooth gradient overlay */}
+                {/* Smooth gradient overlay — light top, clear middle, solid bottom for text */}
                 <LinearGradient
                   colors={[
-                    `${theme.bg}50`,
+                    `${theme.bg}30`,
                     'transparent',
                     'transparent',
+                    `${theme.bg}CC`,
                     `${theme.bg}F5`,
                   ]}
-                  locations={[0, 0.3, 0.55, 1]}
+                  locations={[0, 0.25, 0.5, 0.75, 1]}
                   style={{
                     position: 'absolute',
                     top: 0,
