@@ -265,6 +265,19 @@ export function useHomeData() {
   const primaryBike =
     motorcycles.find((b: { isPrimary: boolean }) => b.isPrimary) ?? motorcycles[0] ?? null;
 
+  // Per-bike health scores for the "Ready %" metric
+  const bikeHealthScores = useMemo(() => {
+    const scores: Record<string, number> = {};
+    for (const bike of motorcycles) {
+      const bikeTasks = allTasks.filter(
+        (t: { motorcycleId: string }) => t.motorcycleId === (bike as { id: string }).id,
+      );
+      const result = computeHealthScore(bikeTasks);
+      scores[(bike as { id: string }).id] = result.hasData ? result.score : 100;
+    }
+    return scores;
+  }, [motorcycles, allTasks]);
+
   const nextService = useMemo(() => {
     const upcoming = sortedTasks.find((t) => !t.relative.isOverdue);
     return upcoming ?? null;
@@ -303,6 +316,7 @@ export function useHomeData() {
     articles,
     recentRides,
     ridesTotalDistance,
+    bikeHealthScores,
     router,
   };
 }

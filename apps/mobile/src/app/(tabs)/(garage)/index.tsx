@@ -2,6 +2,7 @@ import { MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { Crown, MoreHorizontal, Plus } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
@@ -225,7 +226,7 @@ export default function GarageScreen() {
                   fontSize: 46,
                   color: theme.ink,
                   letterSpacing: -1.2,
-                  lineHeight: 44,
+                  lineHeight: 54,
                 }}
               >
                 The{' '}
@@ -346,25 +347,16 @@ export default function GarageScreen() {
                         }}
                       />
                     )}
-                    {/* Gradient */}
-                    <View
+                    {/* Bottom gradient for text readability */}
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.65)']}
+                      locations={[0.3, 1]}
                       style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         right: 0,
-                        height: '35%',
-                        backgroundColor: `${theme.bg}50`,
-                      }}
-                    />
-                    <View
-                      style={{
-                        position: 'absolute',
                         bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '55%',
-                        backgroundColor: `${theme.bg}F0`,
                       }}
                     />
 

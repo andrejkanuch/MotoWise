@@ -1,59 +1,21 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Bell,
-  ChevronRight,
-  DollarSign,
-  MapPin,
-  Search,
-  Sparkles,
-  Wrench,
-} from 'lucide-react-native';
-import { useMemo } from 'react';
+import { ChevronRight, DollarSign, MapPin, Sparkles, Wrench } from 'lucide-react-native';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArticleCarousel } from '../../../components/home/article-carousel';
+import { BikeSwitcher } from '../../../components/home/bike-switcher';
 import { EmptyState } from '../../../components/home/empty-state';
+import { FocusHistory } from '../../../components/home/focus-history';
+import { FocusPicker, type FocusTab } from '../../../components/home/focus-picker';
+import { FocusStats } from '../../../components/home/focus-stats';
 import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
-
-// ── Weekly bar chart (Mon–Sun) ──
-function WeekBars({ values }: { values: number[] }) {
-  const { t: theme } = useEditorialTheme();
-  const max = Math.max(...values, 1);
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 6, height: 80 }}>
-      {values.map((v, i) => {
-        const h = v === 0 ? 3 : Math.max(10, (v / max) * 70);
-        const active = v > 0;
-        return (
-          <View key={days[i]} style={{ flex: 1, alignItems: 'center', gap: 5 }}>
-            <View
-              style={{
-                width: '100%',
-                height: h,
-                borderRadius: 4,
-                borderCurve: 'continuous',
-                backgroundColor: active ? theme.warm : theme.surface2,
-                opacity: active ? 1 : 0.7,
-              }}
-            />
-            <Text style={{ fontSize: 10, color: theme.ink3, fontWeight: '500' }}>
-              {dayLabels[i]}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -71,14 +33,16 @@ export default function HomeScreen() {
     hasMotorcycles,
     priorityAction,
     motorcycles,
-    primaryBike,
     nextService,
     sortedTasks,
     bikeNames,
-    articles,
     recentRides,
+    bikeHealthScores,
     router,
   } = useHomeData();
+
+  const [selectedBikeIdx, setSelectedBikeIdx] = useState(0);
+  const [focusTab, setFocusTab] = useState<FocusTab>('stats');
 
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -88,41 +52,37 @@ export default function HomeScreen() {
     day: 'numeric',
   });
 
-  // Compute next service days
-  const nextServiceDays = nextService?.dueDate
-    ? Math.max(0, Math.floor((new Date(nextService.dueDate).getTime() - Date.now()) / 86400000))
+  // Find primary bike index on first render
+  const primaryIdx = useMemo(() => {
+    const idx = motorcycles.findIndex((b: { isPrimary: boolean }) => b.isPrimary);
+    return idx >= 0 ? idx : 0;
+  }, [motorcycles]);
+
+  // Selected bike based on switcher (defaults to primary)
+  const activeBikeIdx = motorcycles.length > 1 ? selectedBikeIdx : primaryIdx;
+  const activeBike = motorcycles[activeBikeIdx] ?? motorcycles[0] ?? null;
+
+  // Compute next service days for the active bike
+  const nextServiceForBike = useMemo(() => {
+    if (!activeBike) return null;
+    const bikeId = (activeBike as { id: string }).id;
+    const upcoming = sortedTasks.find(
+      (task) => !task.relative.isOverdue && task.motorcycleId === bikeId,
+    );
+    return upcoming ?? nextService;
+  }, [activeBike, sortedTasks, nextService]);
+
+  const nextServiceDays = nextServiceForBike?.dueDate
+    ? Math.max(
+        0,
+        Math.floor((new Date(nextServiceForBike.dueDate).getTime() - Date.now()) / 86400000),
+      )
     : null;
 
-  // This month stats from rides
-  const thisMonthStats = useMemo(() => {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthRides = recentRides.filter((r) => new Date(r.startedAt) >= monthStart);
-    const distanceKm = Math.round(
-      monthRides.reduce((sum, r) => sum + (r.distanceM ?? 0), 0) / 1000,
-    );
-    return { distanceKm, rideCount: monthRides.length };
-  }, [recentRides]);
-
-  // Weekly km data (last 7 days, Mon-Sun)
-  const weeklyKm = useMemo(() => {
-    const now = new Date();
-    const today = now.getDay(); // 0=Sun
-    const mondayOffset = today === 0 ? 6 : today - 1;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - mondayOffset);
-    monday.setHours(0, 0, 0, 0);
-
-    const bars = [0, 0, 0, 0, 0, 0, 0];
-    for (const ride of recentRides) {
-      const rideDate = new Date(ride.startedAt);
-      if (rideDate >= monday) {
-        const dayIdx = rideDate.getDay() === 0 ? 6 : rideDate.getDay() - 1;
-        bars[dayIdx] += Math.round((ride.distanceM ?? 0) / 1000);
-      }
-    }
-    return bars;
-  }, [recentRides]);
+  // Health score for active bike
+  const healthScore = activeBike
+    ? (bikeHealthScores[(activeBike as { id: string }).id] ?? 100)
+    : 100;
 
   // ── Loading ──
   if (isLoading) {
@@ -214,7 +174,7 @@ export default function HomeScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
-        {/* ═══ 1. Top bar ═══ */}
+        {/* 1. Top bar */}
         <View
           style={{
             paddingHorizontal: 20,
@@ -259,61 +219,10 @@ export default function HomeScreen() {
               </Text>
             </View>
           </Pressable>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: theme.line,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Search size={17} color={theme.ink2} />
-            </View>
-            <View
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: theme.line,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Bell size={17} color={theme.ink2} />
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 9,
-                  width: 7,
-                  height: 7,
-                  borderRadius: 4,
-                  backgroundColor: theme.warm,
-                  borderWidth: 1.5,
-                  borderColor: theme.surface,
-                }}
-              />
-            </View>
-          </View>
         </View>
 
-        {/* ═══ 2. Editorial masthead ═══ */}
-        <View
-          style={{
-            paddingHorizontal: 24,
-            paddingTop: 14,
-            paddingBottom: 22,
-          }}
-        >
+        {/* 2. Editorial masthead */}
+        <View style={{ paddingHorizontal: 24, paddingTop: 14, paddingBottom: 18 }}>
           <View
             style={{
               flexDirection: 'row',
@@ -339,7 +248,7 @@ export default function HomeScreen() {
             style={{
               fontFamily: 'InstrumentSerif-Regular',
               fontSize: 40,
-              lineHeight: 40,
+              lineHeight: 48,
               color: theme.ink,
               letterSpacing: -0.8,
             }}
@@ -356,7 +265,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* ═══ Empty state ═══ */}
+        {/* Empty state */}
         {!hasMotorcycles && (
           <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
             <EmptyState
@@ -367,38 +276,50 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ═══ 3. Hero bike card ═══ */}
-        {primaryBike && (
+        {/* 3. Bike switcher — horizontal pill row */}
+        {hasMotorcycles && (
+          <BikeSwitcher
+            bikes={
+              motorcycles as {
+                id: string;
+                make: string;
+                model: string;
+                primaryPhotoUrl?: string | null;
+              }[]
+            }
+            selectedIndex={activeBikeIdx}
+            onSelect={setSelectedBikeIdx}
+            onAddBike={() => router.push('/(tabs)/(garage)/add-bike')}
+          />
+        )}
+
+        {/* 4. Hero bike card — bound to selected bike */}
+        {activeBike && (
           <Animated.View entering={FadeIn.delay(100).duration(400)}>
             <Pressable
               onPress={() =>
                 router.navigate({
                   pathname: '/(tabs)/(garage)/bike/[id]',
                   params: {
-                    id: primaryBike.id,
+                    id: (activeBike as { id: string }).id,
                     _ts: Date.now().toString(),
                   },
                 })
               }
-              style={{ marginHorizontal: 16, marginBottom: 18 }}
+              style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 18 }}
             >
               <View
                 style={{
-                  borderRadius: 24,
+                  borderRadius: 22,
                   borderCurve: 'continuous',
                   overflow: 'hidden',
-                  aspectRatio: 4 / 5,
+                  aspectRatio: 5 / 4,
                 }}
               >
-                {/* Photo or placeholder */}
-                {primaryBike.primaryPhotoUrl ? (
+                {(activeBike as { primaryPhotoUrl?: string | null }).primaryPhotoUrl ? (
                   <Image
-                    source={{ uri: primaryBike.primaryPhotoUrl }}
-                    style={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '100%',
-                    }}
+                    source={{ uri: (activeBike as { primaryPhotoUrl: string }).primaryPhotoUrl }}
+                    style={{ position: 'absolute', width: '100%', height: '100%' }}
                     contentFit="cover"
                   />
                 ) : (
@@ -412,17 +333,11 @@ export default function HomeScreen() {
                   />
                 )}
 
-                {/* Smooth gradient overlay — light top, clear middle, solid bottom for text */}
+                {/* Bottom gradient for text readability only */}
                 <LinearGradient
-                  colors={[`${theme.bg}30`, `${theme.bg}10`, `${theme.bg}80`, theme.bg]}
-                  locations={[0, 0.25, 0.65, 1]}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                  }}
+                  colors={['transparent', 'rgba(0,0,0,0.65)']}
+                  locations={[0.35, 1]}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 />
 
                 {/* Top chrome — Ready to ride + more */}
@@ -472,50 +387,26 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Bottom editorial copy */}
-                <View
-                  style={{
-                    position: 'absolute',
-                    bottom: 24,
-                    left: 20,
-                    right: 20,
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: '#fff',
-                      opacity: 0.75,
-                      fontWeight: '600',
-                      letterSpacing: 2,
-                      textTransform: 'uppercase',
-                      marginBottom: 6,
-                    }}
-                  >
-                    Vol. 01 — Your ride
-                  </Text>
+                <View style={{ position: 'absolute', bottom: 16, left: 18, right: 18 }}>
                   <Text
                     style={{
                       fontFamily: 'InstrumentSerif-Regular',
-                      fontSize: 38,
+                      fontSize: 30,
                       color: '#fff',
                       letterSpacing: -0.7,
-                      lineHeight: 37,
+                      lineHeight: 30,
                       marginBottom: 2,
                     }}
                   >
-                    {primaryBike.make}
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: 'InstrumentSerif-Italic',
-                      fontSize: 38,
-                      color: theme.warm2,
-                      letterSpacing: -0.7,
-                      lineHeight: 37,
-                      marginBottom: 14,
-                    }}
-                  >
-                    {primaryBike.model}
+                    {(activeBike as { make: string }).make}{' '}
+                    <Text
+                      style={{
+                        fontFamily: 'InstrumentSerif-Italic',
+                        color: theme.warm2,
+                      }}
+                    >
+                      {(activeBike as { model: string }).model}
+                    </Text>
                   </Text>
 
                   {/* 3-column metrics strip */}
@@ -524,6 +415,7 @@ export default function HomeScreen() {
                       flexDirection: 'row',
                       paddingVertical: 10,
                       paddingHorizontal: 2,
+                      marginTop: 12,
                       borderTopWidth: 1,
                       borderTopColor: 'rgba(255,255,255,0.18)',
                     }}
@@ -542,13 +434,7 @@ export default function HomeScreen() {
                       >
                         Odo
                       </Text>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'baseline',
-                          gap: 3,
-                        }}
-                      >
+                      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
                           style={{
                             fontFamily: 'InstrumentSerif-Regular',
@@ -558,8 +444,8 @@ export default function HomeScreen() {
                             lineHeight: 22,
                           }}
                         >
-                          {primaryBike.currentMileage != null
-                            ? `${(primaryBike.currentMileage / 1000).toFixed(1)}k`
+                          {(activeBike as { currentMileage?: number | null }).currentMileage != null
+                            ? `${((activeBike as { currentMileage: number }).currentMileage / 1000).toFixed(1)}k`
                             : '—'}
                         </Text>
                         <Text
@@ -597,13 +483,7 @@ export default function HomeScreen() {
                       >
                         Next service
                       </Text>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'baseline',
-                          gap: 3,
-                        }}
-                      >
+                      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
                           style={{
                             fontFamily: 'InstrumentSerif-Regular',
@@ -636,7 +516,7 @@ export default function HomeScreen() {
                       }}
                     />
 
-                    {/* This month */}
+                    {/* Ready % */}
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
@@ -648,15 +528,9 @@ export default function HomeScreen() {
                           marginBottom: 3,
                         }}
                       >
-                        This mo
+                        Ready
                       </Text>
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'baseline',
-                          gap: 3,
-                        }}
-                      >
+                      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
                         <Text
                           style={{
                             fontFamily: 'InstrumentSerif-Regular',
@@ -666,7 +540,7 @@ export default function HomeScreen() {
                             lineHeight: 22,
                           }}
                         >
-                          {thisMonthStats.distanceKm}
+                          {healthScore}
                         </Text>
                         <Text
                           style={{
@@ -675,7 +549,7 @@ export default function HomeScreen() {
                             fontWeight: '500',
                           }}
                         >
-                          km
+                          %
                         </Text>
                       </View>
                     </View>
@@ -686,7 +560,7 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* ═══ 4. Attention banner (compact) ═══ */}
+        {/* 5. Attention banner (compact) */}
         {priorityAction && priorityAction.type !== 'allClear' && hasMotorcycles && (
           <View style={{ paddingHorizontal: 16, marginBottom: 18 }}>
             <Pressable
@@ -768,13 +642,7 @@ export default function HomeScreen() {
                 <priorityAction.icon size={15} color={theme.success} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: theme.ink,
-                  }}
-                >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: theme.ink }}>
                   {priorityAction.title}
                 </Text>
                 <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 1 }}>
@@ -786,7 +654,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ═══ 5. Quick actions — 4-column grid ═══ */}
+        {/* 6. Quick actions — 4-column grid */}
         {hasMotorcycles && (
           <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
             <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -808,10 +676,10 @@ export default function HomeScreen() {
                   label: 'Expense',
                   color: theme.success,
                   onPress: () => {
-                    if (primaryBike) {
+                    if (activeBike) {
                       router.push({
                         pathname: '/(tabs)/(garage)/add-expense',
-                        params: { motorcycleId: primaryBike.id },
+                        params: { motorcycleId: (activeBike as { id: string }).id },
                       });
                     }
                   },
@@ -852,13 +720,7 @@ export default function HomeScreen() {
                   >
                     <a.icon size={17} color={a.color} />
                   </View>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: theme.ink2,
-                      fontWeight: '500',
-                    }}
-                  >
+                  <Text style={{ fontSize: 11, color: theme.ink2, fontWeight: '500' }}>
                     {a.label}
                   </Text>
                 </Pressable>
@@ -867,150 +729,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ═══ 6. This month — editorial spread ═══ */}
-        {hasMotorcycles && (
-          <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
-            <ESectionMasthead
-              label="This month"
-              kicker={new Date().toLocaleDateString('en-US', {
-                month: 'short',
-                year: 'numeric',
-              })}
-            />
-            <ECard pad={18} style={{ marginBottom: 10 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'flex-end',
-                  justifyContent: 'space-between',
-                  marginBottom: 6,
-                }}
-              >
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: theme.ink3,
-                      marginBottom: 2,
-                      letterSpacing: 0.2,
-                    }}
-                  >
-                    Distance
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'baseline',
-                      gap: 6,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: 'InstrumentSerif-Regular',
-                        fontSize: 42,
-                        color: theme.ink,
-                        letterSpacing: -0.6,
-                        lineHeight: 40,
-                      }}
-                    >
-                      {thisMonthStats.distanceKm}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 13,
-                        color: theme.ink3,
-                        fontWeight: '500',
-                      }}
-                    >
-                      / 600 km
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: theme.ink3,
-                      marginBottom: 2,
-                    }}
-                  >
-                    Rides
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 22,
-                      fontWeight: '600',
-                      color: theme.ink,
-                      fontFamily: 'InstrumentSerif-Regular',
-                    }}
-                  >
-                    {thisMonthStats.rideCount}
-                  </Text>
-                </View>
-              </View>
-              {/* Distance progress */}
-              <View style={{ marginTop: 14 }}>
-                <View
-                  style={{
-                    height: 8,
-                    borderRadius: 999,
-                    backgroundColor: theme.surface2,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <LinearGradient
-                    colors={[theme.warm, theme.warm2]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={{
-                      width: `${Math.min(100, (thisMonthStats.distanceKm / 600) * 100)}%`,
-                      height: '100%',
-                      borderRadius: 999,
-                    }}
-                  />
-                </View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    marginTop: 6,
-                  }}
-                >
-                  <Text style={{ fontSize: 10, color: theme.ink3 }}>0</Text>
-                  <Text style={{ fontSize: 10, color: theme.ink3 }}>300</Text>
-                  <Text style={{ fontSize: 10, color: theme.ink3 }}>600 km goal</Text>
-                </View>
-              </View>
-            </ECard>
-
-            {/* Weekly sparkline */}
-            <ECard pad={16}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  marginBottom: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '600',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: theme.ink3,
-                  }}
-                >
-                  Last 7 days
-                </Text>
-                <Text style={{ fontSize: 11, color: theme.ink3 }}>km / day</Text>
-              </View>
-              <WeekBars values={weeklyKm} />
-            </ECard>
-          </View>
-        )}
-
-        {/* ═══ 7. Upcoming tasks — numbered editorial ═══ */}
+        {/* 7. Upcoming tasks — numbered editorial */}
         {hasMotorcycles && sortedTasks.length > 0 && (
           <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
             <ESectionMasthead
@@ -1045,13 +764,7 @@ export default function HomeScreen() {
                       })
                     }
                   >
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 12,
-                      }}
-                    >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                       <Text
                         style={{
                           fontFamily: 'InstrumentSerif-Regular',
@@ -1064,13 +777,7 @@ export default function HomeScreen() {
                       >
                         {String(i + 1).padStart(2, '0')}
                       </Text>
-                      <View
-                        style={{
-                          width: 1,
-                          height: 36,
-                          backgroundColor: theme.line,
-                        }}
-                      />
+                      <View style={{ width: 1, height: 36, backgroundColor: theme.line }} />
                       <View style={{ flex: 1, minWidth: 0 }}>
                         <Text
                           style={{
@@ -1106,118 +813,54 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ═══ 8. Your other rides — horizontal carousel ═══ */}
-        {motorcycles.length > 1 && (
-          <View style={{ paddingLeft: 16, marginBottom: 22 }}>
-            <View style={{ paddingRight: 16 }}>
-              <ESectionMasthead
-                label="Your other rides"
-                action="Garage"
-                onAction={() => router.navigate('/(tabs)/(garage)')}
-              />
+        {/* 8. Focus picker — rotating lens: stats / trip / history */}
+        {hasMotorcycles && (
+          <View style={{ paddingHorizontal: 16, marginBottom: 22 }}>
+            <FocusPicker active={focusTab} onSelect={setFocusTab} />
+            <View style={{ marginTop: 12 }}>
+              {focusTab === 'stats' && <FocusStats recentRides={recentRides} />}
+              {focusTab === 'history' && <FocusHistory rides={recentRides} />}
+              {focusTab === 'trip' && (
+                <Pressable
+                  onPress={() => router.push('/(tabs)/(discover)')}
+                  style={{
+                    borderRadius: 20,
+                    borderCurve: 'continuous',
+                    overflow: 'hidden',
+                    backgroundColor: theme.surface,
+                    borderWidth: 1,
+                    borderColor: theme.line,
+                    padding: 20,
+                    alignItems: 'center',
+                  }}
+                >
+                  <MapPin size={28} color={theme.warm} style={{ marginBottom: 12 }} />
+                  <Text
+                    style={{
+                      fontFamily: 'InstrumentSerif-Regular',
+                      fontSize: 22,
+                      color: theme.ink,
+                      marginBottom: 6,
+                    }}
+                  >
+                    Plan your next trip
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: theme.ink3,
+                      textAlign: 'center',
+                      marginBottom: 14,
+                    }}
+                  >
+                    Discover curated routes and plan your weekend ride
+                  </Text>
+                  <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
+                    Explore routes →
+                  </Text>
+                </Pressable>
+              )}
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingRight: 16 }}
-            >
-              {motorcycles
-                .filter((b: { id: string }) => b.id !== primaryBike?.id)
-                .map(
-                  (b: {
-                    id: string;
-                    make: string;
-                    model: string;
-                    year: number;
-                    currentMileage?: number | null;
-                    primaryPhotoUrl?: string | null;
-                  }) => (
-                    <Pressable
-                      key={b.id}
-                      onPress={() =>
-                        router.navigate({
-                          pathname: '/(tabs)/(garage)/bike/[id]',
-                          params: {
-                            id: b.id,
-                            _ts: Date.now().toString(),
-                          },
-                        })
-                      }
-                      style={{
-                        width: 220,
-                        borderRadius: 16,
-                        borderCurve: 'continuous',
-                        overflow: 'hidden',
-                        backgroundColor: theme.surface,
-                        borderWidth: 1,
-                        borderColor: theme.line,
-                      }}
-                    >
-                      <View style={{ height: 110 }}>
-                        {b.primaryPhotoUrl ? (
-                          <Image
-                            source={{ uri: b.primaryPhotoUrl }}
-                            style={{ width: '100%', height: '100%' }}
-                            contentFit="cover"
-                          />
-                        ) : (
-                          <View
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              backgroundColor: theme.surface2,
-                            }}
-                          />
-                        )}
-                      </View>
-                      <View style={{ padding: 10, paddingHorizontal: 12 }}>
-                        <Text
-                          style={{
-                            fontSize: 10,
-                            color: theme.ink3,
-                            marginBottom: 2,
-                            letterSpacing: 0.5,
-                          }}
-                        >
-                          {b.year}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: '600',
-                            color: theme.ink,
-                            letterSpacing: -0.1,
-                          }}
-                          numberOfLines={1}
-                        >
-                          {b.make} {b.model}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            color: theme.ink3,
-                            marginTop: 2,
-                          }}
-                        >
-                          {(b.currentMileage ?? 0).toLocaleString()} km
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ),
-                )}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* ═══ 9. Articles ═══ */}
-        {articles.length > 0 && (
-          <View style={{ marginTop: 6 }}>
-            <ArticleCarousel
-              articles={articles}
-              isDark={isDark}
-              onViewAll={() => router.push('/(tabs)/(learn)')}
-              onArticlePress={() => router.push('/(tabs)/(learn)' as never)}
-            />
           </View>
         )}
       </ScrollView>
