@@ -415,8 +415,7 @@ export default function CreateTripScreen() {
 
   const handleGeocodingSelect = useCallback(
     (result: GeocodingResult) => {
-      const type =
-        waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
+      const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
         type,
         name: result.name,
@@ -435,8 +434,7 @@ export default function CreateTripScreen() {
     (event: GeoJSON.Feature<GeoJSON.Point, ScreenPointPayload>) => {
       const [lng, lat] = event.geometry.coordinates;
       if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      const type =
-        waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
+      const type = waypoints.length === 0 ? 'start' : waypoints.length === 1 ? 'end' : 'scenic';
       addWaypoint({
         type,
         name: `Stop ${waypoints.length + 1}`,
@@ -514,12 +512,7 @@ export default function CreateTripScreen() {
       visibility,
       waypoints: sorted.map((wp, i) => ({
         sortOrder: wp.sortOrder,
-        type:
-          !hasStart && i === 0
-            ? 'start'
-            : !hasEnd && i === sorted.length - 1
-              ? 'end'
-              : wp.type,
+        type: !hasStart && i === 0 ? 'start' : !hasEnd && i === sorted.length - 1 ? 'end' : wp.type,
         name: wp.name,
         notes: wp.notes || undefined,
         lat: wp.lat,
