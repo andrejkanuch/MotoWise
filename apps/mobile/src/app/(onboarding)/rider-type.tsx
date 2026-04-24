@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Bike, ChevronLeft, Library, Map as MapIcon, Wrench } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
@@ -28,10 +28,18 @@ export default function RiderTypeScreen() {
   const insets = useSafeAreaInsets();
   const setRiderType = useOnboardingStore((s) => s.setRiderType);
   const [selected, setSelected] = useState<string | null>(null);
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, []);
 
   const handleSelect = useCallback(
     (value: string) => {
       if (selected) return;
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
       setSelected(value);
 
       if (process.env.EXPO_OS === 'ios') {
@@ -44,7 +52,7 @@ export default function RiderTypeScreen() {
         value,
       });
 
-      setTimeout(() => {
+      advanceTimer.current = setTimeout(() => {
         router.replace('/(onboarding)/your-bike');
       }, 300);
     },

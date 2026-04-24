@@ -1,4 +1,4 @@
-import * as Notifications from 'expo-notifications';
+import { requestNotificationPermission } from '../../lib/notifications';
 import { useRouter } from 'expo-router';
 import { Bell, ChevronLeft, ShieldAlert, Sun } from 'lucide-react-native';
 import { useState } from 'react';
@@ -102,11 +102,15 @@ export default function NotificationsScreen() {
     setSeasonalTips(seasonal);
   };
 
+  const [requesting, setRequesting] = useState(false);
+
   const handleEnableNotifications = async () => {
+    if (requesting) return;
+    setRequesting(true);
     saveToStore();
 
     try {
-      await Notifications.requestPermissionsAsync();
+      await requestNotificationPermission();
     } catch (err) {
       console.warn('Push permission request failed:', err);
     }
@@ -124,6 +128,7 @@ export default function NotificationsScreen() {
   };
 
   const handleSkip = () => {
+    if (requesting) return;
     saveToStore();
 
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
