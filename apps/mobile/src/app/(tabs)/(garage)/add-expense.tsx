@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Camera, Check, ChevronDown, DollarSign, Plus, Tag } from 'lucide-react-native';
+import { Calendar, Camera, Check, DollarSign, Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
@@ -43,6 +43,8 @@ const CATEGORY_META: Record<Category, { color: string; label: string }> = Object
   CATEGORIES.map((c) => [c, { color: CATEGORY_COLORS[c], label: CATEGORY_LABELS[c] }]),
 ) as Record<Category, { color: string; label: string }>;
 
+const MAIN_CATEGORIES: Category[] = ['fuel', 'maintenance', 'parts', 'tires', 'gear', 'insurance'];
+
 function formatDate(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -53,7 +55,7 @@ function formatDate(date: Date): string {
 export default function AddExpenseScreen() {
   const { t } = useTranslation();
   const { motorcycleId } = useLocalSearchParams<{ motorcycleId: string }>();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const { currency, symbol } = useCurrency();
   const queryClient = useQueryClient();
 
@@ -63,7 +65,7 @@ export default function AddExpenseScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState('');
-  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  // showCategoryPicker removed — chips are always visible
   const [saved, setSaved] = useState(false);
   // MOT-143: Receipt photos. Populated after the expense is saved so we have an ID.
   const [savedExpenseId, setSavedExpenseId] = useState<string | null>(null);
@@ -110,7 +112,7 @@ export default function AddExpenseScreen() {
     },
   });
 
-  const cardBg = isDark ? palette.neutral800 : palette.white;
+  const cardBg = theme.surface;
   const sectionGap = 24;
 
   return (
@@ -122,7 +124,58 @@ export default function AddExpenseScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+      {/* Editorial header */}
+      <View style={{ paddingTop: 8, marginBottom: 8 }}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+            color: theme.ink3,
+            marginBottom: 6,
+          }}
+        >
+          — EXPENSES
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 32,
+              color: theme.ink,
+              letterSpacing: -0.6,
+            }}
+          >
+            Log an{' '}
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Italic',
+              fontSize: 32,
+              color: theme.warm,
+              letterSpacing: -0.6,
+            }}
+          >
+            expense.
+          </Text>
+        </View>
+      </View>
+
       {/* Amount input */}
+      <Text
+        style={{
+          fontSize: 10,
+          fontWeight: '700',
+          letterSpacing: 1.5,
+          textTransform: 'uppercase',
+          color: theme.ink3,
+          marginBottom: 8,
+          marginLeft: 4,
+        }}
+      >
+        AMOUNT
+      </Text>
       <Animated.View entering={FadeIn.duration(250)}>
         <View
           style={{
@@ -153,7 +206,7 @@ export default function AddExpenseScreen() {
             style={{
               fontSize: 24,
               fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              color: theme.ink,
             }}
           >
             {symbol}
@@ -162,13 +215,13 @@ export default function AddExpenseScreen() {
             value={amount}
             onChangeText={(val) => setAmount(formatCurrencyInput(val, currency))}
             placeholder={currency === 'JPY' ? '0' : '0.00'}
-            placeholderTextColor={palette.neutral400}
+            placeholderTextColor={theme.ink4}
             keyboardType={currency === 'JPY' ? 'number-pad' : 'decimal-pad'}
             style={{
               flex: 1,
               fontSize: 24,
               fontWeight: '700',
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              color: theme.ink,
               paddingVertical: 2,
             }}
             autoFocus
@@ -183,159 +236,59 @@ export default function AddExpenseScreen() {
         </Text>
       )}
 
-      {/* Category selector */}
+      {/* Category selector — horizontal chips */}
       <Animated.View entering={FadeInDown.delay(50).duration(250)}>
         <Text
           style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
             marginBottom: 8,
             marginLeft: 4,
           }}
         >
-          {t('expenses.category', { defaultValue: 'Category' })}
+          CATEGORY
         </Text>
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
-          }}
-        >
-          {/* Selected category row */}
-          <Pressable
-            onPress={() => {
-              triggerImpact();
-              setShowCategoryPicker(!showCategoryPicker);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                backgroundColor: `${CATEGORY_META[category].color}18`,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Tag size={16} color={CATEGORY_META[category].color} strokeWidth={2} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {MAIN_CATEGORIES.map((c) => {
+            const selected = category === c;
+            const meta = CATEGORY_META[c];
+            return (
+              <Pressable
+                key={c}
+                onPress={() => {
+                  triggerImpact();
+                  setCategory(c);
+                }}
                 style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  paddingVertical: 10,
+                  paddingHorizontal: 16,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  backgroundColor: selected ? `${meta.color}18` : theme.surface,
+                  borderWidth: selected ? 1.5 : 1,
+                  borderColor: selected ? meta.color : theme.line,
                 }}
               >
-                {t(`expenses.category_${category}`, {
-                  defaultValue: CATEGORY_META[category].label,
-                })}
-              </Text>
-            </View>
-            <View
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 5,
-                backgroundColor: CATEGORY_META[category].color,
-                marginRight: 4,
-              }}
-            />
-            <ChevronDown
-              size={16}
-              color={palette.neutral400}
-              strokeWidth={2}
-              style={{
-                transform: [{ rotate: showCategoryPicker ? '180deg' : '0deg' }],
-              }}
-            />
-          </Pressable>
-
-          {/* Category options list */}
-          {showCategoryPicker && (
-            <View
-              style={{
-                borderTopWidth: 0.5,
-                borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-              }}
-            >
-              {CATEGORIES.map((c) => {
-                const selected = category === c;
-                const meta = CATEGORY_META[c];
-                return (
-                  <Pressable
-                    key={c}
-                    onPress={() => {
-                      triggerImpact();
-                      setCategory(c);
-                      setShowCategoryPicker(false);
-                    }}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      gap: 12,
-                      backgroundColor: selected ? `${meta.color}10` : 'transparent',
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: 5,
-                        backgroundColor: meta.color,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        flex: 1,
-                        fontSize: 15,
-                        fontWeight: selected ? '600' : '400',
-                        color: selected
-                          ? meta.color
-                          : isDark
-                            ? palette.neutral200
-                            : palette.neutral800,
-                      }}
-                    >
-                      {t(`expenses.category_${c}`, { defaultValue: meta.label })}
-                    </Text>
-                    {selected && <Check size={16} color={meta.color} strokeWidth={2.5} />}
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: selected ? '700' : '500',
+                    color: selected ? meta.color : theme.ink2,
+                  }}
+                >
+                  {t(`expenses.category_${c}`, { defaultValue: meta.label })}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </Animated.View>
 
       {/* Date picker */}
       <Animated.View entering={FadeInDown.delay(100).duration(250)}>
-        <Text
-          style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
-            marginBottom: 8,
-            marginLeft: 4,
-          }}
-        >
-          {t('expenses.date', { defaultValue: 'Date' })}
-        </Text>
         <View
           style={{
             backgroundColor: cardBg,
@@ -369,14 +322,14 @@ export default function AddExpenseScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Calendar size={16} color={palette.primary500} strokeWidth={2} />
+              <Calendar size={16} color={theme.warm} strokeWidth={2} />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontSize: 15,
                   fontWeight: '500',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {t('expenses.date', { defaultValue: 'Date' })}
@@ -385,7 +338,7 @@ export default function AddExpenseScreen() {
             <Text
               style={{
                 fontSize: 14,
-                color: palette.primary500,
+                color: theme.warm,
                 fontWeight: '600',
               }}
             >
@@ -401,7 +354,7 @@ export default function AddExpenseScreen() {
             <View
               style={{
                 borderTopWidth: 0.5,
-                borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                borderTopColor: theme.line,
                 paddingHorizontal: 8,
               }}
             >
@@ -434,7 +387,7 @@ export default function AddExpenseScreen() {
                     setShowDatePicker(false);
                   }}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
                     {t('common.done', { defaultValue: 'Done' })}
                   </Text>
                 </Pressable>
@@ -449,21 +402,20 @@ export default function AddExpenseScreen() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 10,
+              fontWeight: '700',
+              letterSpacing: 1.5,
+              textTransform: 'uppercase',
+              color: theme.ink3,
               marginLeft: 4,
             }}
           >
-            {t('expenses.description', { defaultValue: 'Description' })}{' '}
-            <Text style={{ fontWeight: '400' }}>
-              ({t('common.optional', { defaultValue: 'optional' })})
-            </Text>
+            DETAILS
           </Text>
           <Text
             style={{
               fontSize: 12,
-              color: description.length > 180 ? palette.warning500 : palette.neutral400,
+              color: description.length > 180 ? palette.warning500 : theme.ink3,
               marginRight: 4,
             }}
           >
@@ -483,15 +435,15 @@ export default function AddExpenseScreen() {
             value={description}
             onChangeText={(val) => setDescription(val.slice(0, 200))}
             placeholder={t('expenses.descriptionPlaceholder', {
-              defaultValue: 'e.g. Shell V-Power, rear brake pads...',
+              defaultValue: 'Note — vendor, part number, etc.',
             })}
-            placeholderTextColor={palette.neutral400}
+            placeholderTextColor={theme.ink4}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
             style={{
               fontSize: 15,
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              color: theme.ink,
               paddingHorizontal: 16,
               paddingTop: 14,
               paddingBottom: 14,
@@ -513,8 +465,8 @@ export default function AddExpenseScreen() {
               marginLeft: 4,
             }}
           >
-            <Camera size={14} color={palette.neutral500} strokeWidth={2} />
-            <Text style={{ fontSize: 13, fontWeight: '600', color: palette.neutral500 }}>
+            <Camera size={14} color={theme.ink3} strokeWidth={2} />
+            <Text style={{ fontSize: 13, fontWeight: '600', color: theme.ink3 }}>
               {t('expenses.receipts', { defaultValue: 'Receipts' })}
               <Text style={{ fontWeight: '400' }}>
                 {' '}
@@ -542,48 +494,57 @@ export default function AddExpenseScreen() {
         </Animated.View>
       )}
 
-      {/* Save / Done Button */}
+      {/* Cancel + Save footer */}
       <Animated.View entering={FadeInDown.delay(200).duration(250)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            if (saved) {
-              router.back();
-            } else {
-              logMutation.mutate();
-            }
-          }}
-          disabled={logMutation.isPending || (!isValid && !saved)}
-          style={{
-            backgroundColor: saved
-              ? palette.success500
-              : isValid
-                ? palette.primary500
-                : isDark
-                  ? palette.neutral700
-                  : palette.neutral300,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 16,
-            gap: 8,
-          }}
-        >
-          {saved ? (
-            <Check size={18} color={palette.white} strokeWidth={2.5} />
-          ) : (
-            <Plus size={18} color={palette.white} strokeWidth={2.5} />
-          )}
-          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-            {saved
-              ? t('common.done', { defaultValue: 'Done' })
-              : logMutation.isPending
-                ? t('common.saving', { defaultValue: 'Saving...' })
-                : t('expenses.save', { defaultValue: 'Log Expense' })}
-          </Text>
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <Pressable
+            onPress={() => router.back()}
+            style={{ paddingVertical: 16, paddingHorizontal: 12 }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>Cancel</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              if (saved) {
+                router.back();
+              } else {
+                logMutation.mutate();
+              }
+            }}
+            disabled={logMutation.isPending || (!isValid && !saved)}
+            style={{
+              flex: 1,
+              backgroundColor: saved
+                ? palette.success500
+                : isValid
+                  ? theme.warm
+                  : isDark
+                    ? palette.neutral700
+                    : palette.neutral300,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 16,
+              gap: 8,
+            }}
+          >
+            {saved ? (
+              <Check size={18} color={palette.white} strokeWidth={2.5} />
+            ) : (
+              <Plus size={18} color={palette.white} strokeWidth={2.5} />
+            )}
+            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+              {saved
+                ? t('common.done', { defaultValue: 'Done' })
+                : logMutation.isPending
+                  ? t('common.saving', { defaultValue: 'Saving...' })
+                  : t('expenses.save', { defaultValue: 'Save expense' })}
+            </Text>
+          </Pressable>
+        </View>
       </Animated.View>
     </KeyboardAwareScrollView>
   );

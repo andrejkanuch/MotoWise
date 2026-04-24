@@ -37,7 +37,7 @@ export default function AddMaintenanceTaskScreen() {
     motorcycleId: string;
     bikeName?: string;
   }>();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const [title, setTitle] = useState('');
@@ -114,7 +114,7 @@ export default function AddMaintenanceTaskScreen() {
   });
 
   // Grouped card background
-  const cardBg = isDark ? palette.neutral800 : palette.white;
+  const cardBg = theme.surface;
   const sectionGap = 24;
 
   return (
@@ -126,8 +126,60 @@ export default function AddMaintenanceTaskScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+      {/* Editorial header */}
+      <View style={{ paddingTop: 8, marginBottom: 8 }}>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+            color: theme.ink3,
+            marginBottom: 6,
+          }}
+        >
+          — MAINTENANCE
+        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Regular',
+              fontSize: 32,
+              color: theme.ink,
+              letterSpacing: -0.6,
+            }}
+          >
+            New{' '}
+          </Text>
+          <Text
+            style={{
+              fontFamily: 'InstrumentSerif-Italic',
+              fontSize: 32,
+              color: theme.warm,
+              letterSpacing: -0.6,
+            }}
+          >
+            task.
+          </Text>
+        </View>
+      </View>
+
       {/* Task Title — prominent input */}
       <Animated.View entering={FadeIn.duration(250)}>
+        {/* TASK section label */}
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
+            marginBottom: 8,
+            marginLeft: 4,
+          }}
+        >
+          {t('maintenance.task', { defaultValue: 'Task' })}
+        </Text>
         <View
           style={{
             backgroundColor: cardBg,
@@ -159,9 +211,11 @@ export default function AddMaintenanceTaskScreen() {
       <Animated.View entering={FadeInDown.delay(50).duration(250)}>
         <Text
           style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
             marginBottom: 8,
             marginLeft: 4,
           }}
@@ -228,9 +282,11 @@ export default function AddMaintenanceTaskScreen() {
       <Animated.View entering={FadeInDown.delay(100).duration(250)}>
         <Text
           style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
             marginBottom: 8,
             marginLeft: 4,
           }}
@@ -430,14 +486,16 @@ export default function AddMaintenanceTaskScreen() {
       <Animated.View entering={FadeInDown.delay(125).duration(250)}>
         <Text
           style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
             marginBottom: 8,
             marginLeft: 4,
           }}
         >
-          {t('maintenance.recurring', { defaultValue: 'Recurring' })}
+          {t('maintenance.options', { defaultValue: 'Options' })}
         </Text>
         <View
           style={{
@@ -631,9 +689,11 @@ export default function AddMaintenanceTaskScreen() {
       <Animated.View entering={FadeInDown.delay(175).duration(250)}>
         <Text
           style={{
-            fontSize: 13,
-            fontWeight: '600',
-            color: palette.neutral500,
+            fontSize: 10,
+            fontWeight: '700',
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            color: theme.ink3,
             marginBottom: 8,
             marginLeft: 4,
           }}
@@ -697,44 +757,55 @@ export default function AddMaintenanceTaskScreen() {
         </View>
       </Animated.View>
 
-      {/* Save Button */}
+      {/* Cancel + Save Footer */}
       <Animated.View entering={FadeInDown.delay(225).duration(250)}>
-        <Pressable
-          onPress={() => {
-            triggerImpact();
-            createMutation.mutate();
-          }}
-          disabled={createMutation.isPending || !title.trim() || saved}
-          style={{
-            backgroundColor: saved
-              ? palette.success500
-              : title.trim()
-                ? palette.primary500
-                : isDark
-                  ? palette.neutral700
-                  : palette.neutral300,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: 16,
-            gap: 8,
-          }}
-        >
-          {saved ? (
-            <Check size={18} color={palette.white} strokeWidth={2.5} />
-          ) : (
-            <Plus size={18} color={palette.white} strokeWidth={2.5} />
-          )}
-          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-            {saved
-              ? t('maintenance.taskAdded', { defaultValue: 'Task Added!' })
-              : createMutation.isPending
-                ? t('common.saving', { defaultValue: 'Saving...' })
-                : t('maintenance.addTask', { defaultValue: 'Add Task' })}
-          </Text>
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+          <Pressable
+            onPress={() => router.back()}
+            style={{ paddingVertical: 16, paddingHorizontal: 12 }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: '600', color: theme.ink2 }}>
+              {t('common.cancel', { defaultValue: 'Cancel' })}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              createMutation.mutate();
+            }}
+            disabled={createMutation.isPending || !title.trim() || saved}
+            style={{
+              flex: 1,
+              backgroundColor: saved
+                ? palette.success500
+                : title.trim()
+                  ? theme.warm
+                  : isDark
+                    ? palette.neutral700
+                    : palette.neutral300,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 16,
+              gap: 8,
+            }}
+          >
+            {saved ? (
+              <Check size={18} color={palette.white} strokeWidth={2.5} />
+            ) : (
+              <Plus size={18} color={palette.white} strokeWidth={2.5} />
+            )}
+            <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+              {saved
+                ? t('maintenance.taskAdded', { defaultValue: 'Task Added!' })
+                : createMutation.isPending
+                  ? t('common.saving', { defaultValue: 'Saving...' })
+                  : t('maintenance.saveTask', { defaultValue: 'Save task' })}
+            </Text>
+          </Pressable>
+        </View>
       </Animated.View>
     </KeyboardAwareScrollView>
   );

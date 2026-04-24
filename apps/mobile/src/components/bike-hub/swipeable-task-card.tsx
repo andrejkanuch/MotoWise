@@ -8,21 +8,17 @@ import {
   ChevronRight,
   Gauge,
   Trash2,
+  Wrench,
 } from 'lucide-react-native';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
 import { getRelativeDueDate } from '../../lib/health-score';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact } from '../../utils/haptics';
 import { TaskPhotoGallery } from '../TaskPhotoGallery';
-
-const PRIORITY_COLORS: Record<string, string> = {
-  critical: palette.danger500,
-  high: palette.warning500,
-  medium: palette.primary500,
-  low: palette.success500,
-};
+import { EPriority } from '../ui/editorial';
 
 export const PRIORITY_ORDER: Record<string, number> = {
   critical: 0,
@@ -30,36 +26,6 @@ export const PRIORITY_ORDER: Record<string, number> = {
   medium: 2,
   low: 3,
 };
-
-function PriorityBadge({ priority }: { priority: string }) {
-  const { t } = useTranslation();
-  const color = PRIORITY_COLORS[priority] ?? palette.neutral500;
-  return (
-    <View
-      style={{
-        backgroundColor: `${color}20`,
-        borderRadius: 6,
-        borderCurve: 'continuous',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 11,
-          fontWeight: '700',
-          color,
-          textTransform: 'uppercase',
-          letterSpacing: 0.3,
-        }}
-      >
-        {String(
-          t(`maintenance.priority${priority.charAt(0).toUpperCase()}${priority.slice(1)}` as never),
-        )}
-      </Text>
-    </View>
-  );
-}
 
 /** Swipeable task card with left/right actions */
 export const SwipeableTaskCard = memo(function SwipeableTaskCard({
@@ -83,9 +49,11 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
   onDelete: (id: string, title: string) => void;
   mileageUnit: string;
 }) {
+  const { t: et } = useEditorialTheme();
   const { t } = useTranslation();
   const isCompleted = task.status === 'completed';
   const relative = task.dueDate && !isCompleted ? getRelativeDueDate(task.dueDate) : null;
+  const isOverdue = relative?.isOverdue ?? false;
 
   return (
     <Animated.View
@@ -120,6 +88,21 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
           style={{ padding: 14 }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {/* Wrench icon circle */}
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: tint(et.warm, 0.15),
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Wrench size={18} color={et.warm} strokeWidth={2} />
+            </View>
+
             {/* Title + meta */}
             <View style={{ flex: 1 }}>
               <Text
@@ -136,6 +119,14 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
               >
                 {task.title}
               </Text>
+              {task.notes && (
+                <Text
+                  style={{ fontSize: 12, color: palette.neutral500, marginTop: 2 }}
+                  numberOfLines={1}
+                >
+                  {task.notes}
+                </Text>
+              )}
               {relative && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                   <Calendar
@@ -164,7 +155,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
 
             {/* Priority/overdue badge */}
             {!isCompleted &&
-              (relative?.isOverdue ? (
+              (isOverdue ? (
                 <View
                   style={{
                     backgroundColor: `${palette.danger500}20`,
@@ -186,7 +177,7 @@ export const SwipeableTaskCard = memo(function SwipeableTaskCard({
                   </Text>
                 </View>
               ) : (
-                <PriorityBadge priority={task.priority} />
+                <EPriority level={task.priority as 'low' | 'medium' | 'high' | 'critical'} />
               ))}
             {isExpanded ? (
               <ChevronDown size={16} color={palette.neutral400} />

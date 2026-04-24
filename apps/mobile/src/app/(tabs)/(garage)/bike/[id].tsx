@@ -2,15 +2,18 @@ import { palette } from '@motovault/design-system';
 import {
   DeleteMaintenanceTaskDocument,
   DeleteMotorcycleDocument,
+  ExpensesByMotorcycleDocument,
   ImportOemScheduleDocument,
   MaintenanceTasksByMotorcycleDocument,
   type MaintenanceTasksByMotorcycleQuery,
   MyMotorcyclesDocument,
+  MyRidesDocument,
   UpdateMotorcycleDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   Camera,
@@ -40,7 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ExpensesSection } from '../../../../components/bike-hub/expenses-section';
 import { MaintenanceSection } from '../../../../components/bike-hub/maintenance-section';
 import { MileageDisplay } from '../../../../components/bike-hub/mileage-display';
-import { HealthScoreRing } from '../../../../components/HealthScoreRing';
+
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
@@ -52,7 +55,7 @@ import { useAuthStore } from '../../../../stores/auth.store';
 import { useEditorialTheme } from '../../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../../utils/haptics';
 
-function InfoRow({ label, value }: { label: string; value: string; isDark?: boolean }) {
+function InfoRow({ label, value }: { label: string; value: string }) {
   const { t: theme } = useEditorialTheme();
   return (
     <View
@@ -104,6 +107,17 @@ export default function BikeDetailScreen() {
     queryFn: () => gqlFetcher(MaintenanceTasksByMotorcycleDocument, { motorcycleId: id }),
   });
 
+  // Stats queries for the new cards row
+  const { data: statsExpenseData } = useQuery({
+    queryKey: [...queryKeys.expenses.byMotorcycle(id), 0],
+    queryFn: () => gqlFetcher(ExpensesByMotorcycleDocument, { motorcycleId: id, year: 0 }),
+  });
+
+  const { data: ridesData } = useQuery({
+    queryKey: ['rides', 'motorcycle', id],
+    queryFn: () => gqlFetcher(MyRidesDocument, { first: 1, motorcycleId: id }),
+  });
+
   const hasHighlighted = useRef(false);
   useEffect(() => {
     if (highlightTask && tasksData && !hasHighlighted.current) {
@@ -128,6 +142,10 @@ export default function BikeDetailScreen() {
         }),
         queryClient.invalidateQueries({
           queryKey: queryKeys.expenses.byMotorcycle(id),
+          refetchType: 'active',
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['rides', 'motorcycle', id],
           refetchType: 'active',
         }),
       ]);
@@ -567,25 +585,15 @@ export default function BikeDetailScreen() {
                 </View>
               )}
               {/* Gradient overlay */}
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '30%',
-                  backgroundColor: `${theme.bg}80`,
-                }}
+              <LinearGradient
+                colors={['rgba(0,0,0,0.35)', 'transparent']}
+                locations={[0, 0.7]}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%' }}
               />
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: '45%',
-                  backgroundColor: theme.bg,
-                }}
+              <LinearGradient
+                colors={['transparent', theme.bg]}
+                locations={[0.3, 1]}
+                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%' }}
               />
 
               {/* Upload overlay */}
@@ -598,8 +606,10 @@ export default function BikeDetailScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <ActivityIndicator size="large" color="#fff" />
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600', marginTop: 8 }}>
+                  <ActivityIndicator size="large" color={palette.white} />
+                  <Text
+                    style={{ color: palette.white, fontSize: 14, fontWeight: '600', marginTop: 8 }}
+                  >
                     {t('garage.uploadingPhoto', { defaultValue: 'Uploading...' })}
                   </Text>
                 </View>
@@ -631,8 +641,10 @@ export default function BikeDetailScreen() {
                     gap: 4,
                   }}
                 >
-                  <ChevronLeft size={16} color="#fff" />
-                  <Text style={{ fontSize: 13, color: '#fff', fontWeight: '500' }}>Garage</Text>
+                  <ChevronLeft size={16} color={palette.white} />
+                  <Text style={{ fontSize: 13, color: palette.white, fontWeight: '500' }}>
+                    Garage
+                  </Text>
                 </Pressable>
                 {!uploadingPhoto && (
                   <Pressable
@@ -648,7 +660,7 @@ export default function BikeDetailScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Camera size={16} color="#fff" />
+                    <Camera size={16} color={palette.white} />
                   </Pressable>
                 )}
               </View>
@@ -699,17 +711,42 @@ export default function BikeDetailScreen() {
               </Text>
             </View>
             {tasks.length > 0 && healthScore.hasData && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <HealthScoreRing
-                  score={healthScore.score}
-                  grade={healthScore.grade}
-                  hasData={healthScore.hasData}
-                  isDark={isDark}
-                  size={20}
-                />
-                <Text style={{ fontSize: 14, color: theme.ink3, fontWeight: '500' }}>
-                  {healthScore.score}%
-                </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingVertical: 5,
+                  paddingHorizontal: 10,
+                  backgroundColor: theme.surface,
+                  borderWidth: 1,
+                  borderColor: theme.line,
+                  borderRadius: 999,
+                }}
+              >
+                {(() => {
+                  const healthColor =
+                    healthScore.score >= 75
+                      ? palette.editorialSuccess
+                      : healthScore.score >= 40
+                        ? palette.warning500
+                        : palette.editorialDanger;
+                  return (
+                    <>
+                      <View
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: healthColor,
+                        }}
+                      />
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: healthColor }}>
+                        {healthScore.score}% ready
+                      </Text>
+                    </>
+                  );
+                })()}
               </View>
             )}
           </View>
@@ -744,7 +781,7 @@ export default function BikeDetailScreen() {
               });
             }}
             style={({ pressed }) => ({
-              flex: 1,
+              flex: 2,
               alignItems: 'center',
               gap: 5,
               paddingVertical: 12,
@@ -755,7 +792,7 @@ export default function BikeDetailScreen() {
             })}
           >
             <Wrench size={18} color="#1a1208" />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: '#1a1208' }}>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: palette.neutral950 }}>
               {t('maintenance.addTask', { defaultValue: 'Add task' })}
             </Text>
           </Pressable>
@@ -769,7 +806,7 @@ export default function BikeDetailScreen() {
               });
             }}
             style={({ pressed }) => ({
-              flex: 1,
+              flex: 1.5,
               alignItems: 'center',
               gap: 5,
               paddingVertical: 12,
@@ -792,11 +829,12 @@ export default function BikeDetailScreen() {
               triggerImpact();
               router.push({ pathname: '/(tabs)/(garage)/edit-bike', params: { id } });
             }}
+            accessibilityLabel={t('common.edit', { defaultValue: 'Edit' })}
             style={({ pressed }) => ({
-              flex: 1,
+              width: 48,
+              height: 48,
               alignItems: 'center',
-              gap: 5,
-              paddingVertical: 12,
+              justifyContent: 'center',
               backgroundColor: theme.surface,
               borderWidth: 1,
               borderColor: theme.line,
@@ -806,45 +844,159 @@ export default function BikeDetailScreen() {
             })}
           >
             <Edit3 size={18} color={theme.ink2} strokeWidth={2} />
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                color: theme.ink2,
-              }}
-            >
-              {t('common.edit', { defaultValue: 'Edit' })}
-            </Text>
           </Pressable>
 
           <Pressable
             onPress={handleMoreActions}
+            accessibilityLabel={t('common.more', { defaultValue: 'More' })}
             style={({ pressed }) => ({
-              flex: 1,
+              width: 48,
+              height: 48,
               alignItems: 'center',
-              gap: 4,
-              paddingVertical: 12,
+              justifyContent: 'center',
               backgroundColor: theme.surface,
-              borderRadius: 12,
+              borderRadius: 14,
               borderCurve: 'continuous',
               transform: [{ scale: pressed ? 0.95 : 1 }],
             })}
           >
             <MoreHorizontal size={16} color={theme.ink2} strokeWidth={2} />
+          </Pressable>
+        </Animated.View>
+
+        {/* Stats Cards Row */}
+        <Animated.View
+          entering={FadeInUp.delay(120).duration(400)}
+          style={{
+            flexDirection: 'row',
+            gap: 8,
+            paddingHorizontal: 20,
+            marginTop: 16,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              padding: 12,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
+            }}
+          >
             <Text
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: '600',
-                color: theme.ink2,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                color: theme.ink3,
+                marginBottom: 4,
               }}
             >
-              {t('common.more', { defaultValue: 'More' })}
+              {t('bikeHub.costPerKm', { defaultValue: 'COST / KM' })}
+            </Text>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: theme.ink,
+                letterSpacing: -0.4,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
+              {bike.currentMileage && (statsExpenseData?.expenses?.ytdTotal ?? 0) > 0
+                ? formatCurrency((statsExpenseData?.expenses?.ytdTotal ?? 0) / bike.currentMileage)
+                : '—'}
+            </Text>
+          </View>
+
+          <View
+            style={{
+              flex: 1,
+              padding: 12,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: '600',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                color: theme.ink3,
+                marginBottom: 4,
+              }}
+            >
+              {t('bikeHub.rides', { defaultValue: 'RIDES' })}
+            </Text>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: theme.ink,
+                letterSpacing: -0.4,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
+              {ridesData?.myRides?.totalCount ?? 0}
+            </Text>
+          </View>
+
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              router.push({
+                pathname: '/(tabs)/(garage)/expense-dashboard',
+                params: {
+                  motorcycleId: id,
+                  currentMileage: bike?.currentMileage ? String(bike.currentMileage) : '',
+                  mileageUnit: bike?.mileageUnit ?? 'mi',
+                },
+              });
+            }}
+            style={{
+              flex: 1,
+              padding: 12,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: '600',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                color: theme.ink3,
+                marginBottom: 4,
+              }}
+            >
+              {t('bikeHub.analytics', { defaultValue: 'ANALYTICS' })}
+            </Text>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: theme.warm,
+                letterSpacing: -0.4,
+              }}
+            >
+              View →
             </Text>
           </Pressable>
         </Animated.View>
 
         {/* 4. Maintenance Section — tabbed (Active | History) */}
-        <Animated.View entering={FadeInUp.delay(140).duration(400)} style={{ marginTop: 20 }}>
+        <Animated.View entering={FadeInUp.delay(180).duration(400)} style={{ marginTop: 20 }}>
           <MaintenanceSection
             tasks={tasks}
             isDark={isDark}
@@ -858,7 +1010,7 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* 5. Expenses Section */}
-        <Animated.View entering={FadeInUp.delay(200).duration(400)} style={{ marginTop: 24 }}>
+        <Animated.View entering={FadeInUp.delay(240).duration(400)} style={{ marginTop: 24 }}>
           <ExpensesSection
             motorcycleId={id}
             isDark={isDark}
@@ -869,7 +1021,7 @@ export default function BikeDetailScreen() {
 
         {/* 6. Details section (collapsible) */}
         <Animated.View
-          entering={FadeInUp.delay(260).duration(400)}
+          entering={FadeInUp.delay(300).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 20 }}
         >
           <Pressable
@@ -919,26 +1071,16 @@ export default function BikeDetailScreen() {
                   paddingBottom: 16,
                 }}
               >
-                <InfoRow
-                  label={t('garage.make', { defaultValue: 'Make' })}
-                  value={bike.make}
-                  isDark={isDark}
-                />
-                <InfoRow
-                  label={t('garage.model', { defaultValue: 'Model' })}
-                  value={bike.model}
-                  isDark={isDark}
-                />
+                <InfoRow label={t('garage.make', { defaultValue: 'Make' })} value={bike.make} />
+                <InfoRow label={t('garage.model', { defaultValue: 'Model' })} value={bike.model} />
                 <InfoRow
                   label={t('garage.year', { defaultValue: 'Year' })}
                   value={String(bike.year)}
-                  isDark={isDark}
                 />
                 {bike.nickname && (
                   <InfoRow
                     label={t('garage.nickname', { defaultValue: 'Nickname' })}
                     value={bike.nickname}
-                    isDark={isDark}
                   />
                 )}
                 <InfoRow
@@ -948,13 +1090,11 @@ export default function BikeDetailScreen() {
                       ? t('common.yes', { defaultValue: 'Yes' })
                       : t('common.no', { defaultValue: 'No' })
                   }
-                  isDark={isDark}
                 />
                 {bike.purchasePrice != null && (
                   <InfoRow
                     label={t('garage.purchasePrice', { defaultValue: 'Purchase Price' })}
                     value={formatCurrency(bike.purchasePrice)}
-                    isDark={isDark}
                   />
                 )}
                 {bike.purchaseDate && (
@@ -965,7 +1105,6 @@ export default function BikeDetailScreen() {
                       month: 'long',
                       day: 'numeric',
                     })}
-                    isDark={isDark}
                   />
                 )}
               </View>

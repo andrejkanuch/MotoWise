@@ -138,9 +138,10 @@ export function MaintenanceSection({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Text
             style={{
-              fontSize: 18,
-              fontWeight: '700',
+              fontFamily: 'InstrumentSerif-Italic',
+              fontSize: 24,
               color: isDark ? palette.neutral50 : palette.neutral950,
+              lineHeight: 28,
             }}
           >
             {t('bikeHub.maintenance', { defaultValue: 'Maintenance' })}
