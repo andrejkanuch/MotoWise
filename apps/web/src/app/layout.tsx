@@ -5,7 +5,7 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
 import { getLocale } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
-import { CookieConsentProvider } from '@/components/cookie-consent';
+import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-consent';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
@@ -69,6 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         <CookieConsentProvider>
           <QueryProvider>{children}</QueryProvider>
+          <CookieConsentBanner />
           {process.env.NODE_ENV === 'production' && (
             <>
               <Analytics />
