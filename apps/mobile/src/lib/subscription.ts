@@ -118,10 +118,10 @@ export async function loginRevenueCat(userId: string) {
  */
 /**
  * The RC-designed paywall offering identifier.
- * All paywall presentations use this so the "Lowered price" paywall
+ * All paywall presentations use this so the configured paywall
  * (with the motorcycle hero image) is shown instead of the generic default.
  */
-const DEFAULT_OFFERING = 'lower_price';
+const DEFAULT_OFFERING = 'new_offering_4_29_24_4';
 
 export async function presentPaywall(
   options: { requiredEntitlementIdentifier?: string; offeringIdentifier?: string } = {},

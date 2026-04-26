@@ -4,7 +4,7 @@ import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
-import { BatteryLow, Moon, Sun } from 'lucide-react-native';
+import { BatteryLow, CloudUpload, Moon, Sun } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HudControls } from '../../components/ride/hud-controls';
 import { HudLeanGauge } from '../../components/ride/hud-lean-gauge';
 import { HudMap } from '../../components/ride/hud-map';
+import { HudOfflineBanner } from '../../components/ride/hud-offline-banner';
 import { HudSparkline } from '../../components/ride/hud-sparkline';
 import { HudSpeed } from '../../components/ride/hud-speed';
 import { useLeanAngle } from '../../hooks/use-lean-angle';
@@ -37,7 +38,7 @@ import {
   getWaypointChunks,
   rideMMKV,
 } from '../../utils/ride-storage';
-import { enqueueOrExecute } from '../../utils/ride-sync-queue';
+import { enqueueOrExecute, getQueueLength } from '../../utils/ride-sync-queue';
 
 type SparklineMode = 'altitude' | 'speed';
 
@@ -71,6 +72,7 @@ export default function RideHudScreen() {
   const [altitudeHistory, setAltitudeHistory] = useState<number[]>([]);
   const [liveWaypoints, setLiveWaypoints] = useState<Waypoint[]>([]);
   const [gpsAccuracy, setGpsAccuracy] = useState(0);
+  const [syncPending, setSyncPending] = useState(false);
   const pausedAtRef = useRef<number | null>(null);
   const totalPausedRef = useRef(0);
 
@@ -231,6 +233,11 @@ export default function RideHudScreen() {
         },
       },
     });
+
+    const pending = getQueueLength();
+    if (pending > 0) {
+      setSyncPending(true);
+    }
 
     const summaryRoute = {
       pathname: '/(modals)/ride-summary' as const,
@@ -415,6 +422,9 @@ export default function RideHudScreen() {
         />
       )}
 
+      {/* Offline banner */}
+      <HudOfflineBanner />
+
       {/* Map zone — takes all remaining space */}
       <Animated.View entering={FadeInUp.delay(100).duration(300)} style={{ flex: 1 }}>
         <HudMap waypoints={liveWaypoints} gpsAccuracy={gpsAccuracy} />
@@ -521,6 +531,30 @@ export default function RideHudScreen() {
           isNightMode={isNightMode}
         />
       </View>
+
+      {syncPending && (
+        <Animated.View
+          entering={FadeInUp.delay(300).duration(250)}
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 100,
+            left: 16,
+            right: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            padding: 14,
+            backgroundColor: palette.accentTint,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+          }}
+        >
+          <CloudUpload size={18} color={palette.accent500} />
+          <Text style={{ fontSize: 14, color: palette.accent500, fontWeight: '600', flex: 1 }}>
+            Ride saved locally. Will upload when back online.
+          </Text>
+        </Animated.View>
+      )}
     </View>
   );
 }

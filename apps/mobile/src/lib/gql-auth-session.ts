@@ -18,8 +18,14 @@ async function materializeSession(): Promise<CachedAccess | null> {
   if (session?.expires_at) {
     const expiresAt = session.expires_at * 1000;
     if (expiresAt - Date.now() < 60_000) {
-      const { data } = await supabase.auth.refreshSession();
-      session = data.session;
+      try {
+        const { data } = await supabase.auth.refreshSession();
+        session = data.session;
+      } catch {
+        // Offline or transient failure — keep using current session.
+        // The token may be expired, but gqlFetcher's UNAUTHENTICATED
+        // retry in graphql-client.ts handles refresh-and-retry on drain.
+      }
     }
   }
 
