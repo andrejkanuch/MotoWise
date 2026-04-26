@@ -128,7 +128,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         >
           {/* Text */}
           <div>
-            <div className="mv-section-meta">Feature &middot; 02 &middot; Powered by AI</div>
+            <div className="mv-section-meta">{t('heroMeta')}</div>
             <h1
               style={{
                 fontSize: 'clamp(48px, 7.5vw, 112px)',
@@ -138,9 +138,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 margin: '24px 0 0',
               }}
             >
-              <span style={{ display: 'block' }}>Point. Tap.</span>
+              <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
               <span style={{ display: 'block' }}>
-                <em className="mv-serif">Answered.</em>
+                <em className="mv-serif">{t('heroHeading2')}</em>
               </span>
             </h1>
             <p
@@ -157,11 +157,11 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
             </p>
             <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
-                <span>Try the scanner</span>
+                <span>{t('heroCta')}</span>
                 <ArrowIcon />
               </Link>
               <a href="#how" className="mv-btn mv-btn-ghost">
-                How it works
+                {t('heroCtaSecondary')}
               </a>
             </div>
           </div>
@@ -258,7 +258,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                     boxShadow: '0 0 8px var(--mv-warm-400)',
                   }}
                 />
-                Scanning &middot; drivetrain
+                {t('scanHud')}
               </div>
 
               {/* Target box */}
@@ -309,14 +309,14 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                       textTransform: 'uppercase',
                     }}
                   >
-                    &#10003; Diagnosed &middot; 3.2s
+                    &#10003; {t('scanLabel')}
                   </span>
                   <span className="mv-mono" style={{ fontSize: 10, color: 'var(--mv-ink-3)' }}>
-                    98% confidence
+                    {t('scanConfidence')}
                   </span>
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.01em' }}>
-                  Chain tension too loose
+                  {t('scanTitle')}
                 </div>
                 <div
                   style={{
@@ -326,8 +326,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                     lineHeight: 1.4,
                   }}
                 >
-                  Slack measures ~45mm. Adjust to 25&ndash;35mm at the rear axle pivot. Estimated 8
-                  minutes with standard tools.
+                  {t('scanBody')}
                 </div>
               </div>
             </div>
@@ -341,9 +340,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}
       >
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">How it works</div>
+          <div className="mv-section-meta">{t('howLabel')}</div>
           <h2 className="mv-section-title">
-            From photo to fix in <span className="mv-serif">under five seconds.</span>
+            {t('howTitle')} <span className="mv-serif">{t('howTitleSerif')}</span>
           </h2>
         </div>
 
@@ -375,24 +374,24 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           {[
             {
               num: '01',
-              title: 'Frame the issue.',
-              body: "Open the MotoVault camera and point at a warning light, a leak, an odd noise's source, or a part you don't recognize. No special framing — the model is robust to lighting and angle.",
-              kvLabel: 'Camera',
-              kvValue: 'Built-in \u00b7 on-device',
+              title: t('step1Title2'),
+              body: t('step1Body'),
+              kvLabel: t('step1KvLabel'),
+              kvValue: t('step1KvValue'),
             },
             {
               num: '02',
-              title: 'Model analyzes.',
-              body: "A vision model identifies the part, then cross-references your bike's make, model and year against known failure modes. All on-device where possible; cloud fallback for edge cases.",
-              kvLabel: 'Latency',
-              kvValue: '< 5 seconds avg',
+              title: t('step2Title2'),
+              body: t('step2Body'),
+              kvLabel: t('step2KvLabel'),
+              kvValue: t('step2KvValue'),
             },
             {
               num: '03',
-              title: 'Fix it, or log it.',
-              body: "Get a diagnosis, difficulty rating, estimated time and step-by-step fix. Save to your bike's history with one tap. Or share the scan with your mechanic before you even roll in.",
-              kvLabel: 'Output',
-              kvValue: 'Diagnosis \u00b7 fix \u00b7 share',
+              title: t('step3Title2'),
+              body: t('step3Body'),
+              kvLabel: t('step3KvLabel'),
+              kvValue: t('step3KvValue'),
             },
           ].map((step, i) => (
             <div
@@ -477,17 +476,16 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       {/* ════ WHAT WE DIAGNOSE — catalog grid ════ */}
       <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">What we diagnose</div>
+          <div className="mv-section-meta">{t('diagLabel')}</div>
           <h2 className="mv-section-title">
-            Eight categories.{' '}
+            {t('diagTitle')}{' '}
             <span className="mv-serif" style={{ color: 'var(--mv-ink-3)' }}>
-              Covering 94%
+              {t('diagTitleSerif')}
             </span>{' '}
-            of everyday rider issues.
+            {t('diagTitleEnd')}
           </h2>
           <p className="mv-section-sub">
-            Trained on a curated dataset of motorcycle parts and failure modes. Continuously
-            expanding — each scan improves the next.
+            {t('diagSubtitle')}
           </p>
         </div>
 
@@ -502,43 +500,43 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
           {[
             {
               icon: 'M12 8v4 M12 16h.01 M12 2a10 10 0 100 20 10 10 0 000-20z',
-              title: 'Warning lights',
-              meta: 'ABS \u00b7 ECU \u00b7 TCS \u00b7 OIL \u00b7 BATT',
+              title: t('cat1Title'),
+              meta: t('cat1Meta'),
             },
             {
               icon: 'M12 2a10 10 0 100 20 10 10 0 000-20z M12 6a6 6 0 00-4 10',
-              title: 'Chain & drivetrain',
-              meta: 'Tension \u00b7 wear \u00b7 alignment',
+              title: t('cat2Title'),
+              meta: t('cat2Meta'),
             },
             {
               icon: 'M12 2a10 10 0 100 20 10 10 0 000-20z M12 8a4 4 0 100 8 4 4 0 000-8z',
-              title: 'Tire condition',
-              meta: 'Wear \u00b7 pressure \u00b7 damage',
+              title: t('cat3Title'),
+              meta: t('cat3Meta'),
             },
             {
               icon: 'M12 2v20 M2 12h20',
-              title: 'Brakes & pads',
-              meta: 'Pad thickness \u00b7 rotor wear',
+              title: t('cat4Title'),
+              meta: t('cat4Meta'),
             },
             {
               icon: 'M3 12h18 M12 3v18',
-              title: 'Fluid leaks',
-              meta: 'Oil \u00b7 coolant \u00b7 brake \u00b7 fuel',
+              title: t('cat5Title'),
+              meta: t('cat5Meta'),
             },
             {
               icon: 'M3 3h18v18H3z M9 3v18',
-              title: 'Engine & electrical',
-              meta: 'Harness \u00b7 plugs \u00b7 battery',
+              title: t('cat6Title'),
+              meta: t('cat6Meta'),
             },
             {
               icon: 'M12 22s8-4 8-12V4l-8-2-8 2v6c0 8 8 12 8 12z',
-              title: 'Fairings & damage',
-              meta: 'Crash \u00b7 wear \u00b7 repair',
+              title: t('cat7Title'),
+              meta: t('cat7Meta'),
             },
             {
               icon: 'M9 11l3 3L22 4 M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11',
-              title: 'Part identification',
-              meta: 'Unknown \u2192 OEM #',
+              title: t('cat8Title'),
+              meta: t('cat8Meta'),
             },
           ].map((card) => (
             <div
@@ -616,7 +614,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Save every scan
+              {t('showcaseLabel')}
             </div>
             <h3
               style={{
@@ -627,7 +625,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 margin: '18px 0 0',
               }}
             >
-              Your bike&apos;s <span className="mv-serif">health history.</span>
+              {t('showcaseTitle')} <span className="mv-serif">{t('showcaseTitleSerif')}</span>
             </h3>
             <p
               style={{
@@ -639,15 +637,14 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 letterSpacing: '-0.005em',
               }}
             >
-              Every diagnosis saves to your bike&apos;s timeline — so when the same issue appears
-              six months later, you already know what you did about it last time.
+              {t('showcaseBody')}
             </p>
             <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 14 }}>
               {[
-                'Auto-tagged by part, severity and date.',
-                'Share any scan directly with your mechanic.',
-                'Export a full health report as PDF.',
-                'Alerts when a recurring issue is getting worse.',
+                t('showcaseCheck1'),
+                t('showcaseCheck2'),
+                t('showcaseCheck3'),
+                t('showcaseCheck4'),
               ].map((item) => (
                 <div
                   key={item}
@@ -730,7 +727,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
               >
                 <Image
                   src="/images/marketing/mw/diagnostic-result.png"
-                  alt="MotoVault AI diagnostic result showing chain tension analysis"
+                  alt={t('showcaseAlt')}
                   width={640}
                   height={1386}
                   style={{
@@ -761,10 +758,10 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         }}
       >
         {[
-          { value: '98', unit: '%', label: 'Accuracy on known parts.' },
-          { value: '<5', unit: 's', label: 'From snap to diagnosis.' },
-          { value: '12', unit: 'k+', label: 'Bike models supported.' },
-          { value: '8', unit: ' categories', label: 'Covering everyday issues.' },
+          { value: t('stat1Value'), unit: t('stat1Unit'), label: t('stat1Label') },
+          { value: t('stat2Value'), unit: t('stat2Unit'), label: t('stat2Label') },
+          { value: t('stat3Value'), unit: t('stat3Unit'), label: t('stat3Label') },
+          { value: t('stat4Value'), unit: t('stat4Unit'), label: t('stat4Label') },
         ].map((s) => (
           <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
@@ -817,12 +814,12 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
         />
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            Diagnose
+            {t('ctaLabel')}
           </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            Skip the{' '}
+            {t('ctaTitle')}{' '}
             <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              forum thread.
+              {t('ctaTitleSerif')}
             </span>
           </h2>
           <p
@@ -835,7 +832,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
               letterSpacing: '-0.01em',
             }}
           >
-            Free on iOS and Android. Run your first scan in under 30 seconds.
+            {t('ctaSubtitle')}
           </p>
           <div
             style={{
@@ -847,10 +844,10 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
             }}
           >
             <Link href="/#download" className="mv-btn mv-btn-primary">
-              <span>Get the app</span>
+              <span>{t('ctaCta')}</span>
             </Link>
             <Link href="/features/trip-planning" className="mv-btn mv-btn-ghost">
-              See trip planning &rarr;
+              {t('ctaCtaSecondary')}
             </Link>
           </div>
         </div>
@@ -894,7 +891,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Next feature &middot; 03
+                {t('nextFeature1Label')}
               </div>
               <div
                 style={{
@@ -905,9 +902,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Garage{' '}
+                {t('nextFeature1Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  management.
+                  {t('nextFeature1Serif')}
                 </span>
               </div>
             </div>
@@ -922,7 +919,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Unlimited bikes, one vault.
+              {t('nextFeature1Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -949,7 +946,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Or see &middot; 04
+                {t('nextFeature2Label')}
               </div>
               <div
                 style={{
@@ -960,9 +957,9 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Learning{' '}
+                {t('nextFeature2Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  paths.
+                  {t('nextFeature2Serif')}
                 </span>
               </div>
             </div>
@@ -977,7 +974,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Novice to expert.
+              {t('nextFeature2Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -987,12 +984,12 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
       {/* ════ FAQ ════ */}
       <section style={{ padding: '120px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">Got Questions?</div>
-          <h2 className="mv-section-title">Frequently Asked Questions</h2>
+          <div className="mv-section-meta">{t('faqLabel')}</div>
+          <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <DiagnosticsFaq
               items={faqItems}
-              supportLabel="Have more questions?"
+              supportLabel={t('faqSupportLabel')}
               supportLink={
                 <Link
                   href="/support"
@@ -1002,7 +999,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
                     textUnderlineOffset: 4,
                   }}
                 >
-                  Visit our support page
+                  {t('faqSupportLink')}
                 </Link>
               }
             />

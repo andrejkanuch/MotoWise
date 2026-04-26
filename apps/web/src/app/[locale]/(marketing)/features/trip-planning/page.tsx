@@ -122,7 +122,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">Feature &middot; 01</div>
+            <div className="mv-section-meta">{t('heroMeta')}</div>
             <h1
               style={{
                 fontSize: 'clamp(48px, 7.5vw, 112px)',
@@ -132,9 +132,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 margin: '24px 0 0',
               }}
             >
-              <span style={{ display: 'block' }}>Plan the ride.</span>
+              <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
               <span style={{ display: 'block' }}>
-                <em className="mv-serif">Then forget the map.</em>
+                <em className="mv-serif">{t('heroHeading2')}</em>
               </span>
             </h1>
             <p
@@ -151,11 +151,11 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </p>
             <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
-                <span>Try it free</span>
+                <span>{t('heroCta')}</span>
                 <ArrowIcon />
               </Link>
               <a href="#how" className="mv-btn mv-btn-ghost">
-                See how it works
+                {t('heroCtaHow')}
               </a>
             </div>
           </div>
@@ -281,12 +281,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
                     textTransform: 'uppercase',
                   }}
                 >
-                  Route 04 &middot; Dolomites
+                  {t('routeLabel')}
                 </div>
                 <div
                   style={{ fontSize: 15, fontWeight: 500, marginTop: 4, letterSpacing: '-0.01em' }}
                 >
-                  Bolzano &rarr; Cortina
+                  {t('routeName')}
                 </div>
                 <div
                   style={{
@@ -301,21 +301,21 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 >
                   <div>
                     <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
-                      412 km
+                      {t('routeDistance')}
                     </strong>
-                    Distance
+                    {t('routeDistanceLabel')}
                   </div>
                   <div>
                     <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
-                      5h 20m
+                      {t('routeRiding')}
                     </strong>
-                    Riding
+                    {t('routeRidingLabel')}
                   </div>
                   <div>
                     <strong style={{ color: 'var(--mv-ink)', fontWeight: 500, display: 'block' }}>
-                      4
+                      {t('routeStops')}
                     </strong>
-                    Stops
+                    {t('routeStopsLabel')}
                   </div>
                 </div>
               </div>
@@ -351,7 +351,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                     boxShadow: '0 0 8px var(--mv-success)',
                   }}
                 />
-                Ready &middot; GPX exported
+                {t('gpxBadge')}
               </div>
             </div>
           </div>
@@ -361,9 +361,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
       {/* ════ PILLARS — How it works ════ */}
       <section id="how" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">How it works</div>
+          <div className="mv-section-meta">{t('howLabel')}</div>
           <h2 className="mv-section-title">
-            Four things that matter on <span className="mv-serif">a long ride.</span>
+            {t('howTitle')} <span className="mv-serif">{t('howTitleSerif')}</span>
           </h2>
         </div>
 
@@ -378,50 +378,13 @@ export default async function TripPlanningPage({ params }: PageProps) {
             overflow: 'hidden',
           }}
         >
-          {[
-            {
-              num: '01',
-              title: 'Typed waypoints, not pins.',
-              body: 'Tag each stop as fuel, scenic, overnight or pass summit. The map styles them differently so you can read it at a glance.',
-              kvLabel: 'Types',
-              kvValue: '6 built-in',
-            },
-            {
-              num: '02',
-              title: 'Real motorcycle routing.',
-              body: 'Prefer twisties, avoid highways, lean into scenic roads. The routing engine knows the difference between a commute and a ride.',
-              kvLabel: 'Profiles',
-              kvValue: '3 \u00b7 tweakable',
-            },
-            {
-              num: '03',
-              title: 'Fuel-range aware.',
-              body: 'Tell MotoVault your tank size and efficiency. It warns you when two waypoints are further apart than your bike can handle.',
-              kvLabel: 'Per-bike',
-              kvValue: 'Auto-loaded',
-            },
-            {
-              num: '04',
-              title: 'Share with the group.',
-              body: 'One link \u2192 every rider has the route on their phone. Or export GPX to Rever, Calimoto, Google Maps, your Garmin.',
-              kvLabel: 'Exports',
-              kvValue: 'GPX \u00b7 KML \u00b7 Apple',
-            },
-            {
-              num: '05',
-              title: 'Day-by-day breakdown.',
-              body: 'Split multi-day tours into legs with overnight pins. See daily distance and time before you roll out.',
-              kvLabel: 'Max days',
-              kvValue: 'Unlimited',
-            },
-            {
-              num: '06',
-              title: 'Offline mode.',
-              body: "Pre-download map tiles for the regions you'll ride through. Dead zones in the Alps? Not a problem.",
-              kvLabel: 'Cache',
-              kvValue: 'Regions \u00b7 Offline',
-            },
-          ].map((p) => (
+          {([1, 2, 3, 4, 5, 6] as const).map((i) => ({
+            num: `0${i}`,
+            title: t(`pillar${i}Title`),
+            body: t(`pillar${i}Body`),
+            kvLabel: t(`pillar${i}KvLabel`),
+            kvValue: t(`pillar${i}KvValue`),
+          })).map((p) => (
             <div
               key={p.num}
               style={{
@@ -507,7 +470,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Waypoints
+              {t('waypointsLabel')}
             </div>
             <h3
               style={{
@@ -518,7 +481,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 margin: '18px 0 0',
               }}
             >
-              Every stop, <span className="mv-serif">typed.</span>
+              {t('waypointsTitle')} <span className="mv-serif">{t('waypointsTitleSerif')}</span>
             </h3>
             <p
               style={{
@@ -530,9 +493,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 letterSpacing: '-0.005em',
               }}
             >
-              Fuel, scenic, overnight, pass summit, coffee, border crossing — each waypoint carries
-              its type so the map stays readable at a glance and the export tells the truth to your
-              GPS.
+              {t('waypointsBody')}
             </p>
             {/* Waypoint type cards */}
             <div
@@ -545,23 +506,23 @@ export default async function TripPlanningPage({ params }: PageProps) {
               {[
                 {
                   icon: 'M3 22h12 M5 22V4a2 2 0 012-2h4a2 2 0 012 2v18 M3 10h10 M17 5l3 3v9a2 2 0 01-2 2',
-                  label: 'Fuel',
-                  sub: 'Stations ranked by distance from route.',
+                  label: t('wp1Label'),
+                  sub: t('wp1Sub'),
                 },
                 {
                   icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 13a3 3 0 100-6 3 3 0 000 6z',
-                  label: 'Scenic',
-                  sub: 'Viewpoints with photo previews.',
+                  label: t('wp2Label'),
+                  sub: t('wp2Sub'),
                 },
                 {
                   icon: 'M2 4v16 M2 8h18a2 2 0 012 2v10 M2 17h20 M6 8v9',
-                  label: 'Overnight',
-                  sub: 'Hotels, B&Bs and camps in range.',
+                  label: t('wp3Label'),
+                  sub: t('wp3Sub'),
                 },
                 {
                   icon: 'M12 2L22 22H2L12 2z',
-                  label: 'Summit',
-                  sub: 'Elevation profile & closure status.',
+                  label: t('wp4Label'),
+                  sub: t('wp4Sub'),
                 },
               ].map((wp) => (
                 <div
@@ -688,7 +649,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Export &amp; share
+              {t('exportLabel')}
             </div>
             <h3
               style={{
@@ -699,7 +660,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 margin: '18px 0 0',
               }}
             >
-              Your route, <span className="mv-serif">on every device.</span>
+              {t('exportTitle')} <span className="mv-serif">{t('exportTitleSerif')}</span>
             </h3>
             <p
               style={{
@@ -711,17 +672,15 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 letterSpacing: '-0.005em',
               }}
             >
-              One share link sends the route to every rider in your group — they open it in
-              MotoVault or import to their GPS of choice. No re-planning. No &ldquo;did you get the
-              file?&rdquo;
+              {t('exportBody')}
             </p>
             {/* Checklist */}
             <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 14 }}>
               {[
-                'Native GPX, KML and GeoJSON exports.',
-                'One-tap send to Apple Maps, Google Maps, Waze.',
-                "Share via link — viewers don't need the app.",
-                'Import from Rever, Calimoto, Garmin BaseCamp.',
+                t('exportCheck1'),
+                t('exportCheck2'),
+                t('exportCheck3'),
+                t('exportCheck4'),
               ].map((item) => (
                 <div
                   key={item}
@@ -857,12 +816,11 @@ export default async function TripPlanningPage({ params }: PageProps) {
 
       {/* ════ STATS ROW ════ */}
       <section className="mv-section-stats mv-grid-stats">
-        {[
-          { value: '8', unit: 'k+', label: 'Routes planned each month.' },
-          { value: '412', unit: 'km', label: 'Average multi-day tour length.' },
-          { value: '6', unit: ' types', label: 'Waypoint categories built-in.' },
-          { value: '< 90', unit: 's', label: 'To plan a four-day tour.' },
-        ].map((s) => (
+        {([1, 2, 3, 4] as const).map((i) => ({
+          value: t(`inlineStatValue${i}`),
+          unit: t(`inlineStatUnit${i}`),
+          label: t(`inlineStatLabel${i}`),
+        })).map((s) => (
           <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
               style={{
@@ -907,12 +865,12 @@ export default async function TripPlanningPage({ params }: PageProps) {
         />
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            Start planning
+            {t('ctaLabel')}
           </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            Your next{' '}
+            {t('ctaSectionTitle')}{' '}
             <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              tour.
+              {t('ctaSectionTitleSerif')}
             </span>
           </h2>
           <p
@@ -925,7 +883,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
               letterSpacing: '-0.01em',
             }}
           >
-            Free on iOS and Android. Plan your first route in under 90 seconds.
+            {t('ctaSubtitle')}
           </p>
           <div
             style={{
@@ -937,10 +895,10 @@ export default async function TripPlanningPage({ params }: PageProps) {
             }}
           >
             <Link href="/#download" className="mv-btn mv-btn-primary">
-              <span>Get the app</span>
+              <span>{t('ctaCta')}</span>
             </Link>
             <Link href="/explore" className="mv-btn mv-btn-ghost">
-              Explore rider routes &rarr;
+              {t('ctaCtaSecondary')}
             </Link>
           </div>
         </div>
@@ -980,7 +938,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Next feature &middot; 02
+                {t('nextFeature1Label')}
               </div>
               <div
                 style={{
@@ -991,9 +949,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                AI{' '}
+                {t('nextFeature1Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  diagnostics.
+                  {t('nextFeature1Serif')}
                 </span>
               </div>
             </div>
@@ -1008,7 +966,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Point. Tap. Answered.
+              {t('nextFeature1Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -1035,7 +993,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Or see &middot; 03
+                {t('nextFeature2Label')}
               </div>
               <div
                 style={{
@@ -1046,9 +1004,9 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Garage{' '}
+                {t('nextFeature2Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  management.
+                  {t('nextFeature2Serif')}
                 </span>
               </div>
             </div>
@@ -1063,7 +1021,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              One vault, every bike.
+              {t('nextFeature2Sub')}
               <ArrowIcon />
             </div>
           </Link>

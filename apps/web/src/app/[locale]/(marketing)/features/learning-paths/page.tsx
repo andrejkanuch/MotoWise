@@ -47,102 +47,18 @@ function ArrowIcon() {
   );
 }
 
-const PATH_NODES = [
-  { title: 'Body position basics', meta: '8 MIN \u00b7 VIDEO', badge: 'Done', state: 'done' },
-  { title: 'Countersteering, really', meta: '6 MIN \u00b7 DRILL', badge: 'Done', state: 'done' },
-  { title: 'Entry speed management', meta: '10 MIN \u00b7 VIDEO', badge: 'Done', state: 'done' },
-  {
-    title: 'Vision & the late apex',
-    meta: '12 MIN \u00b7 ON NOW',
-    badge: 'Active',
-    state: 'active',
-  },
-  { title: 'Trail-braking intro', meta: '9 MIN \u00b7 DRILL', badge: 'Next', state: 'default' },
+const PATH_NODE_STATES = ['done', 'done', 'done', 'active', 'default'] as const;
+
+const PATH_CARD_META = [
+  { progress: 55, statusColor: undefined },
+  { progress: 0, statusColor: undefined },
+  { progress: 100, statusColor: 'var(--mv-success)' },
+  { progress: 0, statusColor: undefined },
+  { progress: 25, statusColor: undefined },
+  { progress: 0, statusColor: undefined },
 ] as const;
 
-const PATH_CARDS = [
-  {
-    tag: 'Skill \u00b7 cornering',
-    title: 'Mastering the corner.',
-    body: 'Vision, body position, trail-braking. Nine lessons from a former racing coach.',
-    progress: 55,
-    lessons: '9 lessons \u00b7 72 min',
-    status: 'In progress',
-    statusColor: undefined,
-  },
-  {
-    tag: 'Skill \u00b7 braking',
-    title: 'Emergency braking, done right.',
-    body: 'Threshold braking, ABS feel, swerving vs braking. Parking-lot drills included.',
-    progress: 0,
-    lessons: '6 lessons \u00b7 48 min',
-    status: 'Not started',
-    statusColor: undefined,
-  },
-  {
-    tag: 'Wrench \u00b7 basics',
-    title: 'Chain, tires & fluids.',
-    body: 'The three things every rider should be able to do in their garage. With your specific bike\u2019s specs.',
-    progress: 100,
-    lessons: '8 lessons \u00b7 65 min',
-    status: 'Completed',
-    statusColor: 'var(--mv-success)',
-  },
-  {
-    tag: 'Touring',
-    title: 'Packing for a week on the road.',
-    body: 'Weight balance, weatherproofing, what to bring, what to skip. From veteran long-haulers.',
-    progress: 0,
-    lessons: '7 lessons \u00b7 55 min',
-    status: 'Not started',
-    statusColor: undefined,
-  },
-  {
-    tag: 'Skill \u00b7 rain',
-    title: 'Riding in the wet.',
-    body: 'Tire choice, line selection, smooth inputs. How to turn a soggy day into a great one.',
-    progress: 25,
-    lessons: '5 lessons \u00b7 40 min',
-    status: 'In progress',
-    statusColor: undefined,
-  },
-  {
-    tag: 'Off-road',
-    title: 'Your first dirt road.',
-    body: 'Standing up, weighting pegs, gravel reflexes. An intro for road riders looking sideways.',
-    progress: 0,
-    lessons: '6 lessons \u00b7 50 min',
-    status: 'Not started',
-    statusColor: undefined,
-  },
-] as const;
-
-const LEVELS = [
-  {
-    numeral: 'i',
-    num: 'Level 01',
-    title: 'Just licensed.',
-    body: 'Body position, slow-speed control, lane positioning, mirror discipline. Build the base.',
-  },
-  {
-    numeral: 'ii',
-    num: 'Level 02',
-    title: 'Confident commuter.',
-    body: 'Emergency braking, rain riding, group etiquette, threshold braking drills.',
-  },
-  {
-    numeral: 'iii',
-    num: 'Level 03',
-    title: 'Weekend carver.',
-    body: 'Trail-braking, late apex, body position refinement, pace on unfamiliar roads.',
-  },
-  {
-    numeral: 'iv',
-    num: 'Level 04',
-    title: 'Long-haul rider.',
-    body: 'Multi-day touring, fatigue management, off-road basics, bike packing craft.',
-  },
-] as const;
+const LEVEL_NUMERALS = ['i', 'ii', 'iii', 'iv'] as const;
 
 export default async function LearningPathsPage({ params }: PageProps) {
   const { locale } = await params;
@@ -216,7 +132,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">Feature &middot; 04</div>
+            <div className="mv-section-meta">{t('heroMeta')}</div>
             <h1
               style={{
                 fontSize: 'clamp(48px, 7.5vw, 112px)',
@@ -226,9 +142,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 margin: '24px 0 0',
               }}
             >
-              <span style={{ display: 'block' }}>Ride longer.</span>
+              <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
               <span style={{ display: 'block' }}>
-                <em className="mv-serif">Know more.</em>
+                <em className="mv-serif">{t('heroHeading2')}</em>
               </span>
             </h1>
             <p
@@ -245,11 +161,11 @@ export default async function LearningPathsPage({ params }: PageProps) {
             </p>
             <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
-                <span>Start learning</span>
+                <span>{t('heroCta')}</span>
                 <ArrowIcon />
               </Link>
               <a href="#paths" className="mv-btn mv-btn-ghost">
-                Browse paths
+                {t('heroCtaSecondary')}
               </a>
             </div>
           </div>
@@ -302,7 +218,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                       textTransform: 'uppercase',
                     }}
                   >
-                    Path &middot; in progress
+                    {t('pathVisualLabel')}
                   </div>
                   <div
                     style={{
@@ -312,7 +228,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                       letterSpacing: '-0.01em',
                     }}
                   >
-                    Mastering the corner
+                    {t('pathVisualTitle')}
                   </div>
                 </div>
                 <div
@@ -327,7 +243,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                     letterSpacing: '0.05em',
                   }}
                 >
-                  5 / 9
+                  {t('pathVisualProgress')}
                 </div>
               </div>
 
@@ -355,12 +271,14 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   }}
                   aria-hidden="true"
                 />
-                {PATH_NODES.map((node, i) => {
-                  const isDone = node.state === 'done';
-                  const isActive = node.state === 'active';
+                {PATH_NODE_STATES.map((state, i) => {
+                  const isDone = state === 'done';
+                  const isActive = state === 'active';
+                  const idx = i + 1;
+                  const nodeTitle = t(`pathNode${idx}Title`);
                   return (
                     <div
-                      key={node.title}
+                      key={idx}
                       style={{
                         display: 'flex',
                         gap: 16,
@@ -415,7 +333,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                               letterSpacing: '-0.005em',
                             }}
                           >
-                            {node.title}
+                            {nodeTitle}
                           </div>
                           <div
                             className="mv-mono"
@@ -426,7 +344,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                               letterSpacing: '0.05em',
                             }}
                           >
-                            {node.meta}
+                            {t(`pathNode${idx}Meta`)}
                           </div>
                         </div>
                         <div
@@ -444,7 +362,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                                 : 'var(--mv-ink-3)',
                           }}
                         >
-                          {node.badge}
+                          {t(`pathNode${idx}Badge`)}
                         </div>
                       </div>
                     </div>
@@ -459,14 +377,11 @@ export default async function LearningPathsPage({ params }: PageProps) {
       {/* ════ RIDER LEVELS ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">Rider levels</div>
+          <div className="mv-section-meta">{t('levelsLabel')}</div>
           <h2 className="mv-section-title">
-            Four levels. <span className="mv-serif">One long ride.</span>
+            {t('levelsTitle')} <span className="mv-serif">{t('levelsTitleSerif')}</span>
           </h2>
-          <p className="mv-section-sub">
-            MotoVault adapts to where you are &mdash; from your first license to your tenth tour.
-            You don&apos;t start over; you grow with it.
-          </p>
+          <p className="mv-section-sub">{t('levelsSubtitle')}</p>
         </div>
 
         <div
@@ -480,81 +395,81 @@ export default async function LearningPathsPage({ params }: PageProps) {
             overflow: 'hidden',
           }}
         >
-          {LEVELS.map((level) => (
-            <div
-              key={level.num}
-              style={{
-                background: 'var(--mv-bg)',
-                padding: '32px 24px',
-                textAlign: 'left',
-              }}
-            >
+          {LEVEL_NUMERALS.map((numeral, i) => {
+            const idx = i + 1;
+            return (
               <div
+                key={idx}
                 style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: '50%',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
-                  fontStyle: 'italic',
-                  fontSize: 22,
-                  color: 'var(--mv-warm-400)',
-                  background: 'oklch(0.76 0.18 60 / 0.12)',
-                  border: '1px solid oklch(0.76 0.18 60 / 0.3)',
-                  marginBottom: 20,
+                  background: 'var(--mv-bg)',
+                  padding: '32px 24px',
+                  textAlign: 'left',
                 }}
               >
-                {level.numeral}
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
+                    fontStyle: 'italic',
+                    fontSize: 22,
+                    color: 'var(--mv-warm-400)',
+                    background: 'oklch(0.76 0.18 60 / 0.12)',
+                    border: '1px solid oklch(0.76 0.18 60 / 0.3)',
+                    marginBottom: 20,
+                  }}
+                >
+                  {numeral}
+                </div>
+                <div
+                  className="mv-mono"
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--mv-ink-3)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {t(`level${idx}Num`)}
+                </div>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 500,
+                    letterSpacing: '-0.02em',
+                    marginTop: 6,
+                    lineHeight: 1.15,
+                  }}
+                >
+                  {t(`level${idx}Title`)}
+                </div>
+                <div
+                  style={{
+                    marginTop: 14,
+                    color: 'var(--mv-ink-3)',
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {t(`level${idx}Body`)}
+                </div>
               </div>
-              <div
-                className="mv-mono"
-                style={{
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {level.num}
-              </div>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 500,
-                  letterSpacing: '-0.02em',
-                  marginTop: 6,
-                  lineHeight: 1.15,
-                }}
-              >
-                {level.title}
-              </div>
-              <div
-                style={{
-                  marginTop: 14,
-                  color: 'var(--mv-ink-3)',
-                  fontSize: 13,
-                  lineHeight: 1.55,
-                }}
-              >
-                {level.body}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       {/* ════ FEATURED PATHS ════ */}
       <section id="paths" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">Featured paths</div>
+          <div className="mv-section-meta">{t('pathsLabel')}</div>
           <h2 className="mv-section-title">
-            Short paths. <span className="mv-serif">Real improvements.</span>
+            {t('pathsTitle')} <span className="mv-serif">{t('pathsTitleSerif')}</span>
           </h2>
-          <p className="mv-section-sub">
-            Each path is 6&ndash;12 lessons, 5&ndash;10 minutes each. Mix of video, drills to do in
-            an empty lot, and in-app checkpoints.
-          </p>
+          <p className="mv-section-sub">{t('pathsSubtitle')}</p>
         </div>
 
         <div
@@ -564,102 +479,105 @@ export default async function LearningPathsPage({ params }: PageProps) {
             gap: 20,
           }}
         >
-          {PATH_CARDS.map((card) => (
-            <div
-              key={card.title}
-              style={{
-                background: 'var(--mv-surface)',
-                border: '1px solid var(--mv-line)',
-                borderRadius: 18,
-                padding: 28,
-                display: 'flex',
-                flexDirection: 'column',
-                minHeight: 280,
-              }}
-            >
+          {PATH_CARD_META.map((card, i) => {
+            const idx = i + 1;
+            return (
               <div
-                className="mv-mono"
+                key={idx}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  fontSize: 10,
-                  color: 'var(--mv-warm-400)',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                <span
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: '50%',
-                    background: 'var(--mv-warm-500)',
-                  }}
-                />
-                {card.tag}
-              </div>
-              <div
-                style={{
-                  fontSize: 20,
-                  fontWeight: 500,
-                  letterSpacing: '-0.02em',
-                  marginTop: 20,
-                  lineHeight: 1.2,
-                }}
-              >
-                {card.title}
-              </div>
-              <div
-                style={{
-                  flex: 1,
-                  marginTop: 10,
-                  color: 'var(--mv-ink-3)',
-                  fontSize: 13,
-                  lineHeight: 1.55,
-                }}
-              >
-                {card.body}
-              </div>
-              {/* Progress bar */}
-              <div
-                style={{
-                  marginTop: 18,
-                  height: 4,
-                  borderRadius: 2,
-                  background: 'oklch(1 0 0 / 0.04)',
-                  overflow: 'hidden',
+                  background: 'var(--mv-surface)',
+                  border: '1px solid var(--mv-line)',
+                  borderRadius: 18,
+                  padding: 28,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: 280,
                 }}
               >
                 <div
+                  className="mv-mono"
                   style={{
-                    height: '100%',
-                    width: `${card.progress}%`,
-                    background: 'linear-gradient(90deg, var(--mv-warm-500), var(--mv-warm-400))',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontSize: 10,
+                    color: 'var(--mv-warm-400)',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: 'var(--mv-warm-500)',
+                    }}
+                  />
+                  {t(`pathCard${idx}Tag`)}
+                </div>
+                <div
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 500,
+                    letterSpacing: '-0.02em',
+                    marginTop: 20,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {t(`pathCard${idx}Title`)}
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    marginTop: 10,
+                    color: 'var(--mv-ink-3)',
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {t(`pathCard${idx}Body`)}
+                </div>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    marginTop: 18,
+                    height: 4,
+                    borderRadius: 2,
+                    background: 'oklch(1 0 0 / 0.04)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${card.progress}%`,
+                      background: 'linear-gradient(90deg, var(--mv-warm-500), var(--mv-warm-400))',
+                    }}
+                  />
+                </div>
+                <div
+                  className="mv-mono"
+                  style={{
+                    marginTop: 24,
+                    paddingTop: 20,
+                    borderTop: '1px solid var(--mv-line)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: 11,
+                    color: 'var(--mv-ink-3)',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  <span>{t(`pathCard${idx}Lessons`)}</span>
+                  <span style={card.statusColor ? { color: card.statusColor } : undefined}>
+                    {t(`pathCard${idx}Status`)}
+                  </span>
+                </div>
               </div>
-              <div
-                className="mv-mono"
-                style={{
-                  marginTop: 24,
-                  paddingTop: 20,
-                  borderTop: '1px solid var(--mv-line)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <span>{card.lessons}</span>
-                <span style={card.statusColor ? { color: card.statusColor } : undefined}>
-                  {card.status}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -676,7 +594,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 textTransform: 'uppercase',
               }}
             >
-              Why it works
+              {t('showcaseLabel')}
             </div>
             <h3
               style={{
@@ -687,7 +605,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 margin: '18px 0 0',
               }}
             >
-              Learn on <span className="mv-serif">your schedule.</span>
+              {t('showcaseTitle')} <span className="mv-serif">{t('showcaseTitleSerif')}</span>
             </h3>
             <p
               style={{
@@ -699,19 +617,13 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 letterSpacing: '-0.005em',
               }}
             >
-              Short lessons. Practical drills you can do in an empty parking lot. Checkpoints so you
-              know you actually got it, not just watched it.
+              {t('showcaseBody')}
             </p>
             {/* Checklist */}
             <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                '5\u201310 minute lessons \u2014 do one before a ride.',
-                'Drills with printable checklists.',
-                'Progress syncs across devices.',
-                'Instructors: MSF coaches, racers, tourers.',
-              ].map((item) => (
+              {([1, 2, 3, 4] as const).map((n) => (
                 <div
-                  key={item}
+                  key={n}
                   style={{
                     display: 'flex',
                     gap: 14,
@@ -736,7 +648,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                     }}
                     aria-hidden="true"
                   />
-                  {item}
+                  {t(`showcaseCheck${n}`)}
                 </div>
               ))}
             </div>
@@ -806,13 +718,11 @@ export default async function LearningPathsPage({ params }: PageProps) {
 
       {/* ════ STATS ROW ════ */}
       <section className="mv-section-stats mv-grid-stats">
-        {[
-          { value: '40', unit: '+', label: 'Paths in the library, growing.' },
-          { value: '8', unit: 'min', label: 'Average lesson length.' },
-          { value: '4', unit: ' levels', label: 'Novice \u2192 long-haul tourer.' },
-          { value: '92', unit: '%', label: 'Riders report improved skill.' },
-        ].map((s) => (
-          <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
+        {([1, 2, 3, 4] as const).map((n) => (
+          <div
+            key={n}
+            style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}
+          >
             <div
               style={{
                 fontSize: 'clamp(32px, 3.6vw, 52px)',
@@ -823,9 +733,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              {s.value}
+              {t(`stat${n}Value`)}
               <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                {s.unit}
+                {t(`stat${n}Unit`)}
               </span>
             </div>
             <div
@@ -836,7 +746,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 letterSpacing: '-0.005em',
               }}
             >
-              {s.label}
+              {t(`stat${n}Label`)}
             </div>
           </div>
         ))}
@@ -863,12 +773,12 @@ export default async function LearningPathsPage({ params }: PageProps) {
         />
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            Start learning
+            {t('ctaLabel')}
           </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            Better{' '}
+            {t('ctaTitle')}{' '}
             <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              every ride.
+              {t('ctaTitleSerif')}
             </span>
           </h2>
           <p
@@ -881,7 +791,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
               letterSpacing: '-0.01em',
             }}
           >
-            Free forever. Pick a path, do one lesson, go ride.
+            {t('ctaSubtitle')}
           </p>
           <div
             style={{
@@ -893,10 +803,10 @@ export default async function LearningPathsPage({ params }: PageProps) {
             }}
           >
             <Link href="/#download" className="mv-btn mv-btn-primary">
-              <span>Get the app</span>
+              <span>{t('ctaCta')}</span>
             </Link>
             <Link href="/explore" className="mv-btn mv-btn-ghost">
-              Explore rider stories &rarr;
+              {t('ctaCtaSecondary')}
             </Link>
           </div>
         </div>
@@ -936,7 +846,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Feature &middot; 01
+                {t('nextFeature1Label')}
               </div>
               <div
                 style={{
@@ -947,9 +857,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Trip{' '}
+                {t('nextFeature1Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  planning.
+                  {t('nextFeature1Serif')}
                 </span>
               </div>
             </div>
@@ -964,7 +874,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Multi-day routes.
+              {t('nextFeature1Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -991,7 +901,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Feature &middot; 02
+                {t('nextFeature2Label')}
               </div>
               <div
                 style={{
@@ -1002,9 +912,9 @@ export default async function LearningPathsPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                AI{' '}
+                {t('nextFeature2Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  diagnostics.
+                  {t('nextFeature2Serif')}
                 </span>
               </div>
             </div>
@@ -1019,7 +929,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Point. Tap. Answered.
+              {t('nextFeature2Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -1029,8 +939,8 @@ export default async function LearningPathsPage({ params }: PageProps) {
       {/* ════ FAQ ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">Got Questions?</div>
-          <h2 className="mv-section-title">Frequently Asked Questions</h2>
+          <div className="mv-section-meta">{t('faqLabel')}</div>
+          <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <LearningFaq items={faqItems} />
           </div>

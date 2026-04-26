@@ -141,7 +141,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
       <section className="px-6 pb-16 pt-8 md:pt-12">
         <div className="reveal-on-scroll mx-auto max-w-4xl text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            Progress Tracking
+            {t('sectionLabel')}
           </p>
           <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl lg:text-5xl">
             {t('heroTitle')}
@@ -178,10 +178,10 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         <div className="mx-auto max-w-5xl">
           <div className="reveal-on-scroll mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Stay Motivated
+              {t('featuresLabel')}
             </p>
             <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              Track Every Milestone
+              {t('featuresTitle')}
             </h2>
           </div>
 
@@ -235,7 +235,7 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
       <section className="reveal-on-scroll px-6 py-24">
         <div className="mx-auto max-w-3xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-            Under the Hood
+            {t('longFormLabel')}
           </p>
           <h2 className="reveal-on-scroll text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
             {t('longFormTitle')}
@@ -276,10 +276,10 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
         <div className="mx-auto max-w-4xl">
           <div className="reveal-on-scroll mb-16 text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-warm-400">
-              Got Questions?
+              {t('faqLabel')}
             </p>
             <h2 className="text-3xl font-bold leading-[1.15] tracking-tight text-neutral-50 sm:text-4xl">
-              Frequently Asked Questions
+              {t('faqTitle')}
             </h2>
           </div>
 
@@ -318,12 +318,12 @@ export default async function ProgressTrackingPage({ params }: PageProps) {
           </div>
 
           <p className="mt-12 text-center text-neutral-500">
-            Have more questions?{' '}
+            {t('faqMore')}{' '}
             <Link
               href="/support"
               className="text-warm-400 underline underline-offset-4 transition-colors hover:text-warm-300"
             >
-              Visit our support page
+              {t('faqSupportLink')}
             </Link>
           </p>
         </div>

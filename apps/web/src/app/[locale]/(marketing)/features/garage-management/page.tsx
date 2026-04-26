@@ -46,39 +46,39 @@ function ArrowIcon() {
   );
 }
 
-const BIKES = [
+const BIKE_VISUALS = [
   {
     abbr: 'MT',
-    name: '2022 Yamaha MT-07',
-    sub: '14,820 MI \u00b7 DAILY',
-    status: 'Healthy',
+    nameKey: 'bike1Name',
+    subKey: 'bike1Sub',
+    statusKey: 'bike1Status',
     statusWarn: false,
     bg: 'linear-gradient(135deg, oklch(0.7 0.2 40), oklch(0.35 0.12 30))',
     hasMeta: false,
   },
   {
     abbr: 'GS',
-    name: '2019 BMW R 1250 GS',
-    sub: '32,104 MI \u00b7 TOURING',
-    status: 'Oil due',
+    nameKey: 'bike2Name',
+    subKey: 'bike2Sub',
+    statusKey: 'bike2Status',
     statusWarn: true,
     bg: 'linear-gradient(135deg, oklch(0.75 0.18 240), oklch(0.3 0.12 240))',
     hasMeta: true,
   },
   {
     abbr: 'SV',
-    name: '2006 Suzuki SV650',
-    sub: '68,430 MI \u00b7 PROJECT',
-    status: 'Stored',
+    nameKey: 'bike3Name',
+    subKey: 'bike3Sub',
+    statusKey: 'bike3Status',
     statusWarn: false,
     bg: 'linear-gradient(135deg, oklch(0.8 0.15 110), oklch(0.35 0.1 120))',
     hasMeta: false,
   },
   {
     abbr: 'GR',
-    name: '2023 Honda Grom',
-    sub: '4,002 MI \u00b7 WEEKENDS',
-    status: 'Healthy',
+    nameKey: 'bike4Name',
+    subKey: 'bike4Sub',
+    statusKey: 'bike4Status',
     statusWarn: false,
     bg: 'linear-gradient(135deg, oklch(0.72 0.14 340), oklch(0.3 0.09 340))',
     hasMeta: false,
@@ -92,50 +92,50 @@ const CARD_POSITIONS = [
   { top: 240, transform: 'rotate(2deg) translateX(-6px) scale(0.92)', zIndex: 1, opacity: 0.78 },
 ] as const;
 
-const MAINT_ROWS = [
+const MAINT_ROW_VISUALS = [
   {
     icon: 'M12 2v6 M5 10h14 M7 10v10a2 2 0 002 2h6a2 2 0 002-2V10',
-    label: 'Oil change',
-    sub: 'MOBIL 1 15W-50 \u00b7 3.2 QT',
-    date: 'Mar 12, 2026',
-    miles: '14,220 mi',
-    status: 'Done',
+    labelKey: 'maint1Label',
+    subKey: 'maint1Sub',
+    dateKey: 'maint1Date',
+    milesKey: 'maint1Miles',
+    statusKey: 'maint1Status',
     statusType: 'done',
   },
   {
     icon: 'M12 12m-8 0a8 8 0 1016 0 8 8 0 10-16 0 M12 4v4 M12 16v4 M4 12h4 M16 12h4',
-    label: 'Chain clean & lube',
-    sub: 'MOTUL C2+ \u00b7 EVERY 600 MI',
-    date: 'Due in 120 mi',
-    miles: '14,820 mi now',
-    status: 'Due soon',
+    labelKey: 'maint2Label',
+    subKey: 'maint2Sub',
+    dateKey: 'maint2Date',
+    milesKey: 'maint2Miles',
+    statusKey: 'maint2Status',
     statusType: 'due',
   },
   {
     icon: 'M12 12m-10 0a10 10 0 1020 0 10 10 0 10-20 0 M12 12m-4 0a4 4 0 108 0 4 4 0 10-8 0',
-    label: 'Rear tire replacement',
-    sub: 'PIRELLI ROSSO III \u00b7 180/55',
-    date: 'Feb 4, 2026',
-    miles: '12,940 mi',
-    status: 'Done',
+    labelKey: 'maint3Label',
+    subKey: 'maint3Sub',
+    dateKey: 'maint3Date',
+    milesKey: 'maint3Miles',
+    statusKey: 'maint3Status',
     statusType: 'done',
   },
   {
     icon: 'M5 5h14v14H5z M9 9l6 6',
-    label: 'Valve clearance check',
-    sub: 'MT-07 \u00b7 EVERY 24K MI',
-    date: 'In ~9,000 mi',
-    miles: '24,000 mi',
-    status: 'Upcoming',
+    labelKey: 'maint4Label',
+    subKey: 'maint4Sub',
+    dateKey: 'maint4Date',
+    milesKey: 'maint4Miles',
+    statusKey: 'maint4Status',
     statusType: 'wait',
   },
   {
     icon: 'M4 12h16 M4 6h16 M4 18h16',
-    label: 'Brake pad inspection',
-    sub: 'EBC FA \u00b7 4MM REMAINING',
-    date: 'Feb 4, 2026',
-    miles: '12,940 mi',
-    status: 'Done',
+    labelKey: 'maint5Label',
+    subKey: 'maint5Sub',
+    dateKey: 'maint5Date',
+    milesKey: 'maint5Miles',
+    statusKey: 'maint5Status',
     statusType: 'done',
   },
 ] as const;
@@ -162,8 +162,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
     }),
     buildBreadcrumbList(
       [
-        { name: 'Home', url: getCanonicalUrl(locale) },
-        { name: 'Features', url: getCanonicalUrl(locale, '/features') },
+        { name: t('breadcrumbHome'), url: getCanonicalUrl(locale) },
+        { name: t('breadcrumbFeatures'), url: getCanonicalUrl(locale, '/features') },
         { name: t('title'), url: canonical },
       ],
       locale,
@@ -203,7 +203,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
           </Link>
           <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
           <Link href="/features" style={{ color: 'var(--mv-ink-3)', textDecoration: 'none' }}>
-            Features
+            {t('breadcrumbFeatures')}
           </Link>
           <span style={{ color: 'var(--mv-ink-4)' }}>/</span>
           <span style={{ color: 'var(--mv-warm-400)' }}>{t('title')}</span>
@@ -212,7 +212,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
         <div className="mv-grid-hero">
           {/* Text column */}
           <div>
-            <div className="mv-section-meta">Feature &middot; 03</div>
+            <div className="mv-section-meta">{t('heroLabel')}</div>
             <h1
               style={{
                 fontSize: 'clamp(48px, 7.5vw, 112px)',
@@ -222,9 +222,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 margin: '24px 0 0',
               }}
             >
-              <span style={{ display: 'block' }}>Every bike.</span>
+              <span style={{ display: 'block' }}>{t('heroHeading1')}</span>
               <span style={{ display: 'block' }}>
-                <em className="mv-serif">One vault.</em>
+                <em className="mv-serif">{t('heroHeading2')}</em>
               </span>
             </h1>
             <p
@@ -241,11 +241,11 @@ export default async function GarageManagementPage({ params }: PageProps) {
             </p>
             <div style={{ marginTop: 40, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/#download" className="mv-btn mv-btn-primary">
-                <span>Build your garage</span>
+                <span>{t('heroCta')}</span>
                 <ArrowIcon />
               </Link>
               <a href="#maint" className="mv-btn mv-btn-ghost">
-                See the tools
+                {t('heroCtaSecondary')}
               </a>
             </div>
           </div>
@@ -255,7 +255,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
             <div
               style={{ position: 'relative', width: '100%', maxWidth: 520, aspectRatio: '4/4.3' }}
             >
-              {BIKES.map((bike, i) => {
+              {BIKE_VISUALS.map((bike, i) => {
                 const pos = CARD_POSITIONS[i];
                 return (
                   <div
@@ -307,7 +307,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                             textOverflow: 'ellipsis',
                           }}
                         >
-                          {bike.name}
+                          {t(bike.nameKey)}
                         </div>
                         <div
                           className="mv-mono"
@@ -318,7 +318,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                             letterSpacing: '0.05em',
                           }}
                         >
-                          {bike.sub}
+                          {t(bike.subKey)}
                         </div>
                       </div>
                       <div
@@ -336,7 +336,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                           textTransform: 'uppercase',
                         }}
                       >
-                        {bike.status}
+                        {t(bike.statusKey)}
                       </div>
                     </div>
                     {bike.hasMeta && (
@@ -350,9 +350,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
                         }}
                       >
                         {[
-                          { label: 'Services', value: '34' },
-                          { label: 'This year', value: '$1,204' },
-                          { label: 'Cost/mi', value: '$0.24' },
+                          { label: t('bikeMetaServicesLabel'), value: t('bikeMetaServicesValue') },
+                          { label: t('bikeMetaThisYearLabel'), value: t('bikeMetaThisYearValue') },
+                          { label: t('bikeMetaCostMiLabel'), value: t('bikeMetaCostMiValue') },
                         ].map((m) => (
                           <div
                             key={m.label}
@@ -394,9 +394,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ PILLARS ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">One vault &middot; everything</div>
+          <div className="mv-section-meta">{t('pillarsLabel')}</div>
           <h2 className="mv-section-title">
-            Everything your bike <span className="mv-serif">deserves to remember.</span>
+            {t('pillarsTitle')} <span className="mv-serif">{t('pillarsTitleSerif')}</span>
           </h2>
         </div>
 
@@ -414,45 +414,45 @@ export default async function GarageManagementPage({ params }: PageProps) {
           {[
             {
               num: '01',
-              title: 'Unlimited bikes.',
-              body: 'Daily, weekend, touring, project, sold. Keep them all \u2014 even retired bikes stay searchable for when a buyer asks about service history.',
-              kvLabel: 'Cost',
-              kvValue: 'Free \u00b7 forever',
+              title: t('pillar1Title'),
+              body: t('pillar1Body'),
+              kvLabel: t('pillar1KvLabel'),
+              kvValue: t('pillar1KvValue'),
             },
             {
               num: '02',
-              title: 'Auto-loaded specs.',
-              body: 'Search your make & model \u2014 MotoVault pre-fills tank size, tire specs, service intervals and torque values for 12,000+ bikes.',
-              kvLabel: 'Database',
-              kvValue: '12k+ models',
+              title: t('pillar2Title'),
+              body: t('pillar2Body'),
+              kvLabel: t('pillar2KvLabel'),
+              kvValue: t('pillar2KvValue'),
             },
             {
               num: '03',
-              title: 'Maintenance reminders.',
-              body: 'Mileage or time-based, tuned to each bike\u2019s service schedule. Alerts land before you\u2019re overdue \u2014 not the day the light turns on.',
-              kvLabel: 'Reminders',
-              kvValue: 'Per-bike & smart',
+              title: t('pillar3Title'),
+              body: t('pillar3Body'),
+              kvLabel: t('pillar3KvLabel'),
+              kvValue: t('pillar3KvValue'),
             },
             {
               num: '04',
-              title: 'Expense tracking.',
-              body: 'Fuel, parts, gear, insurance, storage \u2014 categorized and rolled up monthly. See your true cost-per-mile for every bike.',
-              kvLabel: 'Categories',
-              kvValue: '8 built-in',
+              title: t('pillar4Title'),
+              body: t('pillar4Body'),
+              kvLabel: t('pillar4KvLabel'),
+              kvValue: t('pillar4KvValue'),
             },
             {
               num: '05',
-              title: 'Documents vault.',
-              body: 'Registration, insurance card, service receipts, VIN. Encrypted, synced, one tap away when the officer asks.',
-              kvLabel: 'Storage',
-              kvValue: 'Encrypted \u00b7 synced',
+              title: t('pillar5Title'),
+              body: t('pillar5Body'),
+              kvLabel: t('pillar5KvLabel'),
+              kvValue: t('pillar5KvValue'),
             },
             {
               num: '06',
-              title: 'Exportable history.',
-              body: 'Selling a bike? Export a full service report as PDF \u2014 every oil change, every tire, every receipt. Adds real resale value.',
-              kvLabel: 'Export',
-              kvValue: 'PDF \u00b7 CSV',
+              title: t('pillar6Title'),
+              body: t('pillar6Body'),
+              kvLabel: t('pillar6KvLabel'),
+              kvValue: t('pillar6KvValue'),
             },
           ].map((p) => (
             <div
@@ -530,13 +530,12 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ MAINTENANCE TIMELINE ════ */}
       <section id="maint" className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">Maintenance timeline</div>
+          <div className="mv-section-meta">{t('maintLabel')}</div>
           <h2 className="mv-section-title">
-            Never be surprised by <span className="mv-serif">a service again.</span>
+            {t('maintTitle')} <span className="mv-serif">{t('maintTitleSerif')}</span>
           </h2>
           <p className="mv-section-sub">
-            A live timeline of what&apos;s done, what&apos;s due and what&apos;s coming &mdash; per
-            bike, in one view.
+            {t('maintSubtitle')}
           </p>
         </div>
 
@@ -548,9 +547,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
             overflow: 'hidden',
           }}
         >
-          {MAINT_ROWS.map((row, i, arr) => (
+          {MAINT_ROW_VISUALS.map((row, i, arr) => (
             <div
-              key={row.label}
+              key={row.labelKey}
               className="mv-grid-table"
               style={{
                 gap: 20,
@@ -587,7 +586,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
               </div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 500, letterSpacing: '-0.01em' }}>
-                  {row.label}
+                  {t(row.labelKey)}
                 </div>
                 <div
                   className="mv-mono"
@@ -598,20 +597,20 @@ export default async function GarageManagementPage({ params }: PageProps) {
                     letterSpacing: '0.04em',
                   }}
                 >
-                  {row.sub}
+                  {t(row.subKey)}
                 </div>
               </div>
               <div
                 className="mv-mono"
                 style={{ fontSize: 12, color: 'var(--mv-ink-2)', letterSpacing: '0.04em' }}
               >
-                {row.date}
+                {t(row.dateKey)}
               </div>
               <div
                 className="mv-mono"
                 style={{ fontSize: 12, color: 'var(--mv-ink-3)', letterSpacing: '0.04em' }}
               >
-                {row.miles}
+                {t(row.milesKey)}
               </div>
               <div
                 className="mv-mono"
@@ -636,7 +635,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                         : 'var(--mv-ink-3)',
                 }}
               >
-                {row.status}
+                {t(row.statusKey)}
               </div>
             </div>
           ))}
@@ -646,13 +645,12 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ EXPENSES -- donut chart ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 860 }}>
-          <div className="mv-section-meta">Expenses &amp; cost/mile</div>
+          <div className="mv-section-meta">{t('expensesLabel')}</div>
           <h2 className="mv-section-title">
-            Know what your bike <span className="mv-serif">really costs.</span>
+            {t('expensesTitle')} <span className="mv-serif">{t('expensesTitleSerif')}</span>
           </h2>
           <p className="mv-section-sub">
-            Every fill-up, service and gear purchase &mdash; rolled up into the numbers that
-            actually matter.
+            {t('expensesSubtitle')}
           </p>
         </div>
 
@@ -750,7 +748,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
-                  $214
+                  {t('donutValue')}
                 </div>
                 <div
                   className="mv-mono"
@@ -762,7 +760,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                     marginTop: 8,
                   }}
                 >
-                  March &middot; 2026
+                  {t('donutPeriod')}
                 </div>
               </div>
             </div>
@@ -772,27 +770,27 @@ export default async function GarageManagementPage({ params }: PageProps) {
             {[
               {
                 color: 'oklch(0.76 0.18 60)',
-                label: 'Fuel',
-                sub: '14 fill-ups \u00b7 34% of total',
-                value: '$75.20',
+                label: t('expense1Label'),
+                sub: t('expense1Sub'),
+                value: t('expense1Value'),
               },
               {
                 color: 'oklch(0.84 0.15 68)',
-                label: 'Maintenance',
-                sub: 'Oil, chain lube \u00b7 25%',
-                value: '$53.80',
+                label: t('expense2Label'),
+                sub: t('expense2Sub'),
+                value: t('expense2Value'),
               },
               {
                 color: 'oklch(0.6 0.13 60)',
-                label: 'Parts',
-                sub: 'Brake pads \u00b7 19%',
-                value: '$42.10',
+                label: t('expense3Label'),
+                sub: t('expense3Sub'),
+                value: t('expense3Value'),
               },
               {
                 color: 'oklch(0.45 0.1 60)',
-                label: 'Insurance & misc',
-                sub: 'Monthly \u00b7 22%',
-                value: '$43.70',
+                label: t('expense4Label'),
+                sub: t('expense4Sub'),
+                value: t('expense4Value'),
               },
             ].map((item, i, arr) => (
               <div
@@ -847,10 +845,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ STATS ROW ════ */}
       <section className="mv-section-stats mv-grid-stats">
         {[
-          { value: '\u221e', unit: '', label: 'Bikes per garage. Seriously.' },
-          { value: '12', unit: 'k+', label: 'Models with pre-loaded specs.' },
-          { value: '$0.23', unit: '/mi', label: 'Avg. rider cost tracked.' },
-          { value: '8', unit: ' cats', label: 'Expense categories built-in.' },
+          { value: t('stat1Value'), unit: '', label: t('stat1Label') },
+          { value: t('stat2Value'), unit: t('stat2Unit'), label: t('stat2Label') },
+          { value: t('stat3Value'), unit: t('stat3Unit'), label: t('stat3Label') },
+          { value: t('stat4Value'), unit: t('stat4Unit'), label: t('stat4Label') },
         ].map((s) => (
           <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
@@ -905,12 +903,12 @@ export default async function GarageManagementPage({ params }: PageProps) {
         />
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div className="mv-section-meta" style={{ justifyContent: 'center' }}>
-            Build your garage
+            {t('ctaLabel')}
           </div>
           <h2 className="mv-section-title" style={{ textAlign: 'center' }}>
-            Ride,{' '}
+            {t('ctaTitle')}{' '}
             <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-              remember.
+              {t('ctaTitleSerif')}
             </span>
           </h2>
           <p
@@ -923,7 +921,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
               letterSpacing: '-0.01em',
             }}
           >
-            Free forever. Set up your first bike in under 90 seconds.
+            {t('ctaSubtitle')}
           </p>
           <div
             style={{
@@ -935,10 +933,10 @@ export default async function GarageManagementPage({ params }: PageProps) {
             }}
           >
             <Link href="/#download" className="mv-btn mv-btn-primary">
-              <span>Get the app</span>
+              <span>{t('ctaCta')}</span>
             </Link>
             <Link href="/features/ai-diagnostics" className="mv-btn mv-btn-ghost">
-              See AI diagnostics &rarr;
+              {t('ctaCtaSecondary')}
             </Link>
           </div>
         </div>
@@ -978,7 +976,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Next feature &middot; 04
+                {t('nextFeature1Label')}
               </div>
               <div
                 style={{
@@ -989,9 +987,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Learning{' '}
+                {t('nextFeature1Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  paths.
+                  {t('nextFeature1Serif')}
                 </span>
               </div>
             </div>
@@ -1006,7 +1004,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Novice to expert.
+              {t('nextFeature1Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -1033,7 +1031,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   textTransform: 'uppercase',
                 }}
               >
-                Or see &middot; 01
+                {t('nextFeature2Label')}
               </div>
               <div
                 style={{
@@ -1044,9 +1042,9 @@ export default async function GarageManagementPage({ params }: PageProps) {
                   marginTop: 16,
                 }}
               >
-                Trip{' '}
+                {t('nextFeature2Title')}{' '}
                 <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                  planning.
+                  {t('nextFeature2Serif')}
                 </span>
               </div>
             </div>
@@ -1061,7 +1059,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                 fontWeight: 500,
               }}
             >
-              Multi-day routes.
+              {t('nextFeature2Sub')}
               <ArrowIcon />
             </div>
           </Link>
@@ -1071,8 +1069,8 @@ export default async function GarageManagementPage({ params }: PageProps) {
       {/* ════ FAQ ════ */}
       <section className="mv-section-inner">
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div className="mv-section-meta">Support</div>
-          <h2 className="mv-section-title">Frequently Asked Questions</h2>
+          <div className="mv-section-meta">{t('faqLabel')}</div>
+          <h2 className="mv-section-title">{t('faqTitle')}</h2>
           <div style={{ marginTop: 48 }}>
             <GarageManagementFaq items={faqItems} />
           </div>
