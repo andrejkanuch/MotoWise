@@ -1,9 +1,7 @@
 import { defineRouting } from 'next-intl/routing';
 
 export const routing = defineRouting({
-  // Europe + Americas only. Locales removed 2026-04-11: pt-BR, ja, hi, th, id, tr, pl
-  // (see next.config.ts redirects() for 90-day grace period on removed prefixes).
-  locales: ['en', 'de', 'fr', 'es', 'it'],
+  locales: ['en', 'de', 'fr', 'es', 'it', 'pt-BR', 'ja', 'hi', 'th', 'id', 'tr', 'pl'],
   defaultLocale: 'en',
   localePrefix: 'as-needed',
   // Disable Accept-Language + NEXT_LOCALE cookie detection so canonical URLs
