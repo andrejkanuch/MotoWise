@@ -463,7 +463,13 @@ export default function RidesScreen() {
             stats.
           </Text>
           <Pressable
-            onPress={() => presentPaywall()}
+            onPress={() =>
+              presentPaywall({
+                source: 'rides_history',
+                feature: 'subscription',
+                surface: 'rides_history_limit',
+              })
+            }
             accessibilityRole="button"
             accessibilityLabel="Upgrade to Pro"
             style={{

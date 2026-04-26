@@ -191,8 +191,10 @@ export const AnalyticsEvent = {
   NAV_HANDOFF: 'nav_handoff',
 
   // Subscription funnel
+  PAYWALL_PRESENT_REQUESTED: 'paywall_present_requested',
   PAYWALL_VIEWED: 'paywall_viewed',
   PAYWALL_DISMISSED: 'paywall_dismissed',
+  PAYWALL_RESULT: 'paywall_result',
   PURCHASE_STARTED: 'purchase_started',
   PURCHASE_COMPLETED: 'purchase_completed',
   PURCHASE_CANCELLED: 'purchase_cancelled',

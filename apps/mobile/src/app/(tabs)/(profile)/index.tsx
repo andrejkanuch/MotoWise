@@ -6,7 +6,12 @@ import {
   UpdateUserDocument,
 } from '@motovault/graphql';
 import type { Currency, SupportedLocale } from '@motovault/types';
-import { CURRENCY_SYMBOLS, FREE_TIER_LIMITS, SUPPORTED_LOCALES } from '@motovault/types';
+import {
+  CURRENCY_SYMBOLS,
+  FREE_TIER_LIMITS,
+  REVENUECAT_ENTITLEMENT_PRO,
+  SUPPORTED_LOCALES,
+} from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,7 +49,6 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProBadge } from '../../../components/ProBadge';
-import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -177,7 +181,7 @@ export default function ProfileScreen() {
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { isPro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
+  const { isPro } = useProGate();
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
 
@@ -197,7 +201,10 @@ export default function ProfileScreen() {
     if (!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES) {
       haptic();
       const result = await presentPaywall({
-        requiredEntitlementIdentifier: 'pro',
+        requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
+        source: 'profile',
+        feature: 'unlimited_bikes',
+        surface: 'profile_add_bike',
       });
       if (result !== 'purchased' && result !== 'restored') return;
     }
@@ -1001,7 +1008,11 @@ export default function ProfileScreen() {
           <Pressable
             onPress={() => {
               haptic();
-              presentPaywall();
+              presentPaywall({
+                source: 'profile',
+                feature: 'subscription',
+                surface: 'profile_pro_banner',
+              });
             }}
             style={{ borderRadius: 20, borderCurve: 'continuous', overflow: 'hidden' }}
           >
@@ -1075,7 +1086,13 @@ export default function ProfileScreen() {
             icon={CreditCard}
             label={t('profile.subscriptions')}
             isDark={isDark}
-            onPress={() => presentPaywall()}
+            onPress={() =>
+              presentPaywall({
+                source: 'profile',
+                feature: 'subscription',
+                surface: 'profile_subscriptions_row',
+              })
+            }
           />
           <SettingsRow
             icon={Megaphone}
@@ -1530,8 +1547,6 @@ export default function ProfileScreen() {
           />
         </View>
       </Animated.View>
-
-      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </ScrollView>
   );
 }

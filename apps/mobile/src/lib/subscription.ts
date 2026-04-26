@@ -1,7 +1,8 @@
 import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
+import type { JsonType } from '@posthog/core';
 import Constants from 'expo-constants';
 import { useSubscriptionStore } from '../stores/subscription.store';
-import { captureException } from './analytics';
+import { AnalyticsEvent, captureException, trackEvent } from './analytics';
 
 // Module-level cached import — resolve once, reuse everywhere
 let PurchasesModule: typeof import('react-native-purchases') | null = null;
@@ -19,6 +20,56 @@ function isExpoGo(): boolean {
 
 // Shared init promise — loginRevenueCat awaits this before calling logIn
 let initPromise: Promise<(() => void) | null> | null = null;
+
+type PaywallResult = 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error';
+
+type PaywallAnalyticsOptions = {
+  source?: string;
+  feature?: string;
+  surface?: string;
+  metadata?: Record<string, JsonType>;
+};
+
+type PresentPaywallOptions = PaywallAnalyticsOptions & {
+  requiredEntitlementIdentifier?: string;
+  offeringIdentifier?: string;
+  placement?: string;
+};
+
+function paywallProperties(
+  options: PresentPaywallOptions,
+  extra: Record<string, JsonType> = {},
+): Record<string, JsonType> {
+  return {
+    source: options.source ?? 'unknown',
+    feature: options.feature ?? null,
+    surface: options.surface ?? null,
+    placement: options.placement ?? null,
+    offering_identifier: options.offeringIdentifier ?? null,
+    required_entitlement_identifier: options.requiredEntitlementIdentifier ?? null,
+    platform: process.env.EXPO_OS ?? 'unknown',
+    sdk: 'revenuecat',
+    ...(options.metadata ?? {}),
+    ...extra,
+  };
+}
+
+function trackPaywallResult(options: PresentPaywallOptions, result: PaywallResult) {
+  const properties = paywallProperties(options, { paywall_result: result });
+  trackEvent(AnalyticsEvent.PAYWALL_RESULT, properties);
+
+  if (result === 'purchased') {
+    trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, properties);
+  } else if (result === 'restored') {
+    trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, properties);
+  } else if (result === 'cancelled') {
+    trackEvent(AnalyticsEvent.PAYWALL_DISMISSED, {
+      ...properties,
+      reason: 'user_cancelled',
+    });
+    trackEvent(AnalyticsEvent.PURCHASE_CANCELLED, properties);
+  }
+}
 
 export function initRevenueCat(): Promise<(() => void) | null> {
   if (isExpoGo()) {
@@ -106,6 +157,7 @@ export async function loginRevenueCat(userId: string) {
     // Set PostHog user ID so the RevenueCat → PostHog integration can
     // match server-side subscription events to the correct PostHog user.
     await Purchases.setAttributes({ $posthogUserId: userId });
+    await Purchases.syncAttributesAndOfferingsIfNeeded?.();
   } catch (e) {
     console.error('[RevenueCat] logIn failed:', e instanceof Error ? e.message : e);
     captureException(e);
@@ -128,15 +180,12 @@ export async function loginRevenueCat(userId: string) {
  *   is configured in the RC dashboard.
  * @returns 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'
  */
-export async function presentPaywall(
-  options: {
-    requiredEntitlementIdentifier?: string;
-    offeringIdentifier?: string;
-    placement?: string;
-  } = {},
-): Promise<'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'> {
+export async function presentPaywall(options: PresentPaywallOptions = {}): Promise<PaywallResult> {
+  trackEvent(AnalyticsEvent.PAYWALL_PRESENT_REQUESTED, paywallProperties(options));
+
   if (isExpoGo()) {
     console.warn('[RevenueCat] Paywall not available in Expo Go');
+    trackPaywallResult(options, 'not_presented');
     return 'not_presented';
   }
 
@@ -163,6 +212,14 @@ export async function presentPaywall(
       offering = offerings.current ?? undefined;
     }
 
+    trackEvent(
+      AnalyticsEvent.PAYWALL_VIEWED,
+      paywallProperties(options, {
+        resolved_offering_identifier:
+          (offering as { identifier?: string } | undefined)?.identifier ?? null,
+      }),
+    );
+
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({
           requiredEntitlementIdentifier: options.requiredEntitlementIdentifier,
@@ -172,19 +229,25 @@ export async function presentPaywall(
 
     switch (result) {
       case PAYWALL_RESULT.PURCHASED:
+        trackPaywallResult(options, 'purchased');
         return 'purchased';
       case PAYWALL_RESULT.RESTORED:
+        trackPaywallResult(options, 'restored');
         return 'restored';
       case PAYWALL_RESULT.NOT_PRESENTED:
+        trackPaywallResult(options, 'not_presented');
         return 'not_presented';
       case PAYWALL_RESULT.ERROR:
+        trackPaywallResult(options, 'error');
         return 'error';
       default:
+        trackPaywallResult(options, 'cancelled');
         return 'cancelled';
     }
   } catch (e) {
     console.error('[RevenueCat] presentPaywall failed:', e instanceof Error ? e.message : e);
     captureException(e);
+    trackPaywallResult(options, 'error');
     return 'error';
   }
 }

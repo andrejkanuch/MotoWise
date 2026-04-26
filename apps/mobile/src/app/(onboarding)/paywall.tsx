@@ -30,12 +30,13 @@ export default function PaywallScreen() {
       return;
     }
 
-    trackEvent(AnalyticsEvent.PAYWALL_VIEWED, { source: 'onboarding' });
-
     (async () => {
       const result = await presentPaywall({
         requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
         placement: 'onboarding',
+        source: 'onboarding',
+        feature: 'subscription',
+        surface: 'onboarding_paywall',
       });
 
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
@@ -43,17 +44,6 @@ export default function PaywallScreen() {
         step_index: 10,
         paywall_result: result,
       });
-
-      if (result === 'purchased') {
-        trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, { source: 'onboarding' });
-      } else if (result === 'restored') {
-        trackEvent(AnalyticsEvent.SUBSCRIPTION_RESTORED, { source: 'onboarding' });
-      } else if (result === 'cancelled') {
-        trackEvent(AnalyticsEvent.PAYWALL_DISMISSED, {
-          source: 'onboarding',
-          reason: 'user_cancelled',
-        });
-      }
 
       // Navigate forward regardless of result — user can always continue free
       // The RevenueCat listener in subscription.ts will update the store if purchased

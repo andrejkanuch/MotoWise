@@ -159,9 +159,20 @@ export default function PrivacyScreen() {
 
       // Sync with Sentry / PostHog
       if (key === 'analyticsEnabled') {
-        setAnalyticsEnabled(value);
+        if (value) setAnalyticsEnabled(true);
+        trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+          setting: key,
+          value,
+          source: 'privacy',
+        });
+        if (!value) setAnalyticsEnabled(false);
       } else if (key === 'crashReportingEnabled') {
         setCrashReportingEnabled(value);
+        trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+          setting: key,
+          value,
+          source: 'privacy',
+        });
       }
     },
     [state, updateMutation],

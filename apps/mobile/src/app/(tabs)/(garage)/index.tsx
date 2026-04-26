@@ -11,7 +11,6 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
-import { ProGateModal } from '../../../components/ProGateModal';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { ECard, ESectionMasthead } from '../../../components/ui/editorial';
@@ -32,7 +31,7 @@ export default function GarageScreen() {
   const { t: theme } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { requireAccess, showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
+  const { requireAccess, isPro } = useProGate();
   const [view, setView] = useState<'shelf' | 'grid'>('shelf');
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
@@ -174,7 +173,6 @@ export default function GarageScreen() {
             </Pressable>
           </Animated.View>
         </View>
-        <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
       </View>
     );
   }
@@ -241,7 +239,16 @@ export default function GarageScreen() {
               </Text>
             </View>
             <Pressable
-              onPress={!isPro && motorcycles.length >= 1 ? () => presentPaywall() : handleAddBike}
+              onPress={
+                !isPro && motorcycles.length >= 1
+                  ? () =>
+                      presentPaywall({
+                        source: 'garage',
+                        feature: 'unlimited_bikes',
+                        surface: 'garage_add_bike_header',
+                      })
+                  : handleAddBike
+              }
               style={{
                 width: 40,
                 height: 40,
@@ -761,7 +768,6 @@ export default function GarageScreen() {
           </View>
         )}
       </ScrollView>
-      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

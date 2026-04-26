@@ -35,7 +35,6 @@ import {
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
-import { ProGateModal } from '../../../components/ProGateModal';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
 import { useProGate } from '../../../hooks/useProGate';
@@ -69,7 +68,7 @@ export default function LearnScreen() {
   const { q } = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
   const { isDark } = useEditorialTheme();
-  const { requirePro, showPaywall, blockedFeature, dismissPaywall } = useProGate();
+  const { requirePro } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -638,7 +637,6 @@ export default function LearnScreen() {
           </>
         )}
       </ScrollView>
-      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

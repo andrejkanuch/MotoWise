@@ -30,7 +30,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ProGateModal } from '../../../components/ProGateModal';
 import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -108,7 +107,7 @@ export default function DiagnoseScreen() {
   const { t: eTheme, isDark: colorSchemeDark } = useEditorialTheme();
   const colorScheme = colorSchemeDark ? 'dark' : 'light';
   const isDark = colorScheme === 'dark';
-  const { showPaywall, blockedFeature, dismissPaywall, isPro } = useProGate();
+  const { isPro } = useProGate();
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
@@ -652,7 +651,6 @@ export default function DiagnoseScreen() {
           </Animated.View>
         )}
       </ScrollView>
-      <ProGateModal visible={showPaywall} feature={blockedFeature} onDismiss={dismissPaywall} />
     </View>
   );
 }

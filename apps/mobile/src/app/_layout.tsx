@@ -44,6 +44,8 @@ import {
   posthogClient,
   resetUser,
   sentryNavigationIntegration,
+  setAnalyticsEnabled,
+  setCrashReportingEnabled,
   setUserProperties,
   trackEvent,
   trackScreen,
@@ -148,17 +150,31 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
   // Sync user properties to PostHog for segmentation
   const meData = meQuery.data?.me;
   const isPro = useSubscriptionStore((s) => s.isPro);
+  const userPreferences = meData?.preferences as Record<string, unknown> | null | undefined;
+
+  useEffect(() => {
+    const privacy = userPreferences?.privacy as
+      | { analyticsEnabled?: boolean; crashReportingEnabled?: boolean }
+      | undefined;
+
+    if (typeof privacy?.analyticsEnabled === 'boolean') {
+      setAnalyticsEnabled(privacy.analyticsEnabled);
+    }
+    if (typeof privacy?.crashReportingEnabled === 'boolean') {
+      setCrashReportingEnabled(privacy.crashReportingEnabled);
+    }
+  }, [userPreferences]);
+
   useEffect(() => {
     if (!session?.user?.id || !meData) return;
-    const prefs = meData.preferences as Record<string, unknown> | null | undefined;
     setUserProperties({
-      experience_level: (prefs?.experienceLevel as string) ?? null,
+      experience_level: (userPreferences?.experienceLevel as string) ?? null,
       is_pro: isPro,
       currency: meData.currency ?? null,
       locale: useAuthStore.getState().locale,
       app_version: Application.nativeApplicationVersion ?? null,
     });
-  }, [session?.user?.id, meData, isPro]);
+  }, [session?.user?.id, meData, userPreferences, isPro]);
 
   useEffect(() => {
     if (isLoading) return;

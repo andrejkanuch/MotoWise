@@ -1,5 +1,6 @@
 import { FREE_TIER_LIMITS, type ProFeature } from '@motovault/types';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import { presentPaywall } from '../lib/subscription';
 import { useSubscriptionStore } from '../stores/subscription.store';
 
 type FeatureAccess =
@@ -26,18 +27,12 @@ function checkFeatureAccess(
 interface ProGateResult {
   isPro: boolean;
   isTrialing: boolean;
-  /** Whether the paywall modal is currently visible */
-  showPaywall: boolean;
-  /** The feature that triggered the paywall */
-  blockedFeature: ProFeature | null;
   /** Check if a counted feature is accessible; returns access info */
   checkAccess: (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number) => FeatureAccess;
-  /** Attempt to use a pro-only feature; shows paywall if not pro. Returns true if allowed. */
+  /** Attempt to use a pro-only feature; opens RevenueCat paywall if not pro. Returns true if allowed. */
   requirePro: (feature: ProFeature) => boolean;
-  /** Attempt to use a counted feature; shows paywall if limit exceeded. Returns true if allowed. */
+  /** Attempt to use a counted feature; opens RevenueCat paywall if limit exceeded. Returns true if allowed. */
   requireAccess: (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number) => boolean;
-  /** Dismiss the paywall modal */
-  dismissPaywall: () => void;
 }
 
 /**
@@ -46,7 +41,7 @@ interface ProGateResult {
  *
  * Usage:
  * ```ts
- * const { requirePro, requireAccess, showPaywall, dismissPaywall, blockedFeature } = useProGate();
+ * const { requirePro, requireAccess } = useProGate();
  *
  * // For pro-only features (maintenance reminders, PDF export):
  * if (!requirePro('maintenance_reminders')) return; // paywall shown automatically
@@ -58,8 +53,6 @@ interface ProGateResult {
 export function useProGate(): ProGateResult {
   const isPro = useSubscriptionStore((s) => s.isPro);
   const isTrialing = useSubscriptionStore((s) => s.isTrialing);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [blockedFeature, setBlockedFeature] = useState<ProFeature | null>(null);
 
   const checkAccess = useCallback(
     (feature: keyof typeof FREE_TIER_LIMITS, currentCount: number): FeatureAccess => {
@@ -71,8 +64,12 @@ export function useProGate(): ProGateResult {
   const requirePro = useCallback(
     (feature: ProFeature): boolean => {
       if (isPro) return true;
-      setBlockedFeature(feature);
-      setShowPaywall(true);
+      presentPaywall({
+        source: 'feature_gate',
+        feature,
+        placement: 'feature_gate',
+        surface: 'use_pro_gate',
+      });
       return false;
     },
     [isPro],
@@ -89,26 +86,29 @@ export function useProGate(): ProGateResult {
         MAX_ARTICLES_PER_WEEK: 'unlimited_articles',
         MAX_MAINTENANCE_TASKS_PER_BIKE: 'maintenance_reminders',
       };
-      setBlockedFeature(featureMap[feature] ?? 'unlimited_bikes');
-      setShowPaywall(true);
+      const proFeature = featureMap[feature] ?? 'unlimited_bikes';
+      presentPaywall({
+        source: 'feature_gate',
+        feature: proFeature,
+        placement: 'feature_gate',
+        surface: 'use_pro_gate',
+        metadata: {
+          limit_key: feature,
+          current_count: currentCount,
+          limit: access.limit,
+          remaining: access.remaining,
+        },
+      });
       return false;
     },
     [isPro],
   );
 
-  const dismissPaywall = useCallback(() => {
-    setShowPaywall(false);
-    setBlockedFeature(null);
-  }, []);
-
   return {
     isPro,
     isTrialing,
-    showPaywall,
-    blockedFeature,
     checkAccess,
     requirePro,
     requireAccess,
-    dismissPaywall,
   };
 }

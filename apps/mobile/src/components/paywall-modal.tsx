@@ -42,24 +42,18 @@ export function PaywallModal({ visible, config, onDismiss }: PaywallModalProps) 
       source: config.source,
     });
     onDismiss();
-    const result = await presentPaywall();
-    if (result === 'purchased' || result === 'restored') {
-      trackEvent(AnalyticsEvent.PURCHASE_COMPLETED, {
-        feature: config.feature,
-        source: config.source,
-      });
-    } else if (result === 'cancelled') {
-      trackEvent(AnalyticsEvent.PURCHASE_CANCELLED, {
-        feature: config.feature,
-        source: config.source,
-      });
-    }
+    await presentPaywall({
+      feature: config.feature,
+      source: config.source,
+      surface: 'paywall_modal',
+    });
   }, [config.feature, config.source, onDismiss]);
 
   const handleDismiss = useCallback(() => {
-    trackEvent(AnalyticsEvent.PAYWALL_VIEWED, {
+    trackEvent(AnalyticsEvent.PAYWALL_DISMISSED, {
       feature: config.feature,
       source: config.source,
+      surface: 'paywall_modal',
       action: 'dismissed',
     });
     onDismiss();

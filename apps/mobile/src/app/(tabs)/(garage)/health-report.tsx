@@ -140,6 +140,10 @@ export default function HealthReportScreen() {
     // Purchase flow
     const result = await presentPaywall({
       offeringIdentifier: 'health_report',
+      source: 'health_report',
+      feature: 'health_report',
+      surface: 'garage_health_report',
+      metadata: { bike_id: bikeId },
     });
 
     if (result === 'purchased' || result === 'restored') {
