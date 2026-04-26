@@ -484,9 +484,7 @@ export default async function AiDiagnosticsPage({ params }: PageProps) {
             </span>{' '}
             {t('diagTitleEnd')}
           </h2>
-          <p className="mv-section-sub">
-            {t('diagSubtitle')}
-          </p>
+          <p className="mv-section-sub">{t('diagSubtitle')}</p>
         </div>
 
         <div

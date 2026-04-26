@@ -719,10 +719,7 @@ export default async function LearningPathsPage({ params }: PageProps) {
       {/* ════ STATS ROW ════ */}
       <section className="mv-section-stats mv-grid-stats">
         {([1, 2, 3, 4] as const).map((n) => (
-          <div
-            key={n}
-            style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}
-          >
+          <div key={n} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
             <div
               style={{
                 fontSize: 'clamp(32px, 3.6vw, 52px)',

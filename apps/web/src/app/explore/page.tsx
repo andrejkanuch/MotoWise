@@ -135,7 +135,6 @@ function getDifficultyDisplay(difficulty: string): { label: string; cls: string 
       return { label: 'Hard', cls: 'hard' };
     case 'moderate':
       return { label: 'Moderate', cls: 'med' };
-    case 'easy':
     default:
       return { label: 'Easy', cls: 'easy' };
   }

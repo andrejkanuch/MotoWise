@@ -378,82 +378,84 @@ export default async function TripPlanningPage({ params }: PageProps) {
             overflow: 'hidden',
           }}
         >
-          {([1, 2, 3, 4, 5, 6] as const).map((i) => ({
-            num: `0${i}`,
-            title: t(`pillar${i}Title`),
-            body: t(`pillar${i}Body`),
-            kvLabel: t(`pillar${i}KvLabel`),
-            kvValue: t(`pillar${i}KvValue`),
-          })).map((p) => (
-            <div
-              key={p.num}
-              style={{
-                background: 'var(--mv-bg)',
-                padding: 40,
-                minHeight: 260,
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
+          {([1, 2, 3, 4, 5, 6] as const)
+            .map((i) => ({
+              num: `0${i}`,
+              title: t(`pillar${i}Title`),
+              body: t(`pillar${i}Body`),
+              kvLabel: t(`pillar${i}KvLabel`),
+              kvValue: t(`pillar${i}KvValue`),
+            }))
+            .map((p) => (
               <div
-                className="mv-mono"
-                style={{ fontSize: 11, color: 'var(--mv-warm-400)', letterSpacing: '0.15em' }}
-              >
-                {p.num}
-              </div>
-              <div
+                key={p.num}
                 style={{
-                  fontSize: 22,
-                  fontWeight: 500,
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.15,
-                  margin: '32px 0 14px',
-                }}
-              >
-                {p.title}
-              </div>
-              <div
-                style={{
-                  color: 'var(--mv-ink-3)',
-                  fontSize: 14,
-                  lineHeight: 1.55,
-                  letterSpacing: '-0.005em',
-                  flex: 1,
-                }}
-              >
-                {p.body}
-              </div>
-              <div
-                className="mv-mono"
-                style={{
-                  marginTop: 24,
-                  paddingTop: 24,
-                  borderTop: '1px solid var(--mv-line)',
+                  background: 'var(--mv-bg)',
+                  padding: 40,
+                  minHeight: 260,
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: 11,
-                  color: 'var(--mv-ink-3)',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
+                  flexDirection: 'column',
                 }}
               >
-                {p.kvLabel}
-                <strong
+                <div
+                  className="mv-mono"
+                  style={{ fontSize: 11, color: 'var(--mv-warm-400)', letterSpacing: '0.15em' }}
+                >
+                  {p.num}
+                </div>
+                <div
                   style={{
-                    fontFamily: "var(--font-geist, 'Geist', sans-serif)",
-                    fontSize: 14,
-                    color: 'var(--mv-warm-400)',
+                    fontSize: 22,
                     fontWeight: 500,
-                    textTransform: 'none',
-                    letterSpacing: '-0.005em',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.15,
+                    margin: '32px 0 14px',
                   }}
                 >
-                  {p.kvValue}
-                </strong>
+                  {p.title}
+                </div>
+                <div
+                  style={{
+                    color: 'var(--mv-ink-3)',
+                    fontSize: 14,
+                    lineHeight: 1.55,
+                    letterSpacing: '-0.005em',
+                    flex: 1,
+                  }}
+                >
+                  {p.body}
+                </div>
+                <div
+                  className="mv-mono"
+                  style={{
+                    marginTop: 24,
+                    paddingTop: 24,
+                    borderTop: '1px solid var(--mv-line)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: 11,
+                    color: 'var(--mv-ink-3)',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {p.kvLabel}
+                  <strong
+                    style={{
+                      fontFamily: "var(--font-geist, 'Geist', sans-serif)",
+                      fontSize: 14,
+                      color: 'var(--mv-warm-400)',
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      letterSpacing: '-0.005em',
+                    }}
+                  >
+                    {p.kvValue}
+                  </strong>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 
@@ -676,41 +678,38 @@ export default async function TripPlanningPage({ params }: PageProps) {
             </p>
             {/* Checklist */}
             <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {[
-                t('exportCheck1'),
-                t('exportCheck2'),
-                t('exportCheck3'),
-                t('exportCheck4'),
-              ].map((item) => (
-                <div
-                  key={item}
-                  style={{
-                    display: 'flex',
-                    gap: 14,
-                    alignItems: 'flex-start',
-                    fontSize: 14,
-                    color: 'var(--mv-ink-2)',
-                  }}
-                >
-                  <span
+              {[t('exportCheck1'), t('exportCheck2'), t('exportCheck3'), t('exportCheck4')].map(
+                (item) => (
+                  <div
+                    key={item}
                     style={{
-                      flexShrink: 0,
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      background: 'oklch(0.76 0.18 60 / 0.18)',
-                      border: '1px solid var(--mv-warm-500)',
-                      backgroundImage:
-                        "url(\"data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e9a76a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E\")",
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'center',
-                      marginTop: 2,
+                      display: 'flex',
+                      gap: 14,
+                      alignItems: 'flex-start',
+                      fontSize: 14,
+                      color: 'var(--mv-ink-2)',
                     }}
-                    aria-hidden="true"
-                  />
-                  {item}
-                </div>
-              ))}
+                  >
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: 'oklch(0.76 0.18 60 / 0.18)',
+                        border: '1px solid var(--mv-warm-500)',
+                        backgroundImage:
+                          "url(\"data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e9a76a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E\")",
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        marginTop: 2,
+                      }}
+                      aria-hidden="true"
+                    />
+                    {item}
+                  </div>
+                ),
+              )}
             </div>
             {/* Export chips */}
             <div
@@ -816,39 +815,41 @@ export default async function TripPlanningPage({ params }: PageProps) {
 
       {/* ════ STATS ROW ════ */}
       <section className="mv-section-stats mv-grid-stats">
-        {([1, 2, 3, 4] as const).map((i) => ({
-          value: t(`inlineStatValue${i}`),
-          unit: t(`inlineStatUnit${i}`),
-          label: t(`inlineStatLabel${i}`),
-        })).map((s) => (
-          <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
-            <div
-              style={{
-                fontSize: 'clamp(32px, 3.6vw, 52px)',
-                fontWeight: 500,
-                letterSpacing: '-0.04em',
-                lineHeight: 1,
-                color: 'var(--mv-ink)',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {s.value}
-              <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
-                {s.unit}
-              </span>
+        {([1, 2, 3, 4] as const)
+          .map((i) => ({
+            value: t(`inlineStatValue${i}`),
+            unit: t(`inlineStatUnit${i}`),
+            label: t(`inlineStatLabel${i}`),
+          }))
+          .map((s) => (
+            <div key={s.label} style={{ borderLeft: '1px solid var(--mv-line)', paddingLeft: 24 }}>
+              <div
+                style={{
+                  fontSize: 'clamp(32px, 3.6vw, 52px)',
+                  fontWeight: 500,
+                  letterSpacing: '-0.04em',
+                  lineHeight: 1,
+                  color: 'var(--mv-ink)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {s.value}
+                <span className="mv-serif" style={{ color: 'var(--mv-warm-400)' }}>
+                  {s.unit}
+                </span>
+              </div>
+              <div
+                style={{
+                  marginTop: 12,
+                  color: 'var(--mv-ink-3)',
+                  fontSize: 13,
+                  letterSpacing: '-0.005em',
+                }}
+              >
+                {s.label}
+              </div>
             </div>
-            <div
-              style={{
-                marginTop: 12,
-                color: 'var(--mv-ink-3)',
-                fontSize: 13,
-                letterSpacing: '-0.005em',
-              }}
-            >
-              {s.label}
-            </div>
-          </div>
-        ))}
+          ))}
       </section>
 
       {/* ════ CTA ════ */}

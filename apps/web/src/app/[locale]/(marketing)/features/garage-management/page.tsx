@@ -534,9 +534,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
           <h2 className="mv-section-title">
             {t('maintTitle')} <span className="mv-serif">{t('maintTitleSerif')}</span>
           </h2>
-          <p className="mv-section-sub">
-            {t('maintSubtitle')}
-          </p>
+          <p className="mv-section-sub">{t('maintSubtitle')}</p>
         </div>
 
         <div
@@ -649,9 +647,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
           <h2 className="mv-section-title">
             {t('expensesTitle')} <span className="mv-serif">{t('expensesTitleSerif')}</span>
           </h2>
-          <p className="mv-section-sub">
-            {t('expensesSubtitle')}
-          </p>
+          <p className="mv-section-sub">{t('expensesSubtitle')}</p>
         </div>
 
         <div
