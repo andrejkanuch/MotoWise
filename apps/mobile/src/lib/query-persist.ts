@@ -31,5 +31,5 @@ export function clearPersistedQueryCache(): void {
 /** Only low-sensitivity reference / editorial data (RLS still applies on refetch). */
 export function shouldDehydratePersistedQuery(query: Query): boolean {
   const root = query.queryKey[0];
-  return root === 'nhtsa' || root === 'articles';
+  return root === 'nhtsa' || root === 'articles' || root === 'motorcycles';
 }

@@ -297,19 +297,56 @@ export default function StartRideScreen() {
 
         {/* Bike selector — compact for single bike, expandable for multi */}
         <Animated.View entering={FadeInUp.delay(100).duration(300)}>
-          {isLoading ? (
+          {isLoading && motorcycles.length === 0 ? (
+            /* Offline with no cache — Quick Ride fallback */
             <View
               style={{
                 backgroundColor: isDark ? palette.cardDark : palette.white,
                 borderRadius: 16,
                 borderCurve: 'continuous',
-                padding: 20,
+                padding: 16,
+                flexDirection: 'row',
                 alignItems: 'center',
+                gap: 12,
                 borderWidth: 1,
                 borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
               }}
             >
-              <ActivityIndicator size="small" color={palette.accent500} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  borderCurve: 'continuous',
+                  backgroundColor: isDark ? palette.signatureBgDark : palette.signatureBgLight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Zap size={20} color={palette.signature500} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: isDark ? palette.neutral500 : palette.neutral600,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  RIDING WITH
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: isDark ? palette.white : palette.neutral950,
+                    marginTop: 2,
+                  }}
+                >
+                  Quick Ride
+                </Text>
+              </View>
             </View>
           ) : hasSingleBike ? (
             /* Single bike — compact display, no picker needed */
