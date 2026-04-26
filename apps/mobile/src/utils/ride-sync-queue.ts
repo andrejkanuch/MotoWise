@@ -102,7 +102,11 @@ export async function enqueueOrExecute(
       await gqlFetcher(document, variables as never);
       return;
     } catch (error) {
-      captureException(error);
+      // Network failures are expected (spotty cellular, backgrounded by iOS)
+      // — the queue handles retry, so only report non-network errors to Sentry.
+      if (!isNetworkError(error)) {
+        captureException(error);
+      }
       // Transient failure — fall through to queue
     }
   }
@@ -169,4 +173,10 @@ export function clearAll(): void {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError && error.message === 'Network request failed') return true;
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg.includes('Network request failed') || msg.includes('Failed to fetch');
 }
