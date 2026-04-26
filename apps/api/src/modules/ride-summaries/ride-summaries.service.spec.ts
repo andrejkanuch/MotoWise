@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RideSummariesService } from './ride-summaries.service';
 
@@ -130,14 +130,26 @@ describe('RideSummariesService', () => {
     (service as any).logger = { debug: vi.fn(), log: vi.fn(), warn: vi.fn(), error: vi.fn() };
   });
 
+  function allowFreeTierSummaryGeneration() {
+    // Admin result 0: subscription tier lookup
+    mockAdminClient._pushResult({ data: { subscription_tier: 'free' } });
+    // Admin result 1: monthly ride summary count
+    mockAdminClient._pushResult({ count: 0 });
+  }
+
+  function useProTier() {
+    mockAdminClient._pushResult({ data: { subscription_tier: 'pro' } });
+  }
+
   describe('generateSummary', () => {
     it('should generate a summary for a valid ride with AI call', async () => {
+      allowFreeTierSummaryGeneration();
       // User client result 0: ride fetch (.single())
       mockUserClient._pushResult({ data: fakeRideRow });
       // User client result 1: motorcycle fetch (.single())
       mockUserClient._pushResult({ data: fakeBikeRow });
 
-      // Admin client result 0: existing summary check (.single() via maybeSingle)
+      // Admin client result 2: existing summary check (.single() via maybeSingle)
       mockAdminClient._pushResult({ data: null });
 
       // Mock OpenAI call
@@ -158,13 +170,13 @@ describe('RideSummariesService', () => {
         chat: { completions: { parse: mockParse } },
       };
 
-      // Admin client result 1: insert summary (.single())
+      // Admin client result 3: insert summary (.single())
       mockAdminClient._pushResult({ data: fakeSummaryRow });
-      // Admin client result 2: update rides.ai_summary (thenable)
+      // Admin client result 4: update rides.ai_summary (thenable)
       mockAdminClient._pushResult({ data: null, error: null });
-      // Admin client result 3: log generation (thenable — fire-and-forget, via .then())
+      // Admin client result 5: log generation (thenable — fire-and-forget, via .then())
       mockAdminClient._pushResult({ data: null, error: null });
-      // Admin client result 4: fetch saved summary (.single())
+      // Admin client result 6: fetch saved summary (.single())
       mockAdminClient._pushResult({ data: fakeSummaryRow });
 
       const result = await service.generateSummary(rideId, userId, 'en');
@@ -180,6 +192,7 @@ describe('RideSummariesService', () => {
     });
 
     it('should throw NotFoundException when ride is below distance threshold', async () => {
+      allowFreeTierSummaryGeneration();
       mockUserClient._pushResult({ data: fakeShortRide });
 
       await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow(
@@ -188,6 +201,7 @@ describe('RideSummariesService', () => {
     });
 
     it('should throw NotFoundException when ride is below duration threshold', async () => {
+      allowFreeTierSummaryGeneration();
       mockUserClient._pushResult({ data: fakeShortDurationRide });
 
       await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow(
@@ -196,6 +210,7 @@ describe('RideSummariesService', () => {
     });
 
     it('should throw when AI budget is exceeded', async () => {
+      allowFreeTierSummaryGeneration();
       mockAiBudgetService.checkBudgetForUser.mockRejectedValue(
         new Error('Monthly AI budget exceeded'),
       );
@@ -205,7 +220,26 @@ describe('RideSummariesService', () => {
       );
     });
 
+    it('should block free users after the monthly AI summary allowance', async () => {
+      mockAdminClient._pushResult({ data: { subscription_tier: 'free' } });
+      mockAdminClient._pushResult({ count: 3 });
+
+      await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockAiBudgetService.checkBudgetForUser).not.toHaveBeenCalled();
+    });
+
+    it('should skip the free summary quota for Pro users', async () => {
+      useProTier();
+      mockAiBudgetService.checkBudgetForUser.mockRejectedValue(new Error('budget checked'));
+
+      await expect(service.generateSummary(rideId, userId, 'en')).rejects.toThrow('budget checked');
+      expect(mockAiBudgetService.checkBudgetForUser).toHaveBeenCalledWith(userId);
+    });
+
     it('should throw NotFoundException when ride not found', async () => {
+      allowFreeTierSummaryGeneration();
       mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },

@@ -8,6 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import { useCallback, useState } from 'react';
 import { gqlFetcher } from '../lib/graphql-client';
+import { useProGate } from './useProGate';
 
 /**
  * Trip-context AI assistant. Wraps the `askTripAssistant` GraphQL mutation and
@@ -25,6 +26,7 @@ const makeId = () => Crypto.randomUUID();
 
 export function useTripAssistant(tripId: string | undefined) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
+  const { requirePro } = useProGate();
 
   const mutation = useMutation<AskTripAssistantMutation, Error, string>({
     mutationFn: async (question: string) => {
@@ -61,6 +63,10 @@ export function useTripAssistant(tripId: string | undefined) {
         };
         setMessages((prev) => [...prev, aiMsg]);
       } catch (err) {
+        if (err instanceof Error && /free plan allows|upgrade to pro/i.test(err.message)) {
+          requirePro('trip_assistant');
+          return;
+        }
         const errorMsg: AssistantMessage = {
           id: makeId(),
           role: 'assistant',
@@ -73,7 +79,7 @@ export function useTripAssistant(tripId: string | undefined) {
         setMessages((prev) => [...prev, errorMsg]);
       }
     },
-    [mutation, tripId],
+    [mutation, requirePro, tripId],
   );
 
   const reset = useCallback(() => setMessages([]), []);

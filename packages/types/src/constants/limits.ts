@@ -16,6 +16,13 @@ export const GPX_EXPORT_LIMITS = {
   PRO_MONTHLY_EXPORTS: -1,
 } as const;
 
+export const AI_FEATURE_LIMITS = {
+  /** Free-tier users: trip assistant questions allowed per month */
+  FREE_TRIP_ASSISTANT_QUESTIONS_PER_MONTH: 10,
+  /** Free-tier users: AI ride summaries generated per month */
+  FREE_RIDE_SUMMARIES_PER_MONTH: 3,
+} as const;
+
 export const PRO_FEATURES = {
   UNLIMITED_BIKES: 'unlimited_bikes',
   UNLIMITED_ARTICLES: 'unlimited_articles',
@@ -23,6 +30,9 @@ export const PRO_FEATURES = {
   MAINTENANCE_REMINDERS: 'maintenance_reminders',
   PDF_EXPORT: 'pdf_export',
   GPX_EXPORT: 'gpx_export',
+  TRIP_ASSISTANT: 'trip_assistant',
+  RIDE_SUMMARIES: 'ride_summaries',
+  OFFLINE_TRIPS: 'offline_trips',
 } as const;
 
 export type ProFeature = (typeof PRO_FEATURES)[keyof typeof PRO_FEATURES];

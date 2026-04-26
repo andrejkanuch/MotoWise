@@ -137,10 +137,10 @@ export function OfflinePackButton({
       <CloudDownload size={18} color={palette.accent500} />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: titleColor }}>
-          Download for offline
+          Download for offline with Pro
         </Text>
         <Text style={{ fontSize: 12, color: subColor, marginTop: 2 }}>
-          Map tiles + trip data saved to this device.
+          Save map tiles and trip data before weak-signal rides.
         </Text>
       </View>
     </Pressable>

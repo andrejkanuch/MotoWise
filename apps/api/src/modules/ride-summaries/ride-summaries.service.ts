@@ -1,5 +1,12 @@
-import { AiRideSummaryResponseSchema } from '@motovault/types';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { AI_FEATURE_LIMITS, AiRideSummaryResponseSchema } from '@motovault/types';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -77,6 +84,8 @@ export class RideSummariesService {
   }
 
   async generateSummary(rideId: string, userId: string, locale: string): Promise<RideSummary> {
+    await this.enforceFreeTierSummaryLimit(userId);
+
     // Check AI budget before processing
     await this.aiBudgetService.checkBudgetForUser(userId);
 
@@ -244,22 +253,17 @@ export class RideSummariesService {
           AI_COSTS.MTOK_DIVISOR,
       );
 
-      // Log generation (fire-and-forget)
-      this.adminClient
-        .from('content_generation_log')
-        .insert({
-          user_id: userId,
-          content_type: 'ride_summary',
-          content_id: rideId,
-          model: MODEL,
-          input_tokens: inputTokens,
-          output_tokens: outputTokens,
-          cost_cents: costCents,
-          status: 'success',
-        })
-        .then(({ error }) => {
-          if (error) this.logger.error('Failed to log ride summary generation', error);
-        });
+      const { error: logError } = await this.adminClient.from('content_generation_log').insert({
+        user_id: userId,
+        content_type: 'ride_summary',
+        content_id: rideId,
+        model: MODEL,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        cost_cents: costCents,
+        status: 'success',
+      });
+      if (logError) this.logger.error('Failed to log ride summary generation', logError);
 
       // Return the summary
       const { data: result, error: fetchError } = await this.adminClient
@@ -293,6 +297,46 @@ export class RideSummariesService {
         });
 
       throw err;
+    }
+  }
+
+  private async enforceFreeTierSummaryLimit(userId: string): Promise<void> {
+    const { data: userData, error: userError } = await this.adminClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      this.logger.error('Failed to fetch subscription tier for ride summary quota', userError);
+      throw new InternalServerErrorException('Unable to verify subscription status.');
+    }
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+    if (tier === 'pro') return;
+
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.adminClient
+      .from('content_generation_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('content_type', 'ride_summary')
+      .eq('status', 'success')
+      .gte('created_at', monthStart.toISOString());
+
+    if (error) {
+      this.logger.error('Failed to count monthly ride summary usage', error);
+      return;
+    }
+
+    const limit = AI_FEATURE_LIMITS.FREE_RIDE_SUMMARIES_PER_MONTH;
+    if ((count ?? 0) >= limit) {
+      throw new ForbiddenException(
+        `Free plan allows ${limit} AI ride summaries per month. Upgrade to Pro for more AI ride recaps.`,
+      );
     }
   }
 

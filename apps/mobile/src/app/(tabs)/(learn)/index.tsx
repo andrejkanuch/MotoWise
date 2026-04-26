@@ -12,7 +12,6 @@ import {
   AlertCircle,
   BookOpen,
   Cog,
-  Crown,
   Eye,
   Search,
   Sparkles,
@@ -37,9 +36,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LearnOnboardingCard } from '../../../components/learn/onboarding-card';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';
-import { useProGate } from '../../../hooks/useProGate';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { presentPaywall } from '../../../lib/subscription';
 import { useEditorialTheme } from '../../../theme/editorial';
 
 const MODULES = [
@@ -62,13 +61,16 @@ const CATEGORY_COLORS = {
   maintenance: palette.moduleMaintenance,
 } as const;
 
+function isFreeTierLimitError(error: Error): boolean {
+  return /free plan allows|upgrade to pro/i.test(error.message);
+}
+
 export default function LearnScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { q } = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
   const { isDark } = useEditorialTheme();
-  const { requirePro } = useProGate();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -181,13 +183,20 @@ export default function LearnScreen() {
     },
     onError: (err: Error) => {
       setGenerateError(err.message ?? t('common.error'));
+      if (isFreeTierLimitError(err)) {
+        presentPaywall({
+          source: 'feature_gate',
+          feature: 'unlimited_articles',
+          placement: 'feature_gate',
+          surface: 'learn_article_limit',
+        });
+      }
     },
   });
 
   const isGenerating = generateMutation.isPending;
   const handleGenerate = () => {
     if (generateGuardRef.current || isGenerating) return;
-    if (!requirePro('unlimited_articles')) return;
     generateGuardRef.current = true;
     setGenerateError(null);
     generateMutation.mutate(debouncedQuery, {
@@ -208,9 +217,8 @@ export default function LearnScreen() {
   }, []);
 
   const handleGenerateFromBanner = useCallback(() => {
-    if (!requirePro('unlimited_articles')) return;
     searchInputRef.current?.focus();
-  }, [requirePro]);
+  }, []);
 
   const onModulesLayout = useCallback((e: LayoutChangeEvent) => {
     modulesOffsetY.current = e.nativeEvent.layout.y;
@@ -344,10 +352,7 @@ export default function LearnScreen() {
                   {isGenerating ? (
                     <ActivityIndicator size="small" color={palette.white} />
                   ) : (
-                    <>
-                      <Crown size={14} color={palette.signature500} strokeWidth={2} />
-                      <Sparkles size={16} color={palette.white} strokeWidth={2} />
-                    </>
+                    <Sparkles size={16} color={palette.white} strokeWidth={2} />
                   )}
                   <Text className="text-white font-semibold text-sm">
                     {isGenerating ? t('learn.generating') : t('learn.generateArticle')}

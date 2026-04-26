@@ -1,3 +1,4 @@
+import { AI_FEATURE_LIMITS } from '@motovault/types';
 import type { Tables } from '@motovault/types/database';
 import {
   BadRequestException,
@@ -11,8 +12,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
-import { AI_CLIENT, AI_MODELS } from '../../config/constants';
+import { AI_CLIENT, AI_COSTS, AI_MODELS } from '../../config/constants';
 import { AiBudgetService } from '../ai-budget/ai-budget.service';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { AskTripAssistantInput } from './dto/ask-trip-assistant.input';
 import type { TripAssistantMessage } from './models/trip-assistant-message.model';
@@ -55,6 +57,7 @@ export class TripAssistantService {
   constructor(
     private readonly configService: ConfigService,
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly aiBudget: AiBudgetService,
   ) {
     this.openai = new OpenAI({
@@ -65,6 +68,7 @@ export class TripAssistantService {
   }
 
   async ask(userId: string, input: AskTripAssistantInput): Promise<TripAssistantMessage> {
+    await this.enforceFreeTierAssistantLimit(userId);
     await this.aiBudget.checkBudgetForUser(userId);
 
     const question = input.question.trim().slice(0, MAX_QUESTION_LEN);
@@ -150,10 +154,83 @@ export class TripAssistantService {
         throw new InternalServerErrorException('AI returned an empty response');
       }
 
+      const inputTokens = response.usage?.prompt_tokens ?? 0;
+      const outputTokens = response.usage?.completion_tokens ?? 0;
+      const costCents = Math.round(
+        (inputTokens * AI_COSTS.INPUT_COST_PER_MTOK +
+          outputTokens * AI_COSTS.OUTPUT_COST_PER_MTOK) /
+          AI_COSTS.MTOK_DIVISOR,
+      );
+
+      const { error: logError } = await this.adminClient.from('content_generation_log').insert({
+        user_id: userId,
+        content_type: 'trip_assistant',
+        content_id: input.tripId,
+        model: MODEL,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        cost_cents: costCents,
+        status: 'success',
+      });
+      if (logError) this.logger.error('Failed to log trip assistant generation', logError);
+
       return { message };
     } catch (err) {
       this.logger.error('trip-assistant OpenAI call failed', err);
+      this.adminClient
+        .from('content_generation_log')
+        .insert({
+          user_id: userId,
+          content_type: 'trip_assistant',
+          content_id: input.tripId,
+          model: MODEL,
+          status: 'failed',
+          error_message: err instanceof Error ? err.message : 'Unknown error',
+        })
+        .then(({ error }) => {
+          if (error) this.logger.error('Failed to log trip assistant failure', error);
+        });
       throw new InternalServerErrorException('AI assistant is unavailable — try again in a bit.');
+    }
+  }
+
+  private async enforceFreeTierAssistantLimit(userId: string): Promise<void> {
+    const { data: userData, error: userError } = await this.adminClient
+      .from('users')
+      .select('subscription_tier')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      this.logger.error('Failed to fetch subscription tier for trip assistant quota', userError);
+      throw new InternalServerErrorException('Unable to verify subscription status.');
+    }
+
+    const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
+    if (tier === 'pro') return;
+
+    const monthStart = new Date();
+    monthStart.setUTCDate(1);
+    monthStart.setUTCHours(0, 0, 0, 0);
+
+    const { count, error } = await this.adminClient
+      .from('content_generation_log')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('content_type', 'trip_assistant')
+      .eq('status', 'success')
+      .gte('created_at', monthStart.toISOString());
+
+    if (error) {
+      this.logger.error('Failed to count monthly trip assistant usage', error);
+      return;
+    }
+
+    const limit = AI_FEATURE_LIMITS.FREE_TRIP_ASSISTANT_QUESTIONS_PER_MONTH;
+    if ((count ?? 0) >= limit) {
+      throw new ForbiddenException(
+        `Free plan allows ${limit} trip assistant questions per month. Upgrade to Pro for more trip planning help.`,
+      );
     }
   }
 

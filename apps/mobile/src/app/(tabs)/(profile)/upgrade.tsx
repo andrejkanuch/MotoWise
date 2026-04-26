@@ -5,13 +5,15 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {
   AlertCircle,
+  Bike,
   Check,
   ChevronRight,
-  Crown,
+  Map as MapIcon,
   Shield,
   ShieldCheck,
   Sparkles,
   Star,
+  TrendingUp,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -31,9 +33,26 @@ function isPurchaseCancellation(error: unknown): boolean {
 }
 
 const VALUE_PROPS = [
-  { icon: Sparkles, key: 'aiDiagnostics' },
-  { icon: Crown, key: 'personalizedLearning' },
-  { icon: Shield, key: 'maintenanceAlerts' },
+  {
+    icon: Bike,
+    title: 'Garage for every bike',
+    description: 'Track multiple motorcycles with full service, fuel, and expense history.',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI diagnostics and ride recaps',
+    description: 'Unlock deeper troubleshooting, trip help, and AI summaries beyond free samples.',
+  },
+  {
+    icon: MapIcon,
+    title: 'Offline route vault',
+    description: 'Save trip maps and route data before you head into weak-signal roads.',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Advanced ride history',
+    description: 'Keep unlimited ride history, route exports, and long-term stats.',
+  },
 ] as const;
 
 type PurchasesOfferings = Awaited<
@@ -325,9 +344,9 @@ export default function UpgradeScreen() {
           entering={FadeInUp.delay(100).duration(300)}
           style={{ gap: 16, marginBottom: 32 }}
         >
-          {VALUE_PROPS.map(({ icon: Icon, key }, index) => (
+          {VALUE_PROPS.map(({ icon: Icon, title, description }, index) => (
             <Animated.View
-              key={key}
+              key={title}
               entering={FadeInUp.delay(200 + index * 80).duration(300)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
             >
@@ -346,10 +365,10 @@ export default function UpgradeScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                  {t(`paywall.feature${key}Title`)}
+                  {title}
                 </Text>
                 <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
-                  {t(`paywall.feature${key}Desc`)}
+                  {description}
                 </Text>
               </View>
               <Check size={18} color="#34D399" />

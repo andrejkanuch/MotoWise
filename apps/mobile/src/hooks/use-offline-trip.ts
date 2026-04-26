@@ -10,6 +10,7 @@ import {
   removeOfflinePack,
 } from '../lib/offline-trips';
 import { MAP_STYLES } from '../utils/map-styles';
+import { useProGate } from './useProGate';
 
 export type OfflineStatus = 'none' | 'downloading' | 'ready' | 'error';
 
@@ -29,6 +30,7 @@ export function useOfflineTrip({ tripId, waypoints }: UseOfflineTripParams) {
   const [meta, setMeta] = useState<OfflinePackMeta | null>(null);
   const [status, setStatus] = useState<OfflineStatus>('none');
   const [progress, setProgress] = useState<OfflineProgress | null>(null);
+  const { requirePro } = useProGate();
 
   useEffect(() => {
     if (!tripId) return;
@@ -39,6 +41,7 @@ export function useOfflineTrip({ tripId, waypoints }: UseOfflineTripParams) {
 
   const download = useCallback(async () => {
     if (!tripId) return;
+    if (!requirePro('offline_trips')) return;
     const bbox = bboxFromPoints(waypoints);
     if (!bbox) {
       Alert.alert('Nothing to download', 'This trip has no waypoints yet.');
@@ -65,7 +68,7 @@ export function useOfflineTrip({ tripId, waypoints }: UseOfflineTripParams) {
       setStatus('error');
       Alert.alert('Offline download failed', err instanceof Error ? err.message : 'Unknown error');
     }
-  }, [tripId, waypoints]);
+  }, [requirePro, tripId, waypoints]);
 
   const remove = useCallback(async () => {
     if (!tripId) return;
