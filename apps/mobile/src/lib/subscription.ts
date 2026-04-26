@@ -103,6 +103,9 @@ export async function loginRevenueCat(userId: string) {
   try {
     const Purchases = await getPurchases();
     await Purchases.logIn(userId);
+    // Set PostHog user ID so the RevenueCat → PostHog integration can
+    // match server-side subscription events to the correct PostHog user.
+    await Purchases.setAttributes({ $posthogUserId: userId });
   } catch (e) {
     console.error('[RevenueCat] logIn failed:', e instanceof Error ? e.message : e);
     captureException(e);
@@ -113,18 +116,24 @@ export async function loginRevenueCat(userId: string) {
  * Present the RevenueCat remote paywall.
  * Uses the paywall configured in the RevenueCat dashboard.
  *
+ * By default uses `offerings.current` which is controlled by RevenueCat
+ * Experiments — if an experiment is active, the user is automatically
+ * assigned a variant and the correct offering is returned as `current`.
+ *
  * @param options.requiredEntitlementIdentifier - Only show if user lacks this entitlement
+ * @param options.offeringIdentifier - Force a specific offering (bypasses experiments)
+ * @param options.placement - Use a RevenueCat Placement to serve the offering for this
+ *   paywall location. Placements allow per-location A/B tests (e.g. "onboarding",
+ *   "settings", "feature_gate"). Falls back to `offerings.current` if no placement
+ *   is configured in the RC dashboard.
  * @returns 'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'
  */
-/**
- * The RC-designed paywall offering identifier.
- * All paywall presentations use this so the configured paywall
- * (with the motorcycle hero image) is shown instead of the generic default.
- */
-const DEFAULT_OFFERING = 'new_offering_4_29_24_4';
-
 export async function presentPaywall(
-  options: { requiredEntitlementIdentifier?: string; offeringIdentifier?: string } = {},
+  options: {
+    requiredEntitlementIdentifier?: string;
+    offeringIdentifier?: string;
+    placement?: string;
+  } = {},
 ): Promise<'purchased' | 'restored' | 'cancelled' | 'not_presented' | 'error'> {
   if (isExpoGo()) {
     console.warn('[RevenueCat] Paywall not available in Expo Go');
@@ -136,11 +145,23 @@ export async function presentPaywall(
     const RevenueCatUI = await import('react-native-purchases-ui');
     const { PAYWALL_RESULT } = RevenueCatUI;
 
-    // Fetch the target offering object — the RC paywall API requires the
-    // full PurchasesOffering, not just a string identifier.
-    const offeringId = options.offeringIdentifier ?? DEFAULT_OFFERING;
     const offerings = await Purchases.getOfferings();
-    const offering = offerings.all[offeringId] ?? offerings.current ?? undefined;
+
+    // Resolve the offering to present:
+    // 1. Explicit offeringIdentifier (bypasses experiments — use for one-off products like health_report)
+    // 2. Placement-based offering (for per-location A/B tests via RC dashboard)
+    // 3. offerings.current (controlled by RC Experiments — default path)
+    let offering: (typeof offerings)['current'] | undefined;
+    if (options.offeringIdentifier) {
+      offering = offerings.all[options.offeringIdentifier] ?? offerings.current ?? undefined;
+    } else if (options.placement) {
+      offering =
+        (await Purchases.getCurrentOfferingForPlacement(options.placement)) ??
+        offerings.current ??
+        undefined;
+    } else {
+      offering = offerings.current ?? undefined;
+    }
 
     const result = options.requiredEntitlementIdentifier
       ? await RevenueCatUI.default.presentPaywallIfNeeded({

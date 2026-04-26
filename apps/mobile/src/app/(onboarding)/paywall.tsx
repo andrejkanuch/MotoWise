@@ -35,6 +35,7 @@ export default function PaywallScreen() {
     (async () => {
       const result = await presentPaywall({
         requiredEntitlementIdentifier: REVENUECAT_ENTITLEMENT_PRO,
+        placement: 'onboarding',
       });
 
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
