@@ -187,7 +187,7 @@ export class RidesService {
       .select('id')
       .eq('id', input.rideId)
       .eq('user_id', userId)
-      .in('status', ['recording', 'paused'])
+      .in('status', ['recording', 'paused', 'completed'])
       .is('deleted_at', null)
       .single();
 
