@@ -948,5 +948,44 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     }
+  },
+  "CookieBanner": {
+    "stamp": "Aviso de cookies legalmente obligatorio",
+    "title": "Horneamos <em>una cookie.</em> Cómetela o devuélvela.",
+    "body1": "MotoVault no vende, comparte ni susurra tus datos a redes publicitarias. Usamos <strong>una sola cookie propia</strong> para mantenerte conectado, más migas opcionales para ver qué funciones usan más los motociclistas.",
+    "body2": "Sin terceros. Sin fingerprinting. Sin <strong>buffet de vigilancia</strong>. Solo una pequeña cookie que dice \"este eres tú\" para que la ruta que planeaste en el desayuno siga aquí a la hora de comer.",
+    "accept": "Aceptar la cookie",
+    "decline": "No gracias",
+    "showList": "Muéstrame qué me como",
+    "privacyLink": "Política de privacidad honesta →",
+    "list": {
+      "whatWeUse": "Lo que usamos",
+      "count": "4 cookies",
+      "session": {
+        "tag": "Obligatoria",
+        "desc": "Te mantiene conectado entre páginas. 1 cookie · 7 días · primera parte"
+      },
+      "pref": {
+        "tag": "Preferencias",
+        "desc": "Recuerda tema, unidades y última moto usada. 1 cookie · 1 año · primera parte"
+      },
+      "telemetry": {
+        "tag": "Analítica anónima",
+        "desc": "Cuenta qué funciones abren más los motociclistas. Sin IP, sin perfil. 1 cookie · 30 días · primera parte"
+      },
+      "replay": {
+        "tag": "Informes de errores",
+        "desc": "Graba los últimos 30 segundos de un fallo para que podamos arreglarlo. 1 cookie · sesión · primera parte"
+      },
+      "save": "Guardar mis elecciones",
+      "acceptAll": "Aceptar todas",
+      "back": "Volver"
+    },
+    "settled": {
+      "accepted": "Cookie anotada. A rodar.",
+      "declined": "Sin cookies. A rodar.",
+      "saved": "Preferencias guardadas. A rodar.",
+      "undo": "Cambiar de opinión"
+    }
   }
 }

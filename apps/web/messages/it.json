@@ -948,5 +948,44 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     }
+  },
+  "CookieBanner": {
+    "stamp": "Banner cookie obbligatorio per legge",
+    "title": "Prepariamo <em>un cookie.</em> Mangialo o rimandalo indietro.",
+    "body1": "MotoVault non vende, condivide o sussurra i tuoi dati alle reti pubblicitarie. Usiamo <strong>un solo cookie interno</strong> per tenerti connesso, più briciole opzionali per vedere quali funzionalità i motociclisti aprono di più.",
+    "body2": "Nessun terzo. Nessun fingerprinting. Nessun <strong>buffet di sorveglianza</strong>. Solo un piccolo cookie che dice \"questo sei tu\" così il viaggio che hai pianificato a colazione è ancora qui a pranzo.",
+    "accept": "Accetta il cookie",
+    "decline": "No grazie",
+    "showList": "Mostrami cosa mangio",
+    "privacyLink": "Informativa privacy onesta →",
+    "list": {
+      "whatWeUse": "Cosa utilizziamo",
+      "count": "4 cookie",
+      "session": {
+        "tag": "Obbligatorio",
+        "desc": "Ti tiene connesso tra le pagine. 1 cookie · 7 giorni · prima parte"
+      },
+      "pref": {
+        "tag": "Preferenze",
+        "desc": "Ricorda tema, unità e ultima moto usata. 1 cookie · 1 anno · prima parte"
+      },
+      "telemetry": {
+        "tag": "Analisi anonima",
+        "desc": "Conta quali funzionalità i motociclisti aprono di più. Nessun IP, nessun profilo. 1 cookie · 30 giorni · prima parte"
+      },
+      "replay": {
+        "tag": "Segnalazioni bug",
+        "desc": "Registra gli ultimi 30 secondi di un crash così possiamo correggerlo. 1 cookie · sessione · prima parte"
+      },
+      "save": "Salva le mie scelte",
+      "acceptAll": "Accetta tutti",
+      "back": "Indietro"
+    },
+    "settled": {
+      "accepted": "Cookie registrato. Buona strada.",
+      "declined": "Nessun cookie impostato. Buona strada.",
+      "saved": "Preferenze salvate. Buona strada.",
+      "undo": "Cambiare idea"
+    }
   }
 }

@@ -948,5 +948,44 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     }
+  },
+  "CookieBanner": {
+    "stamp": "Bandeau cookie obligatoire",
+    "title": "On prépare <em>un cookie.</em> Mange-le ou renvoie-le.",
+    "body1": "MotoVault ne vend, ne partage et ne murmure pas vos données aux réseaux publicitaires. Nous utilisons <strong>un seul cookie maison</strong> pour vous garder connecté, plus quelques miettes optionnelles pour voir quelles fonctionnalités les motards utilisent le plus.",
+    "body2": "Pas de tiers. Pas de fingerprinting. Pas de <strong>buffet de surveillance</strong>. Juste un petit cookie qui dit « c'est vous » pour que le trajet planifié au petit-déj soit toujours là au déjeuner.",
+    "accept": "Accepter le cookie",
+    "decline": "Non merci",
+    "showList": "Montre-moi ce que je mange",
+    "privacyLink": "Politique de confidentialité honnête →",
+    "list": {
+      "whatWeUse": "Ce que nous utilisons",
+      "count": "4 cookies",
+      "session": {
+        "tag": "Obligatoire",
+        "desc": "Vous garde connecté entre les pages. 1 cookie · 7 jours · première partie"
+      },
+      "pref": {
+        "tag": "Préférences",
+        "desc": "Mémorise le thème, les unités, la dernière moto utilisée. 1 cookie · 1 an · première partie"
+      },
+      "telemetry": {
+        "tag": "Analytique anonyme",
+        "desc": "Compte quelles fonctionnalités les motards ouvrent le plus. Pas d'IP, pas de profil. 1 cookie · 30 jours · première partie"
+      },
+      "replay": {
+        "tag": "Rapports de bugs",
+        "desc": "Enregistre les 30 dernières secondes d'un crash pour qu'on puisse le corriger. 1 cookie · session · première partie"
+      },
+      "save": "Sauvegarder mes choix",
+      "acceptAll": "Tout accepter",
+      "back": "Retour"
+    },
+    "settled": {
+      "accepted": "Cookie noté. Bonne route.",
+      "declined": "Aucun cookie défini. Bonne route.",
+      "saved": "Préférences enregistrées. Bonne route.",
+      "undo": "Changer d'avis"
+    }
   }
 }

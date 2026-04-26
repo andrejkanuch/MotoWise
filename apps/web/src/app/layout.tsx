@@ -3,7 +3,8 @@ import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import Script from 'next/script';
-import { getLocale } from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-consent';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
@@ -42,6 +43,9 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
+  const messages = await getMessages();
+  // Only pass the CookieBanner namespace to avoid bloating the client bundle
+  const cookieBannerMessages = { CookieBanner: (messages as Record<string, unknown>).CookieBanner };
   return (
     <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
       <head>
@@ -69,7 +73,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
         <CookieConsentProvider>
           <QueryProvider>{children}</QueryProvider>
-          <CookieConsentBanner />
+          <NextIntlClientProvider locale={locale} messages={cookieBannerMessages}>
+            <CookieConsentBanner />
+          </NextIntlClientProvider>
           {process.env.NODE_ENV === 'production' && (
             <>
               <Analytics />

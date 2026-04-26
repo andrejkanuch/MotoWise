@@ -948,5 +948,44 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     }
+  },
+  "CookieBanner": {
+    "stamp": "Legally-required cookie banner",
+    "title": "We bake <em>one cookie.</em> Eat it or send it back.",
+    "body1": "MotoVault doesn’t sell, share, or whisper your data to ad networks. We use <strong>one in-house cookie</strong> to keep you signed in, plus optional crumbs to see which feature riders open most.",
+    "body2": "No third parties. No fingerprinting. No <strong>surveillance buffet</strong>. Just one tiny cookie that says “this is you” so the trip you planned at breakfast is still here at lunch.",
+    "accept": "Accept the cookie",
+    "decline": "No thanks",
+    "showList": "Show me what I’m eating",
+    "privacyLink": "Honest privacy policy →",
+    "list": {
+      "whatWeUse": "What we use",
+      "count": "4 cookies",
+      "session": {
+        "tag": "Required",
+        "desc": "Keeps you signed in across pages. 1 cookie · 7 days · first-party"
+      },
+      "pref": {
+        "tag": "Preferences",
+        "desc": "Remembers theme, units, last-used bike. 1 cookie · 1 year · first-party"
+      },
+      "telemetry": {
+        "tag": "Anonymous analytics",
+        "desc": "Counts which features riders open most. No IP, no profile. 1 cookie · 30 days · first-party"
+      },
+      "replay": {
+        "tag": "Bug reports",
+        "desc": "Records the last 30 seconds of a crash, so we can fix it. 1 cookie · session · first-party"
+      },
+      "save": "Save my choices",
+      "acceptAll": "Accept all",
+      "back": "Back"
+    },
+    "settled": {
+      "accepted": "Cookie noted. Ride on.",
+      "declined": "No cookies set. Ride on.",
+      "saved": "Preferences saved. Ride on.",
+      "undo": "Change mind"
+    }
   }
 }

@@ -948,5 +948,44 @@
         "answer": "MotoVault and RideLog both offer comprehensive expense tracking with category breakdowns and spending analytics. MotoVault adds an expense dashboard with cost-per-mile calculations and yearly trends."
       }
     }
+  },
+  "CookieBanner": {
+    "stamp": "Gesetzlich vorgeschriebenes Cookie-Banner",
+    "title": "Wir backen <em>einen Cookie.</em> Iss ihn oder schick ihn zurück.",
+    "body1": "MotoVault verkauft, teilt oder flüstert deine Daten nicht an Werbenetzwerke. Wir verwenden <strong>einen hauseigenen Cookie</strong>, um dich eingeloggt zu halten, plus optionale Krümel, um zu sehen, welche Funktionen Fahrer am meisten nutzen.",
+    "body2": "Keine Drittanbieter. Kein Fingerprinting. Kein <strong>Überwachungs-Buffet</strong>. Nur ein kleiner Cookie, der sagt „das bist du", damit die Tour, die du beim Frühstück geplant hast, auch beim Mittagessen noch da ist.",
+    "accept": "Cookie akzeptieren",
+    "decline": "Nein danke",
+    "showList": "Zeig mir, was ich esse",
+    "privacyLink": "Ehrliche Datenschutzerklärung →",
+    "list": {
+      "whatWeUse": "Was wir verwenden",
+      "count": "4 Cookies",
+      "session": {
+        "tag": "Erforderlich",
+        "desc": "Hält dich seitenübergreifend eingeloggt. 1 Cookie · 7 Tage · Erstanbieter"
+      },
+      "pref": {
+        "tag": "Einstellungen",
+        "desc": "Speichert Theme, Einheiten, zuletzt verwendetes Motorrad. 1 Cookie · 1 Jahr · Erstanbieter"
+      },
+      "telemetry": {
+        "tag": "Anonyme Analyse",
+        "desc": "Zählt, welche Funktionen Fahrer am meisten öffnen. Keine IP, kein Profil. 1 Cookie · 30 Tage · Erstanbieter"
+      },
+      "replay": {
+        "tag": "Fehlerberichte",
+        "desc": "Zeichnet die letzten 30 Sekunden eines Absturzes auf, damit wir ihn beheben können. 1 Cookie · Sitzung · Erstanbieter"
+      },
+      "save": "Meine Auswahl speichern",
+      "acceptAll": "Alle akzeptieren",
+      "back": "Zurück"
+    },
+    "settled": {
+      "accepted": "Cookie notiert. Fahr weiter.",
+      "declined": "Keine Cookies gesetzt. Fahr weiter.",
+      "saved": "Einstellungen gespeichert. Fahr weiter.",
+      "undo": "Meinung ändern"
+    }
   }
 }
