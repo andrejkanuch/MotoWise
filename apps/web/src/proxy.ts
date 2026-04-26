@@ -293,13 +293,40 @@ async function communityAuth(request: NextRequest) {
 // before analytics tracking. Everyone else gets auto-opted-in.
 const CONSENT_REQUIRED_COUNTRIES = new Set([
   // EU 27
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
-  'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
-  'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'CZ',
+  'DK',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'HU',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SK',
+  'SI',
+  'ES',
+  'SE',
   // EEA
-  'IS', 'LI', 'NO',
+  'IS',
+  'LI',
+  'NO',
   // UK (UK GDPR) + Switzerland (FADP)
-  'GB', 'CH',
+  'GB',
+  'CH',
 ]);
 
 function applyRegionCookie(request: NextRequest, response: NextResponse) {
@@ -308,8 +335,7 @@ function applyRegionCookie(request: NextRequest, response: NextResponse) {
 
   const country = request.headers.get('x-vercel-ip-country') ?? '';
   const region = CONSENT_REQUIRED_COUNTRIES.has(country) ? 'EU' : 'OTHER';
-  const secure =
-    request.nextUrl.protocol === 'https:' ? '; Secure' : '';
+  const secure = request.nextUrl.protocol === 'https:' ? '; Secure' : '';
   // 1-year lifetime — region doesn't change often.
   response.headers.append(
     'Set-Cookie',
