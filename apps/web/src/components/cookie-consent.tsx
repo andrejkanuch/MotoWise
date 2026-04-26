@@ -20,6 +20,14 @@ function parseConsent(): Decision | null {
   return null;
 }
 
+// Reads the mv_region cookie set by middleware (proxy.ts) from the
+// Vercel x-vercel-ip-country header. Returns true for EU/EEA/UK/CH.
+function isConsentRequired(): boolean {
+  if (typeof document === 'undefined') return true; // SSR safe default
+  const match = document.cookie.match(/(?:^|; )mv_region=([^;]*)/);
+  return !match || match[1] === 'EU';
+}
+
 function writeConsent(decision: Decision) {
   const epoch = Math.floor(Date.now() / 1000);
   const value = `v1:${decision}:${epoch}:EU`;
@@ -70,9 +78,19 @@ export function CookieConsentProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     const current = parseConsent();
-    const asBool = current === null ? null : current === 'accepted';
-    setConsentState(asBool);
-    if (asBool !== null) applyPostHogConsent(asBool);
+    if (current !== null) {
+      // User already made a choice — honour it.
+      const asBool = current === 'accepted';
+      setConsentState(asBool);
+      applyPostHogConsent(asBool);
+    } else if (!isConsentRequired()) {
+      // Non-EU visitor with no prior choice — auto-opt-in, persist the
+      // decision so the banner never shows and PostHog gets a stable ID.
+      writeConsent('accepted');
+      setConsentState(true);
+      applyPostHogConsent(true);
+    }
+    // EU visitor with no prior choice — consent stays null → banner shows.
   }, []);
 
   const accept = useCallback(() => {

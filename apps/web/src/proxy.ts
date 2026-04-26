@@ -289,6 +289,34 @@ async function communityAuth(request: NextRequest) {
   return supabaseResponse;
 }
 
+// EU/EEA + UK + CH — visitors from these countries require GDPR consent
+// before analytics tracking. Everyone else gets auto-opted-in.
+const CONSENT_REQUIRED_COUNTRIES = new Set([
+  // EU 27
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
+  'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+  'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+  // EEA
+  'IS', 'LI', 'NO',
+  // UK (UK GDPR) + Switzerland (FADP)
+  'GB', 'CH',
+]);
+
+function applyRegionCookie(request: NextRequest, response: NextResponse) {
+  // Skip if the cookie already exists — only set once per browser.
+  if (request.cookies.has('mv_region')) return;
+
+  const country = request.headers.get('x-vercel-ip-country') ?? '';
+  const region = CONSENT_REQUIRED_COUNTRIES.has(country) ? 'EU' : 'OTHER';
+  const secure =
+    request.nextUrl.protocol === 'https:' ? '; Secure' : '';
+  // 1-year lifetime — region doesn't change often.
+  response.headers.append(
+    'Set-Cookie',
+    `mv_region=${region}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`,
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const { pathname } = request.nextUrl;
@@ -364,13 +392,13 @@ export async function proxy(request: NextRequest) {
   // Apply nonce-based CSP and security headers to all responses
   if (!response.headers.has('Location')) {
     applySecurityHeaders(response, nonce);
-    // Only emit the shared-cache header when the request is anonymous.
-    // Authenticated requests may render user-specific server content, which
-    // must never land in a shared edge cache keyed by URL alone.
     if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
     }
   }
+
+  // Set mv_region cookie (EU vs OTHER) for client-side consent logic.
+  applyRegionCookie(request, response);
 
   return response;
 }
