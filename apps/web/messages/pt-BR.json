@@ -1536,7 +1536,11 @@
         "mv": "Intervalos personalizados",
         "comp": "Específico por fabricante para 600+ marcas"
       },
-      "3": { "label": "Diagnósticos com IA", "mv": "Análise com IA por foto", "comp": "Não disponível" },
+      "3": {
+        "label": "Diagnósticos com IA",
+        "mv": "Análise com IA por foto",
+        "comp": "Não disponível"
+      },
       "4": {
         "label": "Planejamento de viagem",
         "mv": "Multi-dia com waypoints tipados",
@@ -1547,7 +1551,11 @@
         "mv": "Rotas curadas pela comunidade",
         "comp": "Não disponível"
       },
-      "6": { "label": "Conteúdo de aprendizado", "mv": "Cursos e quizzes", "comp": "Não disponível" },
+      "6": {
+        "label": "Conteúdo de aprendizado",
+        "mv": "Cursos e quizzes",
+        "comp": "Não disponível"
+      },
       "7": {
         "label": "Múltiplas motos",
         "mv": "Ilimitado (Pro)",
@@ -1621,7 +1629,11 @@
         "mv": "Lembretes inteligentes por data/quilometragem",
         "comp": "Lembretes básicos"
       },
-      "3": { "label": "Diagnósticos com IA", "mv": "Análise com IA por foto", "comp": "Não disponível" },
+      "3": {
+        "label": "Diagnósticos com IA",
+        "mv": "Análise com IA por foto",
+        "comp": "Não disponível"
+      },
       "4": {
         "label": "Planejamento de viagem",
         "mv": "Multi-dia com waypoints tipados",
@@ -1632,13 +1644,21 @@
         "mv": "Rotas curadas pela comunidade",
         "comp": "Não disponível"
       },
-      "6": { "label": "Conteúdo de aprendizado", "mv": "Cursos e quizzes", "comp": "Não disponível" },
+      "6": {
+        "label": "Conteúdo de aprendizado",
+        "mv": "Cursos e quizzes",
+        "comp": "Não disponível"
+      },
       "7": { "label": "Múltiplas motos", "mv": "Ilimitado (Pro)", "comp": "Múltiplas motos" },
       "8": { "label": "Suporte a Android", "mv": "iOS e Android", "comp": "Apenas iOS" },
       "9": { "label": "Gravação de viagem", "mv": "GPS com mapas", "comp": "Não disponível" }
     },
     "pricing": {
-      "0": { "label": "Plano gratuito", "mv": "Sim — 1 moto, recursos principais", "comp": "Sem plano gratuito" },
+      "0": {
+        "label": "Plano gratuito",
+        "mv": "Sim — 1 moto, recursos principais",
+        "comp": "Sem plano gratuito"
+      },
       "1": { "label": "Preço", "mv": "$4.99/mês (Pro)", "comp": "Compra única ~$4.99" },
       "2": { "label": "Plataformas", "mv": "iOS + Android", "comp": "Apenas iOS" }
     },

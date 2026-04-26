@@ -1633,12 +1633,20 @@
         "comp": "Mevcut değil"
       },
       "6": { "label": "Öğrenme içeriği", "mv": "Kurslar ve sınavlar", "comp": "Mevcut değil" },
-      "7": { "label": "Birden fazla motosiklet", "mv": "Sınırsız (Pro)", "comp": "Birden fazla motosiklet" },
+      "7": {
+        "label": "Birden fazla motosiklet",
+        "mv": "Sınırsız (Pro)",
+        "comp": "Birden fazla motosiklet"
+      },
       "8": { "label": "Android desteği", "mv": "iOS ve Android", "comp": "Yalnızca iOS" },
       "9": { "label": "Sürüş kaydı", "mv": "Haritalarla GPS", "comp": "Mevcut değil" }
     },
     "pricing": {
-      "0": { "label": "Ücretsiz katman", "mv": "Evet — 1 motosiklet, temel özellikler", "comp": "Ücretsiz katman yok" },
+      "0": {
+        "label": "Ücretsiz katman",
+        "mv": "Evet — 1 motosiklet, temel özellikler",
+        "comp": "Ücretsiz katman yok"
+      },
       "1": { "label": "Fiyat", "mv": "$4.99/ay (Pro)", "comp": "Tek seferlik ~$4.99" },
       "2": { "label": "Platformlar", "mv": "iOS + Android", "comp": "Yalnızca iOS" }
     },

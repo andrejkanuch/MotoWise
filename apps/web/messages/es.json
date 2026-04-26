@@ -1536,7 +1536,11 @@
         "mv": "Intervalos personalizados",
         "comp": "Específicos del fabricante para más de 600 marcas"
       },
-      "3": { "label": "Diagnósticos con IA", "mv": "Análisis con IA basado en fotos", "comp": "No disponible" },
+      "3": {
+        "label": "Diagnósticos con IA",
+        "mv": "Análisis con IA basado en fotos",
+        "comp": "No disponible"
+      },
       "4": {
         "label": "Planificación de viajes",
         "mv": "Varios días con puntos de interés tipificados",
@@ -1547,7 +1551,11 @@
         "mv": "Rutas seleccionadas por la comunidad",
         "comp": "No disponible"
       },
-      "6": { "label": "Contenido de aprendizaje", "mv": "Cursos y cuestionarios", "comp": "No disponible" },
+      "6": {
+        "label": "Contenido de aprendizaje",
+        "mv": "Cursos y cuestionarios",
+        "comp": "No disponible"
+      },
       "7": {
         "label": "Varias motos",
         "mv": "Ilimitadas (Pro)",
@@ -1621,7 +1629,11 @@
         "mv": "Recordatorios inteligentes por fecha/kilometraje",
         "comp": "Recordatorios básicos"
       },
-      "3": { "label": "Diagnósticos con IA", "mv": "Análisis con IA basado en fotos", "comp": "No disponible" },
+      "3": {
+        "label": "Diagnósticos con IA",
+        "mv": "Análisis con IA basado en fotos",
+        "comp": "No disponible"
+      },
       "4": {
         "label": "Planificación de viajes",
         "mv": "Varios días con puntos de interés tipificados",
@@ -1632,13 +1644,21 @@
         "mv": "Rutas seleccionadas por la comunidad",
         "comp": "No disponible"
       },
-      "6": { "label": "Contenido de aprendizaje", "mv": "Cursos y cuestionarios", "comp": "No disponible" },
+      "6": {
+        "label": "Contenido de aprendizaje",
+        "mv": "Cursos y cuestionarios",
+        "comp": "No disponible"
+      },
       "7": { "label": "Varias motos", "mv": "Ilimitadas (Pro)", "comp": "Varias motos" },
       "8": { "label": "Soporte Android", "mv": "iOS y Android", "comp": "Solo iOS" },
       "9": { "label": "Grabación de rutas", "mv": "GPS con mapas", "comp": "No disponible" }
     },
     "pricing": {
-      "0": { "label": "Nivel gratuito", "mv": "Sí — 1 moto, funciones principales", "comp": "Sin nivel gratuito" },
+      "0": {
+        "label": "Nivel gratuito",
+        "mv": "Sí — 1 moto, funciones principales",
+        "comp": "Sin nivel gratuito"
+      },
       "1": { "label": "Precio", "mv": "$4.99/mes (Pro)", "comp": "Compra única ~$4.99" },
       "2": { "label": "Plataformas", "mv": "iOS + Android", "comp": "Solo iOS" }
     },

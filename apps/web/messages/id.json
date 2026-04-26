@@ -1536,7 +1536,11 @@
         "mv": "Interval kustom",
         "comp": "Spesifik pabrikan untuk 600+ merek"
       },
-      "3": { "label": "Diagnostik AI", "mv": "Analisis AI berbasis foto", "comp": "Tidak tersedia" },
+      "3": {
+        "label": "Diagnostik AI",
+        "mv": "Analisis AI berbasis foto",
+        "comp": "Tidak tersedia"
+      },
       "4": {
         "label": "Perencanaan perjalanan",
         "mv": "Multi-hari dengan waypoint bertipe",
@@ -1621,7 +1625,11 @@
         "mv": "Pengingat cerdas tanggal/jarak tempuh",
         "comp": "Pengingat dasar"
       },
-      "3": { "label": "Diagnostik AI", "mv": "Analisis AI berbasis foto", "comp": "Tidak tersedia" },
+      "3": {
+        "label": "Diagnostik AI",
+        "mv": "Analisis AI berbasis foto",
+        "comp": "Tidak tersedia"
+      },
       "4": {
         "label": "Perencanaan perjalanan",
         "mv": "Multi-hari dengan waypoint bertipe",
@@ -1638,7 +1646,11 @@
       "9": { "label": "Perekaman perjalanan", "mv": "GPS dengan peta", "comp": "Tidak tersedia" }
     },
     "pricing": {
-      "0": { "label": "Paket gratis", "mv": "Ya — 1 motor, fitur inti", "comp": "Tidak ada paket gratis" },
+      "0": {
+        "label": "Paket gratis",
+        "mv": "Ya — 1 motor, fitur inti",
+        "comp": "Tidak ada paket gratis"
+      },
       "1": { "label": "Harga", "mv": "$4.99/bulan (Pro)", "comp": "Satu kali ~$4.99" },
       "2": { "label": "Platform", "mv": "iOS + Android", "comp": "Hanya iOS" }
     },

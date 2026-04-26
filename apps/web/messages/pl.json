@@ -1536,7 +1536,11 @@
         "mv": "Niestandardowe interwały",
         "comp": "Specyficzne dla producenta dla 600+ marek"
       },
-      "3": { "label": "Diagnostyka AI", "mv": "Analiza AI na podstawie zdjęć", "comp": "Niedostępne" },
+      "3": {
+        "label": "Diagnostyka AI",
+        "mv": "Analiza AI na podstawie zdjęć",
+        "comp": "Niedostępne"
+      },
       "4": {
         "label": "Planowanie wycieczek",
         "mv": "Wielodniowe z typowanymi punktami",
@@ -1621,7 +1625,11 @@
         "mv": "Inteligentne przypomnienia data/przebieg",
         "comp": "Podstawowe przypomnienia"
       },
-      "3": { "label": "Diagnostyka AI", "mv": "Analiza AI na podstawie zdjęć", "comp": "Niedostępne" },
+      "3": {
+        "label": "Diagnostyka AI",
+        "mv": "Analiza AI na podstawie zdjęć",
+        "comp": "Niedostępne"
+      },
       "4": {
         "label": "Planowanie wycieczek",
         "mv": "Wielodniowe z typowanymi punktami",
@@ -1638,7 +1646,11 @@
       "9": { "label": "Rejestrowanie tras", "mv": "GPS z mapami", "comp": "Niedostępne" }
     },
     "pricing": {
-      "0": { "label": "Darmowy plan", "mv": "Tak — 1 motocykl, podstawowe funkcje", "comp": "Brak darmowego planu" },
+      "0": {
+        "label": "Darmowy plan",
+        "mv": "Tak — 1 motocykl, podstawowe funkcje",
+        "comp": "Brak darmowego planu"
+      },
       "1": { "label": "Cena", "mv": "$4.99/miesiąc (Pro)", "comp": "Jednorazowo ~$4.99" },
       "2": { "label": "Platformy", "mv": "iOS + Android", "comp": "Tylko iOS" }
     },

@@ -1554,7 +1554,11 @@
         "comp": "Plusieurs motos supportées"
       },
       "8": { "label": "Support Android", "mv": "iOS et Android", "comp": "Android uniquement" },
-      "9": { "label": "Enregistrement de trajets", "mv": "GPS avec cartes", "comp": "Non disponible" }
+      "9": {
+        "label": "Enregistrement de trajets",
+        "mv": "GPS avec cartes",
+        "comp": "Non disponible"
+      }
     },
     "pricing": {
       "0": {
@@ -1635,10 +1639,18 @@
       "6": { "label": "Contenu d'apprentissage", "mv": "Cours et quiz", "comp": "Non disponible" },
       "7": { "label": "Plusieurs motos", "mv": "Illimité (Pro)", "comp": "Plusieurs motos" },
       "8": { "label": "Support Android", "mv": "iOS et Android", "comp": "iOS uniquement" },
-      "9": { "label": "Enregistrement de trajets", "mv": "GPS avec cartes", "comp": "Non disponible" }
+      "9": {
+        "label": "Enregistrement de trajets",
+        "mv": "GPS avec cartes",
+        "comp": "Non disponible"
+      }
     },
     "pricing": {
-      "0": { "label": "Offre gratuite", "mv": "Oui — 1 moto, fonctions principales", "comp": "Pas d'offre gratuite" },
+      "0": {
+        "label": "Offre gratuite",
+        "mv": "Oui — 1 moto, fonctions principales",
+        "comp": "Pas d'offre gratuite"
+      },
       "1": { "label": "Prix", "mv": "$4.99/mois (Pro)", "comp": "Unique ~$4.99" },
       "2": { "label": "Plateformes", "mv": "iOS + Android", "comp": "iOS uniquement" }
     },

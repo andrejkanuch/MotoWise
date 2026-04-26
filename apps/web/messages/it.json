@@ -1536,7 +1536,11 @@
         "mv": "Intervalli personalizzati",
         "comp": "Specifici del costruttore per 600+ marche"
       },
-      "3": { "label": "Diagnostica AI", "mv": "Analisi AI basata su foto", "comp": "Non disponibile" },
+      "3": {
+        "label": "Diagnostica AI",
+        "mv": "Analisi AI basata su foto",
+        "comp": "Non disponibile"
+      },
       "4": {
         "label": "Pianificazione viaggi",
         "mv": "Multi-giorno con waypoint tipizzati",
@@ -1621,7 +1625,11 @@
         "mv": "Promemoria intelligenti data/km",
         "comp": "Promemoria base"
       },
-      "3": { "label": "Diagnostica AI", "mv": "Analisi AI basata su foto", "comp": "Non disponibile" },
+      "3": {
+        "label": "Diagnostica AI",
+        "mv": "Analisi AI basata su foto",
+        "comp": "Non disponibile"
+      },
       "4": {
         "label": "Pianificazione viaggi",
         "mv": "Multi-giorno con waypoint tipizzati",
@@ -1638,7 +1646,11 @@
       "9": { "label": "Registrazione uscite", "mv": "GPS con mappe", "comp": "Non disponibile" }
     },
     "pricing": {
-      "0": { "label": "Piano gratuito", "mv": "Sì — 1 moto, funzionalità principali", "comp": "Nessun piano gratuito" },
+      "0": {
+        "label": "Piano gratuito",
+        "mv": "Sì — 1 moto, funzionalità principali",
+        "comp": "Nessun piano gratuito"
+      },
       "1": { "label": "Prezzo", "mv": "$4.99/mese (Pro)", "comp": "Acquisto unico ~$4.99" },
       "2": { "label": "Piattaforme", "mv": "iOS + Android", "comp": "Solo iOS" }
     },

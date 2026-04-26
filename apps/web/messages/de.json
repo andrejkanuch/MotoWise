@@ -1633,12 +1633,20 @@
         "comp": "Nicht verfügbar"
       },
       "6": { "label": "Lerninhalte", "mv": "Kurse und Quiz", "comp": "Nicht verfügbar" },
-      "7": { "label": "Mehrere Motorräder", "mv": "Unbegrenzt (Pro)", "comp": "Mehrere Motorräder" },
+      "7": {
+        "label": "Mehrere Motorräder",
+        "mv": "Unbegrenzt (Pro)",
+        "comp": "Mehrere Motorräder"
+      },
       "8": { "label": "Android-Unterstützung", "mv": "iOS und Android", "comp": "Nur iOS" },
       "9": { "label": "Fahrtaufzeichnung", "mv": "GPS mit Karten", "comp": "Nicht verfügbar" }
     },
     "pricing": {
-      "0": { "label": "Kostenloser Tarif", "mv": "Ja — 1 Motorrad, Kernfunktionen", "comp": "Kein kostenloser Tarif" },
+      "0": {
+        "label": "Kostenloser Tarif",
+        "mv": "Ja — 1 Motorrad, Kernfunktionen",
+        "comp": "Kein kostenloser Tarif"
+      },
       "1": { "label": "Preis", "mv": "$4.99/Monat (Pro)", "comp": "Einmalkauf ~$4.99" },
       "2": { "label": "Plattformen", "mv": "iOS + Android", "comp": "Nur iOS" }
     },
