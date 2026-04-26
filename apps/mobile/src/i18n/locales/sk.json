@@ -166,7 +166,10 @@
     "allTasks": "Vsetky ulohy",
     "overdueByDays": "{{count}} dni po termine",
     "dueInDays": "O {{count}} dni",
-    "addBike": "Pridat motorku"
+    "addBike": "Pridat motorku",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "Preskúmaj témy o motocykloch",
@@ -1151,6 +1154,7 @@
     "views": "Zobrazenia",
     "clones": "Kopie",
     "maybe": "Mozno",
-    "leave": "Opustit"
+    "leave": "Opustit",
+    "offlineCopy": "Offline copy"
   }
 }

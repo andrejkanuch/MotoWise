@@ -1,6 +1,7 @@
+import { palette } from '@motovault/design-system';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronRight, DollarSign, MapPin, Sparkles, Wrench } from 'lucide-react-native';
+import { ChevronRight, DollarSign, MapPin, Sparkles, WifiOff, Wrench } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -25,6 +26,9 @@ export default function HomeScreen() {
   const {
     isLoading,
     hasCriticalError,
+    isOffline,
+    isOfflineEmpty,
+    dataUpdatedAt,
     errorMessage,
     isRefreshing,
     onRefresh,
@@ -119,6 +123,39 @@ export default function HomeScreen() {
     );
   }
 
+  // ── Offline with no cached data ──
+  if (isOfflineEmpty) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 24,
+        }}
+      >
+        <Animated.View entering={FadeIn.duration(300)} style={{ alignItems: 'center' }}>
+          <WifiOff size={40} color={theme.ink3} />
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: theme.ink,
+              marginTop: 16,
+              marginBottom: 8,
+            }}
+          >
+            {t('home.offlineTitle')}
+          </Text>
+          <Text style={{ fontSize: 14, color: theme.ink3, textAlign: 'center' }}>
+            {t('home.offlineSubtitle')}
+          </Text>
+        </Animated.View>
+      </View>
+    );
+  }
+
   // ── Error ──
   if (hasCriticalError) {
     return (
@@ -177,6 +214,30 @@ export default function HomeScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={theme.warm} />
         }
       >
+        {/* Offline banner */}
+        {isOffline && !isOfflineEmpty && dataUpdatedAt > 0 && (
+          <Animated.View
+            entering={FadeInUp.duration(200)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              marginHorizontal: 20,
+              marginTop: 8,
+              backgroundColor: palette.warningBgLight,
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 8,
+              borderCurve: 'continuous',
+            }}
+          >
+            <WifiOff size={14} color={palette.warning500} />
+            <Text style={{ fontSize: 13, color: palette.warning500, fontWeight: '500' }}>
+              {t('home.offlineBanner')} · {new Date(dataUpdatedAt).toLocaleTimeString()}
+            </Text>
+          </Animated.View>
+        )}
+
         {/* 1. Top bar */}
         <View
           style={{

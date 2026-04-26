@@ -113,37 +113,45 @@ export async function enqueueOrExecute(
   enqueue(type, payload);
 }
 
+let isDraining = false;
+
 export async function drainQueue(): Promise<void> {
-  const networkState = await Network.getNetworkStateAsync();
-  if (!networkState.isConnected || !networkState.isInternetReachable) return;
+  if (isDraining) return;
+  isDraining = true;
+  try {
+    const networkState = await Network.getNetworkStateAsync();
+    if (!networkState.isConnected || !networkState.isInternetReachable) return;
 
-  const queue = getQueue();
-  if (queue.length === 0) return;
+    const queue = getQueue();
+    if (queue.length === 0) return;
 
-  const remaining: SyncOperation[] = [];
+    const remaining: SyncOperation[] = [];
 
-  for (const op of queue) {
-    // Exponential backoff with jitter — only sleep on retries, not first attempt
-    if (op.retries > 0) {
-      const baseDelay = BASE_DELAY_MS * 2 ** op.retries;
-      const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
-      await sleep(jitteredDelay);
-    }
+    for (const op of queue) {
+      // Exponential backoff with jitter — only sleep on retries, not first attempt
+      if (op.retries > 0) {
+        const baseDelay = BASE_DELAY_MS * 2 ** op.retries;
+        const jitteredDelay = baseDelay * (0.5 + Math.random() * 0.5);
+        await sleep(jitteredDelay);
+      }
 
-    try {
-      await executeSyncOperation(op);
-    } catch (error) {
-      captureException(error);
-      op.retries++;
-      if (op.retries >= MAX_RETRIES) {
-        moveToDeadLetter(op);
-      } else {
-        remaining.push(op);
+      try {
+        await executeSyncOperation(op);
+      } catch (error) {
+        captureException(error);
+        op.retries++;
+        if (op.retries >= MAX_RETRIES) {
+          moveToDeadLetter(op);
+        } else {
+          remaining.push(op);
+        }
       }
     }
-  }
 
-  setQueue(remaining);
+    setQueue(remaining);
+  } finally {
+    isDraining = false;
+  }
 }
 
 async function executeSyncOperation(op: SyncOperation): Promise<void> {

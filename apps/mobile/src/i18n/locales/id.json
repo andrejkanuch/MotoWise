@@ -166,7 +166,10 @@
     "allTasks": "Semua tugas",
     "overdueByDays": "Terlambat {{count}} hari",
     "dueInDays": "Jatuh tempo dalam {{count}} hari",
-    "addBike": "Tambah motor"
+    "addBike": "Tambah motor",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "Jelajahi topik motor",
@@ -1151,6 +1154,7 @@
     "views": "Dilihat",
     "clones": "Salinan",
     "maybe": "Mungkin",
-    "leave": "Keluar"
+    "leave": "Keluar",
+    "offlineCopy": "Offline copy"
   }
 }

@@ -116,6 +116,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'com.motovault.app',
+    allowBackup: false,
     adaptiveIcon: {
       foregroundImage: './src/assets/images/MotoVault.png',
       monochromeImage: './src/assets/images/MotoVaultDark.png',

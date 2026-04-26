@@ -4,7 +4,7 @@ import {
   InstrumentSerif_400Regular_Italic,
 } from '@expo-google-fonts/instrument-serif';
 import { useFonts } from 'expo-font';
-import { LogBox } from 'react-native';
+import { AppState, LogBox } from 'react-native';
 
 LogBox.ignoreLogs(['Method readAsStringAsync imported from "expo-file-system" is deprecated']);
 
@@ -13,7 +13,9 @@ import { Currency, MeasurementSystem } from '@motovault/types';
 import MapboxGL from '@rnmapbox/maps';
 import { useQuery } from '@tanstack/react-query';
 import * as Application from 'expo-application';
+import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
+import * as SecureStore from 'expo-secure-store';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
 let QuickActions: typeof import('expo-quick-actions') | null = null;
@@ -59,7 +61,7 @@ import {
   setupNotificationChannels,
   snoozeTaskNotification,
 } from '../lib/notifications';
-import { PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
+import { LAST_USER_KEY, PersistedQueryClientBoundary } from '../lib/persisted-query-provider';
 import { queryClient } from '../lib/query-client';
 import { queryKeys } from '../lib/query-keys';
 import { setupFocusManager, setupOnlineManager } from '../lib/query-native';
@@ -69,7 +71,8 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/auth.store';
 import { useSubscriptionStore } from '../stores/subscription.store';
 import { useWhatsNewStore } from '../stores/whats-new.store';
-import { drainQueue } from '../utils/ride-sync-queue';
+import { clearRideData, rideMMKV } from '../utils/ride-storage';
+import { clearAll as clearSyncQueue, drainQueue } from '../utils/ride-sync-queue';
 
 // Keep native splash visible until animated splash is ready
 SplashScreen.preventAutoHideAsync();
@@ -323,6 +326,10 @@ export default function RootLayout() {
       if (!session) {
         queryClient.clear();
         clearPersistedQueryCache();
+        SecureStore.deleteItemAsync(LAST_USER_KEY);
+        clearSyncQueue();
+        const activeRideId = rideMMKV.getCurrentId();
+        if (activeRideId) clearRideData(activeRideId);
         cancelAllNotifications();
       }
     });
@@ -344,14 +351,25 @@ export default function RootLayout() {
     return setupFocusManager();
   }, []);
 
-  // Drain ride sync queue on app resume + initial mount
+  // Drain ride sync queue on app resume, initial mount, and connectivity restore
   useEffect(() => {
     drainQueue();
-    const { AppState } = require('react-native');
-    const sub = AppState.addEventListener('change', (state: string) => {
+    let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const appSub = AppState.addEventListener('change', (state: string) => {
       if (state === 'active') drainQueue();
     });
-    return () => sub.remove();
+    const netSub = Network.addNetworkStateListener((state) => {
+      if (state.isConnected && state.isInternetReachable) {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => drainQueue(), 2000);
+      }
+    });
+    return () => {
+      appSub.remove();
+      netSub.remove();
+      clearTimeout(debounceTimer);
+    };
   }, []);
 
   // Initialize RevenueCat SDK with cleanup

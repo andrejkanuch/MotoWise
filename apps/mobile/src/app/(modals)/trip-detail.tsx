@@ -13,7 +13,7 @@ import {
   UnsaveTripDocument,
 } from '@motovault/graphql';
 import MapboxGL from '@rnmapbox/maps';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { onlineManager, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { File, Paths } from 'expo-file-system/next';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -43,6 +43,7 @@ import {
   Star,
   User,
   Users,
+  WifiOff,
   XCircle,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -84,7 +85,7 @@ import { useTripAssistant } from '../../hooks/use-trip-assistant';
 import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
-import { cacheTripPayload } from '../../lib/offline-trips';
+import { cacheTripPayload, getOfflineMeta, readCachedTripPayload } from '../../lib/offline-trips';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { tint, useEditorialTheme } from '../../theme/editorial';
@@ -334,9 +335,18 @@ export default function TripDetailScreen() {
     queryKey: queryKeys.trips.detail(tripId),
     queryFn: () => gqlFetcher(TripDetailDocument, { tripId }),
     enabled: !!tripId,
+    meta: { showErrorAlert: false },
   });
 
-  const trip = data?.tripDetail;
+  const offlineMeta = tripId ? getOfflineMeta(tripId) : null;
+  const cachedPayload = useMemo(() => {
+    if (data?.tripDetail != null || !tripId || !offlineMeta) return null;
+    return readCachedTripPayload<TripDetailQuery>(tripId);
+  }, [data?.tripDetail, tripId, offlineMeta]);
+
+  const hasServerData = data?.tripDetail != null;
+  const trip = data?.tripDetail ?? cachedPayload?.tripDetail ?? null;
+  const isOfflineCopy = !hasServerData && !!cachedPayload;
 
   const tripLoaded = trip?.id;
   useEffect(() => {
@@ -495,7 +505,7 @@ export default function TripDetailScreen() {
   const [routedGeometry, setRoutedGeometry] = useState<GeoJSON.LineString | null>(null);
 
   useEffect(() => {
-    if (waypointCoords.length < 2) {
+    if (waypointCoords.length < 2 || !onlineManager.isOnline()) {
       setRoutedGeometry(null);
       return;
     }
@@ -854,7 +864,7 @@ ${rteptElements}
         {/* Map */}
         <MapboxGL.MapView
           style={{ flex: 1 }}
-          styleURL={MAP_STYLES[isDark ? 'dark' : 'light']}
+          styleURL={offline.meta?.styleURL ?? MAP_STYLES[isDark ? 'dark' : 'light']}
           compassEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
@@ -957,7 +967,7 @@ ${rteptElements}
             gap: 6,
           }}
         >
-          {!isTemplate && (
+          {!isTemplate && !isOfflineCopy && (
             <Pressable
               onPress={() => {
                 if (process.env.EXPO_OS === 'ios')
@@ -1071,6 +1081,30 @@ ${rteptElements}
             >
               {trip.title}
             </Animated.Text>
+
+            {/* Offline copy banner */}
+            {isOfflineCopy && offlineMeta && (
+              <Animated.View
+                entering={FadeInUp.duration(200)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  backgroundColor: palette.warningBgLight,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                  marginBottom: 10,
+                }}
+              >
+                <WifiOff size={14} color={palette.warning500} />
+                <Text style={{ fontSize: 13, color: palette.warning500, fontWeight: '500' }}>
+                  {i18n('trips.offlineCopy')} ·{' '}
+                  {new Date(offlineMeta.downloadedAt).toLocaleDateString()}
+                </Text>
+              </Animated.View>
+            )}
 
             {/* Badge row — difficulty + visibility */}
             <Animated.View
@@ -1537,7 +1571,7 @@ ${rteptElements}
                   {!isOrganiser && (
                     <Pressable
                       onPress={handleCloneTemplate}
-                      disabled={cloneMutation.isPending}
+                      disabled={isOfflineCopy || cloneMutation.isPending}
                       accessibilityRole="button"
                       accessibilityLabel="Clone to My Trips"
                       style={({ pressed }) => ({
@@ -1605,7 +1639,7 @@ ${rteptElements}
                   </Pressable>
                   <Pressable
                     onPress={handleToggleSave}
-                    disabled={saveMutation.isPending || unsaveMutation.isPending}
+                    disabled={isOfflineCopy || saveMutation.isPending || unsaveMutation.isPending}
                     accessibilityRole="button"
                     accessibilityLabel={isSaved ? 'Unsave trip' : 'Save trip'}
                     style={{
@@ -2104,8 +2138,8 @@ ${rteptElements}
               </Animated.View>
             )}
 
-            {/* P5.1 — async waypoint suggestions */}
-            {!isTemplate && (
+            {/* P5.1 — async waypoint suggestions (hidden offline) */}
+            {!isTemplate && !isOfflineCopy && (
               <SuggestionsSection
                 suggestions={tripSuggestions.suggestions}
                 isLoading={tripSuggestions.isLoading}
@@ -2116,8 +2150,8 @@ ${rteptElements}
               />
             )}
 
-            {/* Action buttons — non-template trips only */}
-            {!isTemplate && (
+            {/* Action buttons — non-template trips only, hidden when offline */}
+            {!isTemplate && !isOfflineCopy && (
               <Animated.View
                 entering={FadeInUp.delay(150).duration(250)}
                 style={{ gap: 10, marginBottom: 20 }}

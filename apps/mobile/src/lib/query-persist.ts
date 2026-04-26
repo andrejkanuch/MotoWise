@@ -28,8 +28,23 @@ export function clearPersistedQueryCache(): void {
   storage.remove(CACHE_KEY);
 }
 
-/** Only low-sensitivity reference / editorial data (RLS still applies on refetch). */
+/** Roots safe for offline persistence. RLS still applies on live refetch. */
+const PERSISTED_ROOTS = new Set([
+  'nhtsa', // public reference data
+  'articles', // editorial content
+  'motorcycles', // user's bike list
+  'user', // display name + preferences
+  'maintenance-tasks', // service schedule
+  'rides', // recent ride list
+]);
+
 export function shouldDehydratePersistedQuery(query: Query): boolean {
+  if (query.state.status !== 'success') return false;
   const root = query.queryKey[0];
-  return root === 'nhtsa' || root === 'articles' || root === 'motorcycles';
+  if (typeof root !== 'string' || !PERSISTED_ROOTS.has(root)) return false;
+  // Only persist ride lists, not individual ride detail/waypoints (can be 50-100KB each)
+  if (root === 'rides' && query.queryKey[1] !== 'list') return false;
+  // Only persist the all-user maintenance aggregation, not per-motorcycle breakdowns
+  if (root === 'maintenance-tasks' && query.queryKey[1] !== 'all-user') return false;
+  return true;
 }

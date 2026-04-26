@@ -6,7 +6,7 @@ import {
   MyRidesDocument,
   type MyRidesQuery,
 } from '@motovault/graphql';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Wrench } from 'lucide-react-native';
@@ -26,18 +26,22 @@ export function useHomeData() {
   const meQuery = useQuery({
     queryKey: queryKeys.user.me,
     queryFn: () => gqlFetcher(MeDocument),
+    meta: { showErrorAlert: false },
   });
   const bikesQuery = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
+    meta: { showErrorAlert: false },
   });
   const maintenanceQuery = useQuery({
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
+    meta: { showErrorAlert: false },
   });
   const ridesQuery = useQuery({
     queryKey: queryKeys.rides.list('home'),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 10 }),
+    meta: { showErrorAlert: false },
   });
 
   const user = meQuery.data?.me;
@@ -52,9 +56,12 @@ export function useHomeData() {
 
   const hasMotorcycles = motorcycles.length > 0;
   const isLoading = meQuery.isLoading || bikesQuery.isLoading;
-  const hasCriticalError = meQuery.isError || bikesQuery.isError;
+  const isOffline = !onlineManager.isOnline();
+  const hasCriticalError = !isOffline && (meQuery.isError || bikesQuery.isError);
+  const isOfflineEmpty = isOffline && !user && motorcycles.length === 0;
   const isRefreshing = meQuery.isRefetching || bikesQuery.isRefetching || ridesQuery.isRefetching;
   const errorMessage = (meQuery.error as Error)?.message ?? (bikesQuery.error as Error)?.message;
+  const dataUpdatedAt = meQuery.dataUpdatedAt;
 
   const onRefresh = useCallback(() => {
     Promise.all([
@@ -249,6 +256,9 @@ export function useHomeData() {
   return {
     isLoading,
     hasCriticalError,
+    isOffline,
+    isOfflineEmpty,
+    dataUpdatedAt,
     errorMessage,
     isRefreshing,
     onRefresh,

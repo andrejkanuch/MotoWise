@@ -166,7 +166,10 @@
     "allTasks": "Wszystkie zadania",
     "overdueByDays": "{{count}} dni po terminie",
     "dueInDays": "Za {{count}} dni",
-    "addBike": "Dodaj motocykl"
+    "addBike": "Dodaj motocykl",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "Odkrywaj tematy motocyklowe",
@@ -1151,6 +1154,7 @@
     "views": "Wyswietlenia",
     "clones": "Kopie",
     "maybe": "Moze",
-    "leave": "Opusc"
+    "leave": "Opusc",
+    "offlineCopy": "Offline copy"
   }
 }

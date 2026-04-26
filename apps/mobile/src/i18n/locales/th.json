@@ -166,7 +166,10 @@
     "allTasks": "งานทั้งหมด",
     "overdueByDays": "เลยกำหนด {{count}} วัน",
     "dueInDays": "ครบกำหนดใน {{count}} วัน",
-    "addBike": "เพิ่มมอเตอร์ไซค์"
+    "addBike": "เพิ่มมอเตอร์ไซค์",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "สำรวจหัวข้อมอเตอร์ไซค์",
@@ -1151,6 +1154,7 @@
     "views": "ยอดดู",
     "clones": "สำเนา",
     "maybe": "อาจจะ",
-    "leave": "ออก"
+    "leave": "ออก",
+    "offlineCopy": "Offline copy"
   }
 }

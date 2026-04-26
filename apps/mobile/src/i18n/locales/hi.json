@@ -166,7 +166,10 @@
     "allTasks": "सभी टास्क",
     "overdueByDays": "{{count}} दिन ओवरड्यू",
     "dueInDays": "{{count}} दिन में ड्यू",
-    "addBike": "बाइक जोड़ें"
+    "addBike": "बाइक जोड़ें",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "मोटरसाइकिल टॉपिक्स एक्सप्लोर करें",
@@ -1151,6 +1154,7 @@
     "views": "व्यूज़",
     "clones": "कॉपीज़",
     "maybe": "शायद",
-    "leave": "छोड़ें"
+    "leave": "छोड़ें",
+    "offlineCopy": "Offline copy"
   }
 }

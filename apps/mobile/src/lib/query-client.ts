@@ -1,8 +1,16 @@
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { captureException } from './analytics';
 import { extractGraphQLMessage, hasGraphQLCode } from './graphql-errors';
 import { supabase } from './supabase';
+
+const NETWORK_ERROR_RE =
+  /network.*(fail|error)|failed to fetch|internet.*offline|econnrefused|timeout/i;
+
+function isNetworkError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return NETWORK_ERROR_RE.test(msg);
+}
 
 declare module '@tanstack/react-query' {
   interface Register {
@@ -20,7 +28,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 2 * 60 * 1000,
-      gcTime: 30 * 60 * 1000,
+      gcTime: 24 * 60 * 60 * 1000,
       retry: 3,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       networkMode: 'offlineFirst',
@@ -43,6 +51,9 @@ export const queryClient = new QueryClient({
         supabase.auth.refreshSession();
         return;
       }
+      // Don't alert or report to Sentry for expected offline failures
+      if (!onlineManager.isOnline() && isNetworkError(error)) return;
+
       captureException(error, {
         queryKey: JSON.stringify(query?.queryKey),
         source: 'queryCache.onError',

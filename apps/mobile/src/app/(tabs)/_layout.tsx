@@ -132,6 +132,7 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
   const { data: maintenanceData } = useQuery({
     queryKey: queryKeys.maintenanceTasks.allUser,
     queryFn: () => gqlFetcher(AllMaintenanceTasksDocument),
+    meta: { showErrorAlert: false },
   });
 
   const garageBadgeCount = useMemo(() => {

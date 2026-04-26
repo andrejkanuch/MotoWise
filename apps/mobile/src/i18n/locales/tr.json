@@ -166,7 +166,10 @@
     "allTasks": "Tum gorevler",
     "overdueByDays": "{{count}} gun gecikti",
     "dueInDays": "{{count}} gun icinde",
-    "addBike": "Motor ekle"
+    "addBike": "Motor ekle",
+    "offlineTitle": "You're offline",
+    "offlineSubtitle": "Open the app with an internet connection to load your data.",
+    "offlineBanner": "Offline"
   },
   "learn": {
     "explore": "Motosiklet konularini kesfet",
@@ -1151,6 +1154,7 @@
     "views": "Goruntulenme",
     "clones": "Kopya",
     "maybe": "Belki",
-    "leave": "Ayril"
+    "leave": "Ayril",
+    "offlineCopy": "Offline copy"
   }
 }
