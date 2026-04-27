@@ -9,6 +9,7 @@ describe('UsersService', () => {
   let mockDataExportService: { requestDataExport: ReturnType<typeof vi.fn> };
   let mockRevenueCatService: { cancelSubscription: ReturnType<typeof vi.fn> };
   let mockEmailService: { sendAccountDeletionConfirmation: ReturnType<typeof vi.fn> };
+  let mockMetaEventsService: { sendAppEvent: ReturnType<typeof vi.fn> };
 
   const userId = 'user-123';
   const email = 'rider@example.com';
@@ -52,6 +53,9 @@ describe('UsersService', () => {
     mockEmailService = {
       sendAccountDeletionConfirmation: vi.fn().mockResolvedValue(undefined),
     };
+    mockMetaEventsService = {
+      sendAppEvent: vi.fn().mockResolvedValue(undefined),
+    };
 
     service = new UsersService(
       mockUserClient as never,
@@ -59,6 +63,7 @@ describe('UsersService', () => {
       mockDataExportService as unknown as DataExportService,
       mockRevenueCatService as never,
       mockEmailService as never,
+      mockMetaEventsService as never,
     );
   });
 
