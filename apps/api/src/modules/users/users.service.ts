@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../email/email.service';
+import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
@@ -72,6 +73,7 @@ export class UsersService {
     private readonly dataExportService: DataExportService,
     private readonly revenueCatService: RevenueCatService,
     private readonly emailService: EmailService,
+    private readonly metaEventsService: MetaEventsService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -194,7 +196,20 @@ export class UsersService {
       throw new BadRequestException(error.message ?? 'Failed to complete onboarding');
     }
 
-    return this.findById(userId);
+    const user = await this.findById(userId);
+
+    // Fire Meta CAPI CompleteRegistration — fire and forget, don't block response
+    this.metaEventsService
+      .sendAppEvent({
+        eventName: 'CompleteRegistration',
+        userEmail: user.email,
+        userId: user.id,
+      })
+      .catch((err) => {
+        this.logger.warn(`Meta CompleteRegistration failed for ${userId}: ${err}`);
+      });
+
+    return user;
   }
 
   async requestDataExport(userId: string, email: string): Promise<DataExportRequest> {

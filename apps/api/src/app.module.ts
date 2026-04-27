@@ -34,6 +34,7 @@ import { InsightsModule } from './modules/insights/insights.module';
 import { KudosModule } from './modules/kudos/kudos.module';
 import { LearningProgressModule } from './modules/learning-progress/learning-progress.module';
 import { MaintenanceTasksModule } from './modules/maintenance-tasks/maintenance-tasks.module';
+import { MetaModule } from './modules/meta/meta.module';
 import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { PlacesModule } from './modules/places/places.module';
@@ -108,6 +109,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ContentFlagsModule,
     LearningProgressModule,
     MaintenanceTasksModule,
+    MetaModule,
     OemSchedulesModule,
     RideSummariesModule,
     RidesModule,

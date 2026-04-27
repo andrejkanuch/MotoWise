@@ -79,7 +79,7 @@ export function setCrashReportingEnabled(enabled: boolean) {
 
 // ---- User Identification (anonymous) --------------------------------
 
-export function identifyUser(
+export async function identifyUser(
   userId: string,
   properties?: {
     experience_level?: string;
@@ -91,7 +91,15 @@ export function identifyUser(
   },
 ) {
   if (analyticsEnabled && posthogClient) {
-    posthogClient.identify(userId, properties);
+    // Carry forward UTM attribution properties from SecureStore (MOT-211)
+    let utmProps: Record<string, string> | null = null;
+    try {
+      const { getStoredUtmProperties } = await import('./meta-attribution');
+      utmProps = await getStoredUtmProperties();
+    } catch {
+      // meta-attribution module not available — skip
+    }
+    posthogClient.identify(userId, { ...properties, ...utmProps });
   }
   if (crashReportingEnabled && SENTRY_DSN) {
     Sentry.setUser({ id: userId });
@@ -131,6 +139,9 @@ export const AnalyticsEvent = {
   DIAGNOSTIC_STARTED: 'diagnostic_started',
   DIAGNOSTIC_COMPLETED: 'diagnostic_completed',
   DIAGNOSTIC_LIST_VIEWED: 'diagnostic_list_viewed',
+  // Meta scoring aliases (MOT-212)
+  AI_DIAGNOSIS_STARTED: 'ai_diagnosis_started',
+  AI_DIAGNOSIS_COMPLETED: 'ai_diagnosis_completed',
 
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
@@ -144,6 +155,9 @@ export const AnalyticsEvent = {
   MAINTENANCE_TASK_CREATED: 'maintenance_task_created',
   MAINTENANCE_TASK_COMPLETED: 'maintenance_task_completed',
   MAINTENANCE_TASK_DELETED: 'maintenance_task_deleted',
+  // Meta scoring aliases (MOT-212)
+  MAINTENANCE_LOG_ADDED: 'maintenance_log_added',
+  SERVICE_REMINDER_SET: 'service_reminder_set',
   EXPENSE_ADDED: 'expense_added',
   EXPENSE_DELETED: 'expense_deleted',
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
@@ -180,6 +194,8 @@ export const AnalyticsEvent = {
   TRIP_DRAFT_SAVED: 'trip_draft_saved',
   TRIP_WAYPOINT_ADDED: 'trip_waypoint_added',
   TRIP_VIEWED: 'trip_viewed',
+  // Meta scoring alias (MOT-212)
+  TRIP_PLAN_VIEWED: 'trip_plan_viewed',
   TRIP_SHARED: 'trip_shared',
   TRIP_OPENED_IN_MAPS: 'trip_opened_in_maps',
   TRIP_BRIEF_SHARED: 'trip_brief_shared',

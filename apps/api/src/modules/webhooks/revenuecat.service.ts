@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { HealthReportsService } from '../health-reports/health-reports.service';
+import { MetaEventsService } from '../meta/meta-events.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { RevenueCatEvent } from './dto/revenuecat-event.dto';
 
@@ -13,6 +14,7 @@ export class RevenueCatService {
     private readonly configService: ConfigService,
     @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
     private readonly healthReportsService: HealthReportsService,
+    private readonly metaEventsService: MetaEventsService,
   ) {}
 
   async processEvent(event: RevenueCatEvent): Promise<void> {
@@ -66,6 +68,51 @@ export class RevenueCatService {
     }
 
     this.logger.log(`Processed ${event.type} for user ${event.app_user_id}`);
+
+    // Fire Meta CAPI events for ad attribution (fire and forget)
+    this.fireMetaEvent(event).catch((err) => {
+      this.logger.warn(`Meta CAPI event failed for ${event.id}: ${err}`);
+    });
+  }
+
+  private async fireMetaEvent(event: RevenueCatEvent): Promise<void> {
+    // StartTrial: INITIAL_PURCHASE with trial period
+    const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
+
+    // Subscribe: RENEWAL (trial→paid) or INITIAL_PURCHASE without trial
+    const isPaidConversion =
+      event.type === 'RENEWAL' ||
+      (event.type === 'INITIAL_PURCHASE' && event.period_type !== 'TRIAL');
+
+    if (!isTrialStart && !isPaidConversion) return;
+
+    // Look up user email from app_user_id
+    const { data: user } = await this.adminClient
+      .from('users')
+      .select('email')
+      .eq('id', event.app_user_id)
+      .single();
+
+    if (!user?.email) {
+      this.logger.warn(`Cannot send Meta event: no email found for user ${event.app_user_id}`);
+      return;
+    }
+
+    if (isTrialStart) {
+      await this.metaEventsService.sendAppEvent({
+        eventName: 'StartTrial',
+        userEmail: user.email,
+        userId: event.app_user_id,
+      });
+    } else if (isPaidConversion) {
+      await this.metaEventsService.sendAppEvent({
+        eventName: 'Subscribe',
+        userEmail: user.email,
+        userId: event.app_user_id,
+        value: event.price,
+        currency: event.currency,
+      });
+    }
   }
 
   async cancelSubscription(userId: string): Promise<void> {

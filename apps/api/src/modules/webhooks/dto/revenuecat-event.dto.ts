@@ -11,6 +11,8 @@ export const revenueCatEventSchema = z.object({
   purchased_at_ms: z.number().optional(),
   environment: z.string().optional(),
   store: z.string().optional(),
+  price: z.number().optional(),
+  currency: z.string().optional(),
 });
 
 export const revenueCatWebhookPayloadSchema = z.object({

@@ -75,6 +75,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
+    [
+      'react-native-fbsdk-next',
+      {
+        appID: process.env.EXPO_PUBLIC_META_APP_ID ?? '',
+        clientToken: process.env.EXPO_PUBLIC_META_CLIENT_TOKEN ?? '',
+        displayName: 'MotoVault',
+        scheme: `fb${process.env.EXPO_PUBLIC_META_APP_ID ?? ''}`,
+        advertiserIDCollectionEnabled: false,
+        autoLogAppEventsEnabled: false,
+        isAutoInitEnabled: true,
+      },
+    ],
     './plugins/remove-activity-recognition',
     [
       'expo-build-properties',
@@ -109,6 +121,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // Required so Linking.canOpenURL() can probe whether the user has the
       // external nav apps installed before offering them as Ride-this handoffs.
       LSApplicationQueriesSchemes: ['maps', 'comgooglemaps', 'waze'],
+      // Meta SKAdNetwork identifiers for iOS install attribution
+      SKAdNetworkItems: [
+        { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
+        { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' },
+      ],
     },
     config: {
       usesNonExemptEncryption: false,

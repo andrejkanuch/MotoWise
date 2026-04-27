@@ -31,6 +31,10 @@ export const envSchema = z.object({
   THROTTLE_LIMIT: z.string().default('100'),
   THROTTLE_AI_LIMIT: z.string().default('10'),
   SENTRY_DSN: z.string().url().optional(),
+
+  // Meta Conversions API
+  META_DATASET_ID: optionalString,
+  META_ACCESS_TOKEN: optionalString,
 });
 
 export type Env = z.infer<typeof envSchema>;

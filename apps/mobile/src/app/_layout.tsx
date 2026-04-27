@@ -54,6 +54,7 @@ import {
 } from '../lib/analytics';
 import { invalidateGqlAccessTokenCache } from '../lib/gql-auth-session';
 import { gqlFetcher } from '../lib/graphql-client';
+import { captureMetaAttribution } from '../lib/meta-attribution';
 import {
   cancelAllNotifications,
   requestNotificationPermission,
@@ -349,6 +350,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     return setupFocusManager();
+  }, []);
+
+  // Capture Meta ad attribution params (fbclid + UTM) from initial deep link
+  useEffect(() => {
+    captureMetaAttribution();
   }, []);
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore

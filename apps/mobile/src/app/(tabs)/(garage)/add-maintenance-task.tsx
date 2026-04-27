@@ -101,6 +101,17 @@ export default function AddMaintenanceTaskScreen() {
         is_recurring: isRecurring,
         has_due_date: !!dueDate,
       });
+      trackEvent(AnalyticsEvent.MAINTENANCE_LOG_ADDED, {
+        priority,
+        is_recurring: isRecurring,
+        has_due_date: !!dueDate,
+      });
+      if (dueDate) {
+        trackEvent(AnalyticsEvent.SERVICE_REMINDER_SET, {
+          priority,
+          is_recurring: isRecurring,
+        });
+      }
       setSaved(true);
       triggerImpact();
       setTimeout(() => router.back(), 600);
