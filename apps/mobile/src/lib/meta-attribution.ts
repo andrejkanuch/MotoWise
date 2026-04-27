@@ -7,32 +7,44 @@ const STORE_KEYS = {
   UTM_CONTENT: 'meta_utm_content',
   UTM_SOURCE: 'meta_utm_source',
   UTM_CAMPAIGN: 'meta_utm_campaign',
+  CAPTURED: 'meta_captured',
 } as const;
+
+const MAX_PARAM_LENGTH = 256;
+
+/** Sanitize deep link param: trim to max length, strip non-safe characters. */
+function sanitize(value: string | null): string | null {
+  if (!value) return null;
+  return value.slice(0, MAX_PARAM_LENGTH).replace(/[^\w.-]/g, '');
+}
 
 /**
  * Captures Meta attribution params (fbclid + UTM) from the initial deep link URL.
  * Should be called once on first app open in _layout.tsx.
- *
- * - Stores fbclid in SecureStore for later use in CompleteRegistration CAPI event
- * - Stores UTM params and sets them as PostHog user properties immediately
+ * Skips if attribution was already captured on a previous launch.
  */
 export async function captureMetaAttribution(): Promise<void> {
   try {
+    const alreadyCaptured = await SecureStore.getItemAsync(STORE_KEYS.CAPTURED);
+    if (alreadyCaptured) return;
+
     const url = await Linking.getInitialURL();
     if (!url) return;
 
     const parsed = new URL(url);
 
     // Capture fbclid for CAPI attribution (MOT-209)
-    const fbclid = parsed.searchParams.get('_fbclid') ?? parsed.searchParams.get('fbclid');
+    const fbclid = sanitize(
+      parsed.searchParams.get('_fbclid') ?? parsed.searchParams.get('fbclid'),
+    );
     if (fbclid) {
       await SecureStore.setItemAsync(STORE_KEYS.FBCLID, fbclid);
     }
 
     // Capture UTM params for PostHog segmentation (MOT-210)
-    const utmContent = parsed.searchParams.get('utm_content');
-    const utmSource = parsed.searchParams.get('utm_source');
-    const utmCampaign = parsed.searchParams.get('utm_campaign');
+    const utmContent = sanitize(parsed.searchParams.get('utm_content'));
+    const utmSource = sanitize(parsed.searchParams.get('utm_source'));
+    const utmCampaign = sanitize(parsed.searchParams.get('utm_campaign'));
 
     if (utmContent) {
       await SecureStore.setItemAsync(STORE_KEYS.UTM_CONTENT, utmContent);
@@ -51,6 +63,9 @@ export async function captureMetaAttribution(): Promise<void> {
         });
       }
     }
+
+    // Mark as captured so we skip on future launches
+    await SecureStore.setItemAsync(STORE_KEYS.CAPTURED, '1');
   } catch {
     // Silently ignore — attribution is best-effort, don't crash the app
   }

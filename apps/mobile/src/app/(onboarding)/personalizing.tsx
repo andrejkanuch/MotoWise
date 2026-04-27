@@ -17,6 +17,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { uploadBikePhoto } from '../../lib/image-upload';
+import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -100,6 +101,9 @@ export default function PersonalizingScreen() {
         }
       }
 
+      // Read Meta click ID for CAPI attribution (P1 fix)
+      const fbclid = await getStoredFbclid();
+
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
         ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
@@ -114,6 +118,7 @@ export default function PersonalizingScreen() {
         ...(reminderChannel && { reminderChannel }),
         ...(lastServiceDate && { lastServiceDate }),
         ...(currency && { currency }),
+        ...(fbclid && { fbclid }),
         ...(bikeData && {
           bikeMake: bikeData.make,
           bikeModel: bikeData.model,
@@ -125,6 +130,9 @@ export default function PersonalizingScreen() {
           ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
       };
+
+      // Clear fbclid after use — it should only be sent once
+      if (fbclid) clearStoredFbclid();
 
       await completeOnboarding(input);
       trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {

@@ -192,6 +192,8 @@ export type CompleteOnboardingInput = {
   bikeYear?: InputMaybe<Scalars['Int']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   experienceLevel: Scalars['String']['input'];
+  /** Meta click ID from deep link for CAPI attribution */
+  fbclid?: InputMaybe<Scalars['String']['input']>;
   lastServiceDate?: InputMaybe<Scalars['String']['input']>;
   learningFormats: Array<Scalars['String']['input']>;
   maintenanceReminders?: InputMaybe<Scalars['Boolean']['input']>;

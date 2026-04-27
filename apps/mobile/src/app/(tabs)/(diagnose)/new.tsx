@@ -59,7 +59,6 @@ export default function NewDiagnosticScreen() {
       if (!isSubmitting) {
         reset();
         trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED);
-        trackEvent(AnalyticsEvent.AI_DIAGNOSIS_STARTED);
       }
     }, [reset]),
   );
@@ -182,10 +181,6 @@ export default function NewDiagnosticScreen() {
       });
 
       trackEvent(AnalyticsEvent.DIAGNOSTIC_COMPLETED, {
-        has_photo: !!state.photoUri,
-        has_wizard_answers: !!hasWizardAnswers,
-      });
-      trackEvent(AnalyticsEvent.AI_DIAGNOSIS_COMPLETED, {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });

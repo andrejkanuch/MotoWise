@@ -64,4 +64,7 @@ export class CompleteOnboardingInput {
 
   @Field({ nullable: true })
   currency?: string;
+
+  @Field({ nullable: true, description: 'Meta click ID from deep link for CAPI attribution' })
+  fbclid?: string;
 }

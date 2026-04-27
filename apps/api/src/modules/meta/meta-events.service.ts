@@ -2,6 +2,9 @@ import { createHash } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+const CAPI_TIMEOUT_MS = 5000;
+const BUNDLE_ID = 'com.motovault.app';
+
 @Injectable()
 export class MetaEventsService {
   private readonly logger = new Logger(MetaEventsService.name);
@@ -45,9 +48,14 @@ export class MetaEventsService {
           app_data: {
             advertiser_tracking_enabled: '1',
             application_tracking_enabled: '1',
+            // Meta requires a 17-element positional array for extinfo.
+            // Index 0: platform ('i2' = iOS, 'a2' = Android)
+            // Index 1: bundle ID, Index 4: app version, Index 15: OS version
+            // Server-side events use minimum required values; device-specific
+            // fields are left empty since they're unknowable from the API.
             extinfo: [
               'i2',
-              'com.motovault.app',
+              BUNDLE_ID,
               '',
               '',
               '3.0.0',
@@ -73,12 +81,17 @@ export class MetaEventsService {
       access_token: accessToken,
     };
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CAPI_TIMEOUT_MS);
+
     try {
       const res = await fetch(`https://graph.facebook.com/${this.apiVersion}/${datasetId}/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       const data = await res.json();
       if (!res.ok) {
         this.logger.error(`Meta CAPI error for ${eventName}`, data);
@@ -86,6 +99,7 @@ export class MetaEventsService {
         this.logger.log(`Meta CAPI ${eventName} sent for user ${userId}`);
       }
     } catch (err) {
+      clearTimeout(timeout);
       this.logger.error(`Meta CAPI request failed for ${eventName}`, err);
     }
   }

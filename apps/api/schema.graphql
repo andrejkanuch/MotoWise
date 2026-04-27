@@ -163,6 +163,9 @@ input CompleteOnboardingInput {
   bikeYear: Int
   currency: String
   experienceLevel: String!
+
+  """Meta click ID from deep link for CAPI attribution"""
+  fbclid: String
   lastServiceDate: String
   learningFormats: [String!]!
   maintenanceReminders: Boolean = true

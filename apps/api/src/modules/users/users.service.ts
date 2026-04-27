@@ -204,6 +204,7 @@ export class UsersService {
         eventName: 'CompleteRegistration',
         userEmail: user.email,
         userId: user.id,
+        fbclid: input.fbclid,
       })
       .catch((err) => {
         this.logger.warn(`Meta CompleteRegistration failed for ${userId}: ${err}`);

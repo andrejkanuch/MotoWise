@@ -356,11 +356,6 @@ export default function TripDetailScreen() {
         difficulty: trip.difficulty,
         waypoint_count: trip.waypoints?.length ?? 0,
       });
-      trackEvent(AnalyticsEvent.TRIP_PLAN_VIEWED, {
-        trip_id: tripId,
-        difficulty: trip.difficulty,
-        waypoint_count: trip.waypoints?.length ?? 0,
-      });
     }
   }, [tripLoaded, tripId, trip]);
 
