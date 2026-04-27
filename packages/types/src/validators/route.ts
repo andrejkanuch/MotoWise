@@ -2,17 +2,17 @@ import { z } from 'zod';
 
 // --- Surface Type ---
 // Canonical definition is now in trip.ts. Re-export for backward compat.
-export { SURFACE_TYPES, type SurfaceType, SurfaceTypeSchema } from './trip';
+export { SURFACE_TYPES, type SurfaceType, SurfaceTypeSchema, SurfaceTypeInputSchema } from './trip';
 
 // Re-import for local use in this file
-import { SurfaceTypeSchema } from './trip';
+import { SurfaceTypeInputSchema } from './trip';
 
 // --- Share Ride to Discover ---
 
 export const ShareRideToDiscoverInputSchema = z.object({
   rideId: z.string().uuid(),
   name: z.string().max(200).optional(),
-  surfaceType: SurfaceTypeSchema.optional(),
+  surfaceType: SurfaceTypeInputSchema.optional(),
 });
 
 export type ShareRideToDiscoverInput = z.infer<typeof ShareRideToDiscoverInputSchema>;
@@ -34,7 +34,9 @@ export const DiscoverRoutesFilterSchema = z.object({
   nearLng: z.number().optional(),
   radiusKm: z.number().min(10).max(500).optional(),
   lengthRanges: z.array(LengthRangeSchema).optional(),
-  surfaceTypes: z.array(z.enum(['paved', 'mixed', 'off-road'])).optional(),
+  surfaceTypes: z.array(
+    z.enum(['paved', 'mixed', 'off-road', 'off_road']).transform((v) => (v === 'off_road' ? 'off-road' : v)),
+  ).optional(),
   elevationRanges: z.array(ElevationRangeSchema).optional(),
   highlyRatedOnly: z.boolean().optional(),
   bikeCategory: z.string().optional(),

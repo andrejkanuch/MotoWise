@@ -38,6 +38,11 @@ export const SURFACE_TYPES = {
 export const SurfaceTypeSchema = z.enum(['paved', 'mixed', 'off-road', 'unknown']);
 export type SurfaceType = z.infer<typeof SurfaceTypeSchema>;
 
+/** Accepts both DB values ('off-road') and GraphQL enum keys ('off_road'), normalises to DB form. */
+export const SurfaceTypeInputSchema = z
+  .enum(['paved', 'mixed', 'off-road', 'off_road', 'unknown'])
+  .transform((v) => (v === 'off_road' ? 'off-road' : v) as SurfaceType);
+
 // --- Waypoint Type ---
 // Reduced set after unification. Legacy types (photo, mechanical, ferry,
 // pass_summit, rally_point) are dropped — migrate existing data first.
@@ -349,7 +354,7 @@ const TemplateFieldsSchema = z.object({
   distanceM: z.number().nonnegative().nullable().optional(),
   elevationGainM: z.number().nonnegative().nullable().optional(),
   estimatedDurationMinutes: z.number().int().nonnegative().nullable().optional(),
-  surfaceType: SurfaceTypeSchema.nullable().optional(),
+  surfaceType: SurfaceTypeInputSchema.nullable().optional(),
   curvatureIndex: z.number().min(0).max(10).nullable().optional(),
   viewCount: z.number().int().nonnegative().optional().default(0),
   cloneCount: z.number().int().nonnegative().optional().default(0),
@@ -645,7 +650,7 @@ export const TripTemplateFiltersSchema = z.object({
   difficulty: TripDifficultySchema.optional(),
   dayCountMin: z.number().int().min(1).optional(),
   dayCountMax: z.number().int().min(1).optional(),
-  surfaceType: SurfaceTypeSchema.optional(),
+  surfaceType: SurfaceTypeInputSchema.optional(),
   searchText: z.string().max(200).trim().optional(),
   minRating: z.number().min(0).max(5).optional(),
   isFeatured: z.boolean().optional(),

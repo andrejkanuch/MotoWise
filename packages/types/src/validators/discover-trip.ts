@@ -10,6 +10,7 @@ import {
   ModerateTripTemplateInputSchema,
   type PublishAsTemplateInput,
   PublishAsTemplateInputSchema,
+  SurfaceTypeInputSchema,
   SurfaceTypeSchema,
   TripDifficultySchema,
   type TripTemplateFilters,
@@ -60,7 +61,7 @@ export const DiscoverTripsFilterSchema = z.object({
   difficulty: TripDifficultySchema.optional(),
   dayCountMin: z.number().int().min(1).optional(),
   dayCountMax: z.number().int().min(1).optional(),
-  surfaceType: SurfaceTypeSchema.optional(),
+  surfaceType: SurfaceTypeInputSchema.optional(),
   searchText: z.string().max(200).trim().optional(),
 });
 export type DiscoverTripsFilter = z.infer<typeof DiscoverTripsFilterSchema>;
