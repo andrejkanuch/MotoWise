@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { SurfaceTypeInputSchema, SurfaceTypeSchema, TripTemplateFiltersSchema } from '../trip';
 import { DiscoverTripsFilterSchema } from '../discover-trip';
-import { ShareRideToDiscoverInputSchema, DiscoverRoutesFilterSchema } from '../route';
+import { DiscoverRoutesFilterSchema, ShareRideToDiscoverInputSchema } from '../route';
+import { SurfaceTypeInputSchema, SurfaceTypeSchema, TripTemplateFiltersSchema } from '../trip';
 
 describe('SurfaceTypeSchema', () => {
   it('accepts DB values', () => {

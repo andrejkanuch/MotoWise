@@ -11,7 +11,6 @@ import {
   type PublishAsTemplateInput,
   PublishAsTemplateInputSchema,
   SurfaceTypeInputSchema,
-  SurfaceTypeSchema,
   TripDifficultySchema,
   type TripTemplateFilters,
   TripTemplateFiltersSchema,
