@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Lock trailing-slash behavior to avoid double-redirects with localePrefix:'as-needed'.
   trailingSlash: false,
+  // Prevent Next.js from stripping trailing slashes on PostHog API requests
+  // (e.g. /ingest/decide/) — required for the reverse proxy to work correctly.
+  skipTrailingSlashRedirect: true,
   transpilePackages: ['@motovault/types', '@motovault/graphql', '@motovault/design-system'],
   images: {
     remotePatterns: [
@@ -56,10 +59,6 @@ const nextConfig: NextConfig = {
       {
         source: '/ingest/:path*',
         destination: 'https://eu.i.posthog.com/:path*',
-      },
-      {
-        source: '/ingest/decide',
-        destination: 'https://eu.i.posthog.com/decide',
       },
     ];
   },
