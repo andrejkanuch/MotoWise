@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { SharedTripView } from '@/components/shared-trip-view';
 import { fetchTripByToken } from '@/lib/fetch-trip-by-token';
 
-export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 /**
