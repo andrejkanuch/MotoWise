@@ -3,111 +3,198 @@ import { MyTripsDocument, type MyTripsQuery } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Plus, Route } from 'lucide-react-native';
+import { Calendar, MapPin, Plus, Users } from 'lucide-react-native';
 import { memo, useCallback, useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { computeTripCompleteness } from '../../../utils/trip-completeness';
+import { CompletenessRing } from '../../trip/completeness-ring';
+import { Avatar } from '../../ui/avatar';
 
 type TripNode = MyTripsQuery['myTrips']['edges'][number]['node'];
 
-// Rotate through accent colors for draft cards
-const DRAFT_COLORS = [
-  palette.editorialInfo,
-  palette.signature500,
-  palette.editorialSuccess,
-  palette.editorialPurple,
-] as const;
+const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: palette.success500,
+  moderate: palette.warning500,
+  challenging: palette.danger500,
+  expert: palette.signature500,
+};
 
-function DraftTripCard({
-  trip,
-  color,
-  onPress,
-}: {
-  trip: TripNode;
-  color: string;
-  onPress: () => void;
-}) {
-  const { t } = useEditorialTheme();
+const DIFFICULTY_LABELS: Record<string, string> = {
+  easy: 'Chill',
+  moderate: 'Spirited',
+  challenging: 'Technical',
+  expert: 'Expert',
+};
+
+function dayCount(start: string, end: string): number {
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  return Math.max(1, Math.round(ms / 86_400_000) + 1);
+}
+
+function formatDateRange(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+  if (start === end) return s.toLocaleDateString(undefined, opts);
+  return `${s.toLocaleDateString(undefined, opts)} – ${e.toLocaleDateString(undefined, opts)}`;
+}
+
+function DraftTripCard({ trip, onPress }: { trip: TripNode; onPress: () => void }) {
+  const { t, isDark } = useEditorialTheme();
+
   const waypointCount = trip.waypoints?.length ?? 0;
+  const days = dayCount(trip.startDate, trip.endDate);
+  const maxRiders = Math.max(1, trip.maxRiders ?? 1);
+  const participantCount = Math.min(Math.max(0, trip.participantCount ?? 0), maxRiders);
+
+  const diffKey = (trip.difficulty || 'easy').toLowerCase();
+  const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
+  const diffLabel = DIFFICULTY_LABELS[diffKey] ?? 'Chill';
+
+  const completeness = useMemo(
+    () =>
+      computeTripCompleteness({
+        description: trip.description,
+        waypointCount,
+        dayCount: days,
+        participantCount,
+        maxRiders,
+      }),
+    [trip.description, waypointCount, days, participantCount, maxRiders],
+  );
 
   return (
     <Pressable
       onPress={onPress}
-      style={{
-        width: 200,
-        backgroundColor: t.surface,
+      accessibilityRole="button"
+      accessibilityLabel={`Draft trip: ${trip.title}`}
+      style={({ pressed }) => ({
+        width: 280,
+        backgroundColor: pressed ? t.surface2 : t.surface,
         borderWidth: 1,
-        borderColor: t.line,
+        borderColor: palette.warning500,
         borderRadius: 16,
         borderCurve: 'continuous',
-        padding: 12,
-      }}
+        padding: 14,
+        gap: 10,
+      })}
     >
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: 8,
-        }}
-      >
+      {/* Badge row: DRAFT badge + completeness ring + difficulty */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
         <View
           style={{
-            width: 26,
-            height: 26,
-            borderRadius: 13,
-            backgroundColor: color,
-            alignItems: 'center',
-            justifyContent: 'center',
+            backgroundColor: palette.warning500,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 8,
+            borderCurve: 'continuous',
           }}
         >
-          <Route size={13} color="#fff" />
+          <Text
+            style={{
+              fontSize: 10,
+              fontWeight: '800',
+              color: palette.white,
+              letterSpacing: 0.5,
+            }}
+          >
+            DRAFT
+          </Text>
         </View>
-        <Text
+
+        <View style={{ flex: 1 }} />
+
+        {completeness.percent < 100 && (
+          <CompletenessRing percent={completeness.percent} dark={isDark} size={26} stroke={2.5} />
+        )}
+
+        <View
           style={{
-            fontFamily: 'GeistMono',
-            fontSize: 9,
-            letterSpacing: 1.4,
-            textTransform: 'uppercase',
-            color: t.ink3,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 8,
+            borderCurve: 'continuous',
+            backgroundColor: diffColor,
           }}
         >
-          Draft
-        </Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: palette.white }}>{diffLabel}</Text>
+        </View>
       </View>
 
+      {/* Title */}
       <Text
         style={{
-          fontSize: 13.5,
-          fontWeight: '600',
+          fontSize: 16,
+          fontWeight: '800',
           color: t.ink,
-          lineHeight: 16,
-          letterSpacing: -0.1,
-          marginBottom: 4,
+          letterSpacing: -0.3,
         }}
         numberOfLines={1}
       >
-        {trip.title}
+        {trip.title || 'Untitled trip'}
       </Text>
 
-      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-        <Text style={{ fontSize: 10.5, color: t.ink3 }}>{waypointCount} stops</Text>
-        {trip.difficulty && (
-          <>
-            <Text style={{ fontSize: 10.5, color: t.ink3, opacity: 0.4 }}>·</Text>
-            <Text style={{ fontSize: 10.5, color: t.ink3 }}>{trip.difficulty}</Text>
-          </>
+      {/* Stats strip: days + stops + riders */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Calendar size={12} color={palette.accent500} />
+          <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+            {days}
+            <Text style={{ fontWeight: '500', color: t.ink3 }}>d</Text>
+          </Text>
+        </View>
+        {waypointCount > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <MapPin size={12} color={palette.accent500} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+              {waypointCount}
+              <Text style={{ fontWeight: '500', color: t.ink3 }}>
+                {waypointCount === 1 ? ' stop' : ' stops'}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {maxRiders > 1 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Users size={12} color={palette.accent500} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink }}>
+              {participantCount}
+              <Text style={{ fontWeight: '500', color: t.ink3 }}>/{maxRiders}</Text>
+            </Text>
+          </View>
         )}
       </View>
 
-      {trip.description ? (
-        <Text style={{ fontSize: 10.5, color: t.ink3, lineHeight: 14 }} numberOfLines={2}>
-          {trip.description}
+      {/* Meta row: date range + organiser */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <Text style={{ fontSize: 12, color: t.ink3, fontWeight: '500' }} numberOfLines={1}>
+          {formatDateRange(trip.startDate, trip.endDate)}
         </Text>
-      ) : null}
+        <View
+          style={{
+            width: 4,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: t.ink3,
+            opacity: 0.6,
+          }}
+        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 }}>
+          <Avatar
+            url={trip.organiser.avatarUrl}
+            name={trip.organiser.displayName}
+            size={16}
+            variant="neutral"
+          />
+          <Text style={{ fontSize: 12, color: t.ink3, flexShrink: 1 }} numberOfLines={1}>
+            {trip.organiser.displayName}
+          </Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
@@ -118,43 +205,45 @@ function NewDraftCard({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Create a new trip"
       style={{
-        width: 130,
+        width: 110,
         borderWidth: 1.5,
         borderStyle: 'dashed',
         borderColor: t.line,
         borderRadius: 16,
         borderCurve: 'continuous',
         padding: 12,
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
       }}
     >
       <View
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 14,
+          width: 30,
+          height: 30,
+          borderRadius: 15,
           backgroundColor: t.surface2,
+          borderWidth: 1,
+          borderColor: t.line,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
         <Plus size={14} color={t.ink2} />
       </View>
-      <View style={{ marginTop: 12 }}>
-        <Text
-          style={{
-            fontSize: 12.5,
-            fontWeight: '600',
-            color: t.ink2,
-            lineHeight: 15,
-            marginBottom: 4,
-          }}
-        >
-          Blank trip
-        </Text>
-        <Text style={{ fontSize: 10.5, color: t.ink3, lineHeight: 14 }}>Start from scratch</Text>
-      </View>
+      <Text
+        style={{
+          fontSize: 11,
+          fontWeight: '500',
+          color: t.ink2,
+          textAlign: 'center',
+        }}
+      >
+        New draft
+      </Text>
     </Pressable>
   );
 }
@@ -180,7 +269,6 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
 
   const handleDraftPress = useCallback(
     (tripId: string) => {
-      // Validate draft still exists before navigating
       const stillExists = drafts.some((d) => d.id === tripId);
       if (!stillExists) return;
       if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
@@ -194,7 +282,6 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
     router.push('/(modals)/create-trip');
   }, [router]);
 
-  // Don't render the section if no drafts and not loading
   if (!isLoading && drafts.length === 0) {
     return null;
   }
@@ -234,13 +321,8 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 8, paddingRight: 4 }}
         >
-          {drafts.map((draft, i) => (
-            <DraftTripCard
-              key={draft.id}
-              trip={draft}
-              color={DRAFT_COLORS[i % DRAFT_COLORS.length]}
-              onPress={() => handleDraftPress(draft.id)}
-            />
+          {drafts.map((draft) => (
+            <DraftTripCard key={draft.id} trip={draft} onPress={() => handleDraftPress(draft.id)} />
           ))}
           <NewDraftCard onPress={handleNewDraft} />
         </ScrollView>

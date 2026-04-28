@@ -20,6 +20,7 @@ query TripTemplates($filter: TripTemplateFilterInput, $first: Int, $after: Strin
         estimatedDurationMinutes
         isFeatured
         isMotovaultPick
+        coverImageUrl
         viewCount
         cloneCount
         averageRating
