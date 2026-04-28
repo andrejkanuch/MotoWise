@@ -34,6 +34,23 @@ export const COUNTRY_NAMES: Record<string, string> = {
   CO: 'Colombia',
   CL: 'Chile',
   CA: 'Canada',
+  VN: 'Vietnam',
+  TH: 'Thailand',
+  ID: 'Indonesia',
+  MY: 'Malaysia',
+  PH: 'Philippines',
+  IN: 'India',
+  NP: 'Nepal',
+  JP: 'Japan',
+  KR: 'South Korea',
+  TW: 'Taiwan',
+  NZ: 'New Zealand',
+  AU: 'Australia',
+  ZA: 'South Africa',
+  MA: 'Morocco',
+  TR: 'Turkey',
+  GE: 'Georgia',
+  AM: 'Armenia',
 };
 
 /** US state abbreviation → full name */
