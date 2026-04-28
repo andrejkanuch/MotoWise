@@ -6,7 +6,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { Circle, Path, Svg } from 'react-native-svg';
-import { useEditorialTheme } from '../../../theme/editorial';
+
 
 type TripMode = 'day' | 'overnight' | 'multi';
 
@@ -57,7 +57,6 @@ export function PlanRideCard({
   locationDenied,
   onRequestLocation,
 }: PlanRideCardProps) {
-  const { t } = useEditorialTheme();
   const router = useRouter();
   const reducedMotion = useReducedMotion();
   const [selectedMode, setSelectedMode] = useState<TripMode | null>(null);
