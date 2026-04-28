@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { Star } from 'lucide-react-native';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -41,7 +41,11 @@ function SurveyModal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
+  // Guard against double-fire from both backdrop FadeOut and card SlideOutDown
+  const didExit = useRef(false);
   const onExitComplete = () => {
+    if (didExit.current) return;
+    didExit.current = true;
     useSurveyStore.getState().dismiss();
   };
 
@@ -58,9 +62,11 @@ function SurveyModal() {
     if (isSubmitting || !rating) return;
     setIsSubmitting(true);
 
+    // PostHog survey protocol: response values must be strings,
+    // use both legacy index format and new question-ID format
     posthogClient.capture('survey sent', {
       $survey_id: SURVEY_ID,
-      $survey_response: rating,
+      $survey_response: String(rating),
       ...(feedback.trim() ? { $survey_response_1: feedback.trim() } : {}),
       trigger_action: triggerAction,
     });
