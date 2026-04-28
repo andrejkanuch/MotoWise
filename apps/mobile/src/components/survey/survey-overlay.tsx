@@ -59,15 +59,22 @@ function SurveyModal() {
   };
 
   const handleSubmit = () => {
-    if (isSubmitting || !rating) return;
+    if (isSubmitting || !rating || rating < 1 || rating > 5) return;
     setIsSubmitting(true);
 
-    // PostHog survey protocol: response values must be strings,
-    // use both legacy index format and new question-ID format
+    const trimmed = feedback.trim();
+    // Strip obvious PII patterns before sending to PostHog (GDPR)
+    const sanitized = trimmed
+      ? trimmed
+          .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[email]')
+          .replace(/\b\d{6,15}\b/g, '[number]')
+      : undefined;
+
+    // PostHog survey protocol: response values must be strings
     posthogClient.capture('survey sent', {
       $survey_id: SURVEY_ID,
       $survey_response: String(rating),
-      ...(feedback.trim() ? { $survey_response_1: feedback.trim() } : {}),
+      ...(sanitized ? { $survey_response_1: sanitized } : {}),
       trigger_action: triggerAction,
     });
 
