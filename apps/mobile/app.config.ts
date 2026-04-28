@@ -75,18 +75,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         },
       },
     ],
-    [
-      'react-native-fbsdk-next',
-      {
-        appID: process.env.EXPO_PUBLIC_META_APP_ID ?? '',
-        clientToken: process.env.EXPO_PUBLIC_META_CLIENT_TOKEN ?? '',
-        displayName: 'MotoVault',
-        scheme: `fb${process.env.EXPO_PUBLIC_META_APP_ID ?? ''}`,
-        advertiserIDCollectionEnabled: false,
-        autoLogAppEventsEnabled: false,
-        isAutoInitEnabled: true,
-      },
-    ],
+    ...(process.env.EXPO_PUBLIC_META_APP_ID
+      ? ([
+          [
+            'react-native-fbsdk-next',
+            {
+              appID: process.env.EXPO_PUBLIC_META_APP_ID,
+              clientToken: process.env.EXPO_PUBLIC_META_CLIENT_TOKEN ?? '',
+              displayName: 'MotoVault',
+              scheme: `fb${process.env.EXPO_PUBLIC_META_APP_ID}`,
+              advertiserIDCollectionEnabled: false,
+              autoLogAppEventsEnabled: false,
+              isAutoInitEnabled: true,
+            },
+          ],
+        ] as [string, Record<string, unknown>][])
+      : []),
     './plugins/remove-activity-recognition',
     [
       'expo-build-properties',
