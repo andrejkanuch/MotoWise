@@ -165,7 +165,7 @@ export const DraftTripStrip = memo(function DraftTripStrip() {
   const reducedMotion = useReducedMotion();
 
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.trips.my,
+    queryKey: queryKeys.trips.myDrafts,
     queryFn: () => gqlFetcher(MyTripsDocument, { first: 10 }),
     staleTime: 5 * 60 * 1000,
   });

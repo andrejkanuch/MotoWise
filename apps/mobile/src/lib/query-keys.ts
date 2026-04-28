@@ -96,6 +96,8 @@ export const queryKeys = {
     all: ['trips'] as const,
     detail: (id: string) => ['trips', 'detail', id] as const,
     my: ['trips', 'my'] as const,
+    /** Discover draft strip: user's draft trips (non-paginated). */
+    myDrafts: ['trips', 'myDrafts'] as const,
     /** Discover horizontal strip: upcoming non-template public trips. */
     discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
   },
