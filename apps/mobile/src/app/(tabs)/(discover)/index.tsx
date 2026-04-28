@@ -1,12 +1,13 @@
 import { palette } from '@motovault/design-system';
-import { TripTemplatesDocument } from '@motovault/graphql';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { TemplateTripIdForRouteDocument, TripTemplatesDocument } from '@motovault/graphql';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { Plus, Search } from 'lucide-react-native';
+import { Plus, Search, X } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   InteractionManager,
   Pressable,
   ScrollView,
@@ -31,6 +32,7 @@ import {
   TripBasket,
   TripDetailSheet,
 } from '../../../components/discover/planner';
+import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { useWeatherForecast } from '../../../hooks/use-weather-forecast';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
@@ -111,6 +113,64 @@ export default function DiscoverScreen() {
 
   const handleOpenSheet = useCallback(() => setShowDetailSheet(true), []);
 
+  // --- Search toggle ---
+  const queryClient = useQueryClient();
+  const isSearchOpen = useSharedValue(0);
+  const [showSearch, setShowSearch] = useState(false);
+
+  const searchContainerStyle = useAnimatedStyle(() => ({
+    height: withTiming(isSearchOpen.value * 56, { duration: 250 }),
+    opacity: withTiming(isSearchOpen.value, { duration: 200 }),
+    overflow: 'hidden' as const,
+  }));
+
+  const toggleSearch = useCallback(() => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (showSearch) {
+      // Closing — clear cached typeahead results so reopen starts fresh
+      isSearchOpen.value = 0;
+      setTimeout(() => {
+        setShowSearch(false);
+        queryClient.removeQueries({ queryKey: queryKeys.typeahead.search('') });
+      }, 260);
+    } else {
+      setShowSearch(true);
+      isSearchOpen.value = 1;
+    }
+  }, [showSearch, isSearchOpen, queryClient]);
+
+  const handleRouteSearchSelect = useCallback(
+    async (routeId: string) => {
+      // Close search
+      isSearchOpen.value = 0;
+      setShowSearch(false);
+      try {
+        const { templateTripIdForRoute: tripId } = await gqlFetcher(
+          TemplateTripIdForRouteDocument,
+          { routeId },
+        );
+        if (!tripId) {
+          Alert.alert('Not available', 'This route is not on Discover as a trip yet.');
+          return;
+        }
+        router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Check your connection and try again';
+        Alert.alert('Could not open', msg);
+      }
+    },
+    [router, isSearchOpen],
+  );
+
+  const handlePlaceSearchSelect = useCallback(
+    (_countryCode: string, _regionCode?: string) => {
+      // Close search — place filter could be wired to trip templates filter in future
+      isSearchOpen.value = 0;
+      setShowSearch(false);
+    },
+    [isSearchOpen],
+  );
+
   // --- FAB animation ---
   const fabScale = useSharedValue(1);
   const fabStyle = useAnimatedStyle(() => ({
@@ -163,23 +223,31 @@ export default function DiscoverScreen() {
             </Text>
           </View>
           <Pressable
-            onPress={() => {
-              // TODO: P0-3 — wire to TypeaheadSearch
-            }}
+            onPress={toggleSearch}
             style={{
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: t.surface,
+              backgroundColor: showSearch ? t.ink : t.surface,
               borderWidth: 1,
-              borderColor: t.line,
+              borderColor: showSearch ? t.ink : t.line,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Search size={15} color={t.ink2} />
+            {showSearch ? <X size={15} color={t.bg} /> : <Search size={15} color={t.ink2} />}
           </Pressable>
         </View>
+
+        {/* Search bar — animated slide-down */}
+        {showSearch && (
+          <Animated.View style={[{ zIndex: 20 }, searchContainerStyle]}>
+            <TypeaheadSearch
+              onRouteSelect={handleRouteSearchSelect}
+              onPlaceSelect={handlePlaceSearchSelect}
+            />
+          </Animated.View>
+        )}
 
         {/* Primary CTA — Plan a ride card */}
         <View style={{ marginTop: 6 }}>
