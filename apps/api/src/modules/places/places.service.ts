@@ -63,7 +63,9 @@ export class PlacesService {
   async browseCountries(): Promise<BrowsePlace[]> {
     const { data, error } = await this.supabase
       .from('places')
-      .select('id, kind, name, country_code, region_code, latitude, longitude, population')
+      .select(
+        'id, kind, name, country_code, region_code, latitude, longitude, population, route_count',
+      )
       .eq('kind', 'country')
       .order('name', { ascending: true });
 
@@ -80,7 +82,9 @@ export class PlacesService {
 
     const { data, error } = await this.supabase
       .from('places')
-      .select('id, kind, name, country_code, region_code, latitude, longitude, population')
+      .select(
+        'id, kind, name, country_code, region_code, latitude, longitude, population, route_count',
+      )
       .eq('kind', 'country')
       .eq('country_code', code)
       .maybeSingle();
@@ -107,7 +111,9 @@ export class PlacesService {
 
     const { data, error } = await this.supabase
       .from('places')
-      .select('id, kind, name, country_code, region_code, latitude, longitude, population')
+      .select(
+        'id, kind, name, country_code, region_code, latitude, longitude, population, route_count',
+      )
       .eq('kind', 'region')
       .eq('country_code', country.countryCode)
       .gt('population', 0)
@@ -129,7 +135,9 @@ export class PlacesService {
 
     const { data, error } = await this.supabase
       .from('places')
-      .select('id, kind, name, country_code, region_code, latitude, longitude, population')
+      .select(
+        'id, kind, name, country_code, region_code, latitude, longitude, population, route_count',
+      )
       .eq('kind', 'region')
       .eq('country_code', country.countryCode)
       .eq('region_code', regionSlug)
