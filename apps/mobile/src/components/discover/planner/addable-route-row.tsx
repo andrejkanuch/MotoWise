@@ -11,8 +11,10 @@ interface AddableRouteRowProps {
   trip: TripNode;
   added: boolean;
   contextLabel?: string;
-  onToggle: () => void;
-  onPress: () => void;
+  /** Called with trip.id — use a stable Zustand action or useCallback */
+  onToggle: (id: string) => void;
+  /** Called with trip.id — use a stable useCallback */
+  onPress: (id: string) => void;
 }
 
 export const AddableRouteRow = memo(function AddableRouteRow({
@@ -26,8 +28,8 @@ export const AddableRouteRow = memo(function AddableRouteRow({
 
   const handleToggle = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onToggle();
-  }, [onToggle]);
+    onToggle(trip.id);
+  }, [onToggle, trip.id]);
 
   const surfaceLabel =
     trip.surfaceType === 'paved'
@@ -38,9 +40,13 @@ export const AddableRouteRow = memo(function AddableRouteRow({
           ? 'Off-road'
           : null;
 
+  const handlePress = useCallback(() => {
+    onPress(trip.id);
+  }, [onPress, trip.id]);
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={{
         flexDirection: 'row',
         alignItems: 'center',

@@ -25,6 +25,17 @@ export const TRIP_STATUS = {
 export const TripStatusSchema = z.enum(['draft', 'published', 'active', 'completed', 'archived']);
 export type TripStatus = z.infer<typeof TripStatusSchema>;
 
+// --- Trip Planning Mode ---
+
+export const TRIP_PLANNING_MODE = {
+  DAY: 'day',
+  OVERNIGHT: 'overnight',
+  MULTI: 'multi',
+} as const;
+
+export const TripPlanningModeSchema = z.enum(['day', 'overnight', 'multi']);
+export type TripPlanningMode = z.infer<typeof TripPlanningModeSchema>;
+
 // --- Surface Type ---
 // Unified — previously also in route.ts. Re-exported from route.ts for backward compat.
 

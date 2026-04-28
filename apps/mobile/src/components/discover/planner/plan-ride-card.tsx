@@ -1,13 +1,13 @@
 import { palette } from '@motovault/design-system';
+import type { TripPlanningMode } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { ArrowRight, Coffee, Mountain, Sunrise } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { Coffee, Mountain, Sunrise } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { Circle, Path, Svg } from 'react-native-svg';
-
-type TripMode = 'day' | 'overnight' | 'multi';
+import { reverseGeocodeShortLabel } from '../../../utils/mapbox-geocoding';
 
 const TRIP_MODES = [
   { id: 'day' as const, icon: Sunrise, title: 'Day ride', subtitle: '< 6h' },
@@ -45,30 +45,53 @@ function RouteDecoration() {
 
 interface PlanRideCardProps {
   weatherLine?: string;
-  fromLabel?: string;
   locationDenied?: boolean;
   onRequestLocation?: () => void;
+  /** User coords for reverse geocoding the FROM label */
+  coords?: { lat: number; lon: number } | null;
 }
 
 export function PlanRideCard({
   weatherLine,
-  fromLabel = 'My garage',
   locationDenied,
   onRequestLocation,
+  coords,
 }: PlanRideCardProps) {
   const router = useRouter();
   const reducedMotion = useReducedMotion();
-  const [selectedMode, setSelectedMode] = useState<TripMode | null>(null);
+  const [selectedMode, setSelectedMode] = useState<TripPlanningMode | null>(null);
 
-  const handleModePress = useCallback((mode: TripMode) => {
+  // Reverse geocode FROM label — single-swap, no loading flash
+  const [fromLabel, setFromLabel] = useState('My garage');
+  const geocodeDone = useRef(false);
+
+  useEffect(() => {
+    if (!coords || geocodeDone.current) return;
+    let canceled = false;
+    reverseGeocodeShortLabel(coords.lat, coords.lon)
+      .then((label) => {
+        if (canceled || geocodeDone.current) return;
+        geocodeDone.current = true;
+        if (label) setFromLabel(label);
+      })
+      .catch(() => {});
+    return () => {
+      canceled = true;
+    };
+  }, [coords]);
+
+  const handleModePress = useCallback((mode: TripPlanningMode) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedMode((prev) => (prev === mode ? null : mode));
   }, []);
 
   const handleGoPress = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(modals)/create-trip');
-  }, [router]);
+    router.push({
+      pathname: '/(modals)/create-trip',
+      params: selectedMode ? { mode: selectedMode } : undefined,
+    });
+  }, [router, selectedMode]);
 
   return (
     <Animated.View
@@ -189,21 +212,21 @@ export function PlanRideCard({
           })}
         </View>
 
-        {/* From / To row */}
-        <View
+        {/* FROM / TO row — entire row is one pressable */}
+        <Pressable
+          onPress={handleGoPress}
           style={{
             marginTop: 10,
             backgroundColor: 'rgba(255,255,255,0.06)',
             borderRadius: 14,
             borderCurve: 'continuous',
-            padding: 4,
-            paddingLeft: 12,
+            padding: 12,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 10,
           }}
         >
-          <View style={{ flex: 1, paddingVertical: 8 }}>
+          <View style={{ flex: 1 }}>
             <Text
               style={{
                 fontFamily: 'GeistMono',
@@ -220,8 +243,7 @@ export function PlanRideCard({
               {fromLabel}
             </Text>
           </View>
-          <View style={{ width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.14)' }} />
-          <View style={{ flex: 1, paddingVertical: 8 }}>
+          <View style={{ flex: 1 }}>
             <Text
               style={{
                 fontFamily: 'GeistMono',
@@ -235,23 +257,10 @@ export function PlanRideCard({
               To
             </Text>
             <Text style={{ fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.55)' }}>
-              Pick or loop ↺
+              Pick destination
             </Text>
           </View>
-          <Pressable
-            onPress={handleGoPress}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
-              backgroundColor: palette.editorialDarkWarm,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowRight size={15} color="#1a1208" />
-          </Pressable>
-        </View>
+        </Pressable>
       </View>
     </Animated.View>
   );

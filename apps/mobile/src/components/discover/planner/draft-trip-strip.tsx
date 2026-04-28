@@ -1,54 +1,37 @@
 import { palette } from '@motovault/design-system';
+import { MyTripsDocument, type MyTripsQuery } from '@motovault/graphql';
+import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Plus, Route } from 'lucide-react-native';
-import { useCallback } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { memo, useCallback, useMemo } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 
-interface DraftTrip {
-  id: string;
-  title: string;
-  stops: number;
-  km: number;
-  progress: number;
-  note: string;
+type TripNode = MyTripsQuery['myTrips']['edges'][number]['node'];
+
+// Rotate through accent colors for draft cards
+const DRAFT_COLORS = [
+  palette.editorialInfo,
+  palette.signature500,
+  palette.editorialSuccess,
+  palette.editorialPurple,
+] as const;
+
+function DraftTripCard({
+  trip,
+  color,
+  onPress,
+}: {
+  trip: TripNode;
   color: string;
-}
-
-const MOCK_DRAFTS: DraftTrip[] = [
-  {
-    id: '1',
-    title: 'Dolomites · 3 days',
-    stops: 4,
-    km: 612,
-    progress: 0.7,
-    note: 'Need to confirm Cortina hotel',
-    color: palette.editorialInfo,
-  },
-  {
-    id: '2',
-    title: 'Sunday coffee loop',
-    stops: 2,
-    km: 84,
-    progress: 0.4,
-    note: 'Saved Tue',
-    color: palette.signature500,
-  },
-  {
-    id: '3',
-    title: "Marek's birthday ride",
-    stops: 3,
-    km: 186,
-    progress: 0.85,
-    note: 'Waiting on Sara · 4/6 in',
-    color: palette.editorialSuccess,
-  },
-];
-
-function DraftTripCard({ draft, onPress }: { draft: DraftTrip; onPress: () => void }) {
+  onPress: () => void;
+}) {
   const { t } = useEditorialTheme();
+  const waypointCount = trip.waypoints?.length ?? 0;
 
   return (
     <Pressable
@@ -76,7 +59,7 @@ function DraftTripCard({ draft, onPress }: { draft: DraftTrip; onPress: () => vo
             width: 26,
             height: 26,
             borderRadius: 13,
-            backgroundColor: draft.color,
+            backgroundColor: color,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -107,37 +90,24 @@ function DraftTripCard({ draft, onPress }: { draft: DraftTrip; onPress: () => vo
         }}
         numberOfLines={1}
       >
-        {draft.title}
+        {trip.title}
       </Text>
 
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-        <Text style={{ fontSize: 10.5, color: t.ink3 }}>{draft.stops} stops</Text>
-        <Text style={{ fontSize: 10.5, color: t.ink3, opacity: 0.4 }}>·</Text>
-        <Text style={{ fontSize: 10.5, color: t.ink3 }}>{draft.km} km</Text>
+        <Text style={{ fontSize: 10.5, color: t.ink3 }}>{waypointCount} stops</Text>
+        {trip.difficulty && (
+          <>
+            <Text style={{ fontSize: 10.5, color: t.ink3, opacity: 0.4 }}>·</Text>
+            <Text style={{ fontSize: 10.5, color: t.ink3 }}>{trip.difficulty}</Text>
+          </>
+        )}
       </View>
 
-      {/* Progress bar */}
-      <View
-        style={{
-          height: 3,
-          borderRadius: 2,
-          backgroundColor: t.bg2,
-          overflow: 'hidden',
-          marginBottom: 8,
-        }}
-      >
-        <View
-          style={{
-            height: '100%',
-            width: `${draft.progress * 100}%`,
-            backgroundColor: draft.color,
-          }}
-        />
-      </View>
-
-      <Text style={{ fontSize: 10.5, color: t.ink3, lineHeight: 14 }} numberOfLines={2}>
-        {draft.note}
-      </Text>
+      {trip.description ? (
+        <Text style={{ fontSize: 10.5, color: t.ink3, lineHeight: 14 }} numberOfLines={2}>
+          {trip.description}
+        </Text>
+      ) : null}
     </Pressable>
   );
 }
@@ -189,24 +159,45 @@ function NewDraftCard({ onPress }: { onPress: () => void }) {
   );
 }
 
-interface DraftTripStripProps {
-  drafts?: DraftTrip[];
-}
-
-export function DraftTripStrip({ drafts = MOCK_DRAFTS }: DraftTripStripProps) {
+export const DraftTripStrip = memo(function DraftTripStrip() {
   const { t } = useEditorialTheme();
   const router = useRouter();
   const reducedMotion = useReducedMotion();
 
-  const handleDraftPress = useCallback((_draftId: string) => {
-    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
-    // TODO: navigate to draft detail when backend supports it
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.trips.my,
+    queryFn: () => gqlFetcher(MyTripsDocument, { first: 10 }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const drafts = useMemo(() => {
+    if (!data?.myTrips?.edges) return [];
+    return data.myTrips.edges
+      .map((e) => e.node)
+      .filter((trip) => trip.status === 'draft')
+      .slice(0, 8);
+  }, [data]);
+
+  const handleDraftPress = useCallback(
+    (tripId: string) => {
+      // Validate draft still exists before navigating
+      const stillExists = drafts.some((d) => d.id === tripId);
+      if (!stillExists) return;
+      if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+      router.push({ pathname: '/(modals)/create-trip', params: { tripId } });
+    },
+    [drafts, router],
+  );
 
   const handleNewDraft = useCallback(() => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push('/(modals)/create-trip');
   }, [router]);
+
+  // Don't render the section if no drafts and not loading
+  if (!isLoading && drafts.length === 0) {
+    return null;
+  }
 
   return (
     <Animated.View
@@ -228,27 +219,32 @@ export function DraftTripStrip({ drafts = MOCK_DRAFTS }: DraftTripStripProps) {
         >
           Continue planning
         </Text>
-        <Text
-          style={{
-            fontFamily: 'GeistMono',
-            fontSize: 10.5,
-            color: t.ink3,
-          }}
-        >
-          {drafts.length} drafts
-        </Text>
+        {!isLoading && (
+          <Text style={{ fontFamily: 'GeistMono', fontSize: 10.5, color: t.ink3 }}>
+            {drafts.length} {drafts.length === 1 ? 'draft' : 'drafts'}
+          </Text>
+        )}
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingRight: 4 }}
-      >
-        {drafts.map((draft) => (
-          <DraftTripCard key={draft.id} draft={draft} onPress={() => handleDraftPress(draft.id)} />
-        ))}
-        <NewDraftCard onPress={handleNewDraft} />
-      </ScrollView>
+      {isLoading ? (
+        <ActivityIndicator size="small" color={palette.accent500} style={{ paddingVertical: 16 }} />
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+        >
+          {drafts.map((draft, i) => (
+            <DraftTripCard
+              key={draft.id}
+              trip={draft}
+              color={DRAFT_COLORS[i % DRAFT_COLORS.length]}
+              onPress={() => handleDraftPress(draft.id)}
+            />
+          ))}
+          <NewDraftCard onPress={handleNewDraft} />
+        </ScrollView>
+      )}
     </Animated.View>
   );
-}
+});

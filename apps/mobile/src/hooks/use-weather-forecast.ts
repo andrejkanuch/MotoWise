@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format, isSaturday, isSunday, parseISO } from 'date-fns';
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // --- Open-Meteo API types ---
 
@@ -36,18 +36,17 @@ export interface WeatherSummary {
 
 type LocationStatus = 'pending' | 'granted' | 'denied';
 
+export interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
 export interface UseWeatherResult {
   data: WeatherSummary | undefined;
   isLoading: boolean;
   locationStatus: LocationStatus;
   requestPermission: () => void;
-}
-
-// --- Helpers ---
-
-interface Coordinates {
-  lat: number;
-  lon: number;
+  coords: Coordinates | null;
 }
 
 const WMO_THRESHOLDS = [
@@ -131,21 +130,29 @@ async function fetchForecast(coords: Coordinates): Promise<WeatherSummary> {
 export function useWeatherForecast(): UseWeatherResult {
   const [coords, setCoords] = useState<Coordinates | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('pending');
+  const isResolving = useRef(false);
 
   const resolveLocation = useCallback(async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setLocationStatus('denied');
-      return;
-    }
-    setLocationStatus('granted');
-    const loc = await Location.getLastKnownPositionAsync();
-    if (loc) {
-      setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude });
-    } else {
-      // Got permission but no cached position — try current
-      const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
-      setCoords({ lat: current.coords.latitude, lon: current.coords.longitude });
+    if (isResolving.current) return;
+    isResolving.current = true;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationStatus('denied');
+        return;
+      }
+      setLocationStatus('granted');
+      const loc = await Location.getLastKnownPositionAsync();
+      if (loc) {
+        setCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude });
+      } else {
+        const current = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Low,
+        });
+        setCoords({ lat: current.coords.latitude, lon: current.coords.longitude });
+      }
+    } finally {
+      isResolving.current = false;
     }
   }, []);
 
@@ -166,5 +173,6 @@ export function useWeatherForecast(): UseWeatherResult {
     isLoading: query.isLoading,
     locationStatus,
     requestPermission: resolveLocation,
+    coords,
   };
 }

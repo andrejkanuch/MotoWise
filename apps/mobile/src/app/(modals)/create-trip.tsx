@@ -152,7 +152,11 @@ export default function CreateTripScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const params = useLocalSearchParams<{ tripId?: string; cloneFromTripId?: string }>();
+  const params = useLocalSearchParams<{
+    tripId?: string;
+    cloneFromTripId?: string;
+    mode?: string;
+  }>();
   const isEditMode = !!params.tripId;
   const isCloneMode = !!params.cloneFromTripId && !params.tripId;
   const sourceTripId = params.tripId ?? params.cloneFromTripId;
