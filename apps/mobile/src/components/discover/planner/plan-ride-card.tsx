@@ -7,7 +7,6 @@ import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { Circle, Path, Svg } from 'react-native-svg';
 
-
 type TripMode = 'day' | 'overnight' | 'multi';
 
 const TRIP_MODES = [
