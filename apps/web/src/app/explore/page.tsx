@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { ExploreSearchBar } from '@/components/explore-search-bar';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL } from '@/lib/constants';
+import { fetchCountries } from '@/lib/fetch-places';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
@@ -14,20 +15,7 @@ type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['no
 
 /* ── Constants ────────────────────────────────────────────────── */
 
-const TOP_COUNTRIES = [
-  { code: 'IT', emoji: '\u{1F1EE}\u{1F1F9}' },
-  { code: 'ES', emoji: '\u{1F1EA}\u{1F1F8}' },
-  { code: 'AT', emoji: '\u{1F1E6}\u{1F1F9}' },
-  { code: 'DE', emoji: '\u{1F1E9}\u{1F1EA}' },
-  { code: 'FR', emoji: '\u{1F1EB}\u{1F1F7}' },
-  { code: 'CH', emoji: '\u{1F1E8}\u{1F1ED}' },
-  { code: 'HR', emoji: '\u{1F1ED}\u{1F1F7}' },
-  { code: 'GR', emoji: '\u{1F1EC}\u{1F1F7}' },
-  { code: 'NO', emoji: '\u{1F1F3}\u{1F1F4}' },
-  { code: 'RO', emoji: '\u{1F1F7}\u{1F1F4}' },
-  { code: 'PT', emoji: '\u{1F1F5}\u{1F1F9}' },
-  { code: 'US', emoji: '\u{1F1FA}\u{1F1F8}' },
-] as const;
+// Country grid is now dynamic — fetched from browseCountries API, sorted by routeCount.
 
 const TOP_ROUTES_SEO = [
   { name: 'Pacific Coast Highway', href: '/trips/us/ca/pacific-coast-highway' },
@@ -679,6 +667,23 @@ export default async function ExplorePage() {
   const hdrs = await headers();
   const countryCode = detectCountry(hdrs);
 
+  // Fetch countries dynamically — sorted by route count, top 12 for the grid
+  let topCountries: Array<{ code: string; name: string; routeCount: number }> = [];
+  try {
+    const places = await fetchCountries();
+    topCountries = places
+      .filter((p) => p.routeCount > 0)
+      .sort((a, b) => b.routeCount - a.routeCount)
+      .slice(0, 12)
+      .map((p) => ({
+        code: p.countryCode.toUpperCase(),
+        name: p.name,
+        routeCount: p.routeCount,
+      }));
+  } catch {
+    // fallback: empty grid
+  }
+
   return (
     <>
       {/* JSON-LD */}
@@ -865,7 +870,7 @@ export default async function ExplorePage() {
         </div>
 
         <div className="mv-grid-4" style={{ gap: 14 }}>
-          {TOP_COUNTRIES.map(({ code, emoji }) => (
+          {topCountries.map(({ code, name, routeCount }) => (
             <a
               key={code}
               href={`/explore/${code.toLowerCase()}`}
@@ -913,12 +918,22 @@ export default async function ExplorePage() {
                   zIndex: 2,
                 }}
               >
+                {/* Country code badge instead of emoji (reliable cross-platform) */}
                 <span
-                  style={{ fontSize: 28, alignSelf: 'flex-start' }}
-                  role="img"
-                  aria-label={COUNTRY_NAMES[code]}
+                  style={{
+                    alignSelf: 'flex-start',
+                    fontFamily: 'var(--font-geist-mono, monospace)',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: 'var(--mv-ink-3)',
+                    letterSpacing: '0.1em',
+                    background: 'var(--mv-surface)',
+                    border: '1px solid var(--mv-line)',
+                    borderRadius: 6,
+                    padding: '4px 8px',
+                  }}
                 >
-                  {emoji}
+                  {code}
                 </span>
                 <div>
                   <div
@@ -929,7 +944,7 @@ export default async function ExplorePage() {
                       lineHeight: 1.1,
                     }}
                   >
-                    {COUNTRY_NAMES[code]}
+                    {name}
                   </div>
                   <div
                     style={{
@@ -952,7 +967,7 @@ export default async function ExplorePage() {
                         background: 'var(--mv-warm-500)',
                       }}
                     />
-                    Explore routes
+                    {routeCount} routes
                   </div>
                 </div>
               </div>
@@ -1378,7 +1393,7 @@ export default async function ExplorePage() {
                 Top countries
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {TOP_COUNTRIES.map(({ code }) => (
+                {topCountries.map(({ code, name }) => (
                   <a
                     key={code}
                     href={`/explore/${code.toLowerCase()}`}
@@ -1392,7 +1407,7 @@ export default async function ExplorePage() {
                       display: 'block',
                     }}
                   >
-                    {COUNTRY_NAMES[code]}
+                    {name}
                   </a>
                 ))}
               </div>
