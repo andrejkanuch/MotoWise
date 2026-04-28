@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { ExpensePhotoGallery } from '../../../components/ExpensePhotoGallery';
 import { useCurrency } from '../../../hooks/use-currency';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { AnalyticsEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
@@ -94,7 +94,11 @@ export default function AddExpenseScreen() {
         },
       }),
     onSuccess: (result) => {
-      trackEvent(AnalyticsEvent.EXPENSE_ADDED, { category, amount: parsedAmount, currency });
+      trackEventWithSurvey(AnalyticsEvent.EXPENSE_ADDED, {
+        category,
+        amount: parsedAmount,
+        currency,
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.expenses.byMotorcycle(motorcycleId),
       });

@@ -34,6 +34,7 @@ import { useEffect, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AnimatedSplash } from '../components/animated-splash';
+import { SurveyOverlay } from '../components/survey/survey-overlay';
 import { getWhatsNewRelease } from '../data/whats-new-releases';
 import { useNotificationDeepLink } from '../hooks/use-notification-deep-link';
 import i18n from '../i18n';
@@ -255,7 +256,12 @@ function NavigationGate({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <SurveyOverlay />
+    </>
+  );
 }
 
 export default function RootLayout() {

@@ -24,7 +24,7 @@ import { StepPhotoDetails } from '../../../components/diagnostic-flow/step-photo
 import { StepProblemDescription } from '../../../components/diagnostic-flow/step-problem-description';
 import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-review-submit';
 import { useProGate } from '../../../hooks/useProGate';
-import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
+import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
@@ -180,7 +180,7 @@ export default function NewDiagnosticScreen() {
         },
       });
 
-      trackEvent(AnalyticsEvent.DIAGNOSTIC_COMPLETED, {
+      trackEventWithSurvey(AnalyticsEvent.DIAGNOSTIC_COMPLETED, {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });

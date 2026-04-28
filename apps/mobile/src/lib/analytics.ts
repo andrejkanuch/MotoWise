@@ -244,6 +244,40 @@ export function trackEvent(event: AnalyticsEventName, properties?: Record<string
   }
 }
 
+// ---- Survey Trigger (CSAT) -------------------------------------------
+
+// Lazy import to avoid circular dependency (survey.store imports analytics)
+let _surveyStore: typeof import('../stores/survey.store') | null = null;
+function getSurveyStore() {
+  if (!_surveyStore) _surveyStore = require('../stores/survey.store');
+  // biome-ignore lint/style/noNonNullAssertion: guaranteed by the line above
+  return _surveyStore!;
+}
+
+type SurveyTriggerAction = import('../stores/survey.store').SurveyTriggerAction;
+
+const SURVEY_TRIGGER_MAP: Partial<Record<AnalyticsEventName, SurveyTriggerAction>> = {
+  expense_added: 'expense_added',
+  maintenance_task_created: 'maintenance_task_created',
+  trip_created: 'trip_created',
+  diagnostic_completed: 'diagnostic_completed',
+};
+
+/**
+ * Track an event and maybe trigger the CSAT survey.
+ * Drop-in replacement for trackEvent() at qualifying action sites.
+ */
+export function trackEventWithSurvey(
+  event: AnalyticsEventName,
+  properties?: Record<string, JsonType>,
+) {
+  trackEvent(event, properties);
+  const actionType = SURVEY_TRIGGER_MAP[event];
+  if (actionType) {
+    getSurveyStore().useSurveyStore.getState().tryShow(actionType);
+  }
+}
+
 export function trackScreen(screenName: string, properties?: Record<string, JsonType>) {
   if (!analyticsEnabled) return;
 

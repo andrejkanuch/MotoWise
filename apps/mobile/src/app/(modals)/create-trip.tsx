@@ -52,7 +52,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GeocodingSearchBar } from '../../components/geocoding-search-bar';
 import { StopListItem } from '../../components/trip/stop-list-item';
 import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
-import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
@@ -553,7 +553,7 @@ export default function CreateTripScreen() {
     onSuccess: () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      trackEvent(AnalyticsEvent.TRIP_CREATED, {
+      trackEventWithSurvey(AnalyticsEvent.TRIP_CREATED, {
         difficulty,
         waypoint_count: waypoints.length,
       });
