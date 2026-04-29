@@ -55,8 +55,7 @@ export const SurfaceTypeInputSchema = z
   .transform((v) => (v === 'off_road' ? 'off-road' : v) as SurfaceType);
 
 // --- Waypoint Type ---
-// Reduced set after unification. Legacy types (photo, mechanical, ferry,
-// pass_summit, rally_point) are dropped — migrate existing data first.
+// Must match the CHECK constraint on trip_waypoints.type (migration 00072).
 
 export const WAYPOINT_TYPE = {
   START: 'start',
@@ -66,6 +65,11 @@ export const WAYPOINT_TYPE = {
   FOOD: 'food',
   OVERNIGHT: 'overnight',
   SCENIC: 'scenic',
+  PHOTO: 'photo',
+  MECHANICAL: 'mechanical',
+  FERRY: 'ferry',
+  PASS_SUMMIT: 'pass_summit',
+  RALLY_POINT: 'rally_point',
 } as const;
 
 export const WaypointTypeSchema = z.enum([
@@ -76,6 +80,11 @@ export const WaypointTypeSchema = z.enum([
   'food',
   'overnight',
   'scenic',
+  'photo',
+  'mechanical',
+  'ferry',
+  'pass_summit',
+  'rally_point',
 ]);
 export type WaypointType = z.infer<typeof WaypointTypeSchema>;
 
