@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { userFriendlyError } from '../../lib/graphql-errors';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -41,7 +42,7 @@ export default function RegisterScreen() {
         options: { data: { full_name: fullName } },
       });
       if (error) {
-        Alert.alert(t('common.error'), error.message);
+        Alert.alert(t('common.error'), userFriendlyError(error));
       } else if (data.user && !data.session) {
         trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'email' });
         Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'));
@@ -50,7 +51,7 @@ export default function RegisterScreen() {
       }
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,7 @@ export default function RegisterScreen() {
       trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'apple' });
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
 
@@ -78,7 +79,7 @@ export default function RegisterScreen() {
       trackEvent(AnalyticsEvent.USER_SIGNED_UP, { auth_method: 'google' });
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
 

@@ -1,7 +1,7 @@
 import { MutationCache, onlineManager, QueryCache, QueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
 import { captureException } from './analytics';
-import { extractGraphQLMessage, hasGraphQLCode } from './graphql-errors';
+import { hasGraphQLCode, userFriendlyError } from './graphql-errors';
 import { supabase } from './supabase';
 
 const NETWORK_ERROR_RE =
@@ -60,7 +60,7 @@ export const queryClient = new QueryClient({
       });
       if (query?.meta?.showErrorAlert === false) return;
       if (query?.state.data !== undefined) return;
-      Alert.alert('Error', extractGraphQLMessage(error));
+      Alert.alert('Error', userFriendlyError(error));
     },
   }),
   mutationCache: new MutationCache({
@@ -71,7 +71,7 @@ export const queryClient = new QueryClient({
       });
       if (mutation.options.onError) return;
       if (mutation.meta?.showErrorAlert === false) return;
-      Alert.alert('Error', extractGraphQLMessage(error));
+      Alert.alert('Error', userFriendlyError(error));
     },
   }),
 });

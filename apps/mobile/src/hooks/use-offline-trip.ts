@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
+import { userFriendlyError } from '../lib/graphql-errors';
 import {
   bboxFromPoints,
   downloadOfflinePack,
@@ -66,7 +67,7 @@ export function useOfflineTrip({ tripId, waypoints }: UseOfflineTripParams) {
       });
     } catch (err) {
       setStatus('error');
-      Alert.alert('Offline download failed', err instanceof Error ? err.message : 'Unknown error');
+      Alert.alert('Offline download failed', userFriendlyError(err));
     }
   }, [requirePro, tripId, waypoints]);
 

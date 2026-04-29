@@ -85,6 +85,7 @@ import { useTripAssistant } from '../../hooks/use-trip-assistant';
 import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { userFriendlyError } from '../../lib/graphql-errors';
 import { cacheTripPayload, getOfflineMeta, readCachedTripPayload } from '../../lib/offline-trips';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
@@ -608,7 +609,7 @@ export default function TripDetailScreen() {
       } else if (err.message?.includes('already published')) {
         setPublishedToDiscover(true);
       } else {
-        Alert.alert('Publish Failed', err.message ?? 'Please try again.');
+        Alert.alert('Publish Failed', userFriendlyError(err));
       }
     },
   });
@@ -677,7 +678,7 @@ export default function TripDetailScreen() {
       if (err.message?.includes('already cloned')) {
         Alert.alert('Already Cloned', 'You have already cloned this trip.');
       } else {
-        Alert.alert('Clone Failed', err.message ?? 'Please try again.');
+        Alert.alert('Clone Failed', userFriendlyError(err));
       }
     },
   });
@@ -746,7 +747,7 @@ export default function TripDetailScreen() {
       invalidateTrip();
     },
     onError: (err: Error) => {
-      Alert.alert('Review Failed', err.message ?? 'Please try again.');
+      Alert.alert('Review Failed', userFriendlyError(err));
     },
   });
 

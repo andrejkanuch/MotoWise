@@ -54,6 +54,7 @@ import { StopListItem } from '../../components/trip/stop-list-item';
 import { getWaypointIcon, WaypointTypePicker } from '../../components/trip/waypoint-type-picker';
 import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
+import { userFriendlyError } from '../../lib/graphql-errors';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import {
@@ -563,7 +564,7 @@ export default function CreateTripScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert('Failed to save trip', error?.message || 'Check your connection and try again');
+      Alert.alert('Failed to save trip', userFriendlyError(error));
     },
   });
 
@@ -591,10 +592,7 @@ export default function CreateTripScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert(
-        'Failed to publish trip',
-        error?.message || 'Check your connection and try again',
-      );
+      Alert.alert('Failed to publish trip', userFriendlyError(error));
     },
   });
 
@@ -609,17 +607,19 @@ export default function CreateTripScreen() {
         },
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.trips.detail(params.tripId ?? ''),
+      });
       router.back();
     },
     onError: (error) => {
-      Alert.alert('Failed to update trip', error?.message || 'Check your connection and try again');
+      Alert.alert('Failed to update trip', userFriendlyError(error));
     },
   });
 
@@ -633,20 +633,19 @@ export default function CreateTripScreen() {
       });
       await gqlFetcher(PublishTripDocument, { tripId });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(params.tripId ?? '') });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.trips.detail(params.tripId ?? ''),
+      });
       router.back();
     },
     onError: (error) => {
-      Alert.alert(
-        'Failed to publish trip',
-        error?.message || 'Check your connection and try again',
-      );
+      Alert.alert('Failed to publish trip', userFriendlyError(error));
     },
   });
 
@@ -666,7 +665,7 @@ export default function CreateTripScreen() {
       router.dismissAll();
     },
     onError: (error) => {
-      Alert.alert('Failed to delete trip', error?.message || 'Check your connection and try again');
+      Alert.alert('Failed to delete trip', userFriendlyError(error));
     },
   });
 
@@ -1537,7 +1536,7 @@ export default function CreateTripScreen() {
                     Failed to save trip
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
-                    {saveMutation.error?.message || 'Check your connection and try again'}
+                    {userFriendlyError(saveMutation.error)}
                   </Text>
                 </View>
               )}
@@ -1554,7 +1553,7 @@ export default function CreateTripScreen() {
                     Failed to publish trip
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
-                    {publishMutation.error?.message || 'Check your connection and try again'}
+                    {userFriendlyError(publishMutation.error)}
                   </Text>
                 </View>
               )}
@@ -1571,7 +1570,7 @@ export default function CreateTripScreen() {
                     Failed to update trip
                   </Text>
                   <Text style={{ fontSize: 13, color: t.danger, textAlign: 'center' }}>
-                    {updateMutation.error?.message || 'Check your connection and try again'}
+                    {userFriendlyError(updateMutation.error)}
                   </Text>
                 </View>
               )}

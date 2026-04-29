@@ -21,6 +21,7 @@ import {
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -160,7 +161,7 @@ export default function EditProfileScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert(t('common.error'), error.message || t('common.genericError'));
+      Alert.alert(t('common.error'), userFriendlyError(error));
     },
   });
 

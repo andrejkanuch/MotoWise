@@ -23,6 +23,7 @@ import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { hasGraphQLCode, userFriendlyError } from '../../../lib/graphql-errors';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -134,15 +135,11 @@ export default function AddBikeScreen() {
       }
       router.back();
     } catch (e: unknown) {
-      const gqlError = (
-        e as { response?: { errors?: { extensions?: { code?: string }; message?: string }[] } }
-      )?.response?.errors?.[0];
-      if (gqlError?.extensions?.code === 'FORBIDDEN') {
+      if (hasGraphQLCode(e, 'FORBIDDEN')) {
         requireAccess('MAX_BIKES', Number.POSITIVE_INFINITY);
         return;
       }
-      const message = gqlError?.message ?? t('common.error');
-      Alert.alert(t('common.error'), message);
+      Alert.alert(t('common.error'), userFriendlyError(e));
     }
   };
 

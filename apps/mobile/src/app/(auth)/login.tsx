@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
+import { userFriendlyError } from '../../lib/graphql-errors';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
@@ -36,13 +37,13 @@ export default function LoginScreen() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        Alert.alert(t('common.error'), error.message);
+        Alert.alert(t('common.error'), userFriendlyError(error));
       } else {
         trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'email' });
       }
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     } finally {
       setLoading(false);
     }
@@ -57,7 +58,7 @@ export default function LoginScreen() {
       trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'apple' });
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
 
@@ -70,7 +71,7 @@ export default function LoginScreen() {
       trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'google' });
     } catch (err) {
       captureException(err);
-      Alert.alert(t('common.error'), (err as Error).message);
+      Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
 

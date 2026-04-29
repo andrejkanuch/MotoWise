@@ -15,7 +15,7 @@ describe('ZodValidationPipe', () => {
     expect(result).toEqual({ name: 'Andrej', age: 25 });
   });
 
-  it('should throw BadRequestException with flattened errors for invalid input', () => {
+  it('should throw BadRequestException with generic message for invalid input', () => {
     const schema = z.object({ name: z.string(), age: z.number() });
     const pipe = new ZodValidationPipe(schema);
 
@@ -27,9 +27,7 @@ describe('ZodValidationPipe', () => {
       pipe.transform({ name: 123, age: 'not-a-number' }, dummyMetadata);
     } catch (err) {
       expect(err).toBeInstanceOf(BadRequestException);
-      const response = (err as BadRequestException).getResponse();
-      // BadRequestException wraps the flattened Zod errors as the response
-      expect(response).toHaveProperty('fieldErrors');
+      expect((err as BadRequestException).message).toBe('Please check your input and try again.');
     }
   });
 
