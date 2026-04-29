@@ -11,6 +11,7 @@ import {
   RidingFrequency,
   RidingGoal,
 } from '../constants/enums';
+import { MotorcycleMakeSchema } from './motorcycle';
 
 const experienceLevelValues = Object.values(ExperienceLevel) as [string, ...string[]];
 const ridingGoalValues = Object.values(RidingGoal) as [string, ...string[]];
@@ -36,7 +37,7 @@ export const CompleteOnboardingInputSchema = z.object({
   seasonalTips: z.boolean().optional().default(false),
   recallAlerts: z.boolean().optional().default(false),
   weeklySummary: z.boolean().optional().default(false),
-  bikeMake: z.string().min(1).max(100).optional(),
+  bikeMake: MotorcycleMakeSchema.optional(),
   bikeModel: z.string().min(1).max(100).optional(),
   bikeYear: z.number().int().min(1900).max(2030).optional(),
   bikeType: z.enum(motorcycleTypeValues).optional(),

@@ -1,8 +1,21 @@
 import { z } from 'zod';
 import { MAX_MOTORCYCLE_YEAR, MIN_MOTORCYCLE_YEAR } from '../constants/limits';
 
+/**
+ * Shared refinement for motorcycle make/model strings.
+ * Rejects values that are obviously not vehicle names (emails, URLs,
+ * pure numbers) while still allowing custom/rare manufacturer names.
+ */
+export const MotorcycleMakeSchema = z
+  .string()
+  .min(1)
+  .max(100)
+  .refine((v) => !v.includes('@'), 'Make cannot contain @')
+  .refine((v) => !/^https?:\/\//i.test(v), 'Make cannot be a URL')
+  .refine((v) => !/^\d+$/.test(v), 'Make cannot be only numbers');
+
 export const CreateMotorcycleSchema = z.object({
-  make: z.string().min(1).max(100),
+  make: MotorcycleMakeSchema,
   model: z.string().min(1).max(100),
   year: z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR),
   nickname: z.string().max(50).optional(),
@@ -14,7 +27,7 @@ export type CreateMotorcycle = z.infer<typeof CreateMotorcycleSchema>;
 const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
 
 export const UpdateMotorcycleSchema = z.object({
-  make: z.string().min(1).max(100).optional(),
+  make: MotorcycleMakeSchema.optional(),
   model: z.string().min(1).max(100).optional(),
   year: z.number().int().min(MIN_MOTORCYCLE_YEAR).max(MAX_MOTORCYCLE_YEAR).optional(),
   nickname: z.string().max(50).nullable().optional(),
