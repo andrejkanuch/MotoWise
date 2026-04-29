@@ -119,8 +119,8 @@ export default async function RegionPage({ params }: PageProps) {
 
   const { country, region } = result;
   const [routes, tripTemplates] = await Promise.all([
-    fetchRoutesByRegion(country.countryCode, regionSlug),
-    fetchTripTemplatesByRegion(country.countryCode, regionSlug),
+    fetchRoutesByRegion(country.countryCode, regionSlug).catch(() => []),
+    fetchTripTemplatesByRegion(country.countryCode, regionSlug).catch(() => []),
   ]);
 
   const title = `Motorcycle Routes in ${region.name}, ${country.name}`;

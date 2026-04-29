@@ -560,9 +560,9 @@ export default async function CountryPage({ params }: PageProps) {
   if (!country) notFound();
 
   const [regions, topRoutes, tripTemplates] = await Promise.all([
-    fetchRegionsByCountrySlug(countrySlug),
-    fetchExploreRoutesByCountry(country.countryCode, 12),
-    fetchTripTemplatesByCountry(country.countryCode, 12),
+    fetchRegionsByCountrySlug(countrySlug).catch(() => []),
+    fetchExploreRoutesByCountry(country.countryCode, 12).catch(() => []),
+    fetchTripTemplatesByCountry(country.countryCode, 12).catch(() => []),
   ]);
 
   const featured = topRoutes[0] ?? null;
