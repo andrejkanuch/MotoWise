@@ -71,6 +71,31 @@ export const WebEvent = {
   // Review soft-wall
   REVIEW_SOFTWALL_SHOWN: 'review_softwall.shown',
   REVIEW_SOFTWALL_CTA_CLICKED: 'review_softwall.cta_clicked',
+
+  // Trip engagement (web-side)
+  TRIP_ROUTE_PREVIEWED: 'trip_route_previewed',
+  TRIP_ITINERARY_EXPANDED: 'trip_itinerary_expanded',
+  TRIP_WAYPOINT_CLICKED: 'trip_waypoint_clicked',
+  TRIP_DIFFICULTY_FILTER_USED: 'trip_difficulty_filter_used',
+  TRIP_DURATION_FILTER_USED: 'trip_duration_filter_used',
+  TRIP_COUNTRY_FILTER_USED: 'trip_country_filter_used',
+
+  // SEO / Content discovery
+  SEARCH_PERFORMED: 'search_performed',
+  SCROLL_DEPTH_50: 'scroll_depth_50',
+  SCROLL_DEPTH_100: 'scroll_depth_100',
+  TIME_ON_PAGE_30S: 'time_on_page_30s',
+  TIME_ON_PAGE_60S: 'time_on_page_60s',
+
+  // Engagement quality signals
+  SECOND_PAGE_VIEWED: 'second_page_viewed',
+  SESSION_PAGES_3_PLUS: 'session_pages_3_plus',
+  RETURN_VISITOR: 'return_visitor',
+
+  // Error / friction tracking
+  PAGE_NOT_FOUND: 'page_not_found',
+  API_ERROR_SHOWN: 'api_error_shown',
+  SLOW_PAGE_LOAD: 'slow_page_load',
 } as const;
 
 export type WebEventName = (typeof WebEvent)[keyof typeof WebEvent];
