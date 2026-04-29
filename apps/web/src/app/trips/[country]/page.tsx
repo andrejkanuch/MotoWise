@@ -379,7 +379,7 @@ export default async function TripByIdPage({ params }: PageParams) {
             <div className="rh-cta-row">
               <a
                 className="rh-icon-btn"
-                href="https://apps.apple.com/app/motovault/id6738025498"
+                href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -418,7 +418,7 @@ export default async function TripByIdPage({ params }: PageParams) {
           ))}
           <a
             className="tabnav-cta"
-            href="https://apps.apple.com/app/motovault/id6738025498"
+            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -633,7 +633,7 @@ export default async function TripByIdPage({ params }: PageParams) {
         </p>
         <div className="end-cta-actions">
           <a
-            href="https://apps.apple.com/app/motovault/id6738025498"
+            href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
             className="mv-btn mv-btn-primary"
             target="_blank"
             rel="noopener noreferrer"
