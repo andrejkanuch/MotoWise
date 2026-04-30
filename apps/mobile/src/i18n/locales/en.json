@@ -18,7 +18,10 @@
     "more": "More",
     "no": "No",
     "yes": "Yes",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "tryAgain": "Try Again",
+    "confirm": "Confirm",
+    "all": "All"
   },
   "auth": {
     "signIn": "Sign In",
@@ -169,7 +172,45 @@
     "allTasks": "All tasks",
     "overdueByDays": "Overdue by {{count}} days",
     "dueInDays": "Due in {{count}} days",
-    "addBike": "Add bike"
+    "addBike": "Add bike",
+    "fleetHealthA11y": "{{bikes}} bikes, {{attention}} need attention, {{upcoming}} upcoming tasks",
+    "fleetHealthNoDataA11y": "No fleet health data available",
+    "minutesAgo_one": "{{count}}m ago",
+    "minutesAgo_other": "{{count}}m ago",
+    "minutesAgo_few": "{{count}}m ago",
+    "minutesAgo_many": "{{count}}m ago",
+    "hoursAgo_one": "{{count}}h ago",
+    "hoursAgo_other": "{{count}}h ago",
+    "hoursAgo_few": "{{count}}h ago",
+    "hoursAgo_many": "{{count}}h ago",
+    "daysAgo_one": "{{count}}d ago",
+    "daysAgo_other": "{{count}}d ago",
+    "daysAgo_few": "{{count}}d ago",
+    "daysAgo_many": "{{count}}d ago",
+    "monthsAgo_one": "{{count}}mo ago",
+    "monthsAgo_other": "{{count}}mo ago",
+    "monthsAgo_few": "{{count}}mo ago",
+    "monthsAgo_many": "{{count}}mo ago",
+    "fleetHealthOverdue_one": "{{count}} overdue",
+    "fleetHealthOverdue_other": "{{count}} overdue",
+    "fleetHealthOverdue_few": "{{count}} overdue",
+    "fleetHealthOverdue_many": "{{count}} overdue",
+    "fleetHealthUrgent_one": "{{count}} urgent",
+    "fleetHealthUrgent_other": "{{count}} urgent",
+    "fleetHealthUrgent_few": "{{count}} urgent",
+    "fleetHealthUrgent_many": "{{count}} urgent",
+    "fleetHealthBikes_one": "{{count}} bike",
+    "fleetHealthBikes_other": "{{count}} bikes",
+    "fleetHealthBikes_few": "{{count}} bikes",
+    "fleetHealthBikes_many": "{{count}} bikes",
+    "overdueByDays_one": "Overdue by {{count}} day",
+    "overdueByDays_other": "Overdue by {{count}} days",
+    "overdueByDays_few": "Overdue by {{count}} days",
+    "overdueByDays_many": "Overdue by {{count}} days",
+    "dueInDays_one": "Due in {{count}} day",
+    "dueInDays_other": "Due in {{count}} days",
+    "dueInDays_few": "Due in {{count}} days",
+    "dueInDays_many": "Due in {{count}} days"
   },
   "learn": {
     "explore": "Explore motorcycle topics",
@@ -190,7 +231,16 @@
     "noResults": "No articles found",
     "generateArticle": "Surprise Me with an Article",
     "generating": "Writing something cool...",
-    "searchResults": "Search Results"
+    "searchResults": "Search Results",
+    "onboardingTitle": "Welcome to Learn",
+    "onboardingSubtitle": "Bite-sized motorcycle knowledge at your fingertips",
+    "browseModules": "Browse Modules",
+    "profileDescription": "Explore topics and track progress",
+    "popularInCommunity": "Popular in the Community",
+    "articlesRead_one": "{{count}} article read",
+    "articlesRead_other": "{{count}} articles read",
+    "articlesRead_few": "{{count}} articles read",
+    "articlesRead_many": "{{count}} articles read"
   },
   "article": {
     "readTime": "{{minutes}} min read",
@@ -200,7 +250,11 @@
     "markAsRead": "Mark as Read",
     "alreadyRead": "Already Read",
     "aiDisclaimer": "AI-generated content. Verify with your owner's manual.",
-    "takeQuiz": "Take Quiz"
+    "takeQuiz": "Take Quiz",
+    "views_one": "{{count}} view",
+    "views_other": "{{count}} views",
+    "views_few": "{{count}} views",
+    "views_many": "{{count}} views"
   },
   "diagnose": {
     "startNew": "Start New Diagnosis",
@@ -247,7 +301,8 @@
     "failed": "Diagnostic analysis failed",
     "failedShort": "Failed",
     "retry": "Try Again",
-    "imageTooLarge": "Image is too large (max 5 MB). Please choose a smaller photo or retake with lower quality."
+    "imageTooLarge": "Image is too large (max 5 MB). Please choose a smaller photo or retake with lower quality.",
+    "shareReport": "Share Diagnostic Report"
   },
   "wizard": {
     "step": "Step {{current}} of {{total}}",
@@ -350,7 +405,36 @@
     "fuelOdometerPlaceholder": "0",
     "fuelLitersPlaceholder": "0.0",
     "fuelCostPlaceholder": "0.00",
-    "taskMileagePlaceholder": "e.g. 15000"
+    "taskMileagePlaceholder": "e.g. 15000",
+    "discardChangesTitle": "Discard changes?",
+    "discardChangesMessage": "Your changes will be lost.",
+    "discard": "Discard",
+    "changePhoto": "Change Photo",
+    "typeToConfirmDelete": "Type the motorcycle name to confirm deletion",
+    "deleteNameMismatch": "Name does not match",
+    "deleteNameMismatchMessage": "Please type the motorcycle name correctly",
+    "confirmDeletePermanent": "This action cannot be undone.",
+    "identitySection": "Identity",
+    "nicknamePlaceholder": "e.g. Daily Rider",
+    "makeModel": "Make & Model",
+    "odometerSection": "Odometer",
+    "currentMileage": "Mileage",
+    "miles": "Miles",
+    "kilometers": "Kilometers",
+    "purchaseInfoSection": "Purchase Info",
+    "vinInvalid": "Invalid VIN format",
+    "vinHelp": "Used for NHTSA safety recall lookups.",
+    "settingsSection": "Settings",
+    "setPrimary": "Primary Motorcycle",
+    "primaryExplanation": "Your primary motorcycle will be selected by default in the app",
+    "dangerZone": "Danger Zone",
+    "deleting": "Deleting...",
+    "deleteMotorcycle": "Delete Motorcycle",
+    "deleteExplanation": "Permanently delete this motorcycle and all associated data",
+    "bikeDetails": "Bike Details",
+    "addMaintenanceTask": "Add task",
+    "recordMaintenance": "Record Maintenance",
+    "editBike": "Edit Motorcycle"
   },
   "profile": {
     "title": "Profile",
@@ -388,7 +472,11 @@
     "ridesEmptyAddBike": "Add Your First Bike",
     "units": "Units",
     "metric": "Metric (km, °C)",
-    "imperial": "Imperial (mi, °F)"
+    "imperial": "Imperial (mi, °F)",
+    "myTripsTitle": "My Trips",
+    "myTripsDescription": "Track and share your motorcycle journeys",
+    "currency": "Currency",
+    "selectCurrency": "Select Currency"
   },
   "onboarding": {
     "welcomeTitle": "Welcome to MotoVault",
@@ -548,7 +636,8 @@
     "reminderChannel_both": "Both",
     "insightsSkip": "Skip for now",
     "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "tapToTypeExact": "Tap to type exact value"
   },
   "bikeHub": {
     "upcoming": "Upcoming",
@@ -582,7 +671,14 @@
     "costPerKm": "Cost / km",
     "rides": "Rides",
     "analytics": "Analytics",
-    "viewAnalytics": "View →"
+    "viewAnalytics": "View →",
+    "autoUpdated": "Auto-updated",
+    "manualEntry": "Manual entry",
+    "updatedTodayFrom": "Updated today from {{source}}",
+    "updatedYesterdayFrom": "Updated yesterday from {{source}}",
+    "updatedDaysAgoFrom": "Updated {{days}}d ago from {{source}}",
+    "maintenance": "Maintenance",
+    "allTasks": "All Tasks"
   },
   "maintenance": {
     "healthScore": "Health Score",
@@ -626,7 +722,70 @@
     "exportLastYear": "Last 12 months",
     "exportLast6Months": "Last 6 months",
     "exportTitle": "Export History",
-    "exportMessage": "Choose the date range to include"
+    "exportMessage": "Choose the date range to include",
+    "photoUploadFailed": "Failed to upload photo",
+    "addPhoto": "Add Photo",
+    "deletePhoto": "Delete Photo",
+    "confirmDeletePhoto": "Are you sure you want to delete this photo?",
+    "markDone": "Done",
+    "notes": "Notes",
+    "partsNeeded": "Parts Needed",
+    "noTasks": "No maintenance tasks yet",
+    "addFirstTask": "Add your first maintenance task",
+    "activeTasks": "Active",
+    "history": "History",
+    "noHistory": "No completed tasks yet",
+    "recordFailed": "Failed to record service. Please try again.",
+    "serviceLog": "Service Log",
+    "serviceType": "Service Type",
+    "when": "When",
+    "serviceDate": "Service date",
+    "odometerReading": "Odometer reading",
+    "cost": "Cost",
+    "nextReminder": "Next Reminder",
+    "remindAt": "Remind at",
+    "basedOnInterval": "Based on interval",
+    "logged": "Logged!",
+    "saveToLog": "Save to log",
+    "completeError": "Failed to complete task. Please try again.",
+    "taskNotFound": "Task not found",
+    "scheduleNext": "Schedule next",
+    "scheduleNextDays": "In {{count}} days",
+    "scheduleNextKm_one": "In {{count}} km",
+    "scheduleNextKm_other": "In {{count}} km",
+    "scheduleNextKm_few": "In {{count}} km",
+    "scheduleNextKm_many": "In {{count}} km",
+    "scheduleNextAuto": "Auto-calculated",
+    "completed": "Completed",
+    "completing": "Completing...",
+    "markComplete": "Mark Complete",
+    "deleteFailed": "Failed to delete task.",
+    "noTasksHint": "Keep track of service, repairs, and maintenance",
+    "noOverdue": "No overdue tasks",
+    "noOverdueHint": "You're all caught up.",
+    "noUpcoming": "No upcoming tasks",
+    "noUpcomingHint": "Your bikes are all set",
+    "noCompleted": "No completed tasks yet",
+    "noCompletedHint": "Completed tasks will appear here",
+    "createFailed": "Failed to create task. Please try again.",
+    "task": "Task",
+    "taskTitlePlaceholder": "e.g. Oil change, tire check",
+    "priority": "Priority",
+    "priority_low": "Low",
+    "priority_medium": "Medium",
+    "priority_high": "High",
+    "priority_critical": "Critical",
+    "schedule": "Schedule",
+    "dueDate": "Due Date",
+    "noneSet": "None",
+    "clearDate": "Clear",
+    "targetMileage": "Mileage",
+    "options": "Options",
+    "details": "Details",
+    "descriptionPlaceholder": "What needs to be done?",
+    "notesPlaceholder": "Add any notes...",
+    "taskAdded": "Task Added!",
+    "saveTask": "Save task"
   },
   "paywall": {
     "title": "Your MotoVault experience is ready",
@@ -693,7 +852,8 @@
     "featurePdfExport": "PDF export of records",
     "featureGpxExport": "GPX route exports",
     "upgradeToPro": "Upgrade to Pro",
-    "maybeLater": "Maybe Later"
+    "maybeLater": "Maybe Later",
+    "proBadge": "PRO"
   },
   "notFound": {
     "message": "Page not found",
@@ -860,7 +1020,11 @@
       "dirt_bike": "Dirt Bike",
       "scooter": "Scooter",
       "other": "Other"
-    }
+    },
+    "charCount_one": "{{count}} / {{max}}",
+    "charCount_other": "{{count}} / {{max}}",
+    "charCount_few": "{{count}} / {{max}}",
+    "charCount_many": "{{count}} / {{max}}"
   },
   "notifications": {
     "title": "Notifications",
@@ -905,7 +1069,22 @@
     "category_parking": "Parking",
     "category_tires": "Tires",
     "category_modifications": "Mods",
-    "category_training": "Training"
+    "category_training": "Training",
+    "photoUploadFailed": "Failed to upload photo",
+    "takeReceiptPhoto": "Take Receipt Photo",
+    "chooseFromLibrary": "Choose from Library",
+    "addReceipt": "Add Receipt",
+    "deletePhoto": "Delete Photo",
+    "confirmDeletePhoto": "Are you sure you want to delete this photo?",
+    "deleteTitle": "Delete Expense",
+    "deleteMessage": "Are you sure you want to delete this expense?",
+    "amountTooHigh": "Maximum amount is 99,999.99",
+    "receipts": "Receipts",
+    "dashboard": "Expense Insights",
+    "seeAll_one": "See all ({{count}})",
+    "seeAll_other": "See all ({{count}})",
+    "seeAll_few": "See all ({{count}})",
+    "seeAll_many": "See all ({{count}})"
   },
   "privacy": {
     "title": "Privacy",
@@ -968,7 +1147,12 @@
     "goalFindCommunity": "Find Community",
     "goalSafety": "Safety",
     "goalSaveOnMaintenance": "Save on Maintenance",
-    "goalTrackBikeHealth": "Track Bike Health"
+    "goalTrackBikeHealth": "Track Bike Health",
+    "experienceBeginner": "Beginner",
+    "experienceIntermediate": "Intermediate",
+    "experienceAdvanced": "Advanced",
+    "aboutYouTitle": "About You",
+    "aboutYouIntro": "Tell us about your riding experience"
   },
   "support": {
     "title": "Support",
@@ -1113,10 +1297,27 @@
     "importedCount": "Added {{count}} maintenance task(s) from the manufacturer schedule.",
     "importedNone": "No new tasks to import — your schedule is already up to date.",
     "importFailed": "Failed to import OEM schedule. Please try again.",
-    "importButton": "Import OEM Schedule"
+    "importButton": "Import OEM Schedule",
+    "importedCount_one": "Added {{count}} maintenance task from the manufacturer schedule.",
+    "importedCount_other": "Added {{count}} maintenance tasks from the manufacturer schedule.",
+    "importedCount_few": "Added {{count}} maintenance tasks from the manufacturer schedule.",
+    "importedCount_many": "Added {{count}} maintenance tasks from the manufacturer schedule."
   },
   "recalls": {
-    "checkButton": "Check Safety Recalls"
+    "checkButton": "Check Safety Recalls",
+    "title": "Safety Recalls",
+    "checking": "Checking NHTSA database…",
+    "error": "Unable to check for recalls. Please try again.",
+    "none": "No open recalls found",
+    "noneDescription": "Your motorcycle has no open safety recalls.",
+    "openCount_one": "{{count}} open recall found",
+    "openCount_other": "{{count}} open recalls found",
+    "openCount_few": "{{count}} open recalls found",
+    "openCount_many": "{{count}} open recalls found",
+    "consequence": "Consequence",
+    "remedy": "Remedy",
+    "campaign": "Campaign",
+    "attribution": "Recall data from NHTSA"
   },
   "trips": {
     "myTrips": "My Trips",
@@ -1180,7 +1381,9 @@
     "stopNotesPlaceholder": "Add notes about this stop...",
     "reviewPlaceholder": "Share your experience...",
     "assistantPlaceholder": "Ask about your trip…",
-    "startDateLabel": "Start Date"
+    "startDateLabel": "Start Date",
+    "draftCount_few": "{{count}} drafts — tap to finish",
+    "draftCount_many": "{{count}} drafts — tap to finish"
   },
   "groupRide": {
     "titleLabel": "Title",
@@ -1219,5 +1422,21 @@
   },
   "survey": {
     "feedbackPlaceholder": "Share your thoughts (no personal info please)"
+  },
+  "fuel": {
+    "createFailed": "Failed to save fill-up. Please try again.",
+    "newFillUp": "New fill-up",
+    "odometer": "Odometer",
+    "volume": "Fuel",
+    "totalCost": "Total cost",
+    "partialFill": "Partial fill",
+    "partialHelp": "Check this if you didn't fill the tank completely",
+    "saved": "Saved!",
+    "save": "Log fill-up",
+    "rollingAverage": "Rolling average",
+    "lastN": "Last {{n}} fills",
+    "history": "History",
+    "partial": "Partial",
+    "emptyState": "No fill-ups logged yet"
   }
 }
