@@ -11,10 +11,11 @@ type Period = (typeof PERIOD_OPTIONS)[number];
 export { PERIOD_OPTIONS };
 export type { Period };
 
-export function useExpenseDashboard(motorcycleId: string) {
+export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({
-    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId), 'dashboard'],
-    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId }),
+    queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId ?? ''), 'dashboard'],
+    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: motorcycleId! }),
+    enabled: !!motorcycleId,
     staleTime: 5 * 60 * 1000,
   });
 

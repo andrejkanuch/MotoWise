@@ -213,7 +213,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
 
       {/* Open analytics link */}
       <Pressable
-        onPress={() => router.push('/(tabs)/(garage)/expense-dashboard')}
+        onPress={() => router.push('/(tabs)/(garage)')}
         style={{ marginTop: 14 }}
       >
         <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
