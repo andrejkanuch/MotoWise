@@ -82,6 +82,22 @@ export function getArticleUrl(slug: string, locale: string): string {
   return `${BASE_URL}${prefix}/blog/${slug}`;
 }
 
+/** Returns the hreflang map for a blog article, only including locales where the article exists. */
+export function getArticleHreflangMap(slug: string): Record<string, string> {
+  const languages: Record<string, string> = {};
+  for (const locale of ALLOWED_LOCALES) {
+    const articles = readArticlesFromDisk(locale);
+    if (articles.some((a) => a.slug === slug)) {
+      const prefix = locale === 'en' ? '' : `/${locale}`;
+      languages[locale] = `${BASE_URL}${prefix}/blog/${slug}`;
+    }
+  }
+  if (languages.en) {
+    languages['x-default'] = languages.en;
+  }
+  return languages;
+}
+
 export function getRelatedArticles(
   currentSlug: string,
   category: string | undefined,

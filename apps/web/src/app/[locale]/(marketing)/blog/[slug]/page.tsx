@@ -11,8 +11,14 @@ import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { TableOfContents } from '@/components/marketing/table-of-contents';
 import { Link } from '@/i18n/navigation';
 import { getAuthor, getDefaultAuthor } from '@/lib/authors';
-import { getArticleBySlug, getArticleSlugs, getArticleUrl, getRelatedArticles } from '@/lib/blog';
-import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import {
+  getArticleBySlug,
+  getArticleHreflangMap,
+  getArticleSlugs,
+  getArticleUrl,
+  getRelatedArticles,
+} from '@/lib/blog';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import type { TocHeading } from '@/lib/rehype-extract-headings';
 import { rehypeExtractHeadings } from '@/lib/rehype-extract-headings';
 import { buildArticle, buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
@@ -45,7 +51,7 @@ export async function generateMetadata({ params }: BlogArticlePageProps): Promis
     authors: [{ name: article.author }],
     alternates: {
       canonical: getArticleUrl(slug, locale),
-      languages: getHreflangMap(`/blog/${slug}`),
+      languages: getArticleHreflangMap(slug),
     },
     openGraph: {
       title: article.title,
