@@ -678,7 +678,7 @@ export default function DiscoverScreen() {
         Alert.alert(i18n('discoverSearch.couldNotOpenTitle'), msg);
       }
     },
-    [router],
+    [router, i18n],
   );
 
   const handlePlaceSearchSelect = useCallback((cc: string, _regionCode?: string) => {

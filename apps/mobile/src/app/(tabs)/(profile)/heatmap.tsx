@@ -283,9 +283,17 @@ export default function RideHeatmapScreen() {
         >
           <Stat label={t('heatmap.rides')} value={String(lifetime.rideCount)} dark={isDark} />
           <Divider color={dividerColor} />
-          <Stat label={t('heatmap.lifetime')} value={formatKm(lifetime.totalDistanceM)} dark={isDark} />
+          <Stat
+            label={t('heatmap.lifetime')}
+            value={formatKm(lifetime.totalDistanceM)}
+            dark={isDark}
+          />
           <Divider color={dividerColor} />
-          <Stat label={t('heatmap.countries')} value={String(lifetime.countries.length)} dark={isDark} />
+          <Stat
+            label={t('heatmap.countries')}
+            value={String(lifetime.countries.length)}
+            dark={isDark}
+          />
         </Animated.View>
 
         {/* Annual recap */}

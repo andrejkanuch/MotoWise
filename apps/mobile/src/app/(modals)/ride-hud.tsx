@@ -2,11 +2,11 @@ import { palette } from '@motovault/design-system';
 import { EndRideDocument } from '@motovault/graphql';
 import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
-import { useTranslation } from 'react-i18next';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import { BatteryLow, CloudUpload, Moon, Sun } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
