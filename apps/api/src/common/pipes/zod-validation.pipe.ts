@@ -11,9 +11,7 @@ export class ZodValidationPipe implements PipeTransform {
     const result = this.schema.safeParse(value);
     if (!result.success) {
       const flat = result.error.flatten();
-      this.logger.warn(
-        `Validation failed: ${JSON.stringify(flat.fieldErrors)}`,
-      );
+      this.logger.warn(`Validation failed: ${JSON.stringify(flat.fieldErrors)}`);
       throw new BadRequestException('Please check your input and try again.');
     }
     return result.data;
