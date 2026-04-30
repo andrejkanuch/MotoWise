@@ -5,6 +5,7 @@ import {
   MyMotorcyclesDocument,
   MyRidesDocument,
   type MyRidesQuery,
+  MyTripsDocument,
 } from '@motovault/graphql';
 import { onlineManager, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -41,6 +42,11 @@ export function useHomeData() {
   const ridesQuery = useQuery({
     queryKey: queryKeys.rides.list('home'),
     queryFn: () => gqlFetcher(MyRidesDocument, { first: 10 }),
+    meta: { showErrorAlert: false },
+  });
+  const tripsQuery = useQuery({
+    queryKey: queryKeys.trips.list('home'),
+    queryFn: () => gqlFetcher(MyTripsDocument, { first: 5 }),
     meta: { showErrorAlert: false },
   });
 
@@ -253,6 +259,14 @@ export function useHomeData() {
     ? t(greeting.key, { name: firstName })
     : t('home.greetingFallback');
 
+  const today = new Date().toISOString().slice(0, 10);
+  const upcomingTrips = useMemo(() => {
+    const trips = tripsQuery.data?.myTrips?.edges?.map((e) => e.node) ?? [];
+    return trips
+      .filter((trip) => trip.startDate && trip.startDate >= today)
+      .sort((a, b) => (a.startDate ?? '').localeCompare(b.startDate ?? ''));
+  }, [tripsQuery.data, today]);
+
   return {
     isLoading,
     hasCriticalError,
@@ -272,6 +286,7 @@ export function useHomeData() {
     bikeNames,
     recentRides,
     bikeHealthScores,
+    upcomingTrips,
     router,
   };
 }

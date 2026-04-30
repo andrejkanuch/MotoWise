@@ -42,6 +42,7 @@ export default function HomeScreen() {
     bikeNames,
     recentRides,
     bikeHealthScores,
+    upcomingTrips,
     router,
   } = useHomeData();
 
@@ -877,46 +878,111 @@ export default function HomeScreen() {
             <View style={{ marginTop: 12 }}>
               {focusTab === 'stats' && <FocusStats recentRides={recentRides} />}
               {focusTab === 'history' && <FocusHistory rides={recentRides} />}
-              {focusTab === 'trip' && (
-                <Pressable
-                  onPress={() => router.push('/(tabs)/(discover)')}
-                  style={{
-                    borderRadius: 20,
-                    borderCurve: 'continuous',
-                    overflow: 'hidden',
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.line,
-                    padding: 20,
-                    alignItems: 'center',
-                  }}
-                >
-                  <MapPin size={28} color={theme.warm} style={{ marginBottom: 12 }} />
-                  <Text
+              {focusTab === 'trip' &&
+                (upcomingTrips.length > 0 ? (
+                  <View style={{ gap: 10 }}>
+                    {upcomingTrips.map((trip) => (
+                      <Pressable
+                        key={trip.id}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/(modals)/trip-detail',
+                            params: { tripId: trip.id },
+                          })
+                        }
+                        style={{
+                          borderRadius: 16,
+                          borderCurve: 'continuous',
+                          overflow: 'hidden',
+                          backgroundColor: theme.surface,
+                          borderWidth: 1,
+                          borderColor: theme.line,
+                          padding: 16,
+                          gap: 6,
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            fontSize: 16,
+                            fontWeight: '600',
+                            color: theme.ink,
+                            letterSpacing: -0.3,
+                          }}
+                        >
+                          {trip.title}
+                        </Text>
+                        {trip.startDate && (
+                          <Text
+                            style={{
+                              fontFamily: 'GeistMono',
+                              fontSize: 11,
+                              color: theme.ink3,
+                              letterSpacing: 0.5,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {new Date(trip.startDate).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                            {trip.endDate && trip.endDate !== trip.startDate
+                              ? ` — ${new Date(trip.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+                              : ''}
+                          </Text>
+                        )}
+                        {trip.description && (
+                          <Text
+                            numberOfLines={2}
+                            style={{ fontSize: 13, color: theme.ink2, lineHeight: 18 }}
+                          >
+                            {trip.description}
+                          </Text>
+                        )}
+                      </Pressable>
+                    ))}
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => router.push('/(tabs)/(discover)')}
                     style={{
-                      fontFamily: 'InstrumentSerif-Regular',
-                      fontSize: 22,
-                      color: theme.ink,
-                      marginBottom: 6,
+                      borderRadius: 20,
+                      borderCurve: 'continuous',
+                      overflow: 'hidden',
+                      backgroundColor: theme.surface,
+                      borderWidth: 1,
+                      borderColor: theme.line,
+                      padding: 20,
+                      alignItems: 'center',
                     }}
                   >
-                    {t('home.planNextTrip')}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: theme.ink3,
-                      textAlign: 'center',
-                      marginBottom: 14,
-                    }}
-                  >
-                    {t('home.planNextTripDesc')}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
-                    {t('home.exploreRoutes')}
-                  </Text>
-                </Pressable>
-              )}
+                    <MapPin size={28} color={theme.warm} style={{ marginBottom: 12 }} />
+                    <Text
+                      style={{
+                        fontFamily: 'InstrumentSerif-Regular',
+                        fontSize: 22,
+                        color: theme.ink,
+                        marginBottom: 6,
+                      }}
+                    >
+                      {t('home.planNextTrip')}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: theme.ink3,
+                        textAlign: 'center',
+                        marginBottom: 14,
+                      }}
+                    >
+                      {t('home.planNextTripDesc')}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
+                      {t('home.exploreRoutes')}
+                    </Text>
+                  </Pressable>
+                ))}
             </View>
           </View>
         )}

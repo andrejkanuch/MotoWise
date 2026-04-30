@@ -209,20 +209,37 @@ const FilterChipStrip = memo(function FilterChipStrip({
 
 // --- Section heading ---
 
+type SortOption = 'popular' | 'rating' | 'newest' | 'distance';
+
+const SORT_OPTIONS: Array<{ key: SortOption; label: string }> = [
+  { key: 'popular', label: 'Most popular' },
+  { key: 'rating', label: 'Highest rated' },
+  { key: 'newest', label: 'Newest' },
+  { key: 'distance', label: 'Shortest first' },
+];
+
 const SectionHeading = memo(function SectionHeading({
   activeFilter,
   countryCode,
   totalCount,
+  hasMore,
+  sortBy,
+  onSortChange,
 }: {
   activeFilter: FilterKey | null;
   countryCode: SupportedCountryCode | null;
   totalCount: number;
+  hasMore: boolean;
+  sortBy: SortOption;
+  onSortChange: (sort: SortOption) => void;
 }) {
   const { t } = useEditorialTheme();
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const filterLabel = activeFilter
     ? (FILTER_CHIPS.find((f) => f.key === activeFilter)?.label ?? 'Filtered')
     : 'All routes';
   const countryLabel = countryCode ? COUNTRY_NAMES[countryCode] : null;
+  const currentSortLabel = SORT_OPTIONS.find((o) => o.key === sortBy)?.label ?? 'Sort';
 
   return (
     <View
@@ -258,23 +275,90 @@ const SectionHeading = memo(function SectionHeading({
             lineHeight: 26,
           }}
         >
-          {totalCount} route{totalCount === 1 ? '' : 's'}{' '}
+          {totalCount}
+          {hasMore ? '+' : ''} route{totalCount === 1 ? '' : 's'}{' '}
           <Text style={{ fontStyle: 'italic', color: t.ink3, fontSize: 17 }}>found</Text>
         </Text>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingBottom: 2 }}>
-        <SlidersHorizontal size={12} color={t.ink3} />
-        <Text
+      <View style={{ position: 'relative' }}>
+        <Pressable
+          onPress={() => {
+            if (process.env.EXPO_OS === 'ios')
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setShowSortMenu((prev) => !prev);
+          }}
           style={{
-            fontFamily: 'GeistMono',
-            fontSize: 11,
-            color: t.ink3,
-            fontWeight: '500',
-            letterSpacing: 0.4,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            paddingBottom: 2,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 8,
+            backgroundColor: showSortMenu ? t.surface2 : 'transparent',
           }}
         >
-          Sort
-        </Text>
+          <SlidersHorizontal size={12} color={showSortMenu ? t.ink : t.ink3} />
+          <Text
+            style={{
+              fontFamily: 'GeistMono',
+              fontSize: 11,
+              color: showSortMenu ? t.ink : t.ink3,
+              fontWeight: '500',
+              letterSpacing: 0.4,
+            }}
+          >
+            {currentSortLabel}
+          </Text>
+        </Pressable>
+        {showSortMenu && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 30,
+              right: 0,
+              backgroundColor: t.surface,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: t.line,
+              padding: 4,
+              zIndex: 100,
+              minWidth: 160,
+              shadowColor: '#000',
+              shadowOpacity: 0.15,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 8,
+            }}
+          >
+            {SORT_OPTIONS.map((option) => (
+              <Pressable
+                key={option.key}
+                onPress={() => {
+                  onSortChange(option.key);
+                  setShowSortMenu(false);
+                }}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: sortBy === option.key ? t.surface2 : 'transparent',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: sortBy === option.key ? '600' : '500',
+                    color: sortBy === option.key ? t.ink : t.ink2,
+                  }}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
     </View>
   );
@@ -286,6 +370,9 @@ interface DiscoverHeaderProps {
   activeFilter: FilterKey | null;
   countryCode: SupportedCountryCode | null;
   totalCount: number;
+  hasMore: boolean;
+  sortBy: SortOption;
+  onSortChange: (sort: SortOption) => void;
   onToggleFilter: (key: FilterKey) => void;
   onToggleCountry: (code: SupportedCountryCode) => void;
   onRouteSearchSelect: (routeId: string) => void | Promise<void>;
@@ -297,6 +384,9 @@ const DiscoverHeader = memo(function DiscoverHeader({
   activeFilter,
   countryCode,
   totalCount,
+  hasMore,
+  sortBy,
+  onSortChange,
   onToggleFilter,
   onToggleCountry,
   onRouteSearchSelect,
@@ -332,6 +422,9 @@ const DiscoverHeader = memo(function DiscoverHeader({
         activeFilter={activeFilter}
         countryCode={countryCode}
         totalCount={totalCount}
+        hasMore={hasMore}
+        sortBy={sortBy}
+        onSortChange={onSortChange}
       />
     </View>
   );
@@ -365,6 +458,7 @@ export default function DiscoverScreen() {
   // --- Filter state ---
   const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null);
   const [countryCode, setCountryCode] = useState<SupportedCountryCode | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('popular');
 
   // --- Data fetching ---
 
@@ -414,10 +508,24 @@ export default function DiscoverScreen() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const hasMoreTrips = tripData?.pages?.at(-1)?.tripTemplates?.pageInfo?.hasNextPage ?? false;
+
   const allTrips = useMemo(() => {
     if (!tripData?.pages) return [];
-    return tripData.pages.flatMap((p) => p?.tripTemplates?.edges?.map((e) => e.node) ?? []);
-  }, [tripData]);
+    const trips = tripData.pages.flatMap((p) => p?.tripTemplates?.edges?.map((e) => e.node) ?? []);
+    if (sortBy === 'rating') {
+      return [...trips].sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
+    }
+    if (sortBy === 'newest') {
+      return [...trips].sort(
+        (a, b) => new Date(b.publishedAt ?? 0).getTime() - new Date(a.publishedAt ?? 0).getTime(),
+      );
+    }
+    if (sortBy === 'distance') {
+      return [...trips].sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0));
+    }
+    return trips; // 'popular' — default API order
+  }, [tripData, sortBy]);
 
   // --- GeoJSON for map pins ---
 
@@ -582,12 +690,20 @@ export default function DiscoverScreen() {
     setMapExpanded((prev) => !prev);
   }, []);
 
+  const handleSortChange = useCallback((sort: SortOption) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSortBy(sort);
+  }, []);
+
   const headerComponent = useMemo(
     () => (
       <DiscoverHeader
         activeFilter={activeFilter}
         countryCode={countryCode}
         totalCount={allTrips.length}
+        hasMore={hasMoreTrips}
+        sortBy={sortBy}
+        onSortChange={handleSortChange}
         onToggleFilter={toggleFilter}
         onToggleCountry={toggleCountry}
         onRouteSearchSelect={handleRouteSearchSelect}
@@ -599,6 +715,9 @@ export default function DiscoverScreen() {
       activeFilter,
       countryCode,
       allTrips.length,
+      hasMoreTrips,
+      sortBy,
+      handleSortChange,
       toggleFilter,
       toggleCountry,
       handleRouteSearchSelect,
