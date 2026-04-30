@@ -14,7 +14,7 @@ export type { Period };
 export function useExpenseDashboard(motorcycleId: string | undefined) {
   const { data, isPending, isError, refetch } = useQuery({
     queryKey: [...queryKeys.expenses.byMotorcycle(motorcycleId ?? ''), 'dashboard'],
-    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: motorcycleId! }),
+    queryFn: () => gqlFetcher(ExpenseDashboardDocument, { motorcycleId: motorcycleId as string }),
     enabled: !!motorcycleId,
     staleTime: 5 * 60 * 1000,
   });

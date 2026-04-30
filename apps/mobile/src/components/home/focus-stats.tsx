@@ -212,10 +212,7 @@ export function FocusStats({ recentRides }: FocusStatsProps) {
       </View>
 
       {/* Open analytics link */}
-      <Pressable
-        onPress={() => router.push('/(tabs)/(garage)')}
-        style={{ marginTop: 14 }}
-      >
+      <Pressable onPress={() => router.push('/(tabs)/(garage)')} style={{ marginTop: 14 }}>
         <Text style={{ fontSize: 12, color: theme.warm, fontWeight: '600' }}>
           {t('home.openAnalytics')}
         </Text>
