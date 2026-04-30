@@ -272,7 +272,7 @@ export default function RecordMaintenanceScreen() {
               <TextInput
                 value={customDescription}
                 onChangeText={setCustomDescription}
-                placeholder="Describe the service..."
+                placeholder={t('garage.describeServicePlaceholder')}
                 placeholderTextColor={palette.neutral400}
                 autoFocus
                 style={{
@@ -460,7 +460,7 @@ export default function RecordMaintenanceScreen() {
               value={odometerReading}
               onChangeText={(val) => setOdometerReading(val.replace(/[^0-9]/g, ''))}
               keyboardType="number-pad"
-              placeholder="e.g. 14520"
+              placeholder={t('garage.mileageExamplePlaceholder')}
               placeholderTextColor={palette.neutral400}
               textAlign="right"
               style={{
@@ -520,7 +520,7 @@ export default function RecordMaintenanceScreen() {
             value={cost}
             onChangeText={setCost}
             keyboardType="decimal-pad"
-            placeholder="0.00"
+            placeholder={t('garage.costPlaceholder')}
             placeholderTextColor={palette.neutral400}
             style={{
               flex: 1,

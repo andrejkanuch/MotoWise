@@ -36,7 +36,6 @@ import {
   MapPin,
   Mountain,
   Pencil,
-  PenLine,
   Plus,
   Share2,
   Sparkles,
@@ -667,12 +666,17 @@ export default function TripDetailScreen() {
   // Clone template mutation
   const cloneMutation = useMutation({
     mutationFn: () => gqlFetcher(CloneTripDocument, { tripId }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       if (process.env.EXPO_OS === 'ios')
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      Alert.alert('Cloned!', 'This trip has been added to your trips.');
+      // Navigate to the cloned trip so the user can see it immediately
+      const clonedId = data?.cloneTrip;
+      if (clonedId) {
+        router.dismiss();
+        router.push({ pathname: '/(modals)/trip-detail', params: { tripId: clonedId } });
+      }
     },
     onError: (err: Error) => {
       if (err.message?.includes('already cloned')) {
@@ -866,6 +870,7 @@ ${rteptElements}
         <MapboxGL.MapView
           style={{ flex: 1 }}
           styleURL={offline.meta?.styleURL ?? MAP_STYLES[isDark ? 'dark' : 'light']}
+          surfaceView={process.env.EXPO_OS !== 'android'}
           compassEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
@@ -1564,124 +1569,6 @@ ${rteptElements}
                   </View>
                 </Animated.View>
 
-                {/* Template action buttons — clone itinerary or start a blank trip */}
-                <Animated.View
-                  entering={FadeInUp.delay(110).duration(220)}
-                  style={{ gap: 10, marginBottom: 20 }}
-                >
-                  {!isOrganiser && (
-                    <Pressable
-                      onPress={handleCloneTemplate}
-                      disabled={isOfflineCopy || cloneMutation.isPending}
-                      accessibilityRole="button"
-                      accessibilityLabel="Clone to My Trips"
-                      style={({ pressed }) => ({
-                        backgroundColor: t.success,
-                        paddingVertical: 14,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexDirection: 'row',
-                        gap: 8,
-                        opacity: pressed ? 0.9 : 1,
-                      })}
-                    >
-                      {cloneMutation.isPending ? (
-                        <ActivityIndicator size="small" color={palette.white} />
-                      ) : (
-                        <>
-                          <Copy size={18} color={palette.white} />
-                          <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                            Clone to My Trips
-                          </Text>
-                        </>
-                      )}
-                    </Pressable>
-                  )}
-                  <Pressable
-                    onPress={() => {
-                      if (process.env.EXPO_OS === 'ios')
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                      // Same as clone: pass source id so create-trip sets sane dates (templates have
-                      // placeholder 1970 dates) and pre-fills route — user still edits title/dates.
-                      router.push({
-                        pathname: '/(modals)/create-trip',
-                        params: { cloneFromTripId: tripId },
-                      });
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel="Plan your own trip"
-                    accessibilityHint="Opens the trip planner with this route pre-filled. You set the dates."
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: t.surface2,
-                      borderWidth: 1,
-                      borderColor: t.line,
-                      opacity: pressed ? 0.9 : 1,
-                    })}
-                  >
-                    <PenLine size={17} color={t.ink} />
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: t.ink,
-                      }}
-                    >
-                      Plan your own trip
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleToggleSave}
-                    disabled={isOfflineCopy || saveMutation.isPending || unsaveMutation.isPending}
-                    accessibilityRole="button"
-                    accessibilityLabel={isSaved ? 'Unsave trip' : 'Save trip'}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: 'transparent',
-                      borderWidth: 1,
-                      borderColor: isSaved ? t.warm : t.line,
-                    }}
-                  >
-                    {saveMutation.isPending || unsaveMutation.isPending ? (
-                      <ActivityIndicator size="small" color={t.ink3} />
-                    ) : isSaved ? (
-                      <>
-                        <BookmarkCheck size={16} color={t.warm} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>
-                          Saved
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <Bookmark size={16} color={t.ink} />
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: '700',
-                            color: t.ink,
-                          }}
-                        >
-                          Save for Later
-                        </Text>
-                      </>
-                    )}
-                  </Pressable>
-                </Animated.View>
-
                 {/* Reviews section */}
                 <Animated.View
                   entering={FadeInUp.delay(120).duration(220)}
@@ -1810,7 +1697,7 @@ ${rteptElements}
                       <TextInput
                         value={reviewText}
                         onChangeText={setReviewText}
-                        placeholder="Share your experience..."
+                        placeholder={t('trips.reviewPlaceholder')}
                         placeholderTextColor={subtitleColor}
                         multiline
                         style={{
@@ -1995,6 +1882,85 @@ ${rteptElements}
                     </Animated.View>
                   );
                 })}
+              </Animated.View>
+            )}
+
+            {/* Template action buttons — after itinerary, at the bottom */}
+            {isTemplate && (
+              <Animated.View
+                entering={FadeInUp.delay(110).duration(220)}
+                style={{ gap: 10, marginBottom: 20 }}
+              >
+                {!isOrganiser && (
+                  <Pressable
+                    onPress={handleCloneTemplate}
+                    disabled={isOfflineCopy || cloneMutation.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel="Add to My Trips"
+                    style={({ pressed }) => ({
+                      backgroundColor: t.success,
+                      paddingVertical: 14,
+                      borderRadius: 14,
+                      borderCurve: 'continuous',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                      gap: 8,
+                      opacity: pressed ? 0.9 : 1,
+                    })}
+                  >
+                    {cloneMutation.isPending ? (
+                      <ActivityIndicator size="small" color={palette.white} />
+                    ) : (
+                      <>
+                        <Copy size={18} color={palette.white} />
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                          Add to My Trips
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                )}
+                <Pressable
+                  onPress={handleToggleSave}
+                  disabled={isOfflineCopy || saveMutation.isPending || unsaveMutation.isPending}
+                  accessibilityRole="button"
+                  accessibilityLabel={isSaved ? 'Unsave trip' : 'Save trip'}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: isSaved ? t.warm : t.line,
+                  }}
+                >
+                  {saveMutation.isPending || unsaveMutation.isPending ? (
+                    <ActivityIndicator size="small" color={t.ink3} />
+                  ) : isSaved ? (
+                    <>
+                      <BookmarkCheck size={16} color={t.warm} />
+                      <Text style={{ fontSize: 15, fontWeight: '700', color: t.warm }}>Saved</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark size={16} color={t.ink} />
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: '700',
+                          color: t.ink,
+                        }}
+                      >
+                        Save for Later
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
               </Animated.View>
             )}
 

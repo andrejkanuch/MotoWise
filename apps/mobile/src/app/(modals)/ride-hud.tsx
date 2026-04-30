@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import { EndRideDocument } from '@motovault/graphql';
 import type { Waypoint } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import { BatteryLow, CloudUpload, Moon, Sun } from 'lucide-react-native';
@@ -48,6 +49,7 @@ function haptic(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle
 }
 
 export default function RideHudScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const system = useMeasurementSystem();
@@ -475,21 +477,21 @@ export default function RideHudScreen() {
           }}
         >
           <StatCell
-            label="DIST"
+            label={t('rideHud.dist')}
             value={formatDistance(distance, system)}
             textColor={textColor}
             labelColor={labelColor}
           />
           <StatDivider isNightMode={isNightMode} />
           <StatCell
-            label="TIME"
+            label={t('rideHud.time')}
             value={formatElapsed(elapsedSeconds)}
             textColor={textColor}
             labelColor={labelColor}
           />
           <StatDivider isNightMode={isNightMode} />
           <StatCell
-            label="AVG"
+            label={t('rideHud.avg')}
             value={formatSpeed(avgSpeedDisplay, system)}
             textColor={textColor}
             labelColor={labelColor}
@@ -506,21 +508,21 @@ export default function RideHudScreen() {
           }}
         >
           <StatCell
-            label="MAX"
+            label={t('rideHud.max')}
             value={formatSpeed(maxSpeed, system)}
             textColor={textColor}
             labelColor={labelColor}
           />
           <StatDivider isNightMode={isNightMode} />
           <StatCell
-            label="ELEV"
+            label={t('rideHud.elev')}
             value={formatElevation(elevationGain, system)}
             textColor={textColor}
             labelColor={labelColor}
           />
           <StatDivider isNightMode={isNightMode} />
           <StatCell
-            label="ALT"
+            label={t('rideHud.alt')}
             value={formatElevation(currentAltitude, system)}
             textColor={textColor}
             labelColor={labelColor}

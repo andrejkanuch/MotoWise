@@ -150,7 +150,7 @@ export default function AddFuelLogScreen() {
             <TextInput
               value={odometer}
               onChangeText={(v) => setOdometer(v.replace(/[^0-9.]/g, ''))}
-              placeholder="0"
+              placeholder={t('garage.fuelOdometerPlaceholder')}
               placeholderTextColor={palette.neutral400}
               keyboardType="decimal-pad"
               style={{
@@ -176,7 +176,7 @@ export default function AddFuelLogScreen() {
             <TextInput
               value={volume}
               onChangeText={(v) => setVolume(v.replace(/[^0-9.]/g, ''))}
-              placeholder="0.0"
+              placeholder={t('garage.fuelLitersPlaceholder')}
               placeholderTextColor={palette.neutral400}
               keyboardType="decimal-pad"
               style={{
@@ -202,7 +202,7 @@ export default function AddFuelLogScreen() {
             <TextInput
               value={cost}
               onChangeText={(v) => setCost(v.replace(/[^0-9.]/g, ''))}
-              placeholder="0.00"
+              placeholder={t('garage.fuelCostPlaceholder')}
               placeholderTextColor={palette.neutral400}
               keyboardType="decimal-pad"
               style={{

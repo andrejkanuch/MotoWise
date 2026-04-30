@@ -336,7 +336,21 @@
     "purchasePrice": "Precio de compra",
     "purchaseDate": "Fecha de compra",
     "bike": "moto",
-    "bikes": "motos"
+    "bikes": "motos",
+    "vinPlaceholder": "VIN de 17 caracteres",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Describe el servicio...",
+    "mileageExamplePlaceholder": "p.ej. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "p.ej. 15000",
+    "timeIntervalPlaceholder": "p.ej. 90",
+    "mileageIntervalPlaceholder": "p.ej. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "p.ej. 15000"
   },
   "profile": {
     "title": "Perfil",
@@ -1155,6 +1169,55 @@
     "clones": "Copias",
     "maybe": "Quizas",
     "leave": "Salir",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Titulo del viaje",
+    "titlePlaceholder": "p.ej. Aventura Alpina 2026",
+    "searchStopPlaceholder": "Buscar una parada...",
+    "descriptionLabel": "Descripcion",
+    "descriptionPlaceholder": "Describe tu ruta, puntos de interes, que llevar...",
+    "maxRidersLabel": "Max. pilotos",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Agrega notas sobre esta parada...",
+    "reviewPlaceholder": "Comparte tu experiencia...",
+    "assistantPlaceholder": "Pregunta sobre tu viaje...",
+    "startDateLabel": "Fecha de inicio"
+  },
+  "groupRide": {
+    "titleLabel": "Titulo",
+    "titlePlaceholder": "p.ej. Paseo Matutino del Domingo",
+    "descriptionLabel": "Descripcion",
+    "descriptionPlaceholder": "Describe la ruta, puntos de interes, que llevar...",
+    "maxRidersLabel": "Max. pilotos",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "DIST",
+    "time": "TIEM",
+    "avg": "PROM",
+    "max": "MAX",
+    "elev": "ELEV",
+    "alt": "ALT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Nombra tu ruta..."
+  },
+  "heatmap": {
+    "rides": "Rutas",
+    "lifetime": "Total",
+    "countries": "Paises"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "No disponible",
+    "notAvailableMessage": "Esta ruta aun no esta disponible como viaje en Descubrir. Prueba otro resultado.",
+    "couldNotOpenTitle": "No se pudo abrir",
+    "connectionError": "Verifica tu conexion e intentalo de nuevo",
+    "searchPlaceholder": "Buscar rutas o lugares...",
+    "reviewPlaceholder": "Comparte tu experiencia (opcional)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Buscar un lugar..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Comparte tus opiniones (sin datos personales, por favor)"
   }
 }

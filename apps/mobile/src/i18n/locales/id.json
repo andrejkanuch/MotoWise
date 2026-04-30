@@ -336,7 +336,21 @@
     "purchasePrice": "Harga beli",
     "purchaseDate": "Tanggal beli",
     "bike": "motor",
-    "bikes": "motor"
+    "bikes": "motor",
+    "vinPlaceholder": "VIN 17 karakter",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Jelaskan servisnya...",
+    "mileageExamplePlaceholder": "mis. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "mis. 15000",
+    "timeIntervalPlaceholder": "mis. 90",
+    "mileageIntervalPlaceholder": "mis. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "mis. 15000"
   },
   "profile": {
     "title": "Profil",
@@ -1155,6 +1169,55 @@
     "clones": "Salinan",
     "maybe": "Mungkin",
     "leave": "Keluar",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Judul Perjalanan",
+    "titlePlaceholder": "mis. Alps Adventure 2026",
+    "searchStopPlaceholder": "Cari perhentian...",
+    "descriptionLabel": "Deskripsi",
+    "descriptionPlaceholder": "Jelaskan rute perjalanan, sorotan, apa yang perlu dibawa...",
+    "maxRidersLabel": "Maks Pengendara",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Tambahkan catatan tentang perhentian ini...",
+    "reviewPlaceholder": "Bagikan pengalamanmu...",
+    "assistantPlaceholder": "Tanya tentang perjalananmu…",
+    "startDateLabel": "Tanggal Mulai"
+  },
+  "groupRide": {
+    "titleLabel": "Judul",
+    "titlePlaceholder": "mis. Berkendara Pagi Minggu",
+    "descriptionLabel": "Deskripsi",
+    "descriptionPlaceholder": "Jelaskan perjalanan, sorotan rute, apa yang perlu dibawa...",
+    "maxRidersLabel": "Maks Pengendara",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "JARAK",
+    "time": "WAKTU",
+    "avg": "RATA",
+    "max": "MAKS",
+    "elev": "ELEV",
+    "alt": "ALT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Beri nama perjalananmu..."
+  },
+  "heatmap": {
+    "rides": "Perjalanan",
+    "lifetime": "Total",
+    "countries": "Negara"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Tidak tersedia",
+    "notAvailableMessage": "Rute ini belum ada di Discover sebagai perjalanan. Coba hasil lain.",
+    "couldNotOpenTitle": "Tidak bisa dibuka",
+    "connectionError": "Periksa koneksi dan coba lagi",
+    "searchPlaceholder": "Cari rute atau tempat...",
+    "reviewPlaceholder": "Bagikan pengalamanmu (opsional)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Cari lokasi..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Bagikan pemikiranmu (jangan sertakan info pribadi)"
   }
 }

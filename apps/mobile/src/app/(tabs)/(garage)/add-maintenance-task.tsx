@@ -464,7 +464,7 @@ export default function AddMaintenanceTaskScreen() {
               value={targetMileage}
               onChangeText={setTargetMileage}
               keyboardType="number-pad"
-              placeholder="e.g. 15000"
+              placeholder={t('garage.distanceIntervalPlaceholder')}
               placeholderTextColor={palette.neutral400}
               textAlign="right"
               style={{
@@ -608,7 +608,7 @@ export default function AddMaintenanceTaskScreen() {
                   value={intervalKm}
                   onChangeText={(val) => setIntervalKm(val.replace(/[^0-9]/g, ''))}
                   keyboardType="number-pad"
-                  placeholder="e.g. 5000"
+                  placeholder={t('garage.mileageIntervalPlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   textAlign="right"
                   style={{
@@ -665,7 +665,7 @@ export default function AddMaintenanceTaskScreen() {
                   value={intervalDays}
                   onChangeText={(val) => setIntervalDays(val.replace(/[^0-9]/g, ''))}
                   keyboardType="number-pad"
-                  placeholder="e.g. 90"
+                  placeholder={t('garage.timeIntervalPlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   textAlign="right"
                   style={{

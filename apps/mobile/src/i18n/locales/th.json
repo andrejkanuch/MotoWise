@@ -336,7 +336,21 @@
     "purchasePrice": "ราคาซื้อ",
     "purchaseDate": "วันที่ซื้อ",
     "bike": "คัน",
-    "bikes": "คัน"
+    "bikes": "คัน",
+    "vinPlaceholder": "VIN 17 ตัวอักษร",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "อธิบายการบริการ...",
+    "mileageExamplePlaceholder": "เช่น 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "เช่น 15000",
+    "timeIntervalPlaceholder": "เช่น 90",
+    "mileageIntervalPlaceholder": "เช่น 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "เช่น 15000"
   },
   "profile": {
     "title": "โปรไฟล์",
@@ -1155,6 +1169,55 @@
     "clones": "สำเนา",
     "maybe": "อาจจะ",
     "leave": "ออก",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "ชื่อทริป",
+    "titlePlaceholder": "เช่น Alps Adventure 2026",
+    "searchStopPlaceholder": "ค้นหาจุดแวะ...",
+    "descriptionLabel": "รายละเอียด",
+    "descriptionPlaceholder": "อธิบายเส้นทาง จุดเด่น สิ่งที่ต้องเตรียม...",
+    "maxRidersLabel": "จำนวนนักขี่สูงสุด",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "เพิ่มบันทึกเกี่ยวกับจุดแวะนี้...",
+    "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ...",
+    "assistantPlaceholder": "ถามเกี่ยวกับทริปของคุณ…",
+    "startDateLabel": "วันเริ่มต้น"
+  },
+  "groupRide": {
+    "titleLabel": "ชื่อ",
+    "titlePlaceholder": "เช่น ขี่เที่ยวเช้าวันอาทิตย์",
+    "descriptionLabel": "รายละเอียด",
+    "descriptionPlaceholder": "อธิบายการขี่ จุดเด่นของเส้นทาง สิ่งที่ต้องเตรียม...",
+    "maxRidersLabel": "จำนวนนักขี่สูงสุด",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "ระยะ",
+    "time": "เวลา",
+    "avg": "เฉลี่ย",
+    "max": "สูงสุด",
+    "elev": "สูง",
+    "alt": "ระดับ"
+  },
+  "rideSummary": {
+    "namePlaceholder": "ตั้งชื่อการขับขี่..."
+  },
+  "heatmap": {
+    "rides": "การขับขี่",
+    "lifetime": "ตลอดเวลา",
+    "countries": "ประเทศ"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "ไม่พร้อมใช้งาน",
+    "notAvailableMessage": "เส้นทางนี้ยังไม่มีใน Discover เป็นทริป ลองผลลัพธ์อื่น",
+    "couldNotOpenTitle": "ไม่สามารถเปิดได้",
+    "connectionError": "ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+    "searchPlaceholder": "ค้นหาเส้นทางหรือสถานที่...",
+    "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ (ไม่บังคับ)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "ค้นหาสถานที่..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "แบ่งปันความคิดเห็นของคุณ (กรุณาอย่าใส่ข้อมูลส่วนตัว)"
   }
 }

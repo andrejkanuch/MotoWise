@@ -336,7 +336,21 @@
     "purchasePrice": "Preco de compra",
     "purchaseDate": "Data de compra",
     "bike": "moto",
-    "bikes": "motos"
+    "bikes": "motos",
+    "vinPlaceholder": "VIN de 17 caracteres",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Descreva o serviço...",
+    "mileageExamplePlaceholder": "ex. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "ex. 15000",
+    "timeIntervalPlaceholder": "ex. 90",
+    "mileageIntervalPlaceholder": "ex. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "ex. 15000"
   },
   "profile": {
     "title": "Perfil",
@@ -1155,6 +1169,55 @@
     "clones": "Copias",
     "maybe": "Talvez",
     "leave": "Sair",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Título da Viagem",
+    "titlePlaceholder": "ex. Aventura nos Alpes 2026",
+    "searchStopPlaceholder": "Buscar uma parada...",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva a rota, destaques e o que levar...",
+    "maxRidersLabel": "Máximo de Pilotos",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Adicionar notas sobre esta parada...",
+    "reviewPlaceholder": "Compartilhe sua experiência...",
+    "assistantPlaceholder": "Pergunte sobre sua viagem…",
+    "startDateLabel": "Data de Início"
+  },
+  "groupRide": {
+    "titleLabel": "Título",
+    "titlePlaceholder": "ex. Passeio Matinal de Domingo",
+    "descriptionLabel": "Descrição",
+    "descriptionPlaceholder": "Descreva o passeio, destaques da rota, o que levar...",
+    "maxRidersLabel": "Máximo de Pilotos",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "DIST",
+    "time": "TEMPO",
+    "avg": "MÉD",
+    "max": "MÁX",
+    "elev": "ELEV",
+    "alt": "ALT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Dê um nome ao seu passeio..."
+  },
+  "heatmap": {
+    "rides": "Passeios",
+    "lifetime": "Total",
+    "countries": "Países"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Não disponível",
+    "notAvailableMessage": "Esta rota ainda não está no Discover como viagem. Tente outro resultado.",
+    "couldNotOpenTitle": "Não foi possível abrir",
+    "connectionError": "Verifique sua conexão e tente novamente",
+    "searchPlaceholder": "Buscar rotas ou lugares...",
+    "reviewPlaceholder": "Compartilhe sua experiência (opcional)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Buscar um local..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Compartilhe suas opiniões (sem informações pessoais)"
   }
 }

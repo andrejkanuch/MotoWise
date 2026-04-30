@@ -336,7 +336,21 @@
     "purchasePrice": "खरीद मूल्य",
     "purchaseDate": "खरीद तिथि",
     "bike": "बाइक",
-    "bikes": "बाइक्स"
+    "bikes": "बाइक्स",
+    "vinPlaceholder": "17 अक्षरों का VIN",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "सर्विस का विवरण दें...",
+    "mileageExamplePlaceholder": "उदा. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "उदा. 15000",
+    "timeIntervalPlaceholder": "उदा. 90",
+    "mileageIntervalPlaceholder": "उदा. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "उदा. 15000"
   },
   "profile": {
     "title": "प्रोफाइल",
@@ -1155,6 +1169,55 @@
     "clones": "कॉपीज़",
     "maybe": "शायद",
     "leave": "छोड़ें",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "ट्रिप का शीर्षक",
+    "titlePlaceholder": "उदा. आल्प्स एडवेंचर 2026",
+    "searchStopPlaceholder": "स्टॉप खोजें...",
+    "descriptionLabel": "विवरण",
+    "descriptionPlaceholder": "अपने ट्रिप रूट, हाइलाइट्स, क्या लाना है बताएं...",
+    "maxRidersLabel": "अधिकतम राइडर्स",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "इस स्टॉप के बारे में नोट्स जोड़ें...",
+    "reviewPlaceholder": "अपना अनुभव साझा करें...",
+    "assistantPlaceholder": "अपनी ट्रिप के बारे में पूछें…",
+    "startDateLabel": "प्रारंभ तिथि"
+  },
+  "groupRide": {
+    "titleLabel": "शीर्षक",
+    "titlePlaceholder": "उदा. रविवार सुबह की सवारी",
+    "descriptionLabel": "विवरण",
+    "descriptionPlaceholder": "राइड, रूट हाइलाइट्स, क्या लाना है बताएं...",
+    "maxRidersLabel": "अधिकतम राइडर्स",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "दूरी",
+    "time": "समय",
+    "avg": "औसत",
+    "max": "अधि.",
+    "elev": "ऊंचाई",
+    "alt": "ऊंचा."
+  },
+  "rideSummary": {
+    "namePlaceholder": "राइड को नाम दें..."
+  },
+  "heatmap": {
+    "rides": "राइड्स",
+    "lifetime": "कुल",
+    "countries": "देश"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "उपलब्ध नहीं",
+    "notAvailableMessage": "यह रूट अभी Discover पर ट्रिप के रूप में नहीं है। कोई अन्य परिणाम आज़माएं।",
+    "couldNotOpenTitle": "खोल नहीं सके",
+    "connectionError": "अपना कनेक्शन जांचें और फिर कोशिश करें",
+    "searchPlaceholder": "रूट या स्थान खोजें...",
+    "reviewPlaceholder": "अपना अनुभव साझा करें (वैकल्पिक)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "स्थान खोजें..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "अपने विचार साझा करें (कृपया व्यक्तिगत जानकारी न दें)"
   }
 }

@@ -3,6 +3,7 @@ import { SearchTypeaheadDocument, type SearchTypeaheadQuery } from '@motovault/g
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Globe, MapPin, Route, Search, X } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AccessibilityInfo, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -21,6 +22,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
   onRouteSelect,
   onPlaceSelect,
 }: TypeaheadSearchProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const inputRef = useRef<TextInput>(null);
   const [searchText, setSearchText] = useState('');
@@ -133,7 +135,7 @@ export const TypeaheadSearch = memo(function TypeaheadSearch({
           onChangeText={setSearchText}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 150)}
-          placeholder="Search routes or places..."
+          placeholder={t('discoverSearch.searchPlaceholder')}
           placeholderTextColor={placeholderColor}
           accessibilityLabel="Search routes and places"
           accessibilityHint="Type to search for motorcycle routes or locations"

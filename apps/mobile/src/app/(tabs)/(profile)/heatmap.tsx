@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Flame, Share2 } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +42,7 @@ function formatKm(meters: number): string {
 }
 
 export default function RideHeatmapScreen() {
+  const { t } = useTranslation();
   const isDark = useColorScheme().colorScheme === 'dark';
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -279,11 +281,11 @@ export default function RideHeatmapScreen() {
             gap: 12,
           }}
         >
-          <Stat label="Rides" value={String(lifetime.rideCount)} dark={isDark} />
+          <Stat label={t('heatmap.rides')} value={String(lifetime.rideCount)} dark={isDark} />
           <Divider color={dividerColor} />
-          <Stat label="Lifetime" value={formatKm(lifetime.totalDistanceM)} dark={isDark} />
+          <Stat label={t('heatmap.lifetime')} value={formatKm(lifetime.totalDistanceM)} dark={isDark} />
           <Divider color={dividerColor} />
-          <Stat label="Countries" value={String(lifetime.countries.length)} dark={isDark} />
+          <Stat label={t('heatmap.countries')} value={String(lifetime.countries.length)} dark={isDark} />
         </Animated.View>
 
         {/* Annual recap */}

@@ -336,7 +336,21 @@
     "purchasePrice": "Alis fiyati",
     "purchaseDate": "Alis tarihi",
     "bike": "motor",
-    "bikes": "motor"
+    "bikes": "motor",
+    "vinPlaceholder": "17 karakterli VIN",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Bakimi aciklayin...",
+    "mileageExamplePlaceholder": "orn. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "orn. 15000",
+    "timeIntervalPlaceholder": "orn. 90",
+    "mileageIntervalPlaceholder": "orn. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "orn. 15000"
   },
   "profile": {
     "title": "Profil",
@@ -1155,6 +1169,55 @@
     "clones": "Kopya",
     "maybe": "Belki",
     "leave": "Ayril",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Tur Basligi",
+    "titlePlaceholder": "orn. Alpler Macerasi 2026",
+    "searchStopPlaceholder": "Durak ara...",
+    "descriptionLabel": "Aciklama",
+    "descriptionPlaceholder": "Rota, onemli yerler, yanina alinacaklar...",
+    "maxRidersLabel": "Maks Surucu",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Bu durak hakkinda not ekle...",
+    "reviewPlaceholder": "Deneyimini paylas...",
+    "assistantPlaceholder": "Turunla ilgili sor\u2026",
+    "startDateLabel": "Baslangic Tarihi"
+  },
+  "groupRide": {
+    "titleLabel": "Baslik",
+    "titlePlaceholder": "orn. Pazar Sabahi Turu",
+    "descriptionLabel": "Aciklama",
+    "descriptionPlaceholder": "Surusu, rotayi, yanina alinacaklari acikla...",
+    "maxRidersLabel": "Maks Surucu",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "MSFE",
+    "time": "SURE",
+    "avg": "ORT",
+    "max": "MAKS",
+    "elev": "YUK",
+    "alt": "IRT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Surusune isim ver..."
+  },
+  "heatmap": {
+    "rides": "Surusler",
+    "lifetime": "Toplam",
+    "countries": "Ulkeler"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Mevcut degil",
+    "notAvailableMessage": "Bu rota henuz Kesfet'te bir tur olarak yok. Baska bir sonuc dene.",
+    "couldNotOpenTitle": "Acilamadi",
+    "connectionError": "Baglantiyi kontrol et ve tekrar dene",
+    "searchPlaceholder": "Rota veya yer ara...",
+    "reviewPlaceholder": "Deneyimini paylas (istege bagli)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Konum ara..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Dusuncelerini paylas (kisisel bilgi olmasin lutfen)"
   }
 }

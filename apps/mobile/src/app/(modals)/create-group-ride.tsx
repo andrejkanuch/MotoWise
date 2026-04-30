@@ -149,12 +149,12 @@ export default function CreateGroupRideScreen() {
           {/* Title */}
           <Animated.View entering={FadeInUp.delay(0).duration(250)}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Title *
+              {t('groupRide.titleLabel')} *
             </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="e.g. Sunday Morning Cruise"
+              placeholder={t('groupRide.titlePlaceholder')}
               placeholderTextColor={placeholderColor}
               maxLength={100}
               style={{
@@ -174,12 +174,12 @@ export default function CreateGroupRideScreen() {
           {/* Description */}
           <Animated.View entering={FadeInUp.delay(50).duration(250)}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Description *
+              {t('groupRide.descriptionLabel')} *
             </Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
-              placeholder="Describe the ride, route highlights, what to bring..."
+              placeholder={t('groupRide.descriptionPlaceholder')}
               placeholderTextColor={placeholderColor}
               multiline
               numberOfLines={4}
@@ -330,12 +330,12 @@ export default function CreateGroupRideScreen() {
           {/* Max Riders */}
           <Animated.View entering={FadeInUp.delay(250).duration(250)}>
             <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-              Max Riders
+              {t('groupRide.maxRidersLabel')}
             </Text>
             <TextInput
               value={maxRiders}
               onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
-              placeholder="10"
+              placeholder={t('groupRide.maxRidersPlaceholder')}
               placeholderTextColor={placeholderColor}
               keyboardType="number-pad"
               maxLength={3}

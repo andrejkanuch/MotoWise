@@ -11,6 +11,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MapboxGL, { type ScreenPointPayload } from '@rnmapbox/maps';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
+import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   AlertTriangle,
@@ -201,6 +202,24 @@ export default function CreateTripScreen() {
 
   // Map state
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
+  // Center map on user location for new trips (not edit/clone)
+  useEffect(() => {
+    if (isEditMode || isCloneMode) return;
+    let cancelled = false;
+    (async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+      const pos = await Location.getLastKnownPositionAsync();
+      if (!cancelled && pos) {
+        setUserLocation([pos.coords.longitude, pos.coords.latitude]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEditMode, isCloneMode]);
 
   // Waypoints
   const [waypoints, setWaypoints] = useState<LocalWaypoint[]>([]);
@@ -768,6 +787,7 @@ export default function CreateTripScreen() {
         <MapboxGL.MapView
           style={{ flex: 1 }}
           styleURL={MAP_STYLES[mapStyle]}
+          surfaceView={process.env.EXPO_OS !== 'android'}
           compassEnabled={false}
           logoEnabled={false}
           attributionEnabled={false}
@@ -795,7 +815,14 @@ export default function CreateTripScreen() {
                     animationMode: 'flyTo' as const,
                     animationDuration: 500,
                   }
-                : {})}
+                : userLocation
+                  ? {
+                      centerCoordinate: userLocation,
+                      zoomLevel: 10,
+                      animationMode: 'flyTo' as const,
+                      animationDuration: 500,
+                    }
+                  : {})}
           />
 
           {/* Route line */}
@@ -936,7 +963,7 @@ export default function CreateTripScreen() {
               style={{ paddingHorizontal: 20, marginBottom: 16 }}
             >
               <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-                Trip Title *
+                {t('trips.titleLabel')} *
               </Text>
               <TextInput
                 value={title}
@@ -947,7 +974,7 @@ export default function CreateTripScreen() {
                     chevronRotation.value = withTiming(180, { duration: 200 });
                   }
                 }}
-                placeholder="e.g. Alps Adventure 2026"
+                placeholder={t('trips.titlePlaceholder')}
                 placeholderTextColor={placeholderColor}
                 maxLength={100}
                 returnKeyType="next"
@@ -969,7 +996,7 @@ export default function CreateTripScreen() {
             <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
               <GeocodingSearchBar
                 onSelect={handleGeocodingSelect}
-                placeholder="Search for a stop..."
+                placeholder={t('trips.searchStopPlaceholder')}
                 isDark={isDark}
                 proximity={searchProximity}
               />
@@ -1186,12 +1213,12 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Description *
+                      {t('trips.descriptionLabel')} *
                     </Text>
                     <TextInput
                       value={description}
                       onChangeText={setDescription}
-                      placeholder="Describe your trip route, highlights, what to bring..."
+                      placeholder={t('trips.descriptionPlaceholder')}
                       placeholderTextColor={placeholderColor}
                       multiline
                       numberOfLines={4}
@@ -1496,12 +1523,12 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      Max Riders
+                      {t('trips.maxRidersLabel')}
                     </Text>
                     <TextInput
                       value={maxRiders}
                       onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
-                      placeholder="10"
+                      placeholder={t('trips.maxRidersPlaceholder')}
                       placeholderTextColor={placeholderColor}
                       keyboardType="number-pad"
                       maxLength={3}
@@ -2061,7 +2088,7 @@ export default function CreateTripScreen() {
                 <TextInput
                   value={editNotes}
                   onChangeText={setEditNotes}
-                  placeholder="Add notes about this stop..."
+                  placeholder={t('trips.stopNotesPlaceholder')}
                   placeholderTextColor={placeholderColor}
                   multiline
                   numberOfLines={4}

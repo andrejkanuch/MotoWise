@@ -28,6 +28,7 @@ import {
   Wind,
 } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -433,6 +434,7 @@ const DiscoverHeader = memo(function DiscoverHeader({
 // --- Main screen ---
 
 export default function DiscoverScreen() {
+  const { t: i18n } = useTranslation();
   const { t, isDark } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -665,15 +667,15 @@ export default function DiscoverScreen() {
         );
         if (!tripId) {
           Alert.alert(
-            'Not available',
-            'This route is not on Discover as a trip yet. Try another result.',
+            i18n('discoverSearch.notAvailableTitle'),
+            i18n('discoverSearch.notAvailableMessage'),
           );
           return;
         }
         router.push({ pathname: '/(modals)/trip-detail', params: { tripId } });
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Check your connection and try again';
-        Alert.alert('Could not open', msg);
+        const msg = e instanceof Error ? e.message : i18n('discoverSearch.connectionError');
+        Alert.alert(i18n('discoverSearch.couldNotOpenTitle'), msg);
       }
     },
     [router],

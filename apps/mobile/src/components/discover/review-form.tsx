@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Star } from 'lucide-react-native';
 import { memo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -24,6 +25,7 @@ interface ReviewFormProps {
 }
 
 export const ReviewForm = memo(function ReviewForm({ routeId, onSuccess }: ReviewFormProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
   const [rating, setRating] = useState(0);
@@ -92,7 +94,7 @@ export const ReviewForm = memo(function ReviewForm({ routeId, onSuccess }: Revie
       <TextInput
         value={text}
         onChangeText={setText}
-        placeholder="Share your experience (optional)"
+        placeholder={t('discoverSearch.reviewPlaceholder')}
         placeholderTextColor={subtitleColor}
         multiline
         maxLength={500}

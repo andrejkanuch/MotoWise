@@ -9,7 +9,9 @@
     "ios": "expo run:ios",
     "android": "expo run:android",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "i18n:status": "npx i18next-cli status --config ./i18next-toolkit.config.mjs",
+    "i18n:lint": "npx i18next-cli lint --config ./i18next-toolkit.config.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/instrument-serif": "^0.4.1",
@@ -94,6 +96,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.1.17",
+    "i18next-cli": "^1.56.9",
     "jest": "^29.0.0",
     "jest-expo": "~54.0.17",
     "postcss": "^8.5.8",

@@ -512,7 +512,7 @@ export default function RideSummaryScreen() {
               <TextInput
                 value={rideName}
                 onChangeText={setRideName}
-                placeholder="Name your ride..."
+                placeholder={t('rideSummary.namePlaceholder')}
                 placeholderTextColor={palette.neutral600}
                 maxLength={100}
                 accessibilityLabel="Ride name"

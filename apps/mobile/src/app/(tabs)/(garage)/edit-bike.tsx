@@ -689,7 +689,7 @@ export default function EditBikeScreen() {
                     setModelSearch('');
                   }}
                   keyboardType="number-pad"
-                  placeholder="2024"
+                  placeholder={t('garage.yearExamplePlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   maxLength={4}
                   style={inputInRow}
@@ -892,7 +892,7 @@ export default function EditBikeScreen() {
                   value={mileage}
                   onChangeText={(text) => setMileage(text.replace(/[^0-9]/g, ''))}
                   keyboardType="number-pad"
-                  placeholder="0"
+                  placeholder={t('garage.odometerPlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   style={inputInRow}
                 />
@@ -968,7 +968,7 @@ export default function EditBikeScreen() {
                     setPurchasePrice(digits);
                   }}
                   keyboardType="decimal-pad"
-                  placeholder="0.00"
+                  placeholder={t('garage.pricePlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   style={inputInRow}
                 />
@@ -987,7 +987,7 @@ export default function EditBikeScreen() {
                   onChangeText={(text) => setVin(text.toUpperCase().slice(0, 17))}
                   autoCapitalize="characters"
                   autoCorrect={false}
-                  placeholder="17-character VIN"
+                  placeholder={t('garage.vinPlaceholder')}
                   placeholderTextColor={palette.neutral400}
                   maxLength={17}
                   style={{ ...inputInRow, flex: 1, textAlign: 'left' }}

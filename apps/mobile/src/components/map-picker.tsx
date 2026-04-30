@@ -2,6 +2,7 @@ import { palette } from '@motovault/design-system';
 import MapboxGL from '@rnmapbox/maps';
 import { MapPin, Search, X } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -37,6 +38,7 @@ const DEFAULT_LNG = 17.1077;
 const DEFAULT_ZOOM = 13;
 
 export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: MapPickerProps) {
+  const { t } = useTranslation();
   const cameraRef = useRef<MapboxGL.Camera>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMovingFromSearch = useRef(false);
@@ -351,7 +353,7 @@ export default function MapPicker({ onSelect, initialLat, initialLng, isDark }: 
           <TextInput
             value={query}
             onChangeText={handleSearch}
-            placeholder="Search for a location..."
+            placeholder={t('mapPicker.searchPlaceholder')}
             placeholderTextColor={subtextColor}
             returnKeyType="search"
             autoCorrect={false}

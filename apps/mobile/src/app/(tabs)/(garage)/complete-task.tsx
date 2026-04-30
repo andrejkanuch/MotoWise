@@ -273,7 +273,7 @@ export default function CompleteTaskScreen() {
                 value={completedMileage}
                 onChangeText={(val) => setCompletedMileage(val.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
-                placeholder="e.g. 15000"
+                placeholder={t('garage.taskMileagePlaceholder')}
                 placeholderTextColor={palette.neutral400}
                 textAlign="right"
                 style={{

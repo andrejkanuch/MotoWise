@@ -6,6 +6,7 @@ import BottomSheet, {
 import { palette } from '@motovault/design-system';
 import { Send, Sparkles, X } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { AssistantMessage } from '../../hooks/use-trip-assistant';
@@ -34,6 +35,7 @@ export function TripAssistantSheet({
   onAsk,
   onReset,
 }: TripAssistantSheetProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const sheetRef = useRef<BottomSheet>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
@@ -218,7 +220,7 @@ export function TripAssistantSheet({
           <BottomSheetTextInput
             value={draft}
             onChangeText={setDraft}
-            placeholder="Ask about your trip…"
+            placeholder={t('trips.assistantPlaceholder')}
             placeholderTextColor={subColor}
             multiline
             style={{

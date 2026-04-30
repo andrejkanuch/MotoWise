@@ -336,7 +336,21 @@
     "purchasePrice": "Purchase Price",
     "purchaseDate": "Purchase Date",
     "bike": "bike",
-    "bikes": "bikes"
+    "bikes": "bikes",
+    "vinPlaceholder": "17-character VIN",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Describe the service...",
+    "mileageExamplePlaceholder": "e.g. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "e.g. 15000",
+    "timeIntervalPlaceholder": "e.g. 90",
+    "mileageIntervalPlaceholder": "e.g. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "e.g. 15000"
   },
   "profile": {
     "title": "Profile",
@@ -1155,6 +1169,55 @@
     "clones": "Clones",
     "maybe": "Maybe",
     "leave": "Leave",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Trip Title",
+    "titlePlaceholder": "e.g. Alps Adventure 2026",
+    "searchStopPlaceholder": "Search for a stop...",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe your trip route, highlights, what to bring...",
+    "maxRidersLabel": "Max Riders",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Add notes about this stop...",
+    "reviewPlaceholder": "Share your experience...",
+    "assistantPlaceholder": "Ask about your trip…",
+    "startDateLabel": "Start Date"
+  },
+  "groupRide": {
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Sunday Morning Cruise",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe the ride, route highlights, what to bring...",
+    "maxRidersLabel": "Max Riders",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "DIST",
+    "time": "TIME",
+    "avg": "AVG",
+    "max": "MAX",
+    "elev": "ELEV",
+    "alt": "ALT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Name your ride..."
+  },
+  "heatmap": {
+    "rides": "Rides",
+    "lifetime": "Lifetime",
+    "countries": "Countries"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Not available",
+    "notAvailableMessage": "This route is not on Discover as a trip yet. Try another result.",
+    "couldNotOpenTitle": "Could not open",
+    "connectionError": "Check your connection and try again",
+    "searchPlaceholder": "Search routes or places...",
+    "reviewPlaceholder": "Share your experience (optional)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Search for a location..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Share your thoughts (no personal info please)"
   }
 }

@@ -336,7 +336,21 @@
     "purchasePrice": "Cena zakupu",
     "purchaseDate": "Data zakupu",
     "bike": "motocykl",
-    "bikes": "motocykle"
+    "bikes": "motocykle",
+    "vinPlaceholder": "17-znakowy VIN",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "Opisz serwis...",
+    "mileageExamplePlaceholder": "np. 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "np. 15000",
+    "timeIntervalPlaceholder": "np. 90",
+    "mileageIntervalPlaceholder": "np. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "np. 15000"
   },
   "profile": {
     "title": "Profil",
@@ -1155,6 +1169,55 @@
     "clones": "Kopie",
     "maybe": "Moze",
     "leave": "Opusc",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Tytul trasy",
+    "titlePlaceholder": "np. Alpejska przygoda 2026",
+    "searchStopPlaceholder": "Szukaj przystanku...",
+    "descriptionLabel": "Opis",
+    "descriptionPlaceholder": "Opisz trase, atrakcje, co zabrac...",
+    "maxRidersLabel": "Maks. jezdzcy",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Dodaj notatki o tym przystanku...",
+    "reviewPlaceholder": "Podziel sie swoim doswiadczeniem...",
+    "assistantPlaceholder": "Zapytaj o swoja trase\u2026",
+    "startDateLabel": "Data rozpoczecia"
+  },
+  "groupRide": {
+    "titleLabel": "Tytul",
+    "titlePlaceholder": "np. Niedzielna poranna przejazdzka",
+    "descriptionLabel": "Opis",
+    "descriptionPlaceholder": "Opisz jazde, atrakcje trasy, co zabrac...",
+    "maxRidersLabel": "Maks. jezdzcy",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "DYST",
+    "time": "CZAS",
+    "avg": "SR",
+    "max": "MAKS",
+    "elev": "WZNS",
+    "alt": "WYS"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Nazwij swoja jazde..."
+  },
+  "heatmap": {
+    "rides": "Jazdy",
+    "lifetime": "Lacznie",
+    "countries": "Kraje"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Niedostepne",
+    "notAvailableMessage": "Ta trasa nie jest jeszcze na Odkryj jako wycieczka. Sprobuj inny wynik.",
+    "couldNotOpenTitle": "Nie mozna otworzyc",
+    "connectionError": "Sprawdz polaczenie i sprobuj ponownie",
+    "searchPlaceholder": "Szukaj tras lub miejsc...",
+    "reviewPlaceholder": "Podziel sie swoim doswiadczeniem (opcjonalnie)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Szukaj lokalizacji..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Podziel sie swoimi przemysleniami (bez danych osobowych)"
   }
 }

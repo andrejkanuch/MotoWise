@@ -336,7 +336,21 @@
     "purchasePrice": "Prezzo di acquisto",
     "purchaseDate": "Data di acquisto",
     "bike": "moto",
-    "bikes": "moto"
+    "bikes": "moto",
+    "vinPlaceholder": "VIN di 17 caratteri",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0,00",
+    "describeServicePlaceholder": "Descrivi il servizio...",
+    "mileageExamplePlaceholder": "es. 14520",
+    "costPlaceholder": "0,00",
+    "distanceIntervalPlaceholder": "es. 15000",
+    "timeIntervalPlaceholder": "es. 90",
+    "mileageIntervalPlaceholder": "es. 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0,0",
+    "fuelCostPlaceholder": "0,00",
+    "taskMileagePlaceholder": "es. 15000"
   },
   "profile": {
     "title": "Profilo",
@@ -1155,6 +1169,55 @@
     "clones": "Copie",
     "maybe": "Forse",
     "leave": "Esci",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "Titolo dell'uscita",
+    "titlePlaceholder": "es. Avventura Alpina 2026",
+    "searchStopPlaceholder": "Cerca una tappa...",
+    "descriptionLabel": "Descrizione",
+    "descriptionPlaceholder": "Descrivi il percorso, i punti salienti, cosa portare...",
+    "maxRidersLabel": "Max. piloti",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "Aggiungi note su questa tappa...",
+    "reviewPlaceholder": "Condividi la tua esperienza...",
+    "assistantPlaceholder": "Chiedi della tua uscita...",
+    "startDateLabel": "Data di partenza"
+  },
+  "groupRide": {
+    "titleLabel": "Titolo",
+    "titlePlaceholder": "es. Giro della Domenica Mattina",
+    "descriptionLabel": "Descrizione",
+    "descriptionPlaceholder": "Descrivi il giro, i punti salienti del percorso, cosa portare...",
+    "maxRidersLabel": "Max. piloti",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "DIST",
+    "time": "TMPO",
+    "avg": "MED",
+    "max": "MAX",
+    "elev": "DISL",
+    "alt": "ALT"
+  },
+  "rideSummary": {
+    "namePlaceholder": "Dai un nome alla tua uscita..."
+  },
+  "heatmap": {
+    "rides": "Uscite",
+    "lifetime": "Totale",
+    "countries": "Paesi"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "Non disponibile",
+    "notAvailableMessage": "Questo percorso non e ancora disponibile come uscita in Scopri. Prova un altro risultato.",
+    "couldNotOpenTitle": "Impossibile aprire",
+    "connectionError": "Controlla la connessione e riprova",
+    "searchPlaceholder": "Cerca percorsi o luoghi...",
+    "reviewPlaceholder": "Condividi la tua esperienza (opzionale)"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "Cerca un luogo..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "Condividi i tuoi pensieri (nessun dato personale, per favore)"
   }
 }

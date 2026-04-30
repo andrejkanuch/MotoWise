@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { Star } from 'lucide-react-native';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -30,6 +31,7 @@ export function SurveyOverlay() {
 // ── Modal ──
 
 function SurveyModal() {
+  const { t: i18n } = useTranslation();
   const { t } = useEditorialTheme();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -232,7 +234,7 @@ function SurveyModal() {
             <TextInput
               value={feedback}
               onChangeText={setFeedback}
-              placeholder="Share your thoughts (no personal info please)"
+              placeholder={i18n('survey.feedbackPlaceholder')}
               placeholderTextColor={t.ink4}
               maxLength={500}
               multiline

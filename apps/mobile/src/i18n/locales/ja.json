@@ -336,7 +336,21 @@
     "purchasePrice": "購入価格",
     "purchaseDate": "購入日",
     "bike": "バイク",
-    "bikes": "バイク"
+    "bikes": "バイク",
+    "vinPlaceholder": "17文字のVIN",
+    "yearExamplePlaceholder": "2024",
+    "odometerPlaceholder": "0",
+    "pricePlaceholder": "0.00",
+    "describeServicePlaceholder": "サービス内容を記入...",
+    "mileageExamplePlaceholder": "例: 14520",
+    "costPlaceholder": "0.00",
+    "distanceIntervalPlaceholder": "例: 15000",
+    "timeIntervalPlaceholder": "例: 90",
+    "mileageIntervalPlaceholder": "例: 5000",
+    "fuelOdometerPlaceholder": "0",
+    "fuelLitersPlaceholder": "0.0",
+    "fuelCostPlaceholder": "0.00",
+    "taskMileagePlaceholder": "例: 15000"
   },
   "profile": {
     "title": "プロフィール",
@@ -1155,6 +1169,55 @@
     "clones": "コピー",
     "maybe": "たぶん",
     "leave": "退出",
-    "offlineCopy": "Offline copy"
+    "offlineCopy": "Offline copy",
+    "titleLabel": "ツーリングタイトル",
+    "titlePlaceholder": "例: アルプスアドベンチャー 2026",
+    "searchStopPlaceholder": "ストップを検索...",
+    "descriptionLabel": "説明",
+    "descriptionPlaceholder": "ルート、見どころ、持ち物などを記入...",
+    "maxRidersLabel": "最大ライダー数",
+    "maxRidersPlaceholder": "10",
+    "stopNotesPlaceholder": "このストップについてメモを追加...",
+    "reviewPlaceholder": "体験をシェア...",
+    "assistantPlaceholder": "ツーリングについて質問...",
+    "startDateLabel": "開始日"
+  },
+  "groupRide": {
+    "titleLabel": "タイトル",
+    "titlePlaceholder": "例: 日曜朝のクルーズ",
+    "descriptionLabel": "説明",
+    "descriptionPlaceholder": "ライドの内容、ルートの見どころ、持ち物などを記入...",
+    "maxRidersLabel": "最大ライダー数",
+    "maxRidersPlaceholder": "10"
+  },
+  "rideHud": {
+    "dist": "距離",
+    "time": "時間",
+    "avg": "平均",
+    "max": "最高",
+    "elev": "標高",
+    "alt": "高度"
+  },
+  "rideSummary": {
+    "namePlaceholder": "ライドに名前をつける..."
+  },
+  "heatmap": {
+    "rides": "走行",
+    "lifetime": "累計",
+    "countries": "国数"
+  },
+  "discoverSearch": {
+    "notAvailableTitle": "利用不可",
+    "notAvailableMessage": "このルートはまだDiscoverにツーリングとして掲載されていません。別の結果をお試しください。",
+    "couldNotOpenTitle": "開けませんでした",
+    "connectionError": "接続を確認してもう一度お試しください",
+    "searchPlaceholder": "ルートや場所を検索...",
+    "reviewPlaceholder": "体験をシェア（任意）"
+  },
+  "mapPicker": {
+    "searchPlaceholder": "場所を検索..."
+  },
+  "survey": {
+    "feedbackPlaceholder": "ご意見をお聞かせください（個人情報はご記入しないでください）"
   }
 }
