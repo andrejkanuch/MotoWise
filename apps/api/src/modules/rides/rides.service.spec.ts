@@ -105,6 +105,9 @@ describe('RidesService', () => {
 
   describe('startRide', () => {
     it('should insert and return a mapped ride', async () => {
+      // Result 0: auto-end stale active rides (thenable)
+      mockUserClient._pushResult({ data: null, error: null });
+      // Result 1: insert new ride (.single())
       mockUserClient._pushResult({ data: fakeRow });
 
       const result = await service.startRide(userId, {
@@ -128,6 +131,9 @@ describe('RidesService', () => {
     });
 
     it('should throw BadRequestException on error', async () => {
+      // Result 0: auto-end stale active rides (thenable)
+      mockUserClient._pushResult({ data: null, error: null });
+      // Result 1: insert fails
       mockUserClient._pushResult({
         data: null,
         error: { message: 'Duplicate key', code: '23505' },

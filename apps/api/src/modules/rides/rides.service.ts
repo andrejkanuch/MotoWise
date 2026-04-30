@@ -35,6 +35,17 @@ export class RidesService {
   async startRide(userId: string, input: StartRideInput): Promise<Ride> {
     this.logger.log(`startRide: userId=${userId}, rideId=${input.rideId}`);
 
+    // Auto-end any stale active rides so the unique-index
+    // (rides_one_active_per_user) doesn't block the new insert.
+    // This handles cases where a previous ride wasn't properly ended
+    // (app crash, reinstall, cleared local data).
+    await this.supabase
+      .from('rides')
+      .update({ status: 'completed', ended_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .in('status', ['recording', 'paused'])
+      .is('deleted_at', null);
+
     const { data, error } = await this.supabase
       .from('rides')
       .insert({
