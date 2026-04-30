@@ -991,8 +991,8 @@ export default function SignUpPage() {
             }}
           >
             <span>&copy; 2026 MotoVault</span>
-            <a href="mailto:hello@motovault.app" style={{ color: t.ink4, textDecoration: 'none' }}>
-              hello@motovault.app
+            <a href="mailto:support@motovault.app" style={{ color: t.ink4, textDecoration: 'none' }}>
+              support@motovault.app
             </a>
           </div>
         </main>

@@ -14,7 +14,7 @@ const productLinks = [
 const resourceLinks = [
   { label: 'FAQ', href: '/#faq' },
   { label: 'Riders', href: '/#proof' },
-  { label: 'Contact', href: 'mailto:hello@motovault.app', external: true },
+  { label: 'Contact', href: 'mailto:support@motovault.app', external: true },
 ] as const;
 
 const legalLinks = [

@@ -89,7 +89,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
         suppressHydrationWarning
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static console message
         dangerouslySetInnerHTML={{
-          __html: `console.log("%c\\u{1F3CD}\\uFE0F MotoVault","font-size:24px;font-weight:900;color:#D4622E;");console.log("%cYour bike deserves better than a spreadsheet.","font-size:14px;color:#a3a3a3;");console.log("%cBuilding something cool? hello@motovault.app","font-size:12px;color:#737373;");`,
+          __html: `console.log("%c\\u{1F3CD}\\uFE0F MotoVault","font-size:24px;font-weight:900;color:#D4622E;");console.log("%cYour bike deserves better than a spreadsheet.","font-size:14px;color:#a3a3a3;");console.log("%cBuilding something cool? support@motovault.app","font-size:12px;color:#737373;");`,
         }}
       />
     </div>

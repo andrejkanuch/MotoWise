@@ -70,7 +70,7 @@ export function Faq() {
         >
           Everything you&apos;d ask in the first five minutes. If we missed yours,{' '}
           <a
-            href="mailto:hello@motovault.app"
+            href="mailto:support@motovault.app"
             style={{ color: 'var(--mv-warm-400)', textDecoration: 'none' }}
           >
             write to us
