@@ -20,8 +20,8 @@ import {
   Wrench,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
