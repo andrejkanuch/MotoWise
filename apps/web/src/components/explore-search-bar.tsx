@@ -36,21 +36,15 @@ const FILTER_CHIPS = [
   { label: 'Big Sur', query: 'Big Sur' },
 ] as const;
 
-const COUNTRIES = [
-  { code: '', label: 'Anywhere' },
+const FALLBACK_COUNTRIES = [
   { code: 'IT', label: 'Italy' },
   { code: 'ES', label: 'Spain' },
   { code: 'AT', label: 'Austria' },
   { code: 'DE', label: 'Germany' },
   { code: 'FR', label: 'France' },
   { code: 'CH', label: 'Switzerland' },
-  { code: 'HR', label: 'Croatia' },
-  { code: 'GR', label: 'Greece' },
-  { code: 'NO', label: 'Norway' },
-  { code: 'RO', label: 'Romania' },
-  { code: 'PT', label: 'Portugal' },
   { code: 'US', label: 'United States' },
-  { code: 'GB', label: 'United Kingdom' },
+  { code: 'NO', label: 'Norway' },
 ] as const;
 
 const DURATIONS = [
@@ -64,11 +58,12 @@ const DURATIONS = [
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
-async function fetchTypeahead(q: string): Promise<TypeaheadData> {
+async function fetchTypeahead(q: string, signal?: AbortSignal): Promise<TypeaheadData> {
   const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: TYPEAHEAD_QUERY, variables: { q, limit: 8 } }),
+    signal,
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -202,14 +197,22 @@ const selectLabelStyle: React.CSSProperties = {
 
 /* ── Component ────────────────────────────────────────────────── */
 
-export function ExploreSearchBar() {
+export function ExploreSearchBar({
+  countries: countriesProp,
+}: {
+  countries?: Array<{ code: string; label: string }>;
+}) {
+  const countryOptions = useMemo(() => {
+    const list =
+      countriesProp && countriesProp.length > 0 ? countriesProp : [...FALLBACK_COUNTRIES];
+    return [{ code: '', label: 'Anywhere' }, ...list];
+  }, [countriesProp]);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialQ = searchParams.get('q') ?? '';
 
-  const [query, setQuery] = useState(initialQ);
-  const [country, setCountry] = useState('');
-  const [duration, setDuration] = useState('');
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [country, setCountry] = useState(searchParams.get('country') ?? '');
+  const [duration, setDuration] = useState(searchParams.get('duration') ?? '');
   const [data, setData] = useState<TypeaheadData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -218,6 +221,14 @@ export function ExploreSearchBar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const abortRef = useRef<AbortController>(undefined);
+
+  // Sync state from URL on back-button / external navigation
+  useEffect(() => {
+    setQuery(searchParams.get('q') ?? '');
+    setCountry(searchParams.get('country') ?? '');
+    setDuration(searchParams.get('duration') ?? '');
+  }, [searchParams]);
 
   // Flatten results for keyboard navigation
   const allItems = useMemo(() => {
@@ -231,33 +242,42 @@ export function ExploreSearchBar() {
     return items;
   }, [data]);
 
-  // Debounced fetch
+  // Debounced fetch with AbortController to prevent stale responses
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    abortRef.current?.abort();
 
     if (query.trim().length < MIN_QUERY_LENGTH) {
       setData(null);
       setIsOpen(false);
+      setIsLoading(false);
       return;
     }
 
-    debounceRef.current = setTimeout(async () => {
-      setIsLoading(true);
-      try {
-        const result = await fetchTypeahead(query.trim());
-        setData(result);
-        setIsOpen(result.routes.length > 0 || result.places.length > 0);
-        setActiveIndex(-1);
-      } catch {
-        setData(null);
-        setIsOpen(false);
-      } finally {
-        setIsLoading(false);
-      }
+    setIsLoading(true);
+    debounceRef.current = setTimeout(() => {
+      const controller = new AbortController();
+      abortRef.current = controller;
+      fetchTypeahead(query.trim(), controller.signal)
+        .then((result) => {
+          if (controller.signal.aborted) return;
+          setData(result);
+          setIsOpen(result.routes.length > 0 || result.places.length > 0);
+          setActiveIndex(-1);
+        })
+        .catch((err) => {
+          if (err instanceof Error && err.name === 'AbortError') return;
+          setData(null);
+          setIsOpen(false);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setIsLoading(false);
+        });
     }, DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
     };
   }, [query]);
 
@@ -302,13 +322,15 @@ export function ExploreSearchBar() {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!isOpen || allItems.length === 0) {
-        if (e.key === 'Enter' && query.trim().length >= MIN_QUERY_LENGTH) {
+        const canSubmit =
+          query.trim().length >= MIN_QUERY_LENGTH || country !== '' || duration !== '';
+        if (e.key === 'Enter' && canSubmit) {
           e.preventDefault();
           const params = new URLSearchParams();
-          params.set('q', query.trim());
+          if (query.trim()) params.set('q', query.trim());
           if (country) params.set('country', country);
           if (duration) params.set('duration', duration);
-          router.push(`/explore?${params.toString()}`);
+          router.push(`/explore/search?${params.toString()}`);
         }
         return;
       }
@@ -343,12 +365,13 @@ export function ExploreSearchBar() {
   );
 
   const handleSearch = useCallback(() => {
-    if (query.trim().length < MIN_QUERY_LENGTH) return;
+    const canSubmit = query.trim().length >= MIN_QUERY_LENGTH || country !== '' || duration !== '';
+    if (!canSubmit) return;
     const params = new URLSearchParams();
-    params.set('q', query.trim());
+    if (query.trim()) params.set('q', query.trim());
     if (country) params.set('country', country);
     if (duration) params.set('duration', duration);
-    router.push(`/explore?${params.toString()}`);
+    router.push(`/explore/search?${params.toString()}`);
   }, [query, country, duration, router]);
 
   const placesCount = data?.places.length ?? 0;
@@ -470,7 +493,7 @@ export function ExploreSearchBar() {
                 style={selectStyle}
                 aria-label="Filter by country"
               >
-                {COUNTRIES.map((c) => (
+                {countryOptions.map((c) => (
                   <option key={c.code} value={c.code} style={{ background: '#1a1a1a' }}>
                     {c.label}
                   </option>
