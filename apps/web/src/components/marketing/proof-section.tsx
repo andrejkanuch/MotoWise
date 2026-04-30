@@ -1,6 +1,6 @@
 export function ProofSection() {
   const stats = [
-    { value: '2,400', suffix: '+', label: 'Active riders across 40 countries.' },
+    { value: '2,400', suffix: '+', label: 'Active riders across 30 countries.' },
     { value: '18,000', suffix: '+', label: 'Bikes tracked in-app \u2014 and counting.' },
     { value: '12,000', suffix: '+', label: 'Maintenance services logged.' },
     {

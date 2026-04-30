@@ -12,6 +12,7 @@ import {
   TripTemplatesDocument,
 } from '@motovault/graphql';
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
+import { unstable_cache } from 'next/cache';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
 /** Alias for `BrowsePlace` — shared type lives in `@motovault/types`. */
@@ -35,11 +36,15 @@ function gqlPlaceToPlace(p: BrowsePlaceFieldsFragment): BrowsePlace {
 
 // ---- Queries (GraphQL API) ----
 
-/** Fetch all countries that have at least 1 route. */
-export async function fetchCountries(): Promise<Place[]> {
-  const data = await gqlServerFetcher(BrowseCountriesDocument);
-  return data.browseCountries.map(gqlPlaceToPlace);
-}
+/** Fetch all countries that have at least 1 route. Cached for 1 hour. */
+export const fetchCountries = unstable_cache(
+  async (): Promise<Place[]> => {
+    const data = await gqlServerFetcher(BrowseCountriesDocument);
+    return data.browseCountries.map(gqlPlaceToPlace);
+  },
+  ['browse-countries'],
+  { revalidate: 3600 },
+);
 
 /** Fetch a country by its slug (lowercase country code, e.g. "it"). */
 export async function fetchCountryBySlug(slug: string): Promise<Place | null> {

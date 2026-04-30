@@ -668,13 +668,12 @@ export default async function ExplorePage() {
   const countryCode = detectCountry(hdrs);
 
   // Fetch countries dynamically — sorted by route count, top 12 for the grid
-  let topCountries: Array<{ code: string; name: string; routeCount: number }> = [];
+  let allCountries: Array<{ code: string; name: string; routeCount: number }> = [];
   try {
     const places = await fetchCountries();
-    topCountries = places
+    allCountries = places
       .filter((p) => p.routeCount > 0)
       .sort((a, b) => b.routeCount - a.routeCount)
-      .slice(0, 12)
       .map((p) => ({
         code: p.countryCode.toUpperCase(),
         name: p.name,
@@ -683,6 +682,9 @@ export default async function ExplorePage() {
   } catch {
     // fallback: empty grid
   }
+  const topCountries = allCountries.slice(0, 12);
+  const totalCountries = allCountries.length;
+  const totalRoutes = allCountries.reduce((sum, c) => sum + c.routeCount, 0);
 
   return (
     <>
@@ -736,12 +738,14 @@ export default async function ExplorePage() {
             letterSpacing: '-0.005em',
           }}
         >
-          Search 12,000+ routes from riders in 40 countries. Pick a pass, a coastline, a country —
-          or just an evening escape after work.
+          Search {totalRoutes.toLocaleString()}+ routes from riders in {totalCountries} countries.
+          Pick a pass, a coastline, a country — or just an evening escape after work.
         </p>
 
         <Suspense>
-          <ExploreSearchBar />
+          <ExploreSearchBar
+            countries={allCountries.map((c) => ({ code: c.code, label: c.name }))}
+          />
         </Suspense>
       </section>
 
@@ -754,7 +758,7 @@ export default async function ExplorePage() {
         }}
       >
         <div
-          className="mv-grid-4"
+          className="mv-grid-3"
           style={{
             gap: 2,
             background: 'var(--mv-line)',
@@ -764,10 +768,9 @@ export default async function ExplorePage() {
           }}
         >
           {[
-            { value: '12,4', serif: '32', label: 'Routes shared' },
-            { value: '40', serif: '+', label: 'Countries represented' },
-            { value: '1.8', serif: 'M', label: 'Kilometers logged' },
-            { value: '340', serif: 'k', label: 'Riders contributing' },
+            { value: totalRoutes.toLocaleString(), serif: '+', label: 'Routes shared' },
+            { value: String(totalCountries), serif: '', label: 'Countries represented' },
+            { value: String(topCountries.length), serif: '', label: 'Featured countries' },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -865,7 +868,7 @@ export default async function ExplorePage() {
               whiteSpace: 'nowrap',
             }}
           >
-            All 40 countries &rarr;
+            All {totalCountries} countries &rarr;
           </a>
         </div>
 

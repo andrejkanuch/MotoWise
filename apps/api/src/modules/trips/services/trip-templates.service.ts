@@ -83,7 +83,7 @@ export class TripTemplatesService {
 
     // Apply filters
     if (filter?.country) {
-      query = query.eq('country_code', filter.country);
+      query = query.eq('country_code', filter.country.toUpperCase());
     }
     if (filter?.difficulty) {
       query = query.eq('difficulty', filter.difficulty);
