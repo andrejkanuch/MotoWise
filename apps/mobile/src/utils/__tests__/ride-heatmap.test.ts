@@ -3,6 +3,7 @@ import {
   buildHeatmapFeatureCollection,
   buildLifetimeTotals,
   decodePolyline,
+  encodePolyline,
 } from '../ride-heatmap';
 
 describe('decodePolyline', () => {
@@ -19,6 +20,36 @@ describe('decodePolyline', () => {
 
   it('returns empty array for empty input', () => {
     expect(decodePolyline('')).toEqual([]);
+  });
+});
+
+describe('encodePolyline', () => {
+  it('encodes the canonical example and round-trips with decode', () => {
+    const points: [number, number][] = [
+      [38.5, -120.2],
+      [40.7, -120.95],
+      [43.252, -126.453],
+    ];
+    const encoded = encodePolyline(points);
+    expect(encoded).toBe('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+    expect(decodePolyline(encoded)).toEqual(points);
+  });
+
+  it('returns empty string for empty input', () => {
+    expect(encodePolyline([])).toBe('');
+  });
+
+  it('round-trips arbitrary coordinates', () => {
+    const points: [number, number][] = [
+      [48.8566, 2.3522],
+      [48.8584, 2.2945],
+      [48.8738, 2.295],
+    ];
+    const decoded = decodePolyline(encodePolyline(points));
+    for (let i = 0; i < points.length; i++) {
+      expect(decoded[i][0]).toBeCloseTo(points[i][0], 4);
+      expect(decoded[i][1]).toBeCloseTo(points[i][1], 4);
+    }
   });
 });
 

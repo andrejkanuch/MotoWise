@@ -10,6 +10,36 @@
  */
 
 /**
+ * Encode an array of [lat, lng] pairs into a Google-encoded polyline string.
+ */
+export function encodePolyline(points: [number, number][]): string {
+  let encoded = '';
+  let prevLat = 0;
+  let prevLng = 0;
+
+  for (const [lat, lng] of points) {
+    const latE5 = Math.round(lat * 1e5);
+    const lngE5 = Math.round(lng * 1e5);
+    encoded += encodeSignedValue(latE5 - prevLat);
+    encoded += encodeSignedValue(lngE5 - prevLng);
+    prevLat = latE5;
+    prevLng = lngE5;
+  }
+  return encoded;
+}
+
+function encodeSignedValue(value: number): string {
+  let v = value < 0 ? ~(value << 1) : value << 1;
+  let encoded = '';
+  while (v >= 0x20) {
+    encoded += String.fromCharCode((0x20 | (v & 0x1f)) + 63);
+    v >>= 5;
+  }
+  encoded += String.fromCharCode(v + 63);
+  return encoded;
+}
+
+/**
  * Decode a Google-encoded polyline into [lat, lng] pairs.
  *
  * (We duplicated this in two other screens; keep that form because the

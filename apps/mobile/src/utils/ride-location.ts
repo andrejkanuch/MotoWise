@@ -4,10 +4,13 @@ import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import { useRideStore } from '../stores/ride.store';
 import { gpsFilter } from './ride-gps-filter';
+import { encodePolyline } from './ride-heatmap';
 import {
   appendWaypoint,
   clearPointBuffer,
   flushBufferToMMKV,
+  getPointBuffer,
+  getWaypointChunks,
   restoreBufferFromMMKV,
   rideMMKV,
 } from './ride-storage';
@@ -247,6 +250,15 @@ function autoEndRide(idleSince: number): void {
   const endedAt = new Date(idleSince).toISOString();
   const totalAutoPaused = rideMMKV.getTotalAutoPausedMs();
 
+  // Encode polyline from stored waypoints before clearing
+  flushBufferToMMKV(rideId);
+  const chunks = getWaypointChunks(rideId);
+  const allWaypoints = [...chunks.flat(), ...getPointBuffer()];
+  const polyline =
+    allWaypoints.length >= 2
+      ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
+      : null;
+
   useRideStore.getState().endRide();
   stopGPSListener();
   clearPointBuffer();
@@ -256,6 +268,7 @@ function autoEndRide(idleSince: number): void {
       input: {
         rideId,
         endedAt,
+        routePolyline: polyline,
         autoPausedDurationS: Math.round(totalAutoPaused / 1000),
       },
     },

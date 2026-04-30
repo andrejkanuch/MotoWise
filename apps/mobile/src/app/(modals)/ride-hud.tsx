@@ -31,6 +31,7 @@ import {
   formatElevation,
   formatSpeed,
 } from '../../utils/ride-formatters';
+import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
 import {
   flushBufferToMMKV,
@@ -216,6 +217,11 @@ export default function RideHudScreen() {
     endRide();
     stopGPSListener();
 
+    const polyline =
+      combined.length >= 2
+        ? encodePolyline(combined.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
+        : null;
+
     enqueueOrExecute('endRide', {
       mutationDocument: EndRideDocument,
       variables: {
@@ -227,6 +233,7 @@ export default function RideHudScreen() {
           avgSpeedMps: avgSpeed > 0 ? avgSpeed : null,
           elevationGain: elevGain > 0 ? Math.round(elevGain) : null,
           elevationLoss: elevLoss > 0 ? Math.round(elevLoss) : null,
+          routePolyline: polyline,
           pausedDurationS: Math.round(totalPausedRef.current / 1000),
           autoPausedDurationS: Math.round(rideMMKV.getTotalAutoPausedMs() / 1000),
           gpsQuality: combined.length > 0 ? 1 : 0,
