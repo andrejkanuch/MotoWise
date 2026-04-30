@@ -258,7 +258,7 @@ export function ExploreSearchBar({
     debounceRef.current = setTimeout(() => {
       const controller = new AbortController();
       abortRef.current = controller;
-      fetchTypeahead(query.trim(), controller.signal)
+      fetchTypeahead(query.trim().slice(0, 100), controller.signal)
         .then((result) => {
           if (controller.signal.aborted) return;
           setData(result);
@@ -422,6 +422,7 @@ export function ExploreSearchBar({
               ref={inputRef}
               type="search"
               value={query}
+              maxLength={100}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => {
                 if (data && (data.routes.length > 0 || data.places.length > 0)) {
