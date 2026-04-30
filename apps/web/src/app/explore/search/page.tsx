@@ -1,22 +1,20 @@
-import type { TripTemplatesQuery } from '@motovault/graphql';
 import { TripTemplatesDocument } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { Suspense } from 'react';
 import { ExploreSearchBar } from '@/components/explore-search-bar';
+import type { TripTemplateNode } from '@/lib/fetch-places';
 import { fetchCountries } from '@/lib/fetch-places';
 import { COUNTRY_NAMES } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-
-/* ── Types ───────────────────────────────────────────────────── */
-
-type TripTemplateNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 const VALID_DURATIONS = new Set<string>(['short', 'medium', 'long', 'day', 'multi']);
 const VALID_COUNTRIES = new Set(Object.keys(COUNTRY_NAMES));
 
 /* ── Helpers ─────────────────────────────────────────────────── */
 
+// All single-day durations (short/medium/long/day) map to dayCountMax:1 because
+// the API only has dayCount, not estimated_duration_minutes. Only "multi" is distinct.
 function mapDuration(d?: string): { dayCountMin?: number; dayCountMax?: number } {
   if (d === 'multi') return { dayCountMin: 2 };
   if (d && VALID_DURATIONS.has(d)) return { dayCountMax: 1 };
@@ -28,16 +26,16 @@ function formatDistance(meters: number): string {
   return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
 }
 
-function getDifficultyDisplay(difficulty: string): { label: string; cls: string } {
+function getDifficultyLabel(difficulty: string): string {
   switch (difficulty) {
     case 'expert':
-      return { label: 'Expert', cls: 'epic' };
+      return 'Expert';
     case 'challenging':
-      return { label: 'Hard', cls: 'hard' };
+      return 'Hard';
     case 'moderate':
-      return { label: 'Moderate', cls: 'med' };
+      return 'Moderate';
     default:
-      return { label: 'Easy', cls: 'easy' };
+      return 'Easy';
   }
 }
 
@@ -98,8 +96,8 @@ export default async function ExploreSearchPage({
   try {
     const data = await gqlServerFetcher(TripTemplatesDocument, { filter, first: 24 });
     trips = data.tripTemplates.edges.map((e) => e.node);
-  } catch {
-    // empty results on error
+  } catch (err) {
+    console.error('[explore/search] Failed to fetch trips:', err);
   }
 
   // Fetch countries for search bar dropdown
@@ -110,8 +108,8 @@ export default async function ExploreSearchPage({
       .filter((p) => p.routeCount > 0)
       .sort((a, b) => b.routeCount - a.routeCount)
       .map((p) => ({ code: p.countryCode.toUpperCase(), label: p.name }));
-  } catch {
-    // fallback: empty
+  } catch (err) {
+    console.error('[explore/search] Failed to fetch countries:', err);
   }
 
   // Build search summary
@@ -194,7 +192,7 @@ export default async function ExploreSearchPage({
         {trips.length > 0 ? (
           <div className="mv-grid-4" style={{ gap: 20 }}>
             {trips.map((trip) => {
-              const difficulty = getDifficultyDisplay(trip.difficulty);
+              const difficultyLabel = getDifficultyLabel(trip.difficulty);
               const imageIndex = trip.id.charCodeAt(0) % ROUTE_IMAGES.length;
               const imageSrc = ROUTE_IMAGES[imageIndex];
 
@@ -342,7 +340,7 @@ export default async function ExploreSearchPage({
                             background: 'var(--mv-warm-500)',
                           }}
                         />
-                        {difficulty.label}
+                        {difficultyLabel}
                       </span>
                     </div>
                   </div>
@@ -369,23 +367,7 @@ export default async function ExploreSearchPage({
               Try broadening your search, picking a different country, or browse our curated
               collections.
             </p>
-            <a
-              href="/explore"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 28,
-                padding: '12px 24px',
-                background: 'var(--mv-warm-500)',
-                color: '#000',
-                borderRadius: 14,
-                fontWeight: 600,
-                fontSize: 14,
-                textDecoration: 'none',
-                transition: 'background 0.2s',
-              }}
-            >
+            <a href="/explore" className="mv-btn mv-btn-primary" style={{ marginTop: 28 }}>
               Explore all routes &rarr;
             </a>
           </div>
