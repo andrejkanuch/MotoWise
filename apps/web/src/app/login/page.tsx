@@ -897,7 +897,10 @@ export default function LoginPage() {
             }}
           >
             <span>&copy; 2026 MotoVault</span>
-            <a href="mailto:support@motovault.app" style={{ color: t.ink4, textDecoration: 'none' }}>
+            <a
+              href="mailto:support@motovault.app"
+              style={{ color: t.ink4, textDecoration: 'none' }}
+            >
               support@motovault.app
             </a>
           </div>
