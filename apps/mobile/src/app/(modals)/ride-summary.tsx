@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
@@ -86,6 +87,7 @@ export default function RideSummaryScreen() {
   const motorcycleId = params.motorcycleId ?? '';
 
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { isDark } = useEditorialTheme();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [rideName, setRideName] = useState(smartRideName(startedAtMs));

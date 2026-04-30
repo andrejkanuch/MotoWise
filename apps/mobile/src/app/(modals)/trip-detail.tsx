@@ -1697,7 +1697,7 @@ ${rteptElements}
                       <TextInput
                         value={reviewText}
                         onChangeText={setReviewText}
-                        placeholder={t('trips.reviewPlaceholder')}
+                        placeholder={i18n('trips.reviewPlaceholder')}
                         placeholderTextColor={subtitleColor}
                         multiline
                         style={{

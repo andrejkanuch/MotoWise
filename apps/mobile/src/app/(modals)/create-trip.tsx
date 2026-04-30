@@ -963,7 +963,7 @@ export default function CreateTripScreen() {
               style={{ paddingHorizontal: 20, marginBottom: 16 }}
             >
               <Text style={{ fontSize: 13, fontWeight: '600', color: labelColor, marginBottom: 6 }}>
-                {t('trips.titleLabel')} *
+                {i18n('trips.titleLabel')} *
               </Text>
               <TextInput
                 value={title}
@@ -974,7 +974,7 @@ export default function CreateTripScreen() {
                     chevronRotation.value = withTiming(180, { duration: 200 });
                   }
                 }}
-                placeholder={t('trips.titlePlaceholder')}
+                placeholder={i18n('trips.titlePlaceholder')}
                 placeholderTextColor={placeholderColor}
                 maxLength={100}
                 returnKeyType="next"
@@ -996,7 +996,7 @@ export default function CreateTripScreen() {
             <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
               <GeocodingSearchBar
                 onSelect={handleGeocodingSelect}
-                placeholder={t('trips.searchStopPlaceholder')}
+                placeholder={i18n('trips.searchStopPlaceholder')}
                 isDark={isDark}
                 proximity={searchProximity}
               />
@@ -1213,12 +1213,12 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      {t('trips.descriptionLabel')} *
+                      {i18n('trips.descriptionLabel')} *
                     </Text>
                     <TextInput
                       value={description}
                       onChangeText={setDescription}
-                      placeholder={t('trips.descriptionPlaceholder')}
+                      placeholder={i18n('trips.descriptionPlaceholder')}
                       placeholderTextColor={placeholderColor}
                       multiline
                       numberOfLines={4}
@@ -1523,12 +1523,12 @@ export default function CreateTripScreen() {
                         marginBottom: 6,
                       }}
                     >
-                      {t('trips.maxRidersLabel')}
+                      {i18n('trips.maxRidersLabel')}
                     </Text>
                     <TextInput
                       value={maxRiders}
                       onChangeText={(text) => setMaxRiders(text.replace(/[^0-9]/g, ''))}
-                      placeholder={t('trips.maxRidersPlaceholder')}
+                      placeholder={i18n('trips.maxRidersPlaceholder')}
                       placeholderTextColor={placeholderColor}
                       keyboardType="number-pad"
                       maxLength={3}
@@ -2088,7 +2088,7 @@ export default function CreateTripScreen() {
                 <TextInput
                   value={editNotes}
                   onChangeText={setEditNotes}
-                  placeholder={t('trips.stopNotesPlaceholder')}
+                  placeholder={i18n('trips.stopNotesPlaceholder')}
                   placeholderTextColor={placeholderColor}
                   multiline
                   numberOfLines={4}
