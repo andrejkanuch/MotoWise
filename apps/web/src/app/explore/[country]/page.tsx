@@ -632,8 +632,8 @@ export default async function CountryPage({ params }: PageProps) {
             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-warm-500/15">
               <DistanceIcon />
             </span>
-            <strong className="font-semibold text-neutral-200">{topRoutes.length}</strong> route
-            {topRoutes.length !== 1 ? 's' : ''}
+            <strong className="font-semibold text-neutral-200">{country.routeCount}</strong> route
+            {country.routeCount !== 1 ? 's' : ''}
           </span>
           {regions.length > 0 && (
             <span className="flex items-center gap-2">
