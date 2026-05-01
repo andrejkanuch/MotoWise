@@ -1,6 +1,5 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { BrowseExploreRegionResult } from './models/browse-explore-region-result.model';
@@ -13,7 +12,6 @@ import { PlacesService } from './places.service';
  * RSC + prefetch) and quickly returns 429, which graphql-request surfaces as a
  * hard error. These queries are cheap and read-only — skip rate limits here.
  */
-@SkipThrottle()
 @Resolver()
 @UseGuards(GqlAuthGuard)
 export class PlacesResolver {

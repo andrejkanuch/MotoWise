@@ -13,14 +13,12 @@ import {
 } from '@motovault/types/validators';
 import { Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { CreateTripInput } from './dto/create-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
@@ -125,7 +123,6 @@ export class TripsResolver {
 
   @Query(() => SharedTrip, { nullable: true })
   @Public()
-  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
   async tripByShareToken(@Args('shareToken') shareToken: string): Promise<SharedTrip | null> {
     const parsed = TripShareTokenSchema.safeParse(shareToken);
     if (!parsed.success) throw new TripShareTokenError('INVALID_FORMAT');
@@ -137,7 +134,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Trip)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async createTrip(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateTripInputSchema))
@@ -147,7 +143,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Trip)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async createTripWithWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateTripWithWaypointsInputSchema))
@@ -157,7 +152,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Trip)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateTrip(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateTripInputSchema))
@@ -167,7 +161,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async deleteTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -176,7 +169,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => String)
-  @Throttle({ default: THROTTLE_PRESETS.SHARE_LINK })
   async rotateTripShareToken(
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
     @CurrentUser() user: AuthUser,
@@ -185,7 +177,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Trip)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async publishTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -198,7 +189,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => TripWaypoint)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async addWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateWaypointInputSchema))
@@ -208,7 +198,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => TripWaypoint)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateWaypointInputSchema))
@@ -218,7 +207,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async removeWaypoint(
     @CurrentUser() user: AuthUser,
     @Args('waypointId', { type: () => ID }, ParseUUIDPipe) waypointId: string,
@@ -227,7 +215,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async reorderWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ReorderWaypointsInputSchema))
@@ -241,7 +228,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async joinTrip(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(JoinTripInputSchema))
@@ -251,7 +237,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async updateParticipantStatus(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateParticipantStatusInputSchema))
@@ -261,7 +246,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async leaveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -274,7 +258,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Boolean)
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async inviteToTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -284,7 +267,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async respondToTripInvite(
     @CurrentUser() user: AuthUser,
     @Args('inviteId', { type: () => ID }, ParseUUIDPipe) inviteId: string,
@@ -347,7 +329,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Trip)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async publishAsTemplate(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -356,7 +337,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async unpublishTemplate(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -365,7 +345,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => ID, { description: 'Returns the new trip ID' })
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async cloneTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -395,7 +374,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => TripReview)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async createTripReview(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateTripReviewInputSchema))
@@ -411,7 +389,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async deleteTripReview(
     @CurrentUser() user: AuthUser,
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
@@ -424,7 +401,6 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async saveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
@@ -433,7 +409,6 @@ export class TripsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async unsaveTrip(
     @CurrentUser() user: AuthUser,
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,

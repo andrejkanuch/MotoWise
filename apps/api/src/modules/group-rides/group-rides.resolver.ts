@@ -4,14 +4,12 @@ import {
 } from '@motovault/types/validators';
 import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { CreateGroupRideInput } from './dto/create-group-ride.input';
 import { UpdateGroupRideInput } from './dto/update-group-ride.input';
 import { GroupRidesService } from './group-rides.service';
@@ -52,7 +50,6 @@ export class GroupRidesResolver {
   // ==========================================
 
   @Mutation(() => GroupRide)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async createGroupRide(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateGroupRideInputSchema))
@@ -79,7 +76,6 @@ export class GroupRidesResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.GROUP_RIDE })
   async joinGroupRide(
     @CurrentUser() user: AuthUser,
     @Args('groupRideId', { type: () => ID }, ParseUUIDPipe) groupRideId: string,

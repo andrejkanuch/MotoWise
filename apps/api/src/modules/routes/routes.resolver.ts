@@ -4,14 +4,12 @@ import {
 } from '@motovault/types/validators';
 import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
@@ -126,7 +124,6 @@ export class RoutesResolver {
   }
 
   @Mutation(() => Route)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async shareRideToDiscover(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ShareRideToDiscoverInputSchema))
@@ -179,7 +176,6 @@ export class RoutesResolver {
   }
 
   @Mutation(() => RouteReview)
-  @Throttle({ default: THROTTLE_PRESETS.COMMENT })
   async createRouteReview(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateRouteReviewInputSchema))
@@ -193,7 +189,6 @@ export class RoutesResolver {
   // ==========================================
 
   @Mutation(() => GPXExportResult)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async exportRouteGPX(
     @CurrentUser() user: AuthUser,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,

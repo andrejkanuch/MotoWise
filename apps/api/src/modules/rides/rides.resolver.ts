@@ -6,14 +6,12 @@ import {
 } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { EndRideInput } from './dto/end-ride.input';
 import { StartRideInput } from './dto/start-ride.input';
 import { UpdateRideInput } from './dto/update-ride.input';
@@ -46,7 +44,6 @@ export class RidesResolver {
   }
 
   @Mutation(() => Int)
-  @Throttle({ default: THROTTLE_PRESETS.WAYPOINT_UPLOAD })
   async uploadWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(UploadWaypointsInputSchema)) input: UploadWaypointsInput,
@@ -88,13 +85,11 @@ export class RidesResolver {
   @Query(() => Ride)
   @Public()
   @UseGuards(GqlAuthGuard)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async getPublicRide(@Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
     return this.ridesService.getPublicRide(id);
   }
 
   @Query(() => [Waypoint])
-  @Throttle({ default: THROTTLE_PRESETS.WAYPOINT_QUERY })
   async rideWaypoints(
     @CurrentUser() user: AuthUser,
     @Args('rideId', ParseUUIDPipe) rideId: string,

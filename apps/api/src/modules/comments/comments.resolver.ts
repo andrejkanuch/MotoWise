@@ -1,13 +1,11 @@
 import { CreateCommentInputSchema } from '@motovault/types/validators';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { CommentsService } from './comments.service';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { Comment, CommentConnection } from './models/comment.model';
@@ -41,7 +39,6 @@ export class CommentsResolver {
   }
 
   @Mutation(() => Comment)
-  @Throttle({ default: THROTTLE_PRESETS.COMMENT })
   async createComment(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateCommentInputSchema))
@@ -59,7 +56,6 @@ export class CommentsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.COMMENT })
   async flagComment(
     @CurrentUser() _user: AuthUser,
     @Args('commentId', { type: () => ID }, ParseUUIDPipe) commentId: string,

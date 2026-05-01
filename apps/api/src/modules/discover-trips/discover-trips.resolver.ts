@@ -6,13 +6,11 @@ import {
 } from '@motovault/types/validators';
 import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { DiscoverTripsService } from './discover-trips.service';
 import { CreateDiscoverTripReviewInput } from './dto/create-discover-trip-review.input';
 import { DiscoverTripsFilterInput } from './dto/discover-trips-filter.input';
@@ -85,7 +83,6 @@ export class DiscoverTripsResolver {
 
   /** @deprecated Use publishTripTemplate mutation instead */
   @Mutation(() => DiscoverTrip)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async publishTripToDiscover(
     @Args('input', new ZodValidationPipe(PublishTripToDiscoverInputSchema))
     input: PublishTripToDiscoverInput,
@@ -97,7 +94,6 @@ export class DiscoverTripsResolver {
 
   /** @deprecated Use unpublishTripTemplate mutation instead */
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async unpublishFromDiscover(
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,
     @CurrentUser() user: AuthUser,
@@ -112,7 +108,6 @@ export class DiscoverTripsResolver {
   @Mutation(() => ID, {
     description: "Clones a discover trip into the user's planner. Returns the new trip ID.",
   })
-  @Throttle({ default: THROTTLE_PRESETS.CLONE })
   async cloneDiscoverTrip(
     @Args('discoverTripId', { type: () => ID }) discoverTripId: string,
     @CurrentUser() user: AuthUser,
@@ -123,7 +118,6 @@ export class DiscoverTripsResolver {
 
   /** @deprecated Use createTripReview mutation instead */
   @Mutation(() => DiscoverTripReview)
-  @Throttle({ default: THROTTLE_PRESETS.COMMENT })
   async createDiscoverTripReview(
     @Args('input', new ZodValidationPipe(CreateDiscoverTripReviewInputSchema))
     input: CreateDiscoverTripReviewInput,

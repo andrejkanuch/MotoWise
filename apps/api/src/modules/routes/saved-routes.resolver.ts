@@ -1,12 +1,10 @@
 import { Injectable, Logger, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { IsRouteSavedLoader } from './is-route-saved.loader';
 import { Route, RouteConnection } from './models/route.model';
 import { SavedRoutesService } from './saved-routes.service';
@@ -75,7 +73,6 @@ export class SavedRoutesResolver {
   // ==========================================
 
   @Mutation(() => Boolean, { description: 'Save a route to your collection' })
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async saveRouteToCollection(
     @CurrentUser() user: AuthUser,
     @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,

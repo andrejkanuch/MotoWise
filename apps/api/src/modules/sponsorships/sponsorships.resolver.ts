@@ -4,11 +4,9 @@ import {
 } from '@motovault/types';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { TrackSponsorshipClickInput } from './dto/track-click.input';
 import { TrackSponsorshipImpressionInput } from './dto/track-impression.input';
 import { Sponsorship } from './models/sponsorship.model';
@@ -27,7 +25,6 @@ export class SponsorshipsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async trackSponsorshipImpression(
     @Args('input', new ZodValidationPipe(TrackSponsorshipImpressionInputSchema))
     input: TrackSponsorshipImpressionInput,
@@ -36,7 +33,6 @@ export class SponsorshipsResolver {
   }
 
   @Mutation(() => Boolean)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async trackSponsorshipClick(
     @Args('input', new ZodValidationPipe(TrackSponsorshipClickInputSchema))
     input: TrackSponsorshipClickInput,

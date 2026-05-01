@@ -1,13 +1,11 @@
 import { CreateDiagnosticSchema, FREE_TIER_LIMITS, SubmitDiagnosticSchema } from '@motovault/types';
 import { BadRequestException, ForbiddenException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
 import { MotorcyclesService } from '../motorcycles/motorcycles.service';
 import { UsersService } from '../users/users.service';
@@ -53,7 +51,6 @@ export class DiagnosticsResolver {
 
   @Mutation(() => Diagnostic)
   @UseGuards(GqlAuthGuard)
-  @Throttle({ ai: THROTTLE_PRESETS.AI_DIAGNOSTIC })
   async submitDiagnostic(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,

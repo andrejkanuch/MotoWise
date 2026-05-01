@@ -1,14 +1,12 @@
 import { ReportSurfaceInputSchema } from '@motovault/types/validators';
 import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { THROTTLE_PRESETS } from '../../config/constants';
 import { ReportSurfaceInput } from './dto/report-surface.input';
 import { RouteConditions, SurfaceReport } from './models/surface-report.model';
 import { SurfaceReportsService } from './surface-reports.service';
@@ -19,7 +17,6 @@ export class SurfaceReportsResolver {
   constructor(private readonly surfaceReportsService: SurfaceReportsService) {}
 
   @Mutation(() => SurfaceReport)
-  @Throttle({ default: THROTTLE_PRESETS.STANDARD })
   async reportSurface(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ReportSurfaceInputSchema))
