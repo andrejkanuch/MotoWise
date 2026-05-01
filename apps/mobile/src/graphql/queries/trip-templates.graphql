@@ -16,6 +16,7 @@ query TripTemplates($filter: TripTemplateFilterInput, $first: Int, $after: Strin
         distanceM
         elevationGainM
         surfaceType
+        polyline
         curvatureIndex
         estimatedDurationMinutes
         isFeatured

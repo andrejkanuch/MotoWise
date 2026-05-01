@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
@@ -8,6 +9,7 @@ import {
   fetchTripTemplatesByRegion,
   type TripTemplateNode,
 } from '@/lib/fetch-places';
+import { buildStaticMapUrl } from '@/lib/map/static-image-provider';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 const OG_IMAGE = `${BASE_URL}/images/hero-explore.jpg`;
@@ -73,37 +75,89 @@ function getDifficultyDisplay(difficulty: string): { label: string; colorClass: 
   }
 }
 
+function buildThumbnailUrl(polyline: string, width: number, height: number): string {
+  return buildStaticMapUrl({
+    polyline,
+    width,
+    height,
+    strokeColor: 'D4622E',
+    strokeWidth: 3,
+    strokeOpacity: 0.9,
+    retina: true,
+    padding: 40,
+  });
+}
+
+function formatDistance(meters: number): string {
+  const km = meters / 1000;
+  return km >= 100 ? `${Math.round(km)} km` : `${km.toFixed(1)} km`;
+}
+
 function TripTemplateCard({ trip }: { trip: TripTemplateNode }) {
   const diff = getDifficultyDisplay(trip.difficulty);
   const href =
     trip.slug && trip.countryCode && trip.regionCode
       ? `/trips/${trip.countryCode.toLowerCase()}/${trip.regionCode.toLowerCase()}/${trip.slug}`
       : `/trips/${trip.id}`;
+  const mapUrl = trip.polyline ? buildThumbnailUrl(trip.polyline, 400, 240) : '';
 
   return (
     <a
       href={href}
-      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-800/40 bg-neutral-900/40 p-5 transition-all duration-300 hover:border-neutral-700/60 hover:bg-neutral-900/60"
+      className="group flex flex-col overflow-hidden rounded-xl border border-neutral-800/40 bg-neutral-900/40 transition-all duration-300 hover:border-neutral-700/60 hover:bg-neutral-900/60"
     >
-      <h3 className="line-clamp-2 text-base font-semibold leading-snug text-neutral-50 transition-colors group-hover:text-warm-400">
-        {trip.title}
-      </h3>
-      {trip.description && (
-        <p className="mt-1.5 line-clamp-2 text-sm text-neutral-400">{trip.description}</p>
-      )}
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-300">
-        {trip.distanceM != null && trip.distanceM > 0 && (
-          <span>{Math.round(trip.distanceM / 1000)} km</span>
+      {/* Map thumbnail */}
+      <div className="relative aspect-[5/3] w-full overflow-hidden">
+        {mapUrl ? (
+          <Image
+            src={mapUrl}
+            alt={`Route map of ${trip.title}`}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-neutral-800/80 to-neutral-900">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="size-10 text-neutral-700"
+              aria-hidden="true"
+            >
+              <path d="M3 12h4l3-9 4 18 3-9h4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
         )}
-        {trip.dayCount != null && trip.dayCount > 1 && <span>{trip.dayCount} days</span>}
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
-          {diff.label}
-        </span>
-        {trip.averageRating != null && trip.reviewCount > 0 && (
-          <span className="text-xs text-neutral-400">
-            {trip.averageRating.toFixed(1)} ({trip.reviewCount})
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-950/60 to-transparent" />
+        {trip.dayCount != null && trip.dayCount > 1 && (
+          <span className="absolute left-3 top-3 z-10 rounded-full bg-warm-500/20 px-2.5 py-1 text-xs font-semibold text-warm-400 backdrop-blur-sm">
+            {trip.dayCount}-day trip
           </span>
         )}
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug text-neutral-50 transition-colors group-hover:text-warm-400">
+          {trip.title}
+        </h3>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-300">
+          {trip.distanceM != null && trip.distanceM > 0 && (
+            <span>{formatDistance(trip.distanceM)}</span>
+          )}
+          {trip.dayCount != null && trip.dayCount > 1 && <span>{trip.dayCount} days</span>}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${diff.colorClass}`}>
+            {diff.label}
+          </span>
+          {trip.averageRating != null && trip.reviewCount > 0 && (
+            <span className="text-xs text-neutral-400">
+              {trip.averageRating.toFixed(1)} ({trip.reviewCount})
+            </span>
+          )}
+        </div>
       </div>
     </a>
   );
