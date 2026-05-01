@@ -32,10 +32,14 @@ export default async function TermsPage() {
 
   const sections = [
     { title: 'acceptanceTitle', content: 'acceptance' },
+    { title: 'ageRequirementTitle', content: 'ageRequirement' },
     { title: 'serviceDescriptionTitle', content: 'serviceDescription' },
     { title: 'accountsTitle', content: 'accounts' },
     { title: 'subscriptionsTitle', content: 'subscriptions' },
+    { title: 'euConsumerRightsTitle', content: 'euConsumerRights' },
+    { title: 'appStoreTermsTitle', content: 'appStoreTerms' },
     { title: 'aiDisclaimerTitle', content: 'aiDisclaimer' },
+    { title: 'safetyDisclaimerTitle', content: 'safetyDisclaimer' },
     { title: 'ipTitle', content: 'ip' },
     { title: 'userContentTitle', content: 'userContent' },
     { title: 'prohibitedUsesTitle', content: 'prohibitedUses' },

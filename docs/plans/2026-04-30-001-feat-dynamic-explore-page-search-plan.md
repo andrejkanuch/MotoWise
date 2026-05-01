@@ -1,7 +1,7 @@
 ---
 title: "feat: Dynamic Explore Page & Functional Search"
 type: feat
-status: active
+status: completed
 date: 2026-04-30
 deepened: 2026-04-30
 ---

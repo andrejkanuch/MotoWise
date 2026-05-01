@@ -107,7 +107,7 @@ export function DiagnosticsDemo() {
           <div style={{ marginTop: '40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {[
               'Open camera, frame the issue.',
-              'AI identifies and analyzes in < 5s.',
+              'AI identifies and analyzes the issue.',
               'Get a diagnosis + recommended fix.',
             ].map((text, i) => (
               <div
@@ -243,7 +243,7 @@ export function DiagnosticsDemo() {
                 textTransform: 'uppercase',
               }}
             >
-              Scan complete &middot; 3.2s
+              Scan complete
             </div>
             <div
               style={{
@@ -263,7 +263,7 @@ export function DiagnosticsDemo() {
                 lineHeight: 1.4,
               }}
             >
-              Confidence 98%. Adjust to 25-35mm slack.
+              Adjust to 25-35mm slack per owner's manual.
             </div>
           </div>
         </div>

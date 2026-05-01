@@ -31,9 +31,12 @@ export default async function PrivacyPage() {
   const t = await getTranslations('Privacy');
 
   const sections = [
+    { title: 'introTitle', content: 'intro' },
     { title: 'infoCollectTitle', content: 'infoCollect' },
     { title: 'howWeUseTitle', content: 'howWeUse' },
+    { title: 'legalBasisTitle', content: 'legalBasis' },
     { title: 'thirdPartyTitle', content: 'thirdParty' },
+    { title: 'cookiesTitle', content: 'cookies' },
     { title: 'dataRetentionTitle', content: 'dataRetention' },
     { title: 'securityTitle', content: 'security' },
     { title: 'yourRightsTitle', content: 'yourRights' },
@@ -41,6 +44,7 @@ export default async function PrivacyPage() {
     { title: 'internationalTransfersTitle', content: 'internationalTransfers' },
     { title: 'accountDeletionTitle', content: 'accountDeletion' },
     { title: 'changesTitle', content: 'changes' },
+    { title: 'dataControllerTitle', content: 'dataController' },
     { title: 'contactTitle', content: 'contact' },
   ] as const;
 

@@ -319,6 +319,7 @@ export default function RideDetailScreen() {
             <MapboxGL.MapView
               style={{ flex: 1 }}
               styleURL={MAP_STYLES[mapStyle]}
+              surfaceView={process.env.EXPO_OS !== 'android'}
               logoEnabled={false}
               attributionEnabled={false}
               scaleBarEnabled={false}

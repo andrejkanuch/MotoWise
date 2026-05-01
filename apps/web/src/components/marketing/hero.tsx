@@ -12,13 +12,12 @@ const HERO_IMAGES = [
 ];
 
 const TICKER_ITEMS = [
-  { label: '2,400+', sub: 'RIDERS' },
-  { label: '18K', sub: 'BIKES TRACKED' },
-  { label: '40', sub: 'COUNTRIES' },
-  { label: '12K+', sub: 'SERVICES LOGGED' },
-  { label: '< 5s', sub: 'AI DIAGNOSIS' },
-  { label: '4.8\u2605', sub: 'APP STORE' },
-  { label: 'FREE', sub: 'FOREVER' },
+  { label: 'TRIPS', sub: 'PLAN MULTI-DAY ROUTES' },
+  { label: 'MAINTENANCE', sub: 'NEVER MISS A SERVICE' },
+  { label: 'EXPENSES', sub: 'KNOW YOUR REAL COST' },
+  { label: 'AI DIAGNOSTICS', sub: 'SNAP A PHOTO, GET ANSWERS' },
+  { label: 'FREE', sub: 'NO TRIAL, NO CREDIT CARD' },
+  { label: 'iOS + ANDROID', sub: 'BUILT FOR MOTORCYCLES' },
 ];
 
 export function Hero() {
@@ -404,7 +403,7 @@ export function Hero() {
                 animation: 'mv-pulse 2s ease-in-out infinite',
               }}
             />
-            <span>2,400+ RIDERS &middot; 40 COUNTRIES &middot; 4.8&#9733;</span>
+            <span>FREE &middot; iOS + ANDROID &middot; BUILT FOR MOTORCYCLES</span>
           </div>
         </div>
       </div>

@@ -1,14 +1,9 @@
 export function ProofSection() {
   const stats = [
-    { value: '2,400', suffix: '+', label: 'Active riders across 30 countries.' },
-    { value: '18,000', suffix: '+', label: 'Bikes tracked in-app \u2014 and counting.' },
-    { value: '12,000', suffix: '+', label: 'Maintenance services logged.' },
-    {
-      value: '4.8',
-      suffix: '/5',
-      suffixSerif: true,
-      label: 'Average rating on the App Store.',
-    },
+    { value: '4', label: 'Tools in one app — trips, maintenance, expenses, diagnostics.' },
+    { value: '0', suffix: ' OBD hardware', label: 'Point your camera. Get the answer.' },
+    { value: '100', suffix: '%', label: 'Free. No trial. No credit card.' },
+    { value: 'iOS', suffix: ' + Android', label: 'Native apps, built for motorcycles.' },
   ];
 
   return (
@@ -45,19 +40,16 @@ export function ProofSection() {
             }}
           >
             {stat.value}
-            {stat.suffixSerif ? (
+            {stat.suffix && (
               <span
                 style={{
-                  fontFamily: "var(--font-instrument-serif, 'Instrument Serif', serif)",
+                  fontSize: '0.5em',
                   fontWeight: 400,
-                  fontStyle: 'italic',
-                  color: 'var(--mv-warm-400)',
+                  color: 'var(--mv-ink-2)',
                 }}
               >
                 {stat.suffix}
               </span>
-            ) : (
-              stat.suffix
             )}
           </div>
           <div

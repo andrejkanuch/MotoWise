@@ -16,5 +16,6 @@ export async function gqlServerFetcher<TData, TVariables>(
   return serverClient.request<TData>({
     document,
     variables: variables as Record<string, unknown>,
+    signal: AbortSignal.timeout(8_000),
   });
 }

@@ -1,9 +1,19 @@
 import { palette } from '@motovault/design-system';
-import type { TripByShareTokenQuery } from '@motovault/graphql';
+import { JoinTripDocument, type TripByShareTokenQuery } from '@motovault/graphql';
+import { useMutation } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import * as Linking from 'expo-linking';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Eye, MapPin, Users } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, ScrollView, Text, useColorScheme, View } from 'react-native';
+import { ArrowLeft, Eye, MapPin, UserPlus, Users } from 'lucide-react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getWaypointIcon } from '../../../components/trip/waypoint-type-picker';
@@ -11,6 +21,8 @@ import {
   type TrampolineState,
   useTripShareTokenResolver,
 } from '../../../hooks/use-trip-share-token-resolver';
+import { gqlFetcher } from '../../../lib/graphql-client';
+import { userFriendlyError } from '../../../lib/graphql-errors';
 
 function formatDateRange(start: string, end: string): string {
   const s = new Date(start);
@@ -72,6 +84,7 @@ export default function SharedTripTrampolineScreen() {
         bodyColor,
         bg,
         insetTop: insets.top,
+        router,
       })}
     </View>
   );
@@ -83,6 +96,7 @@ type RenderCtx = {
   bodyColor: string;
   bg: string;
   insetTop: number;
+  router: ReturnType<typeof useRouter>;
 };
 
 function renderContent(state: TrampolineState, ctx: RenderCtx) {
@@ -171,6 +185,21 @@ type SharedTripData = NonNullable<TripByShareTokenQuery['tripByShareToken']>;
 function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: RenderCtx }) {
   const sectionLabelColor = ctx.isDark ? palette.neutral500 : palette.neutral400;
   const dividerColor = ctx.isDark ? palette.neutral800 : palette.neutral200;
+
+  const joinMutation = useMutation({
+    mutationFn: () => gqlFetcher(JoinTripDocument, { input: { tripId: trip.id, status: 'going' } }),
+    onSuccess: () => {
+      if (process.env.EXPO_OS === 'ios')
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      ctx.router.replace({
+        pathname: '/(modals)/trip-detail',
+        params: { tripId: trip.id },
+      });
+    },
+    onError: (err: Error) => {
+      Alert.alert('Could not join', userFriendlyError(err));
+    },
+  });
 
   const waypoints = [...trip.waypoints].sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -433,6 +462,36 @@ function SharedTripReadOnlyView({ trip, ctx }: { trip: SharedTripData; ctx: Rend
           </View>
         </Animated.View>
       )}
+
+      {/* Join trip CTA */}
+      <Animated.View entering={FadeInUp.delay(280).duration(260)} style={{ gap: 10 }}>
+        <Pressable
+          onPress={() => joinMutation.mutate()}
+          disabled={joinMutation.isPending}
+          style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            paddingVertical: 14,
+            borderRadius: 14,
+            borderCurve: 'continuous',
+            backgroundColor: palette.accent500,
+            opacity: pressed ? 0.9 : 1,
+          })}
+        >
+          {joinMutation.isPending ? (
+            <ActivityIndicator size="small" color={palette.white} />
+          ) : (
+            <>
+              <UserPlus size={18} color={palette.white} />
+              <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                Join This Trip
+              </Text>
+            </>
+          )}
+        </Pressable>
+      </Animated.View>
     </ScrollView>
   );
 }

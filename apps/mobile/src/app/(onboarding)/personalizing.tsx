@@ -70,6 +70,7 @@ export default function PersonalizingScreen() {
   const [animationDone, setAnimationDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [navFailed, setNavFailed] = useState(false);
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -168,10 +169,30 @@ export default function PersonalizingScreen() {
   // Navigate only when BOTH mutation succeeded AND animation finished
   useEffect(() => {
     if (mutationDone && animationDone) {
-      reset();
-      router.replace('/(tabs)/(home)');
+      try {
+        reset();
+        router.replace('/(tabs)/(home)');
+      } catch {
+        setNavFailed(true);
+      }
     }
   }, [mutationDone, animationDone, router, reset]);
+
+  // Safety net: if stuck for 8s total (animation takes ~4s), show continue button
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!mutationDone && !showRetry) {
+        setShowRetry(true);
+      }
+    }, 8000);
+    return () => clearTimeout(timeout);
+  }, [mutationDone, showRetry]);
+
+  const handleContinue = () => {
+    setOnboardingCompleted(true);
+    reset();
+    router.replace('/(tabs)/(home)');
+  };
 
   return (
     <View
@@ -262,17 +283,32 @@ export default function PersonalizingScreen() {
         })}
       </View>
 
+      {/* Fallback continue button if auto-navigation didn't fire */}
+      {navFailed && (
+        <Animated.View entering={FadeIn.duration(300)} style={{ marginTop: 32 }}>
+          <Pressable
+            onPress={handleContinue}
+            style={{
+              paddingHorizontal: 32,
+              paddingVertical: 14,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              backgroundColor: ONBOARDING_COLORS.accent,
+            }}
+          >
+            <Text style={{ color: ONBOARDING_COLORS.background, fontSize: 17, fontWeight: '700' }}>
+              {t('common.done')}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
       {showRetry && (
         <Animated.View
           entering={FadeIn.duration(300)}
-          style={{ marginTop: 32, alignItems: 'center', gap: 12 }}
+          style={{ marginTop: 32, alignItems: 'center', gap: 16 }}
         >
-          <Text
-            style={{ fontSize: 15, color: ONBOARDING_COLORS.textSecondary, textAlign: 'center' }}
-          >
-            {t('onboarding.personalizingFailed')}
-          </Text>
-          {retryCount < 3 ? (
+          {retryCount < 2 && (
             <Pressable
               onPress={() => {
                 setShowRetry(false);
@@ -291,26 +327,12 @@ export default function PersonalizingScreen() {
                 {t('common.retry')}
               </Text>
             </Pressable>
-          ) : (
-            <Pressable
-              onPress={() => {
-                setOnboardingCompleted(true);
-                reset();
-                router.replace('/(tabs)/(home)');
-              }}
-              style={{
-                paddingHorizontal: 24,
-                paddingVertical: 12,
-                borderRadius: 12,
-                borderCurve: 'continuous',
-                backgroundColor: ONBOARDING_COLORS.cardBorder,
-              }}
-            >
-              <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 16, fontWeight: '600' }}>
-                {t('onboarding.personalizingSkip')}
-              </Text>
-            </Pressable>
           )}
+          <Pressable onPress={handleContinue}>
+            <Text style={{ color: ONBOARDING_COLORS.accent, fontSize: 15, fontWeight: '600' }}>
+              {t('onboarding.personalizingSkip')}
+            </Text>
+          </Pressable>
         </Animated.View>
       )}
     </View>

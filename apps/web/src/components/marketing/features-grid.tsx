@@ -52,13 +52,13 @@ const FEATURES: FeatureData[] = [
     title: 'Know what your bike really costs.',
     body: 'Track fuel, parts, gear and insurance with monthly breakdowns. Cost-per-mile analytics so you know before you buy the second bike.',
     kv: [
-      { label: 'Cost/mi', value: '$0.23 avg' },
+      { label: 'Breakdown', value: 'Per-mile cost' },
       { label: 'Categories', value: '8 built-in' },
     ],
     screenshot: '/images/marketing/mw/home-rides-expenses.png',
     badgeLabel: 'Expense tracking',
     chip1: { label: 'This month', value: '$214.80 \u00b7 12 entries' },
-    chip2: { label: 'Cost / mile', value: '$0.23 \u00b7 steady' },
+    chip2: { label: 'Cost / mile', value: 'Auto-calculated' },
   },
   {
     key: 'diag',
@@ -66,13 +66,13 @@ const FEATURES: FeatureData[] = [
     title: 'Snap a photo. Get answers.',
     body: 'Point the camera at a warning light, an oil leak, or a suspicious part. A vision model tells you what it is and what to do \u2014 in under five seconds.',
     kv: [
-      { label: 'Latency', value: '< 5s' },
-      { label: 'Accuracy', value: '98% on known parts' },
+      { label: 'Hardware', value: 'No OBD needed' },
+      { label: 'Input', value: 'Photo or text' },
     ],
     screenshot: '/images/marketing/mw/diagnostic-result.png',
     badgeLabel: 'AI diagnostics',
     chip1: { label: 'Scan result', value: 'Chain tension low' },
-    chip2: { label: 'Confidence', value: '98% \u00b7 3.2s' },
+    chip2: { label: 'Powered by', value: 'Claude AI' },
   },
 ];
 

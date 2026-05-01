@@ -37,6 +37,8 @@ export class TripParticipantsService {
     }
 
     // Use atomic RPC with row-level locking to prevent race conditions
+    this.logger.log(`joinTrip: user=${userId} trip=${tripId} status=${status}`);
+
     const { error } = await this.supabase.rpc('join_trip', {
       p_trip_id: tripId,
       p_user_id: userId,
@@ -46,12 +48,14 @@ export class TripParticipantsService {
 
     if (error) {
       if (error.message.includes('Cannot join')) {
+        this.logger.warn(`joinTrip: user=${userId} trip=${tripId} rejected: ${error.message}`);
         throw new BadRequestException(error.message.replace('Cannot join: ', ''));
       }
-      this.logger.error(`joinTrip failed: ${error.message}`);
+      this.logger.error(`joinTrip: user=${userId} trip=${tripId} failed: ${error.message}`);
       throw new InternalServerErrorException('Failed to join trip');
     }
 
+    this.logger.log(`joinTrip: user=${userId} successfully joined trip=${tripId}`);
     return true;
   }
 

@@ -13,36 +13,48 @@ Always set `font-family: 'Plus Jakarta Sans', sans-serif` on the body.
 ## Color Palette
 
 ### Background & Surfaces
-| Token | Hex | Usage |
-|-------|-----|-------|
-| bg | `#0a0a0a` | Slide background (always) |
-| card-bg | `rgba(255,255,255,0.03)` | Pain point cards, feature boxes |
+
+
+| Token       | Hex                      | Usage                             |
+| ----------- | ------------------------ | --------------------------------- |
+| bg          | `#0a0a0a`                | Slide background (always)         |
+| card-bg     | `rgba(255,255,255,0.03)` | Pain point cards, feature boxes   |
 | card-border | `rgba(255,255,255,0.06)` | Card borders, phone frame borders |
 
+
 ### Brand Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| blue-500 | `#3b82f6` | Primary accent, links, step badges |
-| blue-400 | `#60a5fa` | Gradient end, lighter blue text |
-| signature | `#D4622E` | CTA buttons, signature orange |
-| signature-light | `#E8723A` | CTA gradient end |
+
+
+| Token           | Hex       | Usage                              |
+| --------------- | --------- | ---------------------------------- |
+| blue-500        | `#3b82f6` | Primary accent, links, step badges |
+| blue-400        | `#60a5fa` | Gradient end, lighter blue text    |
+| signature       | `#D4622E` | CTA buttons, signature orange      |
+| signature-light | `#E8723A` | CTA gradient end                   |
+
 
 ### Semantic Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| green | `#22c55e` | Success, health, completion badges |
-| orange | `#f59e0b` | Warning, expenses, urgency |
-| red | `#ef4444` | Error, danger, X icons in pain points |
-| purple | `#8b5cf6` / `#a78bfa` | Alternative accent for variety |
+
+
+| Token  | Hex                   | Usage                                 |
+| ------ | --------------------- | ------------------------------------- |
+| green  | `#22c55e`             | Success, health, completion badges    |
+| orange | `#f59e0b`             | Warning, expenses, urgency            |
+| red    | `#ef4444`             | Error, danger, X icons in pain points |
+| purple | `#8b5cf6` / `#a78bfa` | Alternative accent for variety        |
+
 
 ### Text Colors
-| Token | Hex | Usage |
-|-------|-----|-------|
-| white | `#fafafa` | Headlines, primary text |
-| gray-light | `#d4d4d4` | Body text, descriptions |
-| gray-mid | `#a3a3a3` | Subtitles, secondary text |
-| gray-dark | `#525252` | Slide numbers, "Swipe →" |
-| ghost | `rgba(255,255,255,0.12)` | Slide counter numbers |
+
+
+| Token      | Hex                      | Usage                     |
+| ---------- | ------------------------ | ------------------------- |
+| white      | `#fafafa`                | Headlines, primary text   |
+| gray-light | `#d4d4d4`                | Body text, descriptions   |
+| gray-mid   | `#a3a3a3`                | Subtitles, secondary text |
+| gray-dark  | `#525252`                | Slide numbers, "Swipe →"  |
+| ghost      | `rgba(255,255,255,0.12)` | Slide counter numbers     |
+
 
 ## Slide Dimensions
 
@@ -105,17 +117,19 @@ Every slide has at least one subtle radial gradient glow. The glow color matches
 
 ## Typography Scale
 
-| Element | Size | Weight | Color |
-|---------|------|--------|-------|
-| Cover headline | 64px | 800 | #fafafa, accent via gradient |
-| Feature headline | 44px | 800 | #fafafa |
-| CTA headline | 54px | 800 | #fafafa, accent via gradient |
-| Problem headline | 50px | 800 | #fafafa |
-| Subtitle | 22px | 400 | #a3a3a3 |
-| Feature description | 19px | 400 | #a3a3a3 |
-| Step badge | 13px | 700 | accent color, uppercase, 1.5px letter-spacing |
-| Pain point text | 21px | 500 | #d4d4d4 |
-| Slide counter | 14px | 600 | rgba(255,255,255,0.12) |
+
+| Element             | Size | Weight | Color                                         |
+| ------------------- | ---- | ------ | --------------------------------------------- |
+| Cover headline      | 64px | 800    | #fafafa, accent via gradient                  |
+| Feature headline    | 44px | 800    | #fafafa                                       |
+| CTA headline        | 54px | 800    | #fafafa, accent via gradient                  |
+| Problem headline    | 50px | 800    | #fafafa                                       |
+| Subtitle            | 22px | 400    | #a3a3a3                                       |
+| Feature description | 19px | 400    | #a3a3a3                                       |
+| Step badge          | 13px | 700    | accent color, uppercase, 1.5px letter-spacing |
+| Pain point text     | 21px | 500    | #d4d4d4                                       |
+| Slide counter       | 14px | 600    | rgba(255,255,255,0.12)                        |
+
 
 ## Gradient Text (for accent words in headlines)
 
@@ -145,6 +159,7 @@ Step badges, feature badges, and labels use pill styling with accent color:
 ```
 
 Swap the color values per slide to create visual rhythm:
+
 - Slide 3: Blue (`#3b82f6` / `#60a5fa`)
 - Slide 4: Green (`#22c55e`)
 - Slide 5: Orange/amber (`#f59e0b`)
@@ -195,18 +210,22 @@ Swap the color values per slide to create visual rhythm:
 ## Logo
 
 The MotoVault logo is always loaded as an image (`logo.png`), never recreated in CSS.
+
 - Cover slide: 40×40px with `border-radius:10px`, positioned bottom-left
 - CTA slide: 88×88px with `border-radius:24px`, centered above headline
 
 ## Footer Elements
 
 Cover slides have a brand bar at the bottom:
+
 ```css
 .brand { position:absolute; bottom:44px; left:48px; }  /* Logo + "MotoVault" */
 .swipe { position:absolute; bottom:48px; right:48px; color:#525252; font-size:14px; }  /* "Swipe →" */
 ```
 
 CTA slides have the website URL centered at the bottom:
+
 ```css
 .brand-bottom { position:absolute; bottom:44px; color:#404040; font-size:16px; font-weight:600; }
 ```
+
