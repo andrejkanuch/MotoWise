@@ -916,7 +916,10 @@ export default function BikeDetailScreen() {
         </Animated.View>
 
         {/* AI Health Report — contextual paywall trigger */}
-        <Animated.View entering={FadeInUp.delay(150).duration(400)} style={{ paddingHorizontal: 20, marginTop: 12 }}>
+        <Animated.View
+          entering={FadeInUp.delay(150).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 12 }}
+        >
           <Pressable
             onPress={() => {
               triggerImpact();
@@ -956,7 +959,9 @@ export default function BikeDetailScreen() {
                 {t('healthReport.title', { defaultValue: 'AI Health Report' })}
               </Text>
               <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }}>
-                {t('healthReport.subtitle', { defaultValue: 'Get a full diagnostic analysis of your bike' })}
+                {t('healthReport.subtitle', {
+                  defaultValue: 'Get a full diagnostic analysis of your bike',
+                })}
               </Text>
             </View>
             <ChevronRight size={16} color={theme.ink3} />

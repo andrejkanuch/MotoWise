@@ -78,12 +78,12 @@ import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
-import { useProGate } from '../../hooks/useProGate';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useRideThis } from '../../hooks/use-ride-this';
 import { useTripAssistant } from '../../hooks/use-trip-assistant';
 import { useTripSuggestions } from '../../hooks/use-trip-suggestions';
+import { useProGate } from '../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
@@ -2298,9 +2298,7 @@ export default function TripDetailScreen() {
                   }}
                 >
                   <Download size={16} color={t.ink} />
-                  <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink }}>
-                    Export GPX
-                  </Text>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink }}>Export GPX</Text>
                 </Pressable>
               </Animated.View>
             )}

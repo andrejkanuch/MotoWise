@@ -8,7 +8,6 @@ import {
   MyMotorcyclesDocument,
 } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams } from 'expo-router';
 import {
   AlertTriangle,
@@ -35,7 +34,7 @@ import { HealthReportCard } from '../../../components/garage/HealthReportCard';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { triggerImpact, triggerNotification } from '../../../utils/haptics';
+import { triggerImpact } from '../../../utils/haptics';
 
 const MIN_RECORDS_REQUIRED = 3;
 

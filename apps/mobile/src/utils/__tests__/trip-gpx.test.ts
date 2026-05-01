@@ -33,7 +33,7 @@ describe('buildTripGpx', () => {
     ]);
     const metadataBlock = gpx.match(/<metadata>[\s\S]*?<\/metadata>/);
     expect(metadataBlock).toBeTruthy();
-    expect(metadataBlock![0]).not.toContain('<desc>');
+    expect(metadataBlock?.[0]).not.toContain('<desc>');
   });
 
   it('generates wpt elements for each waypoint', () => {
@@ -56,7 +56,7 @@ describe('buildTripGpx', () => {
     // The Zermatt wpt should not have a <desc> child
     const wptMatch = gpx.match(/<wpt[^>]*>[\s\S]*?<\/wpt>/);
     expect(wptMatch).toBeTruthy();
-    expect(wptMatch![0]).not.toContain('<desc>');
+    expect(wptMatch?.[0]).not.toContain('<desc>');
   });
 
   it('generates rte with rtept elements', () => {
@@ -69,7 +69,7 @@ describe('buildTripGpx', () => {
 
   it('escapes XML special characters in names and notes', () => {
     const gpx = buildTripGpx(
-      { title: 'Tom & Jerry\'s <Ride>', description: null, createdAt: '2026-01-01T00:00:00Z' },
+      { title: "Tom & Jerry's <Ride>", description: null, createdAt: '2026-01-01T00:00:00Z' },
       [{ lat: 0, lng: 0, name: 'Stop "A" & B', notes: '<script>alert("xss")</script>' }],
     );
     expect(gpx).toContain('Tom &amp; Jerry&apos;s &lt;Ride&gt;');
