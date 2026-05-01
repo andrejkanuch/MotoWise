@@ -283,11 +283,26 @@ export class RidesService {
       .select('id')
       .single();
 
-    if (error || !data) {
-      this.logger.error(`deleteRide failed: ${error?.message} (${error?.code})`);
-      throw new NotFoundException('Ride not found');
+    if (data) return true;
+
+    // Idempotent: if the ride is already soft-deleted, treat as success
+    // (sync queue retries, duplicate taps, etc.)
+    if (error?.code === 'PGRST116') {
+      const { count } = await this.supabase
+        .from('rides')
+        .select('id', { count: 'exact', head: true })
+        .eq('id', id)
+        .eq('user_id', userId)
+        .not('deleted_at', 'is', null);
+
+      if (count && count > 0) {
+        this.logger.log(`deleteRide: ride ${id} already deleted — idempotent success`);
+        return true;
+      }
     }
-    return true;
+
+    this.logger.error(`deleteRide failed: ${error?.message} (${error?.code})`);
+    throw new NotFoundException('Ride not found');
   }
 
   // ==========================================

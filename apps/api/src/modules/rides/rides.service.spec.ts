@@ -298,11 +298,27 @@ describe('RidesService', () => {
       expect(mockUserClient._chain.is).toHaveBeenCalledWith('deleted_at', null);
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it('should return true when ride is already deleted (idempotent)', async () => {
+      // Result 0: soft-delete update finds no un-deleted row
       mockUserClient._pushResult({
         data: null,
         error: { message: 'Row not found', code: 'PGRST116' },
       });
+      // Result 1: existence check finds the already-deleted ride
+      mockUserClient._pushResult({ count: 1 });
+
+      const result = await service.deleteRide(userId, 'ride-123');
+      expect(result).toBe(true);
+    });
+
+    it('should throw NotFoundException when ride does not exist', async () => {
+      // Result 0: soft-delete update finds no row
+      mockUserClient._pushResult({
+        data: null,
+        error: { message: 'Row not found', code: 'PGRST116' },
+      });
+      // Result 1: existence check finds nothing
+      mockUserClient._pushResult({ count: 0 });
 
       await expect(service.deleteRide(userId, 'ride-123')).rejects.toThrow(NotFoundException);
     });

@@ -102,6 +102,8 @@ export async function enqueueOrExecute(
       await gqlFetcher(document, variables as never);
       return;
     } catch (error) {
+      // Deletes are idempotent — NOT_FOUND means already deleted, no retry needed
+      if (type === 'deleteRide' && isNotFoundError(error)) return;
       // Network failures are expected (spotty cellular, backgrounded by iOS)
       // — the queue handles retry, so only report non-network errors to Sentry.
       if (!isNetworkError(error)) {
@@ -162,7 +164,14 @@ async function executeSyncOperation(op: SyncOperation): Promise<void> {
   if (!document) throw new Error(`Unknown sync operation type: ${op.type}`);
 
   const { variables } = op.payload as { variables: Record<string, unknown> };
-  await gqlFetcher(document, variables as never);
+  try {
+    await gqlFetcher(document, variables as never);
+  } catch (error) {
+    // Deletes are idempotent — NOT_FOUND means the resource is already gone.
+    // Don't retry or report these; the desired state is already achieved.
+    if (op.type === 'deleteRide' && isNotFoundError(error)) return;
+    throw error;
+  }
 }
 
 export function getQueueLength(): number {
@@ -187,4 +196,9 @@ function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError && error.message === 'Network request failed') return true;
   const msg = error instanceof Error ? error.message : String(error);
   return msg.includes('Network request failed') || msg.includes('Failed to fetch');
+}
+
+function isNotFoundError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg.includes('"code":"NOT_FOUND"') || msg.includes('not found');
 }
