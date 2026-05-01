@@ -130,6 +130,18 @@ export default function GarageLayout() {
         }}
       />
       <Stack.Screen
+        name="health-report"
+        options={{
+          title: t('healthReport.title', { defaultValue: 'Service Report' }),
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: {
+            backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          },
+          headerBackButtonDisplayMode: 'default',
+        }}
+      />
+      <Stack.Screen
         name="complete-task"
         options={{
           presentation: 'formSheet',

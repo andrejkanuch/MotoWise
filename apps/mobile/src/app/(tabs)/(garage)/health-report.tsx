@@ -1,4 +1,4 @@
-import { palette, radii, spacing } from '@motovault/design-system';
+import { palette } from '@motovault/design-system';
 import {
   ExpensesByMotorcycleDocument,
   GenerateBikeHealthReportDocument,
@@ -11,29 +11,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
 import {
   AlertTriangle,
-  Bike,
   CheckCircle,
-  ClipboardList,
-  FileText,
+  Clock,
+  Download,
+  HeartPulse,
   RefreshCw,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { HealthReportCard } from '../../../components/garage/HealthReportCard';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 
 const MIN_RECORDS_REQUIRED = 3;
@@ -41,10 +33,9 @@ const MIN_RECORDS_REQUIRED = 3;
 type HealthReport = GetMyHealthReportsQuery['getMyHealthReports'][number];
 
 export default function HealthReportScreen() {
-  const { t } = useTranslation();
+  const { t: i18n } = useTranslation();
+  const { t } = useEditorialTheme();
   const { bikeId } = useLocalSearchParams<{ bikeId: string }>();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [generating, setGenerating] = useState(false);
@@ -55,7 +46,6 @@ export default function HealthReportScreen() {
     }
   }, [bikeId]);
 
-  // Fetch bike info
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
     queryFn: () => gqlFetcher(MyMotorcyclesDocument),
@@ -63,7 +53,6 @@ export default function HealthReportScreen() {
   const bike = motorcyclesData?.myMotorcycles?.find((m) => m.id === bikeId);
   const bikeName = bike ? `${bike.year} ${bike.make} ${bike.model}` : '';
 
-  // Fetch maintenance tasks to check minimum records
   const { data: tasksData } = useQuery({
     queryKey: queryKeys.maintenanceTasks.byMotorcycle(bikeId ?? ''),
     queryFn: () =>
@@ -73,7 +62,6 @@ export default function HealthReportScreen() {
     enabled: !!bikeId,
   });
 
-  // Fetch expenses to check minimum records
   const { data: expensesData } = useQuery({
     queryKey: queryKeys.expenses.byMotorcycle(bikeId ?? ''),
     queryFn: () =>
@@ -92,7 +80,6 @@ export default function HealthReportScreen() {
   const hasEnoughData =
     maintenanceCount >= MIN_RECORDS_REQUIRED || expenseCount >= MIN_RECORDS_REQUIRED;
 
-  // Fetch existing reports
   const { data: reportsData, isLoading: reportsLoading } = useQuery({
     queryKey: queryKeys.healthReports.byMotorcycle(bikeId ?? ''),
     queryFn: () => gqlFetcher(GetMyHealthReportsDocument),
@@ -114,7 +101,6 @@ export default function HealthReportScreen() {
   const latestReport = bikeReports[0] as HealthReport | undefined;
   const isGenerating = generating || latestReport?.status === 'pending';
 
-  // Generate report mutation
   const generateMutation = useMutation({
     mutationFn: () =>
       gqlFetcher(GenerateBikeHealthReportDocument, {
@@ -131,69 +117,57 @@ export default function HealthReportScreen() {
     },
   });
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     if (!bikeId || isGenerating) return;
     triggerImpact();
+    trackEvent(AnalyticsEvent.HEALTH_REPORT_GENERATED, { bike_id: bikeId });
     setGenerating(true);
     generateMutation.mutate();
   };
 
   const handleRetry = () => {
+    if (!bikeId) return;
     triggerImpact();
+    trackEvent(AnalyticsEvent.HEALTH_REPORT_RETRIED, { bike_id: bikeId });
     setGenerating(true);
     generateMutation.mutate();
   };
 
-  // Theme colors
-  const bg = isDark ? palette.surfaceDark : palette.white;
-  const cardBg = isDark ? palette.cardDark : palette.neutral50;
-  const textPrimary = isDark ? palette.neutral50 : palette.neutral950;
-  const textSecondary = isDark ? palette.neutral400 : palette.neutral500;
-  const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-
   if (reportsLoading) {
     return (
       <View
-        style={{
-          flex: 1,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        style={{ flex: 1, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center' }}
       >
-        <ActivityIndicator size="large" color={palette.primary500} />
+        <ActivityIndicator size="large" color={t.warm} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingBottom: insets.bottom + 24,
-          gap: spacing[4],
-        }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         contentInsetAdjustmentBehavior="automatic"
         showsVerticalScrollIndicator={false}
       >
-        {/* Bike Info Header */}
+        {/* Bike header */}
         {bike && (
           <Animated.View
-            entering={FadeIn.duration(300)}
-            style={{ paddingHorizontal: spacing[5], paddingTop: spacing[4] }}
+            entering={FadeIn.duration(280)}
+            style={{ paddingHorizontal: 20, paddingTop: 16 }}
           >
             <View
               style={{
-                backgroundColor: cardBg,
-                borderRadius: 16,
-                padding: spacing[4],
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: spacing[3],
+                gap: 12,
+                padding: 14,
+                backgroundColor: t.surface,
+                borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor,
+                borderColor: t.line,
               }}
             >
               <View
@@ -201,275 +175,218 @@ export default function HealthReportScreen() {
                   width: 40,
                   height: 40,
                   borderRadius: 12,
-                  backgroundColor: isDark ? `${palette.primary400}18` : `${palette.primary500}12`,
+                  borderCurve: 'continuous',
+                  backgroundColor: tint(t.warm, 0.15),
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderCurve: 'continuous',
                 }}
               >
-                <Bike
-                  size={20}
-                  color={isDark ? palette.primary300 : palette.primary600}
-                  strokeWidth={2}
-                />
+                <HeartPulse size={20} color={t.warm} />
               </View>
               <View style={{ flex: 1 }}>
-                {bike.nickname && (
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: '600',
-                      color: palette.primary500,
-                      marginBottom: 1,
-                    }}
-                  >
-                    &ldquo;{bike.nickname}&rdquo;
+                {bike.nickname ? (
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: t.warm, marginBottom: 1 }}>
+                    {bike.nickname}
                   </Text>
-                )}
-                <Text
-                  style={{
-                    fontSize: 17,
-                    fontWeight: '700',
-                    color: textPrimary,
-                  }}
-                >
-                  {bikeName}
-                </Text>
+                ) : null}
+                <Text style={{ fontSize: 16, fontWeight: '700', color: t.ink }}>{bikeName}</Text>
               </View>
             </View>
           </Animated.View>
         )}
 
-        {/* Generate Button or Status */}
+        {/* Status / action card */}
         <Animated.View
-          entering={FadeInUp.delay(100).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
+          entering={FadeInUp.delay(80).duration(280)}
+          style={{ paddingHorizontal: 20, marginTop: 16 }}
         >
           {isGenerating ? (
-            /* Generating state */
             <View
               style={{
-                backgroundColor: isDark ? `${palette.primary500}15` : palette.primary50,
-                borderRadius: 16,
-                padding: spacing[5],
+                padding: 24,
                 alignItems: 'center',
-                gap: spacing[3],
+                gap: 10,
+                backgroundColor: t.surface,
+                borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: isDark ? `${palette.primary500}20` : `${palette.primary500}12`,
+                borderColor: t.line,
               }}
             >
-              <ActivityIndicator size="small" color={palette.primary500} />
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isDark ? palette.primary300 : palette.primary700,
-                  textAlign: 'center',
-                }}
-              >
-                {t('healthReport.generating')}
+              <ActivityIndicator size="small" color={t.warm} />
+              <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink, textAlign: 'center' }}>
+                {i18n('healthReport.generating')}
               </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: textSecondary,
-                  textAlign: 'center',
-                  lineHeight: 18,
-                }}
-              >
-                {t('healthReport.generatingSubtitle')}
+              <Text style={{ fontSize: 13, color: t.ink3, textAlign: 'center', lineHeight: 18 }}>
+                {i18n('healthReport.generatingSubtitle')}
               </Text>
             </View>
           ) : latestReport?.status === 'completed' ? (
-            /* Completed — show download */
             <View
               style={{
-                backgroundColor: isDark ? palette.successBgDark : palette.successBgLight,
-                borderRadius: 16,
-                padding: spacing[5],
+                padding: 24,
                 alignItems: 'center',
-                gap: spacing[3],
+                gap: 12,
+                backgroundColor: t.surface,
+                borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)',
+                borderColor: t.line,
               }}
             >
-              <CheckCircle
-                size={32}
-                color={isDark ? '#4ade80' : palette.success500}
-                strokeWidth={2}
-              />
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: tint(t.success, 0.15),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CheckCircle size={24} color={t.success} strokeWidth={2} />
+              </View>
               <Text
                 style={{
-                  fontSize: 16,
-                  fontWeight: '700',
-                  color: isDark ? '#4ade80' : '#166534',
+                  fontFamily: 'InstrumentSerif-Regular',
+                  fontSize: 22,
+                  color: t.ink,
                   textAlign: 'center',
                 }}
               >
-                {t('healthReport.readyTitle')}
+                {i18n('healthReport.readyTitle')}
               </Text>
               {latestReport.pdfUrl && (
                 <Pressable
                   onPress={async () => {
                     triggerImpact();
+                    trackEvent(AnalyticsEvent.HEALTH_REPORT_DOWNLOADED, { bike_id: bikeId });
                     if (latestReport.pdfUrl) {
                       await Linking.openURL(latestReport.pdfUrl);
                     }
                   }}
-                  style={{
-                    backgroundColor: palette.primary500,
-                    borderRadius: radii.card,
-                    paddingHorizontal: spacing[6],
-                    paddingVertical: spacing[3],
+                  style={({ pressed }) => ({
+                    backgroundColor: t.warm,
+                    borderRadius: 12,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 24,
+                    paddingVertical: 12,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: spacing[2],
-                    borderCurve: 'continuous',
-                  }}
+                    gap: 8,
+                    transform: [{ scale: pressed ? 0.97 : 1 }],
+                  })}
                 >
-                  <FileText size={16} color={palette.white} strokeWidth={2} />
-                  <Text
-                    style={{
-                      color: palette.white,
-                      fontWeight: '600',
-                      fontSize: 14,
-                    }}
-                  >
-                    {t('healthReport.downloadReport')}
+                  <Download size={16} color={palette.white} strokeWidth={2} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                    {i18n('healthReport.downloadReport')}
                   </Text>
                 </Pressable>
               )}
             </View>
           ) : latestReport?.status === 'failed' ? (
-            /* Failed — retry option */
             <View
               style={{
-                backgroundColor: isDark ? palette.dangerBgDark : palette.dangerBgLight,
-                borderRadius: 16,
-                padding: spacing[5],
+                padding: 24,
                 alignItems: 'center',
-                gap: spacing[3],
+                gap: 12,
+                backgroundColor: t.surface,
+                borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.12)',
+                borderColor: t.line,
               }}
             >
-              <AlertTriangle
-                size={32}
-                color={isDark ? '#fca5a5' : palette.danger500}
-                strokeWidth={2}
-              />
-              <Text
+              <View
                 style={{
-                  fontSize: 15,
-                  fontWeight: '600',
-                  color: isDark ? '#fca5a5' : '#991b1b',
-                  textAlign: 'center',
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: tint(t.danger, 0.15),
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {t('healthReport.failedMessage')}
+                <AlertTriangle size={24} color={t.danger} strokeWidth={2} />
+              </View>
+              <Text style={{ fontSize: 14, color: t.ink3, textAlign: 'center', lineHeight: 20 }}>
+                {i18n('healthReport.failedMessage')}
               </Text>
               <Pressable
                 onPress={handleRetry}
-                style={{
-                  backgroundColor: palette.primary500,
-                  borderRadius: radii.card,
-                  paddingHorizontal: spacing[6],
-                  paddingVertical: spacing[3],
+                style={({ pressed }) => ({
+                  backgroundColor: t.warm,
+                  borderRadius: 12,
+                  borderCurve: 'continuous',
+                  paddingHorizontal: 24,
+                  paddingVertical: 12,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: spacing[2],
-                  borderCurve: 'continuous',
-                }}
+                  gap: 8,
+                  transform: [{ scale: pressed ? 0.97 : 1 }],
+                })}
               >
                 <RefreshCw size={16} color={palette.white} strokeWidth={2} />
-                <Text
-                  style={{
-                    color: palette.white,
-                    fontWeight: '600',
-                    fontSize: 14,
-                  }}
-                >
-                  {t('common.retry')}
+                <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
+                  {i18n('common.retry', { defaultValue: 'Retry' })}
                 </Text>
               </Pressable>
             </View>
           ) : (
-            /* Default — generate button */
-            <View style={{ gap: spacing[3] }}>
+            <View style={{ gap: 12 }}>
               <Pressable
                 onPress={handleGenerate}
                 disabled={!hasEnoughData}
                 style={({ pressed }) => ({
-                  backgroundColor: hasEnoughData
-                    ? palette.primary500
-                    : isDark
-                      ? palette.neutral700
-                      : palette.neutral200,
-                  borderRadius: 16,
-                  padding: spacing[4],
+                  backgroundColor: hasEnoughData ? t.warm : t.surface2,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  paddingVertical: 16,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: spacing[2],
-                  borderCurve: 'continuous',
-                  opacity: pressed && hasEnoughData ? 0.9 : 1,
-                  transform: [{ scale: pressed && hasEnoughData ? 0.98 : 1 }],
+                  gap: 8,
+                  opacity: !hasEnoughData ? 0.5 : 1,
+                  transform: [{ scale: pressed && hasEnoughData ? 0.97 : 1 }],
                 })}
               >
-                <ClipboardList
+                <HeartPulse
                   size={18}
-                  color={
-                    hasEnoughData ? palette.white : isDark ? palette.neutral500 : palette.neutral400
-                  }
+                  color={hasEnoughData ? palette.white : t.ink3}
                   strokeWidth={2}
                 />
                 <Text
                   style={{
                     fontSize: 16,
                     fontWeight: '700',
-                    color: hasEnoughData
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral500
-                        : palette.neutral400,
+                    color: hasEnoughData ? palette.white : t.ink3,
                   }}
                 >
-                  {t('healthReport.generateButton')}
+                  {i18n('healthReport.generateButton')}
                 </Text>
               </Pressable>
 
-              {/* Disabled tooltip */}
               {!hasEnoughData && (
                 <View
                   style={{
-                    backgroundColor: isDark ? palette.warningBgDark : palette.warningBgLight,
-                    borderRadius: radii.card,
-                    padding: spacing[3],
                     flexDirection: 'row',
-                    gap: spacing[2],
+                    gap: 8,
+                    padding: 12,
+                    backgroundColor: t.surface,
+                    borderRadius: 10,
                     borderCurve: 'continuous',
                     borderWidth: 1,
-                    borderColor: isDark ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.15)',
+                    borderColor: t.line,
                   }}
                 >
                   <AlertTriangle
                     size={14}
-                    color={isDark ? '#fbbf24' : palette.warning500}
+                    color={t.warm}
                     strokeWidth={2}
                     style={{ marginTop: 1 }}
                   />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: isDark ? '#fde68a' : '#92400e',
-                      flex: 1,
-                      lineHeight: 17,
-                    }}
-                  >
-                    {t('healthReport.insufficientData')}
+                  <Text style={{ fontSize: 12, color: t.ink3, flex: 1, lineHeight: 17 }}>
+                    {i18n('healthReport.insufficientData')}
                   </Text>
                 </View>
               )}
@@ -479,53 +396,129 @@ export default function HealthReportScreen() {
 
         {/* Description */}
         <Animated.View
-          entering={FadeInUp.delay(150).duration(400)}
-          style={{ paddingHorizontal: spacing[5] }}
+          entering={FadeInUp.delay(120).duration(280)}
+          style={{ paddingHorizontal: 20, marginTop: 14 }}
         >
-          <Text
-            style={{
-              fontSize: 13,
-              color: textSecondary,
-              lineHeight: 19,
-              textAlign: 'center',
-            }}
-          >
-            {t('healthReport.description')}
+          <Text style={{ fontSize: 13, color: t.ink3, lineHeight: 19, textAlign: 'center' }}>
+            {i18n('healthReport.description')}
           </Text>
         </Animated.View>
 
-        {/* Past Reports */}
+        {/* Past reports */}
         {bikeReports.length > 0 && (
           <Animated.View
-            entering={FadeInUp.delay(200).duration(400)}
-            style={{ paddingHorizontal: spacing[5] }}
+            entering={FadeInUp.delay(160).duration(280)}
+            style={{ paddingHorizontal: 20, marginTop: 20 }}
           >
             <Text
               style={{
-                fontSize: 16,
+                fontSize: 11,
                 fontWeight: '700',
-                color: textPrimary,
-                marginBottom: spacing[3],
+                color: t.ink2,
+                marginBottom: 10,
+                textTransform: 'uppercase',
+                letterSpacing: 2.2,
               }}
             >
-              {t('healthReport.pastReports')}
+              {i18n('healthReport.pastReports')}
             </Text>
-            <View style={{ gap: spacing[2] }}>
+            <View style={{ gap: 8 }}>
               {bikeReports.map((report, idx) => (
-                <HealthReportCard
-                  key={report.id}
-                  id={report.id}
-                  status={report.status}
-                  pdfUrl={report.pdfUrl}
-                  createdAt={report.createdAt}
-                  index={idx}
-                  onRetry={handleRetry}
-                />
+                <ReportRow key={report.id} report={report} index={idx} onRetry={handleRetry} />
               ))}
             </View>
           </Animated.View>
         )}
       </ScrollView>
     </View>
+  );
+}
+
+function ReportRow({
+  report,
+  index,
+  onRetry,
+}: {
+  report: HealthReport;
+  index: number;
+  onRetry: () => void;
+}) {
+  const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
+
+  const dateStr = new Date(report.createdAt).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  const statusLabel =
+    report.status === 'completed'
+      ? i18n('healthReport.statusCompleted')
+      : report.status === 'pending'
+        ? i18n('healthReport.statusPending')
+        : i18n('healthReport.statusFailed');
+
+  const statusColor =
+    report.status === 'completed' ? t.success : report.status === 'pending' ? t.warm : t.danger;
+
+  const StatusIcon =
+    report.status === 'completed'
+      ? CheckCircle
+      : report.status === 'pending'
+        ? Clock
+        : AlertTriangle;
+
+  const handlePress = async () => {
+    if (report.status === 'completed' && report.pdfUrl) {
+      triggerImpact();
+      await Linking.openURL(report.pdfUrl);
+    } else if (report.status === 'failed') {
+      triggerImpact();
+      onRetry();
+    }
+  };
+
+  return (
+    <Animated.View entering={FadeInUp.delay(index * 40).duration(200)}>
+      <Pressable
+        onPress={handlePress}
+        disabled={report.status === 'pending'}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          padding: 14,
+          backgroundColor: t.surface,
+          borderRadius: 14,
+          borderCurve: 'continuous',
+          borderWidth: 1,
+          borderColor: t.line,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        })}
+      >
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            borderCurve: 'continuous',
+            backgroundColor: tint(statusColor, 0.15),
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <StatusIcon size={18} color={statusColor} strokeWidth={2} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink }}>{statusLabel}</Text>
+          <Text style={{ fontSize: 12, color: t.ink3, marginTop: 2 }}>{dateStr}</Text>
+        </View>
+        {report.status === 'completed' && report.pdfUrl && (
+          <Download size={16} color={t.ink3} strokeWidth={2} />
+        )}
+        {report.status === 'failed' && <RefreshCw size={14} color={t.ink3} strokeWidth={2} />}
+      </Pressable>
+    </Animated.View>
   );
 }

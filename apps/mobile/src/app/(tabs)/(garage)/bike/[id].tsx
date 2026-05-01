@@ -956,11 +956,11 @@ export default function BikeDetailScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: theme.ink }}>
-                {t('healthReport.title', { defaultValue: 'AI Health Report' })}
+                {t('healthReport.title', { defaultValue: 'Service Report' })}
               </Text>
               <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }}>
                 {t('healthReport.subtitle', {
-                  defaultValue: 'Get a full diagnostic analysis of your bike',
+                  defaultValue: 'Maintenance history, expenses & condition overview',
                 })}
               </Text>
             </View>

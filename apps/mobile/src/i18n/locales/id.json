@@ -1239,8 +1239,8 @@
     "on": "di"
   },
   "healthReport": {
-    "title": "Laporan Kesehatan AI",
-    "subtitle": "Dapatkan analisis diagnostik lengkap untuk motor Anda",
+    "title": "Laporan Servis",
+    "subtitle": "Riwayat perawatan, pengeluaran & kondisi",
     "generate": "Buat Laporan Kesehatan",
     "generating": "Membuat laporan Anda...",
     "generatingSubtitle": "Ini mungkin memerlukan waktu",

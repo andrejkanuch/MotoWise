@@ -1239,8 +1239,8 @@
     "on": "で"
   },
   "healthReport": {
-    "title": "AI健康レポート",
-    "subtitle": "バイクの完全な診断分析を取得",
+    "title": "サービスレポート",
+    "subtitle": "メンテナンス履歴、費用、状態の概要",
     "generate": "ヘルスレポートを作成",
     "generating": "レポートを作成中...",
     "generatingSubtitle": "少々お待ちください",

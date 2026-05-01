@@ -1239,8 +1239,8 @@
     "on": "su"
   },
   "healthReport": {
-    "title": "Rapporto salute IA",
-    "subtitle": "Ottieni un'analisi diagnostica completa della tua moto",
+    "title": "Rapporto di servizio",
+    "subtitle": "Cronologia manutenzione, spese e condizioni",
     "generate": "Genera report di salute",
     "generating": "Generazione del report...",
     "generatingSubtitle": "Potrebbe richiedere un momento",

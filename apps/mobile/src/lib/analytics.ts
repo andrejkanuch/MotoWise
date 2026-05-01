@@ -152,6 +152,9 @@ export const AnalyticsEvent = {
   EXPENSE_DASHBOARD_VIEWED: 'expense_dashboard_viewed',
   FUEL_LOG_ADDED: 'fuel_log_added',
   HEALTH_REPORT_VIEWED: 'health_report_viewed',
+  HEALTH_REPORT_GENERATED: 'health_report_generated',
+  HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',
+  HEALTH_REPORT_RETRIED: 'health_report_retried',
 
   // Rides
   RIDE_STARTED: 'ride_started',

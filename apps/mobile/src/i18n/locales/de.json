@@ -1239,8 +1239,8 @@
     "on": "auf"
   },
   "healthReport": {
-    "title": "KI-Gesundheitsbericht",
-    "subtitle": "Erhalten Sie eine vollständige Diagnoseanalyse Ihres Motorrads",
+    "title": "Servicebericht",
+    "subtitle": "Wartungshistorie, Ausgaben & Zustandsübersicht",
     "generate": "Zustandsbericht erstellen",
     "generating": "Dein Bericht wird erstellt...",
     "generatingSubtitle": "Das kann einen Moment dauern",

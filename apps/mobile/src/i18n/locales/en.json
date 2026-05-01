@@ -1239,8 +1239,8 @@
     "on": "on"
   },
   "healthReport": {
-    "title": "AI Health Report",
-    "subtitle": "Get a full diagnostic analysis of your bike",
+    "title": "Service Report",
+    "subtitle": "Maintenance history, expenses & condition overview",
     "generate": "Generate Health Report",
     "generating": "Generating your report...",
     "generatingSubtitle": "This may take a moment",
