@@ -67,4 +67,10 @@ export class CompleteOnboardingInput {
 
   @Field({ nullable: true, description: 'Meta click ID from deep link for CAPI attribution' })
   fbclid?: string;
+
+  @Field({
+    nullable: true,
+    description: 'UUID for client-server event deduplication with Meta CAPI',
+  })
+  eventId?: string;
 }

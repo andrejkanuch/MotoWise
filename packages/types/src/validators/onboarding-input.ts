@@ -47,6 +47,7 @@ export const CompleteOnboardingInputSchema = z.object({
   bikeMileageUnit: z.enum(['mi', 'km']).optional(),
   currency: z.enum(currencyValues).optional(),
   fbclid: z.string().max(256).optional(),
+  eventId: z.string().uuid().optional(),
 });
 
 export type CompleteOnboardingInput = z.infer<typeof CompleteOnboardingInputSchema>;

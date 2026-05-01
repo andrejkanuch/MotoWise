@@ -162,6 +162,9 @@ input CompleteOnboardingInput {
   bikeType: String
   bikeYear: Int
   currency: String
+
+  """UUID for client-server event deduplication with Meta CAPI"""
+  eventId: String
   experienceLevel: String!
 
   """Meta click ID from deep link for CAPI attribution"""

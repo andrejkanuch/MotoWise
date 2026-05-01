@@ -1,5 +1,6 @@
 import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Crypto from 'expo-crypto';
 import { useRouter } from 'expo-router';
 import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
@@ -136,12 +137,16 @@ export default function PersonalizingScreen() {
       // Clear fbclid after use — it should only be sent once
       if (fbclid) clearStoredFbclid();
 
+      // Shared event ID for client-server dedup with Meta CAPI
+      const eventId = Crypto.randomUUID();
+      input.eventId = eventId;
+
       await completeOnboarding(input);
       trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',
         has_bike: !!bikeData,
       });
-      MetaAnalytics.trackCompleteTutorial();
+      MetaAnalytics.trackCompleteRegistration(eventId);
       setOnboardingCompleted(true);
       setMutationDone(true);
     };

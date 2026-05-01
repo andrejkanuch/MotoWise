@@ -23,6 +23,7 @@ export class MetaEventsService {
     value?: number;
     currency?: string;
     fbclid?: string;
+    eventId?: string;
   }): Promise<void> {
     const datasetId = this.config.get<string>('META_DATASET_ID');
     const accessToken = this.config.get<string>('META_ACCESS_TOKEN');
@@ -32,13 +33,14 @@ export class MetaEventsService {
       return;
     }
 
-    const { eventName, userEmail, userId, value, currency, fbclid } = params;
+    const { eventName, userEmail, userId, value, currency, fbclid, eventId } = params;
 
     const payload = {
       data: [
         {
           event_name: eventName,
           event_time: Math.floor(Date.now() / 1000),
+          ...(eventId && { event_id: eventId }),
           action_source: 'app',
           user_data: {
             em: [this.hash(userEmail)],

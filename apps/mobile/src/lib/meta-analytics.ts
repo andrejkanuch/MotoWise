@@ -1,7 +1,13 @@
 import { AppEventsLogger } from 'react-native-fbsdk-next';
 
 export const MetaAnalytics = {
-  trackCompleteTutorial: () => AppEventsLogger.logEvent('fb_mobile_tutorial_completion'),
+  trackCompleteRegistration: (eventId?: string) => {
+    if (eventId) {
+      AppEventsLogger.logEvent('fb_mobile_complete_registration', { event_id: eventId });
+    } else {
+      AppEventsLogger.logEvent('fb_mobile_complete_registration');
+    }
+  },
 
   trackViewContent: (contentType: string, contentId: string) =>
     AppEventsLogger.logEvent('fb_mobile_content_view', {
