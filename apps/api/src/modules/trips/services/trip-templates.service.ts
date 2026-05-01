@@ -12,7 +12,13 @@ import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
-import { mapRowToTrip, TRIP_DETAIL_SELECT, type TripRow } from './trip-lifecycle.service';
+import {
+  mapRowToTrip,
+  mapRowToWaypoint,
+  TRIP_DETAIL_SELECT,
+  type TripRow,
+  type WaypointRow,
+} from './trip-lifecycle.service';
 
 /** Template listing/detail rows: same select as {@link TRIP_DETAIL_SELECT}. */
 const TEMPLATE_SELECT = TRIP_DETAIL_SELECT;
@@ -176,7 +182,9 @@ export class TripTemplatesService {
   async getTemplateBySlug(country: string, region: string, slug: string): Promise<Trip> {
     const { data, error } = await this.supabase
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(
+        `${TEMPLATE_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
+      )
       .eq('is_template', true)
       .eq('country_code', country.toUpperCase())
       .eq('region_code', region)
@@ -185,7 +193,12 @@ export class TripTemplatesService {
       .single();
 
     if (error || !data) throw new NotFoundException('Template not found');
-    return this.mapTemplateRow(data as unknown as TemplateRow);
+    const trip = this.mapTemplateRow(data as unknown as TemplateRow);
+    const wpRows = (data as Record<string, unknown>).trip_waypoints as WaypointRow[] | undefined;
+    if (wpRows?.length) {
+      trip.waypoints = wpRows.map(mapRowToWaypoint);
+    }
+    return trip;
   }
 
   async getTemplateById(id: string): Promise<Trip> {

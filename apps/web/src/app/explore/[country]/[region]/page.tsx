@@ -2,11 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
-import { RouteCard } from '@/components/marketing/route-card';
 import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
 import {
   fetchRegionBySlug,
-  fetchRoutesByRegion,
   fetchTripTemplatesByRegion,
   type TripTemplateNode,
 } from '@/lib/fetch-places';
@@ -118,10 +116,9 @@ export default async function RegionPage({ params }: PageProps) {
   if (!result) notFound();
 
   const { country, region } = result;
-  const [routes, tripTemplates] = await Promise.all([
-    fetchRoutesByRegion(country.countryCode, regionSlug).catch(() => []),
-    fetchTripTemplatesByRegion(country.countryCode, regionSlug).catch(() => []),
-  ]);
+  const tripTemplates = await fetchTripTemplatesByRegion(country.countryCode, regionSlug).catch(
+    () => [],
+  );
 
   const title = `Motorcycle Routes in ${region.name}, ${country.name}`;
   const description = `Explore ${region.routeCount} motorcycle routes in ${region.name}, ${country.name}.`;
@@ -153,7 +150,7 @@ export default async function RegionPage({ params }: PageProps) {
       description,
       url: canonical,
       isPartOf: { '@type': 'WebSite', url: BASE_URL },
-      numberOfItems: routes.length + tripTemplates.length,
+      numberOfItems: tripTemplates.length,
     },
   );
 
@@ -186,34 +183,20 @@ export default async function RegionPage({ params }: PageProps) {
         </div>
       </section>
 
-      {/* Trip templates */}
-      {tripTemplates.length > 0 && (
-        <section className="px-6 pb-12">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="mb-6 text-xl font-bold text-neutral-50">Trip Templates</h2>
+      {/* Trips */}
+      <section className="px-6 pb-24">
+        <div className="mx-auto max-w-5xl">
+          {tripTemplates.length === 0 ? (
+            <p className="text-center text-neutral-500">
+              No routes available in {region.name} yet. Check back soon!
+            </p>
+          ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {tripTemplates.map((trip) => (
                 <TripTemplateCard key={trip.id} trip={trip} />
               ))}
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* Routes (legacy) */}
-      <section className="px-6 pb-24">
-        <div className="mx-auto max-w-5xl">
-          {routes.length === 0 && tripTemplates.length === 0 ? (
-            <p className="text-center text-neutral-500">
-              No routes available in {region.name} yet. Check back soon!
-            </p>
-          ) : routes.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {routes.map((route) => (
-                <RouteCard key={route.id} route={route} />
-              ))}
-            </div>
-          ) : null}
+          )}
         </div>
       </section>
     </>
