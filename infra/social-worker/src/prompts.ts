@@ -203,9 +203,15 @@ export const DRAFT_SYSTEM_PROMPT = [
   '',
   // ── SCREENSHOT RULES ──────────────────────────────────────────────────
   'SCREENSHOT RULES:',
-  '  - When the post shows the app UI, you MUST pick 1-2 keys from the',
-  '    catalog provided in the user prompt. The real screenshot will be',
-  '    composited in by the worker — do not hallucinate UI.',
+  '  - When the post shows the app UI, pick 1-2 keys from the catalog.',
+  '    The worker publishes as a CAROUSEL: your generated image as slide 1,',
+  '    then the REAL app screenshots as slides 2+.',
+  '  - CRITICAL: When screenshotKeys is NON-EMPTY, your storyPrompt MUST be',
+  '    PURELY ATMOSPHERIC or LIFESTYLE. Do NOT include any phone, phone',
+  '    mockup, device, app screen, or UI element in the image. No screens.',
+  '    No devices. Think "mood setter" — the real app slides follow.',
+  '  - When screenshotKeys is empty [], you MAY include a phone but keep',
+  '    the screen dark/off — never render fake app UI.',
   '  - Match screenshot to angle. Quick map:',
   '      Maintenance angle      → bike-detail-service-maintenance,',
   '                                home-dashboard-tasks-stats',
@@ -227,12 +233,8 @@ export const DRAFT_SYSTEM_PROMPT = [
   '      Diagnostics angle      → ai-diagnosis-home',
   '      Home / overview angle  → home-dashboard-hero,',
   '                                home-dashboard-tasks-stats',
-  "  - In storyPrompt, describe WHERE the phone sits and how it's lit.",
-  '    Examples: "phone mockup centered, screenshot vertical, helmet softly',
-  '    lit beside it on workbench" or "two phones angled in V at center,',
-  '    warm rim light underneath".',
-  '  - If the post is purely atmospheric (no UI shown), set screenshotKeys',
-  '    to []. Never pad the array just to fill it.',
+  '  - If the post is purely atmospheric (no UI), set screenshotKeys to [].',
+  '    Never pad the array just to fill it.',
   '',
   // ── ACCESSIBILITY ─────────────────────────────────────────────────────
   'ALT TEXT: write 1-2 short sentences describing the image factually for',
@@ -244,68 +246,3 @@ export const DRAFT_SYSTEM_PROMPT = [
   'trailing commentary. The JSON must exactly match the provided schema.',
   'Do not invent extra fields. Do not omit required fields.',
 ].join('\n');
-
-/**
- * Gemini `responseJsonSchema` — subset of JSON Schema Draft 7 that Gemini
- * supports. Does NOT support $ref, oneOf/anyOf/allOf, pattern, minLength,
- * maxLength (on strings). Length bounds are enforced in `validateDraft` at
- * runtime instead.
- *
- * Property order matters: Gemini produces output in the same order as the
- * keys in the schema. We put `angle` and `contentPillar` first so the model
- * commits to a topic before writing copy or imagery.
- *
- * v2 additions: `contentPillar` (for rotation analytics + pillar balancing)
- * and `altText` (accessibility — required by Meta's accessibility guidance
- * and improves reach signals).
- */
-export const DRAFT_RESPONSE_SCHEMA = {
-  type: 'object',
-  properties: {
-    angle: {
-      type: 'string',
-      description:
-        'Short kebab-case slug describing the angle, drawn from the angle library in the system prompt (e.g. "cost-per-mile", "service-overdue-pain", "lean-angle-readout"). Must NOT repeat any of the recent angles listed in the user prompt. Invent a new slug only if none of the library entries fits.',
-    },
-    contentPillar: {
-      type: 'string',
-      description:
-        'Parent pillar of the chosen angle. Exactly one of: "garage", "maintenance", "expenses", "trips", "rides", "diagnostics", "community", "learning", "pro", "seasonal". Used by the worker for pillar-balancing across the publishing schedule.',
-    },
-    caption: {
-      type: 'string',
-      description:
-        'Full Instagram/Facebook caption. Body is 60-280 characters with hook + ONE concrete benefit + ONE CTA. Append 8-15 hashtags on a new line after a blank line, ending with #MotoVault. Never use #motorcycle.',
-    },
-    postPrompt: {
-      type: 'string',
-      description:
-        'Reference 4:5 scene description for manual seeds. The auto-draft pipeline only generates from storyPrompt, but this field stays in the schema for compatibility with the manual-seed workflow. 80-200 characters describing the same scene as storyPrompt, framed for a 4:5 feed image.',
-    },
-    storyPrompt: {
-      type: 'string',
-      description:
-        '9:16 photorealistic image prompt. 200-400 characters. This is the ONLY image generated — it is also center-cropped to 4:5 for the feed post, so compose key subject, phone mockup, and any text overlay in the CENTER of the frame; the top and bottom ~30% will be cropped off. Describe scene, lighting, framing, and any overlaid text. Moody/cinematic/dark with warm orange accents. Reference Plus Jakarta Sans Bold for any in-frame text. When screenshotKeys are non-empty, describe where the phone mockup sits and how it is lit — the real screenshot is composited in.',
-    },
-    screenshotKeys: {
-      type: 'array',
-      items: { type: 'string' },
-      description:
-        'Array of 0-2 screenshot catalog keys to composite into the generated image. Pick keys that match the angle (see SCREENSHOT RULES in the system prompt for the angle→key map). Use an empty array [] for purely atmospheric posts that do not show app UI. Never pad to two keys just to fill the array.',
-    },
-    altText: {
-      type: 'string',
-      description:
-        'Accessibility alt text for the generated image. 1-2 short sentences (max 220 characters) describing the image factually for screen readers — subject, setting, any visible text overlay. Do not repeat the caption. Do not include hashtags or marketing language.',
-    },
-  },
-  required: [
-    'angle',
-    'contentPillar',
-    'caption',
-    'postPrompt',
-    'storyPrompt',
-    'screenshotKeys',
-    'altText',
-  ],
-} as const;

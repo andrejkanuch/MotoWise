@@ -25,7 +25,7 @@
  */
 import { draftPost } from './draft';
 import type { Env } from './env';
-import { generateImage, publishPost, publishStory, type ReferenceImage } from './publish';
+import { generateImage, publishCarousel, publishPost, publishStory } from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -96,10 +96,11 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2a: fetch real app screenshots if the post specifies screenshot keys.
-    // These are passed as reference images to Gemini so it composites the real
-    // app UI into the generated scene instead of hallucinating phone screens.
-    const referenceImages: ReferenceImage[] = [];
+    // Step 2a: fetch real app screenshots as base64 if screenshot keys exist.
+    // These are published as carousel slides AFTER the generated atmospheric
+    // image — Gemini can't reliably composite reference images onto phone
+    // screens, so we separate generated art from real UI.
+    const screenshotBase64: string[] = [];
     if (row.screenshot_keys?.length) {
       console.log(
         `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
@@ -121,34 +122,49 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
           }
           const arrayBuffer = await screenshotRes.arrayBuffer();
           const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-          referenceImages.push({ data: base64, mimeType: 'image/png' });
+          screenshotBase64.push(base64);
         } catch (err) {
           console.warn(
             `[scheduled] id=${row.id} screenshot "${key}" error: ${err instanceof Error ? err.message : err}`,
           );
         }
       }
-      console.log(`[scheduled] id=${row.id} loaded ${referenceImages.length} reference image(s)`);
+      console.log(
+        `[scheduled] id=${row.id} loaded ${screenshotBase64.length} screenshot(s) for carousel`,
+      );
     }
 
-    // Step 2b: generate ONE image at 9:16 and reuse for both post + story.
-    // publishPost renders it as 1080x1350 (4:5 center-crop via Supabase
-    // Storage /render), publishStory renders it as 1080x1920 (9:16, near
-    // exact). This halves Gemini image-gen credits per publish cycle.
-    // The story_prompt is used because 9:16 is the taller format — cropping
-    // down to 4:5 works cleanly, while scaling up from 4:5 to 9:16 would
-    // require upscaling (which Supabase render does NOT do).
-    const image = await generateImage(env, row.story_prompt, '9:16', referenceImages);
+    // Step 2b: generate ONE atmospheric image at 9:16. When screenshots exist
+    // the prompt instructs Gemini to produce a purely atmospheric scene (no
+    // phone/UI). The 9:16 is reused for both post + story — publishPost
+    // center-crops to 4:5, publishStory uses 9:16 as-is.
+    const image = await generateImage(env, row.story_prompt, '9:16');
 
     console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine})`);
 
-    // Steps 3–4: publish sequentially so a story failure doesn't orphan a
-    // successful post and vice versa — easier to reason about on retry.
-    const postOutcome = await publishPost(env, {
-      image_base64: image.image_base64,
-      caption: row.caption,
-      platform: 'both',
-    });
+    // Steps 3–4: publish. When screenshots exist, use a carousel (generated
+    // atmospheric image + real screenshots). Otherwise, single-image post.
+    let postOutcome: { image_url: string; results: Record<string, unknown> };
+    if (screenshotBase64.length > 0) {
+      const carouselImages = [image.image_base64, ...screenshotBase64];
+      console.log(`[scheduled] id=${row.id} publishing carousel (${carouselImages.length} slides)`);
+      const carouselResult = await publishCarousel(env, {
+        images_base64: carouselImages,
+        caption: row.caption,
+        platform: 'both',
+      });
+      postOutcome = {
+        image_url: carouselResult.image_urls[0],
+        results: carouselResult.results,
+      };
+    } else {
+      const singleResult = await publishPost(env, {
+        image_base64: image.image_base64,
+        caption: row.caption,
+        platform: 'both',
+      });
+      postOutcome = singleResult;
+    }
 
     const storyOutcome = await publishStory(env, {
       image_base64: image.image_base64,

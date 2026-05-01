@@ -15,8 +15,9 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
 
-  // Google AI Studio (Gemini + Imagen)
+  // AI providers
   GOOGLE_AI_STUDIO_KEY: string;
+  OPENAI_API_KEY: string;
 
   // HTTP auth for /publish-post, /publish-story, /generate-image, /fill-queue
   WORKER_AUTH_KEY: string;

@@ -1,10 +1,18 @@
 /**
- * Core publishing logic — Gemini image generation, Meta Graph API posting,
+ * Core publishing logic — AI SDK image generation, Meta Graph API posting,
  * Supabase Storage uploads.
+ *
+ * Image generation uses the Vercel AI SDK (`ai` + provider packages) so we
+ * can swap models/providers by changing a string. Primary: OpenAI gpt-image-2.
+ * Fallback chain: Google Gemini image → Imagen 4.
  *
  * Exported as plain async functions (no HTTP parsing) so both the `fetch`
  * handler and the `scheduled` handler can call them directly.
  */
+
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateImage as aiGenerateImage } from 'ai';
 import type { Env } from './env';
 
 const GRAPH_API = 'https://graph.facebook.com/v22.0';
@@ -15,7 +23,7 @@ export type Platform = 'instagram' | 'facebook' | 'both';
 export interface GeneratedImage {
   image_base64: string;
   mime_type: string;
-  engine: 'gemini-3.1-flash-image' | 'gemini-3-pro-image' | 'imagen-4-fallback';
+  engine: string;
   aspect_ratio: AspectRatio;
 }
 
@@ -28,149 +36,84 @@ export interface PublishResult {
 }
 
 // ---------------------------------------------------------------------------
-// Image generation (Gemini primary, Gemini Pro fallback, Imagen 4 fallback)
+// Image generation (AI SDK — OpenAI primary, Google fallback)
 // ---------------------------------------------------------------------------
 
-interface GeminiPart {
-  inlineData?: { data: string; mimeType?: string };
-}
-interface GeminiResponse {
-  candidates?: Array<{ content?: { parts?: GeminiPart[] } }>;
-  error?: { message?: string };
-}
-interface ImagenResponse {
-  predictions?: Array<{ bytesBase64Encoded: string }>;
-  error?: { message?: string };
-}
-
-export interface ReferenceImage {
-  data: string; // base64-encoded image
-  mimeType: string;
-}
+/** Map our aspect ratios to OpenAI's supported sizes. */
+const OPENAI_SIZE_MAP: Record<AspectRatio, '1024x1536' | '1536x1024' | '1024x1024'> = {
+  '4:5': '1024x1536',
+  '9:16': '1024x1536',
+  '1:1': '1024x1024',
+};
 
 export async function generateImage(
   env: Env,
   prompt: string,
   aspectRatio: AspectRatio = '4:5',
-  referenceImages: ReferenceImage[] = [],
 ): Promise<GeneratedImage> {
-  // Build multimodal parts: text prompt + any reference screenshots.
-  // When reference images are provided, Gemini sees the real app screenshots
-  // and composites them into the generated scene instead of hallucinating
-  // phone UI.
-  const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
-  for (const ref of referenceImages) {
-    parts.push({ inlineData: { data: ref.data, mimeType: ref.mimeType } });
-  }
-  if (referenceImages.length > 0) {
-    parts.push({
-      text:
-        `${prompt}\n\nIMPORTANT: The image(s) above are REAL screenshots from the MotoVault app. ` +
-        'When composing the scene, place these exact screenshots on the phone screen(s) in the image. ' +
-        'Do NOT invent or hallucinate any app UI — use ONLY the provided screenshot(s) as the phone display content. ' +
-        'The phone frame should have rounded corners and a modern smartphone bezel.',
+  // --- Primary: OpenAI gpt-image-2 ---
+  try {
+    const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
+    const { image } = await aiGenerateImage({
+      model: openai.image('gpt-image-2'),
+      prompt,
+      size: OPENAI_SIZE_MAP[aspectRatio],
+      providerOptions: { openai: { quality: 'high' } },
     });
-  } else {
-    parts.push({ text: prompt });
-  }
 
-  // Primary: Gemini 3.1 Flash Image (native 4:5 + 9:16 + text rendering)
-  const gemini31Url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
-
-  const res = await fetch(gemini31Url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: {
-        responseModalities: ['TEXT', 'IMAGE'],
-        imageConfig: { aspectRatio, imageSize: '2K' },
-      },
-    }),
-  });
-
-  const data = (await res.json()) as GeminiResponse;
-
-  if (res.ok) {
-    const parts = data.candidates?.[0]?.content?.parts ?? [];
-    const imagePart = parts.find((p) => p.inlineData);
-    if (imagePart?.inlineData) {
-      return {
-        image_base64: imagePart.inlineData.data,
-        mime_type: imagePart.inlineData.mimeType ?? 'image/png',
-        engine: 'gemini-3.1-flash-image',
-        aspect_ratio: aspectRatio,
-      };
-    }
-  }
-
-  // Fallback 1: Gemini 3 Pro Image (Nano Banana Pro)
-  const gemini3ProUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${env.GOOGLE_AI_STUDIO_KEY}`;
-
-  const res2 = await fetch(gemini3ProUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts }],
-      generationConfig: {
-        responseModalities: ['TEXT', 'IMAGE'],
-        imageConfig: { aspectRatio, imageSize: '2K' },
-      },
-    }),
-  });
-
-  const data2 = (await res2.json()) as GeminiResponse;
-
-  if (res2.ok) {
-    const parts2 = data2.candidates?.[0]?.content?.parts ?? [];
-    const imagePart2 = parts2.find((p) => p.inlineData);
-    if (imagePart2?.inlineData) {
-      return {
-        image_base64: imagePart2.inlineData.data,
-        mime_type: imagePart2.inlineData.mimeType ?? 'image/png',
-        engine: 'gemini-3-pro-image',
-        aspect_ratio: aspectRatio,
-      };
-    }
-  }
-
-  // Fallback 2: Imagen 4 (no text overlay, but correct ratios for 9:16)
-  const imagenRatioMap: Record<AspectRatio, string> = {
-    '4:5': '3:4',
-    '9:16': '9:16',
-    '1:1': '1:1',
-  };
-  const imagenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${env.GOOGLE_AI_STUDIO_KEY}`;
-
-  const res3 = await fetch(imagenUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      instances: [{ prompt }],
-      parameters: {
-        sampleCount: 1,
-        aspectRatio: imagenRatioMap[aspectRatio],
-        outputOptions: { mimeType: 'image/png' },
-      },
-    }),
-  });
-
-  const data3 = (await res3.json()) as ImagenResponse;
-
-  if (res3.ok && data3.predictions && data3.predictions.length > 0) {
     return {
-      image_base64: data3.predictions[0].bytesBase64Encoded,
+      image_base64: image.base64,
       mime_type: 'image/png',
-      engine: 'imagen-4-fallback',
+      engine: 'openai-gpt-image-2',
       aspect_ratio: aspectRatio,
     };
+  } catch (err) {
+    console.warn(
+      `[generateImage] gpt-image-2 failed: ${err instanceof Error ? err.message : err} — trying Gemini`,
+    );
   }
 
-  throw new Error(
-    `All image generation engines failed: gemini31=${data.error?.message ?? 'no image'}, ` +
-      `gemini3pro=${data2.error?.message ?? 'no image'}, ` +
-      `imagen4=${data3.error?.message ?? 'no predictions'}`,
-  );
+  // --- Fallback 1: Google Gemini image model ---
+  try {
+    const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_AI_STUDIO_KEY });
+    const { image } = await aiGenerateImage({
+      model: google.image('gemini-2.5-flash-image'),
+      prompt,
+      aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
+    });
+
+    return {
+      image_base64: image.base64,
+      mime_type: 'image/png',
+      engine: 'google-gemini-image',
+      aspect_ratio: aspectRatio,
+    };
+  } catch (err) {
+    console.warn(
+      `[generateImage] Gemini image failed: ${err instanceof Error ? err.message : err} — trying Imagen 4`,
+    );
+  }
+
+  // --- Fallback 2: Google Imagen 4 ---
+  try {
+    const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_AI_STUDIO_KEY });
+    const { image } = await aiGenerateImage({
+      model: google.image('imagen-4.0-generate-001'),
+      prompt,
+      aspectRatio: aspectRatio === '4:5' ? '3:4' : aspectRatio,
+    });
+
+    return {
+      image_base64: image.base64,
+      mime_type: 'image/png',
+      engine: 'google-imagen-4',
+      aspect_ratio: aspectRatio,
+    };
+  } catch (err) {
+    throw new Error(
+      `All image generation engines failed. Last error: ${err instanceof Error ? err.message : err}`,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -189,8 +132,6 @@ export async function publishPost(
   await uploadToSupabase(env, path, imageBytes);
 
   // Instagram feed posts: exact 4:5 at 1080x1350 (Meta's recommended spec).
-  // Supabase Storage's render endpoint crops Gemini's near-4:5 output to the
-  // pixel-exact target.
   const imageUrl = renderUrl(env, path, 1080, 1350);
 
   if (platform === 'both' || platform === 'facebook') {
@@ -250,17 +191,10 @@ export interface PublishCarouselResult {
  *
  * Instagram carousel flow (per Meta Graph API v22):
  *   1. For each image: POST /{ig-user-id}/media with is_carousel_item=true
- *      → returns a child container id
- *   2. POST /{ig-user-id}/media with media_type=CAROUSEL and
- *      children=id1,id2,... plus the caption → parent container id
+ *   2. POST /{ig-user-id}/media with media_type=CAROUSEL + children + caption
  *   3. Wait for parent FINISHED, then POST /{ig-user-id}/media_publish
  *
- * Facebook multi-photo flow:
- *   1. For each image: POST /{page-id}/photos with published=false
- *      → returns photo ids
- *   2. POST /{page-id}/feed with message + attached_media=[{media_fbid:...}]
- *
- * Meta allows 2–10 items per carousel. Caller must pass 2–10 images.
+ * Meta allows 2–10 items per carousel.
  */
 export async function publishCarousel(
   env: Env,
@@ -273,9 +207,6 @@ export async function publishCarousel(
     throw new Error(`Carousel requires 2–10 images (got ${params.images_base64.length})`);
   }
 
-  // Upload all slides to Supabase Storage and build the pixel-exact 1080x1350
-  // render URLs Meta expects for 4:5 feed posts. Using Promise.all keeps the
-  // worker request time bounded by the slowest upload rather than the sum.
   const timestamp = Date.now();
   const paths = await Promise.all(
     params.images_base64.map(async (b64, i) => {
@@ -290,7 +221,6 @@ export async function publishCarousel(
   // -- Instagram -----------------------------------------------------------
   if (platform === 'both' || platform === 'instagram') {
     try {
-      // Step 1: create a child container per slide.
       const childIds: string[] = [];
       for (const imageUrl of imageUrls) {
         const child = await graphPost(`${env.META_IG_USER_ID}/media`, {
@@ -301,14 +231,10 @@ export async function publishCarousel(
         if (!child.id) {
           throw new Error(`IG child container failed: ${JSON.stringify(child.error ?? child)}`);
         }
-        // Per Meta docs, children must also reach FINISHED before the parent
-        // can reference them. Skipping this causes sporadic "Media ID is not
-        // available" errors on media_publish.
         await waitForIgProcessing(child.id, env.META_API_KEY);
         childIds.push(child.id);
       }
 
-      // Step 2: create the parent CAROUSEL container.
       const parent = await graphPost(`${env.META_IG_USER_ID}/media`, {
         media_type: 'CAROUSEL',
         children: childIds.join(','),
@@ -322,7 +248,6 @@ export async function publishCarousel(
 
       await waitForIgProcessing(parent.id, env.META_API_KEY);
 
-      // Step 3: publish the parent.
       const pub = await graphPost(`${env.META_IG_USER_ID}/media_publish`, {
         creation_id: parent.id,
         access_token: env.META_API_KEY,
@@ -344,7 +269,6 @@ export async function publishCarousel(
   // -- Facebook ------------------------------------------------------------
   if (platform === 'both' || platform === 'facebook') {
     try {
-      // Step 1: upload each photo unpublished to get back photo ids.
       const photoIds: string[] = [];
       for (const imageUrl of imageUrls) {
         const photo = await graphPost(`${env.META_PAGE_ID}/photos`, {
@@ -358,8 +282,6 @@ export async function publishCarousel(
         photoIds.push(photo.id);
       }
 
-      // Step 2: create a feed post that attaches all photos as a multi-photo
-      // post. `attached_media` must be a JSON-encoded array of {media_fbid}.
       const feedRes = await graphPost(`${env.META_PAGE_ID}/feed`, {
         message: params.caption,
         attached_media: JSON.stringify(photoIds.map((id) => ({ media_fbid: id }))),
@@ -397,10 +319,6 @@ export async function publishStory(
   const path = `publish/${Date.now()}-story.png`;
   await uploadToSupabase(env, path, imageBytes);
 
-  // Instagram and Facebook stories: exact 9:16 at 1080x1920. Gemini's 9:16
-  // output lands close (~1536x2752) but not pixel-exact, which causes IG to
-  // letterbox. The render URL forces the exact target dimensions via cover
-  // crop so Meta receives a true 9:16 image.
   const imageUrl = renderUrl(env, path, 1080, 1920);
 
   if (platform === 'both' || platform === 'instagram') {
@@ -427,7 +345,6 @@ export async function publishStory(
   }
 
   if (platform === 'both' || platform === 'facebook') {
-    // Two-step: upload unpublished photo, then publish as story
     const photo = await graphPost(`${env.META_PAGE_ID}/photos`, {
       url: imageUrl,
       published: 'false',
@@ -487,12 +404,6 @@ async function waitForIgProcessing(
   throw new Error('Instagram processing timeout');
 }
 
-/**
- * Upload bytes to Supabase Storage and return the storage path. Use
- * `publicUrl()` for the raw image and `renderUrl()` for on-the-fly image
- * transformations (needed to coerce Gemini output to exact aspect ratios
- * that Instagram and Facebook accept without letterboxing).
- */
 async function uploadToSupabase(env: Env, path: string, data: Uint8Array): Promise<string> {
   const url = `${env.SUPABASE_URL}/storage/v1/object/social-media/${path}`;
   const res = await fetch(url, {
@@ -517,13 +428,6 @@ function publicUrl(env: Env, path: string): string {
   return `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${path}`;
 }
 
-/**
- * Supabase Storage on-the-fly image transform. Forces exact pixel dimensions
- * with a cover resize, which Meta requires for feed posts (1080x1350 for 4:5)
- * and stories (1080x1920 for 9:16). Gemini's image models return near-target
- * ratios but not pixel-exact — passing the transformed URL to Meta guarantees
- * Instagram and Facebook render the image without letterboxing.
- */
 function renderUrl(env: Env, path: string, width: number, height: number): string {
   return (
     `${env.SUPABASE_URL}/storage/v1/render/image/public/social-media/${path}` +
