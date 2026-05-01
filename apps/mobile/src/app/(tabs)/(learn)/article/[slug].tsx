@@ -9,6 +9,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../../../lib/analytics';
 import { gqlFetcher } from '../../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../../lib/meta-analytics';
 import { queryKeys } from '../../../../lib/query-keys';
 
 const DIFFICULTY_COLORS = {
@@ -54,6 +55,7 @@ export default function ArticleScreen() {
   useEffect(() => {
     if (slug) {
       trackEvent(AnalyticsEvent.ARTICLE_VIEWED, { slug });
+      MetaAnalytics.trackViewContent('article', slug);
     }
   }, [slug]);
 

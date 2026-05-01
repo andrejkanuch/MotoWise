@@ -7,6 +7,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { AnalyticsWithConsent } from '@/components/analytics-consent';
 import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-consent';
+import { MetaPixel } from '@/components/meta-pixel';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
@@ -80,6 +81,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <>
               <Analytics />
               <AnalyticsWithConsent />
+              <MetaPixel />
               <WebVitalsReporter />
             </>
           )}

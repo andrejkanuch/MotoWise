@@ -2,6 +2,7 @@ import type { JsonType } from '@posthog/core';
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
 import PostHog from 'posthog-react-native';
+import { Settings } from 'react-native-fbsdk-next';
 import { getStoredUtmProperties } from './meta-attribution';
 
 // -------------------------------------------------------------------
@@ -65,6 +66,11 @@ export function setAnalyticsEnabled(enabled: boolean) {
     posthogClient.optOut();
   } else if (enabled && posthogClient) {
     posthogClient.optIn();
+  }
+  try {
+    Settings.setAdvertiserTrackingEnabled(enabled);
+  } catch {
+    // Can crash on iOS simulator
   }
 }
 

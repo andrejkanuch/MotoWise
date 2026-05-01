@@ -21,6 +21,7 @@ import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View } 
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, captureException, trackEvent, trackScreen } from '../../../lib/analytics';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 
 const isExpoGo = Constants.appOwnership === 'expo';
@@ -259,6 +260,11 @@ export default function UpgradeScreen() {
       trackEvent(AnalyticsEvent.PURCHASE_STARTED, { packageId: selectedPlan });
       await Purchases.purchasePackage(packageToBuy);
       trackEvent(AnalyticsEvent.PURCHASE_COMPLETED);
+      MetaAnalytics.trackSubscribe(
+        packageToBuy.product.price,
+        packageToBuy.product.currencyCode,
+        selectedPlan,
+      );
       router.back();
     } catch (error) {
       if (isPurchaseCancellation(error)) {

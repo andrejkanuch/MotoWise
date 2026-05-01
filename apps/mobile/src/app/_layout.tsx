@@ -16,6 +16,8 @@ import * as Application from 'expo-application';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
+import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
+import { Settings } from 'react-native-fbsdk-next';
 
 // expo-quick-actions requires a custom dev build — guard for Expo Go
 let QuickActions: typeof import('expo-quick-actions') | null = null;
@@ -361,6 +363,24 @@ export default function RootLayout() {
   // Capture Meta ad attribution params (fbclid + UTM) from initial deep link
   useEffect(() => {
     captureMetaAttribution();
+  }, []);
+
+  // Initialize Meta/Facebook SDK + ATT prompt
+  useEffect(() => {
+    async function initMetaSDK() {
+      if (process.env.EXPO_OS === 'ios') {
+        const { status } = await requestTrackingPermissionsAsync();
+        Settings.initializeSDK();
+        try {
+          Settings.setAdvertiserTrackingEnabled(status === 'granted');
+        } catch {
+          // setAdvertiserTrackingEnabled can crash on iOS simulator
+        }
+      } else {
+        Settings.initializeSDK();
+      }
+    }
+    initMetaSDK();
   }, []);
 
   // Drain ride sync queue on app resume, initial mount, and connectivity restore

@@ -24,6 +24,7 @@ import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { hasGraphQLCode, userFriendlyError } from '../../../lib/graphql-errors';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useEditorialTheme } from '../../../theme/editorial';
 
@@ -130,6 +131,7 @@ export default function AddBikeScreen() {
         nickname: nickname.trim() || undefined,
       });
       trackEvent(AnalyticsEvent.GARAGE_BIKE_ADDED, { make, model, year: yearNum });
+      MetaAnalytics.trackAddToGarage(make, model, yearNum);
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

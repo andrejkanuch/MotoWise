@@ -26,6 +26,7 @@ import { StepReviewSubmit } from '../../../components/diagnostic-flow/step-revie
 import { useProGate } from '../../../hooks/useProGate';
 import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
 
@@ -59,6 +60,7 @@ export default function NewDiagnosticScreen() {
       if (!isSubmitting) {
         reset();
         trackEvent(AnalyticsEvent.DIAGNOSTIC_STARTED);
+        MetaAnalytics.trackStartDiagnostic();
       }
     }, [reset]),
   );
