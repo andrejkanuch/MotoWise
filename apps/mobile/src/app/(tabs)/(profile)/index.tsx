@@ -55,6 +55,7 @@ import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
 import { safeSignOut } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/auth.store';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 const LOCALE_DISPLAY_NAMES: Record<SupportedLocale, string> = {
   en: 'English',
@@ -87,15 +88,16 @@ function haptic() {
 }
 
 function SectionHeader({ label }: { label: string }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Text
       style={{
         fontSize: 11,
-        fontWeight: '600',
-        color: palette.neutral500,
+        fontWeight: '700',
+        color: theme.ink2,
         textTransform: 'uppercase',
-        letterSpacing: 1.2,
-        marginBottom: 8,
+        letterSpacing: 2.2,
+        marginBottom: 10,
         marginLeft: 4,
       }}
     >
@@ -109,16 +111,15 @@ function SettingsRow({
   label,
   onPress,
   isLast,
-  isDark,
   color,
 }: {
   icon: typeof Settings;
   label: string;
   onPress?: () => void;
   isLast?: boolean;
-  isDark: boolean;
   color?: string;
 }) {
+  const { t: theme } = useEditorialTheme();
   return (
     <Pressable
       onPress={() => {
@@ -130,13 +131,9 @@ function SettingsRow({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 14,
-        backgroundColor: pressed
-          ? isDark
-            ? 'rgba(255,255,255,0.05)'
-            : 'rgba(0,0,0,0.03)'
-          : 'transparent',
+        backgroundColor: pressed ? tint(theme.ink, 0.05) : 'transparent',
         borderBottomWidth: isLast ? 0 : 0.5,
-        borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        borderBottomColor: theme.line,
       })}
     >
       <View
@@ -145,24 +142,17 @@ function SettingsRow({
           height: 32,
           borderRadius: 8,
           borderCurve: 'continuous',
-          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
+          backgroundColor: theme.surface2,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Icon size={17} color={color ?? palette.neutral500} strokeWidth={1.8} />
+        <Icon size={17} color={color ?? theme.ink3} strokeWidth={1.8} />
       </View>
-      <Text
-        style={{
-          flex: 1,
-          fontSize: 16,
-          color: color ?? (isDark ? palette.neutral50 : palette.neutral950),
-          marginLeft: 12,
-        }}
-      >
+      <Text style={{ flex: 1, fontSize: 16, color: color ?? theme.ink, marginLeft: 12 }}>
         {label}
       </Text>
-      {!color && <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />}
+      {!color && <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />}
     </Pressable>
   );
 }
@@ -180,6 +170,7 @@ export default function ProfileScreen() {
     setCurrency,
   } = useAuthStore();
   const { colorScheme, setColorScheme } = useColorScheme();
+  const { t: theme } = useEditorialTheme();
   const isDark = colorScheme === 'dark';
   const { isPro } = useProGate();
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -292,17 +283,10 @@ export default function ProfileScreen() {
       .toUpperCase()
       .slice(0, 2) ?? '?';
 
-  const editorialBg = isDark ? palette.editorialDarkBg : palette.editorialLightBg;
-  const editorialSurface = isDark ? palette.editorialDarkSurface : palette.editorialLightSurface;
-  const editorialInk = isDark ? palette.editorialDarkInk : palette.editorialLightInk;
-  const editorialInk2 = isDark ? palette.editorialDarkInk2 : palette.editorialLightInk2;
-  const editorialWarm = isDark ? palette.editorialDarkWarm : palette.editorialLightWarm;
-  const editorialLine = isDark ? palette.editorialDarkLine : palette.editorialLightLine;
-
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ flex: 1, backgroundColor: editorialBg }}
+      style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 120, gap: 16 }}
       showsVerticalScrollIndicator={false}
     >
@@ -312,7 +296,7 @@ export default function ProfileScreen() {
           style={{
             fontFamily: 'InstrumentSerif-Regular',
             fontSize: 40,
-            color: editorialInk,
+            color: theme.ink,
             letterSpacing: -0.8,
             lineHeight: 40,
           }}
@@ -325,12 +309,12 @@ export default function ProfileScreen() {
       <Animated.View entering={FadeInUp.duration(400)}>
         <View
           style={{
-            backgroundColor: editorialSurface,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             borderWidth: 1,
-            borderColor: editorialLine,
+            borderColor: theme.line,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
@@ -344,7 +328,7 @@ export default function ProfileScreen() {
               }}
             >
               <LinearGradient
-                colors={[editorialWarm, palette.editorialPurple]}
+                colors={[theme.warm, theme.purple]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
@@ -363,7 +347,7 @@ export default function ProfileScreen() {
                   style={{
                     fontSize: 17,
                     fontWeight: '600',
-                    color: editorialInk,
+                    color: theme.ink,
                     letterSpacing: -0.1,
                   }}
                 >
@@ -377,7 +361,7 @@ export default function ProfileScreen() {
                 <Text
                   style={{
                     fontSize: 13,
-                    color: editorialInk2,
+                    color: theme.ink2,
                     marginTop: 2,
                   }}
                 >
@@ -401,22 +385,18 @@ export default function ProfileScreen() {
                 borderRadius: 20,
                 borderCurve: 'continuous',
                 borderWidth: 1.5,
-                borderColor: isDark ? palette.primary600 : palette.primary500,
+                borderColor: theme.warm,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 6,
               }}
             >
-              <Pencil
-                size={14}
-                color={isDark ? palette.primary400 : palette.primary600}
-                strokeWidth={2}
-              />
+              <Pencil size={14} color={theme.warm} strokeWidth={2} />
               <Text
                 style={{
                   fontSize: 14,
                   fontWeight: '600',
-                  color: isDark ? palette.primary400 : palette.primary600,
+                  color: theme.warm,
                 }}
               >
                 {t('community.editProfile')}
@@ -435,22 +415,18 @@ export default function ProfileScreen() {
                 borderRadius: 20,
                 borderCurve: 'continuous',
                 borderWidth: 1.5,
-                borderColor: isDark ? palette.neutral400 : palette.neutral500,
+                borderColor: theme.ink3,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 6,
               }}
             >
-              <Settings
-                size={14}
-                color={isDark ? palette.neutral400 : palette.neutral500}
-                strokeWidth={2}
-              />
+              <Settings size={14} color={theme.ink3} strokeWidth={2} />
               <Text
                 style={{
                   fontSize: 14,
                   fontWeight: '600',
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: theme.ink3,
                 }}
               >
                 {t('settings.title', { defaultValue: 'Settings' })}
@@ -473,19 +449,19 @@ export default function ProfileScreen() {
               onPress={() => router.push('/(profile)/rider/followers')}
               style={{
                 flex: 1,
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                backgroundColor: theme.surface,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
                 alignItems: 'center',
-                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+                boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
               }}
             >
               <Text
                 style={{
                   fontSize: 22,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {user.followerCount ?? 0}
@@ -493,7 +469,7 @@ export default function ProfileScreen() {
               <Text
                 style={{
                   fontSize: 13,
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: theme.ink3,
                   marginTop: 2,
                 }}
               >
@@ -504,19 +480,19 @@ export default function ProfileScreen() {
               onPress={() => router.push('/(profile)/rider/followers')}
               style={{
                 flex: 1,
-                backgroundColor: isDark ? palette.neutral800 : palette.white,
+                backgroundColor: theme.surface,
                 borderRadius: 16,
                 borderCurve: 'continuous',
                 padding: 16,
                 alignItems: 'center',
-                boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+                boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
               }}
             >
               <Text
                 style={{
                   fontSize: 22,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {user.followingCount ?? 0}
@@ -524,7 +500,7 @@ export default function ProfileScreen() {
               <Text
                 style={{
                   fontSize: 13,
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: theme.ink3,
                   marginTop: 2,
                 }}
               >
@@ -540,11 +516,11 @@ export default function ProfileScreen() {
         <SectionHeader label={t('profile.myBikes', { defaultValue: 'My Bikes' })} />
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           {motorcycles.length === 0 ? (
@@ -566,24 +542,24 @@ export default function ProfileScreen() {
                   height: 44,
                   borderRadius: 12,
                   borderCurve: 'continuous',
-                  backgroundColor: isDark ? `${palette.primary500}25` : palette.primary50,
+                  backgroundColor: tint(theme.warm, 0.12),
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Plus size={20} color={palette.primary500} strokeWidth={2} />
+                <Plus size={20} color={theme.warm} strokeWidth={2} />
               </View>
               <Text
                 style={{
                   flex: 1,
                   fontSize: 15,
                   fontWeight: '600',
-                  color: palette.primary500,
+                  color: theme.warm,
                 }}
               >
                 {t('profile.addFirstBike', { defaultValue: 'Add Your First Bike' })}
               </Text>
-              <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+              <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
             </Pressable>
           ) : (
             <>
@@ -599,13 +575,9 @@ export default function ProfileScreen() {
                     alignItems: 'center',
                     paddingHorizontal: 16,
                     paddingVertical: 12,
-                    backgroundColor: pressed
-                      ? isDark
-                        ? 'rgba(255,255,255,0.05)'
-                        : 'rgba(0,0,0,0.03)'
-                      : 'transparent',
+                    backgroundColor: pressed ? tint(theme.ink, 0.05) : 'transparent',
                     borderBottomWidth: index < motorcycles.length - 1 ? 0.5 : 0,
-                    borderBottomColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                    borderBottomColor: theme.line,
                   })}
                 >
                   <View
@@ -614,30 +586,26 @@ export default function ProfileScreen() {
                       height: 44,
                       borderRadius: 12,
                       borderCurve: 'continuous',
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
+                      backgroundColor: theme.surface2,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: 12,
                     }}
                   >
-                    <Bike
-                      size={20}
-                      color={isDark ? palette.neutral300 : palette.neutral600}
-                      strokeWidth={1.8}
-                    />
+                    <Bike size={20} color={theme.ink3} strokeWidth={1.8} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{
                         fontSize: 15,
                         fontWeight: '600',
-                        color: isDark ? palette.neutral50 : palette.neutral950,
+                        color: theme.ink,
                       }}
                       numberOfLines={1}
                     >
                       {bike.make} {bike.model}
                     </Text>
-                    <Text style={{ fontSize: 13, color: palette.neutral500, marginTop: 1 }}>
+                    <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 1 }}>
                       {bike.year}
                       {bike.nickname ? ` · "${bike.nickname}"` : ''}
                     </Text>
@@ -664,7 +632,7 @@ export default function ProfileScreen() {
                       </Text>
                     </View>
                   )}
-                  <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+                  <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
                 </Pressable>
               ))}
               <Pressable
@@ -676,20 +644,16 @@ export default function ProfileScreen() {
                   paddingVertical: 12,
                   gap: 6,
                   borderTopWidth: 0.5,
-                  borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                  backgroundColor: pressed
-                    ? isDark
-                      ? 'rgba(255,255,255,0.05)'
-                      : 'rgba(0,0,0,0.03)'
-                    : 'transparent',
+                  borderTopColor: theme.line,
+                  backgroundColor: pressed ? tint(theme.ink, 0.05) : 'transparent',
                 })}
               >
                 {!isPro && motorcycles.length >= FREE_TIER_LIMITS.MAX_BIKES ? (
-                  <Crown size={15} color={palette.signature500} strokeWidth={2.5} />
+                  <Crown size={15} color={theme.purple} strokeWidth={2.5} />
                 ) : (
-                  <Plus size={15} color={palette.primary500} strokeWidth={2.5} />
+                  <Plus size={15} color={theme.warm} strokeWidth={2.5} />
                 )}
-                <Text style={{ fontSize: 14, fontWeight: '600', color: palette.primary500 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', color: theme.warm }}>
                   {t('profile.addAnotherBike', { defaultValue: 'Add Another Bike' })}
                 </Text>
               </Pressable>
@@ -707,13 +671,13 @@ export default function ProfileScreen() {
             router.push('/(tabs)/(profile)/rides' as any);
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             flexDirection: 'row',
             alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <View
@@ -722,7 +686,7 @@ export default function ProfileScreen() {
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? `${palette.accent500}25` : 'rgba(45,158,120,0.08)',
+              backgroundColor: tint(palette.accent500, 0.12),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
@@ -733,20 +697,20 @@ export default function ProfileScreen() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 fontSize: 17,
                 fontWeight: '700',
               }}
             >
               {t('profile.myRidesTitle', { defaultValue: 'My Rides' })}
             </Text>
-            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
               {t('profile.myRidesDescription', {
                 defaultValue: 'Ride history, stats & route maps',
               })}
             </Text>
           </View>
-          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
         </Pressable>
       </Animated.View>
 
@@ -759,13 +723,13 @@ export default function ProfileScreen() {
             router.push('/(tabs)/(profile)/heatmap' as any);
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             flexDirection: 'row',
             alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <View
@@ -774,29 +738,29 @@ export default function ProfileScreen() {
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? `${palette.danger500}25` : 'rgba(239,68,68,0.10)',
+              backgroundColor: tint(theme.danger, 0.12),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
             }}
           >
-            <Flame size={22} color={palette.danger500} strokeWidth={2} />
+            <Flame size={22} color={theme.danger} strokeWidth={2} />
           </View>
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 fontSize: 17,
                 fontWeight: '700',
               }}
             >
               Roads I've ridden
             </Text>
-            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
               Lifetime heatmap & year recap
             </Text>
           </View>
-          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
         </Pressable>
       </Animated.View>
 
@@ -808,13 +772,13 @@ export default function ProfileScreen() {
             router.push('/(profile)/trips');
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             flexDirection: 'row',
             alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <View
@@ -823,7 +787,7 @@ export default function ProfileScreen() {
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? `${palette.warning500}25` : 'rgba(245,158,11,0.10)',
+              backgroundColor: tint(palette.warning500, 0.12),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
@@ -834,20 +798,20 @@ export default function ProfileScreen() {
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 fontSize: 17,
                 fontWeight: '700',
               }}
             >
               {t('profile.myTripsTitle', { defaultValue: 'My Trips' })}
             </Text>
-            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
               {t('profile.myTripsDescription', {
                 defaultValue: 'Drafts & published multi-day plans',
               })}
             </Text>
           </View>
-          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
         </Pressable>
       </Animated.View>
 
@@ -860,13 +824,13 @@ export default function ProfileScreen() {
             router.push('/(tabs)/(profile)/saved' as any);
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             flexDirection: 'row',
             alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <View
@@ -875,29 +839,29 @@ export default function ProfileScreen() {
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? `${palette.signature500}25` : 'rgba(168,85,247,0.08)',
+              backgroundColor: tint(theme.purple, 0.12),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
             }}
           >
-            <Bookmark size={22} color={palette.signature500} strokeWidth={2} />
+            <Bookmark size={22} color={theme.purple} strokeWidth={2} />
           </View>
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 fontSize: 17,
                 fontWeight: '700',
               }}
             >
               Saved Routes
             </Text>
-            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
               Routes you want to ride later
             </Text>
           </View>
-          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
         </Pressable>
       </Animated.View>
 
@@ -909,13 +873,13 @@ export default function ProfileScreen() {
             router.push('/(tabs)/(learn)');
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 20,
             flexDirection: 'row',
             alignItems: 'center',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <View
@@ -924,31 +888,31 @@ export default function ProfileScreen() {
               height: 44,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: isDark ? `${palette.primary500}25` : palette.primary50,
+              backgroundColor: tint(theme.warm, 0.12),
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
             }}
           >
-            <BookOpen size={22} color={palette.primary500} strokeWidth={2} />
+            <BookOpen size={22} color={theme.warm} strokeWidth={2} />
           </View>
           <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 fontSize: 17,
                 fontWeight: '700',
               }}
             >
               {t('tabs.learn')}
             </Text>
-            <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+            <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
               {t('learn.profileDescription', {
                 defaultValue: 'Articles, quizzes & motorcycle knowledge',
               })}
             </Text>
           </View>
-          <ChevronRight size={17} color={palette.neutral400} strokeWidth={2} />
+          <ChevronRight size={17} color={theme.ink3} strokeWidth={2} />
         </Pressable>
       </Animated.View>
 
@@ -957,13 +921,13 @@ export default function ProfileScreen() {
         <Animated.View entering={FadeInUp.delay(240).duration(400)}>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: 20,
               borderCurve: 'continuous',
               padding: 20,
               flexDirection: 'row',
               alignItems: 'center',
-              boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
             }}
           >
             <View
@@ -972,30 +936,25 @@ export default function ProfileScreen() {
                 height: 44,
                 borderRadius: 14,
                 borderCurve: 'continuous',
-                backgroundColor: `${palette.signature500}25`,
+                backgroundColor: `${theme.purple}25`,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 14,
               }}
             >
-              <Crown
-                size={22}
-                color={palette.signature500}
-                strokeWidth={2}
-                fill={palette.signature500}
-              />
+              <Crown size={22} color={theme.purple} strokeWidth={2} fill={theme.purple} />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                   fontSize: 17,
                   fontWeight: '700',
                 }}
               >
                 {t('profile.proActive', { defaultValue: 'Pro Active' })}
               </Text>
-              <Text style={{ color: palette.neutral500, fontSize: 13, marginTop: 2 }}>
+              <Text style={{ color: theme.ink3, fontSize: 13, marginTop: 2 }}>
                 {t('profile.proActiveDesc', {
                   defaultValue: 'All premium features unlocked',
                 })}
@@ -1018,7 +977,7 @@ export default function ProfileScreen() {
           >
             <View
               style={{
-                backgroundColor: palette.primary700,
+                backgroundColor: theme.warm,
                 flexDirection: 'row',
                 alignItems: 'center',
                 padding: 20,
@@ -1057,35 +1016,31 @@ export default function ProfileScreen() {
         <SectionHeader label={t('profile.settings')} />
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <SettingsRow
             icon={Settings}
             label={t('profile.settings')}
-            isDark={isDark}
             onPress={() => router.push('/(profile)/settings')}
           />
           <SettingsRow
             icon={Bell}
             label={t('profile.notifications', { defaultValue: 'Notifications' })}
-            isDark={isDark}
             onPress={() => router.push('/(profile)/notifications')}
           />
           <SettingsRow
             icon={Lock}
             label={t('profile.privacy')}
-            isDark={isDark}
             onPress={() => router.push('/(profile)/privacy')}
           />
           <SettingsRow
             icon={CreditCard}
             label={t('profile.subscriptions')}
-            isDark={isDark}
             onPress={() =>
               presentPaywall({
                 source: 'profile',
@@ -1097,13 +1052,11 @@ export default function ProfileScreen() {
           <SettingsRow
             icon={Megaphone}
             label={t('whatsNew.badge')}
-            isDark={isDark}
             onPress={() => router.push('/(modals)/whats-new' as never)}
           />
           <SettingsRow
             icon={HelpCircle}
             label={t('profile.support')}
-            isDark={isDark}
             onPress={() => router.push('/(profile)/support')}
             isLast
           />
@@ -1119,33 +1072,29 @@ export default function ProfileScreen() {
             setShowLangPicker(true);
           }}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: 16,
             paddingVertical: 14,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
-          <Globe
-            size={20}
-            color={isDark ? palette.neutral400 : palette.neutral500}
-            strokeWidth={1.8}
-          />
+          <Globe size={20} color={theme.ink3} strokeWidth={1.8} />
           <Text
             style={{
               flex: 1,
               fontSize: 16,
               fontWeight: '500',
-              color: isDark ? palette.neutral50 : palette.neutral900,
+              color: theme.ink,
               marginLeft: 12,
             }}
           >
             {LOCALE_DISPLAY_NAMES[locale]}
           </Text>
-          <ChevronDown size={18} color={palette.neutral400} strokeWidth={2} />
+          <ChevronDown size={18} color={theme.ink3} strokeWidth={2} />
         </Pressable>
 
         <Modal
@@ -1161,7 +1110,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={(e) => e.stopPropagation()}
               style={{
-                backgroundColor: isDark ? palette.neutral900 : palette.white,
+                backgroundColor: theme.bg,
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
                 borderCurve: 'continuous',
@@ -1176,7 +1125,7 @@ export default function ProfileScreen() {
                     width: 36,
                     height: 4,
                     borderRadius: 2,
-                    backgroundColor: isDark ? palette.neutral700 : palette.neutral300,
+                    backgroundColor: theme.line,
                   }}
                 />
               </View>
@@ -1185,7 +1134,7 @@ export default function ProfileScreen() {
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral50 : palette.neutral900,
+                  color: theme.ink,
                   paddingHorizontal: 20,
                   paddingBottom: 12,
                 }}
@@ -1209,11 +1158,7 @@ export default function ProfileScreen() {
                         alignItems: 'center',
                         paddingHorizontal: 20,
                         paddingVertical: 14,
-                        backgroundColor: pressed
-                          ? isDark
-                            ? palette.neutral800
-                            : palette.neutral100
-                          : 'transparent',
+                        backgroundColor: pressed ? theme.surface2 : 'transparent',
                       })}
                     >
                       <Text
@@ -1221,24 +1166,12 @@ export default function ProfileScreen() {
                           flex: 1,
                           fontSize: 16,
                           fontWeight: selected ? '600' : '400',
-                          color: selected
-                            ? isDark
-                              ? palette.primary400
-                              : palette.primary600
-                            : isDark
-                              ? palette.neutral200
-                              : palette.neutral800,
+                          color: selected ? theme.warm : theme.ink,
                         }}
                       >
                         {LOCALE_DISPLAY_NAMES[loc]}
                       </Text>
-                      {selected && (
-                        <Check
-                          size={20}
-                          color={isDark ? palette.primary400 : palette.primary600}
-                          strokeWidth={2.5}
-                        />
-                      )}
+                      {selected && <Check size={20} color={theme.warm} strokeWidth={2.5} />}
                     </Pressable>
                   );
                 })}
@@ -1253,12 +1186,12 @@ export default function ProfileScreen() {
         <SectionHeader label={t('profile.theme')} />
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             flexDirection: 'row',
             padding: 4,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           {THEME_OPTIONS.map((value) => {
@@ -1277,29 +1210,19 @@ export default function ProfileScreen() {
                   paddingVertical: 10,
                   borderRadius: 12,
                   borderCurve: 'continuous',
-                  backgroundColor: selected
-                    ? isDark
-                      ? palette.primary700
-                      : palette.primary500
-                    : 'transparent',
+                  backgroundColor: selected ? theme.warm : 'transparent',
                 }}
               >
                 <ThemeIcon
                   size={15}
-                  color={
-                    selected ? palette.white : isDark ? palette.neutral400 : palette.neutral600
-                  }
+                  color={selected ? palette.white : theme.ink3}
                   strokeWidth={2}
                 />
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: '600',
-                    color: selected
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral400
-                        : palette.neutral600,
+                    color: selected ? palette.white : theme.ink3,
                   }}
                 >
                   {t(THEME_LABEL_KEYS[value])}
@@ -1315,12 +1238,12 @@ export default function ProfileScreen() {
         <SectionHeader label={t('profile.units', { defaultValue: 'Units' })} />
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             flexDirection: 'row',
             padding: 4,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           {(['metric', 'imperial'] as const).map((value) => {
@@ -1342,29 +1265,15 @@ export default function ProfileScreen() {
                   paddingVertical: 10,
                   borderRadius: 12,
                   borderCurve: 'continuous',
-                  backgroundColor: selected
-                    ? isDark
-                      ? palette.primary700
-                      : palette.primary500
-                    : 'transparent',
+                  backgroundColor: selected ? theme.warm : 'transparent',
                 }}
               >
-                <Ruler
-                  size={15}
-                  color={
-                    selected ? palette.white : isDark ? palette.neutral400 : palette.neutral600
-                  }
-                  strokeWidth={2}
-                />
+                <Ruler size={15} color={selected ? palette.white : theme.ink3} strokeWidth={2} />
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: '600',
-                    color: selected
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral400
-                        : palette.neutral600,
+                    color: selected ? palette.white : theme.ink3,
                   }}
                 >
                   {value === 'metric'
@@ -1383,13 +1292,13 @@ export default function ProfileScreen() {
         <Pressable
           onPress={() => setShowCurrencyPicker(true)}
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             flexDirection: 'row',
             alignItems: 'center',
             padding: 16,
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <Text
@@ -1397,7 +1306,7 @@ export default function ProfileScreen() {
               fontSize: 20,
               fontWeight: '700',
               width: 36,
-              color: isDark ? palette.neutral50 : palette.neutral950,
+              color: theme.ink,
             }}
           >
             {CURRENCY_SYMBOLS[currency as Currency] ?? '$'}
@@ -1407,13 +1316,13 @@ export default function ProfileScreen() {
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
               }}
             >
               {currency}
             </Text>
           </View>
-          <ChevronDown size={18} color={palette.neutral400} />
+          <ChevronDown size={18} color={theme.ink3} />
         </Pressable>
 
         <Modal
@@ -1422,9 +1331,7 @@ export default function ProfileScreen() {
           presentationStyle="formSheet"
           onRequestClose={() => setShowCurrencyPicker(false)}
         >
-          <View
-            style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}
-          >
+          <View style={{ flex: 1, backgroundColor: theme.bg }}>
             <View
               style={{
                 flexDirection: 'row',
@@ -1432,20 +1339,20 @@ export default function ProfileScreen() {
                 alignItems: 'center',
                 padding: 16,
                 borderBottomWidth: 1,
-                borderColor: isDark ? palette.neutral700 : palette.neutral200,
+                borderColor: theme.line,
               }}
             >
               <Text
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral50 : palette.neutral950,
+                  color: theme.ink,
                 }}
               >
                 {t('profile.selectCurrency', { defaultValue: 'Select Currency' })}
               </Text>
               <Pressable onPress={() => setShowCurrencyPicker(false)}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: palette.primary500 }}>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: theme.warm }}>
                   {t('common.done', { defaultValue: 'Done' })}
                 </Text>
               </Pressable>
@@ -1468,11 +1375,7 @@ export default function ProfileScreen() {
                       padding: 14,
                       borderRadius: 12,
                       borderCurve: 'continuous',
-                      backgroundColor: isSelected
-                        ? isDark
-                          ? `${palette.primary500}20`
-                          : `${palette.primary500}10`
-                        : 'transparent',
+                      backgroundColor: isSelected ? tint(theme.warm, 0.12) : 'transparent',
                     }}
                   >
                     <Text
@@ -1480,7 +1383,7 @@ export default function ProfileScreen() {
                         fontSize: 20,
                         fontWeight: '700',
                         width: 42,
-                        color: isDark ? palette.neutral50 : palette.neutral950,
+                        color: theme.ink,
                       }}
                     >
                       {symbol}
@@ -1490,12 +1393,12 @@ export default function ProfileScreen() {
                         flex: 1,
                         fontSize: 15,
                         fontWeight: '500',
-                        color: isDark ? palette.neutral200 : palette.neutral700,
+                        color: theme.ink2,
                       }}
                     >
                       {code}
                     </Text>
-                    {isSelected && <Check size={18} color={palette.primary500} strokeWidth={3} />}
+                    {isSelected && <Check size={18} color={theme.warm} strokeWidth={3} />}
                   </Pressable>
                 );
               })}
@@ -1508,19 +1411,18 @@ export default function ProfileScreen() {
       <Animated.View entering={FadeInUp.delay(580).duration(400)}>
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <SettingsRow
             icon={LogOut}
             label={t('auth.signOut')}
             onPress={handleLogout}
-            isDark={isDark}
-            color={palette.danger500}
+            color={theme.danger}
             isLast
           />
         </View>
@@ -1530,19 +1432,18 @@ export default function ProfileScreen() {
       <Animated.View entering={FadeInUp.delay(560).duration(400)}>
         <View
           style={{
-            backgroundColor: isDark ? palette.neutral800 : palette.white,
+            backgroundColor: theme.surface,
             borderRadius: 16,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            boxShadow: isDark ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: isDark ? 'none' : `0 1px 3px ${tint(theme.ink, 0.06)}`,
           }}
         >
           <SettingsRow
             icon={Trash2}
             label={t('privacy.deleteAccount', { defaultValue: 'Delete Account' })}
             onPress={handleDeleteAccount}
-            isDark={isDark}
-            color={palette.danger500}
+            color={theme.danger}
             isLast
           />
         </View>

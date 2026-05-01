@@ -15,7 +15,6 @@ import MapboxGL from '@rnmapbox/maps';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Flame, Share2 } from 'lucide-react-native';
-import { useColorScheme } from 'nativewind';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
@@ -23,6 +22,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
+import { useEditorialTheme } from '../../../theme/editorial';
 import { MAP_STYLES } from '../../../utils/map-styles';
 import {
   buildAnnualRecap,
@@ -42,8 +42,8 @@ function formatKm(meters: number): string {
 }
 
 export default function RideHeatmapScreen() {
-  const { t } = useTranslation();
-  const isDark = useColorScheme().colorScheme === 'dark';
+  const { t: i18n } = useTranslation();
+  const { t: tok, isDark } = useEditorialTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -106,14 +106,8 @@ export default function RideHeatmapScreen() {
     await Share.share({ message: lines.join('\n') }).catch(() => {});
   }, [recap]);
 
-  const surfaceColor = isDark ? palette.neutral900 : palette.neutral50;
-  const cardColor = isDark ? palette.neutral800 : palette.white;
-  const headingColor = isDark ? palette.neutral50 : palette.neutral950;
-  const bodyColor = isDark ? palette.neutral300 : palette.neutral600;
-  const dividerColor = isDark ? palette.neutral700 : palette.neutral200;
-
   return (
-    <View style={{ flex: 1, backgroundColor: surfaceColor }}>
+    <View style={{ flex: 1, backgroundColor: tok.bg }}>
       {/* Header */}
       <View
         style={{
@@ -131,10 +125,10 @@ export default function RideHeatmapScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
         >
-          <ArrowLeft size={22} color={headingColor} />
+          <ArrowLeft size={22} color={tok.ink} />
         </Pressable>
         <Text
-          style={{ flex: 1, color: headingColor, fontSize: 18, fontWeight: '700' }}
+          style={{ flex: 1, color: tok.ink, fontSize: 18, fontWeight: '700' }}
           numberOfLines={1}
         >
           Roads I've ridden
@@ -147,7 +141,7 @@ export default function RideHeatmapScreen() {
           disabled={recap.rideCount === 0}
           style={{ opacity: recap.rideCount === 0 ? 0.4 : 1 }}
         >
-          <Share2 size={20} color={headingColor} />
+          <Share2 size={20} color={tok.ink} />
         </Pressable>
       </View>
 
@@ -163,12 +157,12 @@ export default function RideHeatmapScreen() {
             borderRadius: 20,
             borderCurve: 'continuous',
             overflow: 'hidden',
-            backgroundColor: cardColor,
+            backgroundColor: tok.surface,
           }}
         >
           {isLoading && allRides.length === 0 ? (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <ActivityIndicator color={palette.accent500} />
+              <ActivityIndicator color={tok.warm} />
             </View>
           ) : geojson.features.length === 0 ? (
             <View
@@ -180,8 +174,8 @@ export default function RideHeatmapScreen() {
                 gap: 10,
               }}
             >
-              <Flame size={28} color={palette.neutral400} />
-              <Text style={{ color: bodyColor, fontSize: 14, textAlign: 'center' }}>
+              <Flame size={28} color={tok.ink3} />
+              <Text style={{ color: tok.ink3, fontSize: 14, textAlign: 'center' }}>
                 Your heatmap fills in as you finish rides with GPS tracks.
               </Text>
             </View>
@@ -207,7 +201,7 @@ export default function RideHeatmapScreen() {
                 <MapboxGL.LineLayer
                   id="heatmap-line"
                   style={{
-                    lineColor: palette.danger500,
+                    lineColor: tok.danger,
                     lineWidth: 2,
                     lineOpacity: 0.7,
                     lineBlur: 2.5,
@@ -276,23 +270,30 @@ export default function RideHeatmapScreen() {
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 16,
-            backgroundColor: cardColor,
+            backgroundColor: tok.surface,
             flexDirection: 'row',
             gap: 12,
           }}
         >
-          <Stat label={t('heatmap.rides')} value={String(lifetime.rideCount)} dark={isDark} />
-          <Divider color={dividerColor} />
           <Stat
-            label={t('heatmap.lifetime')}
-            value={formatKm(lifetime.totalDistanceM)}
-            dark={isDark}
+            label={i18n('heatmap.rides')}
+            value={String(lifetime.rideCount)}
+            ink={tok.ink}
+            ink3={tok.ink3}
           />
-          <Divider color={dividerColor} />
+          <Divider color={tok.line} />
           <Stat
-            label={t('heatmap.countries')}
+            label={i18n('heatmap.lifetime')}
+            value={formatKm(lifetime.totalDistanceM)}
+            ink={tok.ink}
+            ink3={tok.ink3}
+          />
+          <Divider color={tok.line} />
+          <Stat
+            label={i18n('heatmap.countries')}
             value={String(lifetime.countries.length)}
-            dark={isDark}
+            ink={tok.ink}
+            ink3={tok.ink3}
           />
         </Animated.View>
 
@@ -304,15 +305,15 @@ export default function RideHeatmapScreen() {
             borderRadius: 20,
             borderCurve: 'continuous',
             padding: 18,
-            backgroundColor: cardColor,
+            backgroundColor: tok.surface,
             gap: 10,
           }}
         >
-          <Text style={{ color: palette.neutral500, fontSize: 12, fontWeight: '700' }}>
+          <Text style={{ color: tok.ink3, fontSize: 12, fontWeight: '700' }}>
             {recap.year} recap
           </Text>
           {recap.rideCount === 0 ? (
-            <Text style={{ color: bodyColor, fontSize: 14, lineHeight: 20 }}>
+            <Text style={{ color: tok.ink3, fontSize: 14, lineHeight: 20 }}>
               No rides yet this year. Once you save a few, we'll surface your longest ride and
               countries ridden here.
             </Text>
@@ -320,7 +321,7 @@ export default function RideHeatmapScreen() {
             <>
               <Text
                 style={{
-                  color: headingColor,
+                  color: tok.ink,
                   fontSize: 20,
                   fontWeight: '800',
                   letterSpacing: -0.3,
@@ -331,7 +332,7 @@ export default function RideHeatmapScreen() {
                 {recap.countries.length > 0 ? ` in ${recap.countries.length} countries` : ''}.
               </Text>
               {recap.longestRide?.name && (
-                <Text style={{ color: bodyColor, fontSize: 14, lineHeight: 20 }}>
+                <Text style={{ color: tok.ink3, fontSize: 14, lineHeight: 20 }}>
                   Top ride: <Text style={{ fontWeight: '700' }}>{recap.longestRide.name}</Text> —{' '}
                   {formatKm(recap.longestRide.distanceM)}.
                 </Text>
@@ -349,11 +350,11 @@ export default function RideHeatmapScreen() {
                   paddingVertical: 8,
                   paddingHorizontal: 12,
                   borderRadius: 999,
-                  backgroundColor: isDark ? `${palette.accent500}25` : palette.accentTintSubtle,
+                  backgroundColor: tok.warm2,
                 }}
               >
-                <Share2 size={14} color={palette.accent500} />
-                <Text style={{ color: palette.accent500, fontSize: 13, fontWeight: '700' }}>
+                <Share2 size={14} color={tok.warm} />
+                <Text style={{ color: tok.warm, fontSize: 13, fontWeight: '700' }}>
                   Share recap
                 </Text>
               </Pressable>
@@ -365,12 +366,22 @@ export default function RideHeatmapScreen() {
   );
 }
 
-function Stat({ label, value, dark }: { label: string; value: string; dark: boolean }) {
+function Stat({
+  label,
+  value,
+  ink,
+  ink3,
+}: {
+  label: string;
+  value: string;
+  ink: string;
+  ink3: string;
+}) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
       <Text
         style={{
-          color: dark ? palette.neutral50 : palette.neutral950,
+          color: ink,
           fontSize: 18,
           fontWeight: '800',
           letterSpacing: -0.3,
@@ -379,7 +390,7 @@ function Stat({ label, value, dark }: { label: string; value: string; dark: bool
       >
         {value}
       </Text>
-      <Text style={{ color: palette.neutral500, fontSize: 12, marginTop: 2 }}>{label}</Text>
+      <Text style={{ color: ink3, fontSize: 12, marginTop: 2 }}>{label}</Text>
     </View>
   );
 }

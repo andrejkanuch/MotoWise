@@ -6,13 +6,14 @@ import { router } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 
 const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
@@ -127,8 +128,7 @@ function hapticSuccess() {
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
 
   const meQuery = useQuery({
@@ -262,16 +262,16 @@ export default function SettingsScreen() {
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: theme.bg,
         }}
       >
-        <ActivityIndicator size="large" color={palette.primary500} />
+        <ActivityIndicator size="large" color={theme.warm} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.neutral900 : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -280,9 +280,9 @@ export default function SettingsScreen() {
           paddingHorizontal: 20,
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
-          borderBottomWidth: 0.5,
-          borderBottomColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+          backgroundColor: theme.bg,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.line,
         }}
       >
         <Pressable
@@ -298,14 +298,10 @@ export default function SettingsScreen() {
             borderCurve: 'continuous',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : palette.neutral100,
+            backgroundColor: theme.surface2,
           }}
         >
-          <ArrowLeft
-            size={20}
-            color={isDark ? palette.neutral200 : palette.neutral800}
-            strokeWidth={2}
-          />
+          <ArrowLeft size={20} color={theme.ink} strokeWidth={2} />
         </Pressable>
         <Text
           style={{
@@ -313,7 +309,7 @@ export default function SettingsScreen() {
             textAlign: 'center',
             fontSize: 17,
             fontWeight: '600',
-            color: isDark ? palette.neutral50 : palette.neutral950,
+            color: theme.ink,
             marginRight: 36,
           }}
         >
@@ -335,12 +331,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -348,12 +344,13 @@ export default function SettingsScreen() {
           </Text>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: 14,
               borderCurve: 'continuous',
               paddingHorizontal: 16,
               paddingVertical: 14,
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+              borderWidth: 1,
+              borderColor: theme.line,
             }}
           >
             <TextInput
@@ -362,12 +359,12 @@ export default function SettingsScreen() {
               placeholder={t('settings.fullNamePlaceholder', {
                 defaultValue: 'Enter your full name',
               })}
-              placeholderTextColor={palette.neutral400}
+              placeholderTextColor={theme.ink3}
               autoCapitalize="words"
               autoCorrect={false}
               style={{
                 fontSize: 16,
-                color: isDark ? palette.neutral50 : palette.neutral950,
+                color: theme.ink,
                 padding: 0,
               }}
             />
@@ -381,12 +378,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -394,12 +391,13 @@ export default function SettingsScreen() {
           </Text>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: 14,
               borderCurve: 'continuous',
               flexDirection: 'row',
               padding: 4,
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+              borderWidth: 1,
+              borderColor: theme.line,
             }}
           >
             {EXPERIENCE_LEVELS.map((level) => {
@@ -421,22 +419,14 @@ export default function SettingsScreen() {
                     borderRadius: 10,
                     borderCurve: 'continuous',
                     alignItems: 'center',
-                    backgroundColor: selected
-                      ? isDark
-                        ? palette.primary700
-                        : palette.primary500
-                      : 'transparent',
+                    backgroundColor: selected ? theme.warm : 'transparent',
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: selected
-                        ? palette.white
-                        : isDark
-                          ? palette.neutral400
-                          : palette.neutral600,
+                      color: selected ? palette.white : theme.ink3,
                       textTransform: 'capitalize',
                     }}
                   >
@@ -455,12 +445,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -482,40 +472,16 @@ export default function SettingsScreen() {
                       borderRadius: 12,
                       borderCurve: 'continuous',
                       borderWidth: 1.5,
-                      borderColor: selected
-                        ? isDark
-                          ? palette.primary600
-                          : palette.primary500
-                        : isDark
-                          ? 'rgba(255,255,255,0.1)'
-                          : palette.neutral200,
-                      backgroundColor: selected
-                        ? isDark
-                          ? `${palette.primary500}25`
-                          : `${palette.primary500}14`
-                        : isDark
-                          ? palette.neutral800
-                          : palette.white,
+                      borderColor: selected ? theme.warm : theme.line,
+                      backgroundColor: selected ? tint(theme.warm, 0.15) : theme.surface,
                     }}
                   >
-                    {selected && (
-                      <Check
-                        size={14}
-                        color={isDark ? palette.primary400 : palette.primary600}
-                        strokeWidth={2.5}
-                      />
-                    )}
+                    {selected && <Check size={14} color={theme.warm} strokeWidth={2.5} />}
                     <Text
                       style={{
                         fontSize: 14,
                         fontWeight: selected ? '600' : '500',
-                        color: selected
-                          ? isDark
-                            ? palette.primary300
-                            : palette.primary700
-                          : isDark
-                            ? palette.neutral300
-                            : palette.neutral600,
+                        color: selected ? theme.warm : theme.ink3,
                       }}
                     >
                       {t(GOAL_LABEL_KEYS[goal], { defaultValue: GOAL_DEFAULT_LABELS[goal] })}
@@ -534,12 +500,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -564,40 +530,16 @@ export default function SettingsScreen() {
                       borderRadius: 12,
                       borderCurve: 'continuous',
                       borderWidth: 1.5,
-                      borderColor: selected
-                        ? isDark
-                          ? palette.primary600
-                          : palette.primary500
-                        : isDark
-                          ? 'rgba(255,255,255,0.1)'
-                          : palette.neutral200,
-                      backgroundColor: selected
-                        ? isDark
-                          ? `${palette.primary500}25`
-                          : `${palette.primary500}14`
-                        : isDark
-                          ? palette.neutral800
-                          : palette.white,
+                      borderColor: selected ? theme.warm : theme.line,
+                      backgroundColor: selected ? tint(theme.warm, 0.15) : theme.surface,
                     }}
                   >
-                    {selected && (
-                      <Check
-                        size={14}
-                        color={isDark ? palette.primary400 : palette.primary600}
-                        strokeWidth={2.5}
-                      />
-                    )}
+                    {selected && <Check size={14} color={theme.warm} strokeWidth={2.5} />}
                     <Text
                       style={{
                         fontSize: 14,
                         fontWeight: selected ? '600' : '500',
-                        color: selected
-                          ? isDark
-                            ? palette.primary300
-                            : palette.primary700
-                          : isDark
-                            ? palette.neutral300
-                            : palette.neutral600,
+                        color: selected ? theme.warm : theme.ink3,
                       }}
                     >
                       {t(LEARNING_FORMAT_LABEL_KEYS[format], {
@@ -618,12 +560,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -631,12 +573,13 @@ export default function SettingsScreen() {
           </Text>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: 14,
               borderCurve: 'continuous',
               flexDirection: 'row',
               padding: 4,
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+              borderWidth: 1,
+              borderColor: theme.line,
             }}
           >
             {RIDING_FREQUENCIES.map((freq) => {
@@ -654,22 +597,14 @@ export default function SettingsScreen() {
                     borderRadius: 10,
                     borderCurve: 'continuous',
                     alignItems: 'center',
-                    backgroundColor: selected
-                      ? isDark
-                        ? palette.primary700
-                        : palette.primary500
-                      : 'transparent',
+                    backgroundColor: selected ? theme.warm : 'transparent',
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 13,
                       fontWeight: '600',
-                      color: selected
-                        ? palette.white
-                        : isDark
-                          ? palette.neutral400
-                          : palette.neutral600,
+                      color: selected ? palette.white : theme.ink3,
                       textTransform: 'capitalize',
                     }}
                   >
@@ -688,12 +623,12 @@ export default function SettingsScreen() {
         >
           <Text
             style={{
-              fontSize: 13,
-              fontWeight: '600',
-              color: palette.neutral500,
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.ink2,
               textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              marginBottom: 8,
+              letterSpacing: 2.2,
+              marginBottom: 10,
               marginLeft: 4,
             }}
           >
@@ -701,12 +636,13 @@ export default function SettingsScreen() {
           </Text>
           <View
             style={{
-              backgroundColor: isDark ? palette.neutral800 : palette.white,
+              backgroundColor: theme.surface,
               borderRadius: 14,
               borderCurve: 'continuous',
               flexDirection: 'row',
               padding: 4,
-              boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.05)',
+              borderWidth: 1,
+              borderColor: theme.line,
             }}
           >
             {MAINTENANCE_STYLES.map((style) => {
@@ -728,22 +664,14 @@ export default function SettingsScreen() {
                     borderRadius: 10,
                     borderCurve: 'continuous',
                     alignItems: 'center',
-                    backgroundColor: selected
-                      ? isDark
-                        ? palette.primary700
-                        : palette.primary500
-                      : 'transparent',
+                    backgroundColor: selected ? theme.warm : 'transparent',
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 13,
                       fontWeight: '600',
-                      color: selected
-                        ? palette.white
-                        : isDark
-                          ? palette.neutral400
-                          : palette.neutral600,
+                      color: selected ? palette.white : theme.ink3,
                       textTransform: 'uppercase',
                     }}
                   >
@@ -770,11 +698,8 @@ export default function SettingsScreen() {
             <View
               style={{
                 backgroundColor:
-                  hasChanges && !updateMutation.isPending
-                    ? palette.primary700
-                    : isDark
-                      ? palette.neutral700
-                      : palette.neutral300,
+                  hasChanges && !updateMutation.isPending ? theme.warm : theme.surface2,
+                opacity: hasChanges && !updateMutation.isPending ? 1 : 0.5,
                 paddingVertical: 16,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -796,11 +721,7 @@ export default function SettingsScreen() {
                   style={{
                     fontSize: 16,
                     fontWeight: '700',
-                    color: hasChanges
-                      ? palette.white
-                      : isDark
-                        ? palette.neutral500
-                        : palette.neutral400,
+                    color: hasChanges ? palette.white : theme.ink3,
                   }}
                 >
                   {t('settings.saveChanges', { defaultValue: 'Save Changes' })}
@@ -813,7 +734,7 @@ export default function SettingsScreen() {
             <Text
               style={{
                 fontSize: 13,
-                color: palette.danger500,
+                color: theme.danger,
                 textAlign: 'center',
                 marginTop: 12,
               }}

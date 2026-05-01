@@ -39,15 +39,8 @@ function SavedTripCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const { isDark } = useEditorialTheme();
+  const { t, isDark } = useEditorialTheme();
   const system = useMeasurementSystem();
-
-  const cardBg = isDark ? palette.cardDark : palette.white;
-  const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const statColor = isDark ? palette.neutral200 : palette.neutral700;
-  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
 
   const surfaceLabel =
     trip.surfaceType === 'paved'
@@ -69,11 +62,11 @@ function SavedTripCard({
         accessibilityRole="button"
         accessibilityLabel={`Saved trip: ${trip.title}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? pressedBg : cardBg,
+          backgroundColor: pressed ? (isDark ? palette.neutral800 : palette.neutral100) : t.surface,
           borderRadius: 16,
           borderCurve: 'continuous',
           borderWidth: 1,
-          borderColor: cardBorder,
+          borderColor: t.line,
           padding: 14,
           gap: 8,
         })}
@@ -82,7 +75,7 @@ function SavedTripCard({
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Route size={16} color={palette.accent500} />
           <Text
-            style={{ flex: 1, fontSize: 15, fontWeight: '700', color: titleColor }}
+            style={{ flex: 1, fontSize: 15, fontWeight: '700', color: t.ink }}
             numberOfLines={1}
           >
             {trip.title}
@@ -97,7 +90,7 @@ function SavedTripCard({
               style={{
                 fontSize: 13,
                 fontWeight: '600',
-                color: statColor,
+                color: t.ink2,
                 fontVariant: ['tabular-nums'],
               }}
             >
@@ -112,7 +105,7 @@ function SavedTripCard({
                 style={{
                   fontSize: 13,
                   fontWeight: '600',
-                  color: statColor,
+                  color: t.ink2,
                   fontVariant: ['tabular-nums'],
                 }}
               >
@@ -121,9 +114,7 @@ function SavedTripCard({
             </View>
           )}
 
-          {surfaceLabel && (
-            <Text style={{ fontSize: 12, color: subtitleColor }}>{surfaceLabel}</Text>
-          )}
+          {surfaceLabel && <Text style={{ fontSize: 12, color: t.ink3 }}>{surfaceLabel}</Text>}
 
           {trip.averageRating != null && trip.reviewCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
@@ -132,20 +123,20 @@ function SavedTripCard({
                 style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: statColor,
+                  color: t.ink2,
                   fontVariant: ['tabular-nums'],
                 }}
               >
                 {trip.averageRating.toFixed(1)}
               </Text>
-              <Text style={{ fontSize: 11, color: subtitleColor }}>({trip.reviewCount})</Text>
+              <Text style={{ fontSize: 11, color: t.ink3 }}>({trip.reviewCount})</Text>
             </View>
           )}
         </View>
 
         {/* Organiser */}
         {trip.organiser && (
-          <Text style={{ fontSize: 12, color: subtitleColor }}>
+          <Text style={{ fontSize: 12, color: t.ink3 }}>
             by {trip.organiser.displayName}
             {trip.organiser.publicUsername ? ` @${trip.organiser.publicUsername}` : ''}
           </Text>
@@ -158,7 +149,7 @@ function SavedTripCard({
 export default function SavedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t } = useEditorialTheme();
   const queryClient = useQueryClient();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, refetch, isRefetching } =
     useInfiniteQuery<SavedTripsQuery>({
@@ -260,19 +251,19 @@ export default function SavedScreen() {
             height: 80,
             borderRadius: 40,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: t.surface2,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 8,
           }}
         >
-          <Bookmark size={36} color={isDark ? palette.neutral500 : palette.neutral400} />
+          <Bookmark size={36} color={t.ink3} />
         </View>
         <Text
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: isDark ? palette.white : palette.neutral950,
+            color: t.ink,
             textAlign: 'center',
           }}
         >
@@ -281,7 +272,7 @@ export default function SavedScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: isDark ? palette.neutral400 : palette.neutral500,
+            color: t.ink3,
             textAlign: 'center',
             lineHeight: 22,
           }}
@@ -297,7 +288,7 @@ export default function SavedScreen() {
           accessibilityRole="button"
           accessibilityLabel="Explore Trips"
           style={({ pressed }) => ({
-            backgroundColor: palette.primary700,
+            backgroundColor: t.warm,
             borderRadius: 20,
             borderCurve: 'continuous',
             height: 56,
@@ -317,7 +308,7 @@ export default function SavedScreen() {
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, isDark, router]);
+  }, [isLoading, t, router]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
@@ -331,7 +322,7 @@ export default function SavedScreen() {
   }, [isFetchingNextPage]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
       {/* Header */}
       <View
         style={{
@@ -352,19 +343,19 @@ export default function SavedScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: t.surface2,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color={isDark ? palette.white : palette.neutral950} />
+          <ArrowLeft size={20} color={t.ink} />
         </Pressable>
         <Text
           style={{
             flex: 1,
             fontSize: 28,
             fontWeight: '800',
-            color: isDark ? palette.white : palette.neutral950,
+            color: t.ink,
             letterSpacing: -0.5,
           }}
         >
@@ -376,7 +367,7 @@ export default function SavedScreen() {
             paddingVertical: 4,
             borderRadius: 10,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: t.surface2,
           }}
         >
           <Text
@@ -417,7 +408,7 @@ export default function SavedScreen() {
                 triggerImpact();
                 refetch();
               }}
-              tintColor={isDark ? palette.white : palette.neutral400}
+              tintColor={t.ink3}
             />
           }
           showsVerticalScrollIndicator={false}

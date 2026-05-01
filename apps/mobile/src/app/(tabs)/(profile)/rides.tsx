@@ -80,7 +80,7 @@ function useRideStats(edges: RideEdge[]) {
 export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
 
@@ -180,24 +180,24 @@ export default function RidesScreen() {
         {/* Stats hero card */}
         <View
           style={{
-            backgroundColor: isDark ? palette.cardDark : palette.white,
-            borderRadius: 20,
+            backgroundColor: theme.surface,
+            borderRadius: 14,
             borderCurve: 'continuous',
             borderWidth: 1,
-            borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
+            borderColor: theme.line,
             overflow: 'hidden',
           }}
         >
           <View style={{ padding: 20, gap: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Calendar size={16} color={palette.accent500} />
+              <Calendar size={16} color={theme.warm} />
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '700',
-                  color: isDark ? palette.neutral400 : palette.neutral500,
+                  color: theme.ink2,
                   textTransform: 'uppercase',
-                  letterSpacing: 0.5,
+                  letterSpacing: 2.2,
                 }}
               >
                 This Week
@@ -210,7 +210,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: isDark ? palette.white : palette.neutral950,
+                    color: theme.ink,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
@@ -221,7 +221,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 13,
                     fontWeight: '600',
-                    color: isDark ? palette.neutral500 : palette.neutral600,
+                    color: theme.ink3,
                   }}
                 >
                   {distanceUnitLabel(system)}
@@ -232,7 +232,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: isDark ? palette.white : palette.neutral950,
+                    color: theme.ink,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
@@ -243,7 +243,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 13,
                     fontWeight: '600',
-                    color: isDark ? palette.neutral500 : palette.neutral600,
+                    color: theme.ink3,
                   }}
                 >
                   ride{stats.weekRides !== 1 ? 's' : ''}
@@ -254,7 +254,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 32,
                     fontWeight: '200',
-                    color: isDark ? palette.white : palette.neutral950,
+                    color: theme.ink,
                     fontVariant: ['tabular-nums'],
                     letterSpacing: -1,
                   }}
@@ -265,7 +265,7 @@ export default function RidesScreen() {
                   style={{
                     fontSize: 13,
                     fontWeight: '600',
-                    color: isDark ? palette.neutral500 : palette.neutral600,
+                    color: theme.ink3,
                   }}
                 >
                   riding
@@ -279,7 +279,7 @@ export default function RidesScreen() {
             style={{
               flexDirection: 'row',
               borderTopWidth: 1,
-              borderTopColor: isDark ? palette.surfaceElevated : palette.neutral200,
+              borderTopColor: theme.line,
             }}
           >
             <View
@@ -288,15 +288,16 @@ export default function RidesScreen() {
                 padding: 14,
                 alignItems: 'center',
                 borderRightWidth: 1,
-                borderRightColor: isDark ? palette.surfaceElevated : palette.neutral200,
+                borderRightColor: theme.line,
               }}
             >
               <Text
                 style={{
                   fontSize: 11,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral500 : palette.neutral600,
-                  letterSpacing: 0.5,
+                  fontWeight: '700',
+                  color: theme.ink2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 2.2,
                 }}
               >
                 THIS MONTH
@@ -305,7 +306,7 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: isDark ? palette.white : palette.neutral950,
+                  color: theme.ink,
                   fontVariant: ['tabular-nums'],
                   marginTop: 4,
                 }}
@@ -317,9 +318,10 @@ export default function RidesScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  fontWeight: '600',
-                  color: isDark ? palette.neutral500 : palette.neutral600,
-                  letterSpacing: 0.5,
+                  fontWeight: '700',
+                  color: theme.ink2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 2.2,
                 }}
               >
                 ALL TIME
@@ -328,7 +330,7 @@ export default function RidesScreen() {
                 style={{
                   fontSize: 18,
                   fontWeight: '700',
-                  color: isDark ? palette.white : palette.neutral950,
+                  color: theme.ink,
                   fontVariant: ['tabular-nums'],
                   marginTop: 4,
                 }}
@@ -341,18 +343,18 @@ export default function RidesScreen() {
 
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 11,
             fontWeight: '700',
-            color: isDark ? palette.neutral400 : palette.neutral500,
+            color: theme.ink2,
             textTransform: 'uppercase',
-            letterSpacing: 0.5,
+            letterSpacing: 2.2,
           }}
         >
           Activity
         </Text>
       </Animated.View>
     ),
-    [stats, system, isDark],
+    [stats, system, theme],
   );
 
   const renderEmpty = useCallback(() => {
@@ -367,7 +369,7 @@ export default function RidesScreen() {
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: isDark ? palette.white : palette.neutral950,
+            color: theme.ink,
             textAlign: 'center',
           }}
         >
@@ -376,7 +378,7 @@ export default function RidesScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: isDark ? palette.neutral400 : palette.neutral500,
+            color: theme.ink3,
             textAlign: 'center',
             lineHeight: 22,
           }}
@@ -399,7 +401,7 @@ export default function RidesScreen() {
             hasBikes ? t('profile.ridesEmptyStartRide') : t('profile.ridesEmptyAddBike')
           }
           style={({ pressed }) => ({
-            backgroundColor: palette.primary700,
+            backgroundColor: theme.warm,
             borderRadius: 20,
             borderCurve: 'continuous',
             height: 56,
@@ -416,13 +418,13 @@ export default function RidesScreen() {
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, isDark, hasBikes, router, t]);
+  }, [isLoading, theme, hasBikes, router, t]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
       return (
         <View style={{ paddingVertical: 20 }}>
-          <ActivityIndicator size="small" color={palette.accent500} />
+          <ActivityIndicator size="small" color={theme.warm} />
         </View>
       );
     }
@@ -432,22 +434,22 @@ export default function RidesScreen() {
           entering={FadeInUp.duration(280)}
           style={{
             marginTop: 12,
-            backgroundColor: isDark ? palette.cardDark : palette.white,
-            borderRadius: 20,
+            backgroundColor: theme.surface,
+            borderRadius: 14,
             borderCurve: 'continuous',
             padding: 20,
             alignItems: 'center',
             gap: 10,
             borderWidth: 1,
-            borderColor: isDark ? palette.surfaceElevated : palette.neutral200,
+            borderColor: theme.line,
           }}
         >
-          <TrendingUp size={24} color={palette.signature500} />
+          <TrendingUp size={24} color={theme.warm} />
           <Text
             style={{
               fontSize: 16,
               fontWeight: '700',
-              color: isDark ? palette.white : palette.neutral950,
+              color: theme.ink,
             }}
           >
             Unlock Full History
@@ -455,7 +457,7 @@ export default function RidesScreen() {
           <Text
             style={{
               fontSize: 14,
-              color: isDark ? palette.neutral400 : palette.neutral500,
+              color: theme.ink3,
               textAlign: 'center',
             }}
           >
@@ -494,10 +496,10 @@ export default function RidesScreen() {
       );
     }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, isDark]);
+  }, [isFetchingNextPage, showUpgradeCta, theme]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -518,19 +520,19 @@ export default function RidesScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: theme.surface2,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color={isDark ? palette.white : palette.neutral950} />
+          <ArrowLeft size={20} color={theme.ink} />
         </Pressable>
         <Text
           style={{
             flex: 1,
             fontSize: 28,
             fontWeight: '800',
-            color: isDark ? palette.white : palette.neutral950,
+            color: theme.ink,
             letterSpacing: -0.5,
           }}
         >
@@ -542,14 +544,14 @@ export default function RidesScreen() {
             paddingVertical: 4,
             borderRadius: 10,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: theme.surface2,
           }}
         >
           <Text
             style={{
               fontSize: 13,
               fontWeight: '700',
-              color: palette.accent500,
+              color: theme.warm,
               fontVariant: ['tabular-nums'],
             }}
           >
@@ -560,7 +562,7 @@ export default function RidesScreen() {
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={palette.accent500} />
+          <ActivityIndicator size="large" color={theme.warm} />
         </View>
       ) : (
         <FlatList
@@ -578,11 +580,7 @@ export default function RidesScreen() {
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.3}
           refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={isDark ? palette.white : palette.neutral400}
-            />
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.ink3} />
           }
           showsVerticalScrollIndicator={false}
           windowSize={7}

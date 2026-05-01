@@ -66,11 +66,11 @@ function isFreeTierLimitError(error: Error): boolean {
 }
 
 export default function LearnScreen() {
-  const { t } = useTranslation();
+  const { t: tr } = useTranslation();
   const router = useRouter();
   const { q } = useLocalSearchParams<{ q?: string }>();
   const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t } = useEditorialTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -182,7 +182,7 @@ export default function LearnScreen() {
       router.push(`/(tabs)/(learn)/article/${slug}` as `/${string}`);
     },
     onError: (err: Error) => {
-      setGenerateError(err.message ?? t('common.error'));
+      setGenerateError(err.message ?? tr('common.error'));
       if (isFreeTierLimitError(err)) {
         presentPaywall({
           source: 'feature_gate',
@@ -231,7 +231,7 @@ export default function LearnScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: isDark ? palette.neutral900 : palette.neutral50,
+          backgroundColor: t.bg,
           paddingTop: insets.top,
           paddingHorizontal: 20,
         }}
@@ -265,46 +265,56 @@ export default function LearnScreen() {
   }
 
   return (
-    <View className="flex-1 bg-neutral-50 dark:bg-neutral-900">
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1"
+        style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: insets.top }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={isDark ? palette.white : palette.primary500}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={t.warm} />
         }
       >
         {/* Header */}
-        <Animated.View entering={FadeIn.duration(300)} className="px-5 pt-3 pb-1">
-          <Text className="text-2xl font-bold text-neutral-950 dark:text-neutral-50">
-            {t('tabs.learn')}
-          </Text>
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}
+        >
+          <Text style={{ fontSize: 24, fontWeight: '700', color: t.ink }}>{tr('tabs.learn')}</Text>
         </Animated.View>
 
         {/* Search Bar */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)} className="px-5 mt-3">
+        <Animated.View
+          entering={FadeInUp.delay(100).duration(400)}
+          style={{ paddingHorizontal: 20, marginTop: 12 }}
+        >
           <View
-            className="flex-row items-center bg-white dark:bg-neutral-800 rounded-xl px-4 py-3 gap-2"
-            style={{ borderCurve: 'continuous' }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: t.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: t.line,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              gap: 8,
+            }}
           >
-            <Search size={18} color={palette.neutral400} strokeWidth={2} />
+            <Search size={18} color={t.ink3} strokeWidth={2} />
             <TextInput
               ref={searchInputRef}
-              className="flex-1 text-base text-neutral-950 dark:text-neutral-50"
-              placeholder={t('learn.searchPlaceholder')}
-              placeholderTextColor={palette.neutral400}
+              style={{ flex: 1, fontSize: 16, color: t.ink }}
+              placeholder={tr('learn.searchPlaceholder')}
+              placeholderTextColor={t.ink3}
               value={searchQuery}
               onChangeText={setSearchQuery}
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (
               <Pressable onPress={handleClear} hitSlop={8}>
-                <X size={16} color={palette.neutral400} strokeWidth={2} />
+                <X size={16} color={t.ink3} strokeWidth={2} />
               </Pressable>
             )}
           </View>
@@ -312,40 +322,82 @@ export default function LearnScreen() {
 
         {isSearchActive ? (
           /* Search Results */
-          <Animated.View entering={FadeInUp.duration(300)} className="px-5 mt-4">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50">
-                {t('learn.searchResults')}
+          <Animated.View
+            entering={FadeInUp.duration(300)}
+            style={{ paddingHorizontal: 20, marginTop: 16 }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: t.ink2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 2.2,
+                }}
+              >
+                {tr('learn.searchResults')}
               </Text>
               <Pressable
                 onPress={handleClear}
                 hitSlop={8}
-                className="flex-row items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-200 dark:bg-neutral-700"
-                style={{ borderCurve: 'continuous' }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 8,
+                  borderCurve: 'continuous',
+                  backgroundColor: t.surface2,
+                }}
               >
-                <X size={14} color={palette.neutral500} strokeWidth={2} />
-                <Text className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
-                  {t('common.back')}
+                <X size={14} color={t.ink3} strokeWidth={2} />
+                <Text style={{ fontSize: 12, fontWeight: '500', color: t.ink3 }}>
+                  {tr('common.back')}
                 </Text>
               </Pressable>
             </View>
 
             {isSearching ? (
-              <View className="py-8 items-center">
-                <ActivityIndicator size="small" color={palette.primary500} />
+              <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={t.warm} />
               </View>
             ) : searchResults.length === 0 ? (
               <View
-                className="bg-white dark:bg-neutral-800 rounded-2xl p-6 items-center"
-                style={{ borderCurve: 'continuous' }}
+                style={{
+                  backgroundColor: t.surface,
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  borderWidth: 1,
+                  borderColor: t.line,
+                  padding: 24,
+                  alignItems: 'center',
+                }}
               >
-                <Search size={36} color={palette.neutral300} strokeWidth={1.5} />
-                <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-3 text-center">
-                  {t('learn.noResults')}
+                <Search size={36} color={t.ink4} strokeWidth={1.5} />
+                <Text style={{ fontSize: 14, color: t.ink3, marginTop: 12, textAlign: 'center' }}>
+                  {tr('learn.noResults')}
                 </Text>
                 <Pressable
-                  className="mt-4 bg-primary-500 rounded-xl px-6 py-3 flex-row items-center gap-2"
-                  style={{ borderCurve: 'continuous' }}
+                  style={{
+                    marginTop: 16,
+                    backgroundColor: t.warm,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    paddingHorizontal: 24,
+                    paddingVertical: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
                   onPress={handleGenerate}
                   disabled={isGenerating}
                 >
@@ -354,48 +406,71 @@ export default function LearnScreen() {
                   ) : (
                     <Sparkles size={16} color={palette.white} strokeWidth={2} />
                   )}
-                  <Text className="text-white font-semibold text-sm">
-                    {isGenerating ? t('learn.generating') : t('learn.generateArticle')}
+                  <Text style={{ color: palette.white, fontWeight: '600', fontSize: 14 }}>
+                    {isGenerating ? tr('learn.generating') : tr('learn.generateArticle')}
                   </Text>
                 </Pressable>
                 {generateError && (
-                  <View className="mt-3 flex-row items-center gap-2">
-                    <AlertCircle size={14} color={palette.danger500} strokeWidth={2} />
-                    <Text className="text-xs text-red-600 dark:text-red-400 flex-1">
-                      {generateError}
-                    </Text>
+                  <View
+                    style={{
+                      marginTop: 12,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <AlertCircle size={14} color={t.danger} strokeWidth={2} />
+                    <Text style={{ fontSize: 12, color: t.danger, flex: 1 }}>{generateError}</Text>
                   </View>
                 )}
               </View>
             ) : (
-              <View className="gap-3">
+              <View style={{ gap: 12 }}>
                 {searchResults.map(({ node }, index) => (
                   <Animated.View key={node.id} entering={FadeInUp.delay(index * 50).duration(400)}>
                     <Pressable
-                      className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
-                      style={{ borderCurve: 'continuous' }}
+                      style={{
+                        backgroundColor: t.surface,
+                        borderRadius: 14,
+                        borderCurve: 'continuous',
+                        borderWidth: 1,
+                        borderColor: t.line,
+                        padding: 16,
+                      }}
                       onPress={() =>
                         router.push(`/(tabs)/(learn)/article/${node.slug}` as `/${string}`)
                       }
                     >
-                      <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50">
+                      <Text style={{ fontSize: 16, fontWeight: '600', color: t.ink }}>
                         {node.title}
                       </Text>
-                      <View className="flex-row items-center gap-2 mt-2 flex-wrap">
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginTop: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         {/* Category badge */}
                         <View
-                          className="rounded-lg px-2.5 py-1"
                           style={{
-                            backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[node.category] ?? palette.primary500}15`,
+                            borderRadius: 8,
                             borderCurve: 'continuous',
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[node.category] ?? t.warm}15`,
                           }}
                         >
                           <Text
-                            className="text-xs font-medium capitalize"
                             style={{
+                              fontSize: 12,
+                              fontWeight: '500',
+                              textTransform: 'capitalize',
                               color:
                                 (CATEGORY_COLORS as Record<string, string>)[node.category] ??
-                                palette.primary500,
+                                t.warm,
                             }}
                           >
                             {node.category.replace(/-/g, ' ')}
@@ -403,27 +478,31 @@ export default function LearnScreen() {
                         </View>
                         {/* Difficulty badge */}
                         <View
-                          className="rounded-lg px-2.5 py-1"
                           style={{
-                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ?? palette.neutral400}15`,
+                            borderRadius: 8,
                             borderCurve: 'continuous',
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ?? t.ink3}15`,
                           }}
                         >
                           <Text
-                            className="text-xs font-medium capitalize"
                             style={{
+                              fontSize: 12,
+                              fontWeight: '500',
+                              textTransform: 'capitalize',
                               color:
                                 (DIFFICULTY_COLORS as Record<string, string>)[node.difficulty] ??
-                                palette.neutral400,
+                                t.ink3,
                             }}
                           >
                             {node.difficulty}
                           </Text>
                         </View>
                         {/* View count */}
-                        <View className="flex-row items-center gap-1">
-                          <Eye size={12} color={palette.neutral400} strokeWidth={2} />
-                          <Text className="text-xs text-neutral-500">{node.viewCount}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Eye size={12} color={t.ink3} strokeWidth={2} />
+                          <Text style={{ fontSize: 12, color: t.ink3 }}>{node.viewCount}</Text>
                         </View>
                       </View>
                     </Pressable>
@@ -441,37 +520,76 @@ export default function LearnScreen() {
             />
 
             {/* Progress Card */}
-            <Animated.View entering={FadeInUp.delay(200).duration(400)} className="px-5 mt-4">
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(400)}
+              style={{ paddingHorizontal: 20, marginTop: 16 }}
+            >
               <View
-                className="bg-primary-950 dark:bg-primary-800 rounded-2xl p-5 overflow-hidden"
-                style={{ borderCurve: 'continuous' }}
+                className="bg-primary-950 dark:bg-primary-800"
+                style={{
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  padding: 20,
+                  overflow: 'hidden',
+                }}
               >
-                <View className="flex-row items-center gap-3 mb-3">
-                  <View className="w-10 h-10 rounded-xl bg-white/15 items-center justify-center">
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    marginBottom: 12,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
                     <BookOpen size={20} color={palette.white} strokeWidth={2} />
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-white text-lg font-bold">
-                      {t('learn.motorcycleBasics')}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: palette.white, fontSize: 18, fontWeight: '700' }}>
+                      {tr('learn.motorcycleBasics')}
                     </Text>
-                    <Text className="text-white/60 text-sm">
-                      {t('learn.articlesRead', { count: totalRead })}
+                    <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>
+                      {tr('learn.articlesRead', { count: totalRead })}
                     </Text>
                   </View>
                 </View>
 
                 {/* Progress Bar */}
-                <View className="h-2 bg-white/15 rounded-full overflow-hidden">
+                <View
+                  style={{
+                    height: 8,
+                    backgroundColor: 'rgba(255,255,255,0.15)',
+                    borderRadius: 999,
+                    overflow: 'hidden',
+                  }}
+                >
                   <View
-                    className="h-full bg-accent-400 rounded-full"
-                    style={{ width: `${Math.min((totalRead / 20) * 100, 100)}%` }}
+                    className="bg-accent-400"
+                    style={{
+                      height: '100%',
+                      borderRadius: 999,
+                      width: `${Math.min((totalRead / 20) * 100, 100)}%`,
+                    }}
                   />
                 </View>
                 <Text
-                  className="text-white/50 text-xs mt-2"
-                  style={{ fontVariant: ['tabular-nums'] }}
+                  style={{
+                    color: 'rgba(255,255,255,0.5)',
+                    fontSize: 12,
+                    marginTop: 8,
+                    fontVariant: ['tabular-nums'],
+                  }}
                 >
-                  {t('learn.progressLabel', { current: totalRead, total: 20 })}
+                  {tr('learn.progressLabel', { current: totalRead, total: 20 })}
                 </Text>
               </View>
             </Animated.View>
@@ -479,13 +597,22 @@ export default function LearnScreen() {
             {/* Module Grid */}
             <Animated.View
               entering={FadeInUp.delay(300).duration(400)}
-              className="px-5 mt-5"
+              style={{ paddingHorizontal: 20, marginTop: 20 }}
               onLayout={onModulesLayout}
             >
-              <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3">
-                {t('learn.modules')}
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: t.ink2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 2.2,
+                  marginBottom: 12,
+                }}
+              >
+                {tr('learn.modules')}
               </Text>
-              <View className="flex-row flex-wrap gap-3">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
                 {MODULES.map((mod, index) => {
                   const Icon = mod.icon;
                   return (
@@ -495,8 +622,14 @@ export default function LearnScreen() {
                       style={{ width: '48%' }}
                     >
                       <Pressable
-                        className="bg-white dark:bg-neutral-800 rounded-2xl p-4"
-                        style={{ borderCurve: 'continuous' }}
+                        style={{
+                          backgroundColor: t.surface,
+                          borderRadius: 14,
+                          borderCurve: 'continuous',
+                          borderWidth: 1,
+                          borderColor: t.line,
+                          padding: 16,
+                        }}
                         onPress={() => {
                           setSearchQuery(mod.category);
                         }}
@@ -514,8 +647,16 @@ export default function LearnScreen() {
                         >
                           <Icon size={22} color={mod.color} strokeWidth={2} />
                         </View>
-                        <Text className="text-base font-semibold text-neutral-950 dark:text-neutral-50 mt-3 capitalize">
-                          {t(`learn.module.${mod.key}`)}
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: '600',
+                            color: t.ink,
+                            marginTop: 12,
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {tr(`learn.module.${mod.key}`)}
                         </Text>
                       </Pressable>
                     </Animated.View>
@@ -526,9 +667,19 @@ export default function LearnScreen() {
 
             {/* Popular in the Community */}
             {popularArticles.length >= 5 && (
-              <Animated.View entering={FadeInUp.delay(500).duration(400)} className="mt-5">
-                <Text className="text-lg font-bold text-neutral-950 dark:text-neutral-50 mb-3 px-5">
-                  {t('learn.popularInCommunity', { defaultValue: 'Popular in the Community' })}
+              <Animated.View entering={FadeInUp.delay(500).duration(400)} style={{ marginTop: 20 }}>
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: t.ink2,
+                    textTransform: 'uppercase',
+                    letterSpacing: 2.2,
+                    marginBottom: 12,
+                    paddingHorizontal: 20,
+                  }}
+                >
+                  {tr('learn.popularInCommunity', { defaultValue: 'Popular in the Community' })}
                 </Text>
                 <ScrollView
                   horizontal
@@ -543,22 +694,19 @@ export default function LearnScreen() {
                       <Pressable
                         style={{
                           width: 200,
-                          backgroundColor: (CATEGORY_COLORS as Record<string, string>)[
-                            article.category
-                          ]
-                            ? `${(CATEGORY_COLORS as Record<string, string>)[article.category]}08`
-                            : undefined,
-                          borderRadius: 16,
+                          backgroundColor: t.surface,
+                          borderRadius: 14,
                           borderCurve: 'continuous',
+                          borderWidth: 1,
+                          borderColor: t.line,
                           padding: 14,
                         }}
-                        className="bg-white dark:bg-neutral-800"
                         onPress={() =>
                           router.push(`/(tabs)/(learn)/article/${article.slug}` as `/${string}`)
                         }
                       >
                         <Text
-                          className="text-sm font-semibold text-neutral-950 dark:text-neutral-50"
+                          style={{ fontSize: 14, fontWeight: '600', color: t.ink }}
                           numberOfLines={2}
                         >
                           {article.title}
@@ -579,7 +727,7 @@ export default function LearnScreen() {
                               borderCurve: 'continuous',
                               paddingHorizontal: 8,
                               paddingVertical: 3,
-                              backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[article.category] ?? palette.primary500}15`,
+                              backgroundColor: `${(CATEGORY_COLORS as Record<string, string>)[article.category] ?? t.warm}15`,
                             }}
                           >
                             <Text
@@ -588,7 +736,7 @@ export default function LearnScreen() {
                                 fontWeight: '500',
                                 color:
                                   (CATEGORY_COLORS as Record<string, string>)[article.category] ??
-                                  palette.primary500,
+                                  t.warm,
                                 textTransform: 'capitalize',
                               }}
                             >
@@ -602,7 +750,7 @@ export default function LearnScreen() {
                               borderCurve: 'continuous',
                               paddingHorizontal: 8,
                               paddingVertical: 3,
-                              backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? palette.neutral400}15`,
+                              backgroundColor: `${(DIFFICULTY_COLORS as Record<string, string>)[article.difficulty] ?? t.ink3}15`,
                             }}
                           >
                             <Text
@@ -612,7 +760,7 @@ export default function LearnScreen() {
                                 color:
                                   (DIFFICULTY_COLORS as Record<string, string>)[
                                     article.difficulty
-                                  ] ?? palette.neutral400,
+                                  ] ?? t.ink3,
                                 textTransform: 'capitalize',
                               }}
                             >
@@ -628,10 +776,8 @@ export default function LearnScreen() {
                             marginTop: 6,
                           }}
                         >
-                          <Eye size={11} color={palette.neutral400} strokeWidth={2} />
-                          <Text style={{ fontSize: 11, color: palette.neutral400 }}>
-                            {article.viewCount}
-                          </Text>
+                          <Eye size={11} color={t.ink3} strokeWidth={2} />
+                          <Text style={{ fontSize: 11, color: t.ink3 }}>{article.viewCount}</Text>
                         </View>
                       </Pressable>
                     </Animated.View>

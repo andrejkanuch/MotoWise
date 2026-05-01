@@ -99,18 +99,11 @@ function MyTripCard({
   onPress: () => void;
   onLongPress: () => void;
 }) {
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const { t } = useTranslation();
 
-  const cardBg = isDark ? palette.cardDark : palette.white;
-  const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const metaColor = isDark ? palette.neutral300 : palette.neutral600;
-  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
-
   const diffKey = (trip.difficulty || 'easy').toLowerCase() as keyof typeof DIFFICULTY_COLORS;
-  const diffColor = DIFFICULTY_COLORS[diffKey] ?? palette.neutral500;
+  const diffColor = DIFFICULTY_COLORS[diffKey] ?? theme.ink3;
   const diffLabels = getDifficultyLabels(t as TFn);
   const diffLabel = diffLabels[diffKey] ?? diffLabels.easy;
 
@@ -154,11 +147,11 @@ function MyTripCard({
         accessibilityRole="button"
         accessibilityLabel={`${isDraft ? 'Draft trip' : 'Trip'}: ${trip.title}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? pressedBg : cardBg,
+          backgroundColor: pressed ? theme.surface2 : theme.surface,
           borderRadius: 16,
           borderCurve: 'continuous',
           borderWidth: 1,
-          borderColor: isDraft ? (isDark ? palette.warning500 : palette.warning500) : cardBorder,
+          borderColor: isDraft ? palette.warning500 : theme.line,
           padding: 14,
           gap: 10,
           opacity: isDraft ? 1 : 1,
@@ -193,7 +186,7 @@ function MyTripCard({
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 4,
-                backgroundColor: isDark ? palette.surfaceElevated : palette.neutral100,
+                backgroundColor: theme.surface2,
                 paddingHorizontal: 8,
                 paddingVertical: 3,
                 borderRadius: 8,
@@ -233,7 +226,7 @@ function MyTripCard({
           style={{
             fontSize: 17,
             fontWeight: '800',
-            color: titleColor,
+            color: theme.ink,
             letterSpacing: -0.3,
           }}
           numberOfLines={1}
@@ -244,18 +237,18 @@ function MyTripCard({
         {/* Stats strip */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Calendar size={12} color={palette.accent500} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+            <Calendar size={12} color={theme.warm} />
+            <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
               {days}
-              <Text style={{ fontWeight: '500', color: metaColor }}>d</Text>
+              <Text style={{ fontWeight: '500', color: theme.ink3 }}>d</Text>
             </Text>
           </View>
           {stopCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <MapPin size={12} color={palette.accent500} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+              <MapPin size={12} color={theme.warm} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
                 {stopCount}
-                <Text style={{ fontWeight: '500', color: metaColor }}>
+                <Text style={{ fontWeight: '500', color: theme.ink3 }}>
                   {stopCount === 1 ? ` ${t('trips.stopSingular')}` : ` ${t('trips.stopPlural')}`}
                 </Text>
               </Text>
@@ -263,10 +256,10 @@ function MyTripCard({
           )}
           {!isDraft && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Users size={12} color={palette.accent500} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: titleColor }}>
+              <Users size={12} color={theme.warm} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.ink }}>
                 {participantCount}
-                <Text style={{ fontWeight: '500', color: metaColor }}>/{maxRiders}</Text>
+                <Text style={{ fontWeight: '500', color: theme.ink3 }}>/{maxRiders}</Text>
               </Text>
             </View>
           )}
@@ -274,7 +267,7 @@ function MyTripCard({
 
         {/* Meta row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={{ fontSize: 12, color: subtitleColor, fontWeight: '500' }} numberOfLines={1}>
+          <Text style={{ fontSize: 12, color: theme.ink3, fontWeight: '500' }} numberOfLines={1}>
             {formatDateRange(trip.startDate, trip.endDate)}
           </Text>
           <View
@@ -282,7 +275,7 @@ function MyTripCard({
               width: 4,
               height: 4,
               borderRadius: 2,
-              backgroundColor: subtitleColor,
+              backgroundColor: theme.ink3,
               opacity: 0.6,
             }}
           />
@@ -293,7 +286,7 @@ function MyTripCard({
               size={16}
               variant="neutral"
             />
-            <Text style={{ fontSize: 12, color: subtitleColor, flexShrink: 1 }} numberOfLines={1}>
+            <Text style={{ fontSize: 12, color: theme.ink3, flexShrink: 1 }} numberOfLines={1}>
               {trip.organiser.displayName}
             </Text>
           </View>
@@ -306,7 +299,7 @@ function MyTripCard({
 export default function MyTripsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isDark } = useEditorialTheme();
+  const { t: theme } = useEditorialTheme();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
 
@@ -448,19 +441,19 @@ export default function MyTripsScreen() {
             height: 80,
             borderRadius: 40,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: theme.surface2,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 8,
           }}
         >
-          <MapRoute size={36} color={isDark ? palette.neutral500 : palette.neutral400} />
+          <MapRoute size={36} color={theme.ink3} />
         </View>
         <Text
           style={{
             fontSize: 18,
             fontWeight: '700',
-            color: isDark ? palette.white : palette.neutral950,
+            color: theme.ink,
             textAlign: 'center',
           }}
         >
@@ -469,7 +462,7 @@ export default function MyTripsScreen() {
         <Text
           style={{
             fontSize: 15,
-            color: isDark ? palette.neutral400 : palette.neutral500,
+            color: theme.ink3,
             textAlign: 'center',
             lineHeight: 22,
           }}
@@ -484,7 +477,7 @@ export default function MyTripsScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('trips.planATrip')}
           style={({ pressed }) => ({
-            backgroundColor: palette.primary700,
+            backgroundColor: theme.warm,
             borderRadius: 20,
             borderCurve: 'continuous',
             height: 56,
@@ -504,18 +497,18 @@ export default function MyTripsScreen() {
         </Pressable>
       </Animated.View>
     );
-  }, [isLoading, isDark, router, t]);
+  }, [isLoading, theme, router, t]);
 
   const renderFooter = useCallback(() => {
     if (isFetchingNextPage) {
       return (
         <View style={{ paddingVertical: 20 }}>
-          <ActivityIndicator size="small" color={palette.accent500} />
+          <ActivityIndicator size="small" color={theme.warm} />
         </View>
       );
     }
     return null;
-  }, [isFetchingNextPage]);
+  }, [isFetchingNextPage, theme]);
 
   const draftCount = useMemo(
     () => allEdges.filter((e) => e.node.status === 'draft').length,
@@ -523,7 +516,7 @@ export default function MyTripsScreen() {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? palette.surfaceDark : palette.neutral50 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -544,19 +537,19 @@ export default function MyTripsScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,
+            backgroundColor: theme.surface2,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <ArrowLeft size={20} color={isDark ? palette.white : palette.neutral950} />
+          <ArrowLeft size={20} color={theme.ink} />
         </Pressable>
         <Text
           style={{
             flex: 1,
             fontSize: 28,
             fontWeight: '800',
-            color: isDark ? palette.white : palette.neutral950,
+            color: theme.ink,
             letterSpacing: -0.5,
           }}
         >
@@ -574,7 +567,7 @@ export default function MyTripsScreen() {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: palette.accent500,
+            backgroundColor: theme.warm,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -616,7 +609,7 @@ export default function MyTripsScreen() {
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={palette.accent500} />
+          <ActivityIndicator size="large" color={theme.warm} />
         </View>
       ) : (
         <FlatList
@@ -639,7 +632,7 @@ export default function MyTripsScreen() {
                 triggerImpact();
                 refetch();
               }}
-              tintColor={isDark ? palette.white : palette.neutral400}
+              tintColor={theme.ink3}
             />
           }
           showsVerticalScrollIndicator={false}
