@@ -178,7 +178,7 @@ export class TripTemplatesService {
       .from('trips')
       .select(TEMPLATE_SELECT)
       .eq('is_template', true)
-      .eq('country_code', country)
+      .eq('country_code', country.toUpperCase())
       .eq('region_code', region)
       .eq('slug', slug)
       .eq('is_flagged', false)
