@@ -119,11 +119,11 @@ describe('HealthReportsService', () => {
   });
 
   describe('generateReport', () => {
-    it('should generate a report for a bike with a pending purchase', async () => {
+    it('should generate a report for a bike', async () => {
       // User client: bike ownership check (.single())
       mockUserClient._pushResult({ data: fakeBike });
 
-      // Admin client result 0: find pending report (.single() via maybeSingle)
+      // Admin client result 0: insert pending report (.single())
       mockAdminClient._pushResult({ data: fakePendingReport });
 
       // Admin client result 1: maintenance_tasks query (thenable)
@@ -156,13 +156,15 @@ describe('HealthReportsService', () => {
       expect(result.pdfUrl).toBeDefined();
     });
 
-    it('should throw ForbiddenException when no pending purchase exists', async () => {
+    it('should throw InternalServerErrorException when report insert fails', async () => {
       // User client: bike ownership check
       mockUserClient._pushResult({ data: fakeBike });
-      // Admin client: no pending report found
-      mockAdminClient._pushResult({ data: null });
+      // Admin client: insert fails
+      mockAdminClient._pushResult({ data: null, error: { message: 'insert failed' } });
 
-      await expect(service.generateReport(userId, bikeId)).rejects.toThrow(ForbiddenException);
+      await expect(service.generateReport(userId, bikeId)).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('should throw ForbiddenException when bike not owned by user', async () => {
