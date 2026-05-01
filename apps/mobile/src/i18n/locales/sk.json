@@ -1239,7 +1239,8 @@
     "on": "na"
   },
   "healthReport": {
-    "title": "Správa o stave",
+    "title": "AI správa o zdraví",
+    "subtitle": "Získajte kompletnú diagnostickú analýzu vášho motocykla",
     "generate": "Vytvoriť správu o stave",
     "generating": "Vytváram tvoju správu...",
     "generatingSubtitle": "Môže to chvíľu trvať",

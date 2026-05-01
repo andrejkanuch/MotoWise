@@ -310,13 +310,9 @@ Requirements:
     const tier = (userData?.subscription_tier as 'free' | 'pro') ?? 'free';
     if (tier === 'pro') return;
 
-    // Calculate start of current week (Monday 00:00 UTC)
+    // Calculate start of current month (1st day 00:00 UTC)
     const now = new Date();
-    const dayOfWeek = now.getUTCDay();
-    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const weekStart = new Date(now);
-    weekStart.setUTCDate(now.getUTCDate() - daysSinceMonday);
-    weekStart.setUTCHours(0, 0, 0, 0);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
     const { count, error } = await this.adminClient
       .from('content_generation_log')
@@ -324,20 +320,20 @@ Requirements:
       .eq('user_id', userId)
       .eq('content_type', 'article')
       .eq('status', 'success')
-      .gte('created_at', weekStart.toISOString());
+      .gte('created_at', monthStart.toISOString());
 
     if (error) {
-      this.logger.error('Failed to count weekly articles for tier check', error);
+      this.logger.error('Failed to count monthly articles for tier check', error);
       // Fail open — don't block generation if count check fails
       return;
     }
 
-    if ((count ?? 0) >= FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK) {
+    if ((count ?? 0) >= FREE_TIER_LIMITS.MAX_ARTICLES_PER_MONTH) {
       this.logger.warn(
-        `User ${userId} hit free tier weekly article limit: ${count}/${FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK}`,
+        `User ${userId} hit free tier monthly article limit: ${count}/${FREE_TIER_LIMITS.MAX_ARTICLES_PER_MONTH}`,
       );
       throw new ForbiddenException(
-        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_ARTICLES_PER_WEEK} articles per week. Upgrade to Pro for unlimited articles.`,
+        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_ARTICLES_PER_MONTH} articles per month. Upgrade to Pro for unlimited articles.`,
       );
     }
   }

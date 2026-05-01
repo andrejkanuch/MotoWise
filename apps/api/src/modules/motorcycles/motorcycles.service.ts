@@ -183,7 +183,7 @@ export class MotorcyclesService {
         `User ${userId} hit free tier bike limit: ${count}/${FREE_TIER_LIMITS.MAX_BIKES}`,
       );
       throw new ForbiddenException(
-        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_BIKES} motorcycle${FREE_TIER_LIMITS.MAX_BIKES === 1 ? '' : 's'}. Upgrade to Pro for unlimited bikes.`,
+        `Free plan allows up to ${FREE_TIER_LIMITS.MAX_BIKES} motorcycles. Upgrade to Pro for unlimited bikes.`,
       );
     }
   }

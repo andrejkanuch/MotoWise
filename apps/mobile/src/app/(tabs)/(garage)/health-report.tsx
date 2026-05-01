@@ -35,7 +35,6 @@ import { HealthReportCard } from '../../../components/garage/HealthReportCard';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { presentPaywall } from '../../../lib/subscription';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const MIN_RECORDS_REQUIRED = 3;
@@ -136,21 +135,8 @@ export default function HealthReportScreen() {
   const handleGenerate = async () => {
     if (!bikeId || isGenerating) return;
     triggerImpact();
-
-    // Purchase flow
-    const result = await presentPaywall({
-      offeringIdentifier: 'health_report',
-      source: 'health_report',
-      feature: 'health_report',
-      surface: 'garage_health_report',
-      metadata: { bike_id: bikeId },
-    });
-
-    if (result === 'purchased' || result === 'restored') {
-      triggerNotification(Haptics.NotificationFeedbackType.Success);
-      setGenerating(true);
-      generateMutation.mutate();
-    }
+    setGenerating(true);
+    generateMutation.mutate();
   };
 
   const handleRetry = () => {

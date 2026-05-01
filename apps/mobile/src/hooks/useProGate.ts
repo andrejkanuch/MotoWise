@@ -43,8 +43,8 @@ interface ProGateResult {
  * ```ts
  * const { requirePro, requireAccess } = useProGate();
  *
- * // For pro-only features (maintenance reminders, PDF export):
- * if (!requirePro('maintenance_reminders')) return; // paywall shown automatically
+ * // For pro-only features (GPX export, offline trips):
+ * if (!requirePro('gpx_export')) return; // paywall shown automatically
  *
  * // For counted features (bikes, diagnostics, articles):
  * if (!requireAccess('MAX_BIKES', currentBikeCount)) return; // paywall shown automatically
@@ -83,8 +83,7 @@ export function useProGate(): ProGateResult {
       const featureMap: Partial<Record<keyof typeof FREE_TIER_LIMITS, ProFeature>> = {
         MAX_BIKES: 'unlimited_bikes',
         MAX_AI_DIAGNOSTICS_PER_MONTH: 'full_ai_diagnostics',
-        MAX_ARTICLES_PER_WEEK: 'unlimited_articles',
-        MAX_MAINTENANCE_TASKS_PER_BIKE: 'maintenance_reminders',
+        MAX_ARTICLES_PER_MONTH: 'unlimited_articles',
       };
       const proFeature = featureMap[feature] ?? 'unlimited_bikes';
       presentPaywall({

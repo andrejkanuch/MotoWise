@@ -1239,7 +1239,8 @@
     "on": "su"
   },
   "healthReport": {
-    "title": "Report di salute",
+    "title": "Rapporto salute IA",
+    "subtitle": "Ottieni un'analisi diagnostica completa della tua moto",
     "generate": "Genera report di salute",
     "generating": "Generazione del report...",
     "generatingSubtitle": "Potrebbe richiedere un momento",

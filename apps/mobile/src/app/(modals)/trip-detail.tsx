@@ -28,6 +28,7 @@ import {
   ChevronUp,
   Compass,
   Copy,
+  Download,
   EyeOff,
   Globe,
   HelpCircle,
@@ -77,6 +78,7 @@ import { TripAssistantSheet } from '../../components/trip/trip-assistant-sheet';
 import { getWaypointIcon } from '../../components/trip/waypoint-type-picker';
 import { TripShareSheet } from '../../components/trip-share-sheet';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { useProGate } from '../../hooks/useProGate';
 import { useOfflineTrip } from '../../hooks/use-offline-trip';
 import { usePrimaryBikeFuelData } from '../../hooks/use-primary-bike-fuel-data';
 import { useRideThis } from '../../hooks/use-ride-this';
@@ -95,6 +97,7 @@ import { showMarkerActionSheet } from '../../utils/marker-action-sheet';
 import { groupByPeriod } from '../../utils/period-of-day';
 import { computeReadiness, formatReadinessBrief } from '../../utils/readiness';
 import { formatDistance, formatElevation } from '../../utils/ride-formatters';
+import { buildGpxFilename, buildTripGpx } from '../../utils/trip-gpx';
 import { useResolvedWaypointLabel } from '../../utils/waypoint-place-label';
 
 type TripWaypoint = TripDetailQuery['tripDetail']['waypoints'] extends
@@ -321,6 +324,7 @@ export default function TripDetailScreen() {
   const userId = useAuthStore((s) => s.session?.user?.id);
   const [actionLoading, setActionLoading] = useState(false);
   const [shareSheetVisible, setShareSheetVisible] = useState(false);
+  const { requirePro } = useProGate();
   const [assistantOpen, setAssistantOpen] = useState(false);
 
   const system = useMeasurementSystem();
@@ -768,6 +772,7 @@ export default function TripDetailScreen() {
 
   const handleExportGPX = useCallback(async () => {
     if (!trip) return;
+    if (!requirePro('gpx_export')) return;
     if (waypoints.length < 2) {
       Alert.alert(
         'Need at least two stops',
@@ -776,46 +781,12 @@ export default function TripDetailScreen() {
       return;
     }
 
-    const esc = (str: string) =>
-      str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
+    const gpx = buildTripGpx(
+      { title: trip.title, description: trip.description, createdAt: trip.createdAt },
+      waypoints.map((wp) => ({ lat: wp.lat, lng: wp.lng, name: wp.name, notes: wp.notes })),
+    );
 
-    const wptElements = waypoints
-      .map(
-        (wp) =>
-          `  <wpt lat="${wp.lat}" lon="${wp.lng}">\n    <name>${esc(wp.name)}</name>${wp.notes ? `\n    <desc>${esc(wp.notes)}</desc>` : ''}\n  </wpt>`,
-      )
-      .join('\n');
-
-    const rteptElements = waypoints
-      .map(
-        (wp) =>
-          `    <rtept lat="${wp.lat}" lon="${wp.lng}">\n      <name>${esc(wp.name)}</name>${wp.notes ? `\n      <desc>${esc(wp.notes)}</desc>` : ''}\n    </rtept>`,
-      )
-      .join('\n');
-
-    const gpx = `<?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="MotoVault" xmlns="http://www.topografix.com/GPX/1/1">
-  <metadata>
-    <name>${esc(trip.title)}</name>${trip.description ? `\n    <desc>${esc(trip.description)}</desc>` : ''}
-    <time>${trip.createdAt}</time>
-  </metadata>
-${wptElements}
-  <rte>
-    <name>${esc(trip.title)}</name>
-${rteptElements}
-  </rte>
-</gpx>`;
-
-    const slug = trip.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
-    const fileName = `${slug}-motovault.gpx`;
+    const fileName = buildGpxFilename(trip.title);
     const file = new File(Paths.cache, fileName);
     file.create();
     file.write(gpx);
@@ -825,7 +796,7 @@ ${rteptElements}
     });
 
     trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'gpx' });
-  }, [trip, waypoints, tripId]);
+  }, [trip, waypoints, tripId, requirePro]);
 
   const navWaypoints = useMemo(
     () =>
@@ -2300,6 +2271,37 @@ ${rteptElements}
                     </Text>
                   </Pressable>
                 )}
+              </Animated.View>
+            )}
+
+            {/* Export GPX — available for any trip with 2+ waypoints */}
+            {waypoints.length >= 2 && (
+              <Animated.View
+                entering={FadeInUp.delay(160).duration(250)}
+                style={{ marginBottom: 16 }}
+              >
+                <Pressable
+                  onPress={handleExportGPX}
+                  accessibilityRole="button"
+                  accessibilityLabel="Export trip as GPX"
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    paddingVertical: 14,
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: t.line,
+                  }}
+                >
+                  <Download size={16} color={t.ink} />
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink }}>
+                    Export GPX
+                  </Text>
+                </Pressable>
               </Animated.View>
             )}
 

@@ -1239,7 +1239,8 @@
     "on": "na"
   },
   "healthReport": {
-    "title": "Raport stanu",
+    "title": "Raport zdrowia AI",
+    "subtitle": "Uzyskaj pełną analizę diagnostyczną swojego motocykla",
     "generate": "Generuj raport stanu",
     "generating": "Generowanie raportu...",
     "generatingSubtitle": "To może chwilę potrwać",

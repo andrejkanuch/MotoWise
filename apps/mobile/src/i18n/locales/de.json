@@ -1239,7 +1239,8 @@
     "on": "auf"
   },
   "healthReport": {
-    "title": "Zustandsbericht",
+    "title": "KI-Gesundheitsbericht",
+    "subtitle": "Erhalten Sie eine vollständige Diagnoseanalyse Ihres Motorrads",
     "generate": "Zustandsbericht erstellen",
     "generating": "Dein Bericht wird erstellt...",
     "generatingSubtitle": "Das kann einen Moment dauern",

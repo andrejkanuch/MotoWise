@@ -1239,7 +1239,8 @@
     "on": "üzerinde"
   },
   "healthReport": {
-    "title": "Sağlık Raporu",
+    "title": "AI Sağlık Raporu",
+    "subtitle": "Motosikletinizin tam bir teşhis analizini alın",
     "generate": "Sağlık Raporu Oluştur",
     "generating": "Raporun oluşturuluyor...",
     "generatingSubtitle": "Bu biraz zaman alabilir",

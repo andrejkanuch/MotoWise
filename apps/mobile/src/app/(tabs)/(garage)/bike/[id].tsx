@@ -19,9 +19,11 @@ import {
   Camera,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   DollarSign,
   Edit3,
   Gauge,
+  HeartPulse,
   MoreHorizontal,
   Wrench,
 } from 'lucide-react-native';
@@ -49,7 +51,6 @@ import { formatCurrency } from '../../../../lib/expense-constants';
 import { gqlFetcher } from '../../../../lib/graphql-client';
 import { computeHealthScore } from '../../../../lib/health-score';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../../lib/image-upload';
-import { exportMaintenanceHistory, type PdfBike, type PdfTask } from '../../../../lib/pdf-export';
 import { queryKeys } from '../../../../lib/query-keys';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { useEditorialTheme } from '../../../../theme/editorial';
@@ -334,84 +335,6 @@ export default function BikeDetailScreen() {
     );
   };
 
-  // MOT-141: Maintenance history PDF export with optional date range filter.
-  const runPdfExport = async (dateFrom?: string, dateRangeLabel?: string) => {
-    if (!bike) return;
-    try {
-      const pdfBike: PdfBike = {
-        make: bike.make,
-        model: bike.model,
-        year: bike.year,
-        nickname: bike.nickname ?? undefined,
-        mileageUnit: bike.mileageUnit ?? 'mi',
-      };
-      const pdfTasks: PdfTask[] = tasks.map((task) => ({
-        title: task.title,
-        status: task.status,
-        priority: task.priority,
-        dueDate: task.dueDate ?? undefined,
-        completedAt: task.completedAt ?? undefined,
-        completedMileage: task.completedMileage ?? undefined,
-        targetMileage: task.targetMileage ?? undefined,
-        notes: task.notes ?? undefined,
-        photoCount: task.photos?.length ?? 0,
-        cost: task.cost ?? undefined,
-        currency: task.currency ?? undefined,
-      }));
-      await exportMaintenanceHistory(pdfBike, pdfTasks, { dateFrom, dateRangeLabel });
-    } catch (_e) {
-      Alert.alert(
-        t('common.error', { defaultValue: 'Error' }),
-        t('maintenance.exportError', { defaultValue: 'Failed to export PDF. Please try again.' }),
-      );
-    }
-  };
-
-  const handleExportPdf = () => {
-    if (!bike) return;
-    triggerImpact();
-    const labelAll = t('maintenance.exportAllTime', { defaultValue: 'All time' });
-    const labelYear = t('maintenance.exportLastYear', { defaultValue: 'Last 12 months' });
-    const labelSix = t('maintenance.exportLast6Months', { defaultValue: 'Last 6 months' });
-    const labelCancel = t('common.cancel', { defaultValue: 'Cancel' });
-
-    const nowIso = new Date();
-    const yearAgo = new Date(nowIso);
-    yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-    const sixMonthsAgo = new Date(nowIso);
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    const isoDate = (d: Date) => d.toISOString().slice(0, 10);
-
-    if (process.env.EXPO_OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: t('maintenance.exportTitle', { defaultValue: 'Export History' }),
-          message: t('maintenance.exportMessage', {
-            defaultValue: 'Choose the date range to include',
-          }),
-          options: [labelAll, labelYear, labelSix, labelCancel],
-          cancelButtonIndex: 3,
-        },
-        (index) => {
-          if (index === 0) runPdfExport(undefined, labelAll);
-          else if (index === 1) runPdfExport(isoDate(yearAgo), labelYear);
-          else if (index === 2) runPdfExport(isoDate(sixMonthsAgo), labelSix);
-        },
-      );
-    } else {
-      Alert.alert(
-        t('maintenance.exportTitle', { defaultValue: 'Export History' }),
-        t('maintenance.exportMessage', { defaultValue: 'Choose the date range to include' }),
-        [
-          { text: labelAll, onPress: () => runPdfExport(undefined, labelAll) },
-          { text: labelYear, onPress: () => runPdfExport(isoDate(yearAgo), labelYear) },
-          { text: labelSix, onPress: () => runPdfExport(isoDate(sixMonthsAgo), labelSix) },
-          { text: labelCancel, style: 'cancel' },
-        ],
-      );
-    }
-  };
-
   // MOT-142: Navigate to safety recalls modal
   const handleCheckRecalls = () => {
     if (!bike) return;
@@ -465,21 +388,19 @@ export default function BikeDetailScreen() {
       cancel: t('common.cancel', { defaultValue: 'Cancel' }),
       recalls: t('recalls.checkButton', { defaultValue: 'Check Safety Recalls' }),
       importOem: t('oem.importButton', { defaultValue: 'Import OEM Schedule' }),
-      export: t('maintenance.exportPdf', { defaultValue: 'Export PDF' }),
       delete: t('garage.deleteBike', { defaultValue: 'Delete Motorcycle' }),
     };
     if (process.env.EXPO_OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: [labels.cancel, labels.recalls, labels.importOem, labels.export, labels.delete],
+          options: [labels.cancel, labels.recalls, labels.importOem, labels.delete],
           cancelButtonIndex: 0,
-          destructiveButtonIndex: 4,
+          destructiveButtonIndex: 3,
         },
         (buttonIndex) => {
           if (buttonIndex === 1) handleCheckRecalls();
           else if (buttonIndex === 2) handleImportOem();
-          else if (buttonIndex === 3) handleExportPdf();
-          else if (buttonIndex === 4) handleDeleteBike();
+          else if (buttonIndex === 3) handleDeleteBike();
         },
       );
     } else {
@@ -487,7 +408,6 @@ export default function BikeDetailScreen() {
         { text: labels.cancel, style: 'cancel' },
         { text: labels.recalls, onPress: handleCheckRecalls },
         { text: labels.importOem, onPress: handleImportOem },
-        { text: labels.export, onPress: handleExportPdf },
         { text: labels.delete, style: 'destructive', onPress: handleDeleteBike },
       ]);
     }
@@ -992,6 +912,54 @@ export default function BikeDetailScreen() {
             >
               {t('bikeHub.viewAnalytics')}
             </Text>
+          </Pressable>
+        </Animated.View>
+
+        {/* AI Health Report — contextual paywall trigger */}
+        <Animated.View entering={FadeInUp.delay(150).duration(400)} style={{ paddingHorizontal: 20, marginTop: 12 }}>
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              router.push({
+                pathname: '/(tabs)/(garage)/health-report',
+                params: { bikeId: id },
+              });
+            }}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              padding: 14,
+              backgroundColor: theme.surface,
+              borderRadius: 14,
+              borderCurve: 'continuous',
+              borderWidth: 1,
+              borderColor: theme.line,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
+            })}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                borderCurve: 'continuous',
+                backgroundColor: `${theme.warm}20`,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <HeartPulse size={20} color={theme.warm} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.ink }}>
+                {t('healthReport.title', { defaultValue: 'AI Health Report' })}
+              </Text>
+              <Text style={{ fontSize: 12, color: theme.ink3, marginTop: 1 }}>
+                {t('healthReport.subtitle', { defaultValue: 'Get a full diagnostic analysis of your bike' })}
+              </Text>
+            </View>
+            <ChevronRight size={16} color={theme.ink3} />
           </Pressable>
         </Animated.View>
 

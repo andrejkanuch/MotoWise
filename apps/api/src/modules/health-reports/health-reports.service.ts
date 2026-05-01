@@ -85,25 +85,20 @@ export class HealthReportsService {
 
     const typedBike = bike as unknown as BikeRow;
 
-    // 2. Find existing pending report (created by RevenueCat webhook on purchase)
+    // 2. Create a pending report record (health reports are free)
     const { data: report, error: reportError } = await this.supabaseAdmin
       .from('bike_health_reports')
+      .insert({
+        user_id: userId,
+        bike_id: bikeId,
+        status: 'pending',
+        purchased_at: new Date().toISOString(),
+      })
       .select()
-      .eq('user_id', userId)
-      .eq('bike_id', bikeId)
-      .eq('status', 'pending')
-      .order('purchased_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .single();
 
-    if (reportError) {
-      throw new InternalServerErrorException('Failed to check health report purchase status');
-    }
-
-    if (!report) {
-      throw new ForbiddenException(
-        'No valid purchase found. Please purchase a Health Report first.',
-      );
+    if (reportError || !report) {
+      throw new InternalServerErrorException('Failed to create health report record');
     }
 
     const typedReport = report as unknown as HealthReportRow;
