@@ -47,7 +47,7 @@ export const SCREENSHOT_CATALOG: Record<string, ScreenshotEntry> = {
   'discover-route-list': {
     storagePath: 'screenshots/04-discover-route-list.png',
     description:
-      'Discover — all routes list with Route 62 (450 km, Paved, Moderate), Panorama Route (180 km, Easy), Sani Pass (Editor\'s Pick), Plan trip FAB',
+      "Discover — all routes list with Route 62 (450 km, Paved, Moderate), Panorama Route (180 km, Easy), Sani Pass (Editor's Pick), Plan trip FAB",
     feature: 'routes',
   },
   'trip-detail-map-overview': {
