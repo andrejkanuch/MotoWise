@@ -1,3 +1,5 @@
+import { WebTripBySlugDocument, type WebTripBySlugQuery } from '@motovault/graphql';
+import { print } from 'graphql';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BASE_URL } from '@/lib/constants';
@@ -7,87 +9,7 @@ import '@/components/trip-detail/trip-detail.css';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
 
-const DISCOVER_TRIP_BY_SLUG_QUERY = `
-  query DiscoverTripBySlug($country: String!, $region: String!, $slug: String!) {
-    discoverTripBySlug(country: $country, region: $region, slug: $slug) {
-      id
-      slug
-      title
-      description
-      difficulty
-      dayCount
-      waypoints {
-        sortOrder
-        dayIndex
-        type
-        name
-        lat
-        lng
-        notes
-      }
-      startLat
-      startLng
-      countryCode
-      regionCode
-      city
-      distanceM
-      elevationGainM
-      estimatedDurationMinutes
-      surfaceType
-      isFeatured
-      isMotovaultPick
-      viewCount
-      cloneCount
-      averageRating
-      reviewCount
-      publishedAt
-      updatedAt
-      contributor {
-        displayName
-        publicUsername
-      }
-    }
-  }
-`;
-
-interface TripData {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  difficulty: string;
-  dayCount: number;
-  waypoints: Array<{
-    sortOrder: number;
-    dayIndex: number;
-    type: string;
-    name: string;
-    lat: number;
-    lng: number;
-    notes?: string | null;
-  }>;
-  startLat?: number | null;
-  startLng?: number | null;
-  countryCode: string;
-  regionCode?: string | null;
-  city?: string | null;
-  distanceM?: number | null;
-  elevationGainM?: number | null;
-  estimatedDurationMinutes?: number | null;
-  surfaceType?: string | null;
-  isFeatured: boolean;
-  isMotovaultPick: boolean;
-  viewCount: number;
-  cloneCount: number;
-  averageRating?: number | null;
-  reviewCount: number;
-  publishedAt: string;
-  updatedAt: string;
-  contributor: {
-    displayName: string;
-    publicUsername?: string | null;
-  };
-}
+type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 
 interface PageParams {
   params: Promise<{ country: string; region: string; slug: string }>;
@@ -99,13 +21,13 @@ async function fetchTrip(country: string, region: string, slug: string): Promise
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: DISCOVER_TRIP_BY_SLUG_QUERY,
+        query: print(WebTripBySlugDocument),
         variables: { country, region, slug },
       }),
       next: { revalidate: 300 },
     });
     const json = await res.json();
-    return json?.data?.discoverTripBySlug ?? null;
+    return json?.data?.tripBySlug ?? null;
   } catch {
     return null;
   }
@@ -116,9 +38,11 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const trip = await fetchTrip(country, region, slug);
   if (!trip) return { title: 'Trip Not Found' };
 
-  const countryName = countryDisplayName(trip.countryCode);
-  const regionName = trip.regionCode ? regionDisplayName(trip.countryCode, trip.regionCode) : null;
-  const title = `${trip.title} — ${trip.dayCount}-Day Motorcycle Trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
+  const countryCode = trip.countryCode ?? country.toUpperCase();
+  const countryName = countryDisplayName(countryCode);
+  const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
+  const dayCount = trip.dayCount ?? 1;
+  const title = `${trip.title} — ${dayCount}-Day Motorcycle Trip${regionName ? ` in ${regionName}` : ''}, ${countryName}`;
   const description = trip.description.slice(0, 155);
 
   return {
@@ -262,7 +186,7 @@ function getMapboxStaticUrl(trip: TripData): string | null {
   if (!trip.startLat || !trip.startLng || !MAPBOX_TOKEN) return null;
 
   // Build markers from waypoints
-  const pins = trip.waypoints
+  const pins = (trip.waypoints ?? [])
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 20) // Mapbox has a URL length limit
     .map((wp) => `pin-s+d4a243(${wp.lng},${wp.lat})`)
@@ -276,7 +200,7 @@ function buildSections(trip: TripData) {
   const sections: Array<{ id: string; label: string; num: string }> = [];
   let idx = 1;
   sections.push({ id: 'overview', label: 'Overview', num: `/${String(idx++).padStart(2, '0')}` });
-  if (trip.waypoints.length > 0) {
+  if ((trip.waypoints ?? []).length > 0) {
     sections.push({ id: 'days', label: 'Day-by-day', num: `/${String(idx++).padStart(2, '0')}` });
   }
   if (trip.averageRating != null && trip.reviewCount > 0) {
@@ -290,12 +214,15 @@ export default async function TripPage({ params }: PageParams) {
   const trip = await fetchTrip(country, region, slug);
   if (!trip) notFound();
 
-  const countryName = countryDisplayName(trip.countryCode);
-  const regionName = trip.regionCode ? regionDisplayName(trip.countryCode, trip.regionCode) : null;
+  const countryCode = trip.countryCode ?? country.toUpperCase();
+  const dayCount = trip.dayCount ?? 1;
+  const countryName = countryDisplayName(countryCode);
+  const regionName = trip.regionCode ? regionDisplayName(countryCode, trip.regionCode) : null;
 
   // Group waypoints by day
-  const waypointsByDay = new Map<number, TripData['waypoints']>();
-  for (const wp of trip.waypoints) {
+  const waypoints = trip.waypoints ?? [];
+  const waypointsByDay = new Map<number, typeof waypoints>();
+  for (const wp of waypoints) {
     const day = waypointsByDay.get(wp.dayIndex) ?? [];
     day.push(wp);
     waypointsByDay.set(wp.dayIndex, day);
@@ -313,11 +240,11 @@ export default async function TripPage({ params }: PageParams) {
   const durationFormatted = trip.estimatedDurationMinutes
     ? formatDuration(trip.estimatedDurationMinutes)
     : null;
-  const fuelStopCount = trip.waypoints.filter((wp) => wp.type === 'fuel').length;
+  const fuelStopCount = waypoints.filter((wp) => wp.type === 'fuel').length;
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
   const mapUrl = getMapboxStaticUrl(trip);
   const sections = buildSections(trip);
-  const updatedDate = new Date(trip.updatedAt);
+  const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
     month: 'short',
     year: 'numeric',
@@ -337,8 +264,8 @@ export default async function TripPage({ params }: PageParams) {
     touristType: 'Motorcycle touring',
     itinerary: {
       '@type': 'ItemList',
-      numberOfItems: trip.waypoints.length,
-      itemListElement: trip.waypoints.map((wp, i) => ({
+      numberOfItems: waypoints.length,
+      itemListElement: waypoints.map((wp, i) => ({
         '@type': 'ListItem',
         position: i + 1,
         item: {
@@ -401,7 +328,7 @@ export default async function TripPage({ params }: PageParams) {
 
           <div className="rh-meta-row">
             <span className="rh-tag">
-              <span className="rh-tag-flag">{trip.countryCode.toUpperCase()}</span>
+              <span className="rh-tag-flag">{countryCode.toUpperCase()}</span>
               {trip.city ? `${trip.city}, ` : ''}
               {countryName}
             </span>
@@ -410,7 +337,7 @@ export default async function TripPage({ params }: PageParams) {
               {capitalize(trip.difficulty)}
             </span>
             {surfaceLabel && <span className="rh-tag">{surfaceLabel}</span>}
-            {trip.dayCount > 1 && <span className="rh-tag">{trip.dayCount}-day trip</span>}
+            {dayCount > 1 && <span className="rh-tag">{dayCount}-day trip</span>}
             {trip.isMotovaultPick && <span className="rh-tag">MotoVault Pick</span>}
           </div>
 
@@ -438,12 +365,11 @@ export default async function TripPage({ params }: PageParams) {
                 </div>
               </div>
             )}
-            {trip.dayCount > 0 && (
+            {dayCount > 0 && (
               <div className="rh-stat">
                 <div className="rh-stat-label">Duration</div>
                 <div className="rh-stat-value">
-                  {trip.dayCount}{' '}
-                  <span className="serif">{trip.dayCount === 1 ? 'day' : 'days'}</span>
+                  {dayCount} <span className="serif">{dayCount === 1 ? 'day' : 'days'}</span>
                 </div>
                 {durationFormatted && (
                   <div className="rh-stat-sub">~{durationFormatted} riding</div>
@@ -517,8 +443,8 @@ export default async function TripPage({ params }: PageParams) {
               </a>
             </div>
             <div className="rh-author">
-              <div className="rh-author-avatar">{getInitials(trip.contributor.displayName)}</div>
-              Curated by <strong>{trip.contributor.displayName}</strong> · Updated {updatedLabel}
+              <div className="rh-author-avatar">{getInitials(trip.organiser.displayName)}</div>
+              Curated by <strong>{trip.organiser.displayName}</strong> · Updated {updatedLabel}
             </div>
           </div>
         </div>
@@ -580,10 +506,10 @@ export default async function TripPage({ params }: PageParams) {
                   <span className="factbox-val">{formatDistance(trip.distanceM ?? 0)} km</span>
                 </div>
               )}
-              {trip.dayCount > 0 && (
+              {dayCount > 0 && (
                 <div className="factbox-row">
                   <span className="factbox-key">Days</span>
-                  <span className="factbox-val">{trip.dayCount}</span>
+                  <span className="factbox-val">{dayCount}</span>
                 </div>
               )}
               {elevationM != null && elevationM > 0 && (
@@ -644,9 +570,9 @@ export default async function TripPage({ params }: PageParams) {
             <div>
               <div className="rsec-meta">Day-by-day</div>
               <h2 className="rsec-title">
-                {trip.dayCount > 1 ? (
+                {dayCount > 1 ? (
                   <>
-                    {trip.dayCount} days, {trip.dayCount} <span className="serif">moods.</span>
+                    {dayCount} days, {dayCount} <span className="serif">moods.</span>
                   </>
                 ) : (
                   <>
@@ -655,10 +581,10 @@ export default async function TripPage({ params }: PageParams) {
                 )}
               </h2>
             </div>
-            {trip.dayCount > 1 && (
+            {dayCount > 1 && (
               <div className="rsec-aside">
-                A suggested split across {trip.dayCount} days with {trip.waypoints.length} waypoints
-                to discover along the way.
+                A suggested split across {dayCount} days with {waypoints.length} waypoints to
+                discover along the way.
               </div>
             )}
           </div>
@@ -668,13 +594,13 @@ export default async function TripPage({ params }: PageParams) {
               const firstStop = waypoints[0];
               const lastStop = waypoints[waypoints.length - 1];
               const dayLabel =
-                trip.dayCount > 1 ? `${firstStop?.name ?? ''} → ${lastStop?.name ?? ''}` : null;
+                dayCount > 1 ? `${firstStop?.name ?? ''} → ${lastStop?.name ?? ''}` : null;
 
               return (
                 <div className="day" key={dayIndex}>
                   <div className="day-meta">
                     <div className="day-num">
-                      {trip.dayCount > 1 ? `DAY ${String(dayIndex + 1).padStart(2, '0')}` : 'ROUTE'}
+                      {dayCount > 1 ? `DAY ${String(dayIndex + 1).padStart(2, '0')}` : 'ROUTE'}
                     </div>
                     {dayLabel && <div className="day-route">{dayLabel}</div>}
                     <div className="day-stats">

@@ -328,7 +328,9 @@ export class TripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<Trip> {
-    return this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
+    const trip = await this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
+    this.tripTemplatesSvc.incrementViewCount(trip.id);
+    return trip;
   }
 
   /** Resolves a published route id to the Discover template trip id, if one exists. */

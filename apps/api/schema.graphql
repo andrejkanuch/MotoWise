@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -1756,6 +1752,7 @@ type Trip {
   status: String!
   surfaceType: String
   title: String!
+  updatedAt: String
   viewCount: Int!
   visibility: String!
   waypoints: [TripWaypoint!]

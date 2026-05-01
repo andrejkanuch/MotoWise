@@ -26,6 +26,7 @@ export interface TripRow {
   visibility: string;
   cover_image_url: string | null;
   created_at: string;
+  updated_at: string | null;
   organiser_user_id: string;
   users: {
     id: string;
@@ -90,7 +91,7 @@ export interface ParticipantRow {
 }
 
 export const TRIP_SELECT =
-  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
+  'id, title, description, start_date, end_date, difficulty, max_riders, participant_count, status, visibility, cover_image_url, created_at, updated_at, organiser_user_id, users:organiser_user_id(id, display_name, public_username, avatar_url, is_public)';
 
 /** Base TRIP_SELECT plus template & editorial columns (used by trip detail + template feeds). */
 export const TRIP_DETAIL_SELECT = `${TRIP_SELECT},
@@ -142,6 +143,7 @@ export function mapRowToTrip(row: TripRow, callerUserId?: string, isParticipant 
     visibility: row.visibility ?? 'private',
     coverImageUrl: row.cover_image_url ?? undefined,
     createdAt: row.created_at,
+    updatedAt: row.updated_at ?? undefined,
     organiser: redactOrganiser(organiser, isPublic, callerUserId, isParticipant),
     isTemplate: false,
     viewCount: 0,
@@ -451,6 +453,8 @@ export class TripLifecycleService {
     // - Organiser sees their own trips in any status (incl. drafts)
     // - Everyone else sees trips allowed by the visibility policy
     //   (public to anyone, unlisted/private per invite rules)
+    this.logger.debug(`tripDetail: fetching trip=${tripId} caller=${callerUserId ?? 'anon'}`);
+
     const { data: tripData, error: tripError } = await this.supabase
       .from('trips')
       .select(TRIP_DETAIL_SELECT)
@@ -459,9 +463,15 @@ export class TripLifecycleService {
 
     if (tripError || !tripData) {
       if (tripError?.code === 'PGRST116') {
+        this.logger.warn(
+          `tripDetail: trip=${tripId} not found for caller=${callerUserId ?? 'anon'} ` +
+            '(RLS may be blocking — check visibility + participant status)',
+        );
         throw new NotFoundException('Trip not found');
       }
-      this.logger.error(`tripDetail failed: ${tripError?.message} (${tripError?.code})`);
+      this.logger.error(
+        `tripDetail: trip=${tripId} failed: ${tripError?.message} (${tripError?.code})`,
+      );
       throw new InternalServerErrorException('Failed to fetch trip');
     }
 

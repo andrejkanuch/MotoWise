@@ -146,6 +146,9 @@ export class Trip {
   @Field()
   createdAt: string;
 
+  @Field({ nullable: true })
+  updatedAt?: string;
+
   @Field(() => TripOrganiser)
   organiser: TripOrganiser;
 

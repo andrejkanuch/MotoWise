@@ -1,0 +1,42 @@
+query WebTripBySlug($country: String!, $region: String!, $slug: String!) {
+  tripBySlug(country: $country, region: $region, slug: $slug) {
+    id
+    slug
+    title
+    description
+    difficulty
+    dayCount
+    startLat
+    startLng
+    countryCode
+    regionCode
+    city
+    distanceM
+    elevationGainM
+    estimatedDurationMinutes
+    surfaceType
+    isFeatured
+    isMotovaultPick
+    viewCount
+    cloneCount
+    averageRating
+    reviewCount
+    publishedAt
+    updatedAt
+    createdAt
+    organiser {
+      id
+      displayName
+      publicUsername
+    }
+    waypoints {
+      sortOrder
+      dayIndex
+      type
+      name
+      lat
+      lng
+      notes
+    }
+  }
+}
