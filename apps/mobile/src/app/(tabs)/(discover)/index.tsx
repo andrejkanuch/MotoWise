@@ -52,6 +52,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeBanner } from '../../../components/discover/bike-banner';
 import { DiscoverTripCard } from '../../../components/discover/discover-trip-card';
+import { NearYouSection } from '../../../components/discover/near-you-section';
 import { DraftTripStrip } from '../../../components/discover/planner/draft-trip-strip';
 import { TypeaheadSearch } from '../../../components/discover/typeahead-search';
 import { WeatherStrip } from '../../../components/discover/weather-strip';
@@ -378,6 +379,7 @@ interface DiscoverHeaderProps {
   onToggleCountry: (code: SupportedCountryCode) => void;
   onRouteSearchSelect: (routeId: string) => void | Promise<void>;
   onPlaceSearchSelect: (countryCode: string, regionCode?: string) => void;
+  onTripPress: (tripId: string) => void;
   showBelowFold: boolean;
 }
 
@@ -392,12 +394,23 @@ const DiscoverHeader = memo(function DiscoverHeader({
   onToggleCountry,
   onRouteSearchSelect,
   onPlaceSearchSelect,
+  onTripPress,
   showBelowFold,
 }: DiscoverHeaderProps) {
+  const handleViewAllNearYou = useCallback(
+    (cc: SupportedCountryCode) => onToggleCountry(cc),
+    [onToggleCountry],
+  );
+
   return (
     <View style={{ gap: 12, paddingTop: 14 }}>
       {/* Search */}
       <TypeaheadSearch onRouteSelect={onRouteSearchSelect} onPlaceSelect={onPlaceSearchSelect} />
+
+      {/* Routes near you — auto-detected country */}
+      {!countryCode && !activeFilter && (
+        <NearYouSection onTripPress={onTripPress} onViewAll={handleViewAllNearYou} />
+      )}
 
       {/* Country chips */}
       <CountryChipStrip activeCode={countryCode} onToggle={onToggleCountry} />
@@ -710,6 +723,7 @@ export default function DiscoverScreen() {
         onToggleCountry={toggleCountry}
         onRouteSearchSelect={handleRouteSearchSelect}
         onPlaceSearchSelect={handlePlaceSearchSelect}
+        onTripPress={handleTripPress}
         showBelowFold={showBelowFold}
       />
     ),
@@ -724,6 +738,7 @@ export default function DiscoverScreen() {
       toggleCountry,
       handleRouteSearchSelect,
       handlePlaceSearchSelect,
+      handleTripPress,
       showBelowFold,
     ],
   );

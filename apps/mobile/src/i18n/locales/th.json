@@ -1439,5 +1439,14 @@
     "history": "ประวัติ",
     "partial": "ไม่เต็มถัง",
     "emptyState": "ยังไม่มีการเติมน้ำมัน"
+  },
+  "nearYou": {
+    "sectionMeta": "เส้นทางใน{{country}}",
+    "heading": "เส้นทางใกล้",
+    "headingCountry": "{{country}}.",
+    "viewAll": "ดูทั้งหมด",
+    "editorsPick": "ตัวเลือกของบรรณาธิการ",
+    "elevLabel": "{{value}}ม. ความสูง",
+    "ratingLabel": "{{value}} คะแนน"
   }
 }

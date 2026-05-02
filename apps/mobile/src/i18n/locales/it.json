@@ -1439,5 +1439,14 @@
     "history": "Cronologia",
     "partial": "Parziale",
     "emptyState": "Nessun rifornimento registrato"
+  },
+  "nearYou": {
+    "sectionMeta": "Percorsi in {{country}}",
+    "heading": "Percorsi vicino a",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Vedi tutti",
+    "editorsPick": "Scelta della redazione",
+    "elevLabel": "{{value}}m dislivello",
+    "ratingLabel": "{{value}} valutazione"
   }
 }

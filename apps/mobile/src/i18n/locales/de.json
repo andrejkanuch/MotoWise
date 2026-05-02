@@ -1439,5 +1439,14 @@
     "history": "Verlauf",
     "partial": "Teiltankung",
     "emptyState": "Noch keine Tankfüllungen erfasst"
+  },
+  "nearYou": {
+    "sectionMeta": "Routen in {{country}}",
+    "heading": "Routen in der Nähe von",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Alle anzeigen",
+    "editorsPick": "Empfehlung der Redaktion",
+    "elevLabel": "{{value}}m Höhe",
+    "ratingLabel": "{{value}} Bewertung"
   }
 }

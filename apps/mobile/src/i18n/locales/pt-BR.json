@@ -1439,5 +1439,14 @@
     "history": "Histórico",
     "partial": "Parcial",
     "emptyState": "Nenhum abastecimento registrado"
+  },
+  "nearYou": {
+    "sectionMeta": "Rotas em {{country}}",
+    "heading": "Rotas perto de",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Ver todas",
+    "editorsPick": "Escolha do editor",
+    "elevLabel": "{{value}}m elevação",
+    "ratingLabel": "{{value}} avaliação"
   }
 }

@@ -1439,5 +1439,14 @@
     "history": "Riwayat",
     "partial": "Sebagian",
     "emptyState": "Belum ada pengisian tercatat"
+  },
+  "nearYou": {
+    "sectionMeta": "Rute di {{country}}",
+    "heading": "Rute di dekat",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Lihat semua",
+    "editorsPick": "Pilihan Editor",
+    "elevLabel": "{{value}}m elevasi",
+    "ratingLabel": "{{value}} rating"
   }
 }

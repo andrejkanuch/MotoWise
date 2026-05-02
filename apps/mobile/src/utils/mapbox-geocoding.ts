@@ -93,6 +93,36 @@ const REVERSE_TYPES = 'place,address,poi';
 const REVERSE_LIMIT = '1';
 
 /**
+ * Returns the uppercase ISO country code (e.g. "SK") for a coordinate via Mapbox reverse geocoding.
+ * Returns null if unavailable.
+ */
+export async function reverseGeocodeCountryCode(lat: number, lng: number): Promise<string | null> {
+  const token = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  if (!token) return null;
+
+  const url = `${MAPBOX_GEOCODING_BASE}/${lng},${lat}.json?${new URLSearchParams({
+    access_token: token,
+    types: 'country',
+    limit: '1',
+    language: 'en',
+  }).toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const data: MapboxGeocodingResponse = await response.json();
+    const feature = data.features[0];
+    if (!feature) return null;
+    // Mapbox returns short_code like "sk" on country features
+    const shortCode =
+      (feature as unknown as { properties: { short_code?: string } }).properties?.short_code ?? '';
+    return shortCode ? shortCode.toUpperCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Short human label for a coordinate (Mapbox `feature.text`, e.g. locality or POI name).
  * Returns "" if no token, network failure, or no result.
  */

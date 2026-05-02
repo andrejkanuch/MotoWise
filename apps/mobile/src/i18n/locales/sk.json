@@ -1439,5 +1439,14 @@
     "history": "História",
     "partial": "Čiastočné",
     "emptyState": "Zatiaľ žiadne tankovania"
+  },
+  "nearYou": {
+    "sectionMeta": "Trasy v {{country}}",
+    "heading": "Trasy v blízkosti",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Zobraziť všetky",
+    "editorsPick": "Výber redakcie",
+    "elevLabel": "{{value}}m prevýšenie",
+    "ratingLabel": "{{value}} hodnotenie"
   }
 }

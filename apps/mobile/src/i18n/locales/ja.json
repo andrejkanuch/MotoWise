@@ -1439,5 +1439,14 @@
     "history": "履歴",
     "partial": "部分",
     "emptyState": "給油記録はありません"
+  },
+  "nearYou": {
+    "sectionMeta": "{{country}}のルート",
+    "heading": "近くのルート",
+    "headingCountry": "{{country}}.",
+    "viewAll": "すべて表示",
+    "editorsPick": "編集部のおすすめ",
+    "elevLabel": "{{value}}m 標高差",
+    "ratingLabel": "{{value}} 評価"
   }
 }

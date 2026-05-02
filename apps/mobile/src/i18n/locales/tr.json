@@ -1439,5 +1439,14 @@
     "history": "Geçmiş",
     "partial": "Kısmi",
     "emptyState": "Henüz yakıt kaydı yok"
+  },
+  "nearYou": {
+    "sectionMeta": "{{country}} rotaları",
+    "heading": "Yakınındaki rotalar",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Tümünü gör",
+    "editorsPick": "Editörün Seçimi",
+    "elevLabel": "{{value}}m yükselti",
+    "ratingLabel": "{{value}} puan"
   }
 }

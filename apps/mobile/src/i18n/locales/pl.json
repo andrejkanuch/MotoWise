@@ -1439,5 +1439,14 @@
     "history": "Historia",
     "partial": "Częściowe",
     "emptyState": "Brak zapisanych tankowań"
+  },
+  "nearYou": {
+    "sectionMeta": "Trasy w {{country}}",
+    "heading": "Trasy w pobliżu",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Zobacz wszystkie",
+    "editorsPick": "Wybór redakcji",
+    "elevLabel": "{{value}}m przewyższenia",
+    "ratingLabel": "{{value}} ocena"
   }
 }

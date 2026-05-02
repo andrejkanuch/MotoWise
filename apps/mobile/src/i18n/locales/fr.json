@@ -1439,5 +1439,14 @@
     "history": "Historique",
     "partial": "Partiel",
     "emptyState": "Aucun plein enregistré"
+  },
+  "nearYou": {
+    "sectionMeta": "Itinéraires en {{country}}",
+    "heading": "Itinéraires près de",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Tout voir",
+    "editorsPick": "Coup de cœur",
+    "elevLabel": "{{value}}m dénivelé",
+    "ratingLabel": "{{value}} note"
   }
 }

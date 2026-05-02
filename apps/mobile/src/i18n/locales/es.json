@@ -1439,5 +1439,14 @@
     "history": "Historial",
     "partial": "Parcial",
     "emptyState": "Aún no hay cargas registradas"
+  },
+  "nearYou": {
+    "sectionMeta": "Rutas en {{country}}",
+    "heading": "Rutas cerca de",
+    "headingCountry": "{{country}}.",
+    "viewAll": "Ver todas",
+    "editorsPick": "Selección del editor",
+    "elevLabel": "{{value}}m desnivel",
+    "ratingLabel": "{{value}} valoración"
   }
 }

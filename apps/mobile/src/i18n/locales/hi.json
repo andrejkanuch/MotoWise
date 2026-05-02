@@ -1439,5 +1439,14 @@
     "history": "इतिहास",
     "partial": "आंशिक",
     "emptyState": "अभी कोई फिल-अप लॉग नहीं"
+  },
+  "nearYou": {
+    "sectionMeta": "{{country}} में रूट",
+    "heading": "आपके पास के रूट",
+    "headingCountry": "{{country}}.",
+    "viewAll": "सभी देखें",
+    "editorsPick": "संपादक की पसंद",
+    "elevLabel": "{{value}}m ऊंचाई",
+    "ratingLabel": "{{value}} रेटिंग"
   }
 }

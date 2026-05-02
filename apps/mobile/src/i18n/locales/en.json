@@ -1439,5 +1439,14 @@
     "history": "History",
     "partial": "Partial",
     "emptyState": "No fill-ups logged yet"
+  },
+  "nearYou": {
+    "sectionMeta": "Routes in {{country}}",
+    "heading": "Routes near",
+    "headingCountry": "{{country}}.",
+    "viewAll": "View all",
+    "editorsPick": "Editor's Pick",
+    "elevLabel": "{{value}}m elev",
+    "ratingLabel": "{{value}} rating"
   }
 }
