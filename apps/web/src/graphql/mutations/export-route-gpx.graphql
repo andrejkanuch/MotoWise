@@ -1,3 +1,4 @@
+# @deprecated — Use trip-based equivalent. Kept for backward compatibility.
 mutation ExportRouteGPX($routeId: ID!) {
   exportRouteGPX(routeId: $routeId) {
     ... on GPXExportSuccess {

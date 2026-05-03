@@ -1,0 +1,3 @@
+mutation SaveTrip($tripId: ID!) {
+  saveTrip(tripId: $tripId)
+}

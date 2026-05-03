@@ -1,37 +1,25 @@
 'use client';
 
+import { IsTripSavedDocument, SaveTripDocument, UnsaveTripDocument } from '@motovault/graphql';
 import { useCallback, useEffect, useState } from 'react';
 import { AuthModal } from '@/components/auth-modal';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
-const IS_SAVED_QUERY = /* GraphQL */ `
-  query IsRouteSaved($routeId: ID!) {
-    isRouteSaved(routeId: $routeId)
-  }
-` as never;
-
-const SAVE_MUTATION = /* GraphQL */ `
-  mutation SaveRouteToCollection($routeId: ID!) {
-    saveRouteToCollection(routeId: $routeId)
-  }
-` as never;
-
-const UNSAVE_MUTATION = /* GraphQL */ `
-  mutation UnsaveRouteFromCollection($routeId: ID!) {
-    unsaveRouteFromCollection(routeId: $routeId)
-  }
-` as never;
-
 interface SaveRouteButtonProps {
+  /** Trip ID (unified trips table). Legacy prop name kept for caller compatibility. */
   routeId: string;
   variant?: 'card' | 'inline';
   className?: string;
 }
 
+/**
+ * Save/unsave a trip. Uses trip-based GraphQL operations (isTripSaved, saveTrip, unsaveTrip).
+ * Component name kept as SaveRouteButton for backward compatibility with callers.
+ */
 export function SaveRouteButton({
-  routeId,
+  routeId: tripId,
   variant = 'card',
   className = '',
 }: SaveRouteButtonProps) {
@@ -46,12 +34,12 @@ export function SaveRouteButton({
       const hasSession = !!data.session;
       setIsLoggedIn(hasSession);
       if (hasSession) {
-        gqlFetcher<{ isRouteSaved: boolean }, { routeId: string }>(IS_SAVED_QUERY, { routeId })
-          .then((res) => setSaved(res.isRouteSaved))
+        gqlFetcher(IsTripSavedDocument, { tripId })
+          .then((res) => setSaved(res.isTripSaved))
           .catch(() => {});
       }
     });
-  }, [routeId]);
+  }, [tripId]);
 
   const handleToggle = useCallback(
     async (e: React.MouseEvent) => {
@@ -68,17 +56,12 @@ export function SaveRouteButton({
 
       try {
         if (saved) {
-          await gqlFetcher<{ unsaveRouteFromCollection: boolean }, { routeId: string }>(
-            UNSAVE_MUTATION,
-            { routeId },
-          );
+          await gqlFetcher(UnsaveTripDocument, { tripId });
           setSaved(false);
         } else {
-          await gqlFetcher<{ saveRouteToCollection: boolean }, { routeId: string }>(SAVE_MUTATION, {
-            routeId,
-          });
+          await gqlFetcher(SaveTripDocument, { tripId });
           setSaved(true);
-          trackEvent(WebEvent.ROUTE_SAVED_WEB, { route_id: routeId });
+          trackEvent(WebEvent.ROUTE_SAVED_WEB, { trip_id: tripId });
         }
       } catch {
         // Silently fail
@@ -86,7 +69,7 @@ export function SaveRouteButton({
         setLoading(false);
       }
     },
-    [isLoggedIn, saved, loading, routeId],
+    [isLoggedIn, saved, loading, tripId],
   );
 
   const heartSvg = (
@@ -116,12 +99,12 @@ export function SaveRouteButton({
           className={`inline-flex items-center gap-1.5 text-sm transition-colors ${
             saved ? 'text-red-400' : 'text-neutral-500 hover:text-neutral-300'
           } ${className}`}
-          aria-label={saved ? 'Remove from saved' : 'Save route'}
+          aria-label={saved ? 'Remove from saved' : 'Save trip'}
         >
           {heartSvg}
           {saved ? 'Saved' : 'Save'}
         </button>
-        <AuthModal open={showAuth} onClose={() => setShowAuth(false)} action="save this route" />
+        <AuthModal open={showAuth} onClose={() => setShowAuth(false)} action="save this trip" />
       </>
     );
   }
@@ -135,11 +118,11 @@ export function SaveRouteButton({
         className={`flex h-9 w-9 items-center justify-center rounded-full bg-neutral-950/60 backdrop-blur-sm transition-colors ${
           saved ? 'text-red-400' : 'text-neutral-300 hover:text-white'
         } ${className}`}
-        aria-label={saved ? 'Remove from saved' : 'Save route'}
+        aria-label={saved ? 'Remove from saved' : 'Save trip'}
       >
         {heartSvg}
       </button>
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} action="save this route" />
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} action="save this trip" />
     </>
   );
 }

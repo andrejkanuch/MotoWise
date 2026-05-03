@@ -1,3 +1,4 @@
+# @deprecated — Use trip-based equivalent. Kept for backward compatibility.
 query PublicSavedRoutes($handle: String!, $first: Int, $after: String) {
   publicSavedRoutes(handle: $handle, first: $first, after: $after) {
     edges {

@@ -1,4 +1,4 @@
-import { SitemapPublishedRoutesDocument, TripTemplatesDocument } from '@motovault/graphql';
+import { SitemapPublishedTripsDocument, TripTemplatesDocument } from '@motovault/graphql';
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
@@ -98,11 +98,11 @@ function getPageImages(path: string): string[] {
   return [];
 }
 
-/** Published route rows for discover URLs (via API — same source as /explore). */
-async function getPublishedRoutes() {
+/** Published trip templates for explore/country/region sitemap URLs. */
+async function getPublishedTripsForSitemap() {
   try {
-    const data = await gqlServerFetcher(SitemapPublishedRoutesDocument);
-    return data.sitemapPublishedRoutes;
+    const data = await gqlServerFetcher(SitemapPublishedTripsDocument);
+    return data.sitemapPublishedTrips;
   } catch {
     return [];
   }
@@ -186,19 +186,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: t.publishedAt ? new Date(t.publishedAt) : new Date(),
   }));
 
-  // ---- Route Discovery pages (legacy — kept for SEO redirect coverage) ----
-  const routes = await getPublishedRoutes();
+  // ---- Explore discovery pages (derived from trip templates) ----
+  const publishedTrips = await getPublishedTripsForSitemap();
 
-  // Derive unique countries and regions from route data (URLs use lowercase segments)
   const countrySet = new Set<string>();
   const regionSet = new Set<string>();
-  for (const r of routes) {
-    countrySet.add(r.countryCode.toLowerCase());
-    regionSet.add(`${r.countryCode.toLowerCase()}/${r.regionCode.toLowerCase()}`);
+  for (const t of publishedTrips) {
+    countrySet.add(t.countryCode.toLowerCase());
+    regionSet.add(`${t.countryCode.toLowerCase()}/${t.regionCode.toLowerCase()}`);
   }
 
   const exploreEntry =
-    routes.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
+    publishedTrips.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
 
   const countryEntries = [...countrySet].map((cc) => ({
     url: canonicalCountry(cc),
@@ -210,19 +209,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return { url: canonicalRegion(cc, rs), lastModified: new Date() };
   });
 
-  // Filter out duplicate-suffix slugs (e.g. "scenic-road-2") that indicate
-  // de-duplication artifacts rather than intentional pages.
-  const routeEntries = routes
-    .filter((r) => !/-\d+$/.test(r.slug))
-    .map((r) => ({
-    url: canonicalRoute(
-      r.countryCode.toLowerCase(),
-      r.regionCode.toLowerCase(),
-      r.slug.toLowerCase(),
-    ),
-    lastModified: new Date(r.updatedAt),
-  }));
-
   return [
     ...staticEntries,
     ...blogEntries,
@@ -232,6 +218,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...exploreEntry,
     ...countryEntries,
     ...regionEntries,
-    ...routeEntries,
   ];
 }
