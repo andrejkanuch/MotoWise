@@ -51,6 +51,34 @@ export function initSentry() {
     attachScreenshot: true,
     debug: false,
     integrations: [sentryNavigationIntegration],
+    beforeSend(event) {
+      const message =
+        event.exception?.values?.[0]?.value ?? event.exception?.values?.[0]?.type ?? '';
+      // Known React Native Fabric race condition — view is unmounted before
+      // an async image/reanimated callback can update props. Not actionable.
+      if (message.includes('Unable to find viewState for tag')) {
+        return null;
+      }
+      // Hermes VM internal native crash — memory corruption or GC bug
+      // in the engine itself, not in application JS. Not actionable.
+      // Only drop when EVERY frame is a Hermes/RN internal frame (no app JS).
+      const frames = event.exception?.values?.flatMap(
+        (v) => v.stacktrace?.frames ?? [],
+      );
+      if (
+        frames &&
+        frames.length > 0 &&
+        frames.every(
+          (f) =>
+            !f.in_app ||
+            f.function?.startsWith('hermes::') ||
+            f.function?.startsWith('facebook::'),
+        )
+      ) {
+        return null;
+      }
+      return event;
+    },
   });
 }
 
