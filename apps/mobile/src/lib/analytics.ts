@@ -62,17 +62,13 @@ export function initSentry() {
       // Hermes VM internal native crash — memory corruption or GC bug
       // in the engine itself, not in application JS. Not actionable.
       // Only drop when EVERY frame is a Hermes/RN internal frame (no app JS).
-      const frames = event.exception?.values?.flatMap(
-        (v) => v.stacktrace?.frames ?? [],
-      );
+      const frames = event.exception?.values?.flatMap((v) => v.stacktrace?.frames ?? []);
       if (
         frames &&
         frames.length > 0 &&
         frames.every(
           (f) =>
-            !f.in_app ||
-            f.function?.startsWith('hermes::') ||
-            f.function?.startsWith('facebook::'),
+            !f.in_app || f.function?.startsWith('hermes::') || f.function?.startsWith('facebook::'),
         )
       ) {
         return null;
