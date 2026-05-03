@@ -13,14 +13,14 @@ jest.mock('react-native-fbsdk-next', () => ({
 }));
 jest.mock('../meta-attribution', () => ({ getStoredUtmProperties: jest.fn() }));
 
-import type { Event as SentryEvent } from '@sentry/react-native';
+import type { ErrorEvent as SentryEvent } from '@sentry/react-native';
 import { sentryBeforeSend } from '../analytics';
 
 function makeEvent(overrides: Partial<SentryEvent> = {}): SentryEvent {
   return {
     exception: { values: [] },
     ...overrides,
-  };
+  } as SentryEvent;
 }
 
 describe('sentryBeforeSend', () => {

@@ -41,7 +41,7 @@ export const sentryNavigationIntegration: ReturnType<typeof Sentry.reactNavigati
   });
 
 /** Exported for testing — filters non-actionable native crashes from Sentry. */
-export function sentryBeforeSend(event: Sentry.Event): Sentry.Event | null {
+export function sentryBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent | null {
   const message = event.exception?.values?.[0]?.value ?? event.exception?.values?.[0]?.type ?? '';
   // Known React Native Fabric race condition — view is unmounted before
   // an async image/reanimated callback can update props. Not actionable.
