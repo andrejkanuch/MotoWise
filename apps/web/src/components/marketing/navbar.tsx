@@ -302,8 +302,8 @@ const S = {
   /* Mobile */
   hamburger: {
     display: 'none',
-    width: '44px',
-    height: '44px',
+    width: '48px',
+    height: '48px',
     alignItems: 'center',
     justifyContent: 'center',
     background: 'transparent',

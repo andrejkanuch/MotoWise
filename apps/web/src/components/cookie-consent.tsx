@@ -195,28 +195,115 @@ export function CookieConsentBanner() {
     return <SettledToast message={settledMsg} onUndo={handleUndo} undoLabel={t('settled.undo')} />;
   }
 
+  if (view === 'main') {
+    return (
+      <div style={bannerBarWrapStyle}>
+        <div
+          role="dialog"
+          aria-labelledby="cb-title"
+          aria-describedby="cb-body"
+          style={bannerBarStyle}
+        >
+          <div aria-hidden="true" style={grainStyle} />
+          <div style={bannerBarContentStyle}>
+            <span id="cb-title" style={{ display: 'none' }}>
+              {t('stamp')}
+            </span>
+            <p
+              id="cb-body"
+              style={{
+                margin: 0,
+                fontSize: '13.5px',
+                lineHeight: 1.4,
+                color: T.ink2,
+                flex: '1 1 auto',
+                minWidth: 0,
+              }}
+            >
+              {t.rich('body1', {
+                strong: (chunks) => (
+                  <strong style={{ color: T.ink, fontWeight: 600 }}>{chunks}</strong>
+                ),
+              })}
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flexShrink: 0,
+              }}
+            >
+              <HoverButton
+                base={{
+                  ...btnBase,
+                  padding: '9px 14px',
+                  fontSize: '12.5px',
+                  background: T.warm,
+                  color: 'oklch(0.15 0.02 55)',
+                  boxShadow: `0 3px 0 ${T.warmDark}`,
+                }}
+                hover={{ background: T.warmHover, transform: 'translateY(-1px)' }}
+                onClick={handleAccept}
+              >
+                {t('accept')}
+              </HoverButton>
+
+              <HoverButton
+                base={{
+                  ...btnBase,
+                  padding: '9px 14px',
+                  fontSize: '12.5px',
+                  borderColor: T.whiteA14,
+                  background: 'transparent',
+                }}
+                hover={{ background: T.whiteA5, transform: 'translateY(-1px)' }}
+                onClick={handleDecline}
+              >
+                {t('decline')}
+              </HoverButton>
+
+              <HoverButton
+                base={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '6px 4px',
+                  fontSize: '12px',
+                  color: T.ink3,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '3px',
+                  textDecorationColor: T.whiteA20,
+                  textDecorationThickness: '1px',
+                  whiteSpace: 'nowrap',
+                }}
+                hover={{ color: T.ink }}
+                onClick={() => setView('list')}
+              >
+                {t('settings')}
+              </HoverButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={wrapStyle}>
       <div role="dialog" aria-labelledby="cb-title" aria-describedby="cb-body" style={cardStyle}>
         <div aria-hidden="true" style={grainStyle} />
         <div style={{ position: 'relative', zIndex: 2, padding: '24px 26px 26px' }}>
-          {view === 'main' ? (
-            <MainView
-              t={t}
-              onAccept={handleAccept}
-              onDecline={handleDecline}
-              onShowList={() => setView('list')}
-            />
-          ) : (
-            <ListView
-              t={t}
-              toggles={toggles}
-              onToggle={toggle}
-              onSave={handleSave}
-              onAcceptAll={handleAcceptAll}
-              onBack={() => setView('main')}
-            />
-          )}
+          <ListView
+            t={t}
+            toggles={toggles}
+            onToggle={toggle}
+            onSave={handleSave}
+            onAcceptAll={handleAcceptAll}
+            onBack={() => setView('main')}
+          />
         </div>
       </div>
     </div>
@@ -226,6 +313,39 @@ export function CookieConsentBanner() {
 // ---------------------------------------------------------------------------
 // Shared styles
 // ---------------------------------------------------------------------------
+
+const bannerBarWrapStyle: React.CSSProperties = {
+  position: 'fixed',
+  zIndex: 9999,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  pointerEvents: 'none',
+};
+
+const bannerBarStyle: React.CSSProperties = {
+  pointerEvents: 'auto',
+  width: '100%',
+  maxHeight: 80,
+  background: T.bg,
+  color: T.ink,
+  borderTop: `1px solid ${T.border}`,
+  boxShadow: '0 -8px 32px oklch(0 0 0 / 0.4)',
+  fontFamily: T.font,
+  overflow: 'hidden',
+  position: 'relative',
+};
+
+const bannerBarContentStyle: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 2,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  padding: '14px 20px',
+  maxWidth: 1200,
+  margin: '0 auto',
+};
 
 const wrapStyle: React.CSSProperties = {
   position: 'fixed',
@@ -276,125 +396,7 @@ const btnBase: React.CSSProperties = {
   color: T.ink,
 };
 
-// ---------------------------------------------------------------------------
-// Main view
-// ---------------------------------------------------------------------------
-
-function MainView({
-  t,
-  onAccept,
-  onDecline,
-  onShowList,
-}: {
-  t: ReturnType<typeof useTranslations>;
-  onAccept: () => void;
-  onDecline: () => void;
-  onShowList: () => void;
-}) {
-  return (
-    <>
-      <Stamp label={t('stamp')} />
-
-      <h2
-        id="cb-title"
-        style={{
-          margin: '14px 0 0',
-          fontSize: 22,
-          fontWeight: 700,
-          lineHeight: 1.2,
-          letterSpacing: '-0.02em',
-          color: T.ink,
-        }}
-      >
-        {t.rich('title', {
-          em: (chunks) => <em style={{ fontStyle: 'italic', color: T.warm }}>{chunks}</em>,
-        })}
-      </h2>
-
-      <div
-        id="cb-body"
-        style={{ marginTop: 12, fontSize: '14.5px', lineHeight: 1.55, color: T.ink2 }}
-      >
-        <p style={{ margin: '0 0 10px' }}>
-          {t.rich('body1', {
-            strong: (chunks) => <strong style={{ color: T.ink, fontWeight: 600 }}>{chunks}</strong>,
-          })}
-        </p>
-        <p style={{ margin: 0 }}>
-          {t.rich('body2', {
-            strong: (chunks) => <strong style={{ color: T.ink, fontWeight: 600 }}>{chunks}</strong>,
-          })}
-        </p>
-      </div>
-
-      <div
-        style={{ marginTop: 22, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}
-      >
-        <HoverButton
-          base={{
-            ...btnBase,
-            background: T.warm,
-            color: 'oklch(0.15 0.02 55)',
-            boxShadow: `0 4px 0 ${T.warmDark}`,
-          }}
-          hover={{ background: T.warmHover, transform: 'translateY(-1px)' }}
-          onClick={onAccept}
-        >
-          <span>{t('accept')}</span>
-          <span aria-hidden="true">→</span>
-        </HoverButton>
-
-        <HoverButton
-          base={{ ...btnBase, borderColor: T.whiteA14, background: 'transparent' }}
-          hover={{ background: T.whiteA5, transform: 'translateY(-1px)' }}
-          onClick={onDecline}
-        >
-          {t('decline')}
-        </HoverButton>
-
-        <HoverButton
-          base={{
-            ...btnBase,
-            padding: '11px 8px',
-            border: 'none',
-            background: 'transparent',
-            color: T.ink2,
-            textDecoration: 'underline',
-            textUnderlineOffset: '4px',
-            textDecorationThickness: '1px',
-            textDecorationColor: T.whiteA20,
-          }}
-          hover={{ color: T.ink, transform: 'translateY(-1px)' }}
-          onClick={onShowList}
-        >
-          {t('showList')}
-        </HoverButton>
-      </div>
-
-      <div
-        style={{
-          marginTop: 18,
-          paddingTop: 14,
-          borderTop: `1px solid ${T.borderFaint}`,
-          fontSize: '11.5px',
-          color: T.ink3,
-        }}
-      >
-        <a
-          href="/privacy"
-          style={{
-            color: T.ink2,
-            textDecoration: 'underline',
-            textDecorationColor: T.whiteA20,
-            textUnderlineOffset: '3px',
-          }}
-        >
-          {t('privacyLink')}
-        </a>
-      </div>
-    </>
-  );
-}
+// MainView removed — banner bar is now rendered inline in CookieConsentBanner
 
 // ---------------------------------------------------------------------------
 // List view

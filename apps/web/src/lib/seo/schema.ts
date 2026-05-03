@@ -110,7 +110,7 @@ export function buildSoftwareApplication(args: {
     name: args.name,
     applicationCategory: 'TravelApplication',
     applicationSubCategory: args.feature?.subCategory ?? 'Motorcycle',
-    operatingSystem: 'iOS, ANDROID',
+    operatingSystem: ['iOS', 'Android'],
     description: args.feature?.description ?? args.description,
     url: args.feature?.url ?? BASE_URL,
     downloadUrl: [APP_STORE_URL, PLAY_STORE_URL],

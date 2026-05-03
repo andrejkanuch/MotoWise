@@ -53,7 +53,6 @@ const pages = [
   '/compare/motovault-vs-moto-shed',
   '/press',
   '/about',
-  '/explore',
 ];
 
 function getLocalizedUrl(locale: string, path: string): string {
@@ -91,7 +90,6 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare/motovault-vs-moto-shed': '2026-04-18',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
-  '/explore': '2026-04-13',
 };
 
 function getPageImages(path: string): string[] {
@@ -212,7 +210,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return { url: canonicalRegion(cc, rs), lastModified: new Date() };
   });
 
-  const routeEntries = routes.map((r) => ({
+  // Filter out duplicate-suffix slugs (e.g. "scenic-road-2") that indicate
+  // de-duplication artifacts rather than intentional pages.
+  const routeEntries = routes
+    .filter((r) => !/-\d+$/.test(r.slug))
+    .map((r) => ({
     url: canonicalRoute(
       r.countryCode.toLowerCase(),
       r.regionCode.toLowerCase(),

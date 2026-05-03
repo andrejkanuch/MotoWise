@@ -2,7 +2,7 @@
   "Metadata": {
     "title": "MotoVault: Motorcycle Trip Planning, Maintenance Tracking & AI Diagnostics",
     "titleTemplate": "%s | MotoVault",
-    "description": "Plan multi-day motorcycle trips, discover routes worldwide, track maintenance and expenses, and diagnose issues with AI — all in one free app for iOS and Android.",
+    "description": "Free motorcycle app: plan multi-day trips, track maintenance costs, and diagnose issues with AI photo scanning. 12,000+ models supported. iOS & Android.",
     "ogDescription": "Free motorcycle companion app for iOS and Android: maintenance, expenses, rides, multi-day trip planning, and AI photo diagnostics — no OBD hardware required."
   },
   "Navbar": {
@@ -432,8 +432,8 @@
     "organizationDescription": "AI-powered motorcycle learning & diagnostics platform"
   },
   "FeaturesDiagnostics": {
-    "title": "AI Motorcycle Diagnostics — No Hardware Needed",
-    "description": "Snap a photo of your motorcycle issue and get an AI-powered diagnosis in seconds. Supports 18,000+ bike models.",
+    "title": "AI Motorcycle Diagnostics — Free Photo Scanner",
+    "description": "Point your camera at any motorcycle problem. Get an instant AI diagnosis with severity rating and fix steps. Free for all 18,000+ bike models.",
     "heroTitle": "AI-Powered Motorcycle Diagnostics",
     "heroSubtitle": "Point your camera at any part, warning light, or issue. Our AI identifies the problem and suggests fixes — all in seconds.",
     "howItWorksTitle": "See It in Action",
@@ -2654,6 +2654,7 @@
     "accept": "Accept the cookie",
     "decline": "No thanks",
     "showList": "Show me what I'm eating",
+    "settings": "Settings",
     "privacyLink": "Honest privacy policy →",
     "list": {
       "whatWeUse": "What we use",
