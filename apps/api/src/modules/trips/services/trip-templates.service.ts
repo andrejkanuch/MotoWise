@@ -383,6 +383,35 @@ export class TripTemplatesService {
   }
 
   // ==========================================
+  // Sitemap
+  // ==========================================
+
+  async sitemapPublishedTrips(): Promise<
+    Array<{ countryCode: string; regionCode: string; slug: string; updatedAt: string }>
+  > {
+    const { data, error } = await this.supabase
+      .from('trips')
+      .select('country_code, region_code, slug, updated_at')
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .not('country_code', 'is', null)
+      .not('region_code', 'is', null)
+      .not('slug', 'is', null);
+
+    if (error) {
+      this.logger.warn(`sitemapPublishedTrips: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((row) => ({
+      countryCode: row.country_code as string,
+      regionCode: row.region_code as string,
+      slug: row.slug as string,
+      updatedAt: row.updated_at as string,
+    }));
+  }
+
+  // ==========================================
   // Similar trips
   // ==========================================
 

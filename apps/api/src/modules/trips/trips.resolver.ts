@@ -34,6 +34,7 @@ import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-expor
 import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { SharedTrip } from './models/shared-trip.model';
+import { SitemapTripEntry } from './models/sitemap-trip-entry.model';
 import { Trip, TripConnection, TripReview, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
@@ -419,6 +420,18 @@ export class TripsResolver {
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
   ): Promise<boolean> {
     return this.tripReviewsSvc.deleteReview(user.id, reviewId);
+  }
+
+  // ==========================================
+  // Sitemap (replaces routes sitemapPublishedRoutes)
+  // ==========================================
+
+  @Query(() => [SitemapTripEntry], {
+    description: 'Published trip templates for XML sitemap generation',
+  })
+  @Public()
+  async sitemapPublishedTrips(): Promise<SitemapTripEntry[]> {
+    return this.tripTemplatesSvc.sitemapPublishedTrips();
   }
 
   // ==========================================
