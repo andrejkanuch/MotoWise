@@ -1,13 +1,25 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { SUPABASE_ADMIN } from '../../modules/supabase/supabase-admin.provider';
+import type { Tier } from '../../modules/entitlements/entitlements.types';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
+  private readonly logger = new Logger(GqlAuthGuard.name);
   private readonly supabaseUrl: string;
   private readonly legacySecret: Uint8Array;
+  private readonly entitlementsEnforced: boolean;
   // biome-ignore lint/suspicious/noExplicitAny: jose's GetKeyFunction type is complex and dynamic-imported
   private jwks: any = null;
   private readonly reflector: Reflector;
@@ -15,12 +27,15 @@ export class GqlAuthGuard implements CanActivate {
   constructor(
     private configService: ConfigService,
     reflector: Reflector,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
   ) {
     this.reflector = reflector;
     this.supabaseUrl = this.configService.getOrThrow('SUPABASE_URL');
     this.legacySecret = new TextEncoder().encode(
       this.configService.getOrThrow('SUPABASE_JWT_SECRET'),
     );
+    this.entitlementsEnforced =
+      this.configService.get('ENTITLEMENTS_ENFORCED', 'false') === 'true';
   }
 
   private async getJwks() {
@@ -83,14 +98,51 @@ export class GqlAuthGuard implements CanActivate {
       payload = result.payload as Record<string, unknown>;
     }
 
+    const userId = payload.sub as string;
+    const tier = await this.resolveEffectiveTier(userId);
+
     request.user = {
-      id: payload.sub,
+      id: userId,
       email: payload.email,
       // TODO 030 fix: prefer app_metadata.role (set by Supabase DB trigger, not user-editable)
       // over user_role claim. This value is INFORMATIONAL ONLY — do NOT use for authorization
       // decisions. All access control must go through RLS policies or a DB query on public.users.role.
       role: (payload.app_metadata as Record<string, unknown>)?.role ?? payload.user_role ?? 'user',
+      tier,
     };
     request.accessToken = token;
+  }
+
+  /**
+   * Resolve the effective subscription tier from the DB.
+   * Checks subscription_tier + subscription_status + subscription_expires_at.
+   * Returns 'pro' only when all three conditions are met.
+   * Fails open to 'free' on error (never blocks a paying user due to a transient DB issue).
+   */
+  private async resolveEffectiveTier(userId: string): Promise<Tier> {
+    if (!this.entitlementsEnforced) return 'pro'; // Feature flag off = everyone is Pro (Phase 1 behavior)
+
+    try {
+      const { data, error } = await this.supabaseAdmin
+        .from('users')
+        .select('subscription_tier, subscription_status, subscription_expires_at')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data) {
+        this.logger.warn(`Tier resolution failed for ${userId}: ${error?.message ?? 'no data'}`);
+        return 'free'; // fail open
+      }
+
+      const isPro =
+        data.subscription_tier === 'pro' &&
+        ['active', 'trialing'].includes(data.subscription_status) &&
+        new Date(data.subscription_expires_at) > new Date();
+
+      return isPro ? 'pro' : 'free';
+    } catch (err) {
+      this.logger.error(`Tier resolution error for ${userId}`, err);
+      return 'free'; // fail open
+    }
   }
 }

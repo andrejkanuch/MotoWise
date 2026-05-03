@@ -3,18 +3,19 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { QuotaStatus } from './quota-status.dto';
+import { FEATURES, GATING_MATRIX, type Feature, type Tier } from './entitlements.types';
 
-/** Must match the value used in routes.service consumeGpxQuota / checkGpxEntitlement */
-const FEATURE_GPX_EXPORT = 'DOWNLOAD_GPX';
+const FEATURE_GPX_EXPORT = FEATURES.DOWNLOAD_GPX;
 
+/** @deprecated Use FEATURES from entitlements.types.ts instead */
 export const ENTITLEMENTS = {
   READ_FULL_ROUTE: 'READ_FULL_ROUTE',
-  READ_ALL_REVIEWS: 'READ_ALL_REVIEWS',
-  DOWNLOAD_GPX: 'DOWNLOAD_GPX',
-  SAVE_ROUTE: 'SAVE_ROUTE',
+  READ_ALL_REVIEWS: FEATURES.READ_ALL_REVIEWS,
+  DOWNLOAD_GPX: FEATURES.DOWNLOAD_GPX,
+  SAVE_ROUTE: FEATURES.SAVE_ROUTE,
+  BUILDER_ACCESS: FEATURES.BUILDER_ACCESS,
+  EXPORT_DEVICE: FEATURES.EXPORT_DEVICE,
 } as const;
-
-type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
 
 @Injectable()
 export class EntitlementsService {
@@ -23,15 +24,17 @@ export class EntitlementsService {
   constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
 
   /**
-   * Check if a user has access to a specific entitlement.
-   * Authenticated users get all entitlements in Phase 1.
-   * Anonymous users (null) get none.
+   * Check if a user has access to a specific feature.
+   * Uses the GATING_MATRIX from entitlements.types.ts.
+   * Tier is resolved once per request by GqlAuthGuard and attached to user.tier.
+   *
+   * @param user - AuthUser with tier from request context, or null for anonymous
+   * @param feature - Feature key from FEATURES constant
    */
-  can(user: { id: string } | null, _entitlement: Entitlement): boolean {
-    if (!user) return false;
-    // Phase 1: all authenticated users have all entitlements
-    // Phase 3: check subscription_tier for Pro-only features
-    return true;
+  can(user: { id: string; tier?: Tier } | null, feature: Feature): boolean {
+    if (!user) return GATING_MATRIX.anonymous[feature];
+    const tier: Tier = user.tier ?? 'free';
+    return GATING_MATRIX[tier][feature];
   }
 
   /**

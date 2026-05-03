@@ -1,16 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
-import { ENTITLEMENTS, EntitlementsService } from './entitlements.service';
+import { EntitlementsService } from './entitlements.service';
+import { FEATURES, GATING_MATRIX } from './entitlements.types';
 
 describe('EntitlementsService', () => {
   // `can()` is a pure method — only needs `this` for the class shape.
   // Supabase is only used by getGPXQuotaStatus (tested via integration/e2e).
   const service = new EntitlementsService(null as never);
 
-  const mockUser: AuthUser = {
-    id: 'user-123',
-    email: 'rider@motovault.app',
+  const anonymousUser = null;
+  const freeUser: AuthUser = {
+    id: 'user-free',
+    email: 'free@motovault.app',
     role: 'user',
+    tier: 'free',
+  };
+  const proUser: AuthUser = {
+    id: 'user-pro',
+    email: 'pro@motovault.app',
+    role: 'user',
+    tier: 'pro',
+  };
+  const userWithoutTier: AuthUser = {
+    id: 'user-legacy',
+    email: 'legacy@motovault.app',
+    role: 'user',
+    tier: 'free', // defaults to free
   };
 
   // ==========================================
@@ -18,22 +33,54 @@ describe('EntitlementsService', () => {
   // ==========================================
 
   describe('can (anonymous)', () => {
-    it('denies all entitlements for null user', () => {
-      for (const entitlement of Object.values(ENTITLEMENTS)) {
-        expect(service.can(null, entitlement)).toBe(false);
+    it('denies all features for null user', () => {
+      for (const feature of Object.values(FEATURES)) {
+        expect(service.can(anonymousUser, feature)).toBe(false);
       }
     });
   });
 
   // ==========================================
-  // can — authenticated user (Phase 1: all true)
+  // can — free tier
   // ==========================================
 
-  describe('can (authenticated — Phase 1)', () => {
-    it('grants all entitlements for authenticated user', () => {
-      for (const entitlement of Object.values(ENTITLEMENTS)) {
-        expect(service.can(mockUser, entitlement)).toBe(true);
+  describe('can (free tier)', () => {
+    it('grants free-tier features', () => {
+      expect(service.can(freeUser, FEATURES.READ_ALL_REVIEWS)).toBe(true);
+      expect(service.can(freeUser, FEATURES.WRITE_REVIEW)).toBe(true);
+      expect(service.can(freeUser, FEATURES.SAVE_ROUTE)).toBe(true);
+      expect(service.can(freeUser, FEATURES.DOWNLOAD_GPX)).toBe(true); // metered, not blocked
+    });
+
+    it('denies Pro-only features', () => {
+      expect(service.can(freeUser, FEATURES.BUILDER_ACCESS)).toBe(false);
+      expect(service.can(freeUser, FEATURES.EXPORT_DEVICE)).toBe(false);
+      expect(service.can(freeUser, FEATURES.USE_OFFLINE_MAPS)).toBe(false);
+      expect(service.can(freeUser, FEATURES.SEE_FUEL_OVERLAY)).toBe(false);
+      expect(service.can(freeUser, FEATURES.AD_FREE)).toBe(false);
+    });
+  });
+
+  // ==========================================
+  // can — Pro tier
+  // ==========================================
+
+  describe('can (Pro tier)', () => {
+    it('grants all features for Pro user', () => {
+      for (const feature of Object.values(FEATURES)) {
+        expect(service.can(proUser, feature)).toBe(true);
       }
+    });
+  });
+
+  // ==========================================
+  // can — user without explicit tier defaults to free
+  // ==========================================
+
+  describe('can (legacy user without tier)', () => {
+    it('defaults to free tier behavior', () => {
+      expect(service.can(userWithoutTier, FEATURES.SAVE_ROUTE)).toBe(true);
+      expect(service.can(userWithoutTier, FEATURES.BUILDER_ACCESS)).toBe(false);
     });
   });
 
@@ -41,23 +88,20 @@ describe('EntitlementsService', () => {
   // Full gating matrix — exhaustive
   // ==========================================
 
-  describe('full gating matrix', () => {
-    const expectedMatrix: Array<{
-      entitlement: (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
-      anonymous: boolean;
-      authenticated: boolean;
-    }> = [
-      { entitlement: ENTITLEMENTS.READ_FULL_ROUTE, anonymous: false, authenticated: true },
-      { entitlement: ENTITLEMENTS.READ_ALL_REVIEWS, anonymous: false, authenticated: true },
-      { entitlement: ENTITLEMENTS.DOWNLOAD_GPX, anonymous: false, authenticated: true },
-      { entitlement: ENTITLEMENTS.SAVE_ROUTE, anonymous: false, authenticated: true },
+  describe('full gating matrix matches GATING_MATRIX constant', () => {
+    const tiers = [
+      { label: 'anonymous', user: anonymousUser, tierKey: 'anonymous' as const },
+      { label: 'free', user: freeUser, tierKey: 'free' as const },
+      { label: 'pro', user: proUser, tierKey: 'pro' as const },
     ];
 
-    for (const { entitlement, anonymous, authenticated } of expectedMatrix) {
-      it(`${entitlement}: anonymous=${anonymous}, authenticated=${authenticated}`, () => {
-        expect(service.can(null, entitlement)).toBe(anonymous);
-        expect(service.can(mockUser, entitlement)).toBe(authenticated);
-      });
+    for (const { label, user, tierKey } of tiers) {
+      for (const feature of Object.values(FEATURES)) {
+        const expected = GATING_MATRIX[tierKey][feature];
+        it(`${label} + ${feature} = ${expected}`, () => {
+          expect(service.can(user, feature)).toBe(expected);
+        });
+      }
     }
   });
 });

@@ -11,6 +11,13 @@ export interface AuthUser {
    * See: CLAUDE.md "Do NOT use raw_user_meta_data for role checks"
    */
   role: string;
+  /**
+   * Effective subscription tier, resolved per-request from DB.
+   * Computed from subscription_tier + subscription_status + subscription_expires_at.
+   * Used by EntitlementsService.can() via GATING_MATRIX.
+   * Defaults to 'free' for unauthenticated users or when DB lookup fails.
+   */
+  tier: 'anonymous' | 'free' | 'pro';
 }
 
 export const CurrentUser = createParamDecorator(
