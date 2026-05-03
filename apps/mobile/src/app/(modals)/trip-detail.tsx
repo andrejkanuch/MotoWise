@@ -1540,7 +1540,8 @@ export default function TripDetailScreen() {
                   </View>
                 </Animated.View>
 
-                {/* Reviews section */}
+                {/* Reviews section — hidden when no reviews and not loading */}
+                {(reviews.length > 0 || reviewsLoading || reviewFormVisible) && (
                 <Animated.View
                   entering={FadeInUp.delay(120).duration(220)}
                   style={{ marginBottom: 20 }}
@@ -1559,11 +1560,7 @@ export default function TripDetailScreen() {
                   </Text>
                   {reviewsLoading ? (
                     <ActivityIndicator size="small" color={t.warm} />
-                  ) : reviews.length === 0 ? (
-                    <Text style={{ fontSize: 13, color: subtitleColor, marginBottom: 12 }}>
-                      No reviews yet. Be the first to share your experience!
-                    </Text>
-                  ) : (
+                  ) : reviews.length === 0 ? null : (
                     reviews.map((review, idx) => (
                       <Animated.View
                         key={review.id}
@@ -1724,6 +1721,7 @@ export default function TripDetailScreen() {
                     </Animated.View>
                   )}
                 </Animated.View>
+                )}
               </>
             )}
 
