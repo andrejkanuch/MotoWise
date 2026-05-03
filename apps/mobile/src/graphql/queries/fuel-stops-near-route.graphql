@@ -1,3 +1,4 @@
+# @deprecated — Use trip-based equivalent. Kept for backward compatibility with old app builds.
 query FuelStopsNearRoute($routeId: ID!, $bikeId: ID) {
   fuelStopsNearRoute(routeId: $routeId, bikeId: $bikeId) {
     fuelStops {

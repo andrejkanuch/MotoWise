@@ -1,4 +1,9 @@
 import { palette } from '@motovault/design-system';
+/**
+ * TODO: Migrate to TripReviewsDocument once the trip reviews resolver includes
+ * nested author { displayName, avatarUrl } and bike { make, model } fields.
+ * Currently uses the deprecated GetRouteReviewsDocument which has these joins.
+ */
 import { GetRouteReviewsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Star } from 'lucide-react-native';
@@ -9,12 +14,14 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 
 interface ReviewListProps {
+  /** Pass routeId for legacy route reviews — will be migrated to tripId */
   routeId: string;
 }
 
 export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps) {
   const isDark = useColorScheme() === 'dark';
 
+  // TODO: Migrate to tripReviews once it returns author + bike nested fields
   const { data, isLoading } = useQuery({
     queryKey: [...queryKeys.routes.detail(routeId), 'reviews'],
     queryFn: () => gqlFetcher(GetRouteReviewsDocument, { routeId, first: 10 }),

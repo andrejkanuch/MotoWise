@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { RouteBySlugDeepLinkDocument } from '@motovault/graphql';
+import { TripBySlugDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
@@ -24,18 +24,18 @@ export default function RouteSlugDeepLinkScreen() {
   const s = typeof slug === 'string' ? slug : Array.isArray(slug) ? slug[0] : '';
 
   const { data, isError, isLoading } = useQuery({
-    queryKey: ['route-by-slug-deeplink', c, r, s],
-    queryFn: () => gqlFetcher(RouteBySlugDeepLinkDocument, { country: c, region: r, slug: s }),
+    queryKey: ['trip-by-slug-deeplink', c, r, s],
+    queryFn: () => gqlFetcher(TripBySlugDocument, { country: c, region: r, slug: s }),
     enabled: Boolean(c && r && s),
   });
 
-  const routeId = data?.routeBySlug?.id;
+  const tripId = data?.tripBySlug?.id;
 
   useEffect(() => {
-    if (navigatedRef.current || !routeId) return;
+    if (navigatedRef.current || !tripId) return;
     navigatedRef.current = true;
-    router.replace({ pathname: '/(modals)/trip-detail', params: { tripId: routeId } });
-  }, [routeId, router]);
+    router.replace({ pathname: '/(modals)/trip-detail', params: { tripId } });
+  }, [tripId, router]);
 
   useEffect(() => {
     if (!isError || navigatedRef.current) return;

@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { CreateRouteReviewDocument } from '@motovault/graphql';
+import { CreateTripReviewDocument } from '@motovault/graphql';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { Star } from 'lucide-react-native';
@@ -20,11 +20,14 @@ const CONDITION_TAGS = [
 ] as const;
 
 interface ReviewFormProps {
-  routeId: string;
+  /** @deprecated Use tripId instead */
+  routeId?: string;
+  tripId?: string;
   onSuccess?: () => void;
 }
 
-export const ReviewForm = memo(function ReviewForm({ routeId, onSuccess }: ReviewFormProps) {
+export const ReviewForm = memo(function ReviewForm({ routeId, tripId: tripIdProp, onSuccess }: ReviewFormProps) {
+  const tripId = tripIdProp ?? routeId ?? '';
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const queryClient = useQueryClient();
@@ -40,16 +43,16 @@ export const ReviewForm = memo(function ReviewForm({ routeId, onSuccess }: Revie
 
   const mutation = useMutation({
     mutationFn: () =>
-      gqlFetcher(CreateRouteReviewDocument, {
+      gqlFetcher(CreateTripReviewDocument, {
         input: {
-          routeId,
+          tripId,
           rating,
           text: text.trim() || undefined,
           conditionTags: selectedTags.length > 0 ? selectedTags : undefined,
         },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.routes.detail(routeId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
       if (process.env.EXPO_OS === 'ios') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }

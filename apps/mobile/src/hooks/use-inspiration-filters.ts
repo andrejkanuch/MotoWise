@@ -1,7 +1,7 @@
 import {
   type DiscoverRoutesFilterInput,
-  SavedRoutesDocument,
-  type SavedRoutesQuery,
+  SavedTripsDocument,
+  type SavedTripsQuery,
 } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -13,7 +13,7 @@ import { queryKeys } from '../lib/query-keys';
  * All three are meant to be shown as separate horizontal sections in parallel.
  */
 
-type SavedRouteNode = SavedRoutesQuery['savedRoutes']['edges'][number]['node'];
+type SavedTripNode = SavedTripsQuery['savedTrips']['edges'][number]['node'];
 
 export interface InspirationFilters {
   /** Highly rated, short-distance loops — a single Saturday's worth. */
@@ -73,11 +73,11 @@ function seasonalFilter(month: number): { filter: DiscoverRoutesFilterInput; lab
   return SEASON_VARIANT[season];
 }
 
-function mostCommonSurface(routes: SavedRouteNode[]): string | null {
+function mostCommonSurface(trips: SavedTripNode[]): string | null {
   const counts = new Map<string, number>();
-  for (const r of routes) {
-    if (!r.surfaceType) continue;
-    counts.set(r.surfaceType, (counts.get(r.surfaceType) ?? 0) + 1);
+  for (const t of trips) {
+    if (!t.surfaceType) continue;
+    counts.set(t.surfaceType, (counts.get(t.surfaceType) ?? 0) + 1);
   }
   let best: { type: string; count: number } | null = null;
   for (const [type, count] of counts) {
@@ -92,17 +92,17 @@ export function useInspirationFilters(enabled = true): InspirationFilters {
   // returned object reference-stable for Discover's memoised consumers.
   const month = useMemo(() => new Date().getMonth(), []);
 
-  // Only the user's saved-routes call runs while signed-in. If it fails or is
+  // Only the user's saved-trips call runs while signed-in. If it fails or is
   // empty we just skip the "because you liked" section.
   const { data } = useQuery({
-    queryKey: queryKeys.routes.saved,
-    queryFn: () => gqlFetcher(SavedRoutesDocument, { first: 20, after: null }),
+    queryKey: queryKeys.savedTrips.all,
+    queryFn: () => gqlFetcher(SavedTripsDocument, { first: 20, after: null }),
     enabled,
     staleTime: 15 * 60 * 1000,
   });
 
-  const savedRoutes: SavedRouteNode[] = useMemo(
-    () => data?.savedRoutes?.edges?.map((e) => e.node) ?? [],
+  const savedTrips: SavedTripNode[] = useMemo(
+    () => data?.savedTrips?.edges?.map((e) => e.node) ?? [],
     [data],
   );
 
@@ -110,16 +110,16 @@ export function useInspirationFilters(enabled = true): InspirationFilters {
     const season = seasonalFilter(month);
 
     let becauseYouLiked: InspirationFilters['becauseYouLiked'] = null;
-    if (savedRoutes.length > 0) {
-      const surface = mostCommonSurface(savedRoutes);
+    if (savedTrips.length > 0) {
+      const surface = mostCommonSurface(savedTrips);
       if (surface) {
         becauseYouLiked = {
           filter: {
             surfaceTypes: [surface],
             highlyRatedOnly: true,
           },
-          // Pick the most-recently-saved route as the "anchor" for the label.
-          anchorName: savedRoutes[0]?.name ?? null,
+          // Pick the most-recently-saved trip as the "anchor" for the label.
+          anchorName: savedTrips[0]?.title ?? null,
         };
       }
     }
@@ -129,5 +129,5 @@ export function useInspirationFilters(enabled = true): InspirationFilters {
       season,
       becauseYouLiked,
     };
-  }, [month, savedRoutes]);
+  }, [month, savedTrips]);
 }
