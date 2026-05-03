@@ -30,6 +30,7 @@ import { UpdateParticipantStatusInput } from './dto/update-participant-status.in
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
 import { TripShareTokenError } from './errors/trip-share-token.errors';
+import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
 import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { SharedTrip } from './models/shared-trip.model';
@@ -41,6 +42,7 @@ import { TripReviewsService } from './services/trip-reviews.service';
 import { TripSavesService } from './services/trip-saves.service';
 import { TripSharingService } from './services/trip-sharing.service';
 import { TripTemplatesService } from './services/trip-templates.service';
+import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
 
 @Resolver(() => Trip)
@@ -55,6 +57,7 @@ export class TripsResolver {
     private readonly tripTemplatesSvc: TripTemplatesService,
     private readonly tripReviewsSvc: TripReviewsService,
     private readonly tripSavesSvc: TripSavesService,
+    private readonly tripGpxExport: TripGpxExportService,
     private readonly tripReviewsLoader: TripReviewsLoader,
     private readonly tripSavedLoader: TripSavedLoader,
   ) {}
@@ -416,6 +419,22 @@ export class TripsResolver {
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
   ): Promise<boolean> {
     return this.tripReviewsSvc.deleteReview(user.id, reviewId);
+  }
+
+  // ==========================================
+  // GPX Export (trip-based, replaces routes GPX export)
+  // ==========================================
+
+  @Mutation(() => GPXExportResultUnion, {
+    description: 'Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.',
+  })
+  async exportTripGPX(
+    @CurrentUser() user: AuthUser,
+    @Args('slug') slug: string,
+    @Args('country') country: string,
+    @Args('region') region: string,
+  ): Promise<typeof GPXExportResultUnion> {
+    return this.tripGpxExport.exportTripGPX(user, slug, country, region);
   }
 
   // ==========================================
