@@ -383,6 +383,75 @@ export class TripTemplatesService {
   }
 
   // ==========================================
+  // Similar trips
+  // ==========================================
+
+  /**
+   * Find similar published templates by country + difficulty + duration band.
+   * Excludes the source trip itself.
+   */
+  async findSimilarTrips(slug: string, country: string, region: string, limit = 6): Promise<Trip[]> {
+    // First get the source trip's difficulty and day_count for matching
+    const { data: source, error: sourceErr } = await this.supabase
+      .from('trips')
+      .select('id, difficulty, day_count')
+      .eq('country_code', country.toUpperCase())
+      .eq('region_code', region)
+      .eq('slug', slug)
+      .eq('is_template', true)
+      .single();
+
+    if (sourceErr || !source) return [];
+
+    // Find similar: same country, closest difficulty, duration within ±1 day
+    const minDays = Math.max(1, (source.day_count ?? 1) - 1);
+    const maxDays = (source.day_count ?? 1) + 1;
+
+    let query = this.supabase
+      .from('trips')
+      .select(TEMPLATE_SELECT)
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .eq('country_code', country.toUpperCase())
+      .neq('id', source.id)
+      .gte('day_count', minDays)
+      .lte('day_count', maxDays)
+      .order('average_rating', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    // Prefer same difficulty, but don't exclude others
+    if (source.difficulty) {
+      query = query.eq('difficulty', source.difficulty);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      this.logger.error(`findSimilarTrips failed: ${error.message}`);
+      return [];
+    }
+
+    // If too few same-difficulty results, backfill from same country without difficulty filter
+    if ((data?.length ?? 0) < limit) {
+      const existingIds = (data ?? []).map((d) => (d as unknown as TemplateRow).id);
+      const { data: backfill } = await this.supabase
+        .from('trips')
+        .select(TEMPLATE_SELECT)
+        .eq('is_template', true)
+        .eq('is_flagged', false)
+        .eq('country_code', country.toUpperCase())
+        .neq('id', source.id)
+        .not('id', 'in', `(${existingIds.join(',')})`)
+        .order('average_rating', { ascending: false, nullsFirst: false })
+        .limit(limit - (data?.length ?? 0));
+
+      if (backfill) data?.push(...backfill);
+    }
+
+    return (data ?? []).map((row) => this.mapTemplateRow(row as unknown as TemplateRow));
+  }
+
+  // ==========================================
   // Helpers
   // ==========================================
 

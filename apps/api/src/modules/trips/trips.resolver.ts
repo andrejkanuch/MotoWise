@@ -11,7 +11,7 @@ import {
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
 } from '@motovault/types/validators';
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -356,15 +356,37 @@ export class TripsResolver {
   // Review Operations
   // ==========================================
 
-  @Query(() => [TripReview])
+  @Query(() => [TripReview], {
+    description: 'Get reviews for a trip by ID or by slug (country+region+slug lookup)',
+  })
   @Public()
   async tripReviews(
-    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @Args('tripId', { type: () => ID, nullable: true })
+    tripId?: string,
+    @Args('slug', { nullable: true }) slug?: string,
+    @Args('country', { nullable: true }) country?: string,
+    @Args('region', { nullable: true }) region?: string,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
-    const connection = await this.tripReviewsSvc.getReviewsForTrip(tripId, first ?? 20, after);
+    let resolvedTripId = tripId;
+
+    // Slug-based lookup: resolve slug → tripId first
+    if (!resolvedTripId && slug && country && region) {
+      const trip = await this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
+      resolvedTripId = trip.id;
+    }
+
+    if (!resolvedTripId) {
+      throw new BadRequestException('Either tripId or (slug + country + region) is required');
+    }
+
+    const connection = await this.tripReviewsSvc.getReviewsForTrip(
+      resolvedTripId,
+      first ?? 20,
+      after,
+    );
     return connection.edges.map((e) => ({
       ...e.node,
       text: e.node.text ?? undefined,
@@ -394,6 +416,24 @@ export class TripsResolver {
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
   ): Promise<boolean> {
     return this.tripReviewsSvc.deleteReview(user.id, reviewId);
+  }
+
+  // ==========================================
+  // Similar Trips (Explore funnel)
+  // ==========================================
+
+  @Query(() => [Trip], {
+    description: 'Find similar published trip templates by country + difficulty + duration',
+  })
+  @Public()
+  async similarTrips(
+    @Args('slug') slug: string,
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 6 })
+    limit?: number,
+  ): Promise<Trip[]> {
+    return this.tripTemplatesSvc.findSimilarTrips(slug, country, region, limit ?? 6);
   }
 
   // ==========================================

@@ -7,9 +7,13 @@ import { FEATURES, GATING_MATRIX, type Feature, type Tier } from './entitlements
 
 const FEATURE_GPX_EXPORT = FEATURES.DOWNLOAD_GPX;
 
-/** @deprecated Use FEATURES from entitlements.types.ts instead */
+/**
+ * @deprecated Use FEATURES from entitlements.types.ts instead.
+ * READ_FULL_ROUTE is a legacy entitlement used by the deprecated RoutesResolver.
+ * It maps to READ_ALL_REVIEWS in the new model (same intent: "can this user see full content?").
+ */
 export const ENTITLEMENTS = {
-  READ_FULL_ROUTE: 'READ_FULL_ROUTE',
+  READ_FULL_ROUTE: FEATURES.READ_ALL_REVIEWS, // legacy alias → maps to READ_ALL_REVIEWS
   READ_ALL_REVIEWS: FEATURES.READ_ALL_REVIEWS,
   DOWNLOAD_GPX: FEATURES.DOWNLOAD_GPX,
   SAVE_ROUTE: FEATURES.SAVE_ROUTE,
