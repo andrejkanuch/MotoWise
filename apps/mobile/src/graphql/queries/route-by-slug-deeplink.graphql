@@ -1,5 +1,0 @@
-query RouteBySlugDeepLink($country: String!, $region: String!, $slug: String!) {
-  routeBySlug(country: $country, region: $region, slug: $slug) {
-    id
-  }
-}

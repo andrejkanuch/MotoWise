@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -88,13 +84,6 @@ input AskTripAssistantInput {
 enum AssistantMessageRole {
   assistant
   user
-}
-
-input BoundsInput {
-  neLat: Float!
-  neLng: Float!
-  swLat: Float!
-  swLng: Float!
 }
 
 type BrowseExploreRegionResult {
@@ -381,42 +370,6 @@ enum DiagnosticSeverity {
   high
   low
   medium
-}
-
-input DiscoverRoutesFilterInput {
-  bikeCategory: String
-  bounds: BoundsInput
-
-  """
-  ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code
-  """
-  countryCode: String
-  elevationRanges: [String!]
-  highlyRatedOnly: Boolean
-  lengthRanges: [String!]
-
-  """Minimum twist score 1-10 (maps to curvature_index thresholds)"""
-  minTwistScore: Int
-
-  """When true, only routes flagged as MotoVault editor picks"""
-  motovaultPicksOnly: Boolean
-  nearLat: Float
-  nearLng: Float
-  radiusKm: Float
-
-  """
-  Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase
-  """
-  regionCode: String
-
-  """
-  When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort.
-  """
-  sortByRating: Boolean
-
-  """Only routes with surface condition reports within the last N days"""
-  surfaceRecency: Int
-  surfaceTypes: [String!]
 }
 
 type DiscoverTrip {
@@ -1027,6 +980,11 @@ type Mutation {
   deleteTripReview(reviewId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
   exportRouteGPX(routeId: ID!): GPXExportResult!
+
+  """
+  Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.
+  """
+  exportTripGPX(country: String!, region: String!, slug: String!): GPXExportResult!
   flagComment(commentId: ID!): Boolean!
   followRider(input: FollowRiderInput!): Follow!
   generateArticle(input: GenerateArticleInput!): Article!
@@ -1060,9 +1018,6 @@ type Mutation {
   respondToTripSuggestion(input: RespondToTripSuggestionInput!): TripSuggestion!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
-
-  """Save a route to your collection"""
-  saveRouteToCollection(routeId: ID!): Boolean!
   saveTrip(tripId: ID!): Boolean!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
@@ -1077,9 +1032,6 @@ type Mutation {
   unfollowRider(input: UnfollowRiderInput!): Boolean!
   unpublishFromDiscover(discoverTripId: ID!): Boolean!
   unpublishTemplate(tripId: ID!): Boolean!
-
-  """Remove a saved route from your collection"""
-  unsaveRouteFromCollection(routeId: ID!): Boolean!
   unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
   unshareRoute(routeId: ID!): Boolean!
@@ -1202,7 +1154,6 @@ type Query {
   browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
   discoverRiderTrips(after: String, first: Int = 5): TripConnection!
-  discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection! @deprecated(reason: "Use discoverTrips query instead. Removal target: 8 weeks post-OTA.")
   discoverTripById(id: ID!): DiscoverTrip!
   discoverTripBySlug(country: String!, region: String!, slug: String!): DiscoverTrip!
   discoverTrips(after: String, filter: DiscoverTripsFilterInput, first: Int = 20): DiscoverTripConnection!
@@ -1227,9 +1178,6 @@ type Query {
   getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
   getTrips(after: String, first: Int = 20): TripConnection!
   groupRideDetail(groupRideId: ID!): GroupRide!
-
-  """Check if the authenticated user has saved a specific route"""
-  isRouteSaved(routeId: ID!): Boolean!
   isTripSaved(tripId: ID!): Boolean!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
@@ -1246,33 +1194,33 @@ type Query {
   myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
-
-  """Public saved routes for a user by handle (public_username)"""
-  publicSavedRoutes(after: String, first: Int = 20, handle: String!): RouteConnection!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
-  routeBySlug(country: String!, region: String!, slug: String!): Route @deprecated(reason: "Use discoverTripBySlug query instead. Removal target: 8 weeks post-OTA.")
   routeConditions(routeId: ID!): RouteConditions!
-  routeDetail(routeId: ID!): Route! @deprecated(reason: "Use discoverTripById query instead. Removal target: 8 weeks post-OTA.")
-  routePathById(routeId: ID!): RouteCanonicalPath
   routeSponsorships(routeId: ID!): [Sponsorship!]!
-
-  """Paginated list of the authenticated user's saved routes"""
-  savedRoutes(after: String, first: Int = 20): RouteConnection!
   savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
   sharedBikeHistory(token: String!): SharedBikeHistory!
-  sitemapPublishedRoutes: [SitemapRouteEntry!]!
+
+  """
+  Find similar published trip templates by country + difficulty + duration
+  """
+  similarTrips(country: String!, limit: Int = 6, region: String!, slug: String!): [Trip!]!
+
+  """Published trip templates for XML sitemap generation"""
+  sitemapPublishedTrips: [SitemapTripEntry!]!
   spendingSummary(motorcycleId: String!): SpendingSummary!
   templateTripIdForRoute(routeId: ID!): ID
   tripByShareToken(shareToken: String!): SharedTrip
   tripBySlug(country: String!, region: String!, slug: String!): Trip
   tripDetail(tripId: ID!): Trip!
   tripInvites(tripId: ID!): [TripInvite!]!
-  tripReviews(after: String, first: Int = 20, tripId: ID!): [TripReview!]!
+
+  """Get reviews for a trip by ID or by slug (country+region+slug lookup)"""
+  tripReviews(after: String, country: String, first: Int = 20, region: String, slug: String, tripId: ID): [TripReview!]!
   tripSuggestions(tripId: ID!): [TripSuggestion!]!
   tripTemplates(after: String, filter: TripTemplateFilterInput, first: Int = 20): TripConnection!
   user: User!
@@ -1439,20 +1387,9 @@ type Route {
   twistScore: Int
 }
 
-type RouteCanonicalPath {
-  countryCode: String!
-  regionCode: String!
-  slug: String!
-}
-
 type RouteConditions {
   aggregates: [ConditionAggregate!]!
   recentReports: [SurfaceReport!]!
-}
-
-type RouteConnection {
-  edges: [RouteEdge!]!
-  pageInfo: RoutePageInfo!
 }
 
 type RouteContributor {
@@ -1598,7 +1535,8 @@ type SharedTripWaypoint {
   type: String!
 }
 
-type SitemapRouteEntry {
+"""Minimal trip data for XML sitemap generation"""
+type SitemapTripEntry {
   countryCode: String!
   regionCode: String!
   slug: String!

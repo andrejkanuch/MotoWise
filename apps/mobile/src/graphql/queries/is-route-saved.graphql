@@ -1,3 +1,0 @@
-query IsRouteSaved($routeId: ID!) {
-  isRouteSaved(routeId: $routeId)
-}
