@@ -23,6 +23,17 @@ import { userFriendlyError } from '../../lib/graphql-errors';
 import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
 
+const EXPECTED_AUTH_MESSAGES = [
+  'cancelled',
+  'canceled',
+  'authorization attempt failed for an unknown reason',
+];
+
+function isExpectedAuthError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : '';
+  return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m));
+}
+
 export default function LoginScreen() {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -57,7 +68,7 @@ export default function LoginScreen() {
       await signInWithApple();
       trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'apple' });
     } catch (err) {
-      captureException(err);
+      if (!isExpectedAuthError(err)) captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };
@@ -70,7 +81,7 @@ export default function LoginScreen() {
       await signInWithGoogle();
       trackEvent(AnalyticsEvent.USER_SIGNED_IN, { auth_method: 'google' });
     } catch (err) {
-      captureException(err);
+      if (!isExpectedAuthError(err)) captureException(err);
       Alert.alert(t('common.error'), userFriendlyError(err));
     }
   };

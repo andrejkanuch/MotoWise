@@ -91,7 +91,8 @@ export default function BikeMakeScreen() {
     router.replace('/(onboarding)/bike-model');
   };
 
-  const canContinue = !!(selectedMake || customMake.trim());
+  const isValidCustomMake = customMake.trim().length > 0 && !customMake.includes('@');
+  const canContinue = !!(selectedMake || isValidCustomMake);
   const showDropdown = search.length > 0 && filteredMakes.length > 0;
   const showNoResults = search.length > 0 && filteredMakes.length === 0 && !makesResult.isLoading;
   const showGrid = !search && !selectedMake && !customMake && popularMakeItems.length > 0;

@@ -147,7 +147,7 @@ export interface FilteredLocation {
   longitude: number;
   altitude: number | null;
   speed: number; // smoothed, m/s
-  heading: number;
+  heading: number | null;
   accuracy: number;
   timestamp: number;
   // Computed stats
@@ -265,7 +265,7 @@ class GPSFilter {
       longitude: filteredLng,
       altitude: altitude ?? null,
       speed: smoothedSpeed,
-      heading: heading ?? 0,
+      heading: heading != null && heading >= 0 ? heading : null,
       accuracy: acc,
       timestamp,
       segmentDistance,

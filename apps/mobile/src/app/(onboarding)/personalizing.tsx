@@ -123,8 +123,8 @@ export default function PersonalizingScreen() {
         ...(currency && { currency }),
         ...(fbclid && { fbclid }),
         ...(bikeData && {
-          bikeMake: bikeData.make,
-          bikeModel: bikeData.model,
+          ...(bikeData.make?.trim() && { bikeMake: bikeData.make.trim() }),
+          ...(bikeData.model?.trim() && { bikeModel: bikeData.model.trim() }),
           bikeYear: bikeData.year,
           bikeType: bikeData.type,
           bikeMileage: bikeData.currentMileage,
