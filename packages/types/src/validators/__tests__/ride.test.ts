@@ -143,6 +143,37 @@ describe('WaypointSchema', () => {
   it('rejects invalid recordedAt', () => {
     expect(() => WaypointSchema.parse({ ...validWaypoint, recordedAt: 'bad-date' })).toThrow();
   });
+
+  it('rejects heading -1 (GPS unavailable sentinel)', () => {
+    expect(() => WaypointSchema.parse({ ...validWaypoint, heading: -1 })).toThrow();
+  });
+
+  it('rejects heading below 0', () => {
+    expect(() => WaypointSchema.parse({ ...validWaypoint, heading: -45 })).toThrow();
+  });
+
+  it('rejects heading above 360', () => {
+    expect(() => WaypointSchema.parse({ ...validWaypoint, heading: 361 })).toThrow();
+  });
+
+  it('accepts heading as null', () => {
+    const result = WaypointSchema.parse({ ...validWaypoint, heading: null });
+    expect(result.heading).toBeNull();
+  });
+
+  it('accepts heading omitted (optional)', () => {
+    const { heading: _, ...noHeading } = validWaypoint;
+    const result = WaypointSchema.parse(noHeading);
+    expect(result.heading).toBeUndefined();
+  });
+
+  it('rejects negative speedMps', () => {
+    expect(() => WaypointSchema.parse({ ...validWaypoint, speedMps: -1 })).toThrow();
+  });
+
+  it('rejects negative accuracy', () => {
+    expect(() => WaypointSchema.parse({ ...validWaypoint, accuracy: -1 })).toThrow();
+  });
 });
 
 describe('UploadWaypointsInputSchema', () => {

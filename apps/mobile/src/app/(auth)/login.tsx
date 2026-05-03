@@ -20,19 +20,8 @@ import {
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { AnalyticsEvent, captureException, trackEvent } from '../../lib/analytics';
 import { userFriendlyError } from '../../lib/graphql-errors';
-import { signInWithApple, signInWithGoogle } from '../../lib/oauth';
+import { isExpectedAuthError, signInWithApple, signInWithGoogle } from '../../lib/oauth';
 import { supabase } from '../../lib/supabase';
-
-const EXPECTED_AUTH_MESSAGES = [
-  'cancelled',
-  'canceled',
-  'authorization attempt failed for an unknown reason',
-];
-
-function isExpectedAuthError(err: unknown): boolean {
-  const msg = err instanceof Error ? err.message.toLowerCase() : '';
-  return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m));
-}
 
 export default function LoginScreen() {
   const { t } = useTranslation();

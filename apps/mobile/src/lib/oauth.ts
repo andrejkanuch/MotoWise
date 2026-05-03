@@ -3,6 +3,18 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import { supabase } from './supabase';
 
+const EXPECTED_AUTH_MESSAGES = [
+  'cancelled',
+  'canceled',
+  'authorization attempt failed for an unknown reason',
+];
+
+/** Returns true for auth errors that are expected user-facing outcomes, not bugs. */
+export function isExpectedAuthError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : '';
+  return EXPECTED_AUTH_MESSAGES.some((m) => msg.includes(m));
+}
+
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
