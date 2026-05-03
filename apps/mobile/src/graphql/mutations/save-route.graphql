@@ -1,0 +1,3 @@
+mutation SaveRoute($routeId: ID!) {
+  saveRouteToCollection(routeId: $routeId)
+}

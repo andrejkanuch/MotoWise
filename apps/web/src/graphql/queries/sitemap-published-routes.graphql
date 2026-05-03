@@ -1,0 +1,8 @@
+query SitemapPublishedRoutes {
+  sitemapPublishedRoutes {
+    countryCode
+    regionCode
+    slug
+    updatedAt
+  }
+}

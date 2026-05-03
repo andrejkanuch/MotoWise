@@ -1,0 +1,7 @@
+query RoutePathById($routeId: ID!) {
+  routePathById(routeId: $routeId) {
+    countryCode
+    regionCode
+    slug
+  }
+}

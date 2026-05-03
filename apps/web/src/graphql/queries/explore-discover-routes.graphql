@@ -1,0 +1,26 @@
+query ExploreDiscoverRoutes($filter: DiscoverRoutesFilterInput, $first: Int) {
+  discoverRoutes(filter: $filter, first: $first) {
+    edges {
+      node {
+        id
+        name
+        description
+        distanceM
+        elevationGainM
+        surfaceType
+        curvatureIndex
+        isMotovaultPick
+        editorialDescription
+        ratingAvg
+        ratingCount
+        slug
+        countryCode
+        regionCode
+        polyline
+      }
+    }
+    pageInfo {
+      hasNextPage
+    }
+  }
+}

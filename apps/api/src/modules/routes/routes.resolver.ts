@@ -3,7 +3,7 @@ import {
   ShareRideToDiscoverInputSchema,
 } from '@motovault/types/validators';
 import { BadRequestException, UseGuards } from '@nestjs/common';
-import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -12,10 +12,13 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
+import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import { GPXExportError, GPXExportResult, GPXExportSuccess } from './dto/gpx-export.dto';
 import { ShareRideToDiscoverInput } from './dto/share-ride-to-discover.input';
-import { Route } from './models/route.model';
+import { Route, RouteConnection } from './models/route.model';
+import { RouteCanonicalPath } from './models/route-canonical-path.model';
 import { RouteReview, RouteReviewConnection } from './models/route-review.model';
+import { SitemapRouteEntry } from './models/sitemap-route-entry.model';
 import { RoutesService } from './routes.service';
 
 /** Max reviews visible to anonymous users */
@@ -30,14 +33,95 @@ export class RoutesResolver {
   ) {}
 
   // ==========================================
-  // Route Discovery — DEPRECATED queries removed
+  // Route Discovery
   // ==========================================
-  // discoverRoutes → use TripsResolver.tripTemplates
-  // routeBySlug → use TripsResolver.tripBySlug
-  // routeDetail → use TripsResolver.tripDetail
-  // sitemapPublishedRoutes → migrating to TripsResolver (Track 9A.6)
-  // routePathById → migrating to TripsResolver (Track 9A.9)
-  // twistScore/twistPercentile → removed (ResolveFields on deprecated model)
+
+  @Query(() => RouteConnection, {
+    deprecationReason: 'Use discoverTrips query instead. Removal target: 8 weeks post-OTA.',
+  })
+  @Public()
+  async discoverRoutes(
+    @Args('filter', { type: () => DiscoverRoutesFilterInput, nullable: true })
+    filter?: DiscoverRoutesFilterInput,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<RouteConnection> {
+    this.routesService.logDeprecatedUsage('discoverRoutes');
+    return this.routesService.discoverRoutes(filter, first ?? 20, after);
+  }
+
+  @Query(() => [SitemapRouteEntry])
+  @Public()
+  async sitemapPublishedRoutes(): Promise<SitemapRouteEntry[]> {
+    return this.routesService.sitemapPublishedRoutes();
+  }
+
+  @Query(() => RouteCanonicalPath, { nullable: true })
+  @Public()
+  async routePathById(
+    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
+  ): Promise<RouteCanonicalPath | null> {
+    return this.routesService.routePathById(routeId);
+  }
+
+  @Query(() => Route, {
+    nullable: true,
+    deprecationReason: 'Use discoverTripBySlug query instead. Removal target: 8 weeks post-OTA.',
+  })
+  @Public()
+  async routeBySlug(
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('slug') slug: string,
+  ): Promise<Route | null> {
+    // Input validation — prevent excessively long or malformed params
+    if (country.length > 5 || region.length > 20 || slug.length > 200) return null;
+    if (!/^[a-z0-9-]+$/.test(country) || !/^[a-z0-9-]+$/.test(region) || !/^[a-z0-9-]+$/.test(slug))
+      return null;
+    return this.routesService.findBySlug(country, region, slug);
+  }
+
+  @Query(() => Route, {
+    deprecationReason: 'Use discoverTripById query instead. Removal target: 8 weeks post-OTA.',
+  })
+  @Public()
+  async routeDetail(
+    @CurrentUser() user: AuthUser | null,
+    @Args('routeId', { type: () => ID }, ParseUUIDPipe) routeId: string,
+  ): Promise<Route> {
+    const route = await this.routesService.routeDetail(routeId);
+
+    // Gate premium fields for anonymous users
+    const canReadFull = this.entitlementService.can(user, ENTITLEMENTS.READ_FULL_ROUTE);
+    if (!canReadFull) {
+      return {
+        ...route,
+        polyline: undefined,
+        editorialDescription: undefined,
+      };
+    }
+
+    return route;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistScore(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.score ?? null;
+  }
+
+  @ResolveField(() => Int, { nullable: true })
+  async twistPercentile(@Parent() route: Route): Promise<number | null> {
+    const result = await this.routesService.computeTwistScore(
+      route.curvatureIndex,
+      route.countryCode,
+    );
+    return result?.percentile ?? null;
+  }
 
   @Mutation(() => Route)
   async shareRideToDiscover(
