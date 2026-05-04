@@ -154,7 +154,10 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
     // fake phone screens alongside the real carousel screenshots.
     let storyPrompt = output.storyPrompt;
     if (screenshotKeys.length > 0) {
-      const scrubbed = storyPrompt.replace(DEVICE_WORDS_RE, '').replace(/\s{2,}/g, ' ').trim();
+      const scrubbed = storyPrompt
+        .replace(DEVICE_WORDS_RE, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       if (scrubbed !== storyPrompt) {
         console.warn(
           `[draft] storyPrompt contains device words with screenshots present — scrubbing`,
