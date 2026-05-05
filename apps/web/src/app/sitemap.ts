@@ -6,11 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-import {
-  canonicalCountry,
-  canonicalExplore,
-  canonicalRegion,
-} from '@/lib/seo/canonical';
+import { canonicalCountry, canonicalExplore, canonicalRegion } from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;

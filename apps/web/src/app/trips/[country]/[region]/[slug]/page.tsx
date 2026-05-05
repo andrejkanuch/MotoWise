@@ -774,10 +774,9 @@ export default async function TripPage({ params }: PageParams) {
                       </div>
                     </div>
                     <div style={{ fontSize: 14, color: 'var(--mv-warm-400)', flexShrink: 0 }}>
-                      {/* biome-ignore lint: star rating uses stable review.id + index keys */}
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <span key={`${review.id}-star-${i}`}>
-                          {i < review.rating ? '\u2605' : '\u2606'}
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={`${review.id}-star-${star}`}>
+                          {star <= review.rating ? '\u2605' : '\u2606'}
                         </span>
                       ))}
                     </div>
