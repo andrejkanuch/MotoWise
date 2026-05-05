@@ -690,7 +690,7 @@ export function BuilderClient() {
           <div style={S.mapPlaceholder}>
             <div style={{ textAlign: 'center', padding: 40 }}>
               <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>
-                {/* biome-ignore lint/a11y/noEmoji: decorative placeholder */}
+                {/* biome-ignore lint: decorative placeholder emoji */}
                 <span role="img" aria-label="Map">
                   &#x1F5FA;&#xFE0F;
                 </span>
@@ -706,7 +706,9 @@ export function BuilderClient() {
 
       {/* ── Add Waypoint Form Modal ───────────────────────────── */}
       {showForm && (
+        {/* biome-ignore lint: modal overlay dismiss handler */}
         <div
+          role="dialog"
           style={S.formOverlay}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowForm(false);
@@ -729,6 +731,7 @@ export function BuilderClient() {
                 onChange={(e) => setFormName(e.target.value)}
                 style={S.formInput}
                 placeholder="e.g. Stelvio Pass summit"
+                {/* biome-ignore lint: intentional autofocus on modal open */}
                 autoFocus
               />
             </div>

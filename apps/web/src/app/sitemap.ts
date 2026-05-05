@@ -10,7 +10,6 @@ import {
   canonicalCountry,
   canonicalExplore,
   canonicalRegion,
-  canonicalRoute,
 } from '@/lib/seo/canonical';
 
 const host = BASE_URL;
