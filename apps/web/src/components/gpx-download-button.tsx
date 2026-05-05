@@ -241,7 +241,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
                 type="button"
                 onClick={() => {
                   setShowPaywall(false);
-                  window.open('https://apps.apple.com/us/app/motovault/id6760291360', '_blank');
+                  window.location.href = '/pro/checkout';
                 }}
                 className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97]"
                 style={{
