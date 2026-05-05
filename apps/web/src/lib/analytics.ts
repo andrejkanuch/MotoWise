@@ -137,7 +137,10 @@ type WebEventProperties = {
   [WebEvent.GPX_DOWNLOAD_ATTEMPTED]: { tripSlug: string; isPro: boolean };
   [WebEvent.GPX_DOWNLOAD_DENIED]: { tripSlug: string; reason: 'not_authenticated' | 'not_pro' };
   [WebEvent.GPX_PREVIEW_SHOWN]: { tripSlug: string };
-  [WebEvent.PRO_CTA_CLICKED]: { source: 'trip_detail' | 'builder' | 'explore' | 'gpx_preview'; tripSlug?: string };
+  [WebEvent.PRO_CTA_CLICKED]: {
+    source: 'trip_detail' | 'builder' | 'explore' | 'gpx_preview';
+    tripSlug?: string;
+  };
   [WebEvent.CHECKOUT_ATTRIBUTION_GATE_SHOWN]: { tripSlug?: string; source: string };
   [WebEvent.BUILDER_OPENED]: { source: 'explore' | 'trip_detail' | 'nav' };
   [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
@@ -151,18 +154,9 @@ type TypedEvent = keyof WebEventProperties;
 /** Events that have no required properties. */
 type UntypedEvent = Exclude<WebEventName, TypedEvent>;
 
-export function trackEvent<E extends TypedEvent>(
-  event: E,
-  properties: WebEventProperties[E],
-): void;
-export function trackEvent(
-  event: UntypedEvent,
-  properties?: Record<string, unknown>,
-): void;
-export function trackEvent(
-  event: WebEventName,
-  properties?: Record<string, unknown>,
-): void;
+export function trackEvent<E extends TypedEvent>(event: E, properties: WebEventProperties[E]): void;
+export function trackEvent(event: UntypedEvent, properties?: Record<string, unknown>): void;
+export function trackEvent(event: WebEventName, properties?: Record<string, unknown>): void;
 export function trackEvent(event: WebEventName, properties?: Record<string, unknown>) {
   posthog.capture(event, properties);
 }

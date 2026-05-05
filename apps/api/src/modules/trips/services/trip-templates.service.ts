@@ -8,8 +8,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { applySlugFilters } from '../../../common/slug-lookup';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
+import { applySlugFilters } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
@@ -417,13 +417,23 @@ export class TripTemplatesService {
    * Find similar published templates by country + difficulty + duration band.
    * Excludes the source trip itself.
    */
-  async findSimilarTrips(slug: string, country: string, region: string, limit = 6): Promise<Trip[]> {
+  async findSimilarTrips(
+    slug: string,
+    country: string,
+    region: string,
+    limit = 6,
+  ): Promise<Trip[]> {
     // First get the source trip's difficulty and day_count for matching
     const sourceQuery = this.supabase
       .from('trips')
       .select('id, difficulty, day_count')
       .eq('is_template', true);
-    const { data: source, error: sourceErr } = await applySlugFilters(sourceQuery, country, region, slug).single();
+    const { data: source, error: sourceErr } = await applySlugFilters(
+      sourceQuery,
+      country,
+      region,
+      slug,
+    ).single();
 
     if (sourceErr || !source) return [];
 

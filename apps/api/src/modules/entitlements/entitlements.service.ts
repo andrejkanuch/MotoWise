@@ -2,8 +2,8 @@ import { GPX_EXPORT_LIMITS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { FEATURES, type Feature, GATING_MATRIX, type Tier } from './entitlements.types';
 import type { QuotaStatus } from './quota-status.dto';
-import { FEATURES, GATING_MATRIX, type Feature, type Tier } from './entitlements.types';
 
 const FEATURE_GPX_EXPORT = FEATURES.DOWNLOAD_GPX;
 

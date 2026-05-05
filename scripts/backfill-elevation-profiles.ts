@@ -78,9 +78,7 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) ** 2;
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
@@ -226,7 +224,9 @@ async function main() {
         continue;
       }
 
-      console.log(`  Done (${profile.length} points, ${profile[profile.length - 1]?.distanceKm?.toFixed(1) ?? 0} km)`);
+      console.log(
+        `  Done (${profile.length} points, ${profile[profile.length - 1]?.distanceKm?.toFixed(1) ?? 0} km)`,
+      );
       success++;
     } catch (err) {
       console.error(`  Error processing ${trip.id}:`, err);

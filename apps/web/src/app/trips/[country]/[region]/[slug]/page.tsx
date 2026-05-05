@@ -7,8 +7,8 @@ import {
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BASE_URL } from '@/lib/constants';
-import { gqlServerFetcher } from '@/lib/graphql-server';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { gqlServerFetcher } from '@/lib/graphql-server';
 import '@/components/trip-detail/trip-detail.css';
 
 const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
@@ -32,7 +32,12 @@ async function fetchTrip(country: string, region: string, slug: string): Promise
 
 async function fetchReviews(country: string, region: string, slug: string): Promise<TripReview[]> {
   try {
-    const data = await gqlServerFetcher(WebTripReviewsDocument, { country, region, slug, first: 10 });
+    const data = await gqlServerFetcher(WebTripReviewsDocument, {
+      country,
+      region,
+      slug,
+      first: 10,
+    });
     return data.tripReviews ?? [];
   } catch {
     return [];
@@ -306,8 +311,22 @@ export default async function TripPage({ params }: PageParams) {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Explore', item: `${BASE_URL}/explore` },
-      { '@type': 'ListItem', position: 2, name: countryName, item: `${BASE_URL}/explore/${country}` },
-      ...(regionName ? [{ '@type': 'ListItem', position: 3, name: regionName, item: `${BASE_URL}/explore/${country}/${region}` }] : []),
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: countryName,
+        item: `${BASE_URL}/explore/${country}`,
+      },
+      ...(regionName
+        ? [
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: regionName,
+              item: `${BASE_URL}/explore/${country}/${region}`,
+            },
+          ]
+        : []),
       { '@type': 'ListItem', position: regionName ? 4 : 3, name: trip.title },
     ],
   };
@@ -737,7 +756,15 @@ export default async function TripPage({ params }: PageParams) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{authorName}</div>
-                      <div style={{ fontSize: 12, color: 'var(--mv-ink-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--mv-ink-3)',
+                          display: 'flex',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         {review.bike && (
                           <span>
                             {review.bike.year} {review.bike.make} {review.bike.model}
@@ -756,7 +783,9 @@ export default async function TripPage({ params }: PageParams) {
                   </div>
 
                   {review.text && (
-                    <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--mv-ink-2)', margin: 0 }}>
+                    <p
+                      style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--mv-ink-2)', margin: 0 }}
+                    >
                       {review.text}
                     </p>
                   )}
@@ -789,19 +818,59 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ PRO CTA ══════════ */}
       <section className="rsec">
-        <div style={{ background: 'linear-gradient(135deg, oklch(0.14 0.025 55), oklch(0.11 0.015 55))', border: '1px solid var(--mv-line)', borderRadius: 20, padding: '48px 40px', textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 10, color: 'var(--mv-warm-400)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, oklch(0.14 0.025 55), oklch(0.11 0.015 55))',
+            border: '1px solid var(--mv-line)',
+            borderRadius: 20,
+            padding: '48px 40px',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-geist-mono, monospace)',
+              fontSize: 10,
+              color: 'var(--mv-warm-400)',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              marginBottom: 16,
+            }}
+          >
             MotoVault Pro
           </div>
-          <h3 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            Export GPX, build multi-day trips, <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>go further.</span>
+          <h3
+            style={{
+              fontSize: 'clamp(24px, 3vw, 36px)',
+              fontWeight: 500,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+            }}
+          >
+            Export GPX, build multi-day trips,{' '}
+            <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>
+              go further.
+            </span>
           </h3>
-          <p style={{ color: 'var(--mv-ink-3)', fontSize: 14, lineHeight: 1.55, maxWidth: 480, margin: '16px auto 0' }}>
-            Download GPX files for offline navigation, create multi-day itineraries, and get priority access to new routes.
+          <p
+            style={{
+              color: 'var(--mv-ink-3)',
+              fontSize: 14,
+              lineHeight: 1.55,
+              maxWidth: 480,
+              margin: '16px auto 0',
+            }}
+          >
+            Download GPX files for offline navigation, create multi-day itineraries, and get
+            priority access to new routes.
           </p>
           <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12 }}>
-            <a href="/pro/checkout" className="mv-btn mv-btn-primary"><span>Try Pro free</span></a>
-            <a href="/pro" className="mv-btn mv-btn-ghost">Learn more</a>
+            <a href="/pro/checkout" className="mv-btn mv-btn-primary">
+              <span>Try Pro free</span>
+            </a>
+            <a href="/pro" className="mv-btn mv-btn-ghost">
+              Learn more
+            </a>
           </div>
         </div>
       </section>

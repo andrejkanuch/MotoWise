@@ -26,7 +26,11 @@ interface ReviewFormProps {
   onSuccess?: () => void;
 }
 
-export const ReviewForm = memo(function ReviewForm({ routeId, tripId: tripIdProp, onSuccess }: ReviewFormProps) {
+export const ReviewForm = memo(function ReviewForm({
+  routeId,
+  tripId: tripIdProp,
+  onSuccess,
+}: ReviewFormProps) {
   const tripId = tripIdProp ?? routeId ?? '';
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';

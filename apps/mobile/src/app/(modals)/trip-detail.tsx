@@ -1542,185 +1542,187 @@ export default function TripDetailScreen() {
 
                 {/* Reviews section — hidden when no reviews and not loading */}
                 {(reviews.length > 0 || reviewsLoading || reviewFormVisible) && (
-                <Animated.View
-                  entering={FadeInUp.delay(120).duration(220)}
-                  style={{ marginBottom: 20 }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      fontWeight: '700',
-                      color: t.ink2,
-                      marginBottom: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: 2.2,
-                    }}
+                  <Animated.View
+                    entering={FadeInUp.delay(120).duration(220)}
+                    style={{ marginBottom: 20 }}
                   >
-                    Reviews
-                  </Text>
-                  {reviewsLoading ? (
-                    <ActivityIndicator size="small" color={t.warm} />
-                  ) : reviews.length === 0 ? null : (
-                    reviews.map((review, idx) => (
-                      <Animated.View
-                        key={review.id}
-                        entering={FadeInUp.delay(idx * 40).duration(200)}
-                        style={{
-                          padding: 12,
-                          marginBottom: 8,
-                          borderRadius: 12,
-                          borderCurve: 'continuous',
-                          backgroundColor: t.surface,
-                          borderWidth: 1,
-                          borderColor: t.line,
-                        }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 4,
-                            marginBottom: 4,
-                          }}
-                        >
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size star rating array
-                              key={i}
-                              size={14}
-                              color={t.warm}
-                              fill={i < review.rating ? t.warm : 'transparent'}
-                            />
-                          ))}
-                        </View>
-                        {review.text && (
-                          <Text style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }}>
-                            {review.text}
-                          </Text>
-                        )}
-                        <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </Text>
-                      </Animated.View>
-                    ))
-                  )}
-
-                  {/* Write review toggle */}
-                  {!reviewFormVisible ? (
-                    <Pressable
-                      onPress={() => {
-                        if (process.env.EXPO_OS === 'ios')
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setReviewFormVisible(true);
-                      }}
+                    <Text
                       style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6,
-                        paddingVertical: 12,
-                        borderRadius: 12,
-                        borderCurve: 'continuous',
-                        borderWidth: 1,
-                        borderColor: t.line,
-                        marginTop: 4,
+                        fontSize: 11,
+                        fontWeight: '700',
+                        color: t.ink2,
+                        marginBottom: 12,
+                        textTransform: 'uppercase',
+                        letterSpacing: 2.2,
                       }}
                     >
-                      <Star size={14} color={t.warm} />
-                      <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
-                        Write a Review
-                      </Text>
-                    </Pressable>
-                  ) : (
-                    <Animated.View
-                      entering={FadeInUp.duration(200)}
-                      style={{
-                        padding: 14,
-                        borderRadius: 14,
-                        borderCurve: 'continuous',
-                        backgroundColor: t.surface,
-                        borderWidth: 1,
-                        borderColor: t.line,
-                        marginTop: 8,
-                      }}
-                    >
-                      {/* Rating selector */}
-                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <Pressable
-                            key={n}
-                            onPress={() => {
-                              if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
-                              setReviewRating(n);
-                            }}
-                          >
-                            <Star
-                              size={24}
-                              color={t.warm}
-                              fill={n <= reviewRating ? t.warm : 'transparent'}
-                            />
-                          </Pressable>
-                        ))}
-                      </View>
-                      <TextInput
-                        value={reviewText}
-                        onChangeText={setReviewText}
-                        placeholder={i18n('trips.reviewPlaceholder')}
-                        placeholderTextColor={subtitleColor}
-                        multiline
-                        style={{
-                          fontSize: 14,
-                          color: titleColor,
-                          minHeight: 60,
-                          padding: 10,
-                          borderRadius: 10,
-                          borderCurve: 'continuous',
-                          backgroundColor: t.bg,
-                          textAlignVertical: 'top',
-                          marginBottom: 10,
-                        }}
-                      />
-                      <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <Pressable
-                          onPress={() => setReviewFormVisible(false)}
+                      Reviews
+                    </Text>
+                    {reviewsLoading ? (
+                      <ActivityIndicator size="small" color={t.warm} />
+                    ) : reviews.length === 0 ? null : (
+                      reviews.map((review, idx) => (
+                        <Animated.View
+                          key={review.id}
+                          entering={FadeInUp.delay(idx * 40).duration(200)}
                           style={{
-                            flex: 1,
-                            paddingVertical: 10,
-                            borderRadius: 10,
+                            padding: 12,
+                            marginBottom: 8,
+                            borderRadius: 12,
                             borderCurve: 'continuous',
-                            alignItems: 'center',
+                            backgroundColor: t.surface,
                             borderWidth: 1,
                             borderColor: t.line,
                           }}
                         >
-                          <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink3 }}>
-                            Cancel
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={handleSubmitReview}
-                          disabled={createReviewMutation.isPending}
-                          style={{
-                            flex: 1,
-                            paddingVertical: 10,
-                            borderRadius: 10,
-                            borderCurve: 'continuous',
-                            alignItems: 'center',
-                            backgroundColor: t.warm,
-                          }}
-                        >
-                          {createReviewMutation.isPending ? (
-                            <ActivityIndicator size="small" color={palette.white} />
-                          ) : (
-                            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
-                              Submit
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 4,
+                              marginBottom: 4,
+                            }}
+                          >
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                // biome-ignore lint/suspicious/noArrayIndexKey: fixed-size star rating array
+                                key={i}
+                                size={14}
+                                color={t.warm}
+                                fill={i < review.rating ? t.warm : 'transparent'}
+                              />
+                            ))}
+                          </View>
+                          {review.text && (
+                            <Text style={{ fontSize: 13, color: bodyColor, lineHeight: 18 }}>
+                              {review.text}
                             </Text>
                           )}
-                        </Pressable>
-                      </View>
-                    </Animated.View>
-                  )}
-                </Animated.View>
+                          <Text style={{ fontSize: 11, color: subtitleColor, marginTop: 4 }}>
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </Text>
+                        </Animated.View>
+                      ))
+                    )}
+
+                    {/* Write review toggle */}
+                    {!reviewFormVisible ? (
+                      <Pressable
+                        onPress={() => {
+                          if (process.env.EXPO_OS === 'ios')
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setReviewFormVisible(true);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                          paddingVertical: 12,
+                          borderRadius: 12,
+                          borderCurve: 'continuous',
+                          borderWidth: 1,
+                          borderColor: t.line,
+                          marginTop: 4,
+                        }}
+                      >
+                        <Star size={14} color={t.warm} />
+                        <Text style={{ fontSize: 14, fontWeight: '600', color: titleColor }}>
+                          Write a Review
+                        </Text>
+                      </Pressable>
+                    ) : (
+                      <Animated.View
+                        entering={FadeInUp.duration(200)}
+                        style={{
+                          padding: 14,
+                          borderRadius: 14,
+                          borderCurve: 'continuous',
+                          backgroundColor: t.surface,
+                          borderWidth: 1,
+                          borderColor: t.line,
+                          marginTop: 8,
+                        }}
+                      >
+                        {/* Rating selector */}
+                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Pressable
+                              key={n}
+                              onPress={() => {
+                                if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
+                                setReviewRating(n);
+                              }}
+                            >
+                              <Star
+                                size={24}
+                                color={t.warm}
+                                fill={n <= reviewRating ? t.warm : 'transparent'}
+                              />
+                            </Pressable>
+                          ))}
+                        </View>
+                        <TextInput
+                          value={reviewText}
+                          onChangeText={setReviewText}
+                          placeholder={i18n('trips.reviewPlaceholder')}
+                          placeholderTextColor={subtitleColor}
+                          multiline
+                          style={{
+                            fontSize: 14,
+                            color: titleColor,
+                            minHeight: 60,
+                            padding: 10,
+                            borderRadius: 10,
+                            borderCurve: 'continuous',
+                            backgroundColor: t.bg,
+                            textAlignVertical: 'top',
+                            marginBottom: 10,
+                          }}
+                        />
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          <Pressable
+                            onPress={() => setReviewFormVisible(false)}
+                            style={{
+                              flex: 1,
+                              paddingVertical: 10,
+                              borderRadius: 10,
+                              borderCurve: 'continuous',
+                              alignItems: 'center',
+                              borderWidth: 1,
+                              borderColor: t.line,
+                            }}
+                          >
+                            <Text style={{ fontSize: 14, fontWeight: '600', color: t.ink3 }}>
+                              Cancel
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={handleSubmitReview}
+                            disabled={createReviewMutation.isPending}
+                            style={{
+                              flex: 1,
+                              paddingVertical: 10,
+                              borderRadius: 10,
+                              borderCurve: 'continuous',
+                              alignItems: 'center',
+                              backgroundColor: t.warm,
+                            }}
+                          >
+                            {createReviewMutation.isPending ? (
+                              <ActivityIndicator size="small" color={palette.white} />
+                            ) : (
+                              <Text
+                                style={{ fontSize: 14, fontWeight: '600', color: palette.white }}
+                              >
+                                Submit
+                              </Text>
+                            )}
+                          </Pressable>
+                        </View>
+                      </Animated.View>
+                    )}
+                  </Animated.View>
                 )}
               </>
             )}

@@ -59,7 +59,11 @@ describe('GqlAuthGuard', () => {
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             single: vi.fn().mockResolvedValue({
-              data: { subscription_tier: 'free', subscription_status: 'free', subscription_expires_at: null },
+              data: {
+                subscription_tier: 'free',
+                subscription_status: 'free',
+                subscription_expires_at: null,
+              },
               error: null,
             }),
           }),

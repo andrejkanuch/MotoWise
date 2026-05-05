@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { Link } from '@/i18n/navigation';
-import { getGuides } from '@/lib/guides';
 import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
+import { getGuides } from '@/lib/guides';
 import { buildBreadcrumbList, buildGraph, buildWebPage } from '@/lib/seo/schema';
 
 export const revalidate = 3600;

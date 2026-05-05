@@ -67,7 +67,9 @@ export function useGpxExport(): UseGpxExportResult {
         if (!response.ok) throw new Error(`Download failed: ${response.status}`);
         const gpxContent = await response.text();
 
-        const filename = gpxResult.fileName ?? `${(tripName ?? 'trip').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-motovault.gpx`;
+        const filename =
+          gpxResult.fileName ??
+          `${(tripName ?? 'trip').replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-')}-motovault.gpx`;
 
         const file = new File(Paths.cache, filename);
         if (file.exists) file.delete();

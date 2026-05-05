@@ -6,4 +6,4 @@
 export const PLACE_INDEX_MIN_ROUTES = 8;
 
 export const isIndexable = (place: { routeCount: number }) =>
-	place.routeCount >= PLACE_INDEX_MIN_ROUTES;
+  place.routeCount >= PLACE_INDEX_MIN_ROUTES;

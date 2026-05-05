@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { cache } from 'react';
 import matter from 'gray-matter';
 import { compileMDX } from 'next-mdx-remote/rsc';
+import { cache } from 'react';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import { TripCard } from '@/components/guides/trip-card';
@@ -57,7 +57,9 @@ function readGuidesFromDisk(): Guide[] {
         },
       } satisfies Guide;
     })
-    .sort((a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime());
+    .sort(
+      (a, b) => new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
+    );
 }
 
 export function getGuides(): Guide[] {

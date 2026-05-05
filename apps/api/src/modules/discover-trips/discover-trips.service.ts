@@ -9,8 +9,8 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import { applySlugFilters } from '../../common/slug-lookup';
 import { mapboxCountryShortCodeFromJson } from '../../common/mapbox-geocode';
+import { applySlugFilters } from '../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import {

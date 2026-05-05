@@ -14,39 +14,39 @@ import {
 } from '@motovault/types/validators';
 import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { RoutesService } from '../routes/routes.service';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
+import { RoutesService } from '../routes/routes.service';
 import { CreateTripInput } from './dto/create-trip.input';
-import { ShareRideAsTripInput } from './dto/share-ride-as-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
 import { CreateWaypointInput } from './dto/create-waypoint.input';
 import { JoinTripInput } from './dto/join-trip.input';
 import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
+import { ShareRideAsTripInput } from './dto/share-ride-as-trip.input';
 import { TripTemplateFilterInput } from './dto/trip-template-filter.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
 import { UpdateWaypointInput } from './dto/update-waypoint.input';
 import { TripShareTokenError } from './errors/trip-share-token.errors';
-import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
 import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { SharedTrip } from './models/shared-trip.model';
 import { SitemapTripEntry } from './models/sitemap-trip-entry.model';
 import { Trip, TripConnection, TripReview, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
+import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
 import { TripParticipantsService } from './services/trip-participants.service';
 import { TripReviewsService } from './services/trip-reviews.service';
 import { TripSavesService } from './services/trip-saves.service';
 import { TripSharingService } from './services/trip-sharing.service';
 import { TripTemplatesService } from './services/trip-templates.service';
-import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
 
 @Resolver(() => Trip)
@@ -391,10 +391,7 @@ export class TripsResolver {
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
     // Input validation for optional string args
-    if (
-      tripId &&
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId)
-    ) {
+    if (tripId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId)) {
       throw new BadRequestException('Invalid tripId format');
     }
     if (slug && slug.length > 200) throw new BadRequestException('slug too long');
@@ -466,7 +463,8 @@ export class TripsResolver {
   // ==========================================
 
   @Mutation(() => GPXExportResultUnion, {
-    description: 'Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.',
+    description:
+      'Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.',
   })
   async exportTripGPX(
     @CurrentUser() user: AuthUser,

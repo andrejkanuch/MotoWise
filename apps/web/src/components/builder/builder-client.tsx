@@ -1,10 +1,18 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 /* ── Types ───────────────────────────────────────────────────── */
 
-type WaypointType = 'start' | 'end' | 'fuel' | 'food' | 'scenic' | 'overnight' | 'photo' | 'pass_summit';
+type WaypointType =
+  | 'start'
+  | 'end'
+  | 'fuel'
+  | 'food'
+  | 'scenic'
+  | 'overnight'
+  | 'photo'
+  | 'pass_summit';
 type Difficulty = 'easy' | 'moderate' | 'challenging' | 'expert';
 type Surface = 'paved' | 'mixed' | 'off-road';
 
@@ -563,7 +571,13 @@ export function BuilderClient() {
                     )}
                   </div>
                 ))}
-                <button type="button" style={S.addDayBtn} onClick={addDay} title="Add day" aria-label="Add day">
+                <button
+                  type="button"
+                  style={S.addDayBtn}
+                  onClick={addDay}
+                  title="Add day"
+                  aria-label="Add day"
+                >
                   +
                 </button>
               </div>
@@ -583,8 +597,12 @@ export function BuilderClient() {
                   gap: 16,
                 }}
               >
-                <span>{days.length} {days.length === 1 ? 'day' : 'days'}</span>
-                <span>{totalWaypoints} {totalWaypoints === 1 ? 'waypoint' : 'waypoints'}</span>
+                <span>
+                  {days.length} {days.length === 1 ? 'day' : 'days'}
+                </span>
+                <span>
+                  {totalWaypoints} {totalWaypoints === 1 ? 'waypoint' : 'waypoints'}
+                </span>
                 <span>{difficulty}</span>
                 <span>{surface}</span>
               </div>
@@ -655,12 +673,14 @@ export function BuilderClient() {
                   ))}
                 </div>
               ) : (
-                <div style={S.emptyState}>
-                  No waypoints yet. Add your first stop below.
-                </div>
+                <div style={S.emptyState}>No waypoints yet. Add your first stop below.</div>
               )}
 
-              <button type="button" style={{ ...S.addWaypointBtn, marginTop: 12 }} onClick={openAddWaypoint}>
+              <button
+                type="button"
+                style={{ ...S.addWaypointBtn, marginTop: 12 }}
+                onClick={openAddWaypoint}
+              >
                 + Add waypoint
               </button>
             </div>
@@ -671,7 +691,9 @@ export function BuilderClient() {
             <div style={{ textAlign: 'center', padding: 40 }}>
               <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>
                 {/* biome-ignore lint/a11y/noEmoji: decorative placeholder */}
-                <span role="img" aria-label="Map">&#x1F5FA;&#xFE0F;</span>
+                <span role="img" aria-label="Map">
+                  &#x1F5FA;&#xFE0F;
+                </span>
               </div>
               <div style={{ fontSize: 16, fontWeight: 500 }}>Interactive map coming soon</div>
               <div style={{ fontSize: 13, color: 'var(--mv-ink-3)', marginTop: 8 }}>

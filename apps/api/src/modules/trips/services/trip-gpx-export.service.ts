@@ -7,17 +7,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
-import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
-import { EntitlementsService } from '../../entitlements/entitlements.service';
-import { FEATURES } from '../../entitlements/entitlements.types';
 import type { AuthUser } from '../../../common/decorators/current-user.decorator';
 import { applySlugFilters } from '../../../common/slug-lookup';
-
-import {
-  GPXExportSuccess,
-  GPXExportError,
-} from '../../routes/dto/gpx-export.dto';
+import { EntitlementsService } from '../../entitlements/entitlements.service';
+import { FEATURES } from '../../entitlements/entitlements.types';
+import { GPXExportError, GPXExportSuccess } from '../../routes/dto/gpx-export.dto';
+import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
+import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
 @Injectable()
 export class TripGpxExportService {
@@ -64,7 +60,12 @@ export class TripGpxExportService {
       )
       .eq('is_template', true)
       .eq('is_flagged', false);
-    const { data: trip, error: tripError } = await applySlugFilters(tripQuery, country, region, slug).single();
+    const { data: trip, error: tripError } = await applySlugFilters(
+      tripQuery,
+      country,
+      region,
+      slug,
+    ).single();
 
     if (tripError || !trip) {
       throw new NotFoundException('Trip not found');
@@ -74,18 +75,17 @@ export class TripGpxExportService {
     const trackPoints = this.decodePolyline(trip.polyline ?? '');
 
     // 5. Build waypoint XML from trip_waypoints
-    const waypoints = (
-      (trip as Record<string, unknown>).trip_waypoints as Array<{
-        sort_order: number;
-        type: string;
-        name: string;
-        lat: number;
-        lng: number;
-        notes: string | null;
-      }>
-    )
-      ?.sort((a, b) => a.sort_order - b.sort_order)
-      ?? [];
+    const waypoints =
+      (
+        (trip as Record<string, unknown>).trip_waypoints as Array<{
+          sort_order: number;
+          type: string;
+          name: string;
+          lat: number;
+          lng: number;
+          notes: string | null;
+        }>
+      )?.sort((a, b) => a.sort_order - b.sort_order) ?? [];
 
     // 6. Build GPX XML
     const tripName = trip.title ?? 'MotoVault Trip';
@@ -97,13 +97,11 @@ export class TripGpxExportService {
     const filename = `${sanitizedName}-motovault.gpx`;
 
     // 7. Record quota consumption BEFORE upload (fail-closed)
-    const { error: quotaError } = await this.supabaseAdmin
-      .from('user_gating_events')
-      .insert({
-        user_id: user.id,
-        feature: 'DOWNLOAD_GPX',
-        trip_id: trip.id,
-      });
+    const { error: quotaError } = await this.supabaseAdmin.from('user_gating_events').insert({
+      user_id: user.id,
+      feature: 'DOWNLOAD_GPX',
+      trip_id: trip.id,
+    });
 
     if (quotaError) {
       this.logger.error(`Failed to record GPX quota: ${quotaError.message}`);
@@ -178,7 +176,13 @@ export class TripGpxExportService {
   private buildGpxXml(
     name: string,
     trackPoints: Array<[number, number]>,
-    waypoints: Array<{ type: string; name: string; lat: number; lng: number; notes: string | null }>,
+    waypoints: Array<{
+      type: string;
+      name: string;
+      lat: number;
+      lng: number;
+      notes: string | null;
+    }>,
   ): string {
     const wpts = waypoints
       .map(
@@ -187,9 +191,7 @@ export class TripGpxExportService {
       )
       .join('\n');
 
-    const trkpts = trackPoints
-      .map((p) => `      <trkpt lat="${p[0]}" lon="${p[1]}" />`)
-      .join('\n');
+    const trkpts = trackPoints.map((p) => `      <trkpt lat="${p[0]}" lon="${p[1]}" />`).join('\n');
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="MotoVault"

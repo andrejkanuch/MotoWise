@@ -1,8 +1,7 @@
 import { PublicSavedTripsDocument, type PublicSavedTripsQuery } from '@motovault/graphql';
 import { gqlServerFetcher } from './graphql-server';
 
-export type SavedTripNode =
-  PublicSavedTripsQuery['publicSavedTrips']['edges'][number]['node'];
+export type SavedTripNode = PublicSavedTripsQuery['publicSavedTrips']['edges'][number]['node'];
 
 /** @deprecated Use SavedTripNode instead */
 export type SavedRouteNode = SavedTripNode;

@@ -102,10 +102,7 @@ export class RevenueCatService {
     }
   }
 
-  private async fireMetaEvent(
-    event: RevenueCatEvent,
-    purchaseSource: string,
-  ): Promise<void> {
+  private async fireMetaEvent(event: RevenueCatEvent, purchaseSource: string): Promise<void> {
     // StartTrial: INITIAL_PURCHASE with trial period
     const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
 
@@ -129,9 +126,7 @@ export class RevenueCatService {
     }
 
     if (isTrialStart) {
-      this.logger.log(
-        `StartTrial for ${event.app_user_id} (purchase_source: ${purchaseSource})`,
-      );
+      this.logger.log(`StartTrial for ${event.app_user_id} (purchase_source: ${purchaseSource})`);
       await this.metaEventsService.sendAppEvent({
         eventName: 'StartTrial',
         userEmail: user.email,

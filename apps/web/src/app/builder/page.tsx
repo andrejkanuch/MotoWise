@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { BASE_URL } from '@/lib/constants';
 import { BuilderClient } from '@/components/builder/builder-client';
+import { BASE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Trip Builder | MotoVault',

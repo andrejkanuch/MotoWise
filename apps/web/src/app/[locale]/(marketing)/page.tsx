@@ -82,10 +82,10 @@ export default async function HomePage({ params }: PageProps) {
           color: 'var(--mv-ink-3)',
         }}
       >
-        MotoVault is a free motorcycle management app that combines trip planning,
-        maintenance tracking, expense logging, and AI-powered diagnostics in a single
-        platform for riders. Available on iOS and Android, MotoVault supports over 12,000
-        motorcycle models from the NHTSA Vehicle Product Information Catalog database.
+        MotoVault is a free motorcycle management app that combines trip planning, maintenance
+        tracking, expense logging, and AI-powered diagnostics in a single platform for riders.
+        Available on iOS and Android, MotoVault supports over 12,000 motorcycle models from the
+        NHTSA Vehicle Product Information Catalog database.
       </p>
       <ManifestoSection />
       <FeaturesGrid />

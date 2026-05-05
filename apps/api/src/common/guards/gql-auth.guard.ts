@@ -10,9 +10,9 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import { SUPABASE_ADMIN } from '../../modules/supabase/supabase-admin.provider';
 import type { Tier } from '../../modules/entitlements/entitlements.types';
+import { SUPABASE_ADMIN } from '../../modules/supabase/supabase-admin.provider';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class GqlAuthGuard implements CanActivate {
@@ -38,8 +38,7 @@ export class GqlAuthGuard implements CanActivate {
     this.legacySecret = new TextEncoder().encode(
       this.configService.getOrThrow('SUPABASE_JWT_SECRET'),
     );
-    this.entitlementsEnforced =
-      this.configService.get('ENTITLEMENTS_ENFORCED', 'false') === 'true';
+    this.entitlementsEnforced = this.configService.get('ENTITLEMENTS_ENFORCED', 'false') === 'true';
 
     if (!this.entitlementsEnforced) {
       this.logger.warn(

@@ -103,12 +103,9 @@ export function ExploreFilters() {
     [searchParams, router],
   );
 
-  const toggleGroup = useCallback(
-    (key: string) => {
-      setOpenGroup((prev) => (prev === key ? null : key));
-    },
-    [],
-  );
+  const toggleGroup = useCallback((key: string) => {
+    setOpenGroup((prev) => (prev === key ? null : key));
+  }, []);
 
   const activeCount = FILTER_GROUPS.reduce(
     (count, group) => count + (searchParams.has(group.key) ? 1 : 0),
@@ -164,11 +161,13 @@ export function ExploreFilters() {
               style={{
                 ...categoryPillBase,
                 ...(activeOption
-                  ? { background: 'var(--mv-warm-500)', color: '#000', borderColor: 'var(--mv-warm-500)' }
+                  ? {
+                      background: 'var(--mv-warm-500)',
+                      color: '#000',
+                      borderColor: 'var(--mv-warm-500)',
+                    }
                   : {}),
-                ...(isOpen && !activeOption
-                  ? { borderColor: 'var(--mv-ink-2)' }
-                  : {}),
+                ...(isOpen && !activeOption ? { borderColor: 'var(--mv-ink-2)' } : {}),
               }}
             >
               {activeOption ? activeOption.label : group.label}

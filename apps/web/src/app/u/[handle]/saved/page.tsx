@@ -165,9 +165,7 @@ function RouteCard({
           </span>
         )}
 
-        {route.reviewCount > 0 && !route.averageRating && (
-          <span>{route.reviewCount} reviews</span>
-        )}
+        {route.reviewCount > 0 && !route.averageRating && <span>{route.reviewCount} reviews</span>}
       </div>
 
       {/* Contributor */}

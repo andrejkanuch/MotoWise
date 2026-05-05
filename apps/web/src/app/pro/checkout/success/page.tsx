@@ -21,9 +21,21 @@ import { trackEvent, WebEvent } from '@/lib/analytics';
 // Polling configuration — progressive back-off via setTimeout chaining
 // ---------------------------------------------------------------------------
 const POLL_SCHEDULE = [
-  2000, 2000, 2000, // polls 1-3: 2s
-  4000, 4000, 4000, 4000, 4000, // polls 4-8: 4s
-  6000, 6000, 6000, 6000, 6000, 6000, 6000, // polls 9-15: 6s
+  2000,
+  2000,
+  2000, // polls 1-3: 2s
+  4000,
+  4000,
+  4000,
+  4000,
+  4000, // polls 4-8: 4s
+  6000,
+  6000,
+  6000,
+  6000,
+  6000,
+  6000,
+  6000, // polls 9-15: 6s
 ] as const;
 
 const SESSION_KEY = 'mv_pro_poll_start';

@@ -23,9 +23,7 @@ function getAnonSaves(): string[] {
 
 function toggleAnonSave(routeId: string): string[] {
   const saves = getAnonSaves();
-  const next = saves.includes(routeId)
-    ? saves.filter((id) => id !== routeId)
-    : [...saves, routeId];
+  const next = saves.includes(routeId) ? saves.filter((id) => id !== routeId) : [...saves, routeId];
   localStorage.setItem(ANON_SAVES_KEY, JSON.stringify(next));
   return next;
 }

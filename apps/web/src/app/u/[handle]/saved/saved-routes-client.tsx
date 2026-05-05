@@ -176,9 +176,7 @@ function ClientRouteCard({ route }: { route: SavedTripNode }) {
             {route.averageRating.toFixed(1)} ({route.reviewCount})
           </span>
         )}
-        {route.reviewCount > 0 && !route.averageRating && (
-          <span>{route.reviewCount} reviews</span>
-        )}
+        {route.reviewCount > 0 && !route.averageRating && <span>{route.reviewCount} reviews</span>}
       </div>
 
       <p className="mt-2 text-xs text-neutral-400">

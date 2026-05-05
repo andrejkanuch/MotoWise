@@ -23,7 +23,8 @@ export default function Loading() {
       <style
         // biome-ignore lint/security/noDangerouslySetInnerHtml: static keyframes
         dangerouslySetInnerHTML={{
-          __html: '@keyframes mv-load-slide{0%{transform:translateX(-100%)}to{transform:translateX(100%)}}',
+          __html:
+            '@keyframes mv-load-slide{0%{transform:translateX(-100%)}to{transform:translateX(100%)}}',
         }}
       />
     </div>

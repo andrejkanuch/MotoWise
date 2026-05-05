@@ -9,7 +9,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { TripConnection } from '../models/trip.model';
-import { mapRowToTrip, TRIP_DETAIL_SELECT, TRIP_SELECT, type TripRow } from './trip-lifecycle.service';
+import {
+  mapRowToTrip,
+  TRIP_DETAIL_SELECT,
+  TRIP_SELECT,
+  type TripRow,
+} from './trip-lifecycle.service';
 
 /** Row shape for trip_saves join */
 interface SaveRow {

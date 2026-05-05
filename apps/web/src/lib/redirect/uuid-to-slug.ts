@@ -19,7 +19,11 @@ export async function resolveUuidToSlug(
   const cached = cache.get(uuid);
   if (cached) return cached;
 
-  let trip: { countryCode?: string | null; regionCode?: string | null; slug?: string | null } | null = null;
+  let trip: {
+    countryCode?: string | null;
+    regionCode?: string | null;
+    slug?: string | null;
+  } | null = null;
   try {
     const data = await gqlServerFetcher(WebTripPathByIdDocument, { tripId: uuid });
     trip = data.tripDetail;
