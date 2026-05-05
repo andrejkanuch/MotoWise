@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { applySlugFilters } from '../../../common/slug-lookup';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
@@ -180,17 +181,14 @@ export class TripTemplatesService {
   }
 
   async getTemplateBySlug(country: string, region: string, slug: string): Promise<Trip> {
-    const { data, error } = await this.supabase
+    const query = this.supabase
       .from('trips')
       .select(
         `${TEMPLATE_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
       )
       .eq('is_template', true)
-      .eq('country_code', country.toUpperCase())
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('is_flagged', false)
-      .single();
+      .eq('is_flagged', false);
+    const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) throw new NotFoundException('Template not found');
     const trip = this.mapTemplateRow(data as unknown as TemplateRow);
@@ -421,14 +419,11 @@ export class TripTemplatesService {
    */
   async findSimilarTrips(slug: string, country: string, region: string, limit = 6): Promise<Trip[]> {
     // First get the source trip's difficulty and day_count for matching
-    const { data: source, error: sourceErr } = await this.supabase
+    const sourceQuery = this.supabase
       .from('trips')
       .select('id, difficulty, day_count')
-      .eq('country_code', country.toUpperCase())
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('is_template', true)
-      .single();
+      .eq('is_template', true);
+    const { data: source, error: sourceErr } = await applySlugFilters(sourceQuery, country, region, slug).single();
 
     if (sourceErr || !source) return [];
 

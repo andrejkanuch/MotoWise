@@ -12,6 +12,7 @@ import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import { EntitlementsService } from '../../entitlements/entitlements.service';
 import { FEATURES } from '../../entitlements/entitlements.types';
 import type { AuthUser } from '../../../common/decorators/current-user.decorator';
+import { applySlugFilters } from '../../../common/slug-lookup';
 
 import {
   GPXExportSuccess,
@@ -56,17 +57,14 @@ export class TripGpxExportService {
     }
 
     // 3. Fetch trip + waypoints
-    const { data: trip, error: tripError } = await this.supabase
+    const tripQuery = this.supabase
       .from('trips')
       .select(
         'id, title, polyline, distance_m, elevation_gain_m, trip_waypoints(id, sort_order, day_index, type, name, lat, lng, notes)',
       )
       .eq('is_template', true)
-      .eq('country_code', country.toUpperCase())
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('is_flagged', false)
-      .single();
+      .eq('is_flagged', false);
+    const { data: trip, error: tripError } = await applySlugFilters(tripQuery, country, region, slug).single();
 
     if (tripError || !trip) {
       throw new NotFoundException('Trip not found');

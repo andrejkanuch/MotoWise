@@ -9,6 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { applySlugFilters } from '../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
@@ -936,16 +937,13 @@ ${trkpts}
   }
 
   async findBySlug(country: string, region: string, slug: string): Promise<Route | null> {
-    const { data, error } = await this.supabase
+    const query = this.supabase
       .from('routes')
       .select(
         'id, name, description, polyline, distance_m, elevation_gain_m, surface_type, curvature_index, is_motovault_pick, editorial_description, rating_avg, rating_count, comment_count, status, created_at, contributor_user_id, slug, country_code, region_code, city, users:contributor_user_id(id, display_name, public_username, avatar_url)',
       )
-      .eq('country_code', country)
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
+      .eq('status', 'published');
+    const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) return null;
     return this.mapRouteRow(data as unknown as RouteRow);
