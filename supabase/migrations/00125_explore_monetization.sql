@@ -36,13 +36,15 @@ ALTER TABLE public.trips ADD COLUMN IF NOT EXISTS best_season_months SMALLINT[]
 -- =================================================================
 
 -- New trip_id column alongside legacy route_id.
--- XOR check: a row references either a route OR a trip, never both.
+-- XOR-ish constraint: a row references at most one of route or trip.
+-- Both-NULL is intentional: covers feature-level events (no content ref)
+-- and orphaned rows after ON DELETE SET NULL preserves audit trail.
 -- route_id will be dropped in a future migration once legacy routes are removed.
 ALTER TABLE public.user_gating_events
   ADD COLUMN IF NOT EXISTS trip_id UUID
   REFERENCES public.trips(id) ON DELETE SET NULL;
 
--- Only add XOR constraint if it doesn't already exist
+-- Only add constraint if it doesn't already exist (<= 1 allows both-NULL; see above)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -111,5 +113,50 @@ CREATE INDEX IF NOT EXISTS idx_trips_template_filters
 CREATE INDEX IF NOT EXISTS idx_places_kind_route_count
   ON public.places (kind, route_count)
   WHERE kind IN ('country', 'region');
+
+-- =================================================================
+-- 6. RLS policies for new_route suggestions (trip_id IS NULL)
+-- =================================================================
+-- Existing policies (00106/00107) join on trip_id → trips, which
+-- returns zero rows when trip_id IS NULL. These additive policies
+-- cover the new_route kind so the feature is not dead on arrival.
+
+CREATE POLICY "trip_suggestions_insert_new_route" ON public.trip_suggestions
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    kind = 'new_route'
+    AND author_user_id = (select auth.uid())
+    AND trip_id IS NULL
+    AND country_code IS NOT NULL
+  );
+
+CREATE POLICY "trip_suggestions_select_new_route" ON public.trip_suggestions
+  FOR SELECT TO authenticated
+  USING (
+    kind = 'new_route'
+    AND author_user_id = (select auth.uid())
+  );
+
+CREATE POLICY "trip_suggestions_delete_new_route" ON public.trip_suggestions
+  FOR DELETE TO authenticated
+  USING (
+    kind = 'new_route'
+    AND author_user_id = (select auth.uid())
+  );
+
+-- =================================================================
+-- 7. Ordering index for listTemplates query
+-- =================================================================
+
+CREATE INDEX IF NOT EXISTS idx_trips_template_listing
+  ON public.trips (published_at DESC NULLS LAST, id DESC)
+  WHERE is_template = true AND NOT is_flagged;
+
+-- =================================================================
+-- 8. Monthly quota index for GPX export metering
+-- =================================================================
+
+CREATE INDEX IF NOT EXISTS idx_gating_events_quota
+  ON public.user_gating_events (user_id, feature, year_month);
 
 COMMIT;

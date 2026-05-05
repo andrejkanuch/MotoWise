@@ -390,6 +390,17 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
+    // Input validation for optional string args
+    if (
+      tripId &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId)
+    ) {
+      throw new BadRequestException('Invalid tripId format');
+    }
+    if (slug && slug.length > 200) throw new BadRequestException('slug too long');
+    if (country && country.length > 10) throw new BadRequestException('country too long');
+    if (region && region.length > 100) throw new BadRequestException('region too long');
+
     let resolvedTripId = tripId;
 
     // Slug-based lookup: resolve slug → tripId first
@@ -481,7 +492,12 @@ export class TripsResolver {
     @Args('limit', { type: () => Int, nullable: true, defaultValue: 6 })
     limit?: number,
   ): Promise<Trip[]> {
-    return this.tripTemplatesSvc.findSimilarTrips(slug, country, region, limit ?? 6);
+    // Input validation for string args
+    if (slug.length > 200) throw new BadRequestException('slug too long');
+    if (country.length > 10) throw new BadRequestException('country too long');
+    if (region.length > 100) throw new BadRequestException('region too long');
+
+    return this.tripTemplatesSvc.findSimilarTrips(slug, country, region, Math.min(limit ?? 6, 20));
   }
 
   // ==========================================

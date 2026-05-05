@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
+import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import { EntitlementsService } from '../../entitlements/entitlements.service';
 import { FEATURES } from '../../entitlements/entitlements.types';
 import type { AuthUser } from '../../../common/decorators/current-user.decorator';
@@ -23,6 +24,7 @@ export class TripGpxExportService {
 
   constructor(
     @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
     private readonly entitlementsService: EntitlementsService,
   ) {}
 
@@ -43,7 +45,7 @@ export class TripGpxExportService {
     }
 
     // 2. Check monthly quota (free tier = metered, Pro = unlimited)
-    const quota = await this.entitlementsService.getGPXQuotaStatus(user.id);
+    const quota = await this.entitlementsService.getGPXQuotaStatus(user.id, user.tier);
     if (quota.isExhausted) {
       return {
         code: 'QUOTA_EXCEEDED',
@@ -54,7 +56,7 @@ export class TripGpxExportService {
     }
 
     // 3. Fetch trip + waypoints
-    const { data: trip, error: tripError } = await this.supabaseAdmin
+    const { data: trip, error: tripError } = await this.supabase
       .from('trips')
       .select(
         'id, title, polyline, distance_m, elevation_gain_m, trip_waypoints(id, sort_order, day_index, type, name, lat, lng, notes)',
@@ -216,6 +218,7 @@ ${trkpts}
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 }

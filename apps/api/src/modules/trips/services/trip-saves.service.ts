@@ -163,12 +163,8 @@ export class TripSavesService {
       .eq('public_username', handle)
       .single();
 
-    if (userError || !user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.is_public) {
-      throw new NotFoundException('User profile is not public');
+    if (userError || !user || !user.is_public) {
+      throw new NotFoundException('Profile not found');
     }
 
     // 2. Fetch saved trip IDs using admin client (RLS on trip_saves is owner-only)

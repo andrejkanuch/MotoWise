@@ -44,24 +44,14 @@ export class EntitlementsService {
   /**
    * Get the current GPX export quota status for a user.
    * Uses the year_month generated column for monthly windowing — no cron needed.
+   *
+   * @param userId - The user's ID
+   * @param tier - The user's effective tier, already resolved by GqlAuthGuard
    */
-  async getGPXQuotaStatus(userId: string): Promise<QuotaStatus> {
+  async getGPXQuotaStatus(userId: string, tier: Tier = 'free'): Promise<QuotaStatus> {
     const now = new Date();
     const yearMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
 
-    // Determine tier from users table
-    const { data: user, error: userError } = await this.supabase
-      .from('users')
-      .select('subscription_tier')
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      this.logger.error(`Failed to fetch user tier: ${userError.message}`, userError);
-      throw new Error('Failed to fetch user subscription tier');
-    }
-
-    const tier = (user?.subscription_tier as string) ?? 'free';
     const limit =
       tier === 'pro'
         ? GPX_EXPORT_LIMITS.PRO_MONTHLY_EXPORTS

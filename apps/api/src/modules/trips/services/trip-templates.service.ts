@@ -463,14 +463,21 @@ export class TripTemplatesService {
     // If too few same-difficulty results, backfill from same country without difficulty filter
     if ((data?.length ?? 0) < limit) {
       const existingIds = (data ?? []).map((d) => (d as unknown as TemplateRow).id);
-      const { data: backfill } = await this.supabase
+      let backfillQuery = this.supabase
         .from('trips')
         .select(TEMPLATE_SELECT)
         .eq('is_template', true)
         .eq('is_flagged', false)
         .eq('country_code', country.toUpperCase())
-        .neq('id', source.id)
-        .not('id', 'in', `(${existingIds.join(',')})`)
+        .neq('id', source.id);
+
+      // Only apply NOT IN filter when there are IDs to exclude;
+      // an empty list produces invalid PostgREST syntax: .not('id', 'in', '()')
+      if (existingIds.length > 0) {
+        backfillQuery = backfillQuery.not('id', 'in', `(${existingIds.join(',')})`);
+      }
+
+      const { data: backfill } = await backfillQuery
         .order('average_rating', { ascending: false, nullsFirst: false })
         .limit(limit - (data?.length ?? 0));
 

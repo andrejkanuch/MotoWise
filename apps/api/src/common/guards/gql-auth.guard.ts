@@ -24,6 +24,10 @@ export class GqlAuthGuard implements CanActivate {
   private jwks: any = null;
   private readonly reflector: Reflector;
 
+  private tierCache = new Map<string, { tier: Tier; expiresAt: number }>();
+  private readonly TIER_CACHE_TTL_MS = 60_000;
+  private readonly TIER_CACHE_MAX_SIZE = 10_000;
+
   constructor(
     private configService: ConfigService,
     reflector: Reflector,
@@ -36,6 +40,13 @@ export class GqlAuthGuard implements CanActivate {
     );
     this.entitlementsEnforced =
       this.configService.get('ENTITLEMENTS_ENFORCED', 'false') === 'true';
+
+    if (!this.entitlementsEnforced) {
+      this.logger.warn(
+        'ENTITLEMENTS_ENFORCED is disabled — all authenticated users receive Pro tier. ' +
+          'Set ENTITLEMENTS_ENFORCED=true in production to enable tier gating.',
+      );
+    }
   }
 
   private async getJwks() {
@@ -122,6 +133,9 @@ export class GqlAuthGuard implements CanActivate {
   private async resolveEffectiveTier(userId: string): Promise<Tier> {
     if (!this.entitlementsEnforced) return 'pro'; // Feature flag off = everyone is Pro (Phase 1 behavior)
 
+    const cached = this.tierCache.get(userId);
+    if (cached && cached.expiresAt > Date.now()) return cached.tier;
+
     try {
       const { data, error } = await this.supabaseAdmin
         .from('users')
@@ -131,6 +145,7 @@ export class GqlAuthGuard implements CanActivate {
 
       if (error || !data) {
         this.logger.warn(`Tier resolution failed for ${userId}: ${error?.message ?? 'no data'}`);
+        this.cacheTier(userId, 'free');
         return 'free'; // fail open
       }
 
@@ -139,10 +154,20 @@ export class GqlAuthGuard implements CanActivate {
         ['active', 'trialing'].includes(data.subscription_status) &&
         new Date(data.subscription_expires_at) > new Date();
 
-      return isPro ? 'pro' : 'free';
+      const tier: Tier = isPro ? 'pro' : 'free';
+      this.cacheTier(userId, tier);
+      return tier;
     } catch (err) {
       this.logger.error(`Tier resolution error for ${userId}`, err);
+      this.cacheTier(userId, 'free');
       return 'free'; // fail open
     }
+  }
+
+  private cacheTier(userId: string, tier: Tier): void {
+    if (this.tierCache.size >= this.TIER_CACHE_MAX_SIZE) {
+      this.tierCache.clear();
+    }
+    this.tierCache.set(userId, { tier, expiresAt: Date.now() + this.TIER_CACHE_TTL_MS });
   }
 }
