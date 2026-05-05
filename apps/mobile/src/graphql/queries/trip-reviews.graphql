@@ -8,5 +8,17 @@ query TripReviews($tripId: ID!, $first: Int, $after: String) {
     tripId
     userId
     bikeId
+    author {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+    bike {
+      make
+      model
+      year
+      type
+    }
   }
 }
