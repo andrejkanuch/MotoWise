@@ -85,10 +85,19 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
       }
     } catch (err) {
       const message = err instanceof Error ? `${err.message}\n${err.stack ?? ''}` : String(err);
-      console.error(`[scheduled] slot=${slot} auto-draft failed: ${message}`);
-      // No row exists to markFailed. Next cron tick will retry. If Gemini is
-      // persistently broken this shows up as a cadence gap — observable via
-      // missing posts on IG/FB and via wrangler tail.
+      // Log a structured JSON line so Cloudflare's log filtering can alert
+      // on repeated auto-draft failures (the "observability gap" — no row
+      // exists to markFailed, so failures were previously invisible outside
+      // of wrangler tail).
+      console.error(
+        JSON.stringify({
+          event: 'autodraft_failed',
+          slot,
+          cron,
+          error: message.slice(0, 500),
+          timestamp: new Date().toISOString(),
+        }),
+      );
       return;
     }
   }

@@ -24,6 +24,12 @@ interface ReviewRow {
     public_username: string | null;
     avatar_url: string | null;
   } | null;
+  motorcycles: {
+    make: string;
+    model: string;
+    year: number;
+    motorcycle_type: string | null;
+  } | null;
 }
 
 /** Mapped review shape (camelCase) */
@@ -42,6 +48,18 @@ export interface TripReview {
     publicUsername?: string;
     avatarUrl?: string;
   };
+  author?: {
+    id: string;
+    displayName: string;
+    publicUsername?: string;
+    avatarUrl?: string;
+  };
+  bike?: {
+    make: string;
+    model: string;
+    year: number;
+    type?: string;
+  };
 }
 
 export interface TripReviewEdge {
@@ -59,7 +77,8 @@ export interface TripReviewConnection {
 
 const REVIEW_SELECT = `
   id, trip_id, user_id, rating, text, condition_tags, bike_id, created_at,
-  users:user_id(id, display_name, public_username, avatar_url)
+  users:user_id(id, display_name, public_username, avatar_url),
+  motorcycles:bike_id(make, model, year, motorcycle_type)
 `.trim();
 
 @Injectable()
@@ -165,6 +184,24 @@ export class TripReviewsService {
   // ==========================================
 
   private mapRow(row: ReviewRow): TripReview {
+    const author = row.users
+      ? {
+          id: row.users.id,
+          displayName: row.users.display_name ?? 'Rider',
+          publicUsername: row.users.public_username ?? undefined,
+          avatarUrl: row.users.avatar_url ?? undefined,
+        }
+      : undefined;
+
+    const bike = row.motorcycles
+      ? {
+          make: row.motorcycles.make,
+          model: row.motorcycles.model,
+          year: row.motorcycles.year,
+          type: row.motorcycles.motorcycle_type ?? undefined,
+        }
+      : undefined;
+
     return {
       id: row.id,
       tripId: row.trip_id,
@@ -174,14 +211,9 @@ export class TripReviewsService {
       conditionTags: row.condition_tags ?? [],
       bikeId: row.bike_id,
       createdAt: row.created_at,
-      ...(row.users && {
-        reviewer: {
-          id: row.users.id,
-          displayName: row.users.display_name ?? 'Rider',
-          publicUsername: row.users.public_username ?? undefined,
-          avatarUrl: row.users.avatar_url ?? undefined,
-        },
-      }),
+      reviewer: author,
+      author,
+      bike,
     };
   }
 

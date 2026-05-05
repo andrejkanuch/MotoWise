@@ -81,7 +81,7 @@ export function useGpxExport(): UseGpxExportResult {
         });
 
         // Invalidate quota cache
-        queryClient.invalidateQueries({ queryKey: queryKeys.routes.gpxQuota });
+        queryClient.invalidateQueries({ queryKey: queryKeys.trips.gpxQuota });
 
         if (process.env.EXPO_OS === 'ios') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -131,7 +131,7 @@ export function useGpxExport(): UseGpxExportResult {
           dialogTitle: 'Share GPX Route',
         });
 
-        queryClient.invalidateQueries({ queryKey: queryKeys.routes.gpxQuota });
+        queryClient.invalidateQueries({ queryKey: queryKeys.trips.gpxQuota });
         trackEvent(AnalyticsEvent.ROUTE_GPX_EXPORTED, { route_id: routeId });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Something went wrong';

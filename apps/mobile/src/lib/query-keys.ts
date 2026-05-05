@@ -101,6 +101,7 @@ export const queryKeys = {
     myDrafts: ['trips', 'myDrafts'] as const,
     /** Discover horizontal strip: upcoming non-template public trips. */
     discoverRiderStrip: ['trips', 'discoverRiderStrip'] as const,
+    gpxQuota: ['trips', 'gpx-quota'] as const,
   },
   tripTemplates: {
     all: ['tripTemplates'] as const,

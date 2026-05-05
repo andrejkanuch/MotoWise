@@ -200,14 +200,19 @@ export class RoutesResolver {
   // Premium Waitlist
   // ==========================================
 
-  @Mutation(() => Boolean)
-  async joinPremiumWaitlist(
+  @Mutation(() => Boolean, {
+    name: 'joinPremiumWaitlistLegacy',
+    deprecationReason:
+      'Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA.',
+  })
+  async joinPremiumWaitlistLegacy(
     @CurrentUser() user: AuthUser,
     @Args('feature') feature: string,
   ): Promise<boolean> {
     if (feature !== 'offline_routes' && feature !== 'premium_general') {
       throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
     }
+    this.routesService.logDeprecatedUsage('joinPremiumWaitlist');
     return this.routesService.joinPremiumWaitlist(user.id, feature);
   }
 }

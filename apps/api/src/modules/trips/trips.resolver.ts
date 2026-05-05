@@ -13,6 +13,7 @@ import {
 } from '@motovault/types/validators';
 import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { RoutesService } from '../routes/routes.service';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -61,6 +62,7 @@ export class TripsResolver {
     private readonly tripGpxExport: TripGpxExportService,
     private readonly tripReviewsLoader: TripReviewsLoader,
     private readonly tripSavedLoader: TripSavedLoader,
+    private readonly routesService: RoutesService,
   ) {}
 
   // ==========================================
@@ -504,5 +506,20 @@ export class TripsResolver {
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
     return this.tripSavesSvc.savedTrips(user.id, first ?? 20, after);
+  }
+
+  // ==========================================
+  // Premium Waitlist (moved from RoutesResolver)
+  // ==========================================
+
+  @Mutation(() => Boolean)
+  async joinPremiumWaitlist(
+    @CurrentUser() user: AuthUser,
+    @Args('feature') feature: string,
+  ): Promise<boolean> {
+    if (feature !== 'offline_routes' && feature !== 'premium_general') {
+      throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
+    }
+    return this.routesService.joinPremiumWaitlist(user.id, feature);
   }
 }

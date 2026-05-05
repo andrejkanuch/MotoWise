@@ -82,6 +82,36 @@ export class TripParticipant {
 }
 
 @ObjectType()
+export class TripReviewAuthor {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  displayName: string;
+
+  @Field({ nullable: true })
+  publicUsername?: string;
+
+  @Field({ nullable: true })
+  avatarUrl?: string;
+}
+
+@ObjectType()
+export class TripReviewBike {
+  @Field()
+  make: string;
+
+  @Field()
+  model: string;
+
+  @Field(() => Int)
+  year: number;
+
+  @Field({ nullable: true })
+  type?: string;
+}
+
+@ObjectType()
 export class TripReview {
   @Field(() => ID)
   id: string;
@@ -103,6 +133,12 @@ export class TripReview {
 
   @Field({ nullable: true })
   bikeId?: string;
+
+  @Field(() => TripReviewAuthor, { nullable: true })
+  author?: TripReviewAuthor;
+
+  @Field(() => TripReviewBike, { nullable: true })
+  bike?: TripReviewBike;
 
   @Field()
   createdAt: string;

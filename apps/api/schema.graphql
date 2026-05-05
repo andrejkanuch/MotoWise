@@ -1037,6 +1037,7 @@ type Mutation {
   inviteToTrip(invitedUserId: ID!, tripId: ID!): Boolean!
   joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
+  joinPremiumWaitlistLegacy(feature: String!): Boolean! @deprecated(reason: "Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA.")
   joinTrip(input: JoinTripInput!): Boolean!
 
   """Submit email to join waitlist (public, no auth)"""
@@ -1843,6 +1844,8 @@ type TripParticipant {
 }
 
 type TripReview {
+  author: TripReviewAuthor
+  bike: TripReviewBike
   bikeId: String
   conditionTags: [String!]
   createdAt: String!
@@ -1851,6 +1854,20 @@ type TripReview {
   text: String
   tripId: ID!
   userId: ID
+}
+
+type TripReviewAuthor {
+  avatarUrl: String
+  displayName: String!
+  id: ID!
+  publicUsername: String
+}
+
+type TripReviewBike {
+  make: String!
+  model: String!
+  type: String
+  year: Int!
 }
 
 type TripSuggestion {

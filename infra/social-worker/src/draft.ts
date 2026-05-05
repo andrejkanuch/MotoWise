@@ -31,6 +31,13 @@ export interface DraftedPost {
 const PRIMARY_MODEL = 'gemini-3-flash-preview';
 const FALLBACK_MODEL = 'gemini-2.5-flash';
 
+/** Valid screenshot keys — constrains Gemini to only pick real catalog entries. */
+const VALID_SCREENSHOT_KEYS = Object.keys(SCREENSHOT_CATALOG) as [string, ...string[]];
+
+/** Words that indicate a phone/device in the image prompt — must not appear when screenshots are used. */
+const DEVICE_WORDS_RE =
+  /\b(smartphone|phone|mockup|device|screen|display(?:ing)|iphone|android|mobile)\b/gi;
+
 /** Zod schema for structured output — replaces the hand-rolled JSON schema. */
 const draftSchema = z.object({
   angle: z
@@ -65,10 +72,10 @@ const draftSchema = z.object({
       '9:16 photorealistic image prompt. 200-400 chars. CRITICAL: When screenshotKeys is non-empty, MUST be purely atmospheric — NO phone, NO device, NO app screen.',
     ),
   screenshotKeys: z
-    .array(z.string())
+    .array(z.enum(VALID_SCREENSHOT_KEYS))
     .max(2)
     .describe(
-      'Array of 0-2 screenshot catalog keys. When non-empty, worker publishes as carousel. Use [] for purely atmospheric posts.',
+      'Array of 0-2 screenshot catalog keys (must be exact keys from the catalog). When non-empty, worker publishes as carousel. Use [] for purely atmospheric posts.',
     ),
   altText: z
     .string()
@@ -138,14 +145,30 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
       throw new Error(`${model} returned no structured output`);
     }
 
-    // Filter screenshotKeys to only valid catalog entries
-    const screenshotKeys = output.screenshotKeys.filter((k) => k in SCREENSHOT_CATALOG);
+    // Screenshot keys are already constrained by the z.enum — no silent
+    // filtering needed. Log if the model somehow returns an empty array
+    // when the angle suggests UI should be shown.
+    const screenshotKeys = output.screenshotKeys;
+
+    // Enforce atmospheric-only when screenshots are present: strip device
+    // words from the story prompt so the image generator doesn't render
+    // fake phone screens alongside the real carousel screenshots.
+    let storyPrompt = output.storyPrompt;
+    if (screenshotKeys.length > 0) {
+      const scrubbed = storyPrompt.replace(DEVICE_WORDS_RE, '').replace(/\s{2,}/g, ' ').trim();
+      if (scrubbed !== storyPrompt) {
+        console.warn(
+          `[draft] storyPrompt contains device words with screenshots present — scrubbing`,
+        );
+        storyPrompt = scrubbed;
+      }
+    }
 
     return {
       angle: output.angle,
       caption: output.caption,
       postPrompt: output.postPrompt,
-      storyPrompt: output.storyPrompt,
+      storyPrompt,
       screenshotKeys,
     };
   } catch (err) {

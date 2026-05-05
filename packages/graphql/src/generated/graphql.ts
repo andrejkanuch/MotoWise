@@ -1085,6 +1085,8 @@ export type Mutation = {
   inviteToTrip: Scalars['Boolean']['output'];
   joinGroupRide: Scalars['Boolean']['output'];
   joinPremiumWaitlist: Scalars['Boolean']['output'];
+  /** @deprecated Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA. */
+  joinPremiumWaitlistLegacy: Scalars['Boolean']['output'];
   joinTrip: Scalars['Boolean']['output'];
   /** Submit email to join waitlist (public, no auth) */
   joinWaitlist: Scalars['Boolean']['output'];
@@ -1369,6 +1371,11 @@ export type MutationJoinGroupRideArgs = {
 
 
 export type MutationJoinPremiumWaitlistArgs = {
+  feature: Scalars['String']['input'];
+};
+
+
+export type MutationJoinPremiumWaitlistLegacyArgs = {
   feature: Scalars['String']['input'];
 };
 
@@ -2774,6 +2781,8 @@ export type TripParticipant = {
 
 export type TripReview = {
   __typename?: 'TripReview';
+  author?: Maybe<TripReviewAuthor>;
+  bike?: Maybe<TripReviewBike>;
   bikeId?: Maybe<Scalars['String']['output']>;
   conditionTags?: Maybe<Array<Scalars['String']['output']>>;
   createdAt: Scalars['String']['output'];
@@ -2782,6 +2791,22 @@ export type TripReview = {
   text?: Maybe<Scalars['String']['output']>;
   tripId: Scalars['ID']['output'];
   userId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type TripReviewAuthor = {
+  __typename?: 'TripReviewAuthor';
+  avatarUrl?: Maybe<Scalars['String']['output']>;
+  displayName: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  publicUsername?: Maybe<Scalars['String']['output']>;
+};
+
+export type TripReviewBike = {
+  __typename?: 'TripReviewBike';
+  make: Scalars['String']['output'];
+  model: Scalars['String']['output'];
+  type?: Maybe<Scalars['String']['output']>;
+  year: Scalars['Int']['output'];
 };
 
 export type TripSuggestion = {

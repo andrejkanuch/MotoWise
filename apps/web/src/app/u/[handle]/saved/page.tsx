@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchProfile } from '../../../../lib/fetch-profile';
-import { fetchSavedRoutes } from '../../../../lib/fetch-saved-routes';
+import { fetchSavedTrips } from '../../../../lib/fetch-saved-routes';
 import { formatDistance } from '../../../../lib/format-utils';
 import { SavedRoutesClient } from './saved-routes-client';
 
@@ -43,7 +43,7 @@ export default async function SavedRoutesPage({ params }: { params: Promise<{ ha
     notFound();
   }
 
-  const savedRoutes = await fetchSavedRoutes(handle);
+  const savedRoutes = await fetchSavedTrips(handle);
 
   if (!savedRoutes) {
     return <EmptyState handle={profile.publicUsername} />;
