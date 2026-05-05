@@ -1,12 +1,16 @@
-import { WebTripBySlugDocument, type WebTripBySlugQuery } from '@motovault/graphql';
-import { print } from 'graphql';
+import {
+  WebTripBySlugDocument,
+  type WebTripBySlugQuery,
+  WebTripReviewsDocument,
+  type WebTripReviewsQuery,
+} from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BASE_URL } from '@/lib/constants';
+import { gqlServerFetcher } from '@/lib/graphql-server';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import '@/components/trip-detail/trip-detail.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
@@ -15,21 +19,23 @@ interface PageParams {
   params: Promise<{ country: string; region: string; slug: string }>;
 }
 
+type TripReview = WebTripReviewsQuery['tripReviews'][number];
+
 async function fetchTrip(country: string, region: string, slug: string): Promise<TripData | null> {
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: print(WebTripBySlugDocument),
-        variables: { country, region, slug },
-      }),
-      next: { revalidate: 300 },
-    });
-    const json = await res.json();
-    return json?.data?.tripBySlug ?? null;
+    const data = await gqlServerFetcher(WebTripBySlugDocument, { country, region, slug });
+    return data.tripBySlug ?? null;
   } catch {
     return null;
+  }
+}
+
+async function fetchReviews(country: string, region: string, slug: string): Promise<TripReview[]> {
+  try {
+    const data = await gqlServerFetcher(WebTripReviewsDocument, { country, region, slug, first: 10 });
+    return data.tripReviews ?? [];
+  } catch {
+    return [];
   }
 }
 
@@ -211,7 +217,10 @@ function buildSections(trip: TripData) {
 
 export default async function TripPage({ params }: PageParams) {
   const { country, region, slug } = await params;
-  const trip = await fetchTrip(country, region, slug);
+  const [trip, reviews] = await Promise.all([
+    fetchTrip(country, region, slug),
+    fetchReviews(country, region, slug),
+  ]);
   if (!trip) notFound();
 
   const countryCode = trip.countryCode ?? country.toUpperCase();
@@ -292,6 +301,17 @@ export default async function TripPage({ params }: PageParams) {
       : {}),
   };
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Explore', item: `${BASE_URL}/explore` },
+      { '@type': 'ListItem', position: 2, name: countryName, item: `${BASE_URL}/explore/${country}` },
+      ...(regionName ? [{ '@type': 'ListItem', position: 3, name: regionName, item: `${BASE_URL}/explore/${country}/${region}` }] : []),
+      { '@type': 'ListItem', position: regionName ? 4 : 3, name: trip.title },
+    ],
+  };
+
   return (
     <>
       {/* JSON-LD */}
@@ -300,6 +320,13 @@ export default async function TripPage({ params }: PageParams) {
         // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c'),
         }}
       />
 
@@ -554,7 +581,8 @@ export default async function TripPage({ params }: PageParams) {
               <img
                 src={mapUrl}
                 alt={`Map of ${trip.title} route`}
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
                 width={1200}
                 height={675}
               />
@@ -667,6 +695,117 @@ export default async function TripPage({ params }: PageParams) {
         </section>
       )}
 
+      {/* ══════════ INDIVIDUAL REVIEWS ══════════ */}
+      {reviews.length > 0 && (
+        <section className="rsec" style={{ paddingTop: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {reviews.map((review) => {
+              const authorName = review.author?.displayName ?? 'Anonymous';
+              const initials = getInitials(authorName);
+              const reviewDate = new Date(review.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              });
+
+              return (
+                <div
+                  key={review.id}
+                  style={{
+                    background: 'oklch(0.14 0.01 55)',
+                    border: '1px solid var(--mv-line)',
+                    borderRadius: 16,
+                    padding: '24px 28px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        background: 'oklch(0.22 0.02 55)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--mv-warm-400)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {initials}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{authorName}</div>
+                      <div style={{ fontSize: 12, color: 'var(--mv-ink-3)', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {review.bike && (
+                          <span>
+                            {review.bike.year} {review.bike.make} {review.bike.model}
+                          </span>
+                        )}
+                        <span>{reviewDate}</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 14, color: 'var(--mv-warm-400)', flexShrink: 0 }}>
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <span key={`${review.id}-star-${i}`}>
+                          {i < review.rating ? '\u2605' : '\u2606'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {review.text && (
+                    <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--mv-ink-2)', margin: 0 }}>
+                      {review.text}
+                    </p>
+                  )}
+
+                  {review.conditionTags && review.conditionTags.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                      {review.conditionTags.map((tag) => (
+                        <span
+                          key={tag}
+                          style={{
+                            fontSize: 11,
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            background: 'oklch(0.18 0.015 55)',
+                            color: 'var(--mv-ink-3)',
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {tag.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ══════════ PRO CTA ══════════ */}
+      <section className="rsec">
+        <div style={{ background: 'linear-gradient(135deg, oklch(0.14 0.025 55), oklch(0.11 0.015 55))', border: '1px solid var(--mv-line)', borderRadius: 20, padding: '48px 40px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-geist-mono, monospace)', fontSize: 10, color: 'var(--mv-warm-400)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 16 }}>
+            MotoVault Pro
+          </div>
+          <h3 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+            Export GPX, build multi-day trips, <span className="serif" style={{ color: 'var(--mv-warm-400)' }}>go further.</span>
+          </h3>
+          <p style={{ color: 'var(--mv-ink-3)', fontSize: 14, lineHeight: 1.55, maxWidth: 480, margin: '16px auto 0' }}>
+            Download GPX files for offline navigation, create multi-day itineraries, and get priority access to new routes.
+          </p>
+          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', gap: 12 }}>
+            <a href="/pro/checkout" className="mv-btn mv-btn-primary"><span>Try Pro free</span></a>
+            <a href="/pro" className="mv-btn mv-btn-ghost">Learn more</a>
+          </div>
+        </div>
+      </section>
+
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
         <h2 className="end-cta-title">
@@ -705,6 +844,37 @@ export default async function TripPage({ params }: PageParams) {
           </a>
         </div>
       </section>
+
+      {/* ══════════ STICKY MOBILE APP CTA ══════════ */}
+      <div
+        className="lg:hidden"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          padding: '12px 16px',
+          background: 'oklch(0.1 0.01 55 / 0.95)',
+          backdropFilter: 'blur(12px)',
+          borderTop: '1px solid var(--mv-line)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600 }}>Open in MotoVault</div>
+          <div style={{ fontSize: 12, color: 'var(--mv-ink-3)' }}>Navigate this route with GPS</div>
+        </div>
+        <a
+          href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
+          className="mv-btn mv-btn-primary"
+          style={{ padding: '10px 20px', fontSize: 13 }}
+        >
+          <span>Open</span>
+        </a>
+      </div>
     </>
   );
 }

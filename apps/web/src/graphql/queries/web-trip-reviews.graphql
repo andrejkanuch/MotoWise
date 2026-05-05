@@ -1,0 +1,20 @@
+query WebTripReviews($country: String!, $region: String!, $slug: String!, $first: Int) {
+  tripReviews(country: $country, region: $region, slug: $slug, first: $first) {
+    id
+    rating
+    text
+    conditionTags
+    createdAt
+    author {
+      id
+      displayName
+      publicUsername
+      avatarUrl
+    }
+    bike {
+      make
+      model
+      year
+    }
+  }
+}
