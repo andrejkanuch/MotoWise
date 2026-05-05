@@ -73,7 +73,7 @@ export default async function SavedRoutesPage({ params }: { params: Promise<{ ha
 
       {/* Infinite scroll client component */}
       {pageInfo.hasNextPage && (
-        <SavedRoutesClient handle={handle} initialEndCursor={pageInfo.endCursor} />
+        <SavedRoutesClient handle={handle} initialEndCursor={pageInfo.endCursor ?? undefined} />
       )}
 
       {/* Soft-wall overlay for unauthenticated users */}

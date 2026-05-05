@@ -1,26 +1,25 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { SavedRouteNode } from '../../../../lib/fetch-saved-routes';
+import type { SavedTripNode } from '../../../../lib/fetch-saved-routes';
 import { formatDistance } from '../../../../lib/format-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
 
-const PUBLIC_SAVED_ROUTES_QUERY = `
-  query PublicSavedRoutes($handle: String!, $first: Int, $after: String) {
-    publicSavedRoutes(handle: $handle, first: $first, after: $after) {
+const PUBLIC_SAVED_TRIPS_QUERY = `
+  query PublicSavedTrips($handle: String!, $first: Int, $after: String) {
+    publicSavedTrips(handle: $handle, first: $first, after: $after) {
       edges {
         node {
           id
-          name
+          title
           distanceM
           elevationGainM
           surfaceType
           isMotovaultPick
-          ratingAvg
-          ratingCount
-          commentCount
-          contributor {
+          averageRating
+          reviewCount
+          organiser {
             id
             displayName
             publicUsername
@@ -43,7 +42,7 @@ interface SavedRoutesClientProps {
 }
 
 export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClientProps) {
-  const [routes, setRoutes] = useState<SavedRouteNode[]>([]);
+  const [routes, setRoutes] = useState<SavedTripNode[]>([]);
   const [endCursor, setEndCursor] = useState(initialEndCursor);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -58,15 +57,15 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: PUBLIC_SAVED_ROUTES_QUERY,
+          query: PUBLIC_SAVED_TRIPS_QUERY,
           variables: { handle, first: 20, after: endCursor },
         }),
       });
       const json = await res.json();
-      const data = json.data?.publicSavedRoutes;
+      const data = json.data?.publicSavedTrips;
       if (!data) return;
 
-      const newRoutes = data.edges.map((edge: { node: SavedRouteNode }) => edge.node);
+      const newRoutes = data.edges.map((edge: { node: SavedTripNode }) => edge.node);
       setRoutes((prev) => [...prev, ...newRoutes]);
       setEndCursor(data.pageInfo.endCursor);
       setHasNextPage(data.pageInfo.hasNextPage);
@@ -117,7 +116,7 @@ export function SavedRoutesClient({ handle, initialEndCursor }: SavedRoutesClien
   );
 }
 
-function ClientRouteCard({ route }: { route: SavedRouteNode }) {
+function ClientRouteCard({ route }: { route: SavedTripNode }) {
   const surfaceLabel =
     route.surfaceType === 'paved'
       ? 'Paved'
@@ -146,7 +145,7 @@ function ClientRouteCard({ route }: { route: SavedRouteNode }) {
           />
         </svg>
         <h3 className="flex-1 truncate text-sm font-semibold text-neutral-900">
-          {route.name ?? 'Unnamed Route'}
+          {route.title || 'Unnamed Route'}
         </h3>
         {route.isMotovaultPick && (
           <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
@@ -156,12 +155,14 @@ function ClientRouteCard({ route }: { route: SavedRouteNode }) {
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-neutral-600">
-        <span className="font-medium">{formatDistance(route.distanceM)}</span>
+        {route.distanceM != null && (
+          <span className="font-medium">{formatDistance(route.distanceM)}</span>
+        )}
         {(route.elevationGainM ?? 0) > 0 && (
           <span>{Math.round(route.elevationGainM ?? 0)}m elev.</span>
         )}
         {surfaceLabel && <span>{surfaceLabel}</span>}
-        {route.ratingAvg != null && route.ratingCount > 0 && (
+        {route.averageRating != null && route.reviewCount > 0 && (
           <span className="flex items-center gap-1">
             <svg
               className="h-3 w-3 text-amber-500"
@@ -172,15 +173,17 @@ function ClientRouteCard({ route }: { route: SavedRouteNode }) {
               <title>Rating</title>
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            {route.ratingAvg.toFixed(1)} ({route.ratingCount})
+            {route.averageRating.toFixed(1)} ({route.reviewCount})
           </span>
         )}
-        {route.commentCount > 0 && <span>{route.commentCount} reviews</span>}
+        {route.reviewCount > 0 && !route.averageRating && (
+          <span>{route.reviewCount} reviews</span>
+        )}
       </div>
 
       <p className="mt-2 text-xs text-neutral-400">
-        by {route.contributor.displayName}
-        {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+        by {route.organiser.displayName}
+        {route.organiser.publicUsername ? ` @${route.organiser.publicUsername}` : ''}
       </p>
     </div>
   );
