@@ -5,6 +5,7 @@ import {
   CreateWaypointInputSchema,
   JoinTripInputSchema,
   ReorderWaypointsInputSchema,
+  ShareRideAsTripInputSchema,
   TripShareTokenSchema,
   TripTemplateFiltersSchema,
   UpdateParticipantStatusInputSchema,
@@ -21,6 +22,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CreateTripInput } from './dto/create-trip.input';
+import { ShareRideAsTripInput } from './dto/share-ride-as-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
 import { CreateWaypointInput } from './dto/create-waypoint.input';
@@ -188,6 +190,18 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
     return this.tripLifecycle.publishTrip(user.id, tripId);
+  }
+
+  @Mutation(() => Trip, {
+    description:
+      'Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover.',
+  })
+  async shareRideAsTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(ShareRideAsTripInputSchema))
+    input: ShareRideAsTripInput,
+  ): Promise<Trip> {
+    return this.tripLifecycle.shareRideAsTrip(user.id, input);
   }
 
   // ==========================================

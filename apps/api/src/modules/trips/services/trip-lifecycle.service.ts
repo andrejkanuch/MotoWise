@@ -837,4 +837,84 @@ export class TripLifecycleService {
 
     return mapRowToTrip(data as unknown as TripRow);
   }
+
+  /**
+   * Share a completed ride as a published template trip on Discover.
+   * Copies ride polyline, distance, and elevation into a new `trips` row
+   * with `is_template=true`, `status='published'`.
+   */
+  async shareRideAsTrip(
+    userId: string,
+    input: { rideId: string; name?: string; surfaceType?: string },
+  ): Promise<Trip> {
+    // 1. Fetch the ride (must be owned by user, completed, with polyline)
+    const { data: ride, error: rideError } = await this.supabase
+      .from('rides')
+      .select('id, user_id, route_polyline, distance_m, elevation_gain, elevation_loss, status')
+      .eq('id', input.rideId)
+      .single();
+
+    if (rideError || !ride) {
+      throw new NotFoundException('Ride not found');
+    }
+
+    if (ride.user_id !== userId) {
+      throw new ForbiddenException('You can only share your own rides');
+    }
+
+    if (ride.status !== 'completed') {
+      throw new BadRequestException('Only completed rides can be shared');
+    }
+
+    if (!ride.route_polyline) {
+      throw new BadRequestException('Ride has no route data');
+    }
+
+    // 2. Check if already shared as a trip template
+    const { data: existing } = await this.supabase
+      .from('trips')
+      .select('id')
+      .eq('source_ride_id', input.rideId)
+      .eq('is_template', true)
+      .single();
+
+    if (existing) {
+      throw new BadRequestException('This ride is already shared on Discover');
+    }
+
+    // 3. Build the trip title
+    const title = input.name || 'Shared Ride';
+    const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // 4. Insert trip as a published template
+    const { data: tripData, error: insertError } = await this.supabase
+      .from('trips')
+      .insert({
+        organiser_user_id: userId,
+        title,
+        description: `Ride shared to Discover on ${now}`,
+        start_date: now,
+        end_date: now,
+        difficulty: 'moderate',
+        max_riders: 1,
+        status: 'published',
+        visibility: 'public',
+        is_template: true,
+        polyline: ride.route_polyline,
+        distance_m: ride.distance_m ?? null,
+        elevation_gain_m: ride.elevation_gain ?? null,
+        surface_type: input.surfaceType ?? 'unknown',
+        source_ride_id: input.rideId,
+        published_at: new Date().toISOString(),
+      })
+      .select(TRIP_DETAIL_SELECT)
+      .single();
+
+    if (insertError || !tripData) {
+      this.logger.error(`shareRideAsTrip insert failed: ${insertError?.message}`);
+      throw new InternalServerErrorException('Failed to share ride as trip');
+    }
+
+    return mapRowToTrip(tripData as unknown as TripRow, userId);
+  }
 }

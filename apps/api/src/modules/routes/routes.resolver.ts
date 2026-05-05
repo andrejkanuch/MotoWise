@@ -123,12 +123,16 @@ export class RoutesResolver {
     return result?.percentile ?? null;
   }
 
-  @Mutation(() => Route)
+  @Mutation(() => Route, {
+    deprecationReason:
+      'Use shareRideAsTrip mutation on TripsResolver instead. Removal target: 8 weeks post-OTA.',
+  })
   async shareRideToDiscover(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ShareRideToDiscoverInputSchema))
     input: ShareRideToDiscoverInput,
   ): Promise<Route> {
+    this.routesService.logDeprecatedUsage('shareRideToDiscover');
     return this.routesService.shareRideToDiscover(user.id, input);
   }
 

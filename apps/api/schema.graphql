@@ -1068,7 +1068,12 @@ type Mutation {
   saveTrip(tripId: ID!): Boolean!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
-  shareRideToDiscover(input: ShareRideToDiscoverInput!): Route!
+
+  """
+  Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover.
+  """
+  shareRideAsTrip(input: ShareRideAsTripInput!): Trip!
+  shareRideToDiscover(input: ShareRideToDiscoverInput!): Route! @deprecated(reason: "Use shareRideAsTrip mutation on TripsResolver instead. Removal target: 8 weeks post-OTA.")
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
@@ -1543,6 +1548,12 @@ type ShareLink {
   motorcycleId: String!
   token: String!
   url: String!
+}
+
+input ShareRideAsTripInput {
+  name: String
+  rideId: ID!
+  surfaceType: String
 }
 
 input ShareRideToDiscoverInput {
