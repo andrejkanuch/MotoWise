@@ -4,6 +4,8 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import { Suspense } from 'react';
+import { ExploreFilters } from '@/components/explore-filters';
+import { ExploreMapToggle } from '@/components/explore-map-toggle';
 import { ExploreSearchBar } from '@/components/explore-search-bar';
 import { SaveRouteButton } from '@/components/save-route-button';
 import { BASE_URL } from '@/lib/constants';
@@ -539,9 +541,17 @@ async function StaffPicksSection() {
   );
 }
 
-async function TopTripsSection() {
-  const trips = await fetchTopTrips(8);
-  if (trips.length === 0) return null;
+async function TopTripsSection({
+  filters,
+}: {
+  filters: { difficulty?: string; surface?: string; distance?: string; sort?: string };
+}) {
+  const trips = await fetchTopTrips(24);
+  const filtered = applyClientFilters(trips, filters);
+  if (filtered.length === 0 && trips.length === 0) return null;
+
+  const displayTrips = filtered.length > 0 ? filtered : trips;
+  const hasActiveFilters = Object.values(filters).some(Boolean);
 
   return (
     <section style={{ padding: '90px 40px', maxWidth: 'var(--mv-container)', margin: '0 auto' }}>
@@ -582,10 +592,50 @@ async function TopTripsSection() {
             Filter, sort, scan. Click any route for the full map, elevation profile and rider notes.
           </p>
         </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Suspense>
+            <ExploreMapToggle />
+          </Suspense>
+        </div>
       </div>
 
+      {hasActiveFilters && filtered.length === 0 && (
+        <div
+          style={{
+            padding: '40px 24px',
+            textAlign: 'center',
+            border: '1px solid var(--mv-line)',
+            borderRadius: 16,
+            background: 'var(--mv-surface)',
+            marginBottom: 24,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-geist-mono, monospace)',
+              fontSize: 11,
+              color: 'var(--mv-ink-3)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+            }}
+          >
+            No routes match your filters
+          </div>
+          <div
+            style={{
+              fontSize: 14,
+              color: 'var(--mv-ink-2)',
+              marginTop: 8,
+              lineHeight: 1.5,
+            }}
+          >
+            Try adjusting your filters or clearing them to see all routes.
+          </div>
+        </div>
+      )}
+
       <div className="mv-grid-4" style={{ gap: 20 }}>
-        {trips.map((trip) => (
+        {displayTrips.map((trip) => (
           <TripCard key={trip.id} trip={trip} />
         ))}
       </div>
@@ -663,9 +713,73 @@ function detectCountry(hdrs: Headers): string | undefined {
 
 /* ── Page ─────────────────────────────────────────────────────── */
 
-export default async function ExplorePage() {
+/* ── Distance filter ranges (meters) ─────────────────────────── */
+
+const DISTANCE_RANGES: Record<string, { min: number; max: number }> = {
+  'under-50km': { min: 0, max: 50_000 },
+  '50-100km': { min: 50_000, max: 100_000 },
+  '100-300km': { min: 100_000, max: 300_000 },
+  '300km+': { min: 300_000, max: Number.POSITIVE_INFINITY },
+};
+
+function applyClientFilters(
+  trips: TripTemplateNode[],
+  filters: { difficulty?: string; surface?: string; distance?: string; sort?: string },
+): TripTemplateNode[] {
+  let result = [...trips];
+
+  if (filters.difficulty) {
+    result = result.filter((t) => t.difficulty === filters.difficulty);
+  }
+
+  if (filters.surface) {
+    result = result.filter((t) => t.surfaceType === filters.surface);
+  }
+
+  if (filters.distance) {
+    const range = DISTANCE_RANGES[filters.distance];
+    if (range) {
+      result = result.filter(
+        (t) => t.distanceM != null && t.distanceM >= range.min && t.distanceM < range.max,
+      );
+    }
+  }
+
+  if (filters.sort) {
+    switch (filters.sort) {
+      case 'rating':
+        result.sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
+        break;
+      case 'distance':
+        result.sort((a, b) => (a.distanceM ?? 0) - (b.distanceM ?? 0));
+        break;
+      case 'newest':
+        result.sort((a, b) => {
+          const da = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+          const db = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+          return db - da;
+        });
+        break;
+    }
+  }
+
+  return result;
+}
+
+export default async function ExplorePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
   const hdrs = await headers();
   const countryCode = detectCountry(hdrs);
+  const params = await searchParams;
+  const filters = {
+    difficulty: params.difficulty,
+    surface: params.surface,
+    distance: params.distance,
+    sort: params.sort,
+  };
 
   // Fetch countries dynamically — sorted by route count, top 12 for the grid
   let allCountries: Array<{ code: string; name: string; routeCount: number }> = [];
@@ -746,6 +860,10 @@ export default async function ExplorePage() {
           <ExploreSearchBar
             countries={allCountries.map((c) => ({ code: c.code, label: c.name }))}
           />
+        </Suspense>
+
+        <Suspense>
+          <ExploreFilters />
         </Suspense>
       </section>
 
@@ -1112,7 +1230,7 @@ export default async function ExplorePage() {
 
       {/* ===== TOP ROUTES ===== */}
       <Suspense fallback={<SectionSkeleton cols={4} />}>
-        <TopTripsSection />
+        <TopTripsSection filters={filters} />
       </Suspense>
 
       {/* ===== CURATED THEMES ===== */}
