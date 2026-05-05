@@ -87,17 +87,16 @@ function RouteCard({
 }: {
   route: {
     id: string;
-    name?: string;
-    distanceM: number;
-    elevationGainM?: number;
-    surfaceType?: string;
+    title: string;
+    distanceM?: number | null;
+    elevationGainM?: number | null;
+    surfaceType?: string | null;
     isMotovaultPick: boolean;
-    ratingAvg?: number;
-    ratingCount: number;
-    commentCount: number;
-    contributor: {
+    averageRating?: number | null;
+    reviewCount: number;
+    organiser: {
       displayName: string;
-      publicUsername?: string;
+      publicUsername?: string | null;
     };
   };
 }) {
@@ -130,7 +129,7 @@ function RouteCard({
           />
         </svg>
         <h3 className="flex-1 truncate text-sm font-semibold text-neutral-900">
-          {route.name ?? 'Unnamed Route'}
+          {route.title || 'Unnamed Route'}
         </h3>
         {route.isMotovaultPick && (
           <span className="shrink-0 rounded-md bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
@@ -141,7 +140,9 @@ function RouteCard({
 
       {/* Stats */}
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-neutral-600">
-        <span className="font-medium">{formatDistance(route.distanceM)}</span>
+        {route.distanceM != null && (
+          <span className="font-medium">{formatDistance(route.distanceM)}</span>
+        )}
 
         {(route.elevationGainM ?? 0) > 0 && (
           <span>{Math.round(route.elevationGainM ?? 0)}m elev.</span>
@@ -149,7 +150,7 @@ function RouteCard({
 
         {surfaceLabel && <span>{surfaceLabel}</span>}
 
-        {route.ratingAvg != null && route.ratingCount > 0 && (
+        {route.averageRating != null && route.reviewCount > 0 && (
           <span className="flex items-center gap-1">
             <svg
               className="h-3 w-3 text-amber-500"
@@ -160,17 +161,19 @@ function RouteCard({
               <title>Rating</title>
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            {route.ratingAvg.toFixed(1)} ({route.ratingCount})
+            {route.averageRating.toFixed(1)} ({route.reviewCount})
           </span>
         )}
 
-        {route.commentCount > 0 && <span>{route.commentCount} reviews</span>}
+        {route.reviewCount > 0 && !route.averageRating && (
+          <span>{route.reviewCount} reviews</span>
+        )}
       </div>
 
       {/* Contributor */}
       <p className="mt-2 text-xs text-neutral-400">
-        by {route.contributor.displayName}
-        {route.contributor.publicUsername ? ` @${route.contributor.publicUsername}` : ''}
+        by {route.organiser.displayName}
+        {route.organiser.publicUsername ? ` @${route.organiser.publicUsername}` : ''}
       </p>
     </div>
   );

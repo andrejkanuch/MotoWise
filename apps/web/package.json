@@ -34,6 +34,7 @@
     "next": "^16.0.0",
     "next-intl": "^4.8.3",
     "next-mdx-remote": "^6.0.0",
+    "nuqs": "^2.8.9",
     "postcss": "^8.5.8",
     "posthog-js": "^1.366.0",
     "react": "19.2.0",

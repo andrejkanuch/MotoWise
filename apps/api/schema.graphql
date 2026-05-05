@@ -1256,6 +1256,9 @@ type Query {
 
   """Public saved routes for a user by handle (public_username)"""
   publicSavedRoutes(after: String, first: Int = 20, handle: String!): RouteConnection!
+
+  """Public saved trips for a user by handle (public_username)"""
+  publicSavedTrips(after: String, first: Int = 20, handle: String!): TripConnection!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!

@@ -522,6 +522,19 @@ export class TripsResolver {
     return this.tripSavesSvc.savedTrips(user.id, first ?? 20, after);
   }
 
+  @Query(() => TripConnection, {
+    description: 'Public saved trips for a user by handle (public_username)',
+  })
+  @Public()
+  async publicSavedTrips(
+    @Args('handle') handle: string,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripConnection> {
+    return this.tripSavesSvc.publicSavedTrips(handle, first ?? 20, after);
+  }
+
   // ==========================================
   // Premium Waitlist (moved from RoutesResolver)
   // ==========================================
