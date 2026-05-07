@@ -18,6 +18,7 @@ query WebTripBySlug($country: String!, $region: String!, $slug: String!) {
     isFeatured
     isMotovaultPick
     viewCount
+    polyline
     cloneCount
     averageRating
     reviewCount

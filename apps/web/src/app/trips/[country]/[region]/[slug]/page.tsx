@@ -6,12 +6,11 @@ import {
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 import '@/components/trip-detail/trip-detail.css';
-
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 
@@ -193,20 +192,6 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function getMapboxStaticUrl(trip: TripData): string | null {
-  if (!trip.startLat || !trip.startLng || !MAPBOX_TOKEN) return null;
-
-  // Build markers from waypoints
-  const pins = (trip.waypoints ?? [])
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .slice(0, 20) // Mapbox has a URL length limit
-    .map((wp) => `pin-s+d4a243(${wp.lng},${wp.lat})`)
-    .join(',');
-
-  // Auto-fit to bounds
-  return `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/auto/1200x675@2x?padding=60&access_token=${MAPBOX_TOKEN}`;
-}
-
 function buildSections(trip: TripData) {
   const sections: Array<{ id: string; label: string; num: string }> = [];
   let idx = 1;
@@ -256,7 +241,6 @@ export default async function TripPage({ params }: PageParams) {
     : null;
   const fuelStopCount = waypoints.filter((wp) => wp.type === 'fuel').length;
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
-  const mapUrl = getMapboxStaticUrl(trip);
   const sections = buildSections(trip);
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
@@ -351,9 +335,6 @@ export default async function TripPage({ params }: PageParams) {
 
       {/* ══════════ HERO ══════════ */}
       <section className="rh">
-        {mapUrl ? (
-          <div className="rh-map-bg" style={{ backgroundImage: `url(${mapUrl})` }} />
-        ) : null}
         <div className="rh-overlay" />
         <div className="rh-grid" />
 
@@ -591,19 +572,22 @@ export default async function TripPage({ params }: PageParams) {
         </div>
       </section>
 
-      {/* ══════════ MAP (static image) ══════════ */}
-      {mapUrl && (
+      {/* ══════════ INTERACTIVE MAP ══════════ */}
+      {waypoints.length > 0 && (
         <section className="rsec" style={{ paddingTop: 0 }}>
           <div className="map-card">
-            <div className="map-frame">
-              {/* biome-ignore lint/performance/noImgElement: Mapbox static URL, can't use next/image */}
-              <img
-                src={mapUrl}
-                alt={`Map of ${trip.title} route`}
-                loading="eager"
-                fetchPriority="high"
-                width={1200}
-                height={675}
+            <div className="map-frame" style={{ height: 500 }}>
+              <TripDetailMap
+                waypoints={waypoints.map((wp) => ({
+                  lat: wp.lat,
+                  lng: wp.lng,
+                  name: wp.name,
+                  type: wp.type,
+                  dayIndex: wp.dayIndex,
+                  sortOrder: wp.sortOrder,
+                  notes: wp.notes,
+                }))}
+                polyline={trip.polyline}
               />
             </div>
           </div>
