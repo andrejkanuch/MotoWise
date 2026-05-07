@@ -802,7 +802,7 @@ export default async function TripPage({ params }: PageParams) {
       )}
 
       {/* ══════════ PRO CTA / GPX DOWNLOAD ══════════ */}
-      <TripProSection routeId={trip.id} routeName={trip.title} isAuthenticated={false} />
+      <TripProSection routeId={trip.id} routeName={trip.title} />
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">

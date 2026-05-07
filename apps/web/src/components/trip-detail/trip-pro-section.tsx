@@ -7,15 +7,15 @@ import { useProStatus } from '@/hooks/use-pro-status';
 type Props = {
   routeId: string;
   routeName: string;
-  isAuthenticated: boolean;
 };
 
-export function TripProSection({ routeId, routeName, isAuthenticated }: Props) {
+export function TripProSection({ routeId, routeName }: Props) {
   const { isPro, isLoading } = useProStatus();
 
   if (isLoading) return null;
 
   if (isPro) {
+    // isPro implies authenticated — RevenueCat entitlement requires a logged-in user
     return (
       <section className="rsec">
         <div
@@ -25,11 +25,7 @@ export function TripProSection({ routeId, routeName, isAuthenticated }: Props) {
             padding: '24px 0',
           }}
         >
-          <GpxDownloadButton
-            routeId={routeId}
-            routeName={routeName}
-            isAuthenticated={isAuthenticated}
-          />
+          <GpxDownloadButton routeId={routeId} routeName={routeName} isAuthenticated />
         </div>
       </section>
     );
