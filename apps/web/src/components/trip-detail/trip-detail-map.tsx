@@ -192,70 +192,88 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
         }
       }
 
-      // Add waypoint markers
+      // Add numbered waypoint markers
       const sorted = [...waypoints].sort((a, b) => {
         if (a.dayIndex !== b.dayIndex) return a.dayIndex - b.dayIndex;
         return a.sortOrder - b.sortOrder;
       });
 
-      for (const wp of sorted) {
+      for (let i = 0; i < sorted.length; i++) {
+        const wp = sorted[i];
         const color = getDayColor(wp.dayIndex);
         const isStart = wp.type === 'start';
         const isEnd = wp.type === 'end';
+        const num = i + 1;
 
+        // Numbered pin (same style as explore map)
         const el = document.createElement('div');
+        const size = isStart || isEnd ? 34 : 28;
         el.style.cssText = `
-          display: flex; flex-direction: column; align-items: center; gap: 2px;
-          cursor: default;
-        `;
-
-        // Pin circle
-        const pin = document.createElement('div');
-        const size = isStart || isEnd ? 16 : 12;
-        pin.style.cssText = `
           width: ${size}px; height: ${size}px; border-radius: 999px;
-          background: ${isStart || isEnd ? color : 'oklch(0.14 0.01 55)'};
-          border: 2px solid ${color};
-          box-shadow: 0 0 8px ${color}44;
-          transition: transform 0.15s ease;
+          background: oklch(0.13 0.01 55 / 0.95);
+          border: 1.5px solid ${color};
+          color: ${color};
+          display: grid; place-items: center;
+          font-family: 'Geist Mono', monospace; font-size: ${isStart || isEnd ? 13 : 11}px; font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.5);
+          transition: all .2s ease;
         `;
-        el.appendChild(pin);
+        el.textContent = String(num);
 
-        // Label below pin
-        const label = document.createElement('div');
-        const dayLabel = dayCount > 1 ? `D${wp.dayIndex + 1} · ` : '';
-        label.style.cssText = `
-          font-family: 'Geist Mono', monospace; font-size: 9px; font-weight: 600;
-          color: oklch(0.85 0.04 55); letter-spacing: 0.05em;
-          white-space: nowrap; text-align: center;
-          background: oklch(0.1 0.008 55 / 0.85); padding: 2px 6px; border-radius: 4px;
-          max-width: 120px; overflow: hidden; text-overflow: ellipsis;
-        `;
-        label.textContent = `${dayLabel}${wp.name}`;
-        el.appendChild(label);
-
-        // Popup on hover
-        const popup = new mapboxgl.Popup({
-          offset: 20,
-          closeButton: false,
-          closeOnClick: false,
-          className: 'mv-waypoint-popup',
-        }).setHTML(`
-          <div style="font-family: 'Geist', sans-serif; padding: 8px 12px; max-width: 200px;">
-            <div style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">${wp.name}</div>
-            <div style="font-size: 11px; color: #999; text-transform: capitalize;">
-              ${dayCount > 1 ? `Day ${wp.dayIndex + 1} · ` : ''}${wp.type.replace(/_/g, ' ')}
-            </div>
-            ${wp.notes ? `<div style="font-size: 11px; color: #aaa; margin-top: 4px;">${wp.notes}</div>` : ''}
-          </div>
-        `);
-
+        // Hover: scale up + fill
         el.addEventListener('mouseenter', () => {
-          pin.style.transform = 'scale(1.5)';
+          el.style.transform = 'scale(1.3)';
+          el.style.background = color;
+          el.style.color = '#1a1410';
         });
         el.addEventListener('mouseleave', () => {
-          pin.style.transform = 'scale(1)';
+          el.style.transform = 'scale(1)';
+          el.style.background = 'oklch(0.13 0.01 55 / 0.95)';
+          el.style.color = color;
         });
+
+        // Click popup with stop details (high-contrast dark theme)
+        const typeLabel = wp.type.replace(/_/g, ' ');
+        const dayLine = dayCount > 1 ? `Day ${wp.dayIndex + 1}` : '';
+        const popup = new mapboxgl.Popup({
+          offset: 18,
+          closeButton: true,
+          closeOnClick: true,
+          maxWidth: '240px',
+          className: 'mv-wp-popup',
+        }).setHTML(`
+          <div style="
+            font-family: 'Geist', sans-serif;
+            background: oklch(0.13 0.01 55);
+            color: oklch(0.92 0.02 55);
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid oklch(0.25 0.01 55);
+            box-shadow: 0 8px 24px -4px oklch(0 0 0 / 0.6);
+          ">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="
+                width: 22px; height: 22px; border-radius: 999px;
+                background: ${color}; color: #1a1410;
+                display: grid; place-items: center;
+                font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700;
+                flex-shrink: 0;
+              ">${num}</span>
+              <span style="font-size: 14px; font-weight: 600; line-height: 1.3;">${wp.name}</span>
+            </div>
+            <div style="
+              display: flex; gap: 6px; flex-wrap: wrap;
+              font-family: 'Geist Mono', monospace; font-size: 10px;
+              letter-spacing: 0.06em; text-transform: uppercase;
+              color: oklch(0.65 0.04 55);
+            ">
+              ${dayLine ? `<span style="background: oklch(0.2 0.01 55); padding: 2px 8px; border-radius: 4px;">${dayLine}</span>` : ''}
+              <span style="background: oklch(0.2 0.01 55); padding: 2px 8px; border-radius: 4px;">${typeLabel}</span>
+            </div>
+            ${wp.notes ? `<div style="font-size: 12px; color: oklch(0.72 0.02 55); margin-top: 8px; line-height: 1.5;">${wp.notes}</div>` : ''}
+          </div>
+        `);
 
         new mapboxgl.Marker({ element: el }).setLngLat([wp.lng, wp.lat]).setPopup(popup).addTo(map);
       }
