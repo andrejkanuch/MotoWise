@@ -1,13 +1,4 @@
-import {
-  BarChart3,
-  ChevronDown,
-  Download,
-  Heart,
-  MapPin,
-  Search,
-  Star,
-  Zap,
-} from 'lucide-react';
+import { BarChart3, ChevronDown, Download, Heart, MapPin, Search, Star, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PricingCard } from './pricing-card';

@@ -17,7 +17,12 @@ const HERO_BENEFITS = [
 
 const PLANS = {
   monthly: { price: '$5.99', period: '/mo', sub: '$5.99 / month', crossed: null },
-  annual: { price: '$49.99', period: '/yr', sub: '$4.17 / month \u00b7 billed yearly', crossed: '$71.88' },
+  annual: {
+    price: '$49.99',
+    period: '/yr',
+    sub: '$4.17 / month \u00b7 billed yearly',
+    crossed: '$71.88',
+  },
 } as const;
 
 type Plan = keyof typeof PLANS;
@@ -46,9 +51,7 @@ export function PricingCard() {
             type="button"
             onClick={() => setPlan('annual')}
             className={`flex-1 items-center justify-center gap-2 rounded-full py-2 text-center text-xs transition-colors ${
-              plan === 'annual'
-                ? 'bg-neutral-800 font-medium text-neutral-200'
-                : 'text-neutral-500'
+              plan === 'annual' ? 'bg-neutral-800 font-medium text-neutral-200' : 'text-neutral-500'
             }`}
           >
             Annual{' '}
@@ -62,7 +65,9 @@ export function PricingCard() {
         <div className="mt-6 flex items-baseline gap-2">
           <span className="text-5xl font-bold tabular-nums tracking-tight">{p.price}</span>
           <span className="text-sm text-neutral-500">{p.period}</span>
-          {p.crossed && <span className="ml-auto text-sm text-neutral-600 line-through">{p.crossed}</span>}
+          {p.crossed && (
+            <span className="ml-auto text-sm text-neutral-600 line-through">{p.crossed}</span>
+          )}
         </div>
         <p className="mt-1 font-mono text-[10.5px] tracking-[0.1em] text-warm-400 uppercase">
           {p.sub}
