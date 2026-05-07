@@ -1,0 +1,11 @@
+mutation LogExpense($input: LogExpenseInput!) {
+  logExpense(input: $input) {
+    id
+    amount
+    category
+    currency
+    description
+    date
+    createdAt
+  }
+}

@@ -17,9 +17,9 @@ export default async function CommunityLayout({ children }: { children: React.Re
     user.user_metadata?.display_name ?? user.user_metadata?.full_name ?? user.email;
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div style={{ minHeight: '100vh', background: 'oklch(0.085 0.008 55)' }}>
       <CommunityNav displayName={displayName} />
-      <main className="mx-auto max-w-4xl px-4 py-6">{children}</main>
+      <main>{children}</main>
     </div>
   );
 }

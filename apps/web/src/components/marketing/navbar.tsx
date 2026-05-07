@@ -581,7 +581,7 @@ export function Navbar() {
           <LanguageSwitcher />
           {isLoggedIn ? (
             <a
-              href="/feed"
+              href="/garage"
               style={{
                 ...S.navCta,
                 ...(ctaHover ? S.navCtaHover : {}),
@@ -685,7 +685,7 @@ export function Navbar() {
             ))}
             <LanguageSwitcher />
             {isLoggedIn ? (
-              <a href="/feed" onClick={closeMobile} style={S.mobileCta}>
+              <a href="/garage" onClick={closeMobile} style={S.mobileCta}>
                 {t('dashboard', { defaultValue: 'My Garage' })}
               </a>
             ) : (

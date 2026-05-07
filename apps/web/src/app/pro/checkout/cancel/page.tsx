@@ -37,7 +37,7 @@ export default function CheckoutCancelPage() {
             </Link>
 
             <Link
-              href="/feed"
+              href="/garage"
               className="cta-secondary inline-block w-full rounded-full border border-neutral-700 px-6 py-3 text-sm font-medium text-neutral-300 transition-colors hover:border-neutral-600 hover:text-neutral-50"
             >
               Continue with Free

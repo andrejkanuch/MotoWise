@@ -38,6 +38,6 @@ export async function GET(request: NextRequest) {
   }
 
   // Redirect back to where the user came from, or fall back to /feed
-  const destination = redirect?.startsWith('/') ? redirect : '/feed';
+  const destination = redirect?.startsWith('/') ? redirect : '/garage';
   return NextResponse.redirect(`${origin}${destination}`);
 }

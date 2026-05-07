@@ -85,7 +85,7 @@ export default function CheckoutSuccessPage() {
 function CheckoutSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') ?? '/feed';
+  const redirectTo = searchParams.get('redirect') ?? '/garage';
   const [status, setStatus] = useState<Status>('polling');
   const [pollIndex, setPollIndex] = useState(0);
   const cancelledRef = useRef(false);
@@ -262,7 +262,7 @@ function CheckoutSuccessContent() {
                 href={redirectTo}
                 className="cta-primary mt-8 inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
               >
-                {redirectTo === '/feed' ? 'Start exploring' : 'Back to trip'}
+                {redirectTo === '/garage' ? 'Start exploring' : 'Back to trip'}
               </Link>
 
               <p className="mt-4 text-xs text-neutral-500">
@@ -289,7 +289,7 @@ function CheckoutSuccessContent() {
                   href={redirectTo}
                   className="cta-primary inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
                 >
-                  {redirectTo === '/feed' ? 'Continue to feed' : 'Back to trip'}
+                  {redirectTo === '/garage' ? 'Continue to feed' : 'Back to trip'}
                 </Link>
                 <Link
                   href="/pro"
