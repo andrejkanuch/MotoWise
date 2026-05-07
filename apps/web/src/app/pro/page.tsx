@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Check,
   ChevronDown,
   Download,
   Heart,
@@ -8,7 +7,6 @@ import {
   MapPin,
   Search,
   Star,
-  X,
   Zap,
 } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -34,10 +32,10 @@ const HERO_BENEFITS = [
 ] as const;
 
 const STATS = [
-  { value: '42,800', suffix: '+', label: 'Riders on MotoVault' },
-  { value: '68k', suffix: '', label: 'Bikes tracked' },
-  { value: '1.2M', suffix: '', label: 'Service entries' },
-  { value: '9.4M', suffix: 'km', label: 'Kilometres logged' },
+  { value: '1,200', suffix: '+', label: 'Riders on MotoVault' },
+  { value: '2,400', suffix: '', label: 'Bikes tracked' },
+  { value: '18k', suffix: '', label: 'Service entries' },
+  { value: '340k', suffix: 'km', label: 'Kilometres logged' },
 ] as const;
 
 const PRO_FEATURES = [
@@ -185,8 +183,7 @@ export default function ProPage() {
             </div>
 
             <h1 className="text-4xl leading-[1.08] font-medium tracking-tight sm:text-5xl lg:text-6xl">
-              Unlock{' '}
-              <span className="font-serif italic text-warm-400">every feature.</span>
+              Unlock <span className="font-serif italic text-warm-400">every feature.</span>
               <br />
               Ride smarter.
             </h1>
@@ -274,9 +271,7 @@ export default function ProPage() {
             <div key={s.label}>
               <p className="text-2xl font-bold tracking-tight text-warm-400 sm:text-3xl">
                 {s.value}
-                {s.suffix && (
-                  <span className="font-serif italic text-warm-400/70">{s.suffix}</span>
-                )}
+                {s.suffix && <span className="font-serif italic text-warm-400/70">{s.suffix}</span>}
               </p>
               <p className="mt-1 font-mono text-[10px] tracking-[0.14em] text-neutral-500 uppercase">
                 {s.label}
@@ -290,8 +285,7 @@ export default function ProPage() {
       <section className="px-6 pt-20 pb-16 md:pt-28">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-3xl font-medium tracking-tight sm:text-4xl lg:text-[52px] lg:leading-[1.1]">
-            Everything{' '}
-            <span className="font-serif italic text-warm-400">unlocked.</span>
+            Everything <span className="font-serif italic text-warm-400">unlocked.</span>
           </h2>
           <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-neutral-400">
             Pro is one bundle, not a tier ladder. Every feature, every bike, every ride — for the
@@ -308,9 +302,7 @@ export default function ProPage() {
                   <f.icon className="size-5 text-warm-400" />
                 </div>
                 <h3 className="text-[15px] font-medium">{f.title}</h3>
-                <p className="mt-2 text-[13px] leading-relaxed text-neutral-500">
-                  {f.description}
-                </p>
+                <p className="mt-2 text-[13px] leading-relaxed text-neutral-500">{f.description}</p>
               </div>
             ))}
           </div>
@@ -374,13 +366,11 @@ export default function ProPage() {
                 className="rounded-xl border border-neutral-800/50 bg-neutral-900/30 p-6"
               >
                 <div className="mb-3 flex gap-0.5 text-warm-400">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="size-3.5 fill-warm-400" />
+                  {['s1', 's2', 's3', 's4', 's5'].map((k) => (
+                    <Star key={k} className="size-3.5 fill-warm-400" />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed text-neutral-300">
-                  &ldquo;{t.text}&rdquo;
-                </p>
+                <p className="text-sm leading-relaxed text-neutral-300">&ldquo;{t.text}&rdquo;</p>
                 <div className="mt-4 border-t border-neutral-800/40 pt-4">
                   <p className="text-sm font-medium">{t.author}</p>
                   <p className="mt-0.5 text-xs text-neutral-500">{t.bike}</p>
@@ -417,8 +407,7 @@ export default function ProPage() {
       <section className="px-6 pt-8 pb-24 text-center md:pt-16 md:pb-32">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-4xl font-medium tracking-tight sm:text-5xl lg:text-7xl lg:leading-[1.05]">
-            Ready when{' '}
-            <span className="font-serif italic text-warm-400">you are.</span>
+            Ready when <span className="font-serif italic text-warm-400">you are.</span>
           </h2>
           <p className="mt-5 text-sm text-neutral-500">
             7 days free. No charge today. Cancel with one tap.
