@@ -96,13 +96,13 @@ function CheckoutContent() {
 
       const purchases = Purchases.getSharedInstance();
       const offerings = await purchases.getOfferings();
-      const current = offerings.current;
+      const webOffering = offerings.all['default-web'] ?? offerings.current;
 
-      if (!current) {
+      if (!webOffering) {
         throw new Error('No offerings available. Please try again later.');
       }
 
-      const rcPackage = selectedPlan === 'annual' ? current.annual : current.monthly;
+      const rcPackage = selectedPlan === 'annual' ? webOffering.annual : webOffering.monthly;
 
       if (!rcPackage) {
         throw new Error(`The ${selectedPlan} plan is not available right now.`);

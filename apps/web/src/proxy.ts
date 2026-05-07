@@ -97,16 +97,19 @@ function buildCspHeader(nonce: string): string {
     'https://vitals.vercel-insights.com',
     'https://connect.facebook.net',
     'https://www.facebook.com',
+    'https://api.stripe.com',
+    'https://js.stripe.com',
   ]
     .filter(Boolean)
     .join(' ');
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
     "worker-src 'self' blob:",
     `connect-src ${connectSources} https://*.mapbox.com`,
     "frame-ancestors 'none'",
