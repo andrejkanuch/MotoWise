@@ -57,9 +57,10 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - Use `as const` objects for enums, not TypeScript `enum` keyword
 
 ## Supabase Client Rules
-- **SUPABASE_ADMIN** (service-role): Article/quiz generation, admin operations, system tasks
-- **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced
-- NEVER use service-role for user-scoped queries
+- **SUPABASE_ADMIN** (service-role): Article/quiz generation, admin operations, system tasks, **and all reads from `@Public()` resolvers**
+- **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced. **Only use from authenticated resolvers.**
+- `@Public()` resolvers MUST use SUPABASE_ADMIN for reads — the user client with anon key lacks `authenticated` role, so tables with owner-only RLS (motorcycles, users, trip_saves) return empty results
+- NEVER use service-role for user-scoped writes (bypasses RLS author checks)
 - NEVER expose service-role key to clients
 
 ## Auth Pattern
