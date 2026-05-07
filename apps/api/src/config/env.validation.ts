@@ -32,6 +32,9 @@ export const envSchema = z.object({
   THROTTLE_AI_LIMIT: z.string().default('10'),
   SENTRY_DSN: z.string().url().optional(),
 
+  // Entitlements
+  ENTITLEMENTS_ENFORCED: z.string().default('false'),
+
   // Meta Conversions API
   META_DATASET_ID: optionalString,
   META_ACCESS_TOKEN: optionalString,

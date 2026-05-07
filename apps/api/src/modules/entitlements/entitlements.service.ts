@@ -1,7 +1,7 @@
 import { GPX_EXPORT_LIMITS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { FEATURES, type Feature, GATING_MATRIX, type Tier } from './entitlements.types';
 import type { QuotaStatus } from './quota-status.dto';
 
@@ -11,7 +11,7 @@ const FEATURE_GPX_EXPORT = FEATURES.DOWNLOAD_GPX;
 export class EntitlementsService {
   private readonly logger = new Logger(EntitlementsService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient) {}
 
   /**
    * Check if a user has access to a specific feature.
@@ -44,7 +44,7 @@ export class EntitlementsService {
         : GPX_EXPORT_LIMITS.FREE_MONTHLY_EXPORTS;
 
     // Count usage this month using the year_month generated column
-    const { count, error: countError } = await this.supabase
+    const { count, error: countError } = await this.supabaseAdmin
       .from('user_gating_events')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
