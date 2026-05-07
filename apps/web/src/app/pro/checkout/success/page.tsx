@@ -16,6 +16,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { clearProStatusCache } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 
 // ---------------------------------------------------------------------------
@@ -122,6 +123,7 @@ export default function CheckoutSuccessPage() {
     if (isPro) {
       setStatus('activated');
       sessionStorage.removeItem(SESSION_KEY);
+      clearProStatusCache();
       trackEvent(WebEvent.CHECKOUT_COMPLETED);
       return;
     }

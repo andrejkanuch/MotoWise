@@ -3,8 +3,10 @@
 import type { MeQuery, MyMotorcyclesQuery } from '@motovault/graphql';
 import { MeDocument, MyMotorcyclesDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
+import { Crown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
@@ -13,6 +15,7 @@ type Motorcycle = MyMotorcyclesQuery['myMotorcycles'][number];
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { isPro, isTrialing, trialDaysLeft } = useProStatus();
 
   const {
     data: meData,
@@ -134,9 +137,17 @@ export default function ProfilePage() {
               </div>
             )}
             <div>
-              <h1 className="text-xl font-bold text-neutral-50">
-                {user.displayName ?? user.fullName ?? 'Rider'}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-neutral-50">
+                  {user.displayName ?? user.fullName ?? 'Rider'}
+                </h1>
+                {isPro && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warm-500/15 px-2.5 py-0.5 text-xs font-semibold text-warm-400">
+                    <Crown className="size-3" />
+                    {isTrialing && trialDaysLeft != null ? `Trial · ${trialDaysLeft}d left` : 'Pro'}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-neutral-500">@{user.publicUsername}</p>
               {user.city && <p className="mt-0.5 text-sm text-neutral-500">{user.city}</p>}
             </div>
