@@ -2,6 +2,7 @@
 
 import { type ProStatus, REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import { useCallback, useEffect, useState } from 'react';
+import { gqlFetcher } from '@/lib/graphql-client';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const INITIAL: ProStatus = {
@@ -56,6 +57,67 @@ function writeCache(status: ProStatus) {
   }
 }
 
+// Lightweight GraphQL query to check subscription tier from the DB.
+// Used as fallback when RevenueCat JS SDK fails or isn't configured.
+const TIER_QUERY = /* GraphQL */ `
+  query GetGPXQuotaStatus {
+    getGPXQuotaStatus {
+      limit
+    }
+  }
+` as never;
+
+interface TierData {
+  getGPXQuotaStatus: { limit: number };
+}
+
+/** Check Pro via RevenueCat JS SDK */
+async function checkViaRevenueCat(userId: string): Promise<ProStatus | null> {
+  const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const { Purchases } = await import('@revenuecat/purchases-js');
+
+    if (!Purchases.isConfigured()) {
+      Purchases.configure({ apiKey, appUserId: userId });
+    }
+
+    const purchases = Purchases.getSharedInstance();
+    const customerInfo = await purchases.getCustomerInfo();
+
+    const entitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
+    const isPro = entitlement !== undefined;
+    const isTrialing = entitlement?.periodType === 'trial';
+    let trialDaysLeft: number | null = null;
+
+    if (isTrialing && entitlement?.expirationDate) {
+      trialDaysLeft = Math.ceil(
+        (new Date(entitlement.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      );
+    }
+
+    return { isPro, isTrialing, trialDaysLeft, isLoading: false };
+  } catch {
+    return null; // RevenueCat failed — fall through to DB check
+  }
+}
+
+/**
+ * Fallback: check Pro via the GraphQL API (reads subscription_tier from DB).
+ * Uses getGPXQuotaStatus which returns limit=-1 for Pro users.
+ */
+async function checkViaGraphQL(): Promise<ProStatus | null> {
+  try {
+    const data = await gqlFetcher<TierData, Record<string, never>>(TIER_QUERY);
+    // limit=-1 means unlimited (Pro), anything else is free tier
+    const isPro = data.getGPXQuotaStatus.limit === -1;
+    return { isPro, isTrialing: false, trialDaysLeft: null, isLoading: false };
+  } catch {
+    return null;
+  }
+}
+
 export function useProStatus(): ProStatus {
   const [status, setStatus] = useState<ProStatus>(() => readCache() ?? INITIAL);
 
@@ -66,52 +128,35 @@ export function useProStatus(): ProStatus {
       return;
     }
 
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const [sessionResult, { Purchases }] = await Promise.all([
-        supabase.auth.getSession(),
-        import('@revenuecat/purchases-js'),
-      ]);
+    const supabase = getSupabaseBrowserClient();
+    const sessionResult = await supabase.auth.getSession();
+    const user = sessionResult.data.session?.user;
 
-      const user = sessionResult.data.session?.user;
-      if (!user) {
-        const free = { ...INITIAL, isLoading: false };
-        setStatus(free);
-        writeCache(free);
-        return;
-      }
-
-      const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_WEB_API_KEY;
-      if (!apiKey) {
-        const free = { ...INITIAL, isLoading: false };
-        setStatus(free);
-        return;
-      }
-
-      if (!Purchases.isConfigured()) {
-        Purchases.configure({ apiKey, appUserId: user.id });
-      }
-
-      const purchases = Purchases.getSharedInstance();
-      const customerInfo = await purchases.getCustomerInfo();
-
-      const entitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
-      const isPro = entitlement !== undefined;
-      const isTrialing = entitlement?.periodType === 'trial';
-      let trialDaysLeft: number | null = null;
-
-      if (isTrialing && entitlement?.expirationDate) {
-        trialDaysLeft = Math.ceil(
-          (new Date(entitlement.expirationDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-        );
-      }
-
-      const result: ProStatus = { isPro, isTrialing, trialDaysLeft, isLoading: false };
-      setStatus(result);
-      writeCache(result);
-    } catch {
-      setStatus({ ...INITIAL, isLoading: false });
+    if (!user) {
+      const free = { ...INITIAL, isLoading: false };
+      setStatus(free);
+      // Don't cache "no session" — user might log in any moment
+      return;
     }
+
+    // Strategy 1: RevenueCat (has trial info)
+    const rcResult = await checkViaRevenueCat(user.id);
+    if (rcResult) {
+      setStatus(rcResult);
+      writeCache(rcResult);
+      return;
+    }
+
+    // Strategy 2: GraphQL / DB fallback (no trial info but reliable)
+    const dbResult = await checkViaGraphQL();
+    if (dbResult) {
+      setStatus(dbResult);
+      writeCache(dbResult);
+      return;
+    }
+
+    // Both failed — show as free, don't cache so it retries
+    setStatus({ ...INITIAL, isLoading: false });
   }, []);
 
   useEffect(() => {

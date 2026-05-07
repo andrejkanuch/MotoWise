@@ -27,6 +27,7 @@ export default function EditProfilePage() {
   const [city, setCity] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   // Initialize form with existing data
@@ -52,14 +53,16 @@ export default function EditProfilePage() {
           isPublic,
         },
       }),
-    onSuccess: () => {
+    onSuccess: async () => {
       trackEvent(WebEvent.PROFILE_EDITED, {
         is_public: isPublic,
         has_bio: bio.trim().length > 0,
         has_city: city.trim().length > 0,
       });
-      queryClient.invalidateQueries({ queryKey: ['me'] });
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
+      setSuccess(true);
       router.push('/profile');
+      router.refresh();
     },
     onError: (err: Error) => {
       setError(err.message ?? 'Failed to update profile');
@@ -113,6 +116,11 @@ export default function EditProfilePage() {
       {error && (
         <p role="alert" className="mt-4 text-sm text-danger-500">
           {error}
+        </p>
+      )}
+      {success && (
+        <p role="status" className="mt-4 text-sm text-green-500">
+          Profile saved! Redirecting...
         </p>
       )}
 
@@ -210,7 +218,7 @@ export default function EditProfilePage() {
             disabled={updateMutation.isPending}
             className="flex-1 rounded-full bg-warm-500 px-6 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateMutation.isPending ? 'Saving...' : 'Save Profile'}
+            {updateMutation.isPending ? 'Saving...' : success ? 'Saved!' : 'Save Profile'}
           </button>
           {!isNewProfile && (
             <button

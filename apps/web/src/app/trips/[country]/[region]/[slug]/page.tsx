@@ -6,8 +6,8 @@ import {
 } from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
-import { TripProSection } from '@/components/trip-detail/trip-pro-section';
 import { BASE_URL } from '@/lib/constants';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
 import { gqlServerFetcher } from '@/lib/graphql-server';
@@ -469,6 +469,13 @@ export default async function TripPage({ params }: PageParams) {
                 </svg>
                 Share
               </a>
+              <GpxDownloadButton
+                country={country}
+                region={region}
+                slug={slug}
+                routeName={trip.title}
+                variant="hero"
+              />
             </div>
             <div className="rh-author">
               <div className="rh-author-avatar">{getInitials(trip.organiser.displayName)}</div>
@@ -589,6 +596,15 @@ export default async function TripPage({ params }: PageParams) {
                   notes: wp.notes,
                 }))}
                 polyline={trip.polyline}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 0' }}>
+              <GpxDownloadButton
+                country={country}
+                region={region}
+                slug={slug}
+                routeName={trip.title}
+                variant="map"
               />
             </div>
           </div>
@@ -801,8 +817,14 @@ export default async function TripPage({ params }: PageParams) {
         </section>
       )}
 
-      {/* ══════════ PRO CTA / GPX DOWNLOAD ══════════ */}
-      <TripProSection country={country} region={region} slug={slug} routeName={trip.title} />
+      {/* ══════════ GPX DOWNLOAD ══════════ */}
+      <GpxDownloadButton
+        country={country}
+        region={region}
+        slug={slug}
+        routeName={trip.title}
+        variant="bottom"
+      />
 
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
