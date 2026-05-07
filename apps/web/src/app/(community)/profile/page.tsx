@@ -5,6 +5,7 @@ import { GetRiderProfileDocument, MeDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Crown, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
@@ -15,6 +16,7 @@ type User = MeQuery['me'];
 type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
 export default function ProfilePage() {
+  const t = useTranslations('Profile');
   const router = useRouter();
   const { isPro, isTrialing, trialDaysLeft } = useProStatus();
 
@@ -71,9 +73,9 @@ export default function ProfilePage() {
   if (meError) {
     return (
       <div className="garage-page" style={{ textAlign: 'center', paddingTop: '80px' }}>
-        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>Failed to load profile</p>
+        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('failedToLoad')}</p>
         <p style={{ fontSize: '14px', color: 'var(--mv-ink-3)', marginTop: '4px' }}>
-          Something went wrong. Please try again.
+          {t('somethingWentWrong')}
         </p>
         <button
           type="button"
@@ -81,7 +83,7 @@ export default function ProfilePage() {
           style={{ marginTop: '16px' }}
           onClick={() => window.location.reload()}
         >
-          Retry
+          {t('retry')}
         </button>
       </div>
     );
@@ -92,7 +94,7 @@ export default function ProfilePage() {
   if (!user.publicUsername) {
     return (
       <div className="garage-page" style={{ textAlign: 'center', paddingTop: '80px' }}>
-        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>Set up your rider profile</p>
+        <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('setupProfile')}</p>
         <p
           style={{
             fontSize: '14px',
@@ -102,14 +104,14 @@ export default function ProfilePage() {
             margin: '4px auto 0',
           }}
         >
-          Create a public profile so other riders can find and follow you.
+          {t('setupDesc')}
         </p>
         <a
           href="/profile/edit"
           className="mv-btn primary"
           style={{ marginTop: '16px', display: 'inline-flex' }}
         >
-          Create Profile
+          {t('createProfile')}
         </a>
       </div>
     );
@@ -131,35 +133,27 @@ export default function ProfilePage() {
                 <Crown className="h-5 w-5" />
               </div>
               <div>
-                <div className="prof-banner-title">
-                  MotoVault <span className="serif">Pro</span>
-                </div>
+                <div className="prof-banner-title">{t('proBannerTitle')}</div>
                 <div className="prof-banner-meta">
                   {isTrialing ? (
                     <>
-                      <span>Trial</span>
+                      <span>{t('trial')}</span>
                       {trialDaysLeft != null && (
                         <>
                           <span className="dot" />
-                          <span>{trialDaysLeft} days remaining</span>
+                          <span>{t('daysRemaining', { days: trialDaysLeft })}</span>
                         </>
                       )}
                     </>
                   ) : (
-                    <span>Active</span>
+                    <span>{t('active')}</span>
                   )}
                 </div>
               </div>
             </div>
             <div className="prof-banner-right">
               <div className="prof-banner-price">
-                {isTrialing ? (
-                  <>
-                    <strong>{trialDaysLeft ?? '?'}</strong> days left
-                  </>
-                ) : (
-                  'Active'
-                )}
+                {isTrialing ? t('daysLeft', { days: trialDaysLeft ?? '?' }) : t('active')}
               </div>
             </div>
           </div>
@@ -220,7 +214,7 @@ export default function ProfilePage() {
                     color: 'var(--mv-ink)',
                   }}
                 >
-                  {user.displayName ?? user.fullName ?? 'Rider'}
+                  {user.displayName ?? user.fullName ?? t('rider')}
                 </h2>
                 <div
                   style={{
@@ -250,7 +244,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <a href="/profile/edit" className="mv-btn">
-              Edit profile
+              {t('editProfile')}
             </a>
           </div>
 
@@ -273,15 +267,15 @@ export default function ProfilePage() {
           <div className="prof-stats">
             <div className="prof-stat">
               <div className="prof-stat-num">{user.followerCount ?? 0}</div>
-              <div className="prof-stat-lbl">Followers</div>
+              <div className="prof-stat-lbl">{t('followers')}</div>
             </div>
             <div className="prof-stat">
               <div className="prof-stat-num">{user.followingCount ?? 0}</div>
-              <div className="prof-stat-lbl">Following</div>
+              <div className="prof-stat-lbl">{t('following')}</div>
             </div>
             <div className="prof-stat">
               <div className="prof-stat-num">{rideStats?.totalRides ?? 0}</div>
-              <div className="prof-stat-lbl">Total rides</div>
+              <div className="prof-stat-lbl">{t('totalRides')}</div>
             </div>
             <div className="prof-stat">
               <div className="prof-stat-num">
@@ -292,13 +286,13 @@ export default function ProfilePage() {
                   : '0'}
                 <span className="unit">km</span>
               </div>
-              <div className="prof-stat-lbl">Distance</div>
+              <div className="prof-stat-lbl">{t('distance')}</div>
             </div>
             <div className="prof-stat">
               <div className="prof-stat-num">
                 <span className="serif">{memberMonth}</span> {memberYear}
               </div>
-              <div className="prof-stat-lbl">Member since</div>
+              <div className="prof-stat-lbl">{t('memberSince')}</div>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { Crown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { resetUser } from '@/lib/analytics';
@@ -9,11 +10,12 @@ import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import '@/app/(community)/garage/garage.css';
 
 const NAV_LINKS = [
-  { href: '/garage', label: 'Garage' },
-  { href: '/profile', label: 'Profile' },
+  { href: '/garage', labelKey: 'garage' },
+  { href: '/profile', labelKey: 'profile' },
 ] as const;
 
 export function CommunityNav({ displayName }: { displayName?: string | null }) {
+  const t = useTranslations('CommunityNav');
   const router = useRouter();
   const pathname = usePathname();
   const { isPro, isTrialing, trialDaysLeft } = useProStatus();
@@ -63,7 +65,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
               className={`nav-pill-link${isActive ? ' active' : ''}`}
             >
               {isActive && <span className="dot" />}
-              {link.label}
+              {t(link.labelKey)}
             </a>
           );
         })}
@@ -74,13 +76,13 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
         {/* Free user upgrade link */}
         {!isPro && !isTrialing && (
           <a href="/pro" className="nav-upgrade">
-            Upgrade <span style={{ fontSize: '11px' }}>&rarr;</span>
+            {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
           </a>
         )}
 
         <div className="nav-user">
           <div className="nav-avatar">{initial}</div>
-          <span className="nav-name-text">{displayName ?? 'Rider'}</span>
+          <span className="nav-name-text">{displayName ?? t('rider')}</span>
 
           {/* Pro badge */}
           {isPro && !isTrialing && (
@@ -98,7 +100,8 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
               <span className="nav-crown">
                 <Crown />
               </span>
-              Trial {trialDaysLeft != null ? `\u00B7 ${trialDaysLeft}d left` : ''}
+              {t('trial')}{' '}
+              {trialDaysLeft != null ? `\u00B7 ${t('daysLeft', { days: trialDaysLeft })}` : ''}
             </span>
           )}
         </div>
@@ -109,7 +112,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
           disabled={signingOut}
           className="nav-signout-btn"
         >
-          {signingOut ? 'Signing out...' : 'Sign Out'}
+          {signingOut ? t('signingOut') : t('signOut')}
         </button>
 
         {/* Mobile hamburger */}
@@ -122,7 +125,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
           aria-label="Toggle navigation menu"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <title>Menu</title>
+            <title>{t('menu')}</title>
             {menuOpen ? (
               <path
                 d="M5 5l10 10M15 5L5 15"
@@ -170,7 +173,7 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
                 color: pathname.startsWith(link.href) ? 'var(--mv-warm-400)' : 'var(--mv-ink-2)',
               }}
             >
-              {link.label}
+              {t(link.labelKey)}
             </a>
           ))}
         </div>

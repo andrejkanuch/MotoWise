@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useProStatus } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
@@ -55,6 +56,20 @@ type RideStats = GetRiderProfileQuery['getRiderProfile']['rideStats'];
 
 // ─── Constants ───
 const MONTH_LABELS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'] as const;
+const MONTH_KEYS = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+] as const;
 
 const EXPENSE_CATEGORIES = [
   'fuel',
@@ -135,6 +150,7 @@ function ProGate({
   isPro: boolean;
   children: React.ReactNode;
 }) {
+  const t = useTranslations('Garage');
   if (isPro) return <>{children}</>;
 
   return (
@@ -148,13 +164,13 @@ function ProGate({
             <Crown className="h-6 w-6" />
           </div>
           <h4 className="lock-title">
-            Unlock <span className="serif">{feature}</span>
+            {t('unlockFeature', { feature: '' })} <span className="serif">{feature}</span>
           </h4>
           <p className="lock-desc">{description}</p>
           <a className="lock-cta" href="/pro/checkout?redirect=/garage">
-            Upgrade to Pro <ArrowRight className="h-3.5 w-3.5" />
+            {t('lockCtaLabel')} <ArrowRight className="h-3.5 w-3.5" />
           </a>
-          <div className="lock-price">From $5.99/mo &middot; 7-day free trial</div>
+          <div className="lock-price">{t('lockPrice')}</div>
         </div>
       </div>
     </div>
@@ -165,6 +181,7 @@ function ProGate({
 // Log Expense Modal
 // ═══════════════════════════════════════════════
 function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () => void }) {
+  const t = useTranslations('Garage');
   const queryClient = useQueryClient();
   const [motorcycleId, setMotorcycleId] = useState(
     bikes.find((b) => b.isPrimary)?.id ?? bikes[0]?.id ?? '',
@@ -205,7 +222,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
           }}
         >
           <h3 className="modal-title" style={{ margin: 0 }}>
-            Log expense
+            {t('modalTitle')}
           </h3>
           <button
             type="button"
@@ -219,7 +236,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         <div className="modal-field">
           <label htmlFor="exp-bike" className="modal-label">
-            Motorcycle
+            {t('modalMotorcycle')}
           </label>
           <select
             id="exp-bike"
@@ -237,7 +254,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         <div className="modal-field">
           <label htmlFor="exp-amount" className="modal-label">
-            Amount ($)
+            {t('modalAmount')}
           </label>
           <input
             id="exp-amount"
@@ -253,7 +270,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         <div className="modal-field">
           <label htmlFor="exp-cat" className="modal-label">
-            Category
+            {t('modalCategory')}
           </label>
           <select
             id="exp-cat"
@@ -263,7 +280,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
           >
             {EXPENSE_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c.charAt(0).toUpperCase() + c.slice(1)}
+                {t(`cat${c.charAt(0).toUpperCase()}${c.slice(1)}` as Parameters<typeof t>[0])}
               </option>
             ))}
           </select>
@@ -271,7 +288,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         <div className="modal-field">
           <label htmlFor="exp-date" className="modal-label">
-            Date
+            {t('modalDate')}
           </label>
           <input
             id="exp-date"
@@ -284,13 +301,13 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         <div className="modal-field">
           <label htmlFor="exp-desc" className="modal-label">
-            Description (optional)
+            {t('modalDescription')}
           </label>
           <input
             id="exp-desc"
             type="text"
             className="modal-input"
-            placeholder="Shell V-Power, Ducati service..."
+            placeholder={t('modalDescPlaceholder')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -298,13 +315,13 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 
         {mutation.isError && (
           <p style={{ color: 'var(--mv-danger)', fontSize: '13px', marginBottom: '14px' }}>
-            Failed to log expense. Please try again.
+            {t('modalError')}
           </p>
         )}
 
         <div className="modal-actions">
           <button type="button" className="mv-btn" onClick={onClose}>
-            Cancel
+            {t('modalCancel')}
           </button>
           <button
             type="button"
@@ -312,7 +329,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
             disabled={!amount || !motorcycleId || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
-            {mutation.isPending ? 'Saving...' : 'Log Expense'}
+            {mutation.isPending ? t('modalSaving') : t('modalSave')}
           </button>
         </div>
       </div>
@@ -324,6 +341,7 @@ function LogExpenseModal({ bikes, onClose }: { bikes: Motorcycle[]; onClose: () 
 // Main Garage Page
 // ═══════════════════════════════════════════════
 export default function GaragePage() {
+  const t = useTranslations('Garage');
   const { isPro } = useProStatus();
   const queryClient = useQueryClient();
   const [expenseModalOpen, setExpenseModalOpen] = useState(false);
@@ -438,14 +456,14 @@ export default function GaragePage() {
           >
             <Settings className="h-8 w-8" style={{ color: 'var(--mv-danger)' }} />
           </div>
-          <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>Failed to load garage</p>
+          <p style={{ fontSize: '18px', color: 'var(--mv-ink-2)' }}>{t('failedToLoad')}</p>
           <button
             type="button"
             className="mv-btn primary"
             style={{ marginTop: '16px' }}
             onClick={() => refetchBikes()}
           >
-            Retry
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -474,7 +492,7 @@ export default function GaragePage() {
           <h2
             style={{ fontSize: '22px', fontWeight: 500, color: 'var(--mv-ink)', margin: '0 0 8px' }}
           >
-            No bikes yet
+            {t('noBikesYet')}
           </h2>
           <p
             style={{
@@ -484,7 +502,7 @@ export default function GaragePage() {
               margin: '0 auto',
             }}
           >
-            Add your first motorcycle in the MotoVault mobile app to see it here.
+            {t('noBikesDesc')}
           </p>
 
           {/* Still show saved trips if any */}
@@ -503,20 +521,17 @@ export default function GaragePage() {
         <header className="garage-header">
           <div>
             <h1 className="garage-title">
-              My <span className="serif">garage</span>
+              {t('pageTitle')} <span className="serif">{t('pageTitleSerif')}</span>
             </h1>
             <div className="garage-meta">
-              <span>
-                {bikes.length} bike{bikes.length !== 1 ? 's' : ''} in garage
-              </span>
+              <span>{t('bikesInGarage', { count: bikes.length })}</span>
             </div>
           </div>
           <div className="garage-greet">
-            Welcome back,
+            {t('welcomeBack')}
             <br />
             <strong>{displayNameText}.</strong>
-            {overdueTasks.length > 0 &&
-              ` ${overdueTasks.length} task${overdueTasks.length !== 1 ? 's' : ''} overdue.`}
+            {overdueTasks.length > 0 && ` ${t('tasksOverdue', { count: overdueTasks.length })}`}
           </div>
         </header>
 
@@ -534,9 +549,10 @@ export default function GaragePage() {
         {/* ─── Section B: Motorcycles ─── */}
         <div className="sect-header" style={{ marginTop: '0' }}>
           <div className="sect-header-left">
-            <h3>Motorcycles</h3>
+            <h3>{t('motorcycles')}</h3>
             <span className="sect-header-meta">
-              {bikes.length} in garage {!isPro && bikes.length > 1 ? `\u00B7 1 visible` : ''}
+              {t('inGarage', { count: bikes.length })}{' '}
+              {!isPro && bikes.length > 1 ? `\u00B7 ${t('oneVisible')}` : ''}
             </span>
           </div>
         </div>
@@ -559,21 +575,23 @@ export default function GaragePage() {
         <div className="sect-header">
           <div className="sect-header-left">
             <h3>
-              Expense <span className="serif">dashboard</span>
+              {t('expenseDashboard')} <span className="serif">{t('expenseDashboardSerif')}</span>
             </h3>
-            <span className="sect-header-meta">YTD &middot; {new Date().getFullYear()}</span>
+            <span className="sect-header-meta">
+              {t('ytd')} &middot; {new Date().getFullYear()}
+            </span>
           </div>
           <div className="sect-header-actions">
             <button type="button" className="mv-btn warm" onClick={() => setExpenseModalOpen(true)}>
               <Plus className="h-3.5 w-3.5" />
-              Log expense
+              {t('logExpense')}
             </button>
           </div>
         </div>
 
         <ProGate
-          feature="expense tracking"
-          description="Track every dollar spent on your bikes with detailed breakdowns and monthly trends — fuel, parts, service, the lot."
+          feature={t('expenseTracking')}
+          description={t('expenseTrackingDesc')}
           isPro={isPro}
         >
           <ExpenseDashboardPanel dashboard={dashboard} />
@@ -582,17 +600,19 @@ export default function GaragePage() {
         {/* ─── Section D: Maintenance ─── */}
         <div className="sect-header" id="maintenance">
           <div className="sect-header-left">
-            <h3>Maintenance</h3>
+            <h3>{t('maintenance')}</h3>
             <span className="sect-header-meta">
-              {pendingTasks.length} task{pendingTasks.length !== 1 ? 's' : ''}
-              {overdueTasks.length > 0 ? ` \u00B7 ${overdueTasks.length} overdue` : ''}
+              {t('tasksCount', { count: pendingTasks.length })}
+              {overdueTasks.length > 0
+                ? ` \u00B7 ${t('overdueCount', { count: overdueTasks.length })}`
+                : ''}
             </span>
           </div>
         </div>
 
         <ProGate
-          feature="maintenance tracking"
-          description="Never miss an oil change, chain adjustment, or tire swap. Mileage- and time-based reminders for every bike you own."
+          feature={t('maintenanceTracking')}
+          description={t('maintenanceTrackingDesc')}
           isPro={isPro}
         >
           <MaintenanceSection
@@ -637,6 +657,7 @@ function QuickStats({
   totalDistance: number;
   isPro: boolean;
 }) {
+  const t = useTranslations('Garage');
   return (
     <div className="stats-bar">
       <div className="stat-card">
@@ -645,11 +666,11 @@ function QuickStats({
             <Bike className="h-4 w-4" />
           </div>
           <div className="stat-trend flat">
-            {bikeCount} / {isPro ? 'unlimited' : '1 free'}
+            {bikeCount} / {isPro ? t('unlimited') : t('free')}
           </div>
         </div>
         <div className="stat-num ink">{bikeCount}</div>
-        <div className="stat-lbl">Bikes</div>
+        <div className="stat-lbl">{t('bikes')}</div>
       </div>
 
       <div className="stat-card">
@@ -657,10 +678,10 @@ function QuickStats({
           <div className="stat-icon">
             <CircleDollarSign className="h-4 w-4" />
           </div>
-          <div className="stat-trend">YTD</div>
+          <div className="stat-trend">{t('ytd')}</div>
         </div>
         <div className="stat-num">{formatCurrencyShort(ytdSpend)}</div>
-        <div className="stat-lbl">YTD Spend</div>
+        <div className="stat-lbl">{t('ytdSpend')}</div>
       </div>
 
       <div className="stat-card">
@@ -669,13 +690,13 @@ function QuickStats({
             <Wrench className="h-4 w-4" />
           </div>
           {overdueCount > 0 ? (
-            <div className="stat-trend warn">{overdueCount} overdue</div>
+            <div className="stat-trend warn">{t('overdueCount', { count: overdueCount })}</div>
           ) : (
-            <div className="stat-trend">All clear</div>
+            <div className="stat-trend">{t('allClear')}</div>
           )}
         </div>
         <div className="stat-num ink">{pendingTaskCount}</div>
-        <div className="stat-lbl">Upcoming Tasks</div>
+        <div className="stat-lbl">{t('upcomingTasks')}</div>
       </div>
 
       <div className="stat-card">
@@ -690,7 +711,7 @@ function QuickStats({
           </div>
         </div>
         <div className="stat-num ink">{totalRides}</div>
-        <div className="stat-lbl">Total Rides</div>
+        <div className="stat-lbl">{t('totalRides')}</div>
       </div>
     </div>
   );
@@ -708,6 +729,7 @@ function BikeCard({
   isLocked: boolean;
   onLogExpense: () => void;
 }) {
+  const t = useTranslations('Garage');
   const ownedSince = bike.purchaseDate
     ? new Date(bike.purchaseDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
     : null;
@@ -730,7 +752,7 @@ function BikeCard({
         {bike.isPrimary && (
           <span className="bike-tag primary">
             <span className="dot" />
-            Primary
+            {t('primary')}
           </span>
         )}
       </div>
@@ -759,29 +781,29 @@ function BikeCard({
               {bike.currentMileage != null ? bike.currentMileage.toLocaleString() : '--'}
               <span className="unit">{bike.mileageUnit ?? 'km'}</span>
             </div>
-            <div className="bike-cell-lbl">Mileage</div>
+            <div className="bike-cell-lbl">{t('mileage')}</div>
           </div>
           <div className="bike-cell">
             <div className="bike-cell-num">{ownedSince ?? '--'}</div>
-            <div className="bike-cell-lbl">Owned since</div>
+            <div className="bike-cell-lbl">{t('ownedSince')}</div>
           </div>
           <div className="bike-cell">
             <div className="bike-cell-num">
               {bike.engineCc ?? '--'}
               {bike.engineCc && <span className="unit">cc</span>}
             </div>
-            <div className="bike-cell-lbl">Displacement</div>
+            <div className="bike-cell-lbl">{t('displacement')}</div>
           </div>
         </div>
 
         <div className="bike-actions">
           <button type="button" className="mv-btn primary" onClick={onLogExpense}>
             <CircleDollarSign className="h-3.5 w-3.5" />
-            Log expense
+            {t('logExpense')}
           </button>
           <a href="#maintenance" className="mv-btn">
             <Wrench className="h-3.5 w-3.5" />
-            View maintenance
+            {t('viewMaintenance')}
           </a>
         </div>
       </div>
@@ -793,17 +815,15 @@ function BikeCard({
               <Lock className="h-5 w-5" />
             </div>
             <h5 className="bike-lock-title">
-              Multi-bike garage is{' '}
+              {t('multiBikeTitle')}{' '}
               <span className="serif" style={{ color: 'var(--mv-warm-300)' }}>
                 Pro
               </span>
             </h5>
-            <p className="bike-lock-desc">
-              Free riders get one bike. Upgrade to manage every bike with separate histories.
-            </p>
+            <p className="bike-lock-desc">{t('multiBikeDesc')}</p>
             <a className="bike-lock-cta" href="/pro/checkout?redirect=/garage">
               <Crown className="h-3.5 w-3.5" />
-              Upgrade to Pro
+              {t('upgradeToPro')}
             </a>
           </div>
         </div>
@@ -820,6 +840,7 @@ function ExpenseDashboardPanel({
 }: {
   dashboard: ExpenseDashboardQuery['expenseDashboard'] | undefined;
 }) {
+  const t = useTranslations('Garage');
   const currentMonth = new Date().getMonth(); // 0-indexed
 
   if (!dashboard) {
@@ -829,9 +850,7 @@ function ExpenseDashboardPanel({
           className="exp-left"
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          <p style={{ color: 'var(--mv-ink-3)', fontSize: '14px' }}>
-            No expense data yet. Log your first expense to see insights.
-          </p>
+          <p style={{ color: 'var(--mv-ink-3)', fontSize: '14px' }}>{t('noExpenseData')}</p>
         </div>
         <div className="exp-right" />
       </div>
@@ -858,7 +877,7 @@ function ExpenseDashboardPanel({
   return (
     <div className="exp-grid">
       <div className="exp-left">
-        <div className="exp-eyebrow">Year to date</div>
+        <div className="exp-eyebrow">{t('yearToDate')}</div>
         <h4 className="exp-total">
           <span className="currency">$</span>
           {currentYearTotal.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -866,7 +885,9 @@ function ExpenseDashboardPanel({
         <p className="exp-total-meta">
           {dashboard.previousYearTotal > 0 ? (
             <>
-              {currentYearTotal > dashboard.previousYearTotal ? 'Up' : 'Down'}{' '}
+              {currentYearTotal > dashboard.previousYearTotal
+                ? t('upVsLastYear')
+                : t('downVsLastYear')}{' '}
               <strong>
                 {Math.abs(
                   Math.round(
@@ -877,19 +898,18 @@ function ExpenseDashboardPanel({
                 )}
                 %
               </strong>{' '}
-              vs last year.{' '}
+              {t('vsLastYear')}{' '}
             </>
           ) : null}
-          <strong>{dashboard.expenseCount}</strong> expense{dashboard.expenseCount !== 1 ? 's' : ''}{' '}
-          logged this year.
+          {t('expensesLoggedThisYear', { count: dashboard.expenseCount })}
         </p>
 
         <div className="exp-bars-section">
           <div className="exp-bars-header">
-            <span>Monthly</span>
+            <span>{t('monthly')}</span>
             {peakValue > 0 && (
               <span>
-                Peak &middot; ${peakValue.toLocaleString()} ({MONTH_LABELS[peakMonth]})
+                {t('peak')} &middot; ${peakValue.toLocaleString()} ({MONTH_LABELS[peakMonth]})
               </span>
             )}
           </div>
@@ -900,7 +920,7 @@ function ExpenseDashboardPanel({
               const isCurrent = i === currentMonth;
               return (
                 <div
-                  key={MONTH_LABELS[i]}
+                  key={MONTH_KEYS[i]}
                   className={`exp-bar${isFuture ? ' muted' : ''}${isCurrent ? ' current' : ''}`}
                   style={{ height: `${isFuture ? 8 : height}%` }}
                 />
@@ -919,10 +939,9 @@ function ExpenseDashboardPanel({
 
       <div className="exp-right">
         <div className="cats-header">
-          <h4>By category</h4>
+          <h4>{t('byCategory')}</h4>
           <span className="total">
-            ${currentYearTotal.toLocaleString()} &middot; {sortedCats.length} cat
-            {sortedCats.length !== 1 ? 's' : ''}
+            ${currentYearTotal.toLocaleString()} &middot; {t('cats', { count: sortedCats.length })}
           </span>
         </div>
 
@@ -936,7 +955,11 @@ function ExpenseDashboardPanel({
                 </div>
                 <div className="cat-mid">
                   <div className="cat-name">
-                    {cat.category.charAt(0).toUpperCase() + cat.category.slice(1)}
+                    {t(
+                      `cat${cat.category.charAt(0).toUpperCase()}${cat.category.slice(1)}` as Parameters<
+                        typeof t
+                      >[0],
+                    )}
                     <span className="cat-pct">{pct}%</span>
                   </div>
                   <div className="cat-bar">
@@ -951,7 +974,7 @@ function ExpenseDashboardPanel({
 
         {sortedCats.length === 0 && (
           <p style={{ color: 'var(--mv-ink-3)', fontSize: '13px', marginTop: '20px' }}>
-            No expenses logged yet this year. Tap &ldquo;Log expense&rdquo; to get started.
+            {t('noExpensesThisYear')}
           </p>
         )}
       </div>
@@ -983,6 +1006,8 @@ function MaintenanceSection({
     return bike.nickname ?? `${bike.make} ${bike.model}`;
   };
 
+  const t = useTranslations('Garage');
+
   if (overdue.length === 0 && upcoming.length === 0 && scheduled.length === 0) {
     return (
       <div
@@ -998,9 +1023,11 @@ function MaintenanceSection({
           className="h-8 w-8"
           style={{ color: 'var(--mv-success)', margin: '0 auto 12px' }}
         />
-        <p style={{ color: 'var(--mv-ink-2)', fontSize: '15px', fontWeight: 500 }}>All caught up</p>
+        <p style={{ color: 'var(--mv-ink-2)', fontSize: '15px', fontWeight: 500 }}>
+          {t('allCaughtUp')}
+        </p>
         <p style={{ color: 'var(--mv-ink-3)', fontSize: '13px', marginTop: '4px' }}>
-          No pending maintenance tasks. Add tasks in the mobile app.
+          {t('noPendingTasks')}
         </p>
       </div>
     );
@@ -1010,7 +1037,7 @@ function MaintenanceSection({
     <div>
       {overdue.length > 0 && (
         <TaskGroup
-          label="Overdue"
+          label={t('overdueLabel')}
           variant="overdue"
           tasks={overdue}
           getBikeName={getBikeName}
@@ -1020,7 +1047,7 @@ function MaintenanceSection({
       )}
       {upcoming.length > 0 && (
         <TaskGroup
-          label="Upcoming"
+          label={t('upcomingLabel')}
           variant="upcoming"
           tasks={upcoming}
           getBikeName={getBikeName}
@@ -1030,7 +1057,7 @@ function MaintenanceSection({
       )}
       {scheduled.length > 0 && (
         <TaskGroup
-          label="Scheduled"
+          label={t('scheduledLabel')}
           variant="scheduled"
           tasks={scheduled}
           getBikeName={getBikeName}
@@ -1057,6 +1084,8 @@ function TaskGroup({
   onComplete: (id: string) => void;
   isCompleting: boolean;
 }) {
+  const t = useTranslations('Garage');
+
   const priorityLabel = (p: MaintenancePriority) => {
     if (p === MaintenancePriority.Critical) return 'critical';
     if (p === MaintenancePriority.High) return 'high';
@@ -1068,9 +1097,7 @@ function TaskGroup({
       <div className="maint-group-header">
         <span className="pip" />
         <span className="group-label">{label}</span>
-        <span className="count">
-          {tasks.length} task{tasks.length !== 1 ? 's' : ''}
-        </span>
+        <span className="count">{t('tasksCount', { count: tasks.length })}</span>
       </div>
       <div className="task-list">
         {tasks.map((task) => {
@@ -1084,10 +1111,10 @@ function TaskGroup({
                   <h5 className="task-title">{task.title}</h5>
                   <span className={`task-priority ${priorityLabel(task.priority)}`}>
                     {task.priority === MaintenancePriority.Critical
-                      ? 'Critical'
+                      ? t('critical')
                       : task.priority === MaintenancePriority.High
-                        ? 'High'
-                        : 'Normal'}
+                        ? t('high')
+                        : t('normal')}
                   </span>
                 </div>
                 <div className="task-meta">
@@ -1095,20 +1122,22 @@ function TaskGroup({
                   {task.targetMileage && (
                     <>
                       <span className="dot" />
-                      <span>Target {task.targetMileage.toLocaleString()} km</span>
+                      <span>
+                        {t('target')} {task.targetMileage.toLocaleString()} km
+                      </span>
                     </>
                   )}
                 </div>
               </div>
               {task.dueDate && (
                 <div className="task-due">
-                  <small>{days != null && days < 0 ? 'Was due' : 'Due'}</small>
+                  <small>{days != null && days < 0 ? t('wasDue') : t('due')}</small>
                   <strong>
                     {formatShortDate(task.dueDate)}
                     {days != null && days < 0
-                      ? ` \u00B7 ${Math.abs(days)}d late`
+                      ? ` \u00B7 ${t('dLate', { days: Math.abs(days) })}`
                       : days != null
-                        ? ` \u00B7 ${days}d`
+                        ? ` \u00B7 ${t('dRemaining', { days })}`
                         : ''}
                   </strong>
                 </div>
@@ -1120,7 +1149,7 @@ function TaskGroup({
                 disabled={isCompleting}
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Mark done
+                {t('markDone')}
               </button>
             </div>
           );
@@ -1134,18 +1163,19 @@ function TaskGroup({
 // Saved Trips Section
 // ═══════════════════════════════════════════════
 function SavedTripsSection({ trips }: { trips: TripEdge[] }) {
+  const t = useTranslations('Garage');
   return (
     <>
       <div className="sect-header">
         <div className="sect-header-left">
           <h3>
-            Saved <span className="serif">trips</span>
+            {t('savedTrips')} <span className="serif">{t('savedTripsSerif')}</span>
           </h3>
-          <span className="sect-header-meta">{trips.length} saved</span>
+          <span className="sect-header-meta">{t('savedCount', { count: trips.length })}</span>
         </div>
         <div className="sect-header-actions">
           <Link href="/explore" className="mv-btn ghost">
-            Browse explore &rarr;
+            {t('browseExplore')} &rarr;
           </Link>
         </div>
       </div>
@@ -1162,7 +1192,7 @@ function SavedTripsSection({ trips }: { trips: TripEdge[] }) {
         >
           <Route className="h-8 w-8" style={{ color: 'var(--mv-ink-3)', margin: '0 auto 12px' }} />
           <p style={{ color: 'var(--mv-ink-2)', fontSize: '15px', fontWeight: 500 }}>
-            No saved trips yet
+            {t('noSavedTrips')}
           </p>
           <p style={{ color: 'var(--mv-ink-3)', fontSize: '13px', marginTop: '4px' }}>
             <Link
@@ -1173,9 +1203,9 @@ function SavedTripsSection({ trips }: { trips: TripEdge[] }) {
                 textUnderlineOffset: '2px',
               }}
             >
-              Explore routes
+              {t('exploreRoutes')}
             </Link>{' '}
-            and save your favourites here.
+            {t('saveYourFavourites')}
           </p>
         </div>
       ) : (

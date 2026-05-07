@@ -3,16 +3,18 @@
 import type { GetFollowersQuery } from '@motovault/graphql';
 import { GetFollowersDocument, GetFollowingDocument, MeDocument } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 type FollowEdge = GetFollowersQuery['getFollowers']['edges'][number];
 
-const TABS = ['Followers', 'Following'] as const;
-type Tab = (typeof TABS)[number];
+const TAB_KEYS = ['followers', 'following'] as const;
+type Tab = (typeof TAB_KEYS)[number];
 
 export default function FollowersPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('Followers');
+  const t = useTranslations('Followers');
+  const [activeTab, setActiveTab] = useState<Tab>('followers');
 
   const { data: meData } = useQuery({
     queryKey: ['me'],
@@ -53,19 +55,19 @@ export default function FollowersPage() {
     enabled: !!userId,
   });
 
-  const activeQuery = activeTab === 'Followers' ? followersQuery : followingQuery;
+  const activeQuery = activeTab === 'followers' ? followersQuery : followingQuery;
   const edges: FollowEdge[] =
-    activeTab === 'Followers'
+    activeTab === 'followers'
       ? (followersQuery.data?.pages.flatMap((p) => p.getFollowers.edges) ?? [])
       : (followingQuery.data?.pages.flatMap((p) => p.getFollowing.edges) ?? []);
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-neutral-50">Connections</h1>
+      <h1 className="text-xl font-bold text-neutral-50">{t('title')}</h1>
 
       {/* Tabs */}
       <div className="mt-4 flex border-b border-neutral-800">
-        {TABS.map((tab) => (
+        {TAB_KEYS.map((tab) => (
           <button
             key={tab}
             type="button"
@@ -76,7 +78,7 @@ export default function FollowersPage() {
                 : 'text-neutral-500 hover:text-neutral-300'
             }`}
           >
-            {tab}
+            {t(tab)}
           </button>
         ))}
       </div>
@@ -89,7 +91,7 @@ export default function FollowersPage() {
       ) : edges.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-neutral-500">
-            {activeTab === 'Followers' ? 'No followers yet.' : 'You are not following anyone yet.'}
+            {activeTab === 'followers' ? t('noFollowers') : t('noFollowing')}
           </p>
         </div>
       ) : (
@@ -135,7 +137,7 @@ export default function FollowersPage() {
                 disabled={activeQuery.isFetchingNextPage}
                 className="rounded-full bg-neutral-800 px-6 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
               >
-                {activeQuery.isFetchingNextPage ? 'Loading...' : 'Load more'}
+                {activeQuery.isFetchingNextPage ? t('loading') : t('loadMore')}
               </button>
             </div>
           )}
