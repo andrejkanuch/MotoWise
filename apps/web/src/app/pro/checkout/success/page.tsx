@@ -14,8 +14,8 @@ import {
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { clearProStatusCache } from '@/hooks/use-pro-status';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 
@@ -75,7 +75,17 @@ async function checkProEntitlement(userId: string): Promise<boolean> {
 }
 
 export default function CheckoutSuccessPage() {
+  return (
+    <Suspense>
+      <CheckoutSuccessContent />
+    </Suspense>
+  );
+}
+
+function CheckoutSuccessContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') ?? '/feed';
   const [status, setStatus] = useState<Status>('polling');
   const [pollIndex, setPollIndex] = useState(0);
   const cancelledRef = useRef(false);
@@ -249,10 +259,10 @@ export default function CheckoutSuccessPage() {
 
               {/* CTA */}
               <Link
-                href="/feed"
+                href={redirectTo}
                 className="cta-primary mt-8 inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
               >
-                Start exploring
+                {redirectTo === '/feed' ? 'Start exploring' : 'Back to trip'}
               </Link>
 
               <p className="mt-4 text-xs text-neutral-500">
@@ -276,10 +286,10 @@ export default function CheckoutSuccessPage() {
 
               <div className="mt-8 flex flex-col gap-3">
                 <Link
-                  href="/feed"
+                  href={redirectTo}
                   className="cta-primary inline-block w-full rounded-full bg-warm-500 px-6 py-3.5 font-semibold text-neutral-950 transition-colors hover:bg-warm-400"
                 >
-                  Continue to feed
+                  {redirectTo === '/feed' ? 'Continue to feed' : 'Back to trip'}
                 </Link>
                 <Link
                   href="/pro"

@@ -5,12 +5,16 @@ import { GpxDownloadButton } from '@/components/gpx-download-button';
 import { useProStatus } from '@/hooks/use-pro-status';
 
 type Props = {
-  routeId: string;
+  country: string;
+  region: string;
+  slug: string;
   routeName: string;
 };
 
-export function TripProSection({ routeId, routeName }: Props) {
+export function TripProSection({ country, region, slug, routeName }: Props) {
   const { isPro, isLoading } = useProStatus();
+
+  const returnUrl = `/trips/${country}/${region}/${slug}`;
 
   if (isLoading) return null;
 
@@ -25,7 +29,13 @@ export function TripProSection({ routeId, routeName }: Props) {
             padding: '24px 0',
           }}
         >
-          <GpxDownloadButton routeId={routeId} routeName={routeName} isAuthenticated />
+          <GpxDownloadButton
+            country={country}
+            region={region}
+            slug={slug}
+            routeName={routeName}
+            isAuthenticated
+          />
         </div>
       </section>
     );
@@ -87,7 +97,10 @@ export function TripProSection({ routeId, routeName }: Props) {
             gap: 12,
           }}
         >
-          <Link href="/pro/checkout" className="mv-btn mv-btn-primary">
+          <Link
+            href={`/pro/checkout?redirect=${encodeURIComponent(returnUrl)}`}
+            className="mv-btn mv-btn-primary"
+          >
             <span>Try Pro free</span>
           </Link>
           <Link href="/pro" className="mv-btn mv-btn-ghost">

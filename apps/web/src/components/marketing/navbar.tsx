@@ -96,8 +96,9 @@ const FEATURE_ITEMS = [
 
 const NAV_LINKS = [
   { key: 'explore', href: '/explore' },
-  { key: 'riders', href: '#proof' },
-  { key: 'faq', href: '#faq' },
+  { key: 'riders', href: '/#proof' },
+  { key: 'faq', href: '/#faq' },
+  { key: 'pro', href: '/pro' },
 ] as const;
 
 const SCROLL_ACTIVATE = 80;
@@ -558,36 +559,21 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Explore, Riders, FAQ */}
-          {NAV_LINKS.map((link) =>
-            link.href.startsWith('#') ? (
-              <a
-                key={link.key}
-                href={link.href}
-                style={{
-                  ...S.navLink,
-                  ...(hoveredLink === link.key ? S.navLinkHover : {}),
-                }}
-                onMouseEnter={() => setHoveredLink(link.key)}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                {t(link.key)}
-              </a>
-            ) : (
-              <Link
-                key={link.key}
-                href={link.href}
-                style={{
-                  ...S.navLink,
-                  ...(hoveredLink === link.key ? S.navLinkHover : {}),
-                }}
-                onMouseEnter={() => setHoveredLink(link.key)}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                {t(link.key)}
-              </Link>
-            ),
-          )}
+          {/* Explore, Riders, FAQ, Pro */}
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.key}
+              href={link.href}
+              style={{
+                ...S.navLink,
+                ...(hoveredLink === link.key ? S.navLinkHover : {}),
+              }}
+              onMouseEnter={() => setHoveredLink(link.key)}
+              onMouseLeave={() => setHoveredLink(null)}
+            >
+              {t(link.key)}
+            </Link>
+          ))}
         </div>
 
         {/* Right side */}
@@ -692,17 +678,11 @@ export function Navbar() {
                 {t(item.key)}
               </Link>
             ))}
-            {NAV_LINKS.map((link) =>
-              link.href.startsWith('#') ? (
-                <a key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
-                  {t(link.key)}
-                </a>
-              ) : (
-                <Link key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
-                  {t(link.key)}
-                </Link>
-              ),
-            )}
+            {NAV_LINKS.map((link) => (
+              <Link key={link.key} href={link.href} onClick={closeMobile} style={S.mobileLink}>
+                {t(link.key)}
+              </Link>
+            ))}
             <LanguageSwitcher />
             {isLoggedIn ? (
               <a href="/feed" onClick={closeMobile} style={S.mobileCta}>

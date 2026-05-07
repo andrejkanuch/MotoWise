@@ -8,8 +8,8 @@ import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
 
 const EXPORT_MUTATION = /* GraphQL */ `
-  mutation ExportRouteGPX($routeId: ID!) {
-    exportRouteGPX(routeId: $routeId) {
+  mutation ExportTripGPX($country: String!, $region: String!, $slug: String!) {
+    exportTripGPX(country: $country, region: $region, slug: $slug) {
       ... on GPXExportSuccess {
         fileUrl
         fileName
@@ -40,18 +40,26 @@ interface QuotaData {
 }
 
 interface ExportData {
-  exportRouteGPX:
+  exportTripGPX:
     | { fileUrl: string; fileName: string; message: string }
     | { code: string; reason: string; quotaRemaining?: number; upgradeUrl?: string };
 }
 
 interface GpxDownloadButtonProps {
-  routeId: string;
+  country: string;
+  region: string;
+  slug: string;
   routeName: string;
   isAuthenticated: boolean;
 }
 
-export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDownloadButtonProps) {
+export function GpxDownloadButton({
+  country,
+  region,
+  slug,
+  routeName,
+  isAuthenticated,
+}: GpxDownloadButtonProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
@@ -84,20 +92,27 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
       return;
     }
 
-    if (remaining !== null && remaining <= 0) {
+    if (remaining !== null && remaining === 0) {
       setShowPaywall(true);
       return;
     }
 
     setIsDownloading(true);
     try {
-      const data = await gqlFetcher<ExportData, { routeId: string }>(EXPORT_MUTATION, { routeId });
-      const result = data.exportRouteGPX;
+      const data = await gqlFetcher<ExportData, { country: string; region: string; slug: string }>(
+        EXPORT_MUTATION,
+        { country, region, slug },
+      );
+      const result = data.exportTripGPX;
 
-      // Quota exceeded
+      // Quota exceeded or error
       if ('code' in result) {
-        setShowPaywall(true);
-        setRemaining(0);
+        if (result.code === 'QUOTA_EXCEEDED') {
+          setShowPaywall(true);
+          setRemaining(0);
+        } else {
+          setToast({ message: result.reason, type: 'error' });
+        }
         return;
       }
 
@@ -115,12 +130,16 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Update remaining count locally
+      // Update remaining count locally (skip for unlimited)
       if (remaining !== null && remaining > 0) {
         setRemaining(remaining - 1);
       }
 
-      trackEvent(WebEvent.GPX_DOWNLOAD_CLICKED, { route_id: routeId });
+      trackEvent(WebEvent.GPX_DOWNLOAD_CLICKED, {
+        trip_slug: slug,
+        trip_country: country,
+        trip_region: region,
+      });
       setToast({ message: result.message, type: 'success' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to download GPX';
@@ -128,7 +147,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
     } finally {
       setIsDownloading(false);
     }
-  }, [isAuthenticated, remaining, routeId]);
+  }, [isAuthenticated, remaining, country, region, slug]);
 
   const paywallDialogRef = useRef<HTMLDivElement>(null);
 
@@ -144,6 +163,9 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [showAuthModal, showPaywall]);
+
+  // Build return URL for checkout redirect
+  const returnUrl = `/trips/${country}/${region}/${slug}`;
 
   return (
     <div className="relative inline-flex flex-col items-end gap-1">
@@ -171,12 +193,14 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
         <span
           className="text-[11px] leading-none"
           style={{
-            color: remaining > 0 ? palette.neutral500 : palette.danger500,
+            color: remaining === -1 || remaining > 0 ? palette.neutral500 : palette.danger500,
           }}
         >
-          {remaining > 0
-            ? `${remaining} export${remaining === 1 ? '' : 's'} remaining`
-            : 'Monthly limit reached'}
+          {remaining === -1
+            ? 'Unlimited exports with Pro'
+            : remaining > 0
+              ? `${remaining} export${remaining === 1 ? '' : 's'} remaining`
+              : 'Monthly limit reached'}
         </span>
       )}
 
@@ -241,7 +265,7 @@ export function GpxDownloadButton({ routeId, routeName, isAuthenticated }: GpxDo
                 type="button"
                 onClick={() => {
                   setShowPaywall(false);
-                  window.location.href = '/pro/checkout';
+                  window.location.href = `/pro/checkout?redirect=${encodeURIComponent(returnUrl)}`;
                 }}
                 className="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.97]"
                 style={{

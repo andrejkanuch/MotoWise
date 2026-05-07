@@ -28,6 +28,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialPlan = searchParams.get('plan') === 'monthly' ? 'monthly' : 'annual';
+  const redirectAfter = searchParams.get('redirect');
 
   const supabase = useMemo(
     () =>
@@ -52,9 +53,10 @@ function CheckoutContent() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        router.replace(
-          `/login?redirect=${encodeURIComponent(`/pro/checkout?plan=${selectedPlan}`)}`,
-        );
+        const checkoutUrl = redirectAfter
+          ? `/pro/checkout?plan=${selectedPlan}&redirect=${encodeURIComponent(redirectAfter)}`
+          : `/pro/checkout?plan=${selectedPlan}`;
+        router.replace(`/login?redirect=${encodeURIComponent(checkoutUrl)}`);
         return;
       }
       setUserId(user.id);
@@ -120,7 +122,10 @@ function CheckoutContent() {
         transaction_id: result.storeTransaction.storeTransactionId,
       });
 
-      router.push('/pro/checkout/success');
+      const successUrl = redirectAfter
+        ? `/pro/checkout/success?redirect=${encodeURIComponent(redirectAfter)}`
+        : '/pro/checkout/success';
+      router.push(successUrl);
     } catch (err: unknown) {
       const { PurchasesError, ErrorCode } = await import('@revenuecat/purchases-js');
 
