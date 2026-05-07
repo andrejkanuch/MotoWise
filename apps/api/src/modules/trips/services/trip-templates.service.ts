@@ -50,7 +50,7 @@ export class TripTemplatesService {
   ): Promise<TripConnection> {
     const limit = Math.min(first, 50);
 
-    let query = this.supabase
+    let query = this.supabaseAdmin
       .from('trips')
       .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
@@ -152,7 +152,10 @@ export class TripTemplatesService {
   }
 
   async getTemplateBySlug(country: string, region: string, slug: string): Promise<Trip> {
-    const query = this.supabase
+    // Use admin client — this is called from @Public() resolvers (tripBySlug, tripReviews, similarTrips)
+    // where there is no authenticated user. The user client with anon key may not have
+    // sufficient RLS access for the trips + trip_waypoints join.
+    const query = this.supabaseAdmin
       .from('trips')
       .select(
         `${TRIP_DETAIL_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
@@ -358,7 +361,7 @@ export class TripTemplatesService {
   async sitemapPublishedTrips(): Promise<
     Array<{ countryCode: string; regionCode: string; slug: string; updatedAt: string }>
   > {
-    const { data, error } = await this.supabase
+    const { data, error } = await this.supabaseAdmin
       .from('trips')
       .select('country_code, region_code, slug, updated_at')
       .eq('is_template', true)
@@ -396,7 +399,7 @@ export class TripTemplatesService {
     limit = 6,
   ): Promise<Trip[]> {
     // First get the source trip's difficulty and day_count for matching
-    const sourceQuery = this.supabase
+    const sourceQuery = this.supabaseAdmin
       .from('trips')
       .select('id, difficulty, day_count')
       .eq('is_template', true);
@@ -413,7 +416,7 @@ export class TripTemplatesService {
     const minDays = Math.max(1, (source.day_count ?? 1) - 1);
     const maxDays = (source.day_count ?? 1) + 1;
 
-    let query = this.supabase
+    let query = this.supabaseAdmin
       .from('trips')
       .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
