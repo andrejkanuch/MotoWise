@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
 /** DB row shape for trip_reviews */
@@ -85,7 +86,10 @@ const REVIEW_SELECT = `
 export class TripReviewsService {
   private readonly logger = new Logger(TripReviewsService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+  ) {}
 
   async getReviewsForTrip(
     tripId: string,
@@ -94,7 +98,10 @@ export class TripReviewsService {
   ): Promise<TripReviewConnection> {
     const limit = Math.min(first, 50);
 
-    let query = this.supabase
+    // Use admin client for public reads — the motorcycles join requires
+    // bypassing owner-only RLS on the motorcycles table. Reviews on published
+    // templates are intentionally public (trip_reviews_select policy).
+    let query = this.supabaseAdmin
       .from('trip_reviews')
       .select(REVIEW_SELECT)
       .eq('trip_id', tripId)
