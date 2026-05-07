@@ -102,18 +102,23 @@ function MapboxMapInner({
         const el = document.createElement('div');
         el.className = 'mv-pin';
         el.dataset.id = t.id;
-        el.style.cssText = `
+        // Outer wrapper must not set `transform` — Mapbox GL uses it for positioning
+        el.style.cssText = `cursor: pointer;`;
+
+        const inner = document.createElement('div');
+        inner.className = 'mv-pin-inner';
+        inner.style.cssText = `
           width: 30px; height: 30px; border-radius: 999px;
           background: oklch(0.13 0.01 55 / 0.95);
           border: 1.5px solid oklch(0.84 0.15 68);
           color: oklch(0.92 0.16 68);
           display: grid; place-items: center;
           font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 600;
-          cursor: pointer;
           box-shadow: 0 6px 14px -4px oklch(0 0 0 / 0.6);
           transition: all .2s ease;
         `;
-        el.textContent = String(i + 1);
+        inner.textContent = String(i + 1);
+        el.appendChild(inner);
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           onPinClickRef.current?.(t.id);
@@ -134,17 +139,19 @@ function MapboxMapInner({
   useEffect(() => {
     for (const { id, el } of markersRef.current) {
       const visible = !visibleIds || visibleIds.has(id);
-      el.style.display = visible ? 'grid' : 'none';
+      el.style.display = visible ? '' : 'none';
     }
   }, [visibleIds]);
 
-  // Update hover/focus pin styles
+  // Update hover/focus pin styles (target inner div — never touch el.style.transform)
   useEffect(() => {
     for (const { id, el } of markersRef.current) {
+      const inner = el.querySelector('.mv-pin-inner') as HTMLDivElement | null;
+      if (!inner) continue;
       const isActive = id === hoveredId || id === focusedId;
-      el.style.transform = isActive ? 'scale(1.4)' : 'scale(1)';
-      el.style.background = isActive ? 'oklch(0.84 0.15 68)' : 'oklch(0.13 0.01 55 / 0.95)';
-      el.style.color = isActive ? '#1a1410' : 'oklch(0.92 0.16 68)';
+      inner.style.transform = isActive ? 'scale(1.4)' : 'scale(1)';
+      inner.style.background = isActive ? 'oklch(0.84 0.15 68)' : 'oklch(0.13 0.01 55 / 0.95)';
+      inner.style.color = isActive ? '#1a1410' : 'oklch(0.92 0.16 68)';
       el.style.zIndex = isActive ? '10' : '1';
     }
   }, [hoveredId, focusedId]);

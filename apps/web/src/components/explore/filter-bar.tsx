@@ -238,8 +238,7 @@ export function FilterBar({ filters, onFilterChange }: FilterBarProps) {
         background: 'var(--mv-bg-2, oklch(0.10 0.009 55))',
         borderBottom: '1px solid var(--mv-line)',
         position: 'relative',
-        zIndex: 5,
-        overflowX: 'auto',
+        zIndex: 20,
       }}
     >
       <Icon name="sliders" size={14} color="var(--mv-ink-3)" />

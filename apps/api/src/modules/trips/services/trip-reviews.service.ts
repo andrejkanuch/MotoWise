@@ -29,7 +29,7 @@ interface ReviewRow {
     make: string;
     model: string;
     year: number;
-    motorcycle_type: string | null;
+    type: string | null;
   } | null;
 }
 
@@ -79,7 +79,7 @@ export interface TripReviewConnection {
 const REVIEW_SELECT = `
   id, trip_id, user_id, rating, text, condition_tags, bike_id, created_at,
   users:user_id(id, display_name, public_username, avatar_url),
-  motorcycles:bike_id(make, model, year, motorcycle_type)
+  motorcycles:bike_id(make, model, year, type)
 `.trim();
 
 @Injectable()
@@ -205,7 +205,7 @@ export class TripReviewsService {
           make: row.motorcycles.make,
           model: row.motorcycles.model,
           year: row.motorcycles.year,
-          type: row.motorcycles.motorcycle_type ?? undefined,
+          type: row.motorcycles.type ?? undefined,
         }
       : undefined;
 

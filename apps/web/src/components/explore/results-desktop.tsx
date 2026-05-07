@@ -189,11 +189,8 @@ export function ResultsDesktop({
     setFocusedId(id);
     setHoveredId(id);
     const el = document.querySelector(`[data-trip-id="${CSS.escape(id)}"]`);
-    if (el && listRef.current) {
-      listRef.current.scrollTo({
-        top: (el as HTMLElement).offsetTop - 20,
-        behavior: 'smooth',
-      });
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
 
