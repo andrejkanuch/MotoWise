@@ -1,4 +1,4 @@
-import { BarChart3, ChevronDown, Download, Heart, MapPin, Search, Star, Zap } from 'lucide-react';
+import { BarChart3, ChevronDown, Download, Heart, MapPin, Search, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PricingCard } from './pricing-card';
@@ -62,33 +62,6 @@ const COMPARISON = [
   { name: 'AI Health Reports', free: false, pro: true },
   { name: 'Export data (CSV / PDF)', free: false, pro: true },
   { name: 'Priority support', free: false, pro: true },
-] as const;
-
-const TESTIMONIALS = [
-  {
-    text: 'Diagnosed a chain tension issue I\u2019d been ignoring. Saved me a breakdown on a 600\u00a0km trip.',
-    highlight: 'Saved me a breakdown',
-    author: 'Marek J.',
-    bike: 'KTM 790 Adv \u00b7 Slovakia',
-  },
-  {
-    text: 'The trip planner with rider RSVPs is the only reason our group actually shows up on time.',
-    highlight: 'actually shows up',
-    author: 'Carla P.',
-    bike: 'BMW R1250GS \u00b7 Italy',
-  },
-  {
-    text: 'Cost-per-km finally told me my old commuter was costing more than buying a new bike. Sold it the same week.',
-    highlight: 'Sold it the same week.',
-    author: 'Andrew T.',
-    bike: 'Honda CB500F \u00b7 UK',
-  },
-  {
-    text: 'Multi-bike garage means my 1990 SR400 project, my daily, and my track Yamaha all stay separate. Service histories don\u2019t get mixed up.',
-    highlight: 'stay separate.',
-    author: 'Jules R.',
-    bike: '3 bikes \u00b7 France',
-  },
 ] as const;
 
 const FAQ = [
@@ -251,36 +224,6 @@ export default function ProPage() {
                 </div>
                 <div className="text-center">
                   <FeatureValue value={row.pro} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ TESTIMONIALS ═══ */}
-      <section className="px-6 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-10 text-3xl font-medium tracking-tight sm:text-4xl lg:text-[52px] lg:leading-[1.1]">
-            <span className="font-serif italic text-warm-400">Real</span> riders.{' '}
-            <span className="font-serif italic text-warm-400">Real</span> saves.
-          </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {TESTIMONIALS.map((t) => (
-              <div
-                key={t.author}
-                className="rounded-xl border border-neutral-800/50 bg-neutral-900/30 p-6"
-              >
-                <div className="mb-3 flex gap-0.5 text-warm-400">
-                  {['s1', 's2', 's3', 's4', 's5'].map((k) => (
-                    <Star key={k} className="size-3.5 fill-warm-400" />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed text-neutral-300">&ldquo;{t.text}&rdquo;</p>
-                <div className="mt-4 border-t border-neutral-800/40 pt-4">
-                  <p className="text-sm font-medium">{t.author}</p>
-                  <p className="mt-0.5 text-xs text-neutral-500">{t.bike}</p>
                 </div>
               </div>
             ))}
