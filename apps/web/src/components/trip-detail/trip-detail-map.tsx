@@ -205,7 +205,11 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
         const isEnd = wp.type === 'end';
         const num = i + 1;
 
-        // Numbered pin (same style as explore map)
+        // Wrapper — Mapbox controls transform on this, so don't touch it
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'cursor: pointer;';
+
+        // Numbered pin (inner element — safe to transform)
         const el = document.createElement('div');
         const size = isStart || isEnd ? 34 : 28;
         el.style.cssText = `
@@ -215,22 +219,24 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
           color: ${color};
           display: grid; place-items: center;
           font-family: 'Geist Mono', monospace; font-size: ${isStart || isEnd ? 13 : 11}px; font-weight: 600;
-          cursor: pointer;
           box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.5);
-          transition: all .2s ease;
+          transition: transform .15s ease, background .15s ease, color .15s ease;
         `;
         el.textContent = String(num);
+        wrapper.appendChild(el);
 
-        // Hover: scale up + fill
-        el.addEventListener('mouseenter', () => {
+        // Hover: scale inner pin + fill
+        wrapper.addEventListener('mouseenter', () => {
           el.style.transform = 'scale(1.3)';
           el.style.background = color;
           el.style.color = '#1a1410';
+          el.style.zIndex = '10';
         });
-        el.addEventListener('mouseleave', () => {
+        wrapper.addEventListener('mouseleave', () => {
           el.style.transform = 'scale(1)';
           el.style.background = 'oklch(0.13 0.01 55 / 0.95)';
           el.style.color = color;
+          el.style.zIndex = '';
         });
 
         // Click popup with stop details (high-contrast dark theme)
@@ -275,7 +281,24 @@ function TripDetailMapInner({ waypoints, polyline }: TripDetailMapProps) {
           </div>
         `);
 
-        new mapboxgl.Marker({ element: el }).setLngLat([wp.lng, wp.lat]).setPopup(popup).addTo(map);
+        new mapboxgl.Marker({ element: wrapper, anchor: 'center' })
+          .setLngLat([wp.lng, wp.lat])
+          .setPopup(popup)
+          .addTo(map);
+      }
+
+      // If start and end overlap (same coords), offset the end marker slightly
+      if (sorted.length >= 2) {
+        const first = sorted[0];
+        const last = sorted[sorted.length - 1];
+        if (Math.abs(first.lat - last.lat) < 0.001 && Math.abs(first.lng - last.lng) < 0.001) {
+          // Nudge last marker element to the right so both are visible
+          const lastWrapper = map.getContainer().querySelectorAll('.mapboxgl-marker');
+          if (lastWrapper.length >= 2) {
+            const lastEl = lastWrapper[lastWrapper.length - 1] as HTMLElement;
+            lastEl.style.marginLeft = '18px';
+          }
+        }
       }
 
       // Fit map to all waypoints
