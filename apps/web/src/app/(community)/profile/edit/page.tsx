@@ -119,9 +119,7 @@ export default function EditProfilePage() {
         </p>
       )}
       {success && (
-        <p role="status" className="mt-4 text-sm text-green-500">
-          Profile saved! Redirecting...
-        </p>
+        <output className="mt-4 block text-sm text-green-500">Profile saved! Redirecting...</output>
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
