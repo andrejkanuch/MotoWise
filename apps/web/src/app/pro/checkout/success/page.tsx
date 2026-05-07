@@ -1,5 +1,6 @@
 'use client';
 
+import { REVENUECAT_ENTITLEMENT_PRO } from '@motovault/types';
 import {
   BarChart3,
   Brain,
@@ -65,7 +66,7 @@ async function checkProEntitlement(userId: string): Promise<boolean> {
 
     const purchases = Purchases.getSharedInstance();
     const customerInfo = await purchases.getCustomerInfo();
-    const proEntitlement = customerInfo.entitlements.active.pro;
+    const proEntitlement = customerInfo.entitlements.active[REVENUECAT_ENTITLEMENT_PRO];
     return proEntitlement !== undefined;
   } catch {
     return false;
