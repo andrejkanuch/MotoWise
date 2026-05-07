@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Rota veya yer ara...",
     "reviewPlaceholder": "Deneyimini paylas (istege bagli)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Karisik",
+    "surfaceOffRoad": "Arazi",
+    "difficultyEasy": "Kolay",
+    "difficultyModerate": "Orta",
+    "difficultyChallenging": "Zor",
+    "difficultyExpert": "Uzman",
+    "sortMostPopular": "En populer",
+    "sortHighestRated": "En yuksek puan",
+    "sortNewest": "En yeni",
+    "sortShortest": "En kisa ilk",
+    "allRoutes": "Tum rotalar",
+    "routesFound_one": "{{count}} rota",
+    "routesFound_other": "{{count}}+ rota",
+    "found": "bulundu",
+    "noRoutesMatch": "Bu filtrelere uyan rota yok",
+    "clearFilters": "Filtreleri temizle",
+    "routesNearby": "{{count}} yakin rota",
+    "planTrip": "Tur planla"
+  },
   "mapPicker": {
     "searchPlaceholder": "Konum ara..."
   },

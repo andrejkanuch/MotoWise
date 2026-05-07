@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Buscar rutas o lugares...",
     "reviewPlaceholder": "Comparte tu experiencia (opcional)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Pavimentado",
+    "surfaceMixed": "Mixto",
+    "surfaceOffRoad": "Todoterreno",
+    "difficultyEasy": "Facil",
+    "difficultyModerate": "Moderado",
+    "difficultyChallenging": "Dificil",
+    "difficultyExpert": "Experto",
+    "sortMostPopular": "Mas popular",
+    "sortHighestRated": "Mejor valorado",
+    "sortNewest": "Mas reciente",
+    "sortShortest": "Mas corta primero",
+    "allRoutes": "Todas las rutas",
+    "routesFound_one": "{{count}} ruta",
+    "routesFound_other": "{{count}}+ rutas",
+    "found": "encontradas",
+    "noRoutesMatch": "Ninguna ruta coincide con estos filtros",
+    "clearFilters": "Limpiar filtros",
+    "routesNearby": "{{count}} rutas cerca",
+    "planTrip": "Planear viaje"
+  },
   "mapPicker": {
     "searchPlaceholder": "Buscar un lugar..."
   },

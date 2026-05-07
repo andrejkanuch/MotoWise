@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "ค้นหาเส้นทางหรือสถานที่...",
     "reviewPlaceholder": "แบ่งปันประสบการณ์ของคุณ (ไม่บังคับ)"
   },
+  "discoverFilters": {
+    "surfacePaved": "ถนนลาดยาง",
+    "surfaceMixed": "ผสม",
+    "surfaceOffRoad": "ออฟโรด",
+    "difficultyEasy": "ง่าย",
+    "difficultyModerate": "ปานกลาง",
+    "difficultyChallenging": "ยาก",
+    "difficultyExpert": "ผู้เชี่ยวชาญ",
+    "sortMostPopular": "ยอดนิยม",
+    "sortHighestRated": "คะแนนสูงสุด",
+    "sortNewest": "ล่าสุด",
+    "sortShortest": "สั้นที่สุด",
+    "allRoutes": "ทุกเส้นทาง",
+    "routesFound_one": "{{count}} เส้นทาง",
+    "routesFound_other": "{{count}}+ เส้นทาง",
+    "found": "พบ",
+    "noRoutesMatch": "ไม่มีเส้นทางตรงกับตัวกรองเหล่านี้",
+    "clearFilters": "ล้างตัวกรอง",
+    "routesNearby": "{{count}} เส้นทางใกล้เคียง",
+    "planTrip": "วางแผนทริป"
+  },
   "mapPicker": {
     "searchPlaceholder": "ค้นหาสถานที่..."
   },

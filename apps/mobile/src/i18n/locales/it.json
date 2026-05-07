@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Cerca percorsi o luoghi...",
     "reviewPlaceholder": "Condividi la tua esperienza (opzionale)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Asfaltato",
+    "surfaceMixed": "Misto",
+    "surfaceOffRoad": "Fuoristrada",
+    "difficultyEasy": "Facile",
+    "difficultyModerate": "Moderato",
+    "difficultyChallenging": "Difficile",
+    "difficultyExpert": "Esperto",
+    "sortMostPopular": "Piu popolare",
+    "sortHighestRated": "Meglio valutato",
+    "sortNewest": "Piu recente",
+    "sortShortest": "Piu corto prima",
+    "allRoutes": "Tutti i percorsi",
+    "routesFound_one": "{{count}} percorso",
+    "routesFound_other": "{{count}}+ percorsi",
+    "found": "trovati",
+    "noRoutesMatch": "Nessun percorso corrisponde a questi filtri",
+    "clearFilters": "Cancella filtri",
+    "routesNearby": "{{count}} percorsi vicini",
+    "planTrip": "Pianifica viaggio"
+  },
   "mapPicker": {
     "searchPlaceholder": "Cerca un luogo..."
   },

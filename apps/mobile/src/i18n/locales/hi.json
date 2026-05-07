@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "रूट या स्थान खोजें...",
     "reviewPlaceholder": "अपना अनुभव साझा करें (वैकल्पिक)"
   },
+  "discoverFilters": {
+    "surfacePaved": "पक्की",
+    "surfaceMixed": "मिश्रित",
+    "surfaceOffRoad": "ऑफ-रोड",
+    "difficultyEasy": "आसान",
+    "difficultyModerate": "मध्यम",
+    "difficultyChallenging": "कठिन",
+    "difficultyExpert": "एक्सपर्ट",
+    "sortMostPopular": "सबसे लोकप्रिय",
+    "sortHighestRated": "सर्वोच्च रेटेड",
+    "sortNewest": "नवीनतम",
+    "sortShortest": "सबसे छोटी पहले",
+    "allRoutes": "सभी रूट",
+    "routesFound_one": "{{count}} रूट",
+    "routesFound_other": "{{count}}+ रूट",
+    "found": "मिले",
+    "noRoutesMatch": "कोई रूट इन फ़िल्टर से मेल नहीं खाता",
+    "clearFilters": "फ़िल्टर साफ़ करें",
+    "routesNearby": "{{count}} रूट पास में",
+    "planTrip": "ट्रिप प्लान करें"
+  },
   "mapPicker": {
     "searchPlaceholder": "स्थान खोजें..."
   },
