@@ -63,7 +63,7 @@ function CheckoutContent() {
       setUserEmail(user.email ?? null);
       setAuthChecked(true);
     })();
-  }, [supabase, router, selectedPlan]);
+  }, [supabase, router, selectedPlan, redirectAfter]);
 
   const plan = PLAN_CONFIG[selectedPlan];
 
@@ -143,7 +143,7 @@ function CheckoutContent() {
       }
       setLoading(false);
     }
-  }, [loading, userId, userEmail, selectedPlan, router]);
+  }, [loading, userId, userEmail, selectedPlan, router, redirectAfter]);
 
   if (!authChecked) {
     return (

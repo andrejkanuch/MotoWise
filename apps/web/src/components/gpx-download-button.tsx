@@ -142,8 +142,13 @@ export function GpxDownloadButton({
       });
       setToast({ message: result.message, type: 'success' });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to download GPX';
-      setToast({ message, type: 'error' });
+      // If the GraphQL request fails with UNAUTHENTICATED, prompt sign-in
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes('authorization') || errMsg.includes('UNAUTHENTICATED')) {
+        setShowAuthModal(true);
+        return;
+      }
+      setToast({ message: errMsg || 'Failed to download GPX', type: 'error' });
     } finally {
       setIsDownloading(false);
     }
