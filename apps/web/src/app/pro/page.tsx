@@ -31,13 +31,6 @@ const HERO_BENEFITS = [
   'Priority support — 24h reply',
 ] as const;
 
-const STATS = [
-  { value: '1,200', suffix: '+', label: 'Riders on MotoVault' },
-  { value: '2,400', suffix: '', label: 'Bikes tracked' },
-  { value: '18k', suffix: '', label: 'Service entries' },
-  { value: '340k', suffix: 'km', label: 'Kilometres logged' },
-] as const;
-
 const PRO_FEATURES = [
   {
     icon: Search,
@@ -261,23 +254,6 @@ export default function ProPage() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ═══ STATS STRIP ═══ */}
-      <section className="border-y border-neutral-800/50 bg-neutral-950/50 px-6 py-10">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label}>
-              <p className="text-2xl font-bold tracking-tight text-warm-400 sm:text-3xl">
-                {s.value}
-                {s.suffix && <span className="font-serif italic text-warm-400/70">{s.suffix}</span>}
-              </p>
-              <p className="mt-1 font-mono text-[10px] tracking-[0.14em] text-neutral-500 uppercase">
-                {s.label}
-              </p>
-            </div>
-          ))}
         </div>
       </section>
 

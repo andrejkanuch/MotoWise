@@ -99,6 +99,9 @@ function buildCspHeader(nonce: string): string {
     'https://www.facebook.com',
     'https://api.stripe.com',
     'https://js.stripe.com',
+    'https://api.revenuecat.com',
+    'https://e.revenue.cat',
+    'https://*.ingest.us.sentry.io',
   ]
     .filter(Boolean)
     .join(' ');

@@ -96,7 +96,9 @@ function CheckoutContent() {
 
       const purchases = Purchases.getSharedInstance();
       const offerings = await purchases.getOfferings();
-      const webOffering = offerings.all['default-web'] ?? offerings.current;
+      const offeringId =
+        process.env.NODE_ENV === 'development' ? 'default-web-test' : 'default-web';
+      const webOffering = offerings.all[offeringId] ?? offerings.current;
 
       if (!webOffering) {
         throw new Error('No offerings available. Please try again later.');
