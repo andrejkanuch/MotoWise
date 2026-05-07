@@ -330,6 +330,11 @@ export class TripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<Trip> {
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
     const trip = await this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
     this.tripTemplatesSvc.incrementViewCount(trip.id);
     return trip;
@@ -394,9 +399,12 @@ export class TripsResolver {
     if (tripId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId)) {
       throw new BadRequestException('Invalid tripId format');
     }
-    if (slug && slug.length > 200) throw new BadRequestException('slug too long');
-    if (country && country.length > 10) throw new BadRequestException('country too long');
-    if (region && region.length > 100) throw new BadRequestException('region too long');
+    if (slug && (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200))
+      throw new BadRequestException('Invalid slug');
+    if (country && !/^[a-z]{2}$/i.test(country))
+      throw new BadRequestException('Invalid country code');
+    if (region && (!/^[a-z0-9-]+$/i.test(region) || region.length > 100))
+      throw new BadRequestException('Invalid region code');
 
     let resolvedTripId = tripId;
 
@@ -472,6 +480,11 @@ export class TripsResolver {
     @Args('country') country: string,
     @Args('region') region: string,
   ): Promise<typeof GPXExportResultUnion> {
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
     return this.tripGpxExport.exportTripGPX(user, slug, country, region);
   }
 
@@ -491,9 +504,11 @@ export class TripsResolver {
     limit?: number,
   ): Promise<Trip[]> {
     // Input validation for string args
-    if (slug.length > 200) throw new BadRequestException('slug too long');
-    if (country.length > 10) throw new BadRequestException('country too long');
-    if (region.length > 100) throw new BadRequestException('region too long');
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
 
     return this.tripTemplatesSvc.findSimilarTrips(slug, country, region, Math.min(limit ?? 6, 20));
   }
@@ -546,6 +561,9 @@ export class TripsResolver {
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
+    if (!handle || !/^[a-zA-Z0-9_-]+$/.test(handle) || handle.length > 100) {
+      throw new BadRequestException('Invalid handle');
+    }
     return this.tripSavesSvc.publicSavedTrips(handle, first ?? 20, after);
   }
 

@@ -36,19 +36,6 @@ export function normalizeSlugParams(country: string, region: string, slug: strin
  * const { data } = await filtered.single();
  * ```
  */
-/**
- * Apply the standard country + region + slug filters to a Supabase query.
- *
- * Uses `.eq()` for country_code (uppercased) and slug, and `.ilike()` for
- * region_code to handle mixed-case DB values until data is normalised.
- *
- * Usage:
- * ```ts
- * const query = supabase.from('trips').select('*');
- * const filtered = applySlugFilters(query, country, region, slug);
- * const { data } = await filtered.single();
- * ```
- */
 interface SlugFilterable {
   eq(column: string, value: string): this;
   ilike(column: string, pattern: string): this;

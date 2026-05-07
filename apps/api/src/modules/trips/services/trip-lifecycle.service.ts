@@ -259,14 +259,12 @@ export class TripLifecycleService {
       .limit(limit + 1);
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const [startDate, id] = decoded.split('|');
-      if (startDate && id) {
+      const cursor = this.decodeCursor(after);
+      if (cursor) {
         // Composite cursor: rows strictly after (start_date, id)
-        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
-      } else if (startDate) {
-        // Back-compat for legacy single-column cursors
-        query = query.gt('start_date', startDate);
+        query = query.or(
+          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
+        );
       }
     }
 
@@ -335,12 +333,11 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const [startDate, id] = decoded.split('|');
-      if (startDate && id) {
-        query = query.or(`start_date.gt.${startDate},and(start_date.eq.${startDate},id.gt.${id})`);
-      } else if (startDate) {
-        query = query.gt('start_date', startDate);
+      const cursor = this.decodeCursor(after);
+      if (cursor) {
+        query = query.or(
+          `start_date.gt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.gt.${cursor.id})`,
+        );
       }
     }
 
@@ -408,14 +405,13 @@ export class TripLifecycleService {
     }
 
     if (after) {
-      const decoded = Buffer.from(after, 'base64').toString('utf-8');
-      const [startDate, id] = decoded.split('|');
-      if (startDate && id) {
+      const cursor = this.decodeCursor(after);
+      if (cursor) {
         // myTrips is ordered DESC, so "after" means strictly before
         // (start_date, id).
-        query = query.or(`start_date.lt.${startDate},and(start_date.eq.${startDate},id.lt.${id})`);
-      } else if (startDate) {
-        query = query.lt('start_date', startDate);
+        query = query.or(
+          `start_date.lt.${cursor.startDate},and(start_date.eq.${cursor.startDate},id.lt.${cursor.id})`,
+        );
       }
     }
 
@@ -916,5 +912,19 @@ export class TripLifecycleService {
     }
 
     return mapRowToTrip(tripData as unknown as TripRow, userId);
+  }
+
+  private decodeCursor(cursor: string): { startDate: string; id: string } | null {
+    try {
+      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      const parts = decoded.split('|');
+      if (parts.length !== 2) return null;
+      const [startDate, id] = parts;
+      if (!/^\d{4}-\d{2}-\d{2}/.test(startDate)) return null;
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return null;
+      return { startDate, id };
+    } catch {
+      return null;
+    }
   }
 }

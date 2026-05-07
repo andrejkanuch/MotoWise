@@ -103,7 +103,7 @@ END $$;
 -- =================================================================
 
 CREATE INDEX IF NOT EXISTS idx_trips_template_filters
-  ON public.trips (difficulty, surface_type, distance_m, estimated_duration_minutes)
+  ON public.trips (country_code, difficulty, surface_type)
   WHERE is_template = true AND NOT is_flagged;
 
 -- =================================================================
@@ -144,19 +144,15 @@ CREATE POLICY "trip_suggestions_delete_new_route" ON public.trip_suggestions
     AND author_user_id = (select auth.uid())
   );
 
--- =================================================================
--- 7. Ordering index for listTemplates query
--- =================================================================
-
-CREATE INDEX IF NOT EXISTS idx_trips_template_listing
-  ON public.trips (published_at DESC NULLS LAST, id DESC)
-  WHERE is_template = true AND NOT is_flagged;
-
--- =================================================================
--- 8. Monthly quota index for GPX export metering
--- =================================================================
-
-CREATE INDEX IF NOT EXISTS idx_gating_events_quota
-  ON public.user_gating_events (user_id, feature, year_month);
+CREATE POLICY "trip_suggestions_update_new_route" ON public.trip_suggestions
+  FOR UPDATE TO authenticated
+  USING (
+    kind = 'new_route'
+    AND author_user_id = (select auth.uid())
+  )
+  WITH CHECK (
+    kind = 'new_route'
+    AND author_user_id = (select auth.uid())
+  );
 
 COMMIT;

@@ -108,37 +108,48 @@ export class TripGpxExportService {
       throw new InternalServerErrorException('Failed to record export — please try again.');
     }
 
-    // 8. Upload to Supabase Storage
+    // 8. Upload to Supabase Storage + 9. Signed URL
+    // Wrapped in try/catch: if upload or signing fails, roll back the quota record
+    // so the user can retry without losing their monthly export.
     const storagePath = `gpx-exports/${user.id}/${trip.id}/${filename}`;
-    const { error: uploadError } = await this.supabaseAdmin.storage
-      .from('route-exports')
-      .upload(storagePath, Buffer.from(gpx, 'utf-8'), {
-        contentType: 'application/gpx+xml',
-        upsert: true,
-      });
+    try {
+      const { error: uploadError } = await this.supabaseAdmin.storage
+        .from('route-exports')
+        .upload(storagePath, Buffer.from(gpx, 'utf-8'), {
+          contentType: 'application/gpx+xml',
+          upsert: true,
+        });
 
-    if (uploadError) {
-      this.logger.error(`GPX upload failed: ${uploadError.message}`);
-      throw new InternalServerErrorException('Failed to upload GPX file');
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      const { data: signedData, error: signError } = await this.supabaseAdmin.storage
+        .from('route-exports')
+        .createSignedUrl(storagePath, 3600);
+
+      if (signError || !signedData?.signedUrl) {
+        throw new Error(`Signed URL failed: ${signError?.message}`);
+      }
+
+      const remaining = quota.remaining === -1 ? 'unlimited' : `${quota.remaining - 1}`;
+
+      return {
+        fileUrl: signedData.signedUrl,
+        fileName: filename,
+        message: `GPX export ready. ${remaining === 'unlimited' ? 'Unlimited exports with Pro.' : `${remaining} exports remaining this month.`}`,
+      };
+    } catch (err) {
+      // Compensate: roll back quota record so user can retry
+      await this.supabaseAdmin
+        .from('user_gating_events')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('feature', 'DOWNLOAD_GPX')
+        .eq('trip_id', trip.id);
+      this.logger.error(`GPX export failed, quota rolled back: ${err}`);
+      throw new InternalServerErrorException('Failed to export GPX file — please try again.');
     }
-
-    // 9. Signed URL (1 hour)
-    const { data: signedData, error: signError } = await this.supabaseAdmin.storage
-      .from('route-exports')
-      .createSignedUrl(storagePath, 3600);
-
-    if (signError || !signedData?.signedUrl) {
-      this.logger.error(`GPX signed URL failed: ${signError?.message}`);
-      throw new InternalServerErrorException('Failed to generate download URL');
-    }
-
-    const remaining = quota.remaining === -1 ? 'unlimited' : `${quota.remaining - 1}`;
-
-    return {
-      fileUrl: signedData.signedUrl,
-      fileName: filename,
-      message: `GPX export ready. ${remaining === 'unlimited' ? 'Unlimited exports with Pro.' : `${remaining} exports remaining this month.`}`,
-    };
   }
 
   private decodePolyline(encoded: string): Array<[number, number]> {

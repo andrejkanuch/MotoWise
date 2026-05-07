@@ -21,35 +21,6 @@ import {
   type WaypointRow,
 } from './trip-lifecycle.service';
 
-/** Template listing/detail rows: same select as {@link TRIP_DETAIL_SELECT}. */
-const TEMPLATE_SELECT = TRIP_DETAIL_SELECT;
-
-/** Extended row shape for template queries (base TripRow + required template fields) */
-interface TemplateRow extends TripRow {
-  is_template: boolean;
-  slug: string | null;
-  country_code: string | null;
-  region_code: string | null;
-  city: string | null;
-  polyline: string | null;
-  distance_m: number | null;
-  elevation_gain_m: number | null;
-  estimated_duration_minutes: number | null;
-  surface_type: string | null;
-  curvature_index: number | null;
-  view_count: number;
-  clone_count: number;
-  average_rating: number | null;
-  review_count: number;
-  is_featured: boolean;
-  is_motovault_pick: boolean;
-  published_at: string | null;
-  is_flagged: boolean;
-  day_count: number | null;
-  start_lat: number | null;
-  start_lng: number | null;
-}
-
 export interface TemplatesFilter {
   country?: string;
   difficulty?: string;
@@ -81,7 +52,7 @@ export class TripTemplatesService {
 
     let query = this.supabase
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
       .eq('is_flagged', false)
       .order('published_at', { ascending: false })
@@ -129,10 +100,10 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to fetch templates');
     }
 
-    const rows = (data ?? []) as unknown as TemplateRow[];
+    const rows = (data ?? []) as unknown as TripRow[];
     const hasNextPage = rows.length > limit;
     const edges = rows.slice(0, limit).map((row) => ({
-      node: this.mapTemplateRow(row),
+      node: mapRowToTrip(row),
       cursor: this.encodeCursor(row.published_at ?? row.created_at, row.id),
     }));
 
@@ -184,14 +155,14 @@ export class TripTemplatesService {
     const query = this.supabase
       .from('trips')
       .select(
-        `${TEMPLATE_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
+        `${TRIP_DETAIL_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
       )
       .eq('is_template', true)
       .eq('is_flagged', false);
     const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) throw new NotFoundException('Template not found');
-    const trip = this.mapTemplateRow(data as unknown as TemplateRow);
+    const trip = mapRowToTrip(data as unknown as TripRow);
     const wpRows = (data as Record<string, unknown>).trip_waypoints as WaypointRow[] | undefined;
     if (wpRows?.length) {
       trip.waypoints = wpRows.map(mapRowToWaypoint);
@@ -202,14 +173,14 @@ export class TripTemplatesService {
   async getTemplateById(id: string): Promise<Trip> {
     const { data, error } = await this.supabase
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('id', id)
       .eq('is_template', true)
       .eq('is_flagged', false)
       .single();
 
     if (error || !data) throw new NotFoundException('Template not found');
-    return this.mapTemplateRow(data as unknown as TemplateRow);
+    return mapRowToTrip(data as unknown as TripRow);
   }
 
   // ==========================================
@@ -296,7 +267,7 @@ export class TripTemplatesService {
       .from('trips')
       .update(update)
       .eq('id', tripId)
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .single();
 
     if (updateError) {
@@ -304,7 +275,7 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to publish template');
     }
 
-    return this.mapTemplateRow(updated as unknown as TemplateRow);
+    return mapRowToTrip(updated as unknown as TripRow);
   }
 
   async unpublishTemplate(userId: string, tripId: string): Promise<boolean> {
@@ -394,7 +365,8 @@ export class TripTemplatesService {
       .eq('is_flagged', false)
       .not('country_code', 'is', null)
       .not('region_code', 'is', null)
-      .not('slug', 'is', null);
+      .not('slug', 'is', null)
+      .limit(10000);
 
     if (error) {
       this.logger.warn(`sitemapPublishedTrips: ${error.message}`);
@@ -443,7 +415,7 @@ export class TripTemplatesService {
 
     let query = this.supabase
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
       .eq('is_flagged', false)
       .eq('country_code', country.toUpperCase())
@@ -465,44 +437,12 @@ export class TripTemplatesService {
       return [];
     }
 
-    // If too few same-difficulty results, backfill from same country without difficulty filter
-    if ((data?.length ?? 0) < limit) {
-      const existingIds = (data ?? []).map((d) => (d as unknown as TemplateRow).id);
-      let backfillQuery = this.supabase
-        .from('trips')
-        .select(TEMPLATE_SELECT)
-        .eq('is_template', true)
-        .eq('is_flagged', false)
-        .eq('country_code', country.toUpperCase())
-        .neq('id', source.id);
-
-      // Only apply NOT IN filter when there are IDs to exclude;
-      // an empty list produces invalid PostgREST syntax: .not('id', 'in', '()')
-      if (existingIds.length > 0) {
-        backfillQuery = backfillQuery.not('id', 'in', `(${existingIds.join(',')})`);
-      }
-
-      const { data: backfill } = await backfillQuery
-        .order('average_rating', { ascending: false, nullsFirst: false })
-        .limit(limit - (data?.length ?? 0));
-
-      if (backfill) data?.push(...backfill);
-    }
-
-    return (data ?? []).map((row) => this.mapTemplateRow(row as unknown as TemplateRow));
+    return (data ?? []).map((row) => mapRowToTrip(row as unknown as TripRow));
   }
 
   // ==========================================
   // Helpers
   // ==========================================
-
-  /**
-   * Maps a template row to the Trip model, enriching with template-specific
-   * fields. Uses the base mapRowToTrip for core fields.
-   */
-  private mapTemplateRow(row: TemplateRow): Trip {
-    return mapRowToTrip(row);
-  }
 
   private generateSlug(title: string): string {
     return title

@@ -214,7 +214,9 @@ export class TripSavesService {
     const { data: trips, error: tripsError } = await this.supabaseAdmin
       .from('trips')
       .select(TRIP_DETAIL_SELECT)
-      .in('id', tripIds);
+      .in('id', tripIds)
+      .eq('is_flagged', false)
+      .in('visibility', ['public']);
 
     if (tripsError) {
       this.logger.error(`publicSavedTrips trips query failed: ${tripsError.message}`);

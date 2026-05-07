@@ -165,7 +165,21 @@ export class GqlAuthGuard implements CanActivate {
 
   private cacheTier(userId: string, tier: Tier): void {
     if (this.tierCache.size >= this.TIER_CACHE_MAX_SIZE) {
-      this.tierCache.clear();
+      // First pass: evict expired entries
+      const now = Date.now();
+      for (const [key, val] of this.tierCache) {
+        if (val.expiresAt <= now) this.tierCache.delete(key);
+      }
+      // Second pass: if still over 75% capacity, evict oldest 25%
+      if (this.tierCache.size >= this.TIER_CACHE_MAX_SIZE * 0.75) {
+        const entries = [...this.tierCache.entries()].sort(
+          (a, b) => a[1].expiresAt - b[1].expiresAt,
+        );
+        const evictCount = Math.ceil(entries.length * 0.25);
+        for (let i = 0; i < evictCount; i++) {
+          this.tierCache.delete(entries[i][0]);
+        }
+      }
     }
     this.tierCache.set(userId, { tier, expiresAt: Date.now() + this.TIER_CACHE_TTL_MS });
   }
