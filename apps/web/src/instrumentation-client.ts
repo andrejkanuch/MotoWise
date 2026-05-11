@@ -35,5 +35,11 @@ if (process.env.NODE_ENV === 'production') {
     capture_exceptions: true,
     opt_out_capturing_by_default: true,
     persistence: 'memory',
+    // Must match the persistence layer that opt_in_capturing() writes to.
+    // CookieConsentProvider switches persistence to 'localStorage+cookie'
+    // before calling opt_in_capturing(), so the opt-out flag lives in
+    // localStorage. Without this, the SDK defaults to checking a cookie
+    // that never gets written, and stays opted-out on every page load.
+    opt_out_capturing_persistence_type: 'localStorage',
   });
 }
