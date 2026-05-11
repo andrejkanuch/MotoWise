@@ -146,8 +146,7 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
     }
 
     // Screenshot keys are already constrained by the z.enum — no silent
-    // filtering needed. Log if the model somehow returns an empty array
-    // when the angle suggests UI should be shown.
+    // filtering needed.
     const screenshotKeys = output.screenshotKeys;
 
     // Enforce atmospheric-only when screenshots are present: strip device
