@@ -63,7 +63,7 @@ export function PublicNavbar() {
           ))}
           {isLoggedIn === true ? (
             <a
-              href="/feed"
+              href="/garage"
               className="text-sm font-medium text-neutral-200 transition-colors hover:text-neutral-50"
             >
               My Garage
@@ -137,7 +137,7 @@ export function PublicNavbar() {
           ))}
           {isLoggedIn === true ? (
             <a
-              href="/feed"
+              href="/garage"
               className="block py-2.5 text-sm font-medium text-neutral-200"
               onClick={() => setMenuOpen(false)}
             >

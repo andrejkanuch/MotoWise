@@ -33,7 +33,7 @@ export const GpxExportModal = memo(function GpxExportModal({
 
   // Fetch quota status (only relevant for free-tier users)
   const { data: quotaData, isLoading: quotaLoading } = useQuery({
-    queryKey: queryKeys.routes.gpxQuota,
+    queryKey: queryKeys.trips.gpxQuota,
     queryFn: async () => {
       const { GetGpxQuotaStatusDocument } = await import('@motovault/graphql');
       return gqlFetcher(GetGpxQuotaStatusDocument);

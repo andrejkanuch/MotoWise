@@ -1,13 +1,17 @@
-import { WebTripBySlugDocument, type WebTripBySlugQuery } from '@motovault/graphql';
-import { print } from 'graphql';
+import {
+  WebTripBySlugDocument,
+  type WebTripBySlugQuery,
+  WebTripReviewsDocument,
+  type WebTripReviewsQuery,
+} from '@motovault/graphql';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { GpxDownloadButton } from '@/components/gpx-download-button';
+import { TripDetailMap } from '@/components/trip-detail/trip-detail-map';
 import { BASE_URL } from '@/lib/constants';
 import { countryDisplayName, regionDisplayName } from '@/lib/geo-names';
+import { gqlServerFetcher } from '@/lib/graphql-server';
 import '@/components/trip-detail/trip-detail.css';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN ?? '';
 
 type TripData = NonNullable<WebTripBySlugQuery['tripBySlug']>;
 
@@ -15,21 +19,28 @@ interface PageParams {
   params: Promise<{ country: string; region: string; slug: string }>;
 }
 
+type TripReview = WebTripReviewsQuery['tripReviews'][number];
+
 async function fetchTrip(country: string, region: string, slug: string): Promise<TripData | null> {
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: print(WebTripBySlugDocument),
-        variables: { country, region, slug },
-      }),
-      next: { revalidate: 300 },
-    });
-    const json = await res.json();
-    return json?.data?.tripBySlug ?? null;
+    const data = await gqlServerFetcher(WebTripBySlugDocument, { country, region, slug });
+    return data.tripBySlug ?? null;
   } catch {
     return null;
+  }
+}
+
+async function fetchReviews(country: string, region: string, slug: string): Promise<TripReview[]> {
+  try {
+    const data = await gqlServerFetcher(WebTripReviewsDocument, {
+      country,
+      region,
+      slug,
+      first: 10,
+    });
+    return data.tripReviews ?? [];
+  } catch {
+    return [];
   }
 }
 
@@ -182,20 +193,6 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function getMapboxStaticUrl(trip: TripData): string | null {
-  if (!trip.startLat || !trip.startLng || !MAPBOX_TOKEN) return null;
-
-  // Build markers from waypoints
-  const pins = (trip.waypoints ?? [])
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .slice(0, 20) // Mapbox has a URL length limit
-    .map((wp) => `pin-s+d4a243(${wp.lng},${wp.lat})`)
-    .join(',');
-
-  // Auto-fit to bounds
-  return `https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/${pins}/auto/1200x675@2x?padding=60&access_token=${MAPBOX_TOKEN}`;
-}
-
 function buildSections(trip: TripData) {
   const sections: Array<{ id: string; label: string; num: string }> = [];
   let idx = 1;
@@ -211,7 +208,10 @@ function buildSections(trip: TripData) {
 
 export default async function TripPage({ params }: PageParams) {
   const { country, region, slug } = await params;
-  const trip = await fetchTrip(country, region, slug);
+  const [trip, reviews] = await Promise.all([
+    fetchTrip(country, region, slug),
+    fetchReviews(country, region, slug),
+  ]);
   if (!trip) notFound();
 
   const countryCode = trip.countryCode ?? country.toUpperCase();
@@ -242,7 +242,6 @@ export default async function TripPage({ params }: PageParams) {
     : null;
   const fuelStopCount = waypoints.filter((wp) => wp.type === 'fuel').length;
   const surfaceLabel = trip.surfaceType ? capitalize(trip.surfaceType.replace(/_/g, ' ')) : null;
-  const mapUrl = getMapboxStaticUrl(trip);
   const sections = buildSections(trip);
   const updatedDate = new Date(trip.updatedAt ?? trip.createdAt);
   const updatedLabel = updatedDate.toLocaleDateString('en-US', {
@@ -292,6 +291,31 @@ export default async function TripPage({ params }: PageParams) {
       : {}),
   };
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Explore', item: `${BASE_URL}/explore` },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: countryName,
+        item: `${BASE_URL}/explore/${country}`,
+      },
+      ...(regionName
+        ? [
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: regionName,
+              item: `${BASE_URL}/explore/${country}/${region}`,
+            },
+          ]
+        : []),
+      { '@type': 'ListItem', position: regionName ? 4 : 3, name: trip.title },
+    ],
+  };
+
   return (
     <>
       {/* JSON-LD */}
@@ -302,12 +326,16 @@ export default async function TripPage({ params }: PageParams) {
           __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
         }}
       />
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD structured data
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbLd).replace(/</g, '\\u003c'),
+        }}
+      />
 
       {/* ══════════ HERO ══════════ */}
       <section className="rh">
-        {mapUrl ? (
-          <div className="rh-map-bg" style={{ backgroundImage: `url(${mapUrl})` }} />
-        ) : null}
         <div className="rh-overlay" />
         <div className="rh-grid" />
 
@@ -441,6 +469,13 @@ export default async function TripPage({ params }: PageParams) {
                 </svg>
                 Share
               </a>
+              <GpxDownloadButton
+                country={country}
+                region={region}
+                slug={slug}
+                routeName={trip.title}
+                variant="hero"
+              />
             </div>
             <div className="rh-author">
               <div className="rh-author-avatar">{getInitials(trip.organiser.displayName)}</div>
@@ -545,18 +580,31 @@ export default async function TripPage({ params }: PageParams) {
         </div>
       </section>
 
-      {/* ══════════ MAP (static image) ══════════ */}
-      {mapUrl && (
+      {/* ══════════ INTERACTIVE MAP ══════════ */}
+      {waypoints.length > 0 && (
         <section className="rsec" style={{ paddingTop: 0 }}>
           <div className="map-card">
-            <div className="map-frame">
-              {/* biome-ignore lint/performance/noImgElement: Mapbox static URL, can't use next/image */}
-              <img
-                src={mapUrl}
-                alt={`Map of ${trip.title} route`}
-                loading="lazy"
-                width={1200}
-                height={675}
+            <div className="map-frame" style={{ height: 500 }}>
+              <TripDetailMap
+                waypoints={waypoints.map((wp) => ({
+                  lat: wp.lat,
+                  lng: wp.lng,
+                  name: wp.name,
+                  type: wp.type,
+                  dayIndex: wp.dayIndex,
+                  sortOrder: wp.sortOrder,
+                  notes: wp.notes,
+                }))}
+                polyline={trip.polyline}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 0 0' }}>
+              <GpxDownloadButton
+                country={country}
+                region={region}
+                slug={slug}
+                routeName={trip.title}
+                variant="map"
               />
             </div>
           </div>
@@ -667,6 +715,117 @@ export default async function TripPage({ params }: PageParams) {
         </section>
       )}
 
+      {/* ══════════ INDIVIDUAL REVIEWS ══════════ */}
+      {reviews.length > 0 && (
+        <section className="rsec" style={{ paddingTop: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {reviews.map((review) => {
+              const authorName = review.author?.displayName ?? 'Anonymous';
+              const initials = getInitials(authorName);
+              const reviewDate = new Date(review.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                year: 'numeric',
+              });
+
+              return (
+                <div
+                  key={review.id}
+                  style={{
+                    background: 'oklch(0.14 0.01 55)',
+                    border: '1px solid var(--mv-line)',
+                    borderRadius: 16,
+                    padding: '24px 28px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        background: 'oklch(0.22 0.02 55)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--mv-warm-400)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {initials}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{authorName}</div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: 'var(--mv-ink-3)',
+                          display: 'flex',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        {review.bike && (
+                          <span>
+                            {review.bike.year} {review.bike.make} {review.bike.model}
+                          </span>
+                        )}
+                        <span>{reviewDate}</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 14, color: 'var(--mv-warm-400)', flexShrink: 0 }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <span key={`${review.id}-star-${star}`}>
+                          {star <= review.rating ? '\u2605' : '\u2606'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {review.text && (
+                    <p
+                      style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--mv-ink-2)', margin: 0 }}
+                    >
+                      {review.text}
+                    </p>
+                  )}
+
+                  {review.conditionTags && review.conditionTags.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                      {review.conditionTags.map((tag) => (
+                        <span
+                          key={tag}
+                          style={{
+                            fontSize: 11,
+                            padding: '4px 10px',
+                            borderRadius: 999,
+                            background: 'oklch(0.18 0.015 55)',
+                            color: 'var(--mv-ink-3)',
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {tag.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ══════════ GPX DOWNLOAD ══════════ */}
+      <GpxDownloadButton
+        country={country}
+        region={region}
+        slug={slug}
+        routeName={trip.title}
+        variant="bottom"
+      />
+
       {/* ══════════ END CTA ══════════ */}
       <section className="end-cta">
         <h2 className="end-cta-title">
@@ -705,6 +864,37 @@ export default async function TripPage({ params }: PageParams) {
           </a>
         </div>
       </section>
+
+      {/* ══════════ STICKY MOBILE APP CTA ══════════ */}
+      <div
+        className="lg:hidden"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          padding: '12px 16px',
+          background: 'oklch(0.1 0.01 55 / 0.95)',
+          backdropFilter: 'blur(12px)',
+          borderTop: '1px solid var(--mv-line)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 600 }}>Open in MotoVault</div>
+          <div style={{ fontSize: 12, color: 'var(--mv-ink-3)' }}>Navigate this route with GPS</div>
+        </div>
+        <a
+          href="https://apps.apple.com/us/app/motovault-motorcycle-garage/id6760291360"
+          className="mv-btn mv-btn-primary"
+          style={{ padding: '10px 20px', fontSize: 13 }}
+        >
+          <span>Open</span>
+        </a>
+      </div>
     </>
   );
 }

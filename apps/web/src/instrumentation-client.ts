@@ -1,31 +1,39 @@
-// This file configures the initialization of Sentry on the client.
-// The added config here will be used whenever a users loads a page in their browser.
+// This file configures the initialization of Sentry and PostHog on the client.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import posthog from 'posthog-js';
 
+// ── Sentry ──────────────────────────────────────────────────────────────────
 Sentry.init({
   dsn: 'https://a3cf72113ed0793fa895a40f6baa3ab1@o4510167517954048.ingest.us.sentry.io/4511299447291904',
-
-  // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
-
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
-  // Enable logs to be sent to Sentry
   enableLogs: true,
-
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
   replaysSessionSampleRate: 0.1,
-
-  // Define how likely Replay events are sampled when an error occurs.
   replaysOnErrorSampleRate: 1.0,
-
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
+// ── PostHog ─────────────────────────────────────────────────────────────────
+// Initialized on every page load but stays opted-out by default until the user
+// grants analytics consent via the cookie banner.
+// See apps/web/src/components/cookie-consent.tsx — accept()/deny() toggles
+// posthog.opt_in_capturing() / opt_out_capturing() at runtime.
+//
+// GDPR: `opt_out_capturing_by_default: true` means no events (including
+// pageviews and $exception) are sent until the user opts in. We use
+// `persistence: 'memory'` pre-consent so we never write a `ph_` cookie
+// before the user has agreed.
+if (process.env.NODE_ENV === 'production') {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? '', {
+    api_host: '/ingest',
+    ui_host: 'https://eu.posthog.com',
+    capture_pageview: 'history_change',
+    capture_exceptions: true,
+    opt_out_capturing_by_default: true,
+    persistence: 'memory',
+  });
+}

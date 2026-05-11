@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Hľadať trasy alebo miesta...",
     "reviewPlaceholder": "Podeľ sa o svoj zážitok (voliteľné)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Mix",
+    "surfaceOffRoad": "Teren",
+    "difficultyEasy": "Lahka",
+    "difficultyModerate": "Stredna",
+    "difficultyChallenging": "Tazka",
+    "difficultyExpert": "Expert",
+    "sortMostPopular": "Najpopularnejsie",
+    "sortHighestRated": "Najlepsie hodnotene",
+    "sortNewest": "Najnovsie",
+    "sortShortest": "Najkratsie",
+    "allRoutes": "Vsetky trasy",
+    "routesFound_one": "{{count}} trasa",
+    "routesFound_other": "{{count}}+ tras",
+    "found": "najdenych",
+    "noRoutesMatch": "Ziadne trasy neodpovedaju filtrom",
+    "clearFilters": "Zrusit filtre",
+    "routesNearby": "{{count}} tras v okoli",
+    "planTrip": "Naplanovat jazdu"
+  },
   "mapPicker": {
     "searchPlaceholder": "Hľadať miesto..."
   },

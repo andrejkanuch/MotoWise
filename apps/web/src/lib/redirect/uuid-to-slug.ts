@@ -1,10 +1,14 @@
-import { RoutePathByIdDocument } from '@motovault/graphql';
+import { WebTripPathByIdDocument } from '@motovault/graphql';
 import { gqlServerFetcher } from '@/lib/graphql-server';
 
 // Simple in-memory LRU cache (works for single Vercel instance)
 const cache = new Map<string, { country: string; region: string; slug: string }>();
 const MAX_CACHE = 10000;
 
+/**
+ * Resolve a trip UUID to its canonical slug path.
+ * Uses the trips table (unified model) instead of the legacy routes table.
+ */
 export async function resolveUuidToSlug(
   uuid: string,
 ): Promise<{ country: string; region: string; slug: string } | null> {
@@ -15,20 +19,24 @@ export async function resolveUuidToSlug(
   const cached = cache.get(uuid);
   if (cached) return cached;
 
-  let path: { countryCode: string; regionCode: string; slug: string } | null | undefined;
+  let trip: {
+    countryCode?: string | null;
+    regionCode?: string | null;
+    slug?: string | null;
+  } | null = null;
   try {
-    const data = await gqlServerFetcher(RoutePathByIdDocument, { routeId: uuid });
-    path = data.routePathById;
+    const data = await gqlServerFetcher(WebTripPathByIdDocument, { tripId: uuid });
+    trip = data.tripDetail;
   } catch {
     return null;
   }
 
-  if (!path?.slug || !path.countryCode || !path.regionCode) return null;
+  if (!trip?.slug || !trip.countryCode || !trip.regionCode) return null;
 
   const result = {
-    country: path.countryCode.toLowerCase(),
-    region: path.regionCode.toLowerCase(),
-    slug: path.slug.toLowerCase(),
+    country: trip.countryCode.toLowerCase(),
+    region: trip.regionCode.toLowerCase(),
+    slug: trip.slug.toLowerCase(),
   };
 
   if (cache.size >= MAX_CACHE) {

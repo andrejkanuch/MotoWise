@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Cari rute atau tempat...",
     "reviewPlaceholder": "Bagikan pengalamanmu (opsional)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Beraspal",
+    "surfaceMixed": "Campuran",
+    "surfaceOffRoad": "Off-road",
+    "difficultyEasy": "Mudah",
+    "difficultyModerate": "Sedang",
+    "difficultyChallenging": "Sulit",
+    "difficultyExpert": "Ahli",
+    "sortMostPopular": "Terpopuler",
+    "sortHighestRated": "Rating tertinggi",
+    "sortNewest": "Terbaru",
+    "sortShortest": "Terpendek",
+    "allRoutes": "Semua rute",
+    "routesFound_one": "{{count}} rute",
+    "routesFound_other": "{{count}}+ rute",
+    "found": "ditemukan",
+    "noRoutesMatch": "Tidak ada rute yang cocok dengan filter ini",
+    "clearFilters": "Hapus filter",
+    "routesNearby": "{{count}} rute terdekat",
+    "planTrip": "Rencanakan perjalanan"
+  },
   "mapPicker": {
     "searchPlaceholder": "Cari lokasi..."
   },

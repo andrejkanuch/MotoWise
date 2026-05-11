@@ -10,6 +10,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { mapboxCountryShortCodeFromJson } from '../../common/mapbox-geocode';
+import { applySlugFilters } from '../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import {
@@ -161,14 +162,11 @@ export class DiscoverTripsService {
   }
 
   async getBySlug(country: string, region: string, slug: string): Promise<DiscoverTrip> {
-    const { data, error } = await this.supabase
+    const query = this.supabase
       .from('discover_trips')
       .select(DISCOVER_TRIP_COLUMNS)
-      .eq('country_code', country)
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('status', 'published')
-      .single();
+      .eq('status', 'published');
+    const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) throw new DiscoverTripNotFoundError();
     return this.mapRow(data as unknown as DiscoverTripRow);

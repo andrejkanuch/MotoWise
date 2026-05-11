@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "template_version": 0
+  },
+  "fixtures": [
+    {
+      "name": "monthly_product",
+      "path": "/v1/products",
+      "method": "post",
+      "params": {
+        "name": "MotoVault Pro Monthly",
+        "description": "MotoVault Pro subscription — monthly billing. Unlimited bikes, full AI diagnostics, trip assistant, GPX exports, maintenance reminders, and more."
+      }
+    },
+    {
+      "name": "monthly_price",
+      "path": "/v1/prices",
+      "method": "post",
+      "params": {
+        "product": "${monthly_product:id}",
+        "unit_amount": 599,
+        "currency": "usd",
+        "recurring": {
+          "interval": "month"
+        }
+      }
+    },
+    {
+      "name": "annual_product",
+      "path": "/v1/products",
+      "method": "post",
+      "params": {
+        "name": "MotoVault Pro Annual",
+        "description": "MotoVault Pro subscription — annual billing. Save 30% vs monthly. Unlimited bikes, full AI diagnostics, trip assistant, GPX exports, maintenance reminders, and more."
+      }
+    },
+    {
+      "name": "annual_price",
+      "path": "/v1/prices",
+      "method": "post",
+      "params": {
+        "product": "${annual_product:id}",
+        "unit_amount": 4999,
+        "currency": "usd",
+        "recurring": {
+          "interval": "year"
+        }
+      }
+    }
+  ]
+}

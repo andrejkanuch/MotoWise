@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Szukaj tras lub miejsc...",
     "reviewPlaceholder": "Podziel sie swoim doswiadczeniem (opcjonalnie)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Asfalt",
+    "surfaceMixed": "Mieszany",
+    "surfaceOffRoad": "Teren",
+    "difficultyEasy": "Latwy",
+    "difficultyModerate": "Umiarkowany",
+    "difficultyChallenging": "Trudny",
+    "difficultyExpert": "Ekspert",
+    "sortMostPopular": "Najpopularniejsze",
+    "sortHighestRated": "Najlepiej oceniane",
+    "sortNewest": "Najnowsze",
+    "sortShortest": "Najkrotsze",
+    "allRoutes": "Wszystkie trasy",
+    "routesFound_one": "{{count}} trasa",
+    "routesFound_other": "{{count}}+ tras",
+    "found": "znalezionych",
+    "noRoutesMatch": "Brak tras pasujacych do filtrow",
+    "clearFilters": "Wyczysc filtry",
+    "routesNearby": "{{count}} tras w poblizu",
+    "planTrip": "Zaplanuj wycieczke"
+  },
   "mapPicker": {
     "searchPlaceholder": "Szukaj lokalizacji..."
   },

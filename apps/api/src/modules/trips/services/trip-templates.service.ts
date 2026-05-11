@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapboxCountryShortCodeFromJson } from '../../../common/mapbox-geocode';
+import { applySlugFilters } from '../../../common/slug-lookup';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 import type { Trip, TripConnection } from '../models/trip.model';
@@ -19,35 +20,6 @@ import {
   type TripRow,
   type WaypointRow,
 } from './trip-lifecycle.service';
-
-/** Template listing/detail rows: same select as {@link TRIP_DETAIL_SELECT}. */
-const TEMPLATE_SELECT = TRIP_DETAIL_SELECT;
-
-/** Extended row shape for template queries (base TripRow + required template fields) */
-interface TemplateRow extends TripRow {
-  is_template: boolean;
-  slug: string | null;
-  country_code: string | null;
-  region_code: string | null;
-  city: string | null;
-  polyline: string | null;
-  distance_m: number | null;
-  elevation_gain_m: number | null;
-  estimated_duration_minutes: number | null;
-  surface_type: string | null;
-  curvature_index: number | null;
-  view_count: number;
-  clone_count: number;
-  average_rating: number | null;
-  review_count: number;
-  is_featured: boolean;
-  is_motovault_pick: boolean;
-  published_at: string | null;
-  is_flagged: boolean;
-  day_count: number | null;
-  start_lat: number | null;
-  start_lng: number | null;
-}
 
 export interface TemplatesFilter {
   country?: string;
@@ -78,9 +50,9 @@ export class TripTemplatesService {
   ): Promise<TripConnection> {
     const limit = Math.min(first, 50);
 
-    let query = this.supabase
+    let query = this.supabaseAdmin
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('is_template', true)
       .eq('is_flagged', false)
       .order('published_at', { ascending: false })
@@ -128,10 +100,10 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to fetch templates');
     }
 
-    const rows = (data ?? []) as unknown as TemplateRow[];
+    const rows = (data ?? []) as unknown as TripRow[];
     const hasNextPage = rows.length > limit;
     const edges = rows.slice(0, limit).map((row) => ({
-      node: this.mapTemplateRow(row),
+      node: mapRowToTrip(row),
       cursor: this.encodeCursor(row.published_at ?? row.created_at, row.id),
     }));
 
@@ -180,20 +152,20 @@ export class TripTemplatesService {
   }
 
   async getTemplateBySlug(country: string, region: string, slug: string): Promise<Trip> {
-    const { data, error } = await this.supabase
+    // Use admin client — this is called from @Public() resolvers (tripBySlug, tripReviews, similarTrips)
+    // where there is no authenticated user. The user client with anon key may not have
+    // sufficient RLS access for the trips + trip_waypoints join.
+    const query = this.supabaseAdmin
       .from('trips')
       .select(
-        `${TEMPLATE_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
+        `${TRIP_DETAIL_SELECT}, trip_waypoints(id, trip_id, sort_order, day_index, type, name, lat, lng, notes, period_of_day)`,
       )
       .eq('is_template', true)
-      .eq('country_code', country.toUpperCase())
-      .eq('region_code', region)
-      .eq('slug', slug)
-      .eq('is_flagged', false)
-      .single();
+      .eq('is_flagged', false);
+    const { data, error } = await applySlugFilters(query, country, region, slug).single();
 
     if (error || !data) throw new NotFoundException('Template not found');
-    const trip = this.mapTemplateRow(data as unknown as TemplateRow);
+    const trip = mapRowToTrip(data as unknown as TripRow);
     const wpRows = (data as Record<string, unknown>).trip_waypoints as WaypointRow[] | undefined;
     if (wpRows?.length) {
       trip.waypoints = wpRows.map(mapRowToWaypoint);
@@ -204,14 +176,14 @@ export class TripTemplatesService {
   async getTemplateById(id: string): Promise<Trip> {
     const { data, error } = await this.supabase
       .from('trips')
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .eq('id', id)
       .eq('is_template', true)
       .eq('is_flagged', false)
       .single();
 
     if (error || !data) throw new NotFoundException('Template not found');
-    return this.mapTemplateRow(data as unknown as TemplateRow);
+    return mapRowToTrip(data as unknown as TripRow);
   }
 
   // ==========================================
@@ -298,7 +270,7 @@ export class TripTemplatesService {
       .from('trips')
       .update(update)
       .eq('id', tripId)
-      .select(TEMPLATE_SELECT)
+      .select(TRIP_DETAIL_SELECT)
       .single();
 
     if (updateError) {
@@ -306,7 +278,7 @@ export class TripTemplatesService {
       throw new InternalServerErrorException('Failed to publish template');
     }
 
-    return this.mapTemplateRow(updated as unknown as TemplateRow);
+    return mapRowToTrip(updated as unknown as TripRow);
   }
 
   async unpublishTemplate(userId: string, tripId: string): Promise<boolean> {
@@ -383,16 +355,97 @@ export class TripTemplatesService {
   }
 
   // ==========================================
-  // Helpers
+  // Sitemap
+  // ==========================================
+
+  async sitemapPublishedTrips(): Promise<
+    Array<{ countryCode: string; regionCode: string; slug: string; updatedAt: string }>
+  > {
+    const { data, error } = await this.supabaseAdmin
+      .from('trips')
+      .select('country_code, region_code, slug, updated_at')
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .not('country_code', 'is', null)
+      .not('region_code', 'is', null)
+      .not('slug', 'is', null)
+      .limit(10000);
+
+    if (error) {
+      this.logger.warn(`sitemapPublishedTrips: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((row) => ({
+      countryCode: row.country_code as string,
+      regionCode: row.region_code as string,
+      slug: row.slug as string,
+      updatedAt: row.updated_at as string,
+    }));
+  }
+
+  // ==========================================
+  // Similar trips
   // ==========================================
 
   /**
-   * Maps a template row to the Trip model, enriching with template-specific
-   * fields. Uses the base mapRowToTrip for core fields.
+   * Find similar published templates by country + difficulty + duration band.
+   * Excludes the source trip itself.
    */
-  private mapTemplateRow(row: TemplateRow): Trip {
-    return mapRowToTrip(row);
+  async findSimilarTrips(
+    slug: string,
+    country: string,
+    region: string,
+    limit = 6,
+  ): Promise<Trip[]> {
+    // First get the source trip's difficulty and day_count for matching
+    const sourceQuery = this.supabaseAdmin
+      .from('trips')
+      .select('id, difficulty, day_count')
+      .eq('is_template', true);
+    const { data: source, error: sourceErr } = await applySlugFilters(
+      sourceQuery,
+      country,
+      region,
+      slug,
+    ).single();
+
+    if (sourceErr || !source) return [];
+
+    // Find similar: same country, closest difficulty, duration within ±1 day
+    const minDays = Math.max(1, (source.day_count ?? 1) - 1);
+    const maxDays = (source.day_count ?? 1) + 1;
+
+    let query = this.supabaseAdmin
+      .from('trips')
+      .select(TRIP_DETAIL_SELECT)
+      .eq('is_template', true)
+      .eq('is_flagged', false)
+      .eq('country_code', country.toUpperCase())
+      .neq('id', source.id)
+      .gte('day_count', minDays)
+      .lte('day_count', maxDays)
+      .order('average_rating', { ascending: false, nullsFirst: false })
+      .limit(limit);
+
+    // Prefer same difficulty, but don't exclude others
+    if (source.difficulty) {
+      query = query.eq('difficulty', source.difficulty);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      this.logger.error(`findSimilarTrips failed: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((row) => mapRowToTrip(row as unknown as TripRow));
   }
+
+  // ==========================================
+  // Helpers
+  // ==========================================
 
   private generateSlug(title: string): string {
     return title

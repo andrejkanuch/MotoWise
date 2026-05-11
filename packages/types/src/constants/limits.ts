@@ -9,8 +9,8 @@ export const FREE_TIER_LIMITS = {
 } as const;
 
 export const GPX_EXPORT_LIMITS = {
-  /** Free-tier users: GPX exports not available (Pro-only) */
-  FREE_MONTHLY_EXPORTS: 0,
+  /** Free-tier users: 1 GPX export per month (taste-then-convert model) */
+  FREE_MONTHLY_EXPORTS: 1,
   /** Pro-tier users: unlimited (use -1 sentinel) */
   PRO_MONTHLY_EXPORTS: -1,
 } as const;

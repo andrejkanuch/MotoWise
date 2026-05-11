@@ -25,7 +25,8 @@
     "progress": "Progress Tracking",
     "viewAllFeatures": "View all features",
     "blog": "Blog",
-    "riders": "ไรเดอร์"
+    "riders": "ไรเดอร์",
+    "pro": "Pro"
   },
   "Hero": {
     "line1": "ติดตามรถของคุณ",
@@ -973,6 +974,7 @@
     "accept": "Accept the cookie",
     "decline": "No thanks",
     "showList": "Show me what I’m eating",
+    "settings": "Settings",
     "privacyLink": "Honest privacy policy →",
     "list": {
       "whatWeUse": "What we use",

@@ -1,17 +1,53 @@
 'use client';
 
+import { usePathname as useNextPathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
 
+/**
+ * Routes under [locale]/(marketing) support locale-prefixed URLs.
+ * All other routes (trips, explore, pro, profile, etc.) do not.
+ * For non-i18n routes, we set the NEXT_LOCALE cookie and reload
+ * instead of rewriting the URL (which would 404).
+ */
+const I18N_ROUTE_PREFIXES = [
+  '/features',
+  '/privacy',
+  '/terms',
+  '/about',
+  '/account-deletion',
+  '/press',
+  '/tools',
+  '/guides',
+  '/contact',
+];
+
+function isI18nRoute(path: string): boolean {
+  // Strip locale prefix if present (e.g. /es/features → /features)
+  const stripped = path.replace(/^\/(en|de|fr|es|it)(?=\/|$)/, '') || '/';
+  // The homepage (/) is i18n-aware
+  if (stripped === '/') return true;
+  return I18N_ROUTE_PREFIXES.some((prefix) => stripped.startsWith(prefix));
+}
+
 export function LanguageSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
+  const intlRouter = useRouter();
+  const intlPathname = usePathname();
+  const browserPathname = useNextPathname();
   const t = useTranslations('LanguageSwitcher');
 
   function handleChange(newLocale: string) {
-    router.replace(pathname, { locale: newLocale });
+    if (isI18nRoute(browserPathname)) {
+      // i18n route — use next-intl router to rewrite URL with locale prefix
+      intlRouter.replace(intlPathname, { locale: newLocale });
+    } else {
+      // Non-i18n route — set cookie and reload to pick up new translations
+      // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not universally supported
+      document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+      window.location.reload();
+    }
   }
 
   return (

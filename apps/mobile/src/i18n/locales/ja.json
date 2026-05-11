@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "ルートや場所を検索...",
     "reviewPlaceholder": "体験をシェア（任意）"
   },
+  "discoverFilters": {
+    "surfacePaved": "舗装",
+    "surfaceMixed": "ミックス",
+    "surfaceOffRoad": "オフロード",
+    "difficultyEasy": "簡単",
+    "difficultyModerate": "普通",
+    "difficultyChallenging": "難しい",
+    "difficultyExpert": "エキスパート",
+    "sortMostPopular": "人気順",
+    "sortHighestRated": "高評価順",
+    "sortNewest": "新着順",
+    "sortShortest": "距離が短い順",
+    "allRoutes": "すべてのルート",
+    "routesFound_one": "{{count}}ルート",
+    "routesFound_other": "{{count}}+ルート",
+    "found": "件",
+    "noRoutesMatch": "フィルターに一致するルートがありません",
+    "clearFilters": "フィルターをクリア",
+    "routesNearby": "{{count}}ルート近く",
+    "planTrip": "ツーリング計画"
+  },
   "mapPicker": {
     "searchPlaceholder": "場所を検索..."
   },

@@ -1,0 +1,27 @@
+query PublicSavedTrips($handle: String!, $first: Int, $after: String) {
+  publicSavedTrips(handle: $handle, first: $first, after: $after) {
+    edges {
+      node {
+        id
+        title
+        distanceM
+        elevationGainM
+        surfaceType
+        isMotovaultPick
+        averageRating
+        reviewCount
+        organiser {
+          id
+          displayName
+          publicUsername
+          avatarUrl
+        }
+      }
+      cursor
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

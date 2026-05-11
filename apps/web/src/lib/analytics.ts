@@ -96,10 +96,67 @@ export const WebEvent = {
   PAGE_NOT_FOUND: 'page_not_found',
   API_ERROR_SHOWN: 'api_error_shown',
   SLOW_PAGE_LOAD: 'slow_page_load',
+
+  // Explore monetization
+  FILTER_APPLIED: 'filter_applied',
+  SORT_CHANGED: 'sort_changed',
+  MAP_VIEW_TOGGLED: 'map_view_toggled',
+
+  // Saves
+  TRIP_SAVED_ANONYMOUS: 'trip_saved_anonymous',
+  EMAIL_CAPTURE_MODAL_SHOWN: 'email_capture_modal_shown',
+  EMAIL_CAPTURED_POST_SAVE: 'email_captured_post_save',
+
+  // GPX
+  GPX_DOWNLOAD_ATTEMPTED: 'gpx_download_attempted',
+  GPX_DOWNLOAD_DENIED: 'gpx_download_denied',
+  GPX_PREVIEW_SHOWN: 'gpx_preview_shown',
+
+  // Pro
+  PRO_CTA_CLICKED: 'pro_cta_clicked',
+  CHECKOUT_ATTRIBUTION_GATE_SHOWN: 'checkout_attribution_gate_shown',
+
+  // Builder
+  BUILDER_OPENED: 'builder_opened',
+  BUILDER_SAVED: 'builder_saved',
+  BUILDER_SHARED: 'builder_shared',
+
+  // Affiliate
+  AFFILIATE_CLICK: 'affiliate_click',
 } as const;
 
 export type WebEventName = (typeof WebEvent)[keyof typeof WebEvent];
 
+type WebEventProperties = {
+  [WebEvent.FILTER_APPLIED]: { dimension: string; value: string; resultCount: number };
+  [WebEvent.SORT_CHANGED]: { sortBy: string; direction: 'asc' | 'desc' };
+  [WebEvent.MAP_VIEW_TOGGLED]: { enabled: boolean };
+  [WebEvent.TRIP_SAVED_ANONYMOUS]: { tripSlug: string };
+  [WebEvent.EMAIL_CAPTURE_MODAL_SHOWN]: { trigger: 'save' | 'gpx' | 'builder' };
+  [WebEvent.EMAIL_CAPTURED_POST_SAVE]: { trigger: 'save' | 'gpx' | 'builder' };
+  [WebEvent.GPX_DOWNLOAD_ATTEMPTED]: { tripSlug: string; isPro: boolean };
+  [WebEvent.GPX_DOWNLOAD_DENIED]: { tripSlug: string; reason: 'not_authenticated' | 'not_pro' };
+  [WebEvent.GPX_PREVIEW_SHOWN]: { tripSlug: string };
+  [WebEvent.PRO_CTA_CLICKED]: {
+    source: 'trip_detail' | 'builder' | 'explore' | 'gpx_preview';
+    tripSlug?: string;
+  };
+  [WebEvent.CHECKOUT_ATTRIBUTION_GATE_SHOWN]: { tripSlug?: string; source: string };
+  [WebEvent.BUILDER_OPENED]: { source: 'explore' | 'trip_detail' | 'nav' };
+  [WebEvent.BUILDER_SAVED]: { waypointCount: number; distanceKm: number };
+  [WebEvent.BUILDER_SHARED]: { method: 'link' | 'social'; tripSlug: string };
+  [WebEvent.AFFILIATE_CLICK]: { provider: 'booking' | 'eaglerider' | 'revzilla'; tripSlug: string };
+};
+
+/** Events that carry typed properties. */
+type TypedEvent = keyof WebEventProperties;
+
+/** Events that have no required properties. */
+type UntypedEvent = Exclude<WebEventName, TypedEvent>;
+
+export function trackEvent<E extends TypedEvent>(event: E, properties: WebEventProperties[E]): void;
+export function trackEvent(event: UntypedEvent, properties?: Record<string, unknown>): void;
+export function trackEvent(event: WebEventName, properties?: Record<string, unknown>): void;
 export function trackEvent(event: WebEventName, properties?: Record<string, unknown>) {
   posthog.capture(event, properties);
 }

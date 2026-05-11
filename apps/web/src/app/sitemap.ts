@@ -1,4 +1,4 @@
-import { SitemapPublishedRoutesDocument, TripTemplatesDocument } from '@motovault/graphql';
+import { SitemapPublishedTripsDocument, TripTemplatesDocument } from '@motovault/graphql';
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { BIKE_FIXTURES } from '@/lib/bikes/bike-data';
@@ -6,12 +6,7 @@ import { scoreBikePage } from '@/lib/bikes/quality-gate';
 import { getArticles } from '@/lib/blog';
 import { BASE_URL } from '@/lib/constants';
 import { gqlServerFetcher } from '@/lib/graphql-server';
-import {
-  canonicalCountry,
-  canonicalExplore,
-  canonicalRegion,
-  canonicalRoute,
-} from '@/lib/seo/canonical';
+import { canonicalCountry, canonicalExplore, canonicalRegion } from '@/lib/seo/canonical';
 
 const host = BASE_URL;
 const locales = routing.locales;
@@ -53,7 +48,6 @@ const pages = [
   '/compare/motovault-vs-moto-shed',
   '/press',
   '/about',
-  '/explore',
 ];
 
 function getLocalizedUrl(locale: string, path: string): string {
@@ -91,7 +85,6 @@ const PAGE_LAST_EDITED: Record<string, string> = {
   '/compare/motovault-vs-moto-shed': '2026-04-18',
   '/press': '2026-03-01',
   '/about': '2026-03-22',
-  '/explore': '2026-04-13',
 };
 
 function getPageImages(path: string): string[] {
@@ -100,11 +93,11 @@ function getPageImages(path: string): string[] {
   return [];
 }
 
-/** Published route rows for discover URLs (via API — same source as /explore). */
-async function getPublishedRoutes() {
+/** Published trip templates for explore/country/region sitemap URLs. */
+async function getPublishedTripsForSitemap() {
   try {
-    const data = await gqlServerFetcher(SitemapPublishedRoutesDocument);
-    return data.sitemapPublishedRoutes;
+    const data = await gqlServerFetcher(SitemapPublishedTripsDocument);
+    return data.sitemapPublishedTrips;
   } catch {
     return [];
   }
@@ -188,19 +181,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: t.publishedAt ? new Date(t.publishedAt) : new Date(),
   }));
 
-  // ---- Route Discovery pages (legacy — kept for SEO redirect coverage) ----
-  const routes = await getPublishedRoutes();
+  // ---- Explore discovery pages (derived from trip templates) ----
+  const publishedTrips = await getPublishedTripsForSitemap();
 
-  // Derive unique countries and regions from route data (URLs use lowercase segments)
   const countrySet = new Set<string>();
   const regionSet = new Set<string>();
-  for (const r of routes) {
-    countrySet.add(r.countryCode.toLowerCase());
-    regionSet.add(`${r.countryCode.toLowerCase()}/${r.regionCode.toLowerCase()}`);
+  for (const t of publishedTrips) {
+    countrySet.add(t.countryCode.toLowerCase());
+    regionSet.add(`${t.countryCode.toLowerCase()}/${t.regionCode.toLowerCase()}`);
   }
 
   const exploreEntry =
-    routes.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
+    publishedTrips.length > 0 ? [{ url: canonicalExplore(), lastModified: new Date() }] : [];
 
   const countryEntries = [...countrySet].map((cc) => ({
     url: canonicalCountry(cc),
@@ -212,15 +204,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return { url: canonicalRegion(cc, rs), lastModified: new Date() };
   });
 
-  const routeEntries = routes.map((r) => ({
-    url: canonicalRoute(
-      r.countryCode.toLowerCase(),
-      r.regionCode.toLowerCase(),
-      r.slug.toLowerCase(),
-    ),
-    lastModified: new Date(r.updatedAt),
-  }));
-
   return [
     ...staticEntries,
     ...blogEntries,
@@ -230,6 +213,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...exploreEntry,
     ...countryEntries,
     ...regionEntries,
-    ...routeEntries,
   ];
 }

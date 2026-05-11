@@ -18,6 +18,7 @@ android/
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Google Play service account key
 google-service-account.json

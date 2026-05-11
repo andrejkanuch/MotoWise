@@ -1418,6 +1418,27 @@
     "searchPlaceholder": "Rechercher des itineraires ou des lieux...",
     "reviewPlaceholder": "Partage ton experience (optionnel)"
   },
+  "discoverFilters": {
+    "surfacePaved": "Goudron",
+    "surfaceMixed": "Mixte",
+    "surfaceOffRoad": "Tout-terrain",
+    "difficultyEasy": "Facile",
+    "difficultyModerate": "Modere",
+    "difficultyChallenging": "Difficile",
+    "difficultyExpert": "Expert",
+    "sortMostPopular": "Plus populaire",
+    "sortHighestRated": "Mieux note",
+    "sortNewest": "Plus recent",
+    "sortShortest": "Plus court d abord",
+    "allRoutes": "Tous les itineraires",
+    "routesFound_one": "{{count}} itineraire",
+    "routesFound_other": "{{count}}+ itineraires",
+    "found": "trouves",
+    "noRoutesMatch": "Aucun itineraire ne correspond a ces filtres",
+    "clearFilters": "Effacer les filtres",
+    "routesNearby": "{{count}} itineraires a proximite",
+    "planTrip": "Planifier un trajet"
+  },
   "mapPicker": {
     "searchPlaceholder": "Rechercher un lieu..."
   },

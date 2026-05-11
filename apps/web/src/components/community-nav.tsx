@@ -1,19 +1,24 @@
 'use client';
 
+import { Crown } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useProStatus } from '@/hooks/use-pro-status';
 import { resetUser } from '@/lib/analytics';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
+import '@/app/(community)/garage/garage.css';
 
 const NAV_LINKS = [
-  { href: '/feed', label: 'Feed' },
-  { href: '/garage', label: 'Garage' },
-  { href: '/profile', label: 'Profile' },
+  { href: '/garage', labelKey: 'garage' },
+  { href: '/profile', labelKey: 'profile' },
 ] as const;
 
 export function CommunityNav({ displayName }: { displayName?: string | null }) {
+  const t = useTranslations('CommunityNav');
   const router = useRouter();
   const pathname = usePathname();
+  const { isPro, isTrialing, trialDaysLeft } = useProStatus();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -39,50 +44,88 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  return (
-    <nav className="sticky top-0 z-50 border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-        {/* Logo */}
-        <a href="/" className="text-lg font-bold text-neutral-50 tracking-tight">
-          MotoVault
-        </a>
+  const initial = displayName?.charAt(0)?.toUpperCase() ?? 'R';
 
-        {/* Desktop links */}
-        <div className="hidden items-center gap-6 sm:flex">
-          {NAV_LINKS.map((link) => (
+  return (
+    <nav className="community-nav">
+      {/* Brand */}
+      <a href="/" className="nav-brand">
+        <span className="nav-mark">M</span>
+        MotoVault
+      </a>
+
+      {/* Desktop pill tabs */}
+      <div className="nav-pill">
+        {NAV_LINKS.map((link) => {
+          const isActive = pathname.startsWith(link.href);
+          return (
             <a
               key={link.href}
               href={link.href}
-              className={`text-sm font-medium transition-colors ${
-                pathname.startsWith(link.href)
-                  ? 'text-warm-400'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              }`}
+              className={`nav-pill-link${isActive ? ' active' : ''}`}
             >
-              {link.label}
+              {isActive && <span className="dot" />}
+              {t(link.labelKey)}
             </a>
-          ))}
-          <span className="text-sm text-neutral-500">{displayName ?? 'Rider'}</span>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-          >
-            {signingOut ? 'Signing out...' : 'Sign Out'}
-          </button>
+          );
+        })}
+      </div>
+
+      {/* Right side */}
+      <div className="nav-right">
+        {/* Free user upgrade link */}
+        {!isPro && !isTrialing && (
+          <a href="/pro" className="nav-upgrade">
+            {t('upgrade')} <span style={{ fontSize: '11px' }}>&rarr;</span>
+          </a>
+        )}
+
+        <div className="nav-user">
+          <div className="nav-avatar">{initial}</div>
+          <span className="nav-name-text">{displayName ?? t('rider')}</span>
+
+          {/* Pro badge */}
+          {isPro && !isTrialing && (
+            <span className="nav-badge pro">
+              <span className="nav-crown">
+                <Crown />
+              </span>
+              Pro
+            </span>
+          )}
+
+          {/* Trial badge */}
+          {isTrialing && (
+            <span className="nav-badge trial">
+              <span className="nav-crown">
+                <Crown />
+              </span>
+              {t('trial')}{' '}
+              {trialDaysLeft != null ? `\u00B7 ${t('daysLeft', { days: trialDaysLeft })}` : ''}
+            </span>
+          )}
         </div>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="nav-signout-btn"
+        >
+          {signingOut ? t('signingOut') : t('signOut')}
+        </button>
 
         {/* Mobile hamburger */}
         <button
           type="button"
           onClick={() => setMenuOpen(!menuOpen)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-800 sm:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-lg sm:hidden"
+          style={{ color: 'var(--mv-ink-2)', background: 'transparent', border: 'none' }}
           aria-expanded={menuOpen}
           aria-label="Toggle navigation menu"
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <title>Menu</title>
+            <title>{t('menu')}</title>
             {menuOpen ? (
               <path
                 d="M5 5l10 10M15 5L5 15"
@@ -104,30 +147,35 @@ export function CommunityNav({ displayName }: { displayName?: string | null }) {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div ref={menuRef} className="border-t border-neutral-800 px-4 pb-4 sm:hidden">
+        <div
+          ref={menuRef}
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: 'oklch(0.085 0.008 55 / 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid var(--mv-line)',
+            padding: '16px 28px',
+            zIndex: 50,
+          }}
+        >
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className={`block py-2 text-sm font-medium ${
-                pathname.startsWith(link.href) ? 'text-warm-400' : 'text-neutral-400'
-              }`}
+              className="nav-pill-link"
+              style={{
+                display: 'block',
+                padding: '10px 0',
+                color: pathname.startsWith(link.href) ? 'var(--mv-warm-400)' : 'var(--mv-ink-2)',
+              }}
             >
-              {link.label}
+              {t(link.labelKey)}
             </a>
           ))}
-          <div className="mt-2 flex items-center justify-between border-t border-neutral-800 pt-3">
-            <span className="text-sm text-neutral-500">{displayName ?? 'Rider'}</span>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="rounded-lg bg-neutral-800 px-3 py-1.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50"
-            >
-              {signingOut ? 'Signing out...' : 'Sign Out'}
-            </button>
-          </div>
         </div>
       )}
     </nav>

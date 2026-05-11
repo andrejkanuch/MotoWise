@@ -78,6 +78,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
         Skip to content
       </a>
       <link rel="preconnect" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
+      <link rel="preload" as="image" href="/images/marketing/hero-rider.jpg" fetchPriority="high" />
       <CursorDot />
       <Navbar />
       <main id="main-content">{children}</main>

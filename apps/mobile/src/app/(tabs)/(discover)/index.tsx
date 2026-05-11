@@ -23,9 +23,6 @@ import {
   Mountain,
   Plus,
   SlidersHorizontal,
-  Star,
-  TrendingUp,
-  Wind,
 } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -73,16 +70,21 @@ type TripNode = TripTemplatesQuery['tripTemplates']['edges'][number]['node'];
 
 // --- Filter chip definitions ---
 
-const FILTER_CHIPS = [
-  { key: 'popular', label: 'Popular', Icon: TrendingUp },
-  { key: 'twisty', label: 'Twisty', Icon: Wind },
-  { key: 'paved', label: 'Paved', Icon: null },
-  { key: 'mixed', label: 'Mixed', Icon: SlidersHorizontal },
-  { key: 'off-road', label: 'Off-road', Icon: Mountain },
-  { key: 'highly-rated', label: 'Top Rated', Icon: Star },
+const SURFACE_CHIPS = [
+  { key: 'paved', i18nKey: 'discoverFilters.surfacePaved', Icon: null },
+  { key: 'mixed', i18nKey: 'discoverFilters.surfaceMixed', Icon: SlidersHorizontal },
+  { key: 'off-road', i18nKey: 'discoverFilters.surfaceOffRoad', Icon: Mountain },
 ] as const;
 
-type FilterKey = (typeof FILTER_CHIPS)[number]['key'];
+const DIFFICULTY_CHIPS = [
+  { key: 'easy', i18nKey: 'discoverFilters.difficultyEasy' },
+  { key: 'moderate', i18nKey: 'discoverFilters.difficultyModerate' },
+  { key: 'challenging', i18nKey: 'discoverFilters.difficultyChallenging' },
+  { key: 'expert', i18nKey: 'discoverFilters.difficultyExpert' },
+] as const;
+
+type SurfaceKey = (typeof SURFACE_CHIPS)[number]['key'];
+type DifficultyKey = (typeof DIFFICULTY_CHIPS)[number]['key'];
 
 // --- Country chip strip ---
 
@@ -159,27 +161,33 @@ const CountryChipStrip = memo(function CountryChipStrip({
 // --- Filter chip strip ---
 
 const FilterChipStrip = memo(function FilterChipStrip({
-  activeFilter,
-  onToggle,
+  activeSurface,
+  activeDifficulty,
+  onToggleSurface,
+  onToggleDifficulty,
 }: {
-  activeFilter: FilterKey | null;
-  onToggle: (key: FilterKey) => void;
+  activeSurface: SurfaceKey | null;
+  activeDifficulty: DifficultyKey | null;
+  onToggleSurface: (key: SurfaceKey) => void;
+  onToggleDifficulty: (key: DifficultyKey) => void;
 }) {
   const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
 
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: 6 }}
+      contentContainerStyle={{ gap: 6, paddingRight: 16 }}
     >
-      {FILTER_CHIPS.map((chip) => {
-        const active = activeFilter === chip.key;
+      {/* Surface chips */}
+      {SURFACE_CHIPS.map((chip) => {
+        const active = activeSurface === chip.key;
         const ChipIcon = chip.Icon;
         return (
           <Pressable
             key={chip.key}
-            onPress={() => onToggle(chip.key)}
+            onPress={() => onToggleSurface(chip.key)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -200,7 +208,40 @@ const FilterChipStrip = memo(function FilterChipStrip({
                 color: active ? t.bg : t.ink2,
               }}
             >
-              {chip.label}
+              {i18n(chip.i18nKey)}
+            </Text>
+          </Pressable>
+        );
+      })}
+      {/* Divider */}
+      <View style={{ width: 1, height: 24, backgroundColor: t.line, alignSelf: 'center' }} />
+      {/* Difficulty chips */}
+      {DIFFICULTY_CHIPS.map((chip) => {
+        const active = activeDifficulty === chip.key;
+        return (
+          <Pressable
+            key={chip.key}
+            onPress={() => onToggleDifficulty(chip.key)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingHorizontal: 13,
+              paddingVertical: 8,
+              borderRadius: 999,
+              backgroundColor: active ? t.warm : t.surface,
+              borderWidth: 1,
+              borderColor: active ? t.warm : t.line,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12.5,
+                fontWeight: '600',
+                color: active ? t.bg : t.ink2,
+              }}
+            >
+              {i18n(chip.i18nKey)}
             </Text>
           </Pressable>
         );
@@ -213,22 +254,24 @@ const FilterChipStrip = memo(function FilterChipStrip({
 
 type SortOption = 'popular' | 'rating' | 'newest' | 'distance';
 
-const SORT_OPTIONS: Array<{ key: SortOption; label: string }> = [
-  { key: 'popular', label: 'Most popular' },
-  { key: 'rating', label: 'Highest rated' },
-  { key: 'newest', label: 'Newest' },
-  { key: 'distance', label: 'Shortest first' },
-];
+const SORT_OPTIONS = [
+  { key: 'popular', i18nKey: 'discoverFilters.sortMostPopular' },
+  { key: 'rating', i18nKey: 'discoverFilters.sortHighestRated' },
+  { key: 'newest', i18nKey: 'discoverFilters.sortNewest' },
+  { key: 'distance', i18nKey: 'discoverFilters.sortShortest' },
+] as const;
 
 const SectionHeading = memo(function SectionHeading({
-  activeFilter,
+  activeSurface,
+  activeDifficulty,
   countryCode,
   totalCount,
   hasMore,
   sortBy,
   onSortChange,
 }: {
-  activeFilter: FilterKey | null;
+  activeSurface: SurfaceKey | null;
+  activeDifficulty: DifficultyKey | null;
   countryCode: SupportedCountryCode | null;
   totalCount: number;
   hasMore: boolean;
@@ -236,12 +279,21 @@ const SectionHeading = memo(function SectionHeading({
   onSortChange: (sort: SortOption) => void;
 }) {
   const { t } = useEditorialTheme();
+  const { t: i18n } = useTranslation();
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const filterLabel = activeFilter
-    ? (FILTER_CHIPS.find((f) => f.key === activeFilter)?.label ?? 'Filtered')
-    : 'All routes';
+  const parts: string[] = [];
+  if (activeSurface) {
+    const chip = SURFACE_CHIPS.find((c) => c.key === activeSurface);
+    if (chip) parts.push(i18n(chip.i18nKey));
+  }
+  if (activeDifficulty) {
+    const chip = DIFFICULTY_CHIPS.find((c) => c.key === activeDifficulty);
+    if (chip) parts.push(i18n(chip.i18nKey));
+  }
+  const filterLabel = parts.length > 0 ? parts.join(' · ') : i18n('discoverFilters.allRoutes');
   const countryLabel = countryCode ? COUNTRY_NAMES[countryCode] : null;
-  const currentSortLabel = SORT_OPTIONS.find((o) => o.key === sortBy)?.label ?? 'Sort';
+  const sortOption = SORT_OPTIONS.find((o) => o.key === sortBy);
+  const currentSortLabel = sortOption ? i18n(sortOption.i18nKey) : '';
 
   return (
     <View
@@ -277,9 +329,12 @@ const SectionHeading = memo(function SectionHeading({
             lineHeight: 26,
           }}
         >
-          {totalCount}
-          {hasMore ? '+' : ''} route{totalCount === 1 ? '' : 's'}{' '}
-          <Text style={{ fontStyle: 'italic', color: t.ink3, fontSize: 17 }}>found</Text>
+          {i18n(hasMore ? 'discoverFilters.routesFound_other' : 'discoverFilters.routesFound_one', {
+            count: totalCount,
+          })}{' '}
+          <Text style={{ fontStyle: 'italic', color: t.ink3, fontSize: 17 }}>
+            {i18n('discoverFilters.found')}
+          </Text>
         </Text>
       </View>
       <View style={{ position: 'relative' }}>
@@ -355,7 +410,7 @@ const SectionHeading = memo(function SectionHeading({
                     color: sortBy === option.key ? t.ink : t.ink2,
                   }}
                 >
-                  {option.label}
+                  {i18n(option.i18nKey)}
                 </Text>
               </Pressable>
             ))}
@@ -369,13 +424,15 @@ const SectionHeading = memo(function SectionHeading({
 // --- Header component ---
 
 interface DiscoverHeaderProps {
-  activeFilter: FilterKey | null;
+  activeSurface: SurfaceKey | null;
+  activeDifficulty: DifficultyKey | null;
   countryCode: SupportedCountryCode | null;
   totalCount: number;
   hasMore: boolean;
   sortBy: SortOption;
   onSortChange: (sort: SortOption) => void;
-  onToggleFilter: (key: FilterKey) => void;
+  onToggleSurface: (key: SurfaceKey) => void;
+  onToggleDifficulty: (key: DifficultyKey) => void;
   onToggleCountry: (code: SupportedCountryCode) => void;
   onRouteSearchSelect: (routeId: string) => void | Promise<void>;
   onPlaceSearchSelect: (countryCode: string, regionCode?: string) => void;
@@ -384,13 +441,15 @@ interface DiscoverHeaderProps {
 }
 
 const DiscoverHeader = memo(function DiscoverHeader({
-  activeFilter,
+  activeSurface,
+  activeDifficulty,
   countryCode,
   totalCount,
   hasMore,
   sortBy,
   onSortChange,
-  onToggleFilter,
+  onToggleSurface,
+  onToggleDifficulty,
   onToggleCountry,
   onRouteSearchSelect,
   onPlaceSearchSelect,
@@ -402,13 +461,15 @@ const DiscoverHeader = memo(function DiscoverHeader({
     [onToggleCountry],
   );
 
+  const hasActiveFilter = !!(activeSurface || activeDifficulty);
+
   return (
     <View style={{ gap: 12, paddingTop: 14 }}>
       {/* Search */}
       <TypeaheadSearch onRouteSelect={onRouteSearchSelect} onPlaceSelect={onPlaceSearchSelect} />
 
       {/* Routes near you — auto-detected country */}
-      {!countryCode && !activeFilter && (
+      {!countryCode && !hasActiveFilter && (
         <NearYouSection onTripPress={onTripPress} onViewAll={handleViewAllNearYou} />
       )}
 
@@ -416,7 +477,12 @@ const DiscoverHeader = memo(function DiscoverHeader({
       <CountryChipStrip activeCode={countryCode} onToggle={onToggleCountry} />
 
       {/* Filter chips */}
-      <FilterChipStrip activeFilter={activeFilter} onToggle={onToggleFilter} />
+      <FilterChipStrip
+        activeSurface={activeSurface}
+        activeDifficulty={activeDifficulty}
+        onToggleSurface={onToggleSurface}
+        onToggleDifficulty={onToggleDifficulty}
+      />
 
       {showBelowFold && (
         <>
@@ -433,7 +499,8 @@ const DiscoverHeader = memo(function DiscoverHeader({
 
       {/* Section heading */}
       <SectionHeading
-        activeFilter={activeFilter}
+        activeSurface={activeSurface}
+        activeDifficulty={activeDifficulty}
         countryCode={countryCode}
         totalCount={totalCount}
         hasMore={hasMore}
@@ -471,7 +538,8 @@ export default function DiscoverScreen() {
   }, []);
 
   // --- Filter state ---
-  const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null);
+  const [surfaceFilter, setSurfaceFilter] = useState<SurfaceKey | null>(null);
+  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyKey | null>(null);
   const [countryCode, setCountryCode] = useState<SupportedCountryCode | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('popular');
 
@@ -484,20 +552,24 @@ export default function DiscoverScreen() {
       filter.country = countryCode.toLowerCase();
       hasFilter = true;
     }
-    if (activeFilter === 'paved') {
+    if (surfaceFilter === 'paved') {
       filter.surfaceType = 'paved';
       hasFilter = true;
     }
-    if (activeFilter === 'mixed') {
+    if (surfaceFilter === 'mixed') {
       filter.surfaceType = 'mixed';
       hasFilter = true;
     }
-    if (activeFilter === 'off-road') {
+    if (surfaceFilter === 'off-road') {
       filter.surfaceType = 'off_road';
       hasFilter = true;
     }
+    if (difficultyFilter) {
+      filter.difficulty = difficultyFilter;
+      hasFilter = true;
+    }
     return hasFilter ? filter : null;
-  }, [countryCode, activeFilter]);
+  }, [countryCode, surfaceFilter, difficultyFilter]);
 
   const tripFilterKey = useMemo(() => JSON.stringify(tripFilterInput ?? {}), [tripFilterInput]);
 
@@ -606,12 +678,24 @@ export default function DiscoverScreen() {
     if (hasNextTrips && !isFetchingNextTrips) fetchNextTrips();
   }, [hasNextTrips, isFetchingNextTrips, fetchNextTrips]);
 
-  const toggleFilter = useCallback((key: FilterKey) => {
+  const toggleSurface = useCallback((key: SurfaceKey) => {
     if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setActiveFilter((prev) => {
+    setSurfaceFilter((prev) => {
       const next = prev === key ? null : key;
       trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
-        filter: key,
+        filter: `surface:${key}`,
+        action: next ? 'applied' : 'removed',
+      });
+      return next;
+    });
+  }, []);
+
+  const toggleDifficulty = useCallback((key: DifficultyKey) => {
+    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setDifficultyFilter((prev) => {
+      const next = prev === key ? null : key;
+      trackEvent(AnalyticsEvent.DISCOVER_FILTER_APPLIED, {
+        filter: `difficulty:${key}`,
         action: next ? 'applied' : 'removed',
       });
       return next;
@@ -659,16 +743,17 @@ export default function DiscoverScreen() {
     router.push('/(modals)/create-trip');
   }, [router]);
 
+  const hasActiveFilter = !!(surfaceFilter || difficultyFilter);
   const renderTripItem = useCallback(
     ({ item, index }: { item: TripNode; index: number }) => (
       <DiscoverTripCard
         trip={item}
         index={index}
-        large={index === 0 && !activeFilter}
+        large={index === 0 && !hasActiveFilter}
         onPress={() => handleTripPress(item.id)}
       />
     ),
-    [handleTripPress, activeFilter],
+    [handleTripPress, hasActiveFilter],
   );
 
   const handleRouteSearchSelect = useCallback(
@@ -713,13 +798,15 @@ export default function DiscoverScreen() {
   const headerComponent = useMemo(
     () => (
       <DiscoverHeader
-        activeFilter={activeFilter}
+        activeSurface={surfaceFilter}
+        activeDifficulty={difficultyFilter}
         countryCode={countryCode}
         totalCount={allTrips.length}
         hasMore={hasMoreTrips}
         sortBy={sortBy}
         onSortChange={handleSortChange}
-        onToggleFilter={toggleFilter}
+        onToggleSurface={toggleSurface}
+        onToggleDifficulty={toggleDifficulty}
         onToggleCountry={toggleCountry}
         onRouteSearchSelect={handleRouteSearchSelect}
         onPlaceSearchSelect={handlePlaceSearchSelect}
@@ -728,13 +815,15 @@ export default function DiscoverScreen() {
       />
     ),
     [
-      activeFilter,
+      surfaceFilter,
+      difficultyFilter,
       countryCode,
       allTrips.length,
       hasMoreTrips,
       sortBy,
       handleSortChange,
-      toggleFilter,
+      toggleSurface,
+      toggleDifficulty,
       toggleCountry,
       handleRouteSearchSelect,
       handlePlaceSearchSelect,
@@ -874,7 +963,9 @@ export default function DiscoverScreen() {
                     fontWeight: '500',
                   }}
                 >
-                  {allTrips.filter((r) => r.startLat != null).length} routes nearby
+                  {i18n('discoverFilters.routesNearby', {
+                    count: allTrips.filter((r) => r.startLat != null).length,
+                  })}
                 </Text>
               </View>
             )}
@@ -948,11 +1039,12 @@ export default function DiscoverScreen() {
                   letterSpacing: -0.3,
                 }}
               >
-                No routes match these filters
+                {i18n('discoverFilters.noRoutesMatch')}
               </Text>
               <Pressable
                 onPress={() => {
-                  setActiveFilter(null);
+                  setSurfaceFilter(null);
+                  setDifficultyFilter(null);
                   setCountryCode(null);
                 }}
                 style={{
@@ -965,7 +1057,9 @@ export default function DiscoverScreen() {
                   borderColor: t.line,
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink }}>Clear filters</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink }}>
+                  {i18n('discoverFilters.clearFilters')}
+                </Text>
               </Pressable>
             </Animated.View>
           )
@@ -1031,7 +1125,7 @@ export default function DiscoverScreen() {
         <Text
           style={{ fontSize: 14, fontWeight: '600', color: palette.white, letterSpacing: -0.1 }}
         >
-          Plan trip
+          {i18n('discoverFilters.planTrip')}
         </Text>
       </AnimatedPressable>
     </View>

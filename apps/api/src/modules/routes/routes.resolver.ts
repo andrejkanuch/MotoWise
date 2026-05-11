@@ -10,7 +10,8 @@ import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { ENTITLEMENTS, EntitlementsService } from '../entitlements/entitlements.service';
+import { EntitlementsService } from '../entitlements/entitlements.service';
+import { FEATURES } from '../entitlements/entitlements.types';
 import { CreateRouteReviewInput } from './dto/create-route-review.input';
 import { DiscoverRoutesFilterInput } from './dto/discover-routes-filter.input';
 import { GPXExportError, GPXExportResult, GPXExportSuccess } from './dto/gpx-export.dto';
@@ -93,7 +94,7 @@ export class RoutesResolver {
     const route = await this.routesService.routeDetail(routeId);
 
     // Gate premium fields for anonymous users
-    const canReadFull = this.entitlementService.can(user, ENTITLEMENTS.READ_FULL_ROUTE);
+    const canReadFull = this.entitlementService.can(user, FEATURES.READ_ALL_REVIEWS);
     if (!canReadFull) {
       return {
         ...route,
@@ -123,12 +124,16 @@ export class RoutesResolver {
     return result?.percentile ?? null;
   }
 
-  @Mutation(() => Route)
+  @Mutation(() => Route, {
+    deprecationReason:
+      'Use shareRideAsTrip mutation on TripsResolver instead. Removal target: 8 weeks post-OTA.',
+  })
   async shareRideToDiscover(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(ShareRideToDiscoverInputSchema))
     input: ShareRideToDiscoverInput,
   ): Promise<Route> {
+    this.routesService.logDeprecatedUsage('shareRideToDiscover');
     return this.routesService.shareRideToDiscover(user.id, input);
   }
 
@@ -152,7 +157,7 @@ export class RoutesResolver {
     @Args('first', { type: () => Int, nullable: true, defaultValue: 10 }) first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<RouteReviewConnection> {
-    const canReadAll = this.entitlementService.can(user, ENTITLEMENTS.READ_ALL_REVIEWS);
+    const canReadAll = this.entitlementService.can(user, FEATURES.READ_ALL_REVIEWS);
 
     // Anonymous users: cap at ANONYMOUS_REVIEW_LIMIT, ignore pagination
     const effectiveFirst = canReadAll ? (first ?? 10) : ANONYMOUS_REVIEW_LIMIT;
@@ -200,14 +205,19 @@ export class RoutesResolver {
   // Premium Waitlist
   // ==========================================
 
-  @Mutation(() => Boolean)
-  async joinPremiumWaitlist(
+  @Mutation(() => Boolean, {
+    name: 'joinPremiumWaitlistLegacy',
+    deprecationReason:
+      'Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA.',
+  })
+  async joinPremiumWaitlistLegacy(
     @CurrentUser() user: AuthUser,
     @Args('feature') feature: string,
   ): Promise<boolean> {
     if (feature !== 'offline_routes' && feature !== 'premium_general') {
       throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
     }
+    this.routesService.logDeprecatedUsage('joinPremiumWaitlist');
     return this.routesService.joinPremiumWaitlist(user.id, feature);
   }
 }

@@ -374,6 +374,7 @@ export default function CompleteTaskScreen() {
                   {task.intervalDays
                     ? t('maintenance.scheduleNextDays', {
                         defaultValue: humanizeInterval(task.intervalDays),
+                        count: task.intervalDays,
                       })
                     : task.intervalKm
                       ? t('maintenance.scheduleNextKm', {

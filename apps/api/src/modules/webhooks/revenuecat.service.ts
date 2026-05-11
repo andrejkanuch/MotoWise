@@ -67,15 +67,42 @@ export class RevenueCatService {
       throw error;
     }
 
-    this.logger.log(`Processed ${event.type} for user ${event.app_user_id}`);
+    const purchaseSource = this.mapStoreToPurchaseSource(event.store);
+    this.logger.log(
+      `Processed ${event.type} for user ${event.app_user_id} (source: ${purchaseSource})`,
+    );
 
     // Fire Meta CAPI events for ad attribution (fire and forget)
-    this.fireMetaEvent(event).catch((err) => {
+    this.fireMetaEvent(event, purchaseSource).catch((err) => {
       this.logger.warn(`Meta CAPI event failed for ${event.id}: ${err}`);
     });
   }
 
-  private async fireMetaEvent(event: RevenueCatEvent): Promise<void> {
+  /**
+   * Map RevenueCat store identifier to a human-readable purchase source.
+   * RC_BILLING = Stripe (web checkout via RevenueCat Web Billing).
+   */
+  private mapStoreToPurchaseSource(
+    store: string | undefined,
+  ): 'ios' | 'android' | 'web' | 'unknown' {
+    switch (store) {
+      case 'APP_STORE':
+      case 'app_store':
+        return 'ios';
+      case 'PLAY_STORE':
+      case 'play_store':
+        return 'android';
+      case 'STRIPE':
+      case 'stripe':
+      case 'RC_BILLING':
+      case 'rc_billing':
+        return 'web';
+      default:
+        return 'unknown';
+    }
+  }
+
+  private async fireMetaEvent(event: RevenueCatEvent, purchaseSource: string): Promise<void> {
     // StartTrial: INITIAL_PURCHASE with trial period
     const isTrialStart = event.type === 'INITIAL_PURCHASE' && event.period_type === 'TRIAL';
 
@@ -99,12 +126,16 @@ export class RevenueCatService {
     }
 
     if (isTrialStart) {
+      this.logger.log(`StartTrial for ${event.app_user_id} (purchase_source: ${purchaseSource})`);
       await this.metaEventsService.sendAppEvent({
         eventName: 'StartTrial',
         userEmail: user.email,
         userId: event.app_user_id,
       });
     } else if (isPaidConversion) {
+      this.logger.log(
+        `Subscribe for ${event.app_user_id} (purchase_source: ${purchaseSource}, ${event.currency} ${event.price})`,
+      );
       await this.metaEventsService.sendAppEvent({
         eventName: 'Subscribe',
         userEmail: user.email,

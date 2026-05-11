@@ -1,0 +1,9 @@
+query WebTripPathById($tripId: ID!) {
+  tripDetail(tripId: $tripId) {
+    id
+    slug
+    countryCode
+    regionCode
+    title
+  }
+}

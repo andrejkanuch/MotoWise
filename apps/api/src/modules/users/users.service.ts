@@ -269,13 +269,18 @@ export class UsersService {
 
     const typedBikes = (bikes ?? []) as unknown as ProfileBikeRow[];
 
-    // Fetch ride stats — admin client, only count public rides
-    const { data: rides } = await this.supabaseAdmin
+    // Fetch ride stats — admin client.
+    // Own profile: count all rides. Other profiles: only public rides.
+    const isOwnProfile = currentUserId === p.id;
+    let ridesQuery = this.supabaseAdmin
       .from('rides')
       .select('distance_m')
       .eq('user_id', p.id)
-      .eq('is_public', true)
       .is('deleted_at', null);
+    if (!isOwnProfile) {
+      ridesQuery = ridesQuery.eq('is_public', true);
+    }
+    const { data: rides } = await ridesQuery;
 
     const typedRides = (rides ?? []) as unknown as RideDistanceRow[];
     const totalRides = typedRides.length;

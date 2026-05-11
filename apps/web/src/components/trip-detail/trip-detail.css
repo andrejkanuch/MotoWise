@@ -784,3 +784,25 @@
     max-width: 100%;
   }
 }
+
+/* ── Mapbox waypoint popup (dark theme) ────────────────────── */
+.mv-wp-popup .mapboxgl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+.mv-wp-popup .mapboxgl-popup-tip {
+  border-top-color: oklch(0.25 0.01 55) !important;
+  border-bottom-color: oklch(0.25 0.01 55) !important;
+}
+.mv-wp-popup .mapboxgl-popup-close-button {
+  color: oklch(0.6 0.02 55) !important;
+  font-size: 18px !important;
+  right: 6px !important;
+  top: 6px !important;
+}
+.mv-wp-popup .mapboxgl-popup-close-button:hover {
+  color: oklch(0.9 0.02 55) !important;
+  background: transparent !important;
+}

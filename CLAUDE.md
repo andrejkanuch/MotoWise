@@ -57,9 +57,10 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - Use `as const` objects for enums, not TypeScript `enum` keyword
 
 ## Supabase Client Rules
-- **SUPABASE_ADMIN** (service-role): Article/quiz generation, admin operations, system tasks
-- **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced
-- NEVER use service-role for user-scoped queries
+- **SUPABASE_ADMIN** (service-role): Article/quiz generation, admin operations, system tasks, **and all reads from `@Public()` resolvers**
+- **SUPABASE_USER** (per-request JWT): User-scoped CRUD — RLS enforced. **Only use from authenticated resolvers.**
+- `@Public()` resolvers MUST use SUPABASE_ADMIN for reads — the user client with anon key lacks `authenticated` role, so tables with owner-only RLS (motorcycles, users, trip_saves) return empty results
+- NEVER use service-role for user-scoped writes (bypasses RLS author checks)
 - NEVER expose service-role key to clients
 
 ## Auth Pattern
@@ -84,6 +85,13 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
   - `GetMakesForVehicleType/motorcycle` — all motorcycle makes
   - `GetModelsForMakeIdYear/makeId/{id}/modelyear/{year}/vehicletype/motorcycle` — models
   - Free, no API key required
+
+## OTA Updates (EAS Update)
+- **CRITICAL**: `eas update` does NOT read env vars from `eas.json` build profiles. It bundles whatever `EXPO_PUBLIC_*` vars are set in the shell at publish time.
+- **Always** use `apps/mobile/.env.production` when publishing OTA updates to avoid bundling local dev URLs (e.g. `http://192.168.x.x:4000`).
+- Command: `cd apps/mobile && env $(grep -v '^#' .env.production | grep -v '^$' | xargs) eas update --branch production --message "description"`
+- Runtime version policy is `appVersion` (currently `3.4.0`), so OTA updates only reach builds with matching app version.
+- EAS project ID: `359ae282-329d-455d-b9f3-64919afad0b4`, owner: `andykeny`
 
 ## Repo maintenance (local + CI)
 - **Git hooks**: `core.hooksPath` → `.githooks`. **pre-commit** runs GraphQL codegen when `*.graphql` or `apps/api/schema.graphql` is staged — if `packages/graphql/src/generated` changes, run `pnpm generate`, then re-stage generated files. **pre-push** runs `pnpm precheck` (`lint` + `typecheck` + `test`) — keep `main` green so pushes are not blocked by unrelated debt; use `git push --no-verify` only when intentional.

@@ -695,6 +695,17 @@ export const TripSlugParamsSchema = z.object({
 });
 export type TripSlugParams = z.infer<typeof TripSlugParamsSchema>;
 
+// --- Share Ride As Trip ---
+// Creates a template trip from a completed ride (replaces ShareRideToDiscover on routes).
+
+export const ShareRideAsTripInputSchema = z.object({
+  rideId: z.string().uuid(),
+  name: z.string().max(200).optional(),
+  surfaceType: SurfaceTypeInputSchema.optional(),
+});
+
+export type ShareRideAsTripInput = z.infer<typeof ShareRideAsTripInputSchema>;
+
 // Re-export TemplateFieldsSchema for consumers that need the raw shape
 export { TemplateFieldsSchema };
 export type TemplateFields = z.infer<typeof TemplateFieldsSchema>;

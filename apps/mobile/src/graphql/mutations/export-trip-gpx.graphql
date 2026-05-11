@@ -1,0 +1,15 @@
+mutation ExportTripGpx($slug: String!, $country: String!, $region: String!) {
+  exportTripGPX(slug: $slug, country: $country, region: $region) {
+    ... on GPXExportSuccess {
+      fileUrl
+      fileName
+      message
+    }
+    ... on GPXExportError {
+      code
+      reason
+      quotaRemaining
+      upgradeUrl
+    }
+  }
+}

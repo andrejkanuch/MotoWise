@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
 /** DB row shape for trip_reviews */
@@ -23,6 +24,12 @@ interface ReviewRow {
     display_name: string | null;
     public_username: string | null;
     avatar_url: string | null;
+  } | null;
+  motorcycles: {
+    make: string;
+    model: string;
+    year: number;
+    type: string | null;
   } | null;
 }
 
@@ -42,6 +49,18 @@ export interface TripReview {
     publicUsername?: string;
     avatarUrl?: string;
   };
+  author?: {
+    id: string;
+    displayName: string;
+    publicUsername?: string;
+    avatarUrl?: string;
+  };
+  bike?: {
+    make: string;
+    model: string;
+    year: number;
+    type?: string;
+  };
 }
 
 export interface TripReviewEdge {
@@ -59,14 +78,18 @@ export interface TripReviewConnection {
 
 const REVIEW_SELECT = `
   id, trip_id, user_id, rating, text, condition_tags, bike_id, created_at,
-  users:user_id(id, display_name, public_username, avatar_url)
+  users:user_id(id, display_name, public_username, avatar_url),
+  motorcycles:bike_id(make, model, year, type)
 `.trim();
 
 @Injectable()
 export class TripReviewsService {
   private readonly logger = new Logger(TripReviewsService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
+    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
+  ) {}
 
   async getReviewsForTrip(
     tripId: string,
@@ -75,7 +98,10 @@ export class TripReviewsService {
   ): Promise<TripReviewConnection> {
     const limit = Math.min(first, 50);
 
-    let query = this.supabase
+    // Use admin client for public reads — the motorcycles join requires
+    // bypassing owner-only RLS on the motorcycles table. Reviews on published
+    // templates are intentionally public (trip_reviews_select policy).
+    let query = this.supabaseAdmin
       .from('trip_reviews')
       .select(REVIEW_SELECT)
       .eq('trip_id', tripId)
@@ -165,6 +191,24 @@ export class TripReviewsService {
   // ==========================================
 
   private mapRow(row: ReviewRow): TripReview {
+    const author = row.users
+      ? {
+          id: row.users.id,
+          displayName: row.users.display_name ?? 'Rider',
+          publicUsername: row.users.public_username ?? undefined,
+          avatarUrl: row.users.avatar_url ?? undefined,
+        }
+      : undefined;
+
+    const bike = row.motorcycles
+      ? {
+          make: row.motorcycles.make,
+          model: row.motorcycles.model,
+          year: row.motorcycles.year,
+          type: row.motorcycles.type ?? undefined,
+        }
+      : undefined;
+
     return {
       id: row.id,
       tripId: row.trip_id,
@@ -174,14 +218,9 @@ export class TripReviewsService {
       conditionTags: row.condition_tags ?? [],
       bikeId: row.bike_id,
       createdAt: row.created_at,
-      ...(row.users && {
-        reviewer: {
-          id: row.users.id,
-          displayName: row.users.display_name ?? 'Rider',
-          publicUsername: row.users.public_username ?? undefined,
-          avatarUrl: row.users.avatar_url ?? undefined,
-        },
-      }),
+      reviewer: author,
+      author,
+      bike,
     };
   }
 

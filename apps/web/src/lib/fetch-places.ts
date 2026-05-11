@@ -1,14 +1,9 @@
-import type {
-  BrowsePlaceFieldsFragment,
-  ExploreDiscoverRoutesQuery,
-  TripTemplatesQuery,
-} from '@motovault/graphql';
+import type { BrowsePlaceFieldsFragment, TripTemplatesQuery } from '@motovault/graphql';
 import {
   BrowseCountriesDocument,
   BrowseCountryBySlugDocument,
   BrowseExploreRegionDocument,
   BrowseRegionsByCountrySlugDocument,
-  ExploreDiscoverRoutesDocument,
   TripTemplatesDocument,
 } from '@motovault/graphql';
 import type { BrowsePlace, RouteListItem } from '@motovault/types';
@@ -74,37 +69,22 @@ export async function fetchRegionBySlug(
   };
 }
 
-function discoverNodeToRouteListItem(node: {
-  id: string;
-  name?: string | null;
-  distanceM: number;
-  elevationGainM?: number | null;
-  surfaceType?: string | null;
-  curvatureIndex?: number | null;
-  ratingAvg?: number | null;
-  ratingCount: number;
-  slug?: string | null;
-  countryCode?: string | null;
-  regionCode?: string | null;
-}): RouteListItem {
+function tripNodeToRouteListItem(node: TripTemplateNode): RouteListItem {
   return {
     id: node.id,
-    name: node.name ?? null,
-    displayName: node.name ?? null,
-    distanceM: node.distanceM,
+    name: node.title ?? null,
+    displayName: node.title ?? null,
+    distanceM: node.distanceM ?? 0,
     elevationGainM: node.elevationGainM ?? null,
     surfaceType: node.surfaceType ?? null,
     curvatureIndex: node.curvatureIndex ?? null,
-    ratingAvg: node.ratingAvg ?? null,
-    ratingCount: node.ratingCount,
+    ratingAvg: node.averageRating ?? null,
+    ratingCount: node.reviewCount ?? 0,
     slug: node.slug ?? null,
     countryCode: node.countryCode ?? null,
     regionSlug: node.regionCode ?? null,
   };
 }
-
-type ExploreDiscoverRouteNode =
-  ExploreDiscoverRoutesQuery['discoverRoutes']['edges'][number]['node'];
 
 /** Route row for /explore/[country] cards (map thumbnail + description). */
 export type ExploreRouteWithMap = RouteListItem & {
@@ -112,59 +92,40 @@ export type ExploreRouteWithMap = RouteListItem & {
   polyline: string | null;
 };
 
-function discoverNodeToExploreRouteWithMap(node: ExploreDiscoverRouteNode): ExploreRouteWithMap {
+function tripNodeToExploreRouteWithMap(node: TripTemplateNode): ExploreRouteWithMap {
   return {
-    ...discoverNodeToRouteListItem(node),
+    ...tripNodeToRouteListItem(node),
     description: node.description ?? null,
     polyline: node.polyline ?? null,
   };
 }
 
-/** Top routes for a country — same source as discover tab, via API (no browser→Supabase fetch on Vercel). */
+/** Top trips for a country — uses trip templates. */
 export async function fetchExploreRoutesByCountry(
   countryCode: string,
   limit = 50,
 ): Promise<ExploreRouteWithMap[]> {
-  const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
-    filter: {
-      sortByRating: true,
-      countryCode,
-    },
-    first: limit,
-  });
-  return data.discoverRoutes.edges.map((e) => discoverNodeToExploreRouteWithMap(e.node));
+  const templates = await fetchTripTemplatesByCountry(countryCode, limit);
+  return templates.map(tripNodeToExploreRouteWithMap);
 }
 
-/** Fetch published routes for a country+region, sorted by rating. */
+/** Fetch published trips for a country+region. */
 export async function fetchRoutesByRegion(
   countryCode: string,
   regionSlug: string,
   limit = 50,
 ): Promise<RouteListItem[]> {
-  const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
-    filter: {
-      sortByRating: true,
-      countryCode,
-      regionCode: regionSlug,
-    },
-    first: limit,
-  });
-  return data.discoverRoutes.edges.map((e) => discoverNodeToRouteListItem(e.node));
+  const templates = await fetchTripTemplatesByRegion(countryCode, regionSlug, limit);
+  return templates.map(tripNodeToRouteListItem);
 }
 
-/** Fetch published routes for a country, sorted by rating. */
+/** Fetch published trips for a country. */
 export async function fetchRoutesByCountry(
   countryCode: string,
   limit = 50,
 ): Promise<RouteListItem[]> {
-  const data = await gqlServerFetcher(ExploreDiscoverRoutesDocument, {
-    filter: {
-      sortByRating: true,
-      countryCode,
-    },
-    first: limit,
-  });
-  return data.discoverRoutes.edges.map((e) => discoverNodeToRouteListItem(e.node));
+  const templates = await fetchTripTemplatesByCountry(countryCode, limit);
+  return templates.map(tripNodeToRouteListItem);
 }
 
 // ---- Trip Templates ----

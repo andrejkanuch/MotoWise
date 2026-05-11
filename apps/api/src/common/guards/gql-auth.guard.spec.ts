@@ -41,6 +41,7 @@ describe('GqlAuthGuard', () => {
         if (key === 'SUPABASE_JWT_SECRET') return 'test-secret';
         throw new Error(`Unknown key: ${key}`);
       }),
+      get: vi.fn((_key: string, defaultValue?: string) => defaultValue ?? undefined),
     };
 
     mockReflector = {
@@ -53,9 +54,27 @@ describe('GqlAuthGuard', () => {
       getContext: () => ({ req: mockRequest }),
     });
 
+    const mockSupabaseAdmin = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: {
+                subscription_tier: 'free',
+                subscription_status: 'free',
+                subscription_expires_at: null,
+              },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    };
+
     guard = new GqlAuthGuard(
       mockConfigService as unknown as ConfigService,
       mockReflector as unknown as Reflector,
+      mockSupabaseAdmin as never,
     );
   });
 
@@ -149,6 +168,7 @@ describe('GqlAuthGuard', () => {
       id: 'user-789',
       email: 'user@example.com',
       role: 'premium',
+      tier: 'pro', // ENTITLEMENTS_ENFORCED defaults to false → everyone gets pro (Phase 1)
     });
   });
 
@@ -165,6 +185,7 @@ describe('GqlAuthGuard', () => {
       id: 'user-a',
       email: 'a@example.com',
       role: 'moderator',
+      tier: 'pro',
     });
   });
 
@@ -180,6 +201,7 @@ describe('GqlAuthGuard', () => {
       id: 'user-b',
       email: 'b@example.com',
       role: 'user',
+      tier: 'pro',
     });
   });
 

@@ -1,7 +1,10 @@
 import '../../shared/graphql/enums';
 import { Module } from '@nestjs/common';
+import { EntitlementsModule } from '../entitlements/entitlements.module';
+import { RoutesModule } from '../routes/routes.module';
 import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
+import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
 import { TripParticipantsService } from './services/trip-participants.service';
 import { TripReviewsService } from './services/trip-reviews.service';
@@ -12,6 +15,7 @@ import { TripWaypointsService } from './services/trip-waypoints.service';
 import { TripsResolver } from './trips.resolver';
 
 @Module({
+  imports: [EntitlementsModule, RoutesModule],
   providers: [
     TripsResolver,
     TripLifecycleService,
@@ -21,6 +25,7 @@ import { TripsResolver } from './trips.resolver';
     TripTemplatesService,
     TripReviewsService,
     TripSavesService,
+    TripGpxExportService,
     TripReviewsLoader,
     TripSavedLoader,
   ],

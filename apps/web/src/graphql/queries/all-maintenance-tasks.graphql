@@ -1,0 +1,12 @@
+query AllMaintenanceTasks {
+  allMaintenanceTasks {
+    id
+    motorcycleId
+    title
+    dueDate
+    targetMileage
+    priority
+    status
+    completedAt
+  }
+}

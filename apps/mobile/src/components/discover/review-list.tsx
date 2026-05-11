@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { GetRouteReviewsDocument } from '@motovault/graphql';
+import { TripReviewsDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
 import { Star } from 'lucide-react-native';
 import { memo } from 'react';
@@ -9,19 +9,18 @@ import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 
 interface ReviewListProps {
-  routeId: string;
+  tripId: string;
 }
 
-export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps) {
+export const ReviewList = memo(function ReviewList({ tripId }: ReviewListProps) {
   const isDark = useColorScheme() === 'dark';
 
   const { data, isLoading } = useQuery({
-    queryKey: [...queryKeys.routes.detail(routeId), 'reviews'],
-    queryFn: () => gqlFetcher(GetRouteReviewsDocument, { routeId, first: 10 }),
+    queryKey: queryKeys.tripReviews.byTrip(tripId),
+    queryFn: () => gqlFetcher(TripReviewsDocument, { tripId, first: 10 }),
   });
 
-  const reviews = data?.getRouteReviews?.reviews ?? [];
-  const totalCount = data?.getRouteReviews?.totalCount ?? 0;
+  const reviews = data?.tripReviews ?? [];
 
   const textColor = isDark ? palette.neutral200 : palette.neutral800;
   const nameColor = isDark ? palette.white : palette.neutral950;
@@ -47,7 +46,7 @@ export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps)
           color: isDark ? palette.neutral300 : palette.neutral600,
         }}
       >
-        Reviews ({totalCount})
+        Reviews ({reviews.length})
       </Text>
 
       {reviews.map((review, index) => (
@@ -58,7 +57,7 @@ export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps)
         >
           {/* Author row */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {review.author.avatarUrl ? (
+            {review.author?.avatarUrl ? (
               <Image
                 source={{ uri: review.author.avatarUrl }}
                 style={{ width: 28, height: 28, borderRadius: 14 }}
@@ -75,13 +74,13 @@ export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps)
                 }}
               >
                 <Text style={{ fontSize: 12, fontWeight: '700', color: avatarText }}>
-                  {review.author.displayName?.charAt(0)?.toUpperCase() ?? '?'}
+                  {review.author?.displayName?.charAt(0)?.toUpperCase() ?? '?'}
                 </Text>
               </View>
             )}
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '600', color: nameColor }}>
-                {review.author.displayName}
+                {review.author?.displayName ?? 'Rider'}
               </Text>
               {review.bike && (
                 <Text style={{ fontSize: 11, color: subtitleColor }}>
@@ -108,9 +107,9 @@ export const ReviewList = memo(function ReviewList({ routeId }: ReviewListProps)
           )}
 
           {/* Condition tags */}
-          {review.conditionTags.length > 0 && (
+          {(review.conditionTags?.length ?? 0) > 0 && (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-              {review.conditionTags.map((tag) => (
+              {review.conditionTags?.map((tag) => (
                 <View
                   key={tag}
                   style={{

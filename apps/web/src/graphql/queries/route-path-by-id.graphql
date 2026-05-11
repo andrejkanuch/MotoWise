@@ -1,3 +1,4 @@
+# @deprecated — Use trip-based equivalent. Kept for backward compatibility.
 query RoutePathById($routeId: ID!) {
   routePathById(routeId: $routeId) {
     countryCode

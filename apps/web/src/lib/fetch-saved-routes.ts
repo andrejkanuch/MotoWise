@@ -1,84 +1,40 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
+import { PublicSavedTripsDocument, type PublicSavedTripsQuery } from '@motovault/graphql';
+import { gqlServerFetcher } from './graphql-server';
 
-const PUBLIC_SAVED_ROUTES_QUERY = `
-  query PublicSavedRoutes($handle: String!, $first: Int, $after: String) {
-    publicSavedRoutes(handle: $handle, first: $first, after: $after) {
-      edges {
-        node {
-          id
-          name
-          distanceM
-          elevationGainM
-          surfaceType
-          isMotovaultPick
-          ratingAvg
-          ratingCount
-          commentCount
-          contributor {
-            id
-            displayName
-            publicUsername
-            avatarUrl
-          }
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-`;
+export type SavedTripNode = PublicSavedTripsQuery['publicSavedTrips']['edges'][number]['node'];
 
-export interface SavedRouteNode {
-  id: string;
-  name?: string;
-  distanceM: number;
-  elevationGainM?: number;
-  surfaceType?: string;
-  isMotovaultPick: boolean;
-  ratingAvg?: number;
-  ratingCount: number;
-  commentCount: number;
-  contributor: {
-    id: string;
-    displayName: string;
-    publicUsername?: string;
-    avatarUrl?: string;
-  };
+/** @deprecated Use SavedTripNode instead */
+export type SavedRouteNode = SavedTripNode;
+
+export interface SavedTripsResponse {
+  edges: PublicSavedTripsQuery['publicSavedTrips']['edges'];
+  pageInfo: PublicSavedTripsQuery['publicSavedTrips']['pageInfo'];
 }
 
-export interface SavedRoutesResponse {
-  edges: Array<{
-    node: SavedRouteNode;
-    cursor: string;
-  }>;
-  pageInfo: {
-    hasNextPage: boolean;
-    endCursor?: string;
-  };
-}
+/** @deprecated Use SavedTripsResponse instead */
+export type SavedRoutesResponse = SavedTripsResponse;
 
-export async function fetchSavedRoutes(
+/**
+ * Fetch a user's public saved trips by handle.
+ */
+export async function fetchSavedTrips(
   handle: string,
   first = 20,
   after?: string,
-): Promise<SavedRoutesResponse | null> {
+): Promise<SavedTripsResponse | null> {
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: PUBLIC_SAVED_ROUTES_QUERY,
-        variables: { handle, first, after },
-      }),
-      next: { revalidate: 300 },
+    const data = await gqlServerFetcher(PublicSavedTripsDocument, {
+      handle,
+      first,
+      after,
     });
-    const json = await res.json();
-    if (json.errors || !json.data?.publicSavedRoutes) return null;
-    return json.data.publicSavedRoutes;
+    return data.publicSavedTrips;
   } catch {
     return null;
   }
 }
+
+/**
+ * @deprecated Use fetchSavedTrips instead.
+ */
+export const fetchSavedRoutes = fetchSavedTrips;

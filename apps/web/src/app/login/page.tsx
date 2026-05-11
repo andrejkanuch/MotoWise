@@ -55,7 +55,7 @@ export default function LoginPage() {
         identifyUser(data.user.id);
       }
       const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get('redirect') || '/feed';
+      const redirectTo = params.get('redirect') || '/garage';
       window.location.href = redirectTo;
     }
   };
@@ -66,7 +66,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/feed')}`,
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
       },
     });
   };
@@ -77,7 +77,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/feed')}`,
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(new URLSearchParams(window.location.search).get('redirect') || '/garage')}`,
       },
     });
   };

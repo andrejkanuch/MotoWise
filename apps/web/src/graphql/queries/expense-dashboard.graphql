@@ -1,0 +1,28 @@
+query ExpenseDashboard($motorcycleId: String!) {
+  expenseDashboard(motorcycleId: $motorcycleId) {
+    currentYearTotal
+    previousYearTotal
+    allTimeTotal
+    expenseCount
+    monthlyBuckets {
+      month
+      year
+      fuel
+      maintenance
+      parts
+      gear
+      tires
+      insurance
+      registration
+      tolls
+      parking
+      modifications
+      training
+      total
+    }
+    categoryTotals {
+      category
+      total
+    }
+  }
+}

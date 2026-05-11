@@ -16,6 +16,6 @@ export class EntitlementsResolver {
     description: 'Returns current GPX export quota usage and limits for the authenticated user',
   })
   async getGPXQuotaStatus(@CurrentUser() user: AuthUser): Promise<QuotaStatus> {
-    return this.entitlementsService.getGPXQuotaStatus(user.id);
+    return this.entitlementsService.getGPXQuotaStatus(user.id, user.tier);
   }
 }

@@ -4,6 +4,7 @@ import type { MeQuery } from '@motovault/graphql';
 import { MeDocument, UpdateMyProfileDocument } from '@motovault/graphql';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { trackEvent, WebEvent } from '@/lib/analytics';
 import { gqlFetcher } from '@/lib/graphql-client';
@@ -11,6 +12,7 @@ import { gqlFetcher } from '@/lib/graphql-client';
 const USERNAME_REGEX = /^[a-z0-9_]{3,30}$/;
 
 export default function EditProfilePage() {
+  const t = useTranslations('ProfileEdit');
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -27,6 +29,7 @@ export default function EditProfilePage() {
   const [city, setCity] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   // Initialize form with existing data
@@ -52,14 +55,16 @@ export default function EditProfilePage() {
           isPublic,
         },
       }),
-    onSuccess: () => {
+    onSuccess: async () => {
       trackEvent(WebEvent.PROFILE_EDITED, {
         is_public: isPublic,
         has_bio: bio.trim().length > 0,
         has_city: city.trim().length > 0,
       });
-      queryClient.invalidateQueries({ queryKey: ['me'] });
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
+      setSuccess(true);
       router.push('/profile');
+      router.refresh();
     },
     onError: (err: Error) => {
       setError(err.message ?? 'Failed to update profile');
@@ -72,17 +77,15 @@ export default function EditProfilePage() {
 
     const trimmedUsername = username.toLowerCase().trim();
     if (!trimmedUsername) {
-      setError('Username is required');
+      setError(t('usernameRequired'));
       return;
     }
     if (!USERNAME_REGEX.test(trimmedUsername)) {
-      setError(
-        'Username must be 3-30 characters, lowercase letters, numbers, and underscores only',
-      );
+      setError(t('usernameInvalid'));
       return;
     }
     if (!displayName.trim()) {
-      setError('Display name is required');
+      setError(t('displayNameRequired'));
       return;
     }
 
@@ -102,24 +105,23 @@ export default function EditProfilePage() {
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="text-xl font-bold text-neutral-50">
-        {isNewProfile ? 'Set Up Your Public Profile' : 'Edit Profile'}
+        {isNewProfile ? t('setupTitle') : t('editTitle')}
       </h1>
-      {isNewProfile && (
-        <p className="mt-1 text-sm text-neutral-500">
-          Create a public profile so other riders can find and follow you.
-        </p>
-      )}
+      {isNewProfile && <p className="mt-1 text-sm text-neutral-500">{t('setupDesc')}</p>}
 
       {error && (
         <p role="alert" className="mt-4 text-sm text-danger-500">
           {error}
         </p>
       )}
+      {success && (
+        <output className="mt-4 block text-sm text-green-500">{t('profileSaved')}</output>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="edit-username" className="text-sm font-medium text-neutral-400">
-            Username
+            {t('username')}
           </label>
           <div className="flex items-center rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3">
             <span className="text-neutral-600">@</span>
@@ -130,18 +132,16 @@ export default function EditProfilePage() {
               onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
               maxLength={30}
               required
-              placeholder="your_username"
+              placeholder={t('usernamePlaceholder')}
               className="ml-1 flex-1 bg-transparent text-neutral-50 placeholder:text-neutral-600 focus:outline-none"
             />
           </div>
-          <p className="text-xs text-neutral-600">
-            3-30 characters, lowercase, numbers, underscores
-          </p>
+          <p className="text-xs text-neutral-600">{t('usernameHint')}</p>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="edit-displayname" className="text-sm font-medium text-neutral-400">
-            Display Name
+            {t('displayName')}
           </label>
           <input
             id="edit-displayname"
@@ -156,7 +156,7 @@ export default function EditProfilePage() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="edit-bio" className="text-sm font-medium text-neutral-400">
-            Bio
+            {t('bio')}
           </label>
           <textarea
             id="edit-bio"
@@ -164,7 +164,7 @@ export default function EditProfilePage() {
             onChange={(e) => setBio(e.target.value)}
             maxLength={300}
             rows={3}
-            placeholder="Tell other riders about yourself..."
+            placeholder={t('bioPlaceholder')}
             className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent resize-none"
           />
           <p className="text-right text-xs text-neutral-600">{bio.length}/300</p>
@@ -172,7 +172,7 @@ export default function EditProfilePage() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="edit-city" className="text-sm font-medium text-neutral-400">
-            City
+            {t('city')}
           </label>
           <input
             id="edit-city"
@@ -180,7 +180,7 @@ export default function EditProfilePage() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             maxLength={100}
-            placeholder="e.g. Prague, Czechia"
+            placeholder={t('cityPlaceholder')}
             className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-3 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-warm-500 focus:border-transparent"
           />
         </div>
@@ -201,7 +201,7 @@ export default function EditProfilePage() {
               }`}
             />
           </button>
-          <span className="text-sm text-neutral-300">Public profile</span>
+          <span className="text-sm text-neutral-300">{t('publicProfile')}</span>
         </div>
 
         <div className="flex gap-3 pt-2">
@@ -210,7 +210,7 @@ export default function EditProfilePage() {
             disabled={updateMutation.isPending}
             className="flex-1 rounded-full bg-warm-500 px-6 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateMutation.isPending ? 'Saving...' : 'Save Profile'}
+            {updateMutation.isPending ? t('saving') : success ? t('saved') : t('saveProfile')}
           </button>
           {!isNewProfile && (
             <button
@@ -218,7 +218,7 @@ export default function EditProfilePage() {
               onClick={() => router.back()}
               className="rounded-full border border-neutral-700 px-6 py-3 font-semibold text-neutral-300 transition-colors hover:bg-neutral-800"
             >
-              Cancel
+              {t('cancel')}
             </button>
           )}
         </div>

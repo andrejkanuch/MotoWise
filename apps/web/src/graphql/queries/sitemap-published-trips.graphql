@@ -1,0 +1,8 @@
+query SitemapPublishedTrips {
+  sitemapPublishedTrips {
+    countryCode
+    regionCode
+    slug
+    updatedAt
+  }
+}

@@ -234,9 +234,9 @@ export default function RideSummaryScreen() {
 
       // Share to Discover (fire-and-forget, non-blocking)
       if (shareToDiscover) {
-        import('@motovault/graphql').then(({ ShareRideToDiscoverDocument }) => {
+        import('@motovault/graphql').then(({ ShareRideAsTripDocument }) => {
           import('../../lib/graphql-client').then(({ gqlFetcher: fetcher }) => {
-            fetcher(ShareRideToDiscoverDocument, {
+            fetcher(ShareRideAsTripDocument, {
               input: { rideId, name: rideName || undefined },
             }).catch((err: unknown) =>
               console.warn('[RideSummary] Share to Discover failed:', err),

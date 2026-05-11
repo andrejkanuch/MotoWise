@@ -1,67 +1,50 @@
 import { GPX_EXPORT_LIMITS } from '@motovault/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
+import { FEATURES, type Feature, GATING_MATRIX, type Tier } from './entitlements.types';
 import type { QuotaStatus } from './quota-status.dto';
 
-/** Must match the value used in routes.service consumeGpxQuota / checkGpxEntitlement */
-const FEATURE_GPX_EXPORT = 'DOWNLOAD_GPX';
-
-export const ENTITLEMENTS = {
-  READ_FULL_ROUTE: 'READ_FULL_ROUTE',
-  READ_ALL_REVIEWS: 'READ_ALL_REVIEWS',
-  DOWNLOAD_GPX: 'DOWNLOAD_GPX',
-  SAVE_ROUTE: 'SAVE_ROUTE',
-} as const;
-
-type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
+const FEATURE_GPX_EXPORT = FEATURES.DOWNLOAD_GPX;
 
 @Injectable()
 export class EntitlementsService {
   private readonly logger = new Logger(EntitlementsService.name);
 
-  constructor(@Inject(SUPABASE_USER) private readonly supabase: SupabaseClient) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient) {}
 
   /**
-   * Check if a user has access to a specific entitlement.
-   * Authenticated users get all entitlements in Phase 1.
-   * Anonymous users (null) get none.
+   * Check if a user has access to a specific feature.
+   * Uses the GATING_MATRIX from entitlements.types.ts.
+   * Tier is resolved once per request by GqlAuthGuard and attached to user.tier.
+   *
+   * @param user - AuthUser with tier from request context, or null for anonymous
+   * @param feature - Feature key from FEATURES constant
    */
-  can(user: { id: string } | null, _entitlement: Entitlement): boolean {
-    if (!user) return false;
-    // Phase 1: all authenticated users have all entitlements
-    // Phase 3: check subscription_tier for Pro-only features
-    return true;
+  can(user: { id: string; tier?: Tier } | null, feature: Feature): boolean {
+    if (!user) return GATING_MATRIX.anonymous[feature];
+    const tier: Tier = user.tier ?? 'free';
+    return GATING_MATRIX[tier][feature];
   }
 
   /**
    * Get the current GPX export quota status for a user.
    * Uses the year_month generated column for monthly windowing — no cron needed.
+   *
+   * @param userId - The user's ID
+   * @param tier - The user's effective tier, already resolved by GqlAuthGuard
    */
-  async getGPXQuotaStatus(userId: string): Promise<QuotaStatus> {
+  async getGPXQuotaStatus(userId: string, tier: Tier = 'free'): Promise<QuotaStatus> {
     const now = new Date();
     const yearMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
 
-    // Determine tier from users table
-    const { data: user, error: userError } = await this.supabase
-      .from('users')
-      .select('subscription_tier')
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      this.logger.error(`Failed to fetch user tier: ${userError.message}`, userError);
-      throw new Error('Failed to fetch user subscription tier');
-    }
-
-    const tier = (user?.subscription_tier as string) ?? 'free';
     const limit =
       tier === 'pro'
         ? GPX_EXPORT_LIMITS.PRO_MONTHLY_EXPORTS
         : GPX_EXPORT_LIMITS.FREE_MONTHLY_EXPORTS;
 
     // Count usage this month using the year_month generated column
-    const { count, error: countError } = await this.supabase
+    const { count, error: countError } = await this.supabaseAdmin
       .from('user_gating_events')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)

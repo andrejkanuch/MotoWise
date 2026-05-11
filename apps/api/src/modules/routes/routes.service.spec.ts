@@ -56,10 +56,12 @@ describe('RoutesService', () => {
       'delete',
       'upsert',
       'eq',
+      'ilike',
       'in',
       'is',
       'lt',
       'not',
+      'neq',
       'gte',
       'order',
       'limit',
@@ -142,7 +144,7 @@ describe('RoutesService', () => {
 
       expect(mockUserClient.from).toHaveBeenCalledWith('routes');
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('status', 'published');
-      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('region_code', 'IT-BZ');
+      expect(mockUserClient._chain.ilike).toHaveBeenCalledWith('region_code', 'it-bz');
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
     });
 
@@ -166,7 +168,7 @@ describe('RoutesService', () => {
       const result = await service.findBySlug('DE', 'DE-BY', 'stelvio-pass');
 
       expect(result).toBeNull();
-      expect(mockUserClient._chain.eq).toHaveBeenCalledWith('region_code', 'DE-BY');
+      expect(mockUserClient._chain.ilike).toHaveBeenCalledWith('region_code', 'de-by');
       expect(mockUserClient._chain.eq).toHaveBeenCalledWith('slug', 'stelvio-pass');
     });
   });

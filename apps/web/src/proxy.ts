@@ -97,16 +97,22 @@ function buildCspHeader(nonce: string): string {
     'https://vitals.vercel-insights.com',
     'https://connect.facebook.net',
     'https://www.facebook.com',
+    'https://api.stripe.com',
+    'https://js.stripe.com',
+    'https://api.revenuecat.com',
+    'https://e.revenue.cat',
+    'https://*.ingest.us.sentry.io',
   ]
     .filter(Boolean)
     .join(' ');
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com${isDev ? " 'unsafe-eval'" : ''}`,
+    `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://va.vercel-scripts.com https://api.mapbox.com https://js.stripe.com${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline' https://api.mapbox.com",
     "img-src 'self' data: https: https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
     "worker-src 'self' blob:",
     `connect-src ${connectSources} https://*.mapbox.com`,
     "frame-ancestors 'none'",
@@ -127,6 +133,14 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 // user-specific or token-scoped.
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
+
+const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
+
+function isNoIndexRoute(pathname: string): boolean {
+  return NOINDEX_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
 
 function isMarketingCacheable(pathname: string): boolean {
   if (
@@ -421,6 +435,10 @@ export async function proxy(request: NextRequest) {
     applySecurityHeaders(response, nonce);
     if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
+    }
+    // Prevent search engines from indexing auth and user-generated pages.
+    if (isNoIndexRoute(pathname)) {
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
     }
   }
 

@@ -5,13 +5,14 @@ import {
   CreateWaypointInputSchema,
   JoinTripInputSchema,
   ReorderWaypointsInputSchema,
+  ShareRideAsTripInputSchema,
   TripShareTokenSchema,
   TripTemplateFiltersSchema,
   UpdateParticipantStatusInputSchema,
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
 } from '@motovault/types/validators';
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -19,12 +20,15 @@ import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
+import { RoutesService } from '../routes/routes.service';
 import { CreateTripInput } from './dto/create-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
 import { CreateWaypointInput } from './dto/create-waypoint.input';
 import { JoinTripInput } from './dto/join-trip.input';
 import { ReorderWaypointsInput } from './dto/reorder-waypoints.input';
+import { ShareRideAsTripInput } from './dto/share-ride-as-trip.input';
 import { TripTemplateFilterInput } from './dto/trip-template-filter.input';
 import { UpdateParticipantStatusInput } from './dto/update-participant-status.input';
 import { UpdateTripInput } from './dto/update-trip.input';
@@ -33,8 +37,10 @@ import { TripShareTokenError } from './errors/trip-share-token.errors';
 import { TripReviewsLoader } from './loaders/trip-reviews.loader';
 import { TripSavedLoader } from './loaders/trip-saved.loader';
 import { SharedTrip } from './models/shared-trip.model';
+import { SitemapTripEntry } from './models/sitemap-trip-entry.model';
 import { Trip, TripConnection, TripReview, TripWaypoint } from './models/trip.model';
 import { TripInvite } from './models/trip-invite.model';
+import { TripGpxExportService } from './services/trip-gpx-export.service';
 import { TripLifecycleService } from './services/trip-lifecycle.service';
 import { TripParticipantsService } from './services/trip-participants.service';
 import { TripReviewsService } from './services/trip-reviews.service';
@@ -55,8 +61,10 @@ export class TripsResolver {
     private readonly tripTemplatesSvc: TripTemplatesService,
     private readonly tripReviewsSvc: TripReviewsService,
     private readonly tripSavesSvc: TripSavesService,
+    private readonly tripGpxExport: TripGpxExportService,
     private readonly tripReviewsLoader: TripReviewsLoader,
     private readonly tripSavedLoader: TripSavedLoader,
+    private readonly routesService: RoutesService,
   ) {}
 
   // ==========================================
@@ -182,6 +190,18 @@ export class TripsResolver {
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<Trip> {
     return this.tripLifecycle.publishTrip(user.id, tripId);
+  }
+
+  @Mutation(() => Trip, {
+    description:
+      'Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover.',
+  })
+  async shareRideAsTrip(
+    @CurrentUser() user: AuthUser,
+    @Args('input', new ZodValidationPipe(ShareRideAsTripInputSchema))
+    input: ShareRideAsTripInput,
+  ): Promise<Trip> {
+    return this.tripLifecycle.shareRideAsTrip(user.id, input);
   }
 
   // ==========================================
@@ -310,6 +330,11 @@ export class TripsResolver {
     @Args('region') region: string,
     @Args('slug') slug: string,
   ): Promise<Trip> {
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
     const trip = await this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
     this.tripTemplatesSvc.incrementViewCount(trip.id);
     return trip;
@@ -356,15 +381,48 @@ export class TripsResolver {
   // Review Operations
   // ==========================================
 
-  @Query(() => [TripReview])
+  @Query(() => [TripReview], {
+    description: 'Get reviews for a trip by ID or by slug (country+region+slug lookup)',
+  })
   @Public()
   async tripReviews(
-    @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
+    @Args('tripId', { type: () => ID, nullable: true })
+    tripId?: string,
+    @Args('slug', { nullable: true }) slug?: string,
+    @Args('country', { nullable: true }) country?: string,
+    @Args('region', { nullable: true }) region?: string,
     @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
     first?: number,
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripReview[]> {
-    const connection = await this.tripReviewsSvc.getReviewsForTrip(tripId, first ?? 20, after);
+    // Input validation for optional string args
+    if (tripId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tripId)) {
+      throw new BadRequestException('Invalid tripId format');
+    }
+    if (slug && (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200))
+      throw new BadRequestException('Invalid slug');
+    if (country && !/^[a-z]{2}$/i.test(country))
+      throw new BadRequestException('Invalid country code');
+    if (region && (!/^[a-z0-9-]+$/i.test(region) || region.length > 100))
+      throw new BadRequestException('Invalid region code');
+
+    let resolvedTripId = tripId;
+
+    // Slug-based lookup: resolve slug → tripId first
+    if (!resolvedTripId && slug && country && region) {
+      const trip = await this.tripTemplatesSvc.getTemplateBySlug(country, region, slug);
+      resolvedTripId = trip.id;
+    }
+
+    if (!resolvedTripId) {
+      throw new BadRequestException('Either tripId or (slug + country + region) is required');
+    }
+
+    const connection = await this.tripReviewsSvc.getReviewsForTrip(
+      resolvedTripId,
+      first ?? 20,
+      after,
+    );
     return connection.edges.map((e) => ({
       ...e.node,
       text: e.node.text ?? undefined,
@@ -394,6 +452,65 @@ export class TripsResolver {
     @Args('reviewId', { type: () => ID }, ParseUUIDPipe) reviewId: string,
   ): Promise<boolean> {
     return this.tripReviewsSvc.deleteReview(user.id, reviewId);
+  }
+
+  // ==========================================
+  // Sitemap (replaces routes sitemapPublishedRoutes)
+  // ==========================================
+
+  @Query(() => [SitemapTripEntry], {
+    description: 'Published trip templates for XML sitemap generation',
+  })
+  @Public()
+  async sitemapPublishedTrips(): Promise<SitemapTripEntry[]> {
+    return this.tripTemplatesSvc.sitemapPublishedTrips();
+  }
+
+  // ==========================================
+  // GPX Export (trip-based, replaces routes GPX export)
+  // ==========================================
+
+  @Mutation(() => GPXExportResultUnion, {
+    description:
+      'Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.',
+  })
+  async exportTripGPX(
+    @CurrentUser() user: AuthUser,
+    @Args('slug') slug: string,
+    @Args('country') country: string,
+    @Args('region') region: string,
+  ): Promise<typeof GPXExportResultUnion> {
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
+    return this.tripGpxExport.exportTripGPX(user, slug, country, region);
+  }
+
+  // ==========================================
+  // Similar Trips (Explore funnel)
+  // ==========================================
+
+  @Query(() => [Trip], {
+    description: 'Find similar published trip templates by country + difficulty + duration',
+  })
+  @Public()
+  async similarTrips(
+    @Args('slug') slug: string,
+    @Args('country') country: string,
+    @Args('region') region: string,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 6 })
+    limit?: number,
+  ): Promise<Trip[]> {
+    // Input validation for string args
+    if (!/^[a-z0-9-]+$/i.test(slug) || slug.length > 200)
+      throw new BadRequestException('Invalid slug');
+    if (!/^[a-z]{2}$/i.test(country)) throw new BadRequestException('Invalid country code');
+    if (!/^[a-z0-9-]+$/i.test(region) || region.length > 100)
+      throw new BadRequestException('Invalid region code');
+
+    return this.tripTemplatesSvc.findSimilarTrips(slug, country, region, Math.min(limit ?? 6, 20));
   }
 
   // ==========================================
@@ -432,5 +549,36 @@ export class TripsResolver {
     @Args('after', { nullable: true }) after?: string,
   ): Promise<TripConnection> {
     return this.tripSavesSvc.savedTrips(user.id, first ?? 20, after);
+  }
+
+  @Query(() => TripConnection, {
+    description: 'Public saved trips for a user by handle (public_username)',
+  })
+  @Public()
+  async publicSavedTrips(
+    @Args('handle') handle: string,
+    @Args('first', { type: () => Int, nullable: true, defaultValue: 20 })
+    first?: number,
+    @Args('after', { nullable: true }) after?: string,
+  ): Promise<TripConnection> {
+    if (!handle || !/^[a-zA-Z0-9_-]+$/.test(handle) || handle.length > 100) {
+      throw new BadRequestException('Invalid handle');
+    }
+    return this.tripSavesSvc.publicSavedTrips(handle, first ?? 20, after);
+  }
+
+  // ==========================================
+  // Premium Waitlist (moved from RoutesResolver)
+  // ==========================================
+
+  @Mutation(() => Boolean)
+  async joinPremiumWaitlist(
+    @CurrentUser() user: AuthUser,
+    @Args('feature') feature: string,
+  ): Promise<boolean> {
+    if (feature !== 'offline_routes' && feature !== 'premium_general') {
+      throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
+    }
+    return this.routesService.joinPremiumWaitlist(user.id, feature);
   }
 }

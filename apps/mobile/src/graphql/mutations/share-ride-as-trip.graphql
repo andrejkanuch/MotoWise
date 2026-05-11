@@ -1,0 +1,7 @@
+mutation ShareRideAsTrip($input: ShareRideAsTripInput!) {
+  shareRideAsTrip(input: $input) {
+    id
+    title
+    distanceM
+  }
+}

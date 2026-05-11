@@ -70,6 +70,23 @@ export default async function HomePage({ params }: PageProps) {
     <>
       <JsonLdGraph nodes={graph} />
       <Hero />
+      {/* AI-extractable site definition — visible to crawlers, subtle for users */}
+      <p
+        style={{
+          maxWidth: '48rem',
+          margin: '0 auto',
+          padding: '16px 24px 0',
+          textAlign: 'center',
+          fontSize: '12px',
+          lineHeight: '1.5',
+          color: 'var(--mv-ink-3)',
+        }}
+      >
+        MotoVault is a free motorcycle management app that combines trip planning, maintenance
+        tracking, expense logging, and AI-powered diagnostics in a single platform for riders.
+        Available on iOS and Android, MotoVault supports over 12,000 motorcycle models from the
+        NHTSA Vehicle Product Information Catalog database.
+      </p>
       <ManifestoSection />
       <FeaturesGrid />
       <ProofSection />
