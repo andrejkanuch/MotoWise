@@ -25,7 +25,7 @@ export type StartRideInput = z.infer<typeof StartRideInputSchema>;
 export const EndRideInputSchema = z.object({
   rideId: z.string().uuid(),
   endedAt: z.string().datetime(),
-  distanceM: z.number().nonnegative().max(100000),
+  distanceM: z.number().nonnegative().max(2000000),
   maxSpeedMps: z.number().nonnegative().max(200).nullable().optional(),
   avgSpeedMps: z.number().nonnegative().max(200).nullable().optional(),
   elevationGain: z.number().nonnegative().max(50000).nullable().optional(),
