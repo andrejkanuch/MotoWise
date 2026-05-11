@@ -36,16 +36,16 @@ export function MileageDisplay({
     if (days === 0)
       return t('bikeHub.updatedTodayFrom', {
         defaultValue: `${sourceLabel} · today`,
-        sourceLabel,
+        source: sourceLabel,
       });
     if (days === 1)
       return t('bikeHub.updatedYesterdayFrom', {
         defaultValue: `${sourceLabel} · yesterday`,
-        sourceLabel,
+        source: sourceLabel,
       });
     return t('bikeHub.updatedDaysAgoFrom', {
       defaultValue: `${sourceLabel} · ${days}d ago`,
-      sourceLabel,
+      source: sourceLabel,
       days,
     });
   };
