@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault.`;
 
   const canonical = `${BASE_URL}/explore/${countrySlug}`;
-  return {
+  const base: Metadata = {
     title: { absolute: `${title} | MotoVault` },
     description,
     alternates: {
@@ -55,6 +55,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [OG_IMAGE],
     },
   };
+
+  // Prevent thin-content pages from being indexed (soft 404 prevention).
+  if (rc === 0) {
+    return { ...base, robots: { index: false, follow: true } };
+  }
+
+  return base;
 }
 
 /* ── Map center heuristic ────────────────────────────────────── */

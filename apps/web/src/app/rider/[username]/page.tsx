@@ -19,6 +19,8 @@ export async function generateMetadata({
   return {
     title: `${profile.displayName ?? profile.publicUsername} (@${profile.publicUsername})`,
     description,
+    robots: { index: false, follow: false },
+    alternates: { canonical: `https://motovault.app/rider/${profile.publicUsername}` },
     openGraph: {
       title: `${profile.displayName ?? profile.publicUsername} (@${profile.publicUsername})`,
       description,

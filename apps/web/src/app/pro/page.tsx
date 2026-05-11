@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Pro — Unlock Every Feature | MotoVault',
   description:
     'Upgrade to MotoVault Pro for unlimited AI diagnostics, advanced ride analytics, multi-bike garage, and more. Start your 7-day free trial.',
+  alternates: { canonical: 'https://motovault.app/pro' },
 };
 
 /* ── Data ─────────────────────────────────────────────────────── */

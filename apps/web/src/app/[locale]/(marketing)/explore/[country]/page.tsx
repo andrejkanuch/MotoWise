@@ -5,7 +5,7 @@ import { Breadcrumb } from '@/components/marketing/breadcrumb';
 import { JsonLdGraph } from '@/components/marketing/json-ld-graph';
 import { RouteCard } from '@/components/marketing/route-card';
 import { Link } from '@/i18n/navigation';
-import { BASE_URL, getCanonicalUrl, getHreflangMap } from '@/lib/constants';
+import { BASE_URL, getCanonicalUrl } from '@/lib/constants';
 import {
   fetchCountryBySlug,
   fetchRegionsByCountrySlug,
@@ -36,15 +36,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `Discover the best motorcycle routes in ${country.name}. Browse ${rc} route${rc === 1 ? '' : 's'} across regions — twisty roads, scenic passes, and epic rides.`
       : `Motorcycle routes in ${country.name} are coming soon. Browse other countries on MotoVault or share a ride from the app.`;
 
-  const canonical = getCanonicalUrl(locale, `/explore/${countrySlug}`);
-  const pagePath = `/explore/${countrySlug}` as const;
+  // Explore content is not translated — always canonical to the non-localized version
+  // to prevent Google from seeing locale variants as duplicates.
+  const canonical = `${BASE_URL}/explore/${countrySlug}`;
 
   const base: Metadata = {
     title: { absolute: `${title} | MotoVault` },
     description,
     alternates: {
       canonical,
-      languages: getHreflangMap(pagePath),
+      languages: { 'x-default': canonical },
     },
     openGraph: {
       title: `${title} | MotoVault`,

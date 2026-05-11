@@ -20,7 +20,9 @@ const PAGE_DESCRIPTION =
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
-  const canonical = getCanonicalUrl(locale, '/explore');
+  // Explore content is not translated — always canonical to the non-localized version
+  // to prevent Google from seeing locale variants as duplicates.
+  const canonical = `${BASE_URL}/explore`;
   return {
     title: { absolute: `${PAGE_TITLE} | MotoVault` },
     description: PAGE_DESCRIPTION,

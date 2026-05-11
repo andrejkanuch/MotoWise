@@ -134,6 +134,14 @@ function applySecurityHeaders(response: NextResponse, nonce: string) {
 const MARKETING_CACHEABLE_RE =
   /^\/($|explore|features|compare|tools|blog|press|about|support|privacy|terms|account-deletion|(?:en|de|fr|es|it)(?:\/|$))/;
 
+const NOINDEX_PREFIXES = ['/login', '/signup', '/forgot-password', '/explore/search'];
+
+function isNoIndexRoute(pathname: string): boolean {
+  return NOINDEX_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 function isMarketingCacheable(pathname: string): boolean {
   if (
     pathname.startsWith('/admin') ||
@@ -427,6 +435,10 @@ export async function proxy(request: NextRequest) {
     applySecurityHeaders(response, nonce);
     if (isMarketingCacheable(pathname) && !hasSupabaseSession(request)) {
       applyMarketingCacheHeader(response);
+    }
+    // Prevent search engines from indexing auth and user-generated pages.
+    if (isNoIndexRoute(pathname)) {
+      response.headers.set('X-Robots-Tag', 'noindex, nofollow');
     }
   }
 
