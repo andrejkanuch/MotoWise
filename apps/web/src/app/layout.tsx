@@ -16,6 +16,7 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-sans',
+  adjustFontFallback: true,
 });
 
 export const metadata: Metadata = {

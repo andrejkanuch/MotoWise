@@ -1,6 +1,7 @@
 import './instrument';
 
 import { NestFactory } from '@nestjs/core';
+import compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/gql-exception.filter';
@@ -13,6 +14,8 @@ async function bootstrap() {
 
   // Trust proxy for correct client IP behind Render's load balancer
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
+  app.use(compression());
 
   app.use(
     helmet({

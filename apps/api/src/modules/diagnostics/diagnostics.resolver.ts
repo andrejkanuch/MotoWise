@@ -1,6 +1,7 @@
 import { CreateDiagnosticSchema, FREE_TIER_LIMITS, SubmitDiagnosticSchema } from '@motovault/types';
 import { BadRequestException, ForbiddenException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
@@ -49,6 +50,7 @@ export class DiagnosticsResolver {
     return this.diagnosticsService.create(user.id, input);
   }
 
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @Mutation(() => Diagnostic)
   @UseGuards(GqlAuthGuard)
   async submitDiagnostic(

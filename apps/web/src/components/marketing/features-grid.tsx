@@ -129,6 +129,7 @@ export function FeaturesGrid() {
           gridTemplateColumns: '1fr 420px',
           gap: '96px',
           alignItems: 'flex-start',
+          contain: 'layout style',
         }}
         className="features-stage-grid"
       >

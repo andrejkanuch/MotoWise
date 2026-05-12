@@ -14,6 +14,7 @@ const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
   variable: '--font-instrument-serif',
   display: 'swap',
+  adjustFontFallback: true,
 });
 
 export async function generateMetadata() {

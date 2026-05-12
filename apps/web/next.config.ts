@@ -17,8 +17,16 @@ const nextConfig: NextConfig = {
   // Prevent Next.js from stripping trailing slashes on PostHog API requests
   // (e.g. /ingest/decide/) — required for the reverse proxy to work correctly.
   skipTrailingSlashRedirect: true,
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 300,
+    },
+  },
   transpilePackages: ['@motovault/types', '@motovault/graphql', '@motovault/design-system'],
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',
@@ -35,11 +43,31 @@ const nextConfig: NextConfig = {
   headers: async () => [
     {
       source: '/images/:path*',
-      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+      ],
     },
     {
       source: '/screenshots/:path*',
-      headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+      ],
+    },
+    {
+      source: '/_next/static/:path*',
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+      ],
+    },
+    {
+      source: '/fonts/:path*',
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+      ],
     },
   ],
   async redirects() {

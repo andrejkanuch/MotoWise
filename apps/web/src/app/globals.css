@@ -316,8 +316,12 @@
   animation: pulse-once 0.5s var(--ease-out-expo) 0.3s both;
 }
 
-/* Paint containment for below-fold sections — avoids layout/paint work until visible */
+/* Paint containment for below-fold sections — avoids layout/paint work until visible.
+   The footer is excluded because content-visibility on it causes CLS when it enters viewport. */
 section:not(:first-child) {
   content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
+  contain-intrinsic-size: auto 800px;
+}
+footer.mv-footer {
+  content-visibility: visible;
 }

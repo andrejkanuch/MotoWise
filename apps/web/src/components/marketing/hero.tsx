@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { STORE_LINKS } from './store-buttons';
 
@@ -48,7 +49,7 @@ export function Hero() {
         isolation: 'isolate',
       }}
     >
-      {/* Background slideshow */}
+      {/* Background slideshow — uses next/image for LCP optimization */}
       <div style={{ position: 'absolute', inset: 0, zIndex: -3, overflow: 'hidden' }}>
         {HERO_IMAGES.map((src, idx) => (
           <div
@@ -56,18 +57,29 @@ export function Hero() {
             style={{
               position: 'absolute',
               inset: 0,
-              backgroundImage: `url('${src}')`,
-              backgroundSize: 'cover',
-              backgroundPosition:
-                idx === 0 ? 'center 55%' : idx === 1 || idx === 3 ? 'center 50%' : 'center 55%',
               filter: 'saturate(0.9) brightness(0.5) contrast(1.12)',
               opacity: activeSlide === idx ? 1 : 0,
               transform: 'scale(1.08)',
               transition: 'opacity 1.6s ease',
-              willChange: 'opacity, transform',
+              willChange: 'opacity',
               animation: activeSlide === idx ? 'mv-bg-breath 12s ease-in-out forwards' : 'none',
             }}
-          />
+          >
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="100vw"
+              style={{
+                objectFit: 'cover',
+                objectPosition:
+                  idx === 0 ? 'center 55%' : idx === 1 || idx === 3 ? 'center 50%' : 'center 55%',
+              }}
+              priority={idx === 0}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              quality={idx === 0 ? 85 : 75}
+            />
+          </div>
         ))}
       </div>
 
@@ -364,10 +376,6 @@ export function Hero() {
                 fontSize: '14px',
                 textDecoration: 'none',
                 letterSpacing: '-0.005em',
-                background: 'oklch(1 0 0 / 0.04)',
-                color: 'var(--mv-ink)',
-                border: '1px solid var(--mv-line)',
-                backdropFilter: 'blur(8px)',
               }}
             >
               <svg

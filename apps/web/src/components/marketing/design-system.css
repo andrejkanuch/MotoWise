@@ -340,10 +340,9 @@
 }
 
 .mv-btn-ghost {
-  background: oklch(1 0 0 / 0.04);
+  background: oklch(0.14 0.01 55 / 0.85);
   color: var(--mv-ink);
   border: 1px solid var(--mv-line);
-  backdrop-filter: blur(8px);
 }
 
 .mv-btn-ghost:hover {
@@ -358,6 +357,7 @@
   border-top: 1px solid var(--mv-line);
   max-width: var(--mv-container);
   margin: 0 auto;
+  contain: layout style;
 }
 
 .mv-footer-grid {
@@ -477,6 +477,8 @@
   user-select: none;
   pointer-events: none;
   text-align: center;
+  contain: layout style;
+  min-height: clamp(72px, 14.4vw, 216px);
 }
 
 .mv-footer-bottom {

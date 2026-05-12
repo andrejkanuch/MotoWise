@@ -1,15 +1,15 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "globalEnv": ["CI", "NODE_ENV"],
-  "globalDependencies": [".env"],
+  "globalDependencies": [".env", "tsconfig.json", "biome.json"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**",
-        "package.json",
-        "tsconfig.json",
-        "tsconfig.*.json",
+        "$TURBO_DEFAULT$",
+        "!README.md",
+        "!**/*.test.ts",
+        "!**/*.spec.ts",
         "next.config.*",
         "app.json"
       ],
@@ -20,7 +20,9 @@
         "NEXT_PUBLIC_*",
         "EXPO_PUBLIC_*",
         "APPLE_TEAM_ID",
-        "ANDROID_CERT_SHA256"
+        "ANDROID_CERT_SHA256",
+        "SENTRY_*",
+        "MAPBOX_ACCESS_TOKEN"
       ]
     },
     "dev": {
@@ -30,22 +32,23 @@
     },
     "lint": {
       "cache": true,
-      "inputs": ["src/**", "biome.json", "tsconfig.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "check": {
       "cache": true,
-      "inputs": ["src/**", "biome.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
       "cache": true,
+      "inputs": ["$TURBO_DEFAULT$", "vitest.config.*", "jest.config.*"],
       "env": ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]
     },
     "typecheck": {
       "dependsOn": ["^build"],
       "cache": true,
-      "inputs": ["src/**", "tsconfig.json"]
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.*.json"]
     },
     "generate:schema": {
       "dependsOn": ["^build"],

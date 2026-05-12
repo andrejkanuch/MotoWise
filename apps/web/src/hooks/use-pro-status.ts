@@ -141,7 +141,6 @@ export function useProStatus(): ProStatus {
 
     // Strategy 1: RevenueCat (has trial info, but only covers web billing)
     const rcResult = await checkViaRevenueCat(user.id);
-    console.debug('[useProStatus] RC result:', rcResult);
     if (rcResult?.isPro) {
       setStatus(rcResult);
       writeCache(rcResult);
@@ -150,7 +149,6 @@ export function useProStatus(): ProStatus {
 
     // Strategy 2: GraphQL / DB fallback (covers all subscription sources — App Store, Play Store, web)
     const dbResult = await checkViaGraphQL();
-    console.debug('[useProStatus] DB fallback result:', dbResult);
     if (dbResult) {
       setStatus(dbResult);
       writeCache(dbResult);
@@ -158,7 +156,6 @@ export function useProStatus(): ProStatus {
     }
 
     // Both failed — show as free, don't cache so it retries
-    console.debug('[useProStatus] Both strategies failed, defaulting to free');
     setStatus({ ...INITIAL, isLoading: false });
   }, []);
 

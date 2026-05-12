@@ -2,12 +2,14 @@ import './common/enums/graphql-enums';
 import { join } from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryModule } from '@sentry/nestjs/setup';
 import depthLimit from 'graphql-depth-limit';
+import { GqlThrottlerGuard } from './common/guards/gql-throttler.guard';
 import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
@@ -37,7 +39,9 @@ import { MotorcyclesModule } from './modules/motorcycles/motorcycles.module';
 import { OemSchedulesModule } from './modules/oem-schedules/oem-schedules.module';
 import { PlacesModule } from './modules/places/places.module';
 import { QuizzesModule } from './modules/quizzes/quizzes.module';
+import { REDIS } from './modules/redis/redis.constants';
 import { RedisModule } from './modules/redis/redis.module';
+import { RedisThrottlerStorage } from './modules/redis/redis-throttler.storage';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
 import { RoutesModule } from './modules/routes/routes.module';
@@ -71,6 +75,22 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     }),
     EventEmitterModule.forRoot(),
     RedisModule,
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService, REDIS],
+      useFactory: (config: ConfigService, redis: import('@upstash/redis').Redis | null) => {
+        const storage = new RedisThrottlerStorage(redis);
+        storage.onModuleInit();
+        return {
+          throttlers: [
+            {
+              ttl: config.get<number>('THROTTLE_TTL', 60) * 1000,
+              limit: config.get<number>('THROTTLE_LIMIT', 100),
+            },
+          ],
+          storage,
+        };
+      },
+    }),
     SupabaseModule,
     EmailModule,
     AiBudgetModule,
@@ -113,6 +133,10 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: GqlThrottlerGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: CorrelationIdInterceptor,
