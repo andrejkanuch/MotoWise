@@ -1,7 +1,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { AnalyticsEvent, trackEvent } from '../lib/analytics';
+import { trackEvent } from '../lib/analytics';
 
 const mmkv = createMMKV({ id: 'checklist-store' });
 
@@ -115,8 +115,7 @@ export const useChecklistStore = create<ChecklistState>()(
 
       dismiss: () => set({ dismissed: true }),
 
-      reset: () =>
-        set({ items: [], completedItems: [], dismissed: false, initialized: false }),
+      reset: () => set({ items: [], completedItems: [], dismissed: false, initialized: false }),
     }),
     {
       name: 'checklist-state',

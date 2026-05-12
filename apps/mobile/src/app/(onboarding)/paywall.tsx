@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { GOAL_TO_PLACEMENT, TOTAL_SCREENS, getPrimaryGoal } from '../../config/onboarding';
+import { GOAL_TO_PLACEMENT, getPrimaryGoal, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { presentPaywall } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';

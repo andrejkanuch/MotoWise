@@ -1,5 +1,5 @@
-import { getLocales } from 'expo-localization';
 import type { Currency } from '@motovault/types';
+import { getLocales } from 'expo-localization';
 
 const IMPERIAL_REGIONS = new Set(['US', 'GB', 'LR', 'MM']);
 

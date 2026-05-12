@@ -163,23 +163,15 @@ export function OnboardingChecklist() {
               </Text>
 
               {/* Chevron */}
-              {!isCompleted && (
-                <ChevronRight size={12} color={theme.ink4} strokeWidth={1.5} />
-              )}
+              {!isCompleted && <ChevronRight size={12} color={theme.ink4} strokeWidth={1.5} />}
             </Pressable>
           );
         })}
       </View>
 
       {/* Dismiss */}
-      <Pressable
-        onPress={dismiss}
-        style={{ alignSelf: 'flex-end', marginTop: 16 }}
-        hitSlop={12}
-      >
-        <Text style={{ fontSize: 13, color: theme.ink4 }}>
-          {t('checklist.dismiss')}
-        </Text>
+      <Pressable onPress={dismiss} style={{ alignSelf: 'flex-end', marginTop: 16 }} hitSlop={12}>
+        <Text style={{ fontSize: 13, color: theme.ink4 }}>{t('checklist.dismiss')}</Text>
       </Pressable>
     </Animated.View>
   );

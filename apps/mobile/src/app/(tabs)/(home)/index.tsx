@@ -8,11 +8,11 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeSwitcher } from '../../../components/home/bike-switcher';
-import { OnboardingChecklist } from '../../../components/home/onboarding-checklist';
 import { EmptyState } from '../../../components/home/empty-state';
 import { FocusHistory } from '../../../components/home/focus-history';
 import { FocusPicker, type FocusTab } from '../../../components/home/focus-picker';
 import { FocusStats } from '../../../components/home/focus-stats';
+import { OnboardingChecklist } from '../../../components/home/onboarding-checklist';
 import { useHomeData } from '../../../components/home/use-home-data';
 import { Skeleton } from '../../../components/skeleton/skeleton';
 import { SkeletonProvider } from '../../../components/skeleton/skeleton-provider';

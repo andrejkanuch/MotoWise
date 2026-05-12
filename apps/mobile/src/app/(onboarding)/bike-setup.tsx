@@ -21,7 +21,6 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
-import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
@@ -50,9 +49,7 @@ function detectTypeFromModel(modelName: string): MotorcycleType | null {
     return MotorcycleType.CRUISER;
   if (/goldwing|gold wing|electra|road king|road glide|voyager|k\s?1600/i.test(lower))
     return MotorcycleType.TOURING;
-  if (
-    /dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure/i.test(lower)
-  )
+  if (/dr-z|drz|klx|crf|wr\d|xr\d|rally|tenere|versys|v-strom|vstrom|tiger|adventure/i.test(lower))
     return MotorcycleType.DUAL_SPORT;
   if (/crf\d+f|yz\d+f|kx\d+|rm-z|rmz|tc\d|fc\d|sx|exc/i.test(lower))
     return MotorcycleType.DIRT_BIKE;
@@ -105,7 +102,10 @@ export default function BikeSetupScreen() {
       return t('onboarding.v2BikeSetupBridgeMaintenance', {
         defaultValue: "We'll set up service intervals and maintenance tracking for your ride.",
       });
-    if (ridingGoals.includes('save_money' as never) || ridingGoals.includes('save_on_maintenance' as never))
+    if (
+      ridingGoals.includes('save_money' as never) ||
+      ridingGoals.includes('save_on_maintenance' as never)
+    )
       return t('onboarding.v2BikeSetupBridgeSavings', {
         defaultValue: "We'll find cost-saving tips specific to your motorcycle.",
       });
@@ -271,8 +271,7 @@ export default function BikeSetupScreen() {
                       height: 3,
                       borderRadius: 2,
                       borderCurve: 'continuous',
-                      backgroundColor:
-                        i < 4 ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
+                      backgroundColor: i < 4 ? ONBOARDING_COLORS.warm : ONBOARDING_COLORS.surface2,
                     }}
                   />
                 ))}
@@ -372,10 +371,7 @@ export default function BikeSetupScreen() {
               </Animated.View>
 
               {/* ── MAKE SECTION ─────────────────────────────── */}
-              <Animated.View
-                entering={FadeInUp.delay(200).duration(300)}
-                style={{ marginTop: 28 }}
-              >
+              <Animated.View entering={FadeInUp.delay(200).duration(300)} style={{ marginTop: 28 }}>
                 <Text
                   style={{
                     fontSize: 11,
@@ -533,9 +529,7 @@ export default function BikeSetupScreen() {
                               paddingVertical: 13,
                               borderBottomWidth: 1,
                               borderBottomColor: ONBOARDING_COLORS.line,
-                              backgroundColor: pressed
-                                ? ONBOARDING_COLORS.surface2
-                                : 'transparent',
+                              backgroundColor: pressed ? ONBOARDING_COLORS.surface2 : 'transparent',
                             })}
                           >
                             <Text
@@ -556,10 +550,7 @@ export default function BikeSetupScreen() {
 
                 {/* No results — offer custom make */}
                 {showMakeNoResults && (
-                  <Animated.View
-                    entering={FadeInUp.duration(200)}
-                    style={{ gap: 8, marginTop: 8 }}
-                  >
+                  <Animated.View entering={FadeInUp.duration(200)} style={{ gap: 8, marginTop: 8 }}>
                     <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.ink3, paddingLeft: 4 }}>
                       {t('onboarding.noMakesFound', { defaultValue: 'No makes found' })}
                     </Text>

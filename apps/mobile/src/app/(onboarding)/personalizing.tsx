@@ -43,10 +43,7 @@ const FIXED_STEPS = [
   'v2PersonalizingStep3',
 ] as const;
 
-const GOAL_STEP_CONFIG: Record<
-  string,
-  { i18nKey: string; icon: typeof MapPin }
-> = {
+const GOAL_STEP_CONFIG: Record<string, { i18nKey: string; icon: typeof MapPin }> = {
   track_rides: { i18nKey: 'v2PersonalizingStepRides', icon: MapPin },
   manage_expenses: { i18nKey: 'v2PersonalizingStepExpenses', icon: Wallet },
   discover_routes: { i18nKey: 'v2PersonalizingStepRoutes', icon: Compass },
@@ -97,10 +94,7 @@ export default function PersonalizingScreen() {
   const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
   const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
 
-  const steps = useMemo(
-    () => [...FIXED_STEPS, goalConfig.i18nKey] as const,
-    [goalConfig.i18nKey],
-  );
+  const steps = useMemo(() => [...FIXED_STEPS, goalConfig.i18nKey] as const, [goalConfig.i18nKey]);
   const stepIcons = useMemo(
     () => [...FIXED_STEP_ICONS, goalConfig.icon] as const,
     [goalConfig.icon],

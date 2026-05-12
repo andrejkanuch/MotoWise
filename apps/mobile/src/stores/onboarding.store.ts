@@ -11,10 +11,10 @@ import type {
   RidingFrequency,
   RidingGoal,
 } from '@motovault/types';
-import type { OnboardingRoute } from '../config/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { OnboardingRoute } from '../config/onboarding';
 
 interface BikeData {
   year: number;

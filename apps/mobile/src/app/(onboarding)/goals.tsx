@@ -143,7 +143,8 @@ export default function GoalsScreen() {
               marginBottom: 6,
             }}
           >
-            {t('onboarding.v2GoalsTitle')}{'\n'}
+            {t('onboarding.v2GoalsTitle')}
+            {'\n'}
             <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
               {t('onboarding.v2GoalsTitleItalic')}
             </Text>
