@@ -8,6 +8,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BikeSwitcher } from '../../../components/home/bike-switcher';
+import { OnboardingChecklist } from '../../../components/home/onboarding-checklist';
 import { EmptyState } from '../../../components/home/empty-state';
 import { FocusHistory } from '../../../components/home/focus-history';
 import { FocusPicker, type FocusTab } from '../../../components/home/focus-picker';
@@ -238,6 +239,9 @@ export default function HomeScreen() {
             </Text>
           </Animated.View>
         )}
+
+        {/* Onboarding checklist — appears after onboarding completion, above all other content */}
+        <OnboardingChecklist />
 
         {/* 1. Top bar */}
         <View
