@@ -11,6 +11,7 @@ import type {
   RidingFrequency,
   RidingGoal,
 } from '@motovault/types';
+import type { OnboardingRoute } from '../config/onboarding';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -42,6 +43,8 @@ interface OnboardingState {
   weeklySummary: boolean;
   lastServiceDate: LastServiceDate | null;
   currency: Currency | null;
+  /** V2: tracks last completed screen for resume-after-kill */
+  lastCompletedScreen: OnboardingRoute | null;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
@@ -56,6 +59,7 @@ interface OnboardingState {
   setWeeklySummary: (enabled: boolean) => void;
   setLastServiceDate: (date: LastServiceDate) => void;
   setCurrency: (currency: Currency) => void;
+  setLastCompletedScreen: (screen: OnboardingRoute) => void;
   reset: () => void;
 }
 
@@ -74,6 +78,7 @@ const initialState = {
   weeklySummary: false,
   lastServiceDate: null as LastServiceDate | null,
   currency: null as Currency | null,
+  lastCompletedScreen: null as OnboardingRoute | null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -94,11 +99,12 @@ export const useOnboardingStore = create<OnboardingState>()(
       setWeeklySummary: (enabled) => set({ weeklySummary: enabled }),
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
       setCurrency: (currency) => set({ currency }),
+      setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'onboarding-state',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({
         setExperienceLevel,
@@ -115,6 +121,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setWeeklySummary,
         setLastServiceDate,
         setCurrency,
+        setLastCompletedScreen,
         reset,
         ...data
       }) => data,
@@ -123,6 +130,20 @@ export const useOnboardingStore = create<OnboardingState>()(
           return initialState as unknown as OnboardingState;
 
         const state = persistedState as Record<string, unknown>;
+
+        // V4: Onboarding redesign — add lastCompletedScreen, handle v1→v2 reset
+        if (version < 4) {
+          // If store has no ridingGoals or is pre-v3, hard reset to clean v2 flow.
+          // This catches users mid-v1-onboarding who would have broken state.
+          // Note: onboardingCompleted lives in auth store, not here — don't check it.
+          const goals = state.ridingGoals as string[] | undefined;
+          if (!goals?.length || version < 3) {
+            return initialState as unknown as OnboardingState;
+          }
+          // Otherwise append missing v4 fields
+          state.lastCompletedScreen = null;
+        }
+
         if (version < 3) {
           state.currency = state.currency ?? null;
         }
