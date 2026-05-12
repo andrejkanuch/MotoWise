@@ -15,12 +15,12 @@ export class OemSchedulesService {
     year: number | null,
     engineCc: number | null,
   ): Promise<OemSchedule[]> {
-    // Level 1: exact model + year match
+    // Level 1: exact model + year match (case-insensitive on make)
     if (model) {
       let query = this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .eq('make', make)
+        .ilike('make', make)
         .eq('model', model);
 
       if (year != null) {
@@ -40,12 +40,12 @@ export class OemSchedulesService {
       }
     }
 
-    // Level 2: make-level (model IS NULL)
+    // Level 2: make-level (model IS NULL, case-insensitive on make)
     {
       const { data, error } = await this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .eq('make', make)
+        .ilike('make', make)
         .is('model', null)
         .order('sort_order', { ascending: true });
 
