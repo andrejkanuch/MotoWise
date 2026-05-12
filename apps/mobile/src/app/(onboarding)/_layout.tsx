@@ -14,7 +14,8 @@ export default function OnboardingLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: ONBOARDING_COLORS.background },
-        animation: 'slide_from_right',
+        animation: 'ios_from_right',
+        animationDuration: 350,
       }}
     >
       {/* Section A: Welcome & Identity */}

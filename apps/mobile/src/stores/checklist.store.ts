@@ -1,6 +1,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { PROFILE_ROUTE, TAB_ROUTE } from '../config/routes';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 
 const mmkv = createMMKV({ id: 'checklist-store' });
@@ -36,35 +37,35 @@ const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
     id: 'first_ride',
     labelKey: 'checklist.seeFirstRideStats',
     icon: 'MapPin',
-    deepLink: '/(tabs)/(rides)',
+    deepLink: PROFILE_ROUTE.RIDES,
     goalRelation: 'track_rides',
   },
   {
     id: 'browse_routes',
     labelKey: 'checklist.findRouteNearYou',
     icon: 'Compass',
-    deepLink: '/(tabs)/(discover)',
+    deepLink: TAB_ROUTE.DISCOVER,
     goalRelation: 'discover_routes',
   },
   {
     id: 'first_expense',
     labelKey: 'checklist.trackFirstExpense',
     icon: 'Wallet',
-    deepLink: '/(tabs)/(garage)',
+    deepLink: TAB_ROUTE.GARAGE,
     goalRelation: 'manage_expenses',
   },
   {
     id: 'complete_bike',
     labelKey: 'checklist.completeBikeProfile',
     icon: 'Bike',
-    deepLink: '/(tabs)/(garage)',
+    deepLink: TAB_ROUTE.GARAGE,
     goalRelation: 'maintain_bike',
   },
   {
     id: 'explore_dashboard',
     labelKey: 'checklist.exploreDashboard',
     icon: 'LayoutDashboard',
-    deepLink: '/(tabs)/(home)',
+    deepLink: TAB_ROUTE.HOME,
     goalRelation: 'just_exploring',
   },
 ];
@@ -96,9 +97,13 @@ export const useChecklistStore = create<ChecklistState>()(
       initialized: false,
 
       initialize: (goals) => {
-        if (get().initialized) return;
+        // Always rebuild items from source of truth (deep links may have changed)
         const items = buildChecklist(goals);
-        set({ items, initialized: true, completedItems: [], dismissed: false });
+        if (!get().initialized) {
+          set({ items, initialized: true, completedItems: [], dismissed: false });
+        } else {
+          set({ items });
+        }
       },
 
       completeItem: (id) => {
@@ -119,8 +124,16 @@ export const useChecklistStore = create<ChecklistState>()(
     }),
     {
       name: 'checklist-state',
+      version: 2,
       storage: createJSONStorage(() => mmkvStorage),
       partialize: ({ initialize, completeItem, dismiss, reset, ...data }) => data,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          // v2: deep links changed — force re-initialization so items rebuild from source
+          return { ...(persisted as object), initialized: false, items: [] };
+        }
+        return persisted as ChecklistState;
+      },
     },
   ),
 );

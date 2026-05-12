@@ -12,6 +12,17 @@ export type OnboardingRoute = (typeof ONBOARDING_SCREENS)[number]['route'];
 export type OnboardingScreenKey = (typeof ONBOARDING_SCREENS)[number]['key'];
 export const TOTAL_SCREENS = ONBOARDING_SCREENS.length;
 
+/** Type-safe onboarding route paths for router.push / router.replace */
+export const OB_ROUTE = {
+  EXPERIENCE: '/(onboarding)/experience',
+  GOALS: '/(onboarding)/goals',
+  BIKE_SETUP: '/(onboarding)/bike-setup',
+  PAYWALL: '/(onboarding)/paywall',
+  NOTIFICATIONS: '/(onboarding)/notifications',
+  PERSONALIZING: '/(onboarding)/personalizing',
+  HOME: '/(tabs)/(home)',
+} as const;
+
 /** V2 riding goal priority ranking for determining primary goal */
 export const GOAL_PRIORITY = [
   'track_rides',

@@ -16,7 +16,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { TOTAL_SCREENS } from '../../config/onboarding';
+import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { requestNotificationPermission, setupNotificationChannels } from '../../lib/notifications';
 import { triggerImpact } from '../../utils/haptics';
@@ -170,7 +170,7 @@ export default function NotificationsScreen() {
   }, []);
 
   const navigateForward = () => {
-    router.replace('/(onboarding)/personalizing');
+    router.push(OB_ROUTE.PERSONALIZING);
   };
 
   const handleEnable = async () => {

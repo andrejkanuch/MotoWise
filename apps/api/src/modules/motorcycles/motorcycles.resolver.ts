@@ -9,6 +9,7 @@ import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
+import { MakeStats } from './models/make-stats.model';
 import { Motorcycle } from './models/motorcycle.model';
 import { MotorcycleMake } from './models/motorcycle-make.model';
 import { MotorcycleModelResult } from './models/motorcycle-model-result.model';
@@ -45,6 +46,15 @@ export class MotorcyclesResolver {
     @Args('year', { type: () => Int }) year: number,
   ): Promise<MotorcycleModelResult[]> {
     return this.nhtsaService.getModels(makeId, year);
+  }
+
+  @Query(() => [MakeStats], {
+    name: 'makeStats',
+    description: 'Aggregated fleet stats per motorcycle make (riders, models, total bikes)',
+  })
+  @UseGuards(GqlAuthGuard)
+  async makeStats(): Promise<MakeStats[]> {
+    return this.motorcyclesService.getMakeStats();
   }
 
   @Mutation(() => Motorcycle)

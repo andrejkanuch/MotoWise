@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 
 export default function WelcomeScreen() {
@@ -23,7 +24,7 @@ export default function WelcomeScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
-    router.push('/(onboarding)/experience');
+    router.push(OB_ROUTE.EXPERIENCE);
   };
 
   return (

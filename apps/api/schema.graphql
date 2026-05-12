@@ -1,3 +1,7 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -904,6 +908,24 @@ enum MaintenanceTaskStatus {
   skipped
 }
 
+"""Aggregated fleet stats for a motorcycle make"""
+type MakeStats {
+  """Make name (title case, e.g. "BMW")"""
+  make: String!
+
+  """Distinct models tracked for this make"""
+  models: Int!
+
+  """Popularity rank (1 = most riders)"""
+  rank: Int!
+
+  """Distinct riders who own this make"""
+  riders: Int!
+
+  """Total bikes of this make in the fleet"""
+  totalBikes: Int!
+}
+
 input ManualBikeInfoInput {
   make: String
   model: String
@@ -1241,6 +1263,11 @@ type Query {
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
   maintenanceTasks(motorcycleId: String!): [MaintenanceTask!]!
+
+  """
+  Aggregated fleet stats per motorcycle make (riders, models, total bikes)
+  """
+  makeStats: [MakeStats!]!
   me: User!
   motorcycleMakes: [MotorcycleMake!]!
   motorcycleModels(makeId: Int!, year: Int!): [MotorcycleModelResult!]!

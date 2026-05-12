@@ -176,6 +176,83 @@ describe('UsersService', () => {
         }),
       );
     });
+
+    it('should pass bikeModel and bikeType to RPC when provided', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: null, error: null });
+      mockUserClient._chain.single.mockResolvedValueOnce({
+        data: fakeUserRow,
+        error: null,
+      });
+
+      const input = {
+        experienceLevel: 'advanced',
+        ridingGoals: ['track_rides', 'maintain_bike'],
+        learningFormats: [],
+        bikeMake: 'BMW',
+        bikeModel: 'R 1250 GS',
+        bikeYear: 2024,
+        bikeType: 'dual_sport',
+        bikeMileage: 500,
+        bikeMileageUnit: 'km',
+      };
+
+      await service.completeOnboarding(userId, input as never);
+
+      expect(mockUserClient.rpc).toHaveBeenCalledWith(
+        'complete_onboarding',
+        expect.objectContaining({
+          p_user_id: userId,
+          p_bike_make: 'BMW',
+          p_bike_model: 'R 1250 GS',
+          p_bike_year: 2024,
+          p_bike_type: 'dual_sport',
+          p_bike_mileage: 500,
+          p_mileage_unit: 'km',
+        }),
+      );
+    });
+
+    it('should pass null for bike fields when no bike data provided', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({ data: null, error: null });
+      mockUserClient._chain.single.mockResolvedValueOnce({
+        data: fakeUserRow,
+        error: null,
+      });
+
+      const input = {
+        experienceLevel: 'beginner',
+        ridingGoals: ['just_exploring'],
+        learningFormats: [],
+      };
+
+      await service.completeOnboarding(userId, input as never);
+
+      expect(mockUserClient.rpc).toHaveBeenCalledWith(
+        'complete_onboarding',
+        expect.objectContaining({
+          p_bike_make: null,
+          p_bike_model: null,
+          p_bike_year: null,
+          p_bike_type: null,
+          p_bike_mileage: null,
+        }),
+      );
+    });
+
+    it('should throw BadRequestException when RPC fails', async () => {
+      mockUserClient.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'RPC failed' },
+      });
+
+      await expect(
+        service.completeOnboarding(userId, {
+          experienceLevel: 'beginner',
+          ridingGoals: [],
+          learningFormats: [],
+        } as never),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('deleteAccount', () => {

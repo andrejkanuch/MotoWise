@@ -5,7 +5,12 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { GOAL_TO_PLACEMENT, getPrimaryGoal, TOTAL_SCREENS } from '../../config/onboarding';
+import {
+  GOAL_TO_PLACEMENT,
+  getPrimaryGoal,
+  OB_ROUTE,
+  TOTAL_SCREENS,
+} from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { presentPaywall } from '../../lib/subscription';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -34,7 +39,7 @@ export default function PaywallScreen() {
         goals: ridingGoals,
         placement,
       });
-      router.replace('/(onboarding)/notifications');
+      router.push(OB_ROUTE.NOTIFICATIONS);
       return;
     }
 
@@ -58,7 +63,7 @@ export default function PaywallScreen() {
 
       // Navigate forward regardless of result — user can always continue free
       // The RevenueCat listener in subscription.ts will update the store if purchased
-      router.replace('/(onboarding)/notifications');
+      router.push(OB_ROUTE.NOTIFICATIONS);
     })();
   }, [router, ridingGoals]);
 

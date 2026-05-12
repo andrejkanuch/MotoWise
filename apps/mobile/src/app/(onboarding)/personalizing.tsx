@@ -25,7 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal } from '../../config/onboarding';
+import { getPrimaryGoal, OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -140,6 +140,8 @@ export default function PersonalizingScreen() {
         ...(fbclid && { fbclid }),
         ...(bikeData && {
           ...(bikeData.make?.trim() && { bikeMake: bikeData.make.trim() }),
+          ...(bikeData.model?.trim() && { bikeModel: bikeData.model.trim() }),
+          ...(bikeData.type && { bikeType: bikeData.type }),
           bikeYear: bikeData.year,
           bikeMileage: bikeData.currentMileage,
           bikeMileageUnit: bikeData.mileageUnit,
@@ -194,7 +196,7 @@ export default function PersonalizingScreen() {
     if (mutationDone && animationDone) {
       try {
         reset();
-        router.replace('/(tabs)/(home)');
+        router.replace(OB_ROUTE.HOME);
       } catch {
         setNavFailed(true);
       }
@@ -214,7 +216,7 @@ export default function PersonalizingScreen() {
   const handleContinue = () => {
     setOnboardingCompleted(true);
     reset();
-    router.replace('/(tabs)/(home)');
+    router.replace(OB_ROUTE.HOME);
   };
 
   return (

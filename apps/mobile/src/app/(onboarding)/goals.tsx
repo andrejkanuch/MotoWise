@@ -1,8 +1,8 @@
 import type { RidingGoal } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Check, ChevronLeft, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getPrimaryGoal } from '../../config/onboarding';
+import { getPrimaryGoal, OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
@@ -58,6 +58,17 @@ export default function GoalsScreen() {
   const [showAffirmation, setShowAffirmation] = useState(false);
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Reset affirmation state when returning to this screen
+  useFocusEffect(
+    useCallback(() => {
+      setShowAffirmation(false);
+      if (navigateTimerRef.current) {
+        clearTimeout(navigateTimerRef.current);
+        navigateTimerRef.current = null;
+      }
+    }, []),
+  );
+
   useEffect(() => {
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
       step: 'goals',
@@ -103,7 +114,7 @@ export default function GoalsScreen() {
     // Show affirmation, then navigate
     setShowAffirmation(true);
     navigateTimerRef.current = setTimeout(() => {
-      router.replace('/(onboarding)/bike-setup');
+      router.push(OB_ROUTE.BIKE_SETUP);
     }, 500);
   };
 
