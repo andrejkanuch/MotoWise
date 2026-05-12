@@ -239,6 +239,12 @@ export enum GqlRidingGoal {
   safety = 'safety',
   save_on_maintenance = 'save_on_maintenance',
   track_bike_health = 'track_bike_health',
+  // V2 onboarding goals
+  track_rides = 'track_rides',
+  manage_expenses = 'manage_expenses',
+  discover_routes = 'discover_routes',
+  maintain_bike = 'maintain_bike',
+  just_exploring = 'just_exploring',
 }
 
 export enum GqlInsightType {
@@ -288,6 +294,12 @@ const _ridingGoalSync: Record<RidingGoal, GqlRidingGoal> = {
   safety: GqlRidingGoal.safety,
   save_on_maintenance: GqlRidingGoal.save_on_maintenance,
   track_bike_health: GqlRidingGoal.track_bike_health,
+  // V2 onboarding goals
+  track_rides: GqlRidingGoal.track_rides,
+  manage_expenses: GqlRidingGoal.manage_expenses,
+  discover_routes: GqlRidingGoal.discover_routes,
+  maintain_bike: GqlRidingGoal.maintain_bike,
+  just_exploring: GqlRidingGoal.just_exploring,
 };
 
 const _insightTypeSync: Record<InsightType, GqlInsightType> = {
