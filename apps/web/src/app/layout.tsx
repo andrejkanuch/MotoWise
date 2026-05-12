@@ -10,6 +10,7 @@ import { CookieConsentBanner, CookieConsentProvider } from '@/components/cookie-
 import { MetaPixel } from '@/components/meta-pixel';
 import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 import { QueryProvider } from '@/providers/query-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 import './globals.css';
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -48,8 +49,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Only pass the CookieBanner namespace to avoid bloating the client bundle
   const cookieBannerMessages = { CookieBanner: (messages as Record<string, unknown>).CookieBanner };
   return (
-    <html lang={locale} className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}>
+    <html
+      lang={locale}
+      className={`${plusJakarta.variable} ${GeistMono.variable} antialiased`}
+      suppressHydrationWarning
+    >
       <head>
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: inline script required to prevent FOUC on theme load
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('motovault-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=d?'#0a0a0a':'#faf8f6'}catch(e){}})()`,
+          }}
+        />
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />
         <link rel="dns-prefetch" href="https://connect.facebook.net" />
         {/* next/font/google already emits a content-hashed preload for the
@@ -72,20 +83,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body className="bg-[--color-surface] text-[--color-on-surface] m-0">
-        <CookieConsentProvider>
-          <QueryProvider>{children}</QueryProvider>
-          <NextIntlClientProvider locale={locale} messages={cookieBannerMessages}>
-            <CookieConsentBanner />
-          </NextIntlClientProvider>
-          {process.env.NODE_ENV === 'production' && (
-            <>
-              <Analytics />
-              <AnalyticsWithConsent />
-              <MetaPixel />
-              <WebVitalsReporter />
-            </>
-          )}
-        </CookieConsentProvider>
+        <ThemeProvider>
+          <CookieConsentProvider>
+            <QueryProvider>{children}</QueryProvider>
+            <NextIntlClientProvider locale={locale} messages={cookieBannerMessages}>
+              <CookieConsentBanner />
+            </NextIntlClientProvider>
+            {process.env.NODE_ENV === 'production' && (
+              <>
+                <Analytics />
+                <AnalyticsWithConsent />
+                <MetaPixel />
+                <WebVitalsReporter />
+              </>
+            )}
+          </CookieConsentProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

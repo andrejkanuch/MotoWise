@@ -29,8 +29,8 @@ function MobileTopbar({ country, region }: { country: string; region?: string | 
       <a
         href="/explore"
         style={{
-          width: 36,
-          height: 36,
+          width: 44,
+          height: 44,
           borderRadius: 999,
           background: 'oklch(1 0 0 / 0.04)',
           border: '1px solid var(--mv-line)',
@@ -122,7 +122,7 @@ function MobileFilterScroll() {
           key={f.label}
           style={{
             flexShrink: 0,
-            padding: '7px 11px',
+            padding: '10px 14px',
             borderRadius: 999,
             background: f.active ? 'oklch(0.84 0.15 68 / 0.13)' : 'oklch(1 0 0 / 0.03)',
             border: `1px solid ${f.active ? 'oklch(0.84 0.15 68 / 0.5)' : 'var(--mv-line)'}`,
@@ -233,7 +233,7 @@ export function ResultsMobile({
               padding: '12px 22px',
               borderRadius: 999,
               background: 'var(--mv-ink)',
-              color: '#000',
+              color: 'var(--mv-bg)',
               boxShadow: '0 12px 30px -6px oklch(0 0 0 / 0.6)',
               fontFamily: 'inherit',
               fontSize: 13.5,
@@ -243,7 +243,7 @@ export function ResultsMobile({
               border: 'none',
             }}
           >
-            <Icon name="map" size={13} color="#000" /> Show map
+            <Icon name="map" size={13} /> Show map
             <span
               style={{
                 fontFamily: 'var(--font-geist-mono, monospace)',
@@ -382,7 +382,7 @@ export function ResultsMobile({
               padding: '12px 22px',
               borderRadius: 999,
               background: 'var(--mv-ink)',
-              color: '#000',
+              color: 'var(--mv-bg)',
               boxShadow: '0 12px 30px -6px oklch(0 0 0 / 0.6)',
               fontSize: 13.5,
               fontWeight: 600,
@@ -392,7 +392,7 @@ export function ResultsMobile({
               fontFamily: 'inherit',
             }}
           >
-            <Icon name="list" size={13} color="#000" /> Show list
+            <Icon name="list" size={13} /> Show list
           </button>
         </>
       )}

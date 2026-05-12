@@ -618,7 +618,7 @@ function CookieRow({
             width: 18,
             height: 18,
             borderRadius: '50%',
-            background: '#fff',
+            background: 'var(--mv-ink)',
             boxShadow: '0 1px 3px oklch(0 0 0 / 0.25)',
             transition: 'transform .25s cubic-bezier(0.34, 1.56, 0.64, 1)',
             transform: on || locked ? 'translateX(18px)' : 'translateX(0)',
@@ -676,7 +676,7 @@ function SettledToast({
             background: T.green,
             display: 'grid',
             placeItems: 'center',
-            color: '#fff',
+            color: 'var(--mv-ink)',
             flexShrink: 0,
           }}
         >

@@ -65,7 +65,7 @@ const pillBase: React.CSSProperties = {
 const pillActive: React.CSSProperties = {
   ...pillBase,
   background: 'var(--mv-warm-500)',
-  color: '#000',
+  color: 'var(--mv-bg)',
   borderColor: 'var(--mv-warm-500)',
 };
 
@@ -163,7 +163,7 @@ export function ExploreFilters() {
                 ...(activeOption
                   ? {
                       background: 'var(--mv-warm-500)',
-                      color: '#000',
+                      color: 'var(--mv-bg)',
                       borderColor: 'var(--mv-warm-500)',
                     }
                   : {}),

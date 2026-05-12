@@ -1,5 +1,6 @@
 'use client';
 
+import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 import type { TripTemplateNode } from '@/lib/fetch-places';
 
@@ -29,24 +30,31 @@ type MarkerEntry = {
   lat: number;
 };
 
-/** Wait for the CDN-loaded mapboxgl global to become available. */
-function useMapboxReady(): boolean {
-  const [ready, setReady] = useState(
-    // biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
-    () => !!(globalThis as Record<string, any>).mapboxgl,
-  );
+/** Track Mapbox script readiness via onLoad callback instead of polling. */
+let _mapboxReady =
+  // biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
+  typeof window !== 'undefined' && !!(globalThis as Record<string, any>).mapboxgl;
+const _listeners = new Set<() => void>();
+function notifyMapboxReady() {
+  _mapboxReady = true;
+  for (const fn of _listeners) fn();
+  _listeners.clear();
+}
+
+function useMapboxReady(): [boolean, () => void] {
+  const [ready, setReady] = useState(() => _mapboxReady);
   useEffect(() => {
-    if (ready) return;
-    const id = setInterval(() => {
-      // biome-ignore lint/suspicious/noExplicitAny: globalThis access for CDN-loaded mapbox
-      if ((globalThis as Record<string, any>).mapboxgl) {
-        setReady(true);
-        clearInterval(id);
-      }
-    }, 50);
-    return () => clearInterval(id);
-  }, [ready]);
-  return ready;
+    if (_mapboxReady) {
+      setReady(true);
+      return;
+    }
+    const handler = () => setReady(true);
+    _listeners.add(handler);
+    return () => {
+      _listeners.delete(handler);
+    };
+  }, []);
+  return [ready, notifyMapboxReady];
 }
 
 function MapboxMapInner({
@@ -171,11 +179,15 @@ function MapboxMapInner({
 
 // Dynamic import wrapper — load Mapbox GL CSS + JS only on client
 export function MapboxMap(props: MapboxMapProps) {
-  const ready = useMapboxReady();
+  const [ready, onReady] = useMapboxReady();
   return (
     <>
       <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" />
-      <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js" async />
+      <Script
+        src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"
+        strategy="afterInteractive"
+        onLoad={onReady}
+      />
       <MapboxMapInner key={ready ? 'ready' : 'loading'} {...props} />
     </>
   );

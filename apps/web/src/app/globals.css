@@ -175,6 +175,9 @@
 }
 .card-lift:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 30px oklch(0 0 0 / 0.15);
+}
+.dark .card-lift:hover {
   box-shadow: 0 8px 30px oklch(0 0 0 / 0.4);
 }
 

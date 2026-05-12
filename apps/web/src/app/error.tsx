@@ -112,7 +112,7 @@ export default function ErrorPage({
           margin: 0,
         }}
       >
-        Something went wrong
+        Hit a rough patch
       </h1>
 
       <p
@@ -124,7 +124,12 @@ export default function ErrorPage({
           maxWidth: '420px',
         }}
       >
-        An unexpected error occurred. Please try again.
+        Something broke on our end, not yours. Try reloading the page — if it keeps happening, reach
+        out to{' '}
+        <a href="mailto:support@motovault.app" style={{ color: 'oklch(0.84 0.15 68)' }}>
+          support@motovault.app
+        </a>
+        .
       </p>
 
       {error.digest && (

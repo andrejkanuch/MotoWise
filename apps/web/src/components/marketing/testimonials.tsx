@@ -35,7 +35,8 @@ export async function Testimonials() {
       {/* Horizontal scroll */}
       <section
         aria-label={t('sectionTitle')}
-        className="reveal-on-scroll snap-x snap-mandatory overflow-x-auto rounded-lg pb-4 [scrollbar-color:theme(colors.neutral.700)_transparent] [scrollbar-width:thin]"
+        aria-roledescription="carousel"
+        className="reveal-on-scroll snap-x snap-mandatory overflow-x-auto rounded-lg pb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warm-500/50 [scrollbar-color:theme(colors.neutral.700)_transparent] [scrollbar-width:thin]"
       >
         <div className="flex gap-5 px-4 md:px-[max(1rem,calc((100vw-80rem)/2+1rem))]">
           {TESTIMONIAL_KEYS.map((index) => (

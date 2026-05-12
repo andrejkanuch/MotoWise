@@ -443,6 +443,7 @@ export function ExploreSearchBar({
                 letterSpacing: '-0.005em',
               }}
               aria-label="Search motorcycle routes"
+              aria-describedby="search-keyboard-hints"
               role="combobox"
               aria-expanded={isOpen}
               aria-haspopup="listbox"
@@ -588,7 +589,7 @@ export function ExploreSearchBar({
             style={{
               padding: '0 28px',
               background: 'var(--mv-warm-500)',
-              color: '#000',
+              color: 'var(--mv-bg)',
               border: 'none',
               borderRadius: 14,
               fontFamily: 'inherit',
@@ -786,6 +787,7 @@ export function ExploreSearchBar({
 
             {/* Footer hint */}
             <div
+              id="search-keyboard-hints"
               style={{
                 borderTop: '1px solid var(--mv-line)',
                 padding: '8px 16px',

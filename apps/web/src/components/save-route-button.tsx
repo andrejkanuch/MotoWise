@@ -190,7 +190,7 @@ export function SaveRouteButton({
           padding: '6px 14px',
           borderRadius: 8,
           background: 'var(--mv-warm-500)',
-          color: '#000',
+          color: 'var(--mv-bg)',
           border: 'none',
           fontSize: 12,
           fontWeight: 600,

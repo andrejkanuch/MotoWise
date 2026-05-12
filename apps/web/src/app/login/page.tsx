@@ -502,22 +502,24 @@ export default function LoginPage() {
               </p>
 
               {/* Error */}
-              {error && (
-                <p
-                  role="alert"
-                  style={{
-                    marginTop: 16,
-                    fontSize: 13,
-                    color: '#ef4444',
-                    padding: '10px 14px',
-                    background: 'oklch(0.25 0.08 25 / 0.3)',
-                    borderRadius: 10,
-                    border: '1px solid oklch(0.5 0.15 25 / 0.3)',
-                  }}
-                >
-                  {error}
-                </p>
-              )}
+              <div aria-live="polite" aria-atomic="true">
+                {error && (
+                  <p
+                    role="alert"
+                    style={{
+                      marginTop: 16,
+                      fontSize: 13,
+                      color: 'oklch(0.58 0.22 25)',
+                      padding: '10px 14px',
+                      background: 'oklch(0.25 0.08 25 / 0.3)',
+                      borderRadius: 10,
+                      border: '1px solid oklch(0.5 0.15 25 / 0.3)',
+                    }}
+                  >
+                    {error}
+                  </p>
+                )}
+              </div>
 
               {/* SSO buttons */}
               <div
@@ -759,7 +761,8 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      aria-label="Toggle password visibility"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
                       style={{
                         position: 'absolute',
                         right: 12,

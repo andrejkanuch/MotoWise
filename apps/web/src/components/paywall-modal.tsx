@@ -3,6 +3,7 @@
 import type { PaywallConfig } from '@motovault/types';
 import posthog from 'posthog-js';
 import { useCallback, useEffect, useRef } from 'react';
+import { useModal } from '@/hooks/use-modal';
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -22,52 +23,11 @@ export function PaywallModal({ isOpen, config, onClose, onUpgradeClick }: Paywal
         feature: config.feature,
         source: config.source,
       });
-      // Focus the CTA on open
-      requestAnimationFrame(() => ctaRef.current?.focus());
     }
   }, [isOpen, config.feature, config.source]);
 
-  // Keyboard handling: Escape to close, Tab trap
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === 'Tab' && dialogRef.current) {
-        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (!dialogRef.current.contains(document.activeElement)) {
-          e.preventDefault();
-          first.focus();
-          return;
-        }
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOpen, onClose]);
+  // Focus trap, Escape, body scroll lock — focus CTA on open
+  useModal(isOpen, onClose, dialogRef, ctaRef);
 
   const handleCtaClick = useCallback(() => {
     posthog.capture('paywall.cta_clicked', {

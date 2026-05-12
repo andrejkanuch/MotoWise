@@ -119,3 +119,29 @@ Monorepo for MotoVault — AI-powered motorcycle learning & diagnostics platform
 - Use TypeScript `enum` (use `as const` objects)
 - Use `any` type for GraphQL query/mutation data — always use generated types from @motovault/graphql
 - Hardcode colors (hex, rgba) — use palette tokens from @motovault/design-system
+
+## Design Context
+
+### Users
+Motorcycle riders in Europe and the Americas who want a single app to manage their entire moto life — trip planning, maintenance tracking, expense logging, diagnostics, and learning. They open the app before a ride, after a service, or when something sounds wrong. They are hands-on people who value their machines and want to feel in command of every detail.
+
+### Brand Personality
+**Rugged. Premium. Confident.**
+MotoVault feels like a precision instrument built for riders — not a generic utility app. Think forged steel with a leather grip: tough materials, beautiful finish, zero fluff. The "exhaust copper" signature color (#D4622E) anchors the identity with warmth and mechanical authenticity.
+
+### Aesthetic Direction
+- **Visual tone**: Dark, warm surfaces — never cold blue-gray. Neutrals carry 2-4% warm tint for a lived-in feel. Premium automotive meets activity tracker.
+- **References**: Strava/Komoot (data-rich but clean, activity focus) + Porsche/BMW companion apps (dark surfaces, precise typography, premium feel).
+- **Anti-references**: No generic SaaS dashboards. No gamification (badges, streaks, cartoon icons). No cluttered forum aesthetics. Not stripped so minimal it loses personality.
+- **Theme**: Dark-first on mobile. Light + dark on web. Night mode (amber-red) for riding without destroying night vision.
+- **Typography**: Plus Jakarta Sans for UI (clean, geometric, modern). Instrument Serif for editorial/display moments (warmth, craft). Geist Mono for data/code.
+- **Color system**: oklch tokens with full scales. Primary blue (trust), accent teal (growth), signature copper (identity), warm amber (encouragement). Editorial warm tokens for magazine-quality content pages.
+- **Motion**: Reanimated v4 on mobile, under 300ms. FadeInUp/SlideInUp with staggered delays. Haptic feedback on iOS for interactive moments. Purposeful, not decorative.
+- **Surfaces**: `borderCurve: 'continuous'` on all rounded elements. Elevated surfaces use subtle transparency, not drop shadows. Cards use warm dark tones (#1E1C19), not pure black.
+
+### Design Principles
+1. **Rider-first information hierarchy** — Surface what matters for the next ride, service, or decision. Data should feel actionable, not decorative.
+2. **Warm precision** — Every element should feel engineered but never clinical. Warm neutrals, copper accents, and editorial typography keep the interface human.
+3. **Confident density** — Show meaningful data without clutter. Riders want depth, not simplification — but every element must earn its space.
+4. **Platform-native craft** — Mobile feels like a native iOS/Android tool (haptics, continuous curves, native navigation). Web feels like a premium editorial experience (magazine layouts, rich typography). Never force one platform's idioms onto the other.
+5. **Dark surfaces, bright data** — Dark backgrounds create focus; accent colors (copper, teal, blue) highlight what matters. Reserve bright colors for interactive elements and key metrics.

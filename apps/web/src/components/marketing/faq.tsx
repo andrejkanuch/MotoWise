@@ -155,7 +155,9 @@ export function Faq() {
                   textAlign: 'left',
                   transition: 'color .25s',
                 }}
+                id={`faq-question-${index}`}
                 aria-expanded={isOpen}
+                aria-controls={`faq-answer-${index}`}
               >
                 {item.question}
                 <span
@@ -166,7 +168,7 @@ export function Faq() {
                     border: isOpen ? '1px solid var(--mv-warm-500)' : '1px solid var(--mv-line)',
                     display: 'grid',
                     placeItems: 'center',
-                    color: isOpen ? 'oklch(0.15 0.02 55)' : 'var(--mv-ink-3)',
+                    color: isOpen ? 'var(--mv-bg)' : 'var(--mv-ink-3)',
                     background: isOpen ? 'var(--mv-warm-500)' : 'transparent',
                     transition:
                       'transform .4s var(--mv-ease-expo), background .3s, border-color .3s, color .3s',
@@ -190,7 +192,9 @@ export function Faq() {
                   </svg>
                 </span>
               </button>
-              <div
+              <section
+                id={`faq-answer-${index}`}
+                aria-labelledby={`faq-question-${index}`}
                 style={{
                   maxHeight: isOpen ? '1200px' : '0',
                   overflow: 'hidden',
@@ -209,7 +213,7 @@ export function Faq() {
                 >
                   {item.answer}
                 </div>
-              </div>
+              </section>
             </div>
           );
         })}
