@@ -1,5 +1,5 @@
 import { MotorcycleMakesDocument, MotorcycleModelsDocument } from '@motovault/graphql';
-import { MileageUnit, MotorcycleType } from '@motovault/types';
+import { MileageUnit, MotorcycleType, RidingGoal } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -98,18 +98,23 @@ export default function BikeSetupScreen() {
 
   // ── Dynamic bridge subtitle based on goals ───────────────────────
   const bridgeSubtitle = useMemo(() => {
-    if (ridingGoals.includes('track_maintenance' as never))
-      return t('onboarding.v2BikeSetupBridgeMaintenance', {
-        defaultValue: "We'll set up service intervals and maintenance tracking for your ride.",
+    if (ridingGoals.includes(RidingGoal.TRACK_RIDES))
+      return t('onboarding.v2BikeSetupBridgeRides', {
+        defaultValue: "We'll set up ride tracking and stats tailored to your motorcycle.",
       });
-    if (
-      ridingGoals.includes('save_money' as never) ||
-      ridingGoals.includes('save_on_maintenance' as never)
-    )
-      return t('onboarding.v2BikeSetupBridgeSavings', {
-        defaultValue: "We'll find cost-saving tips specific to your motorcycle.",
+    if (ridingGoals.includes(RidingGoal.MANAGE_EXPENSES))
+      return t('onboarding.v2BikeSetupBridgeExpenses', {
+        defaultValue: "We'll help you track costs and find savings for your ride.",
       });
-    return t('onboarding.v2BikeSetupBridgeDefault', {
+    if (ridingGoals.includes(RidingGoal.DISCOVER_ROUTES))
+      return t('onboarding.v2BikeSetupBridgeRoutes', {
+        defaultValue: "We'll recommend routes and riding spots matched to your bike.",
+      });
+    if (ridingGoals.includes(RidingGoal.JUST_EXPLORING))
+      return t('onboarding.v2BikeSetupBridgeExploring', {
+        defaultValue: "We'll personalize everything — service data, specs, and common issues.",
+      });
+    return t('onboarding.v2BikeSetupSubtitle', {
       defaultValue: "We'll personalize everything — service data, specs, and common issues.",
     });
   }, [ridingGoals, t]);

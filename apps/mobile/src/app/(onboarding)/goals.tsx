@@ -2,7 +2,7 @@ import type { RidingGoal } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, ZoomIn } from 'react-native-reanimated';
@@ -56,12 +56,19 @@ export default function GoalsScreen() {
 
   const [selected, setSelected] = useState<Set<RidingGoal>>(new Set());
   const [showAffirmation, setShowAffirmation] = useState(false);
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
       step: 'goals',
       step_index: 2,
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimerRef.current) clearTimeout(navigateTimerRef.current);
+    };
   }, []);
 
   const handleToggle = (key: RidingGoal) => {
@@ -95,7 +102,7 @@ export default function GoalsScreen() {
 
     // Show affirmation, then navigate
     setShowAffirmation(true);
-    setTimeout(() => {
+    navigateTimerRef.current = setTimeout(() => {
       router.replace('/(onboarding)/bike-setup');
     }, 500);
   };

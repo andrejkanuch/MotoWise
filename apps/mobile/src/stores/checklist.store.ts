@@ -1,7 +1,7 @@
 import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { trackEvent } from '../lib/analytics';
+import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 
 const mmkv = createMMKV({ id: 'checklist-store' });
 
@@ -106,7 +106,7 @@ export const useChecklistStore = create<ChecklistState>()(
         if (completedItems.includes(id)) return;
         const updated = [...completedItems, id];
         set({ completedItems: updated });
-        trackEvent('checklist_item_completed' as never, {
+        trackEvent(AnalyticsEvent.CHECKLIST_ITEM_COMPLETED, {
           item: id,
           items_completed: updated.length,
           items_total: get().items.length,

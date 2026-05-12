@@ -30,8 +30,9 @@ export default function OnboardingLayout() {
       <Stack.Screen name="notifications" options={{ gestureEnabled: false }} />
       <Stack.Screen name="personalizing" options={{ gestureEnabled: false }} />
 
-      {/* V1 screens — retained for PostHog feature flag rollback.
-          Unreachable in V2 flow. Delete after week-4 metrics confirm V2 is stable. */}
+      {/* TODO(2026-06-09): Delete v1 onboarding screens after week-4 metrics confirm v2 is stable.
+          These are retained for PostHog feature flag rollback. Unreachable in v2 flow.
+          Files to remove: bike-year, bike-make, bike-model, bike-type, bike-photo, currency, smart-maintenance, insights */}
       <Stack.Screen name="bike-year" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-make" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-model" options={{ gestureEnabled: true }} />

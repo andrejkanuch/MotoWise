@@ -164,7 +164,7 @@ export default function NotificationsScreen() {
     tracked.current = true;
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'notifications',
-      step_index: 11,
+      step_index: 5,
       action: 'viewed',
     });
   }, []);
@@ -181,7 +181,7 @@ export default function NotificationsScreen() {
     if (status === 'granted') {
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'notifications',
-        step_index: 11,
+        step_index: 5,
         permission_granted: true,
         skipped: false,
       });
@@ -215,7 +215,7 @@ export default function NotificationsScreen() {
 
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'notifications',
-      step_index: 11,
+      step_index: 5,
       permission_granted: granted,
       skipped: false,
     });
@@ -227,7 +227,7 @@ export default function NotificationsScreen() {
     triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'notifications',
-      step_index: 11,
+      step_index: 5,
       permission_granted: false,
       skipped: true,
     });
@@ -236,7 +236,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={11} totalScreens={TOTAL_SCREENS} />
+      <OnboardingProgress screenIndex={5} totalScreens={TOTAL_SCREENS} />
 
       <View
         style={{

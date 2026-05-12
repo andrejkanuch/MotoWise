@@ -257,6 +257,9 @@ export const AnalyticsEvent = {
   // Navigation
   SCREEN_VIEWED: 'screen_viewed',
   TAB_CHANGED: 'tab_changed',
+
+  // Checklist
+  CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
 } as const;
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
