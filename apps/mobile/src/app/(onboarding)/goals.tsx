@@ -315,7 +315,7 @@ export default function GoalsScreen() {
                 marginTop: 10,
               }}
             >
-              {t('onboarding.v2GoalsPickedCount', { count: selected.size })}
+              {t('onboarding.v2GoalsPicked', { count: selected.size })}
             </Text>
           </>
         )}

@@ -25,7 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { type PrimaryGoal, getPrimaryGoal } from '../../config/onboarding';
+import { getPrimaryGoal } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -44,14 +44,14 @@ const FIXED_STEPS = [
 ] as const;
 
 const GOAL_STEP_CONFIG: Record<
-  PrimaryGoal,
+  string,
   { i18nKey: string; icon: typeof MapPin }
 > = {
-  track_rides: { i18nKey: 'v2PersonalizingStepTrackRides', icon: MapPin },
-  manage_expenses: { i18nKey: 'v2PersonalizingStepManageExpenses', icon: Wallet },
-  discover_routes: { i18nKey: 'v2PersonalizingStepDiscoverRoutes', icon: Compass },
-  maintain_bike: { i18nKey: 'v2PersonalizingStepMaintainBike', icon: Wrench },
-  just_exploring: { i18nKey: 'v2PersonalizingStepJustExploring', icon: Sparkles },
+  track_rides: { i18nKey: 'v2PersonalizingStepRides', icon: MapPin },
+  manage_expenses: { i18nKey: 'v2PersonalizingStepExpenses', icon: Wallet },
+  discover_routes: { i18nKey: 'v2PersonalizingStepRoutes', icon: Compass },
+  maintain_bike: { i18nKey: 'v2PersonalizingStepMaintain', icon: Wrench },
+  just_exploring: { i18nKey: 'v2PersonalizingStepExploring', icon: Sparkles },
 };
 
 const MIN_ANIMATION_MS = 2500;
@@ -304,7 +304,7 @@ export default function PersonalizingScreen() {
                   color: ONBOARDING_COLORS.textSecondary,
                 }}
               >
-                {t(`onboarding.${stepKey}`)}
+                {t(`onboarding.${stepKey}` as never)}
               </Text>
               <Check size={16} color={ONBOARDING_COLORS.success} />
             </Animated.View>

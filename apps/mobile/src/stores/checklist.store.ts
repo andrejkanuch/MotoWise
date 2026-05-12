@@ -8,7 +8,7 @@ const mmkv = createMMKV({ id: 'checklist-store' });
 const mmkvStorage = {
   getItem: (key: string) => mmkv.getString(key) ?? null,
   setItem: (key: string, value: string) => mmkv.set(key, value),
-  removeItem: (key: string) => mmkv.delete(key),
+  removeItem: (key: string) => mmkv.remove(key),
 };
 
 export interface ChecklistItem {
@@ -106,7 +106,7 @@ export const useChecklistStore = create<ChecklistState>()(
         if (completedItems.includes(id)) return;
         const updated = [...completedItems, id];
         set({ completedItems: updated });
-        trackEvent(AnalyticsEvent.CHECKLIST_ITEM_COMPLETED ?? ('checklist_item_completed' as never), {
+        trackEvent('checklist_item_completed' as never, {
           item: id,
           items_completed: updated.length,
           items_total: get().items.length,

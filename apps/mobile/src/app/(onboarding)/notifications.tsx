@@ -191,12 +191,12 @@ export default function NotificationsScreen() {
 
     if (!canAskAgain) {
       Alert.alert(
-        t('onboarding.v2NotificationsSettingsTitle'),
-        t('onboarding.v2NotificationsSettingsMessage'),
+        t('onboarding.v2NotificationsAlreadyDenied'),
+        t('onboarding.v2NotificationsOpenSettings'),
         [
           { text: t('common.cancel'), style: 'cancel', onPress: navigateForward },
           {
-            text: t('onboarding.v2NotificationsOpenSettings'),
+            text: t('onboarding.v2NotificationsOpenSettingsBtn'),
             onPress: () => {
               Linking.openSettings();
               navigateForward();

@@ -159,7 +159,7 @@ export function OnboardingChecklist() {
                   textDecorationLine: isCompleted ? 'line-through' : 'none',
                 }}
               >
-                {t(item.labelKey)}
+                {t(item.labelKey as never)}
               </Text>
 
               {/* Chevron */}

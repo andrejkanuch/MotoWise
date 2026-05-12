@@ -206,7 +206,7 @@ export default function ExperienceScreen() {
 										marginLeft: 4,
 									}}
 								>
-									{t(`onboarding.${AFFIRMATION_KEYS[level.key]}`)}
+									{t(`onboarding.${AFFIRMATION_KEYS[level.key]}` as never)}
 								</Animated.Text>
 							)}
 						</Animated.View>
