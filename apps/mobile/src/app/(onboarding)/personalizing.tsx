@@ -2,8 +2,18 @@ import { CompleteOnboardingDocument, type CompleteOnboardingInput } from '@motov
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Crypto from 'expo-crypto';
 import { useRouter } from 'expo-router';
-import { Bike, Check, LayoutDashboard, Search, Settings, Sparkles } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
+import {
+  Bike,
+  Check,
+  Compass,
+  MapPin,
+  Search,
+  Settings,
+  Sparkles,
+  Wallet,
+  Wrench,
+} from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, {
@@ -15,24 +25,36 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { type PrimaryGoal, getPrimaryGoal } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
-import { uploadBikePhoto } from '../../lib/image-upload';
+import { detectCurrency } from '../../lib/locale-detection';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
+import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
 
-const STEP_ICONS = [Search, Bike, Settings, LayoutDashboard, Sparkles] as const;
-const STEPS = [
-  'personalizingStep1',
-  'personalizingStep2',
-  'personalizingStep3',
-  'personalizingStep4',
-  'personalizingStep5',
+const FIXED_STEP_ICONS = [Search, Bike, Settings] as const;
+const FIXED_STEPS = [
+  'v2PersonalizingStep1',
+  'v2PersonalizingStep2',
+  'v2PersonalizingStep3',
 ] as const;
-const MIN_ANIMATION_MS = 4000;
+
+const GOAL_STEP_CONFIG: Record<
+  PrimaryGoal,
+  { i18nKey: string; icon: typeof MapPin }
+> = {
+  track_rides: { i18nKey: 'v2PersonalizingStepTrackRides', icon: MapPin },
+  manage_expenses: { i18nKey: 'v2PersonalizingStepManageExpenses', icon: Wallet },
+  discover_routes: { i18nKey: 'v2PersonalizingStepDiscoverRoutes', icon: Compass },
+  maintain_bike: { i18nKey: 'v2PersonalizingStepMaintainBike', icon: Wrench },
+  just_exploring: { i18nKey: 'v2PersonalizingStepJustExploring', icon: Sparkles },
+};
+
+const MIN_ANIMATION_MS = 2500;
 
 export default function PersonalizingScreen() {
   const { t } = useTranslation();
@@ -44,7 +66,6 @@ export default function PersonalizingScreen() {
     ridingGoals,
     ridingFrequency,
     maintenanceStyle,
-    learningFormats,
     annualRepairSpend,
     maintenanceReminders,
     reminderChannel,
@@ -66,13 +87,24 @@ export default function PersonalizingScreen() {
     },
   });
 
-  const session = useAuthStore((s) => s.session);
   const setOnboardingCompleted = useAuthStore((s) => s.setOnboardingCompleted);
   const [mutationDone, setMutationDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [navFailed, setNavFailed] = useState(false);
+
+  const primaryGoal = useMemo(() => getPrimaryGoal(ridingGoals), [ridingGoals]);
+  const goalConfig = GOAL_STEP_CONFIG[primaryGoal];
+
+  const steps = useMemo(
+    () => [...FIXED_STEPS, goalConfig.i18nKey] as const,
+    [goalConfig.i18nKey],
+  );
+  const stepIcons = useMemo(
+    () => [...FIXED_STEP_ICONS, goalConfig.icon] as const,
+    [goalConfig.icon],
+  );
 
   const pulseScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(0.6);
@@ -91,26 +123,16 @@ export default function PersonalizingScreen() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
     const run = async () => {
-      let bikePhotoUrl: string | undefined;
-
-      // Upload bike photo if provided
-      if (bikeData?.photoUri && session?.user?.id && bikeData.make) {
-        try {
-          const tempId = `onboarding-${Date.now()}`;
-          const result = await uploadBikePhoto(bikeData.photoUri, session.user.id, tempId);
-          bikePhotoUrl = result.publicUrl;
-        } catch (e) {
-          console.warn('[Personalizing] Photo upload failed, continuing without photo:', e);
-        }
-      }
-
       // Read Meta click ID for CAPI attribution (P1 fix)
       const fbclid = await getStoredFbclid();
+
+      // Auto-detect currency if not set during onboarding
+      const detectedCurrency = detectCurrency();
 
       const input: CompleteOnboardingInput = {
         experienceLevel: experienceLevel ?? 'beginner',
         ridingGoals: ridingGoals.length > 0 ? ridingGoals : [],
-        learningFormats: learningFormats.length > 0 ? learningFormats : [],
+        learningFormats: [],
         maintenanceReminders,
         seasonalTips,
         recallAlerts,
@@ -120,17 +142,14 @@ export default function PersonalizingScreen() {
         ...(annualRepairSpend && { annualRepairSpend }),
         ...(reminderChannel && { reminderChannel }),
         ...(lastServiceDate && { lastServiceDate }),
-        ...(currency && { currency }),
+        currency: currency ?? detectedCurrency,
         ...(fbclid && { fbclid }),
         ...(bikeData && {
           ...(bikeData.make?.trim() && { bikeMake: bikeData.make.trim() }),
-          ...(bikeData.model?.trim() && { bikeModel: bikeData.model.trim() }),
           bikeYear: bikeData.year,
-          bikeType: bikeData.type,
           bikeMileage: bikeData.currentMileage,
           bikeMileageUnit: bikeData.mileageUnit,
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
-          ...(bikePhotoUrl && { bikePhotoUrl }),
         }),
       };
 
@@ -147,6 +166,10 @@ export default function PersonalizingScreen() {
         has_bike: !!bikeData,
       });
       MetaAnalytics.trackCompleteRegistration(eventId);
+
+      // Initialize checklist store based on user goals
+      useChecklistStore.getState().initialize(ridingGoals);
+
       setOnboardingCompleted(true);
       setMutationDone(true);
     };
@@ -157,14 +180,13 @@ export default function PersonalizingScreen() {
     });
   }, [retryCount]);
 
-  // Animation steps + minimum display time
+  // Animation steps + minimum display time (2500ms total)
   useEffect(() => {
     const timers = [
-      setTimeout(() => setVisibleSteps(1), 400),
-      setTimeout(() => setVisibleSteps(2), 1000),
-      setTimeout(() => setVisibleSteps(3), 1600),
-      setTimeout(() => setVisibleSteps(4), 2400),
-      setTimeout(() => setVisibleSteps(5), 3200),
+      setTimeout(() => setVisibleSteps(1), 300),
+      setTimeout(() => setVisibleSteps(2), 800),
+      setTimeout(() => setVisibleSteps(3), 1300),
+      setTimeout(() => setVisibleSteps(4), 1800),
       setTimeout(() => setAnimationDone(true), MIN_ANIMATION_MS),
     ];
 
@@ -185,7 +207,7 @@ export default function PersonalizingScreen() {
     }
   }, [mutationDone, animationDone, router, reset]);
 
-  // Safety net: if stuck for 8s total (animation takes ~4s), show continue button
+  // Safety net: if stuck for 8s total, show continue button
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!mutationDone && !showRetry) {
@@ -259,12 +281,12 @@ export default function PersonalizingScreen() {
           marginBottom: 32,
         }}
       >
-        {t('onboarding.personalizingTitle')}
+        {t('onboarding.v2PersonalizingTitle')}
       </Text>
 
       <View style={{ gap: 16, alignItems: 'flex-start' }}>
-        {STEPS.map((stepKey, index) => {
-          const StepIcon = STEP_ICONS[index];
+        {steps.map((stepKey, index) => {
+          const StepIcon = stepIcons[index];
           return visibleSteps > index ? (
             <Animated.View
               key={stepKey}
@@ -284,7 +306,7 @@ export default function PersonalizingScreen() {
               >
                 {t(`onboarding.${stepKey}`)}
               </Text>
-              <Check size={16} color="#34D399" />
+              <Check size={16} color={ONBOARDING_COLORS.success} />
             </Animated.View>
           ) : null;
         })}
