@@ -703,7 +703,10 @@
     "v2PersonalizingStepExpenses": "Your expense dashboard is ready",
     "v2PersonalizingStepRoutes": "Routes near you are loaded",
     "v2PersonalizingStepMaintain": "Your maintenance log is ready",
-    "v2PersonalizingStepExploring": "Ready to ride"
+    "v2PersonalizingStepExploring": "Ready to ride",
+    "v2WelcomeHeadline1": "Your rides.",
+    "v2WelcomeHeadline2": "Your bike.",
+    "v2WelcomeHeadline3": "Your journey."
   },
   "bikeHub": {
     "upcoming": "Nadchodzace",

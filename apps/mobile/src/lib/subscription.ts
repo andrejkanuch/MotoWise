@@ -189,6 +189,10 @@ export async function presentPaywall(options: PresentPaywallOptions = {}): Promi
     return 'not_presented';
   }
 
+  // Ensure RevenueCat is configured before calling getOfferings() — fixes
+  // race condition where presentPaywall is called before init completes.
+  await initRevenueCat();
+
   try {
     const Purchases = await getPurchases();
     const RevenueCatUI = await import('react-native-purchases-ui');

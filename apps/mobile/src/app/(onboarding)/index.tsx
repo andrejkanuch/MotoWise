@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -12,6 +13,10 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
+  }, []);
 
   const handleGetStarted = () => {
     if (process.env.EXPO_OS === 'ios') {
@@ -24,6 +29,7 @@ export default function WelcomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       {/* Hero image — full bleed (dark atmospheric motorcycle shot) */}
+      {/* TODO: Bundle hero image locally as WebP instead of remote Unsplash URL */}
       <View
         style={{
           position: 'absolute',
@@ -44,7 +50,7 @@ export default function WelcomeScreen() {
         />
       </View>
 
-      {/* Gradient veil */}
+      {/* Gradient veil — bottom-heavy dark overlay */}
       <LinearGradient
         colors={[
           `${ONBOARDING_COLORS.background}66`,
@@ -101,6 +107,7 @@ export default function WelcomeScreen() {
 
         {/* Bottom editorial copy */}
         <View>
+          {/* Tagline */}
           <Animated.Text
             entering={FadeInUp.delay(100).duration(400)}
             style={{
@@ -108,14 +115,14 @@ export default function WelcomeScreen() {
               fontWeight: '600',
               letterSpacing: 2,
               textTransform: 'uppercase',
-              color: '#fff',
-              opacity: 0.7,
+              color: ONBOARDING_COLORS.warm2,
               marginBottom: 18,
             }}
           >
-            The rider's companion
+            {t('onboarding.v2WelcomeTagline')}
           </Animated.Text>
 
+          {/* Headline — "Your rides. / Your bike. / Your journey." */}
           <Animated.View entering={FadeInUp.delay(200).duration(400)}>
             <Text
               style={{
@@ -127,18 +134,22 @@ export default function WelcomeScreen() {
                 marginBottom: 18,
               }}
             >
-              Every bike{'\n'}
+              {t('onboarding.v2WelcomeHeadline1')}
+              {'\n'}
+              {t('onboarding.v2WelcomeHeadline2')}
+              {'\n'}
               <Text
                 style={{
                   fontFamily: 'InstrumentSerif-Italic',
                   color: ONBOARDING_COLORS.warm2,
                 }}
               >
-                has a story.
+                {t('onboarding.v2WelcomeHeadline3')}
               </Text>
             </Text>
           </Animated.View>
 
+          {/* Subtitle */}
           <Animated.Text
             entering={FadeInUp.delay(300).duration(400)}
             style={{
@@ -150,10 +161,10 @@ export default function WelcomeScreen() {
               marginBottom: 32,
             }}
           >
-            Keep your garage, trips, and maintenance in one thoughtfully-made place — built for
-            riders who care.
+            {t('onboarding.v2WelcomeSubtitle')}
           </Animated.Text>
 
+          {/* CTA button */}
           <Animated.View entering={FadeIn.delay(500).duration(300)}>
             <Pressable
               onPress={handleGetStarted}
@@ -179,30 +190,10 @@ export default function WelcomeScreen() {
                   letterSpacing: -0.15,
                 }}
               >
-                {t('onboarding.getStarted')}
+                {t('onboarding.v2WelcomeCta')}
               </Text>
               <ArrowRight size={18} color="#1a1208" />
             </Pressable>
-
-            <Text
-              style={{
-                textAlign: 'center',
-                marginTop: 16,
-                fontSize: 13,
-                color: '#fff',
-                opacity: 0.7,
-              }}
-            >
-              Have an account?{' '}
-              <Text
-                style={{
-                  color: ONBOARDING_COLORS.warm2,
-                  fontWeight: '600',
-                }}
-              >
-                Sign in
-              </Text>
-            </Text>
           </Animated.View>
         </View>
       </View>
