@@ -1,117 +1,57 @@
 import { palette } from '@motovault/design-system';
 import { MeDocument, UpdateUserDocument } from '@motovault/graphql';
+import { RidingGoal } from '@motovault/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { ArrowLeft, Check } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Bike,
+  Check,
+  Compass,
+  Flame,
+  Gauge,
+  MapPin,
+  Sparkles,
+  Wallet,
+  Wrench,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 
+/* ─── Experience levels ─── */
+
 const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
 
-const EXPERIENCE_LABEL_KEYS: Record<ExperienceLevel, string> = {
-  beginner: 'settings.experienceBeginner',
-  intermediate: 'settings.experienceIntermediate',
-  advanced: 'settings.experienceAdvanced',
+const EXPERIENCE_CONFIG: Record<
+  ExperienceLevel,
+  { labelKey: string; icon: typeof Bike; color: string }
+> = {
+  beginner: { labelKey: 'settings.experienceBeginner', icon: Bike, color: '#A3B18A' },
+  intermediate: { labelKey: 'settings.experienceIntermediate', icon: Gauge, color: '#D4884A' },
+  advanced: { labelKey: 'settings.experienceAdvanced', icon: Flame, color: '#C4634A' },
 };
 
-const RIDING_GOALS = [
-  'learn_maintenance',
-  'improve_riding',
-  'track_maintenance',
-  'save_money',
-  'find_community',
-  'safety',
-  'save_on_maintenance',
-  'track_bike_health',
+/* ─── V2 Riding goals ─── */
+
+const V2_GOALS = [
+  { key: RidingGoal.TRACK_RIDES, labelKey: 'settings.goalTrackRides', icon: MapPin },
+  { key: RidingGoal.MANAGE_EXPENSES, labelKey: 'settings.goalManageExpenses', icon: Wallet },
+  { key: RidingGoal.DISCOVER_ROUTES, labelKey: 'settings.goalDiscoverRoutes', icon: Compass },
+  { key: RidingGoal.MAINTAIN_BIKE, labelKey: 'settings.goalMaintainBike', icon: Wrench },
+  { key: RidingGoal.JUST_EXPLORING, labelKey: 'settings.goalJustExploring', icon: Sparkles },
 ] as const;
-type RidingGoal = (typeof RIDING_GOALS)[number];
 
-const GOAL_LABEL_KEYS: Record<RidingGoal, string> = {
-  learn_maintenance: 'settings.goalLearnMaintenance',
-  improve_riding: 'settings.goalImproveRiding',
-  track_maintenance: 'settings.goalTrackMaintenance',
-  save_money: 'settings.goalSaveMoney',
-  find_community: 'settings.goalFindCommunity',
-  safety: 'settings.goalSafety',
-  save_on_maintenance: 'settings.goalSaveOnMaintenance',
-  track_bike_health: 'settings.goalTrackBikeHealth',
-};
-
-const GOAL_DEFAULT_LABELS: Record<RidingGoal, string> = {
-  learn_maintenance: 'Learn Maintenance',
-  improve_riding: 'Improve Riding',
-  track_maintenance: 'Track Maintenance',
-  save_money: 'Save Money',
-  find_community: 'Find Community',
-  safety: 'Safety',
-  save_on_maintenance: 'Save on Maintenance',
-  track_bike_health: 'Track Bike Health',
-};
-
-const LEARNING_FORMATS = [
-  'quick_tips',
-  'deep_dives',
-  'video_walkthroughs',
-  'hands_on_quizzes',
-] as const;
-type LearningFormat = (typeof LEARNING_FORMATS)[number];
-
-const LEARNING_FORMAT_LABEL_KEYS: Record<LearningFormat, string> = {
-  quick_tips: 'settings.formatQuickTips',
-  deep_dives: 'settings.formatDeepDives',
-  video_walkthroughs: 'settings.formatVideoWalkthroughs',
-  hands_on_quizzes: 'settings.formatHandsOnQuizzes',
-};
-
-const LEARNING_FORMAT_DEFAULT_LABELS: Record<LearningFormat, string> = {
-  quick_tips: 'Quick Tips',
-  deep_dives: 'Deep Dives',
-  video_walkthroughs: 'Video Walkthroughs',
-  hands_on_quizzes: 'Hands-on Quizzes',
-};
-
-const RIDING_FREQUENCIES = ['daily', 'weekly', 'monthly', 'seasonally'] as const;
-type RidingFrequency = (typeof RIDING_FREQUENCIES)[number];
-
-const RIDING_FREQUENCY_LABEL_KEYS: Record<RidingFrequency, string> = {
-  daily: 'settings.frequencyDaily',
-  weekly: 'settings.frequencyWeekly',
-  monthly: 'settings.frequencyMonthly',
-  seasonally: 'settings.frequencySeasonally',
-};
-
-const MAINTENANCE_STYLES = ['diy', 'sometimes', 'mechanic'] as const;
-type MaintenanceStyle = (typeof MAINTENANCE_STYLES)[number];
-
-const MAINTENANCE_STYLE_LABEL_KEYS: Record<MaintenanceStyle, string> = {
-  diy: 'settings.maintenanceDiy',
-  sometimes: 'settings.maintenanceSometimes',
-  mechanic: 'settings.maintenanceMechanic',
-};
-
-const MAINTENANCE_STYLE_DEFAULT_LABELS: Record<MaintenanceStyle, string> = {
-  diy: 'DIY',
-  sometimes: 'Mix',
-  mechanic: 'Mechanic',
-};
-
-type UserPreferences = {
-  experienceLevel?: string;
-  ridingGoals?: string[];
-  learningFormats?: string[];
-  ridingFrequency?: string;
-  maintenanceStyle?: string;
-};
+/* ─── Helpers ─── */
 
 function haptic() {
   if (process.env.EXPO_OS === 'ios') {
@@ -119,11 +59,41 @@ function haptic() {
   }
 }
 
-function hapticSuccess() {
-  if (process.env.EXPO_OS === 'ios') {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }
+type UserPreferences = {
+  experienceLevel?: string;
+  ridingGoals?: string[];
+};
+
+/* ─── Section label component ─── */
+
+function SectionLabel({
+  children,
+  theme,
+}: {
+  children: string;
+  theme: ReturnType<typeof useEditorialTheme>['t'];
+}) {
+  return (
+    <Text
+      style={{
+        fontFamily: 'GeistMono-Medium',
+        fontSize: 10,
+        fontWeight: '700',
+        color: theme.ink3,
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        marginBottom: 12,
+        marginLeft: 2,
+      }}
+    >
+      {children}
+    </Text>
+  );
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Settings Screen — V2/V3 aligned
+   ═══════════════════════════════════════════════════════════ */
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -141,37 +111,14 @@ export default function SettingsScreen() {
 
   const [fullName, setFullName] = useState('');
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('beginner');
-  const [selectedGoals, setSelectedGoals] = useState<RidingGoal[]>([]);
-  const [selectedFormats, setSelectedFormats] = useState<LearningFormat[]>([]);
-  const [ridingFrequency, setRidingFrequency] = useState<RidingFrequency | null>(null);
-  const [maintenanceStyle, setMaintenanceStyle] = useState<MaintenanceStyle | null>(null);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     if (user && !isInitialized) {
       setFullName(user.fullName ?? '');
       setExperienceLevel((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner');
-      const storedGoals = (preferences?.ridingGoals as string[]) ?? [];
-      const validGoals = storedGoals.filter((g): g is RidingGoal =>
-        (RIDING_GOALS as readonly string[]).includes(g),
-      );
-      setSelectedGoals(validGoals);
-      const storedFormats = (preferences?.learningFormats as string[]) ?? [];
-      const validFormats = storedFormats.filter((f): f is LearningFormat =>
-        (LEARNING_FORMATS as readonly string[]).includes(f),
-      );
-      setSelectedFormats(validFormats);
-      const storedFrequency = preferences?.ridingFrequency as string | undefined;
-      if (storedFrequency && (RIDING_FREQUENCIES as readonly string[]).includes(storedFrequency)) {
-        setRidingFrequency(storedFrequency as RidingFrequency);
-      }
-      const storedMaintStyle = preferences?.maintenanceStyle as string | undefined;
-      if (
-        storedMaintStyle &&
-        (MAINTENANCE_STYLES as readonly string[]).includes(storedMaintStyle)
-      ) {
-        setMaintenanceStyle(storedMaintStyle as MaintenanceStyle);
-      }
+      setSelectedGoals(preferences?.ridingGoals ?? []);
       setIsInitialized(true);
     }
   }, [user, preferences, isInitialized]);
@@ -181,21 +128,16 @@ export default function SettingsScreen() {
       gqlFetcher(UpdateUserDocument, { input }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me });
-      hapticSuccess();
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
     },
   });
 
-  const toggleGoal = useCallback((goal: RidingGoal) => {
+  const toggleGoal = useCallback((goal: string) => {
     haptic();
     setSelectedGoals((prev) =>
       prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal],
-    );
-  }, []);
-
-  const toggleFormat = useCallback((format: LearningFormat) => {
-    haptic();
-    setSelectedFormats((prev) =>
-      prev.includes(format) ? prev.filter((f) => f !== format) : [...prev, format],
     );
   }, []);
 
@@ -211,49 +153,30 @@ export default function SettingsScreen() {
     const prefsChanged =
       experienceLevel !== ((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner') ||
       JSON.stringify([...selectedGoals].sort()) !==
-        JSON.stringify(
-          [...((preferences?.ridingGoals as RidingGoal[]) ?? [])]
-            .filter((g): g is RidingGoal => (RIDING_GOALS as readonly string[]).includes(g))
-            .sort(),
-        ) ||
-      JSON.stringify([...selectedFormats].sort()) !==
-        JSON.stringify([...((preferences?.learningFormats as LearningFormat[]) ?? [])].sort()) ||
-      ridingFrequency !== (preferences?.ridingFrequency ?? null) ||
-      maintenanceStyle !== (preferences?.maintenanceStyle ?? null);
+        JSON.stringify([...(preferences?.ridingGoals ?? [])].sort());
 
     if (prefsChanged) {
       input.preferences = {
         experienceLevel,
         ridingGoals: selectedGoals,
-        learningFormats: selectedFormats,
-        ...(ridingFrequency && { ridingFrequency }),
-        ...(maintenanceStyle && { maintenanceStyle }),
       };
     }
 
-    updateMutation.mutate(input);
-  }, [
-    fullName,
-    experienceLevel,
-    selectedGoals,
-    selectedFormats,
-    ridingFrequency,
-    maintenanceStyle,
-    updateMutation,
-    user,
-    preferences,
-  ]);
+    if (Object.keys(input).length > 0) {
+      updateMutation.mutate(input);
+      trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
+        experience_level: experienceLevel,
+        goals_count: selectedGoals.length,
+      });
+    }
+  }, [fullName, experienceLevel, selectedGoals, updateMutation, user, preferences]);
 
   const hasChanges =
     isInitialized &&
-    (fullName !== (user?.fullName ?? '') ||
+    (fullName.trim() !== (user?.fullName ?? '') ||
       experienceLevel !== ((preferences?.experienceLevel as ExperienceLevel) ?? 'beginner') ||
       JSON.stringify([...selectedGoals].sort()) !==
-        JSON.stringify([...((preferences?.ridingGoals as RidingGoal[]) ?? [])].sort()) ||
-      JSON.stringify([...selectedFormats].sort()) !==
-        JSON.stringify([...((preferences?.learningFormats as LearningFormat[]) ?? [])].sort()) ||
-      ridingFrequency !== (preferences?.ridingFrequency ?? null) ||
-      maintenanceStyle !== (preferences?.maintenanceStyle ?? null));
+        JSON.stringify([...(preferences?.ridingGoals ?? [])].sort()));
 
   if (meQuery.isLoading) {
     return (
@@ -280,7 +203,6 @@ export default function SettingsScreen() {
           paddingHorizontal: 20,
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: theme.bg,
           borderBottomWidth: 1,
           borderBottomColor: theme.line,
         }}
@@ -291,6 +213,8 @@ export default function SettingsScreen() {
             router.back();
           }}
           hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
           style={{
             width: 36,
             height: 36,
@@ -313,7 +237,7 @@ export default function SettingsScreen() {
             marginRight: 36,
           }}
         >
-          {t('settings.title', { defaultValue: 'Profile Settings' })}
+          {t('settings.title', { defaultValue: 'Settings' })}
         </Text>
       </View>
 
@@ -324,24 +248,14 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Full Name Section */}
+        {/* ─── Full Name ─── */}
         <Animated.View
           entering={FadeInUp.duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 28 }}
         >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
+          <SectionLabel theme={theme}>
             {t('settings.fullNameLabel', { defaultValue: 'Full Name' })}
-          </Text>
+          </SectionLabel>
           <View
             style={{
               backgroundColor: theme.surface,
@@ -362,386 +276,202 @@ export default function SettingsScreen() {
               placeholderTextColor={theme.ink3}
               autoCapitalize="words"
               autoCorrect={false}
-              style={{
-                fontSize: 16,
-                color: theme.ink,
-                padding: 0,
-              }}
+              style={{ fontSize: 16, color: theme.ink, padding: 0 }}
             />
           </View>
         </Animated.View>
 
-        {/* Experience Level Section */}
+        {/* ─── Experience Level ─── */}
         <Animated.View
           entering={FadeInUp.delay(80).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 28 }}
         >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
+          <SectionLabel theme={theme}>
             {t('settings.experienceLevelLabel', { defaultValue: 'Experience Level' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              padding: 4,
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
+          </SectionLabel>
+          <View style={{ gap: 8 }}>
             {EXPERIENCE_LEVELS.map((level) => {
+              const config = EXPERIENCE_CONFIG[level];
               const selected = experienceLevel === level;
+              const Icon = config.icon;
               return (
                 <Pressable
                   key={level}
                   onPress={() => {
                     haptic();
                     setExperienceLevel(level);
-                    trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
-                      setting: 'experience_level',
-                      value: level,
-                    });
                   }}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}
                   style={{
-                    flex: 1,
-                    paddingVertical: 10,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
+                    flexDirection: 'row',
                     alignItems: 'center',
-                    backgroundColor: selected ? theme.warm : 'transparent',
+                    gap: 14,
+                    padding: 14,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    backgroundColor: selected ? `${config.color}1A` : theme.surface,
+                    borderWidth: 1.5,
+                    borderColor: selected ? config.color : theme.line,
                   }}
                 >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      backgroundColor: selected ? config.color : `${config.color}20`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Icon size={20} color={selected ? '#1a0f08' : config.color} />
+                  </View>
                   <Text
                     style={{
-                      fontSize: 14,
+                      flex: 1,
+                      fontSize: 15,
                       fontWeight: '600',
-                      color: selected ? palette.white : theme.ink3,
+                      color: selected ? theme.ink : theme.ink3,
                       textTransform: 'capitalize',
                     }}
                   >
-                    {t(EXPERIENCE_LABEL_KEYS[level], { defaultValue: level })}
+                    {t(config.labelKey, { defaultValue: level })}
                   </Text>
+                  {selected && (
+                    <Animated.View entering={FadeIn.duration(200)}>
+                      <View
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          backgroundColor: config.color,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Check size={14} color="#1a0f08" strokeWidth={3} />
+                      </View>
+                    </Animated.View>
+                  )}
                 </Pressable>
               );
             })}
           </View>
         </Animated.View>
 
-        {/* Riding Goals Section */}
+        {/* ─── Riding Goals ─── */}
         <Animated.View
           entering={FadeInUp.delay(160).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 28 }}
         >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
+          <SectionLabel theme={theme}>
             {t('settings.ridingGoalsLabel', { defaultValue: 'Riding Goals' })}
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {RIDING_GOALS.map((goal, index) => {
-              const selected = selectedGoals.includes(goal);
+          </SectionLabel>
+          <View style={{ gap: 8 }}>
+            {V2_GOALS.map((goal) => {
+              const selected = selectedGoals.includes(goal.key);
+              const Icon = goal.icon;
               return (
-                <Animated.View key={goal} entering={FadeInUp.delay(160 + index * 50).duration(350)}>
-                  <Pressable
-                    onPress={() => toggleGoal(goal)}
+                <Pressable
+                  key={goal.key}
+                  onPress={() => toggleGoal(goal.key)}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: selected }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 14,
+                    padding: 14,
+                    borderRadius: 16,
+                    borderCurve: 'continuous',
+                    backgroundColor: selected ? tint(theme.warm, 0.12) : theme.surface,
+                    borderWidth: 1.5,
+                    borderColor: selected ? theme.warm : theme.line,
+                  }}
+                >
+                  <View
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                      paddingHorizontal: 14,
-                      paddingVertical: 10,
-                      borderRadius: 12,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
                       borderCurve: 'continuous',
-                      borderWidth: 1.5,
-                      borderColor: selected ? theme.warm : theme.line,
-                      backgroundColor: selected ? tint(theme.warm, 0.15) : theme.surface,
+                      backgroundColor: selected ? `${theme.warm}30` : theme.surface2,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    {selected && <Check size={14} color={theme.warm} strokeWidth={2.5} />}
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: selected ? '600' : '500',
-                        color: selected ? theme.warm : theme.ink3,
-                      }}
-                    >
-                      {t(GOAL_LABEL_KEYS[goal], { defaultValue: GOAL_DEFAULT_LABELS[goal] })}
-                    </Text>
-                  </Pressable>
-                </Animated.View>
+                    <Icon size={18} color={selected ? theme.warm : theme.ink3} />
+                  </View>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: selected ? '600' : '500',
+                      color: selected ? theme.ink : theme.ink3,
+                    }}
+                  >
+                    {t(goal.labelKey, { defaultValue: goal.key })}
+                  </Text>
+                  {selected && (
+                    <Animated.View entering={FadeIn.duration(200)}>
+                      <Check size={18} color={theme.warm} strokeWidth={2.5} />
+                    </Animated.View>
+                  )}
+                </Pressable>
               );
             })}
           </View>
         </Animated.View>
 
-        {/* Learning Formats Section */}
+        {/* ─── Save Button ─── */}
         <Animated.View
           entering={FadeInUp.delay(240).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 28 }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
-            {t('settings.learningFormatsLabel', { defaultValue: 'Learning Formats' })}
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            {LEARNING_FORMATS.map((format, index) => {
-              const selected = selectedFormats.includes(format);
-              return (
-                <Animated.View
-                  key={format}
-                  entering={FadeInUp.delay(240 + index * 50).duration(350)}
-                >
-                  <Pressable
-                    onPress={() => toggleFormat(format)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                      paddingHorizontal: 14,
-                      paddingVertical: 10,
-                      borderRadius: 12,
-                      borderCurve: 'continuous',
-                      borderWidth: 1.5,
-                      borderColor: selected ? theme.warm : theme.line,
-                      backgroundColor: selected ? tint(theme.warm, 0.15) : theme.surface,
-                    }}
-                  >
-                    {selected && <Check size={14} color={theme.warm} strokeWidth={2.5} />}
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: selected ? '600' : '500',
-                        color: selected ? theme.warm : theme.ink3,
-                      }}
-                    >
-                      {t(LEARNING_FORMAT_LABEL_KEYS[format], {
-                        defaultValue: LEARNING_FORMAT_DEFAULT_LABELS[format],
-                      })}
-                    </Text>
-                  </Pressable>
-                </Animated.View>
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        {/* Riding Frequency Section */}
-        <Animated.View
-          entering={FadeInUp.delay(320).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 28 }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
-            {t('settings.ridingFrequencyLabel', { defaultValue: 'Riding Frequency' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              padding: 4,
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            {RIDING_FREQUENCIES.map((freq) => {
-              const selected = ridingFrequency === freq;
-              return (
-                <Pressable
-                  key={freq}
-                  onPress={() => {
-                    haptic();
-                    setRidingFrequency(freq);
-                  }}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 10,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    alignItems: 'center',
-                    backgroundColor: selected ? theme.warm : 'transparent',
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: selected ? palette.white : theme.ink3,
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {t(RIDING_FREQUENCY_LABEL_KEYS[freq], { defaultValue: freq })}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        {/* Maintenance Style Section */}
-        <Animated.View
-          entering={FadeInUp.delay(400).duration(400)}
-          style={{ paddingHorizontal: 20, marginTop: 28 }}
-        >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '700',
-              color: theme.ink2,
-              textTransform: 'uppercase',
-              letterSpacing: 2.2,
-              marginBottom: 10,
-              marginLeft: 4,
-            }}
-          >
-            {t('settings.maintenanceStyleLabel', { defaultValue: 'Maintenance Style' })}
-          </Text>
-          <View
-            style={{
-              backgroundColor: theme.surface,
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              padding: 4,
-              borderWidth: 1,
-              borderColor: theme.line,
-            }}
-          >
-            {MAINTENANCE_STYLES.map((style) => {
-              const selected = maintenanceStyle === style;
-              return (
-                <Pressable
-                  key={style}
-                  onPress={() => {
-                    haptic();
-                    setMaintenanceStyle(style);
-                    trackEvent(AnalyticsEvent.SETTINGS_CHANGED, {
-                      setting: 'maintenance_style',
-                      value: style,
-                    });
-                  }}
-                  style={{
-                    flex: 1,
-                    paddingVertical: 10,
-                    borderRadius: 10,
-                    borderCurve: 'continuous',
-                    alignItems: 'center',
-                    backgroundColor: selected ? theme.warm : 'transparent',
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: selected ? palette.white : theme.ink3,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {t(MAINTENANCE_STYLE_LABEL_KEYS[style], {
-                      defaultValue: MAINTENANCE_STYLE_DEFAULT_LABELS[style],
-                    })}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </Animated.View>
-
-        {/* Save Button */}
-        <Animated.View
-          entering={FadeInUp.delay(500).duration(400)}
           style={{ paddingHorizontal: 20, marginTop: 36 }}
         >
           <Pressable
             onPress={handleSave}
             disabled={updateMutation.isPending || !hasChanges}
-            style={{ borderRadius: 16, borderCurve: 'continuous', overflow: 'hidden' }}
+            style={{
+              borderRadius: 16,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+              backgroundColor:
+                hasChanges && !updateMutation.isPending ? theme.warm : theme.surface2,
+              opacity: hasChanges && !updateMutation.isPending ? 1 : 0.5,
+              paddingVertical: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              gap: 8,
+            }}
           >
-            <View
-              style={{
-                backgroundColor:
-                  hasChanges && !updateMutation.isPending ? theme.warm : theme.surface2,
-                opacity: hasChanges && !updateMutation.isPending ? 1 : 0.5,
-                paddingVertical: 16,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                gap: 8,
-              }}
-            >
-              {updateMutation.isPending ? (
-                <ActivityIndicator size="small" color={palette.white} />
-              ) : updateMutation.isSuccess && !hasChanges ? (
-                <>
-                  <Check size={18} color={palette.white} strokeWidth={2.5} />
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
-                    {t('settings.saved', { defaultValue: 'Saved' })}
-                  </Text>
-                </>
-              ) : (
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: '700',
-                    color: hasChanges ? palette.white : theme.ink3,
-                  }}
-                >
-                  {t('settings.saveChanges', { defaultValue: 'Save Changes' })}
+            {updateMutation.isPending ? (
+              <ActivityIndicator size="small" color={palette.white} />
+            ) : updateMutation.isSuccess && !hasChanges ? (
+              <>
+                <Check size={18} color={palette.white} strokeWidth={2.5} />
+                <Text style={{ fontSize: 16, fontWeight: '700', color: palette.white }}>
+                  {t('settings.saved', { defaultValue: 'Saved' })}
                 </Text>
-              )}
-            </View>
+              </>
+            ) : (
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: hasChanges ? palette.white : theme.ink3,
+                }}
+              >
+                {t('settings.saveChanges', { defaultValue: 'Save Changes' })}
+              </Text>
+            )}
           </Pressable>
 
           {updateMutation.isError && (
-            <Text
-              style={{
-                fontSize: 13,
-                color: theme.danger,
-                textAlign: 'center',
-                marginTop: 12,
-              }}
-            >
-              {t('settings.saveError', {
-                defaultValue: 'Something went wrong. Please try again.',
-              })}
+            <Text style={{ fontSize: 13, color: theme.danger, textAlign: 'center', marginTop: 12 }}>
+              {t('settings.saveError', { defaultValue: 'Something went wrong. Please try again.' })}
             </Text>
           )}
         </Animated.View>
