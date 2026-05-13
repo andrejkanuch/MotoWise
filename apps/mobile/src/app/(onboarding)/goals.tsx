@@ -105,7 +105,8 @@ export default function GoalsScreen() {
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'goals',
       step_index: 2,
-      goals,
+      goals: goals.join(','),
+      goals_count: goals.length,
       primary_goal: primaryGoal,
     });
 

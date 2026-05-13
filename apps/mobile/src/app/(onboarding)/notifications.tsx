@@ -164,7 +164,7 @@ export default function NotificationsScreen() {
     tracked.current = true;
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
       step: 'notifications',
-      step_index: 5,
+      step_index: 6,
     });
   }, []);
 
@@ -180,7 +180,7 @@ export default function NotificationsScreen() {
     if (status === 'granted') {
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'notifications',
-        step_index: 5,
+        step_index: 6,
         permission_granted: true,
         skipped: false,
       });
@@ -214,7 +214,7 @@ export default function NotificationsScreen() {
 
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'notifications',
-      step_index: 5,
+      step_index: 6,
       permission_granted: granted,
       skipped: false,
     });
@@ -226,7 +226,7 @@ export default function NotificationsScreen() {
     triggerImpact(Haptics.ImpactFeedbackStyle.Light);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'notifications',
-      step_index: 5,
+      step_index: 6,
       permission_granted: false,
       skipped: true,
     });

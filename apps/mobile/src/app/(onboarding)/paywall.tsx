@@ -28,15 +28,21 @@ export default function PaywallScreen() {
 
     const primaryGoal = getPrimaryGoal(ridingGoals);
     const placement = GOAL_TO_PLACEMENT[primaryGoal];
+    const goalsJoined = ridingGoals.join(',');
+
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
+      step: 'paywall',
+      step_index: 5,
+    });
 
     if (isExpoGo) {
       // Skip paywall in Expo Go — IAP not available
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'paywall',
-        step_index: 4,
-        lastCompletedScreen: 'paywall',
+        step_index: 5,
         paywall_result: 'skipped_expo_go',
-        goals: ridingGoals,
+        goals: goalsJoined,
+        primary_goal: primaryGoal,
         placement,
       });
       router.push(OB_ROUTE.NOTIFICATIONS);
@@ -54,10 +60,10 @@ export default function PaywallScreen() {
 
       trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
         step: 'paywall',
-        step_index: 4,
-        lastCompletedScreen: 'paywall',
+        step_index: 5,
         paywall_result: result,
-        goals: ridingGoals,
+        goals: goalsJoined,
+        primary_goal: primaryGoal,
         placement,
       });
 

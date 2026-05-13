@@ -25,7 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
-import { getPrimaryGoal, OB_ROUTE } from '../../config/onboarding';
+import { getPrimaryGoal, OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
@@ -114,6 +114,14 @@ export default function PersonalizingScreen() {
     opacity: pulseOpacity.value,
   }));
 
+  // Track step viewed once on mount
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
+      step: 'personalizing',
+      step_index: 7,
+    });
+  }, []);
+
   // Persist preferences to server
   // biome-ignore lint/correctness/useExhaustiveDependencies: fire on mount and on manual retry
   useEffect(() => {
@@ -162,6 +170,17 @@ export default function PersonalizingScreen() {
       trackEvent(AnalyticsEvent.ONBOARDING_COMPLETED, {
         experience_level: experienceLevel ?? 'beginner',
         has_bike: !!bikeData,
+        has_photo: !!bikeData?.nickname,
+        goals_count: ridingGoals.length,
+        goals: ridingGoals.join(','),
+        primary_goal: primaryGoal,
+        total_screens: TOTAL_SCREENS,
+        ...(bikeData && {
+          bike_make: bikeData.make,
+          bike_model: bikeData.model,
+          bike_year: bikeData.year,
+        }),
+        accepted_maintenance_count: acceptedOemScheduleIds.length,
       });
       MetaAnalytics.trackCompleteRegistration(eventId);
 
