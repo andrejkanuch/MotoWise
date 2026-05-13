@@ -152,7 +152,11 @@ export function ModelPicker({
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={isCustomMake ? t('onboarding.v2ModelPickerSearchCustom') : t('onboarding.v2ModelPickerSearchPlaceholder', { makeName })}
+          placeholder={
+            isCustomMake
+              ? t('onboarding.v2ModelPickerSearchCustom')
+              : t('onboarding.v2ModelPickerSearchPlaceholder', { makeName })
+          }
           placeholderTextColor={ONBOARDING_COLORS.textDimmed}
           autoCapitalize="words"
           autoCorrect={false}
@@ -195,7 +199,9 @@ export function ModelPicker({
                 borderColor: ONBOARDING_COLORS.borderSubtle,
               }}
             >
-              <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textWhite, fontWeight: '500' }}>
+              <Text
+                style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textWhite, fontWeight: '500' }}
+              >
                 {m.modelName}
               </Text>
             </Pressable>

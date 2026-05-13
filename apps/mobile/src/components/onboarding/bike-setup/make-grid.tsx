@@ -131,7 +131,9 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
+                  <Text
+                    style={{ fontSize: 11, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}
+                  >
                     {m.makeName[0]}
                   </Text>
                 </View>
@@ -216,7 +218,9 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
+                  <Text
+                    style={{ fontSize: 10, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}
+                  >
                     {m.makeName[0]}
                   </Text>
                 </View>

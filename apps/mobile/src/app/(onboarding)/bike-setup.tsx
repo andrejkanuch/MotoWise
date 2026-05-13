@@ -262,7 +262,8 @@ export default function BikeSetupScreen() {
                 marginBottom: 8,
               }}
             >
-              {t('onboarding.v2BikeSetupTitle')}{'\n'}
+              {t('onboarding.v2BikeSetupTitle')}
+              {'\n'}
               <Text
                 style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
               >

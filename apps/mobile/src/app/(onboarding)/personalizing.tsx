@@ -173,7 +173,10 @@ export default function PersonalizingScreen() {
     };
 
     run().catch((error) => {
-      console.error('[Personalizing] Attempt failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        '[Personalizing] Attempt failed:',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
       setShowRetry(true);
     });
   }, [retryCount]);

@@ -47,9 +47,13 @@ function getTaskIcon(taskName: string) {
 
 function formatIntervalKey(task: OemTask): { key: string; opts?: Record<string, unknown> } {
   if (task.intervalKm && task.intervalDays) {
-    return { key: 'onboarding.v2TaskCardEveryKmMo', opts: { km: task.intervalKm.toLocaleString(), months: Math.round(task.intervalDays / 30) } };
+    return {
+      key: 'onboarding.v2TaskCardEveryKmMo',
+      opts: { km: task.intervalKm.toLocaleString(), months: Math.round(task.intervalDays / 30) },
+    };
   }
-  if (task.intervalKm) return { key: 'onboarding.v2TaskCardEveryKm', opts: { km: task.intervalKm.toLocaleString() } };
+  if (task.intervalKm)
+    return { key: 'onboarding.v2TaskCardEveryKm', opts: { km: task.intervalKm.toLocaleString() } };
   if (task.intervalDays) {
     const months = Math.round(task.intervalDays / 30);
     if (months >= 12) {
@@ -212,7 +216,14 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
         >
           {t('onboarding.v2TaskCardInterval')}
         </Text>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: ONBOARDING_COLORS.textWhite, letterSpacing: -0.1 }}>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: '600',
+            color: ONBOARDING_COLORS.textWhite,
+            letterSpacing: -0.1,
+          }}
+        >
           {interval}
         </Text>
       </View>

@@ -46,4 +46,3 @@ export const GOAL_TO_PLACEMENT: Record<string, string> = {
   maintain_bike: 'onboarding_rides',
   just_exploring: 'onboarding_default',
 } as const;
-

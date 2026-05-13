@@ -80,9 +80,7 @@ export default function MaintenanceScreen() {
     (direction: 'left' | 'right') => {
       if (!currentTask) return;
 
-      triggerImpact(
-        direction === 'right' ? ImpactFeedbackStyle.Medium : ImpactFeedbackStyle.Light,
-      );
+      triggerImpact(direction === 'right' ? ImpactFeedbackStyle.Medium : ImpactFeedbackStyle.Light);
 
       if (direction === 'right') {
         setAccepted((a) => [...a, currentTask.id]);
@@ -105,10 +103,8 @@ export default function MaintenanceScreen() {
       translateY.value = e.translationY * 0.35;
     })
     .onEnd((e) => {
-      const swipedRight =
-        e.translationX > SWIPE_THRESHOLD || e.velocityX > VELOCITY_THRESHOLD;
-      const swipedLeft =
-        e.translationX < -SWIPE_THRESHOLD || e.velocityX < -VELOCITY_THRESHOLD;
+      const swipedRight = e.translationX > SWIPE_THRESHOLD || e.velocityX > VELOCITY_THRESHOLD;
+      const swipedLeft = e.translationX < -SWIPE_THRESHOLD || e.velocityX < -VELOCITY_THRESHOLD;
 
       if (swipedRight) {
         // Use velocity to determine exit target for natural momentum
@@ -133,11 +129,7 @@ export default function MaintenanceScreen() {
       { translateY: translateY.value },
       { rotate: `${interpolate(translateX.value, [-300, 0, 300], [-18, 0, 18])}deg` },
     ],
-    opacity: interpolate(
-      Math.abs(translateX.value),
-      [0, 300, 500],
-      [1, 1, 0],
-    ),
+    opacity: interpolate(Math.abs(translateX.value), [0, 300, 500], [1, 1, 0]),
   }));
 
   // Background card scales up as top card moves away
@@ -264,7 +256,8 @@ export default function MaintenanceScreen() {
               marginBottom: 8,
             }}
           >
-            {t('onboarding.v2MaintenanceTitle')}{'\n'}
+            {t('onboarding.v2MaintenanceTitle')}
+            {'\n'}
             <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
               {t('onboarding.v2MaintenanceTitleItalic')}
             </Text>
@@ -354,7 +347,11 @@ export default function MaintenanceScreen() {
                     thirdCardStyle,
                   ]}
                 >
-                  <TaskCard task={tasks[currentIdx + 2]} brandColor={brandColor} dragDirection={noDrag} />
+                  <TaskCard
+                    task={tasks[currentIdx + 2]}
+                    brandColor={brandColor}
+                    dragDirection={noDrag}
+                  />
                 </Animated.View>
               )}
               {tasks[currentIdx + 1] && (
@@ -365,7 +362,11 @@ export default function MaintenanceScreen() {
                     nextCardStyle,
                   ]}
                 >
-                  <TaskCard task={tasks[currentIdx + 1]} brandColor={brandColor} dragDirection={noDrag} />
+                  <TaskCard
+                    task={tasks[currentIdx + 1]}
+                    brandColor={brandColor}
+                    dragDirection={noDrag}
+                  />
                 </Animated.View>
               )}
 
@@ -531,7 +532,9 @@ export default function MaintenanceScreen() {
               {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}
               {'\n'}
               <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: brandColor }}>
-                {accepted.length === 0 ? t('onboarding.v2MaintenanceAddLater') : t('onboarding.v2MaintenanceOnRadar')}
+                {accepted.length === 0
+                  ? t('onboarding.v2MaintenanceAddLater')
+                  : t('onboarding.v2MaintenanceOnRadar')}
               </Text>
             </Text>
             <Text

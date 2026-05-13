@@ -244,7 +244,6 @@ describe('Onboarding Config', () => {
       }
     });
   });
-
 });
 
 // ---------- Zod Validation (CompleteOnboardingInput) ----------

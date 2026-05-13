@@ -19,7 +19,13 @@ interface BrandHeroProps {
 function PopularityBadge({ stat, color }: { stat: MakeStat; color: string }) {
   const { t } = useTranslation();
   const label =
-    stat.rank === 1 ? t('onboarding.v2BrandHeroMostPopular') : stat.rank <= 3 ? t('onboarding.v2BrandHeroTop3') : stat.rank <= 8 ? t('onboarding.v2BrandHeroPopular') : null;
+    stat.rank === 1
+      ? t('onboarding.v2BrandHeroMostPopular')
+      : stat.rank <= 3
+        ? t('onboarding.v2BrandHeroTop3')
+        : stat.rank <= 8
+          ? t('onboarding.v2BrandHeroPopular')
+          : null;
   if (!label) return null;
 
   return (
@@ -73,7 +79,10 @@ function StatsRow({
     const result: { big: string; label: string }[] = [];
     // Service interval — from manufacturer spec (always available for known brands)
     if (brandDna?.serviceInterval) {
-      result.push({ big: brandDna.serviceInterval, label: t('onboarding.v2BrandHeroServiceInterval') });
+      result.push({
+        big: brandDna.serviceInterval,
+        label: t('onboarding.v2BrandHeroServiceInterval'),
+      });
     }
     // Riders — real fleet data only
     if (!isCustom && stat && stat.riders > 0) {

@@ -54,7 +54,10 @@ export function OnboardingContinueButton({
         {label}
       </Text>
       {showIcon ? (
-        <ArrowRight size={18} color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent} />
+        <ArrowRight
+          size={18}
+          color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent}
+        />
       ) : null}
     </Pressable>
   );

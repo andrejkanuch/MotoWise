@@ -39,7 +39,12 @@ export const CompleteOnboardingInputSchema = z.object({
   weeklySummary: z.boolean().optional().default(false),
   bikeMake: MotorcycleMakeSchema.optional(),
   bikeModel: z.string().min(1).max(100).optional(),
-  bikeYear: z.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
+  bikeYear: z
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear() + 2)
+    .optional(),
   bikeType: z.enum(motorcycleTypeValues).optional(),
   bikeMileage: z.number().int().min(0).max(999999).optional(),
   bikeNickname: z.string().max(50).optional(),
