@@ -25,10 +25,3 @@ export const PROFILE_ROUTE = {
   EDIT_PROFILE: '/(tabs)/(profile)/edit-profile',
   RIDER_PROFILE: '/(tabs)/(profile)/rider-profile',
 } as const;
-
-/** Modal routes */
-export const MODAL_ROUTE = {
-  START_RIDE: '/(modals)/start-ride',
-  RIDE_HUD: '/(modals)/ride-hud',
-  ADD_BIKE: '/(modals)/add-bike',
-} as const;

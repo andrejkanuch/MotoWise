@@ -32,7 +32,7 @@ interface ChecklistState {
 }
 
 /** All possible checklist items — ordered by goal relevance */
-const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
+export const ALL_CHECKLIST_ITEMS: ChecklistItem[] = [
   {
     id: 'first_ride',
     labelKey: 'checklist.seeFirstRideStats',

@@ -13,7 +13,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown, ZoomIn } from 'react-native-reanimated';
-import { useChecklistStore } from '../../stores/checklist.store';
+import { useShallow } from 'zustand/react/shallow';
+import { ALL_CHECKLIST_ITEMS, useChecklistStore } from '../../stores/checklist.store';
 import { useEditorialTheme } from '../../theme/editorial';
 
 const ICON_MAP: Record<string, typeof MapPin> = {
@@ -29,7 +30,16 @@ export function OnboardingChecklist() {
   const router = useRouter();
   const { t: theme } = useEditorialTheme();
   const { items, completedItems, dismissed, initialized, completeItem, dismiss } =
-    useChecklistStore();
+    useChecklistStore(
+      useShallow((s) => ({
+        items: s.items,
+        completedItems: s.completedItems,
+        dismissed: s.dismissed,
+        initialized: s.initialized,
+        completeItem: s.completeItem,
+        dismiss: s.dismiss,
+      })),
+    );
 
   if (!initialized || dismissed || items.length === 0) return null;
 
@@ -113,7 +123,8 @@ export function OnboardingChecklist() {
                   }
                   completeItem(item.id);
                 }
-                router.push(item.deepLink as never);
+                const knownItem = ALL_CHECKLIST_ITEMS.find((ci) => ci.id === item.id);
+                if (knownItem) router.push(knownItem.deepLink as never);
               }}
               style={({ pressed }) => ({
                 flexDirection: 'row',

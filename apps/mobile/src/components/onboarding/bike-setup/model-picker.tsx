@@ -1,6 +1,7 @@
 import type { MotorcycleModelsQuery } from '@motovault/graphql';
 import { Check, Search, X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { getBrandColor } from '../../../config/brand-dna';
@@ -27,6 +28,7 @@ export function ModelPicker({
   onSelect,
   onDismiss,
 }: ModelPickerProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const color = getBrandColor(makeName);
 
@@ -42,7 +44,7 @@ export function ModelPicker({
   if (selectedModel) {
     return (
       <Animated.View entering={FadeIn.duration(280)}>
-        <Text style={labelStyle}>Model</Text>
+        <Text style={labelStyle}>{t('onboarding.v2ModelPickerLabel')}</Text>
         <View
           style={{
             padding: 14,
@@ -67,7 +69,7 @@ export function ModelPicker({
               justifyContent: 'center',
             }}
           >
-            <Check size={14} color="#1a0f08" strokeWidth={3} />
+            <Check size={14} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text
@@ -75,7 +77,7 @@ export function ModelPicker({
               style={{
                 fontSize: 15,
                 fontWeight: '600',
-                color: '#fff',
+                color: ONBOARDING_COLORS.textWhite,
                 letterSpacing: -0.2,
                 marginBottom: 2,
               }}
@@ -86,12 +88,12 @@ export function ModelPicker({
               style={{
                 fontFamily: 'GeistMono-Medium',
                 fontSize: 11.5,
-                color: 'rgba(255,255,255,0.5)',
+                color: ONBOARDING_COLORS.textSoft,
                 letterSpacing: 0.8,
                 textTransform: 'uppercase',
               }}
             >
-              {isCustomMake ? 'Custom' : makeName}
+              {isCustomMake ? t('onboarding.v2ModelPickerCustom') : makeName}
             </Text>
           </View>
           <Pressable
@@ -102,12 +104,12 @@ export function ModelPicker({
               width: 28,
               height: 28,
               borderRadius: 14,
-              backgroundColor: '#211d18',
+              backgroundColor: ONBOARDING_COLORS.surfaceDismiss,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <X size={13} color="rgba(255,255,255,0.7)" />
+            <X size={13} color={ONBOARDING_COLORS.iconDismiss} />
           </Pressable>
         </View>
       </Animated.View>
@@ -117,17 +119,17 @@ export function ModelPicker({
   return (
     <Animated.View entering={FadeInUp.delay(150).duration(380)}>
       <Text style={labelStyle}>
-        Model{' '}
+        {t('onboarding.v2ModelPickerLabel')}{' '}
         <Text
           style={{
             fontStyle: 'italic',
             textTransform: 'none',
             fontWeight: '400',
             letterSpacing: 0.4,
-            color: 'rgba(255,255,255,0.35)',
+            color: ONBOARDING_COLORS.textFaded,
           }}
         >
-          (optional)
+          {t('onboarding.v2ModelPickerOptional')}
         </Text>
       </Text>
 
@@ -136,9 +138,9 @@ export function ModelPicker({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: '#1a1812',
+          backgroundColor: ONBOARDING_COLORS.surfaceInput,
           borderWidth: 1,
-          borderColor: '#2a2520',
+          borderColor: ONBOARDING_COLORS.borderSubtle,
           borderRadius: 14,
           borderCurve: 'continuous',
           paddingHorizontal: 14,
@@ -146,14 +148,15 @@ export function ModelPicker({
           marginBottom: 10,
         }}
       >
-        <Search size={15} color="rgba(255,255,255,0.4)" />
+        <Search size={15} color={ONBOARDING_COLORS.textMutedIcon} />
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder={isCustomMake ? 'Type your model' : `Search ${makeName} models…`}
-          placeholderTextColor="rgba(255,255,255,0.3)"
+          placeholder={isCustomMake ? t('onboarding.v2ModelPickerSearchCustom') : t('onboarding.v2ModelPickerSearchPlaceholder', { makeName })}
+          placeholderTextColor={ONBOARDING_COLORS.textDimmed}
           autoCapitalize="words"
           autoCorrect={false}
+          maxLength={50}
           style={{
             flex: 1,
             paddingVertical: 12,
@@ -173,8 +176,8 @@ export function ModelPicker({
       {!isCustomMake && !isLoading && (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {filtered.length === 0 && !query && models.length === 0 && (
-            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', padding: 4 }}>
-              No catalog models for {makeName} — type yours above.
+            <Text style={{ fontSize: 12, color: ONBOARDING_COLORS.textMutedIcon, padding: 4 }}>
+              {t('onboarding.v2ModelPickerNoCatalog', { makeName })}
             </Text>
           )}
           {filtered.map((m) => (
@@ -187,12 +190,12 @@ export function ModelPicker({
                 paddingVertical: 8,
                 paddingHorizontal: 12,
                 borderRadius: 999,
-                backgroundColor: '#1a1812',
+                backgroundColor: ONBOARDING_COLORS.surfaceInput,
                 borderWidth: 1,
-                borderColor: '#2a2520',
+                borderColor: ONBOARDING_COLORS.borderSubtle,
               }}
             >
-              <Text style={{ fontSize: 12.5, color: '#fff', fontWeight: '500' }}>
+              <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textWhite, fontWeight: '500' }}>
                 {m.modelName}
               </Text>
             </Pressable>
@@ -220,8 +223,8 @@ export function ModelPicker({
           }}
         >
           <Text style={{ fontSize: 16, color }}>+</Text>
-          <Text style={{ fontSize: 13, color: '#fff' }}>
-            Use "<Text style={{ color, fontWeight: '700' }}>{query.trim()}</Text>"
+          <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.textWhite }}>
+            {t('onboarding.v2ModelPickerUseCustom', { model: query.trim() })}
           </Text>
         </Pressable>
       )}
@@ -234,7 +237,7 @@ const labelStyle = {
   fontWeight: '600' as const,
   letterSpacing: 1.5,
   textTransform: 'uppercase' as const,
-  color: 'rgba(255,255,255,0.42)',
+  color: ONBOARDING_COLORS.textLabel,
   marginBottom: 12,
   paddingLeft: 2,
 };

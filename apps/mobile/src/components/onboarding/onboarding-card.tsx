@@ -55,7 +55,7 @@ export function OnboardingCard<T extends string>({
                 shadowRadius: 10,
               }
             : {
-                shadowColor: '#000000',
+                shadowColor: ONBOARDING_COLORS.textOnAccent,
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.2,
                 shadowRadius: 3,

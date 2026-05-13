@@ -1,6 +1,6 @@
 import { palette } from '@motovault/design-system';
 import type { ExperienceLevel } from '@motovault/types';
-import * as Haptics from 'expo-haptics';
+import { NotificationFeedbackType } from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Bike, Check, Flame, Gauge } from 'lucide-react-native';
@@ -25,8 +25,9 @@ import Svg, { Defs, Line, Stop, LinearGradient as SvgLinearGradient } from 'reac
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
-import { AnalyticsEvent, trackEvent, trackScreen } from '../../lib/analytics';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { triggerNotification } from '../../utils/haptics';
 
 /* ─── Experience options matching V3 prototype ─── */
 
@@ -46,7 +47,7 @@ const EXPERIENCE_OPTIONS: {
     previewKey: 'v2ExperienceBeginnerPreview',
     affirmKey: 'v2AffirmBeginner',
     icon: Bike,
-    accent: '#A3B18A', // olive — calm, welcoming
+    accent: ONBOARDING_COLORS.accentBeginner,
   },
   {
     id: 'intermediate',
@@ -55,7 +56,7 @@ const EXPERIENCE_OPTIONS: {
     previewKey: 'v2ExperienceIntermediatePreview',
     affirmKey: 'v2AffirmIntermediate',
     icon: Gauge,
-    accent: '#D4884A', // warm — confident
+    accent: ONBOARDING_COLORS.accentIntermediate,
   },
   {
     id: 'advanced',
@@ -64,23 +65,13 @@ const EXPERIENCE_OPTIONS: {
     previewKey: 'v2ExperienceAdvancedPreview',
     affirmKey: 'v2AffirmAdvanced',
     icon: Flame,
-    accent: '#C4634A', // dusty rose — earned
+    accent: ONBOARDING_COLORS.accentAdvanced,
   },
 ];
 
 /* ─── Animated perspective road lines ─── */
 
 function RoadLines({ accent }: { accent: string }) {
-  const dashOffset = useSharedValue(0);
-
-  useEffect(() => {
-    dashOffset.value = withRepeat(
-      withTiming(-48, { duration: 1100, easing: Easing.linear }),
-      -1,
-      false,
-    );
-  }, [dashOffset]);
-
   return (
     <View
       pointerEvents="none"
@@ -247,7 +238,7 @@ function PulsingGlow({ accent }: { accent: string }) {
 /* ─── Tachometer bars ─── */
 
 function TachBars({ accent }: { accent: string }) {
-  const bars = Array.from({ length: 14 });
+  const bars = Array.from({ length: 7 });
   return (
     <View
       pointerEvents="none"
@@ -413,9 +404,11 @@ function ExperienceCard({
           paddingBottom: 16,
           borderRadius: 18,
           borderCurve: 'continuous',
-          backgroundColor: selected ? `${option.accent}1A` : 'rgba(22, 19, 15, 0.7)',
+          backgroundColor: selected
+            ? `${option.accent}1A`
+            : ONBOARDING_COLORS.surfaceCardTranslucent,
           borderWidth: 1,
-          borderColor: selected ? option.accent : 'rgba(255,255,255,0.08)',
+          borderColor: selected ? option.accent : ONBOARDING_COLORS.borderDefault,
           overflow: 'hidden',
           opacity: dimmed ? 0.35 : 1,
           transform: [{ scale: isPending ? 0.98 : 1 }],
@@ -428,7 +421,7 @@ function ExperienceCard({
                   shadowRadius: 18,
                 }
               : {
-                  shadowColor: '#000',
+                  shadowColor: palette.black,
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.25,
                   shadowRadius: 6,
@@ -477,7 +470,7 @@ function ExperienceCard({
                 : {}),
             }}
           >
-            <Icon size={23} color={selected ? '#1a0f08' : option.accent} />
+            <Icon size={23} color={selected ? ONBOARDING_COLORS.textOnAccent : option.accent} />
           </View>
 
           <View style={{ flex: 1 }}>
@@ -499,7 +492,7 @@ function ExperienceCard({
                 fontWeight: '500',
                 letterSpacing: 1.3,
                 textTransform: 'uppercase',
-                color: selected ? option.accent : 'rgba(255,255,255,0.42)',
+                color: selected ? option.accent : ONBOARDING_COLORS.textLabel,
               }}
             >
               {t(`onboarding.${option.tenureKey}` as never)}
@@ -518,7 +511,7 @@ function ExperienceCard({
                 justifyContent: 'center',
               }}
             >
-              <Check size={14} color="#1a0f08" strokeWidth={3} />
+              <Check size={14} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={3} />
             </Animated.View>
           )}
         </View>
@@ -529,7 +522,7 @@ function ExperienceCard({
             fontSize: 12.5,
             lineHeight: 18,
             fontStyle: 'italic',
-            color: selected ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.5)',
+            color: selected ? ONBOARDING_COLORS.textBright : ONBOARDING_COLORS.textSoft,
             marginTop: 10,
             paddingLeft: 60,
           }}
@@ -600,14 +593,13 @@ export default function ExperienceScreen() {
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeAccent =
-    EXPERIENCE_OPTIONS.find((o) => o.id === (pendingId ?? selected))?.accent ?? '#D4884A';
+    EXPERIENCE_OPTIONS.find((o) => o.id === (pendingId ?? selected))?.accent ??
+    ONBOARDING_COLORS.accentIntermediate;
 
   useEffect(() => {
-    trackScreen('onboarding_experience');
-    trackEvent(AnalyticsEvent.SCREEN_VIEWED, {
-      screen: 'experience',
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
+      step: 'experience',
       step_index: 1,
-      event_type: 'onboarding_step_viewed',
     });
   }, []);
 
@@ -631,9 +623,7 @@ export default function ExperienceScreen() {
   const handleSelect = (id: ExperienceLevel) => {
     if (pendingId) return;
 
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
+    triggerNotification(NotificationFeedbackType.Success);
 
     setPendingId(id);
     setSelected(id);
@@ -751,7 +741,7 @@ export default function ExperienceScreen() {
           <Text
             style={{
               fontSize: 14,
-              color: 'rgba(255,255,255,0.55)',
+              color: ONBOARDING_COLORS.textSubtitle,
               lineHeight: 21,
               marginBottom: 24,
               maxWidth: 320,

@@ -42,7 +42,7 @@ const {
   detectMileageUnit,
 } = require('../lib/locale-detection');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { getPrimaryGoal, GOAL_TO_PLACEMENT, getScreenIndex } = require('../config/onboarding');
+const { getPrimaryGoal, GOAL_TO_PLACEMENT } = require('../config/onboarding');
 
 // ---------- Checklist Store ----------
 
@@ -245,23 +245,6 @@ describe('Onboarding Config', () => {
     });
   });
 
-  describe('getScreenIndex', () => {
-    it('should return 0 for welcome (index)', () => {
-      expect(getScreenIndex('index')).toBe(0);
-    });
-
-    it('should return correct index for goals screen', () => {
-      expect(getScreenIndex('goals')).toBe(2);
-    });
-
-    it('should return correct index for maintenance screen', () => {
-      expect(getScreenIndex('maintenance')).toBe(4);
-    });
-
-    it('should return 0 for unknown route', () => {
-      expect(getScreenIndex('nonexistent')).toBe(0);
-    });
-  });
 });
 
 // ---------- Zod Validation (CompleteOnboardingInput) ----------

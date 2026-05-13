@@ -1,6 +1,7 @@
 import type { MakeStatsQuery } from '@motovault/graphql';
 import { RefreshCw } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { type BrandInfo, getBrandColor, getBrandDna } from '../../../config/brand-dna';
@@ -16,8 +17,9 @@ interface BrandHeroProps {
 }
 
 function PopularityBadge({ stat, color }: { stat: MakeStat; color: string }) {
+  const { t } = useTranslation();
   const label =
-    stat.rank === 1 ? 'Most popular' : stat.rank <= 3 ? 'Top 3' : stat.rank <= 8 ? 'Popular' : null;
+    stat.rank === 1 ? t('onboarding.v2BrandHeroMostPopular') : stat.rank <= 3 ? t('onboarding.v2BrandHeroTop3') : stat.rank <= 8 ? t('onboarding.v2BrandHeroPopular') : null;
   if (!label) return null;
 
   return (
@@ -49,7 +51,7 @@ function PopularityBadge({ stat, color }: { stat: MakeStat; color: string }) {
         }}
       >
         {label}
-        {stat.riders > 0 && ` · ${stat.riders} riders`}
+        {stat.riders > 0 && ` · ${t('onboarding.v2BrandHeroRiders', { count: stat.riders })}`}
       </Text>
     </Animated.View>
   );
@@ -66,22 +68,23 @@ function StatsRow({
   isCustom: boolean;
   color: string;
 }) {
+  const { t } = useTranslation();
   const cells = useMemo(() => {
     const result: { big: string; label: string }[] = [];
     // Service interval — from manufacturer spec (always available for known brands)
     if (brandDna?.serviceInterval) {
-      result.push({ big: brandDna.serviceInterval, label: 'Service interval' });
+      result.push({ big: brandDna.serviceInterval, label: t('onboarding.v2BrandHeroServiceInterval') });
     }
     // Riders — real fleet data only
     if (!isCustom && stat && stat.riders > 0) {
-      result.push({ big: String(stat.riders), label: 'Riders on this' });
+      result.push({ big: String(stat.riders), label: t('onboarding.v2BrandHeroRidersOnThis') });
     }
     // Models — real fleet data only
     if (!isCustom && stat && stat.models > 0) {
-      result.push({ big: String(stat.models), label: 'Models tracked' });
+      result.push({ big: String(stat.models), label: t('onboarding.v2BrandHeroModelsTracked') });
     }
     return result;
-  }, [brandDna, stat, isCustom]);
+  }, [brandDna, stat, isCustom, t]);
 
   if (cells.length === 0) return null;
 
@@ -112,7 +115,7 @@ function StatsRow({
             color,
           }}
         >
-          Loaded for you
+          {t('onboarding.v2BrandHeroLoadedForYou')}
         </Text>
       </View>
 
@@ -126,16 +129,16 @@ function StatsRow({
               paddingHorizontal: 10,
               borderRadius: 14,
               borderCurve: 'continuous',
-              backgroundColor: 'rgba(22, 19, 15, 0.7)',
+              backgroundColor: ONBOARDING_COLORS.surfaceCardTranslucent,
               borderWidth: 1,
-              borderColor: i === 0 ? `${color}4D` : '#2a2520',
+              borderColor: i === 0 ? `${color}4D` : ONBOARDING_COLORS.borderSubtle,
             }}
           >
             <Text
               style={{
                 fontFamily: 'InstrumentSerif-Regular',
                 fontSize: 22,
-                color: i === 0 ? color : '#fff',
+                color: i === 0 ? color : ONBOARDING_COLORS.textWhite,
                 letterSpacing: -0.4,
                 lineHeight: 24,
                 marginBottom: 6,
@@ -151,7 +154,7 @@ function StatsRow({
                 fontWeight: '600',
                 letterSpacing: 1,
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.5)',
+                color: ONBOARDING_COLORS.textSoft,
                 lineHeight: 12,
               }}
             >
@@ -194,11 +197,12 @@ function RegisteredStamp({
     return `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`;
   }, []);
 
+  const { t } = useTranslation();
   const welcomeMessage = isCustom
-    ? "Welcome — we'll learn your bike with you."
+    ? t('onboarding.v2BrandHeroWelcomeCustom')
     : stat && stat.riders > 0
-      ? `Welcome to ${stat.riders + 1} ${makeName} riders on MotoVault.`
-      : `Welcome, ${makeName} rider.`;
+      ? t('onboarding.v2BrandHeroWelcomeRiders', { count: stat.riders + 1, makeName })
+      : t('onboarding.v2BrandHeroWelcomeGeneric', { makeName });
 
   return (
     <Animated.View
@@ -211,9 +215,9 @@ function RegisteredStamp({
         paddingHorizontal: 16,
         borderRadius: 16,
         borderCurve: 'continuous',
-        backgroundColor: 'rgba(0,0,0,0.28)',
+        backgroundColor: ONBOARDING_COLORS.surfaceOverlayMedium,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: ONBOARDING_COLORS.borderDashed,
         borderStyle: 'dashed',
       }}
     >
@@ -254,7 +258,7 @@ function RegisteredStamp({
             marginBottom: 3,
           }}
         >
-          Registered · {stampDate}
+          {t('onboarding.v2BrandHeroRegistered')} · {stampDate}
         </Text>
         <Text
           style={{
@@ -272,6 +276,7 @@ function RegisteredStamp({
 }
 
 export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHeroProps) {
+  const { t } = useTranslation();
   const color = getBrandColor(makeName);
   const brandDna = getBrandDna(makeName);
   const stat = stats.find((s) => s.make.toLowerCase() === makeName.toLowerCase());
@@ -289,9 +294,9 @@ export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHero
           padding: 20,
           paddingBottom: 24,
           minHeight: 180,
-          backgroundColor: isCustom ? '#16130f' : `${color}12`,
+          backgroundColor: isCustom ? ONBOARDING_COLORS.surfaceCardTranslucent : `${color}12`,
           borderWidth: 1,
-          borderColor: isCustom ? '#2a2520' : `${color}59`,
+          borderColor: isCustom ? ONBOARDING_COLORS.borderSubtle : `${color}59`,
           ...(process.env.EXPO_OS === 'ios' && !isCustom
             ? {
                 shadowColor: color,
@@ -315,21 +320,21 @@ export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHero
               paddingVertical: 6,
               paddingHorizontal: 10,
               borderRadius: 999,
-              backgroundColor: 'rgba(0,0,0,0.35)',
+              backgroundColor: ONBOARDING_COLORS.surfaceOverlayButton,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.14)',
+              borderColor: ONBOARDING_COLORS.borderIcon,
             }}
           >
-            <RefreshCw size={11} color="rgba(255,255,255,0.85)" />
+            <RefreshCw size={11} color={ONBOARDING_COLORS.textHighContrast} />
             <Text
               style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: 'rgba(255,255,255,0.85)',
+                color: ONBOARDING_COLORS.textHighContrast,
                 letterSpacing: 0.4,
               }}
             >
-              Change
+              {t('onboarding.v2BrandHeroChange')}
             </Text>
           </Pressable>
         </View>
@@ -347,7 +352,7 @@ export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHero
               fontSize: 48,
               lineHeight: 56,
               letterSpacing: -1,
-              color: '#fff',
+              color: ONBOARDING_COLORS.textWhite,
               marginBottom: 8,
               overflow: 'visible',
               ...(process.env.EXPO_OS === 'ios' && !isCustom
@@ -359,7 +364,7 @@ export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHero
                 : {}),
             }}
           >
-            {isCustom ? 'Other' : makeName}
+            {isCustom ? t('onboarding.v2BrandHeroOther') : makeName}
           </Animated.Text>
 
           {/* Tagline */}
@@ -368,12 +373,12 @@ export function BrandHero({ makeName, isCustom, stats, onChangeMake }: BrandHero
             style={{
               fontSize: 13.5,
               lineHeight: 19,
-              color: 'rgba(255,255,255,0.78)',
+              color: ONBOARDING_COLORS.textBody,
               fontStyle: 'italic',
               maxWidth: 240,
             }}
           >
-            {isCustom ? 'We adapt to what you ride.' : (brandDna?.tagline ?? '')}
+            {isCustom ? t('onboarding.v2BrandHeroCustomTagline') : (brandDna?.tagline ?? '')}
           </Animated.Text>
         </View>
       </Animated.View>

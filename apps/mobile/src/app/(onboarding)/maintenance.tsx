@@ -1,6 +1,6 @@
 import { OemSchedulesPreviewDocument } from '@motovault/graphql';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, X } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
@@ -29,6 +29,7 @@ import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { triggerImpact } from '../../utils/haptics';
 
 const SWIPE_THRESHOLD = 80;
 const CARD_HEIGHT = 340;
@@ -55,6 +56,13 @@ export default function MaintenanceScreen() {
   });
   const tasks = data?.oemSchedulesPreview ?? [];
 
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
+      step: 'maintenance',
+      step_index: 4,
+    });
+  }, []);
+
   const [currentIdx, setCurrentIdx] = useState(0);
   const [accepted, setAccepted] = useState<string[]>([]);
   const [skipped, setSkipped] = useState<string[]>([]);
@@ -71,13 +79,9 @@ export default function MaintenanceScreen() {
     (direction: 'left' | 'right') => {
       if (!currentTask) return;
 
-      if (process.env.EXPO_OS === 'ios') {
-        Haptics.impactAsync(
-          direction === 'right'
-            ? Haptics.ImpactFeedbackStyle.Medium
-            : Haptics.ImpactFeedbackStyle.Light,
-        );
-      }
+      triggerImpact(
+        direction === 'right' ? ImpactFeedbackStyle.Medium : ImpactFeedbackStyle.Light,
+      );
 
       if (direction === 'right') {
         setAccepted((a) => [...a, currentTask.id]);
@@ -137,9 +141,7 @@ export default function MaintenanceScreen() {
   };
 
   const handleContinue = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(ImpactFeedbackStyle.Medium);
     setAcceptedOemScheduleIds(accepted);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
       step: 'maintenance',
@@ -226,22 +228,22 @@ export default function MaintenanceScreen() {
               marginBottom: 8,
             }}
           >
-            {"Your bike's\n"}
+            {t('onboarding.v2MaintenanceTitle')}{'\n'}
             <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}>
-              maintenance plan.
+              {t('onboarding.v2MaintenanceTitleItalic')}
             </Text>
           </Text>
           <Text
             style={{
               fontSize: 13.5,
-              color: 'rgba(255,255,255,0.55)',
+              color: ONBOARDING_COLORS.textSubtitle,
               lineHeight: 19,
               maxWidth: 320,
             }}
           >
             {done
-              ? `Pre-loaded for ${bikeLabel}. Review your selection below.`
-              : `Swipe each card right to add to ${bikeLabel}, left to skip.`}
+              ? t('onboarding.v2MaintenancePreloaded', { bikeLabel })
+              : t('onboarding.v2MaintenanceSwipeInstruction', { bikeLabel })}
           </Text>
         </Animated.View>
       </View>
@@ -265,12 +267,12 @@ export default function MaintenanceScreen() {
                 fontSize: 11,
                 fontWeight: '600',
                 letterSpacing: 1.7,
-                color: 'rgba(255,255,255,0.5)',
+                color: ONBOARDING_COLORS.textSoft,
                 textTransform: 'uppercase',
               }}
             >
               {String(currentIdx + 1).padStart(2, '0')}{' '}
-              <Text style={{ color: 'rgba(255,255,255,0.25)' }}>
+              <Text style={{ color: ONBOARDING_COLORS.textFaintest }}>
                 / {String(tasks.length).padStart(2, '0')}
               </Text>
             </Text>
@@ -285,11 +287,11 @@ export default function MaintenanceScreen() {
                     backgroundColor:
                       i < currentIdx
                         ? accepted.includes(task.id)
-                          ? '#4eba6f'
-                          : 'rgba(196, 99, 74, 0.7)'
+                          ? ONBOARDING_COLORS.acceptGreen
+                          : ONBOARDING_COLORS.rejectDotFaded
                         : i === currentIdx
                           ? brandColor
-                          : 'rgba(255,255,255,0.12)',
+                          : ONBOARDING_COLORS.dotInactive,
                   }}
                 />
               ))}
@@ -367,14 +369,14 @@ export default function MaintenanceScreen() {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: '#1a1812',
+                backgroundColor: ONBOARDING_COLORS.surfaceInput,
                 borderWidth: 1.5,
-                borderColor: 'rgba(196, 99, 74, 0.5)',
+                borderColor: ONBOARDING_COLORS.rejectBorder,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <X size={22} color="#C4634A" strokeWidth={2.5} />
+              <X size={22} color={ONBOARDING_COLORS.rejectRed} strokeWidth={2.5} />
             </Pressable>
 
             <Text
@@ -382,13 +384,13 @@ export default function MaintenanceScreen() {
                 fontFamily: 'GeistMono-Medium',
                 fontSize: 10,
                 letterSpacing: 1.7,
-                color: 'rgba(255,255,255,0.32)',
+                color: ONBOARDING_COLORS.textFaint,
                 textTransform: 'uppercase',
                 textAlign: 'center',
                 minWidth: 80,
               }}
             >
-              {'Swipe\nor tap'}
+              {t('onboarding.v2MaintenanceSwipeOrTap')}
             </Text>
 
             <Pressable
@@ -399,14 +401,14 @@ export default function MaintenanceScreen() {
                 width: 60,
                 height: 60,
                 borderRadius: 30,
-                backgroundColor: '#1a1812',
+                backgroundColor: ONBOARDING_COLORS.surfaceInput,
                 borderWidth: 1.5,
-                borderColor: 'rgba(78, 186, 111, 0.5)',
+                borderColor: ONBOARDING_COLORS.acceptBorder,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Check size={22} color="#4eba6f" strokeWidth={2.5} />
+              <Check size={22} color={ONBOARDING_COLORS.acceptGreen} strokeWidth={2.5} />
             </Pressable>
           </View>
 
@@ -416,24 +418,24 @@ export default function MaintenanceScreen() {
               <Text
                 style={{
                   fontSize: 13,
-                  color: 'rgba(255,255,255,0.42)',
+                  color: ONBOARDING_COLORS.textLabel,
                   fontWeight: '500',
                   textDecorationLine: 'underline',
-                  textDecorationColor: 'rgba(255,255,255,0.16)',
+                  textDecorationColor: ONBOARDING_COLORS.underlineFaint,
                 }}
               >
-                Skip — I'll set this up later
+                {t('onboarding.v2MaintenanceSkipAll')}
               </Text>
             </Pressable>
             <Text
               style={{
                 fontSize: 11,
-                color: 'rgba(255,255,255,0.35)',
+                color: ONBOARDING_COLORS.textFaded,
                 textAlign: 'center',
                 paddingHorizontal: 40,
               }}
             >
-              Edit, customize, or remove anytime from your bike's details.
+              {t('onboarding.v2MaintenanceReassurance')}
             </Text>
           </View>
         </>
@@ -472,7 +474,7 @@ export default function MaintenanceScreen() {
                   color: brandColor,
                 }}
               >
-                Plan ready
+                {t('onboarding.v2MaintenancePlanReady')}
               </Text>
             </Animated.View>
 
@@ -482,27 +484,27 @@ export default function MaintenanceScreen() {
                 fontFamily: 'InstrumentSerif-Regular',
                 fontSize: 30,
                 lineHeight: 32,
-                color: '#fff',
+                color: ONBOARDING_COLORS.textWhite,
                 letterSpacing: -0.4,
                 marginBottom: 6,
               }}
             >
-              {accepted.length} task{accepted.length === 1 ? '' : 's'}
+              {t('onboarding.v2MaintenanceTaskCount', { count: accepted.length })}
               {'\n'}
               <Text style={{ fontFamily: 'InstrumentSerif-Italic', color: brandColor }}>
-                {accepted.length === 0 ? "— you'll add later." : 'on your radar.'}
+                {accepted.length === 0 ? t('onboarding.v2MaintenanceAddLater') : t('onboarding.v2MaintenanceOnRadar')}
               </Text>
             </Text>
             <Text
               style={{
                 fontSize: 13,
-                color: 'rgba(255,255,255,0.55)',
+                color: ONBOARDING_COLORS.textSubtitle,
                 lineHeight: 19,
                 marginBottom: 18,
                 maxWidth: 320,
               }}
             >
-              We'll send reminders before each one comes due. You can edit or remove any task later.
+              {t('onboarding.v2MaintenanceReminders')}
             </Text>
 
             {/* Accepted tasks list */}
@@ -520,9 +522,9 @@ export default function MaintenanceScreen() {
                         paddingHorizontal: 12,
                         borderRadius: 12,
                         borderCurve: 'continuous',
-                        backgroundColor: '#1a1812',
+                        backgroundColor: ONBOARDING_COLORS.surfaceInput,
                         borderWidth: 1,
-                        borderColor: '#2a2520',
+                        borderColor: ONBOARDING_COLORS.borderSubtle,
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 11,
@@ -546,7 +548,7 @@ export default function MaintenanceScreen() {
                           style={{
                             fontSize: 13.5,
                             fontWeight: '600',
-                            color: '#fff',
+                            color: ONBOARDING_COLORS.textWhite,
                             letterSpacing: -0.2,
                           }}
                         >
@@ -556,7 +558,7 @@ export default function MaintenanceScreen() {
                           style={{
                             fontFamily: 'GeistMono-Medium',
                             fontSize: 11,
-                            color: 'rgba(255,255,255,0.5)',
+                            color: ONBOARDING_COLORS.textSoft,
                             letterSpacing: 0.4,
                             marginTop: 2,
                           }}
@@ -585,12 +587,12 @@ export default function MaintenanceScreen() {
                 <Text
                   style={{
                     fontSize: 12,
-                    color: 'rgba(255,255,255,0.4)',
+                    color: ONBOARDING_COLORS.textMutedIcon,
                     textDecorationLine: 'underline',
-                    textDecorationColor: 'rgba(255,255,255,0.15)',
+                    textDecorationColor: ONBOARDING_COLORS.underlineFaint,
                   }}
                 >
-                  Reconsider the {skipped.length} I skipped
+                  {t('onboarding.v2MaintenanceReconsider', { count: skipped.length })}
                 </Text>
               </Pressable>
             )}

@@ -23,16 +23,16 @@ export function YearInput({ value, onChange, isValid }: YearInputProps) {
           fontWeight: '600',
           letterSpacing: 2,
           textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.42)',
+          color: ONBOARDING_COLORS.textLabel,
           marginBottom: 12,
           paddingLeft: 2,
         }}
       >
-        Year
+        {t('onboarding.v2YearLabel')}
       </Text>
       <TextInput
         value={value}
-        onChangeText={onChange}
+        onChangeText={(v) => onChange(v.replace(/\D/g, ''))}
         placeholder={String(currentYear - 3)}
         placeholderTextColor={ONBOARDING_COLORS.textDimmed}
         keyboardType="number-pad"
@@ -41,13 +41,13 @@ export function YearInput({ value, onChange, isValid }: YearInputProps) {
         style={{
           width: '100%',
           textAlign: 'center',
-          backgroundColor: '#1a1812',
+          backgroundColor: ONBOARDING_COLORS.surfaceInput,
           borderWidth: 1.5,
           borderColor: showError
             ? ONBOARDING_COLORS.error
             : isValid
               ? ONBOARDING_COLORS.warm
-              : '#2a2520',
+              : ONBOARDING_COLORS.borderSubtle,
           borderRadius: 16,
           borderCurve: 'continuous',
           padding: 18,

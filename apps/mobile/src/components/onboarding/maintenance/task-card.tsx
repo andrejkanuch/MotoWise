@@ -1,15 +1,34 @@
 import type { OemSchedulesPreviewQuery } from '@motovault/graphql';
 import { Droplets, Fuel, Gauge, Shield, Sun, Thermometer, Wrench, Zap } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 type OemTask = OemSchedulesPreviewQuery['oemSchedulesPreview'][number];
 
+import { ONBOARDING_COLORS } from '../onboarding-colors';
+
 const PRIORITY_TONE = {
-  critical: { label: 'Critical', color: '#C4634A', bg: 'rgba(196, 99, 74, 0.15)' },
-  high: { label: 'Critical', color: '#C4634A', bg: 'rgba(196, 99, 74, 0.15)' },
-  medium: { label: 'Recommended', color: '#D4884A', bg: 'rgba(212, 136, 74, 0.15)' },
-  low: { label: 'Optional', color: '#6B8BB2', bg: 'rgba(107, 139, 178, 0.15)' },
+  critical: {
+    labelKey: 'onboarding.v2TaskCardCritical',
+    color: ONBOARDING_COLORS.rejectRed,
+    bg: ONBOARDING_COLORS.rejectBgTint,
+  },
+  high: {
+    labelKey: 'onboarding.v2TaskCardCritical',
+    color: ONBOARDING_COLORS.rejectRed,
+    bg: ONBOARDING_COLORS.rejectBgTint,
+  },
+  medium: {
+    labelKey: 'onboarding.v2TaskCardRecommended',
+    color: ONBOARDING_COLORS.warm,
+    bg: ONBOARDING_COLORS.accentBg,
+  },
+  low: {
+    labelKey: 'onboarding.v2TaskCardOptional',
+    color: ONBOARDING_COLORS.accentBlue,
+    bg: ONBOARDING_COLORS.blueBgTint,
+  },
 } as const;
 
 function getTaskIcon(taskName: string) {
@@ -26,18 +45,19 @@ function getTaskIcon(taskName: string) {
   return Wrench;
 }
 
-function formatInterval(task: OemTask): string {
+function formatIntervalKey(task: OemTask): { key: string; opts?: Record<string, unknown> } {
   if (task.intervalKm && task.intervalDays) {
-    return `Every ${task.intervalKm.toLocaleString()} km / ${Math.round(task.intervalDays / 30)} mo`;
+    return { key: 'onboarding.v2TaskCardEveryKmMo', opts: { km: task.intervalKm.toLocaleString(), months: Math.round(task.intervalDays / 30) } };
   }
-  if (task.intervalKm) return `Every ${task.intervalKm.toLocaleString()} km`;
+  if (task.intervalKm) return { key: 'onboarding.v2TaskCardEveryKm', opts: { km: task.intervalKm.toLocaleString() } };
   if (task.intervalDays) {
     const months = Math.round(task.intervalDays / 30);
-    return months >= 12
-      ? `Every ${Math.round(months / 12)} year${months >= 24 ? 's' : ''}`
-      : `Every ${months} months`;
+    if (months >= 12) {
+      return { key: 'onboarding.v2TaskCardEveryYears', opts: { count: Math.round(months / 12) } };
+    }
+    return { key: 'onboarding.v2TaskCardEveryMonths', opts: { months } };
   }
-  return 'As needed';
+  return { key: 'onboarding.v2TaskCardAsNeeded' };
 }
 
 interface TaskCardProps {
@@ -47,17 +67,19 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
+  const { t } = useTranslation();
   const tone = PRIORITY_TONE[task.priority as keyof typeof PRIORITY_TONE] ?? PRIORITY_TONE.medium;
   const Icon = getTaskIcon(task.taskName);
-  const interval = formatInterval(task);
+  const { key: intervalKey, opts: intervalOpts } = formatIntervalKey(task);
+  const interval = t(intervalKey as 'onboarding.v2TaskCardAsNeeded', intervalOpts);
 
   const borderStyle = useAnimatedStyle(() => ({
     borderColor:
       dragDirection.value === 'right'
-        ? '#4eba6f'
+        ? ONBOARDING_COLORS.acceptGreen
         : dragDirection.value === 'left'
-          ? '#C4634A'
-          : 'rgba(255,255,255,0.1)',
+          ? ONBOARDING_COLORS.rejectRed
+          : ONBOARDING_COLORS.borderFaint,
   }));
 
   const addStampStyle = useAnimatedStyle(() => ({
@@ -80,7 +102,7 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
           borderRadius: 22,
           borderCurve: 'continuous',
           overflow: 'hidden',
-          backgroundColor: '#1f1a14',
+          backgroundColor: ONBOARDING_COLORS.surfaceCard,
           borderWidth: 1.5,
           padding: 20,
           paddingBottom: 18,
@@ -122,18 +144,18 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
               color: tone.color,
             }}
           >
-            {tone.label}
+            {t(tone.labelKey)}
           </Text>
         </View>
         <Text
           style={{
             fontFamily: 'GeistMono-Medium',
             fontSize: 10,
-            color: 'rgba(255,255,255,0.42)',
+            color: ONBOARDING_COLORS.textLabel,
             letterSpacing: 1,
           }}
         >
-          OEM
+          {t('onboarding.v2TaskCardOem')}
         </Text>
       </View>
 
@@ -158,7 +180,7 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             : {}),
         }}
       >
-        <Icon size={26} color="#1a0f08" strokeWidth={1.8} />
+        <Icon size={26} color={ONBOARDING_COLORS.textOnAccent} strokeWidth={1.8} />
       </View>
 
       {/* Title */}
@@ -168,7 +190,7 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
           fontSize: 26,
           lineHeight: 28,
           letterSpacing: -0.4,
-          color: '#fff',
+          color: ONBOARDING_COLORS.textWhite,
           marginBottom: 12,
         }}
       >
@@ -184,13 +206,13 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             fontWeight: '600',
             letterSpacing: 1.3,
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.4)',
+            color: ONBOARDING_COLORS.textMutedIcon,
             marginBottom: 4,
           }}
         >
-          Interval
+          {t('onboarding.v2TaskCardInterval')}
         </Text>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff', letterSpacing: -0.1 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: ONBOARDING_COLORS.textWhite, letterSpacing: -0.1 }}>
           {interval}
         </Text>
       </View>
@@ -201,7 +223,7 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
           style={{
             fontSize: 12.5,
             lineHeight: 18,
-            color: 'rgba(255,255,255,0.78)',
+            color: ONBOARDING_COLORS.textBody,
             marginBottom: 10,
           }}
         >
@@ -220,8 +242,8 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             paddingHorizontal: 14,
             borderRadius: 8,
             borderWidth: 3,
-            borderColor: '#4eba6f',
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            borderColor: ONBOARDING_COLORS.acceptGreen,
+            backgroundColor: ONBOARDING_COLORS.surfaceOverlayDark,
             transform: [{ rotate: '-12deg' }],
           },
           addStampStyle,
@@ -233,10 +255,10 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             fontWeight: '800',
             fontSize: 16,
             letterSpacing: 2,
-            color: '#4eba6f',
+            color: ONBOARDING_COLORS.acceptGreen,
           }}
         >
-          ADD
+          {t('onboarding.v2TaskCardAdd')}
         </Text>
       </Animated.View>
       <Animated.View
@@ -249,8 +271,8 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             paddingHorizontal: 14,
             borderRadius: 8,
             borderWidth: 3,
-            borderColor: '#C4634A',
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            borderColor: ONBOARDING_COLORS.rejectRed,
+            backgroundColor: ONBOARDING_COLORS.surfaceOverlayDark,
             transform: [{ rotate: '12deg' }],
           },
           skipStampStyle,
@@ -262,10 +284,10 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             fontWeight: '800',
             fontSize: 16,
             letterSpacing: 2,
-            color: '#C4634A',
+            color: ONBOARDING_COLORS.rejectRed,
           }}
         >
-          SKIP
+          {t('onboarding.v2TaskCardSkip')}
         </Text>
       </Animated.View>
     </Animated.View>

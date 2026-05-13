@@ -3,7 +3,6 @@ import type {
   Currency,
   ExperienceLevel,
   LastServiceDate,
-  LearningFormat,
   MaintenanceStyle,
   MileageUnit,
   MotorcycleType,
@@ -11,10 +10,18 @@ import type {
   RidingFrequency,
   RidingGoal,
 } from '@motovault/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { OnboardingRoute } from '../config/onboarding';
+
+const mmkv = createMMKV({ id: 'onboarding-store' });
+
+const mmkvStorage = {
+  getItem: (key: string) => mmkv.getString(key) ?? null,
+  setItem: (key: string, value: string) => mmkv.set(key, value),
+  removeItem: (key: string) => mmkv.remove(key),
+};
 
 interface BikeData {
   year: number;
@@ -34,7 +41,6 @@ interface OnboardingState {
   ridingGoals: RidingGoal[];
   ridingFrequency: RidingFrequency | null;
   maintenanceStyle: MaintenanceStyle | null;
-  learningFormats: LearningFormat[];
   annualRepairSpend: AnnualRepairSpend | null;
   maintenanceReminders: boolean;
   reminderChannel: ReminderChannel | null;
@@ -53,7 +59,6 @@ interface OnboardingState {
   setRidingGoals: (goals: RidingGoal[]) => void;
   setRidingFrequency: (frequency: RidingFrequency) => void;
   setMaintenanceStyle: (style: MaintenanceStyle) => void;
-  setLearningFormats: (formats: LearningFormat[]) => void;
   setAnnualRepairSpend: (spend: AnnualRepairSpend) => void;
   setMaintenanceReminders: (enabled: boolean) => void;
   setReminderChannel: (channel: ReminderChannel) => void;
@@ -72,7 +77,6 @@ const initialState = {
   ridingGoals: [] as RidingGoal[],
   ridingFrequency: null as RidingFrequency | null,
   maintenanceStyle: null as MaintenanceStyle | null,
-  learningFormats: [] as LearningFormat[],
   annualRepairSpend: null as AnnualRepairSpend | null,
   maintenanceReminders: true,
   reminderChannel: null as ReminderChannel | null,
@@ -94,7 +98,6 @@ export const useOnboardingStore = create<OnboardingState>()(
       setRidingGoals: (goals) => set({ ridingGoals: goals }),
       setRidingFrequency: (frequency) => set({ ridingFrequency: frequency }),
       setMaintenanceStyle: (style) => set({ maintenanceStyle: style }),
-      setLearningFormats: (formats) => set({ learningFormats: formats }),
       setAnnualRepairSpend: (spend) => set({ annualRepairSpend: spend }),
       setAcceptedOemScheduleIds: (ids) => set({ acceptedOemScheduleIds: ids }),
       setMaintenanceReminders: (enabled) => set({ maintenanceReminders: enabled }),
@@ -109,16 +112,16 @@ export const useOnboardingStore = create<OnboardingState>()(
     }),
     {
       name: 'onboarding-state',
-      version: 4,
-      storage: createJSONStorage(() => AsyncStorage),
+      version: 5,
+      storage: createJSONStorage(() => mmkvStorage),
       partialize: ({
         setExperienceLevel,
         setBikeData,
         setRidingGoals,
         setRidingFrequency,
         setMaintenanceStyle,
-        setLearningFormats,
         setAnnualRepairSpend,
+        setAcceptedOemScheduleIds,
         setMaintenanceReminders,
         setReminderChannel,
         setSeasonalTips,

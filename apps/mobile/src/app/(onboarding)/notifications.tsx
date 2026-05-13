@@ -162,10 +162,9 @@ export default function NotificationsScreen() {
   useEffect(() => {
     if (tracked.current) return;
     tracked.current = true;
-    trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
       step: 'notifications',
       step_index: 5,
-      action: 'viewed',
     });
   }, []);
 
@@ -331,7 +330,7 @@ export default function NotificationsScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: '600',
-                color: '#1a1208',
+                color: ONBOARDING_COLORS.textOnAccent,
                 letterSpacing: -0.15,
               }}
             >

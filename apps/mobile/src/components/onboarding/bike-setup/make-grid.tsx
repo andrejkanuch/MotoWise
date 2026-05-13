@@ -53,11 +53,11 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
           fontWeight: '600',
           letterSpacing: 2,
           textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.42)',
+          color: ONBOARDING_COLORS.textLabel,
           paddingLeft: 2,
         }}
       >
-        Make
+        {t('onboarding.v2MakeGridLabel')}
       </Text>
 
       {/* Search input */}
@@ -65,21 +65,21 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: '#1a1812',
+          backgroundColor: ONBOARDING_COLORS.surfaceInput,
           borderWidth: 1,
-          borderColor: '#2a2520',
+          borderColor: ONBOARDING_COLORS.borderSubtle,
           borderRadius: 14,
           borderCurve: 'continuous',
           paddingHorizontal: 14,
           gap: 10,
         }}
       >
-        <Search size={15} color="rgba(255,255,255,0.4)" />
+        <Search size={15} color={ONBOARDING_COLORS.textMutedIcon} />
         <TextInput
           value={query}
           onChangeText={setQuery}
           placeholder={t('onboarding.searchMakePlaceholder', { defaultValue: 'Search any make…' })}
-          placeholderTextColor="rgba(255,255,255,0.3)"
+          placeholderTextColor={ONBOARDING_COLORS.textDimmed}
           autoCapitalize="words"
           autoCorrect={false}
           style={{
@@ -95,8 +95,8 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
         /* Search results list */
         <View style={{ gap: 6 }}>
           {searchResults.length === 0 && (
-            <Text style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.4)', padding: 8 }}>
-              No matches. Try a different spelling.
+            <Text style={{ fontSize: 12.5, color: ONBOARDING_COLORS.textMutedIcon, padding: 8 }}>
+              {t('onboarding.v2MakeGridNoMatches')}
             </Text>
           )}
           {searchResults.map((m) => {
@@ -112,9 +112,9 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                   paddingHorizontal: 14,
                   borderRadius: 12,
                   borderCurve: 'continuous',
-                  backgroundColor: '#1a1812',
+                  backgroundColor: ONBOARDING_COLORS.surfaceInput,
                   borderWidth: 1,
-                  borderColor: '#2a2520',
+                  borderColor: ONBOARDING_COLORS.borderSubtle,
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
@@ -131,7 +131,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#fff' }}>
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
                     {m.makeName[0]}
                   </Text>
                 </View>
@@ -150,7 +150,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     style={{
                       fontFamily: 'GeistMono-Medium',
                       fontSize: 11,
-                      color: 'rgba(255,255,255,0.4)',
+                      color: ONBOARDING_COLORS.textMutedIcon,
                       letterSpacing: 0.8,
                     }}
                   >
@@ -178,9 +178,9 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                   paddingHorizontal: 12,
                   borderRadius: 14,
                   borderCurve: 'continuous',
-                  backgroundColor: '#1a1812',
+                  backgroundColor: ONBOARDING_COLORS.surfaceInput,
                   borderWidth: 1,
-                  borderColor: '#2a2520',
+                  borderColor: ONBOARDING_COLORS.borderSubtle,
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 10,
@@ -216,7 +216,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
                     justifyContent: 'center',
                   }}
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#fff' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: ONBOARDING_COLORS.textWhite }}>
                     {m.makeName[0]}
                   </Text>
                 </View>
@@ -248,7 +248,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
               borderRadius: 14,
               borderCurve: 'continuous',
               borderWidth: 1,
-              borderColor: '#3a3328',
+              borderColor: ONBOARDING_COLORS.borderMuted,
               borderStyle: 'dashed',
               flexDirection: 'row',
               alignItems: 'center',
@@ -259,7 +259,7 @@ export function MakeGrid({ makes, stats, onSelect, onSelectOther }: MakeGridProp
           >
             <Text style={{ fontSize: 16, color: ONBOARDING_COLORS.warm2 }}>+</Text>
             <Text style={{ fontSize: 13, color: ONBOARDING_COLORS.warm2, fontWeight: '500' }}>
-              Other make
+              {t('onboarding.v2MakeGridOther')}
             </Text>
           </Pressable>
         </View>

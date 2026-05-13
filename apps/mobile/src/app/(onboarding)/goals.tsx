@@ -1,5 +1,4 @@
 import type { RidingGoal } from '@motovault/types';
-import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Check, ChevronLeft, Compass, MapPin, Sparkles, Wallet, Wrench } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -10,9 +9,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OnboardingContinueButton } from '../../components/onboarding/onboarding-continue-button';
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
-import { getPrimaryGoal, OB_ROUTE } from '../../config/onboarding';
+import { getPrimaryGoal, OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { triggerImpact } from '../../utils/haptics';
 
 const GOAL_OPTIONS = [
   {
@@ -83,9 +83,7 @@ export default function GoalsScreen() {
   }, []);
 
   const handleToggle = (key: RidingGoal) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
@@ -122,7 +120,7 @@ export default function GoalsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
-      <OnboardingProgress screenIndex={2} totalScreens={7} />
+      <OnboardingProgress screenIndex={2} totalScreens={TOTAL_SCREENS} />
 
       {/* Back button */}
       <Pressable
@@ -130,7 +128,7 @@ export default function GoalsScreen() {
         hitSlop={12}
         style={{
           position: 'absolute',
-          top: insets.top + 40,
+          top: insets.top + 44,
           left: 16,
           zIndex: 10,
           width: 36,

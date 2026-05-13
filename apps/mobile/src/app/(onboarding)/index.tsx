@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
 import { OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { triggerImpact } from '../../utils/haptics';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
@@ -20,9 +21,7 @@ export default function WelcomeScreen() {
   }, []);
 
   const handleGetStarted = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(ImpactFeedbackStyle.Medium);
     trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
     router.push(OB_ROUTE.EXPERIENCE);
   };
@@ -30,7 +29,6 @@ export default function WelcomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: ONBOARDING_COLORS.background }}>
       {/* Hero image — full bleed (dark atmospheric motorcycle shot) */}
-      {/* TODO: Bundle hero image locally as WebP instead of remote Unsplash URL */}
       <View
         style={{
           position: 'absolute',
@@ -38,13 +36,11 @@ export default function WelcomeScreen() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: '#1a1510',
+          backgroundColor: ONBOARDING_COLORS.background,
         }}
       >
         <Image
-          source={{
-            uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&q=80&auto=format&fit=crop',
-          }}
+          source={require('../../assets/images/onboarding-hero.webp')}
           style={{ width: '100%', height: '100%', opacity: 0.65 }}
           contentFit="cover"
           contentPosition="center"
@@ -98,7 +94,7 @@ export default function WelcomeScreen() {
             style={{
               fontWeight: '600',
               letterSpacing: -0.3,
-              color: '#fff',
+              color: ONBOARDING_COLORS.textWhite,
               fontSize: 15,
             }}
           >
@@ -130,7 +126,7 @@ export default function WelcomeScreen() {
                 fontFamily: 'InstrumentSerif-Regular',
                 fontSize: 56,
                 lineHeight: 57,
-                color: '#fff',
+                color: ONBOARDING_COLORS.textWhite,
                 letterSpacing: -1.1,
                 marginBottom: 18,
               }}
@@ -156,7 +152,7 @@ export default function WelcomeScreen() {
             style={{
               fontSize: 15,
               lineHeight: 22,
-              color: '#fff',
+              color: ONBOARDING_COLORS.textWhite,
               opacity: 0.82,
               maxWidth: 280,
               marginBottom: 32,
@@ -187,13 +183,13 @@ export default function WelcomeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#1a1208',
+                  color: ONBOARDING_COLORS.textOnAccent,
                   letterSpacing: -0.15,
                 }}
               >
                 {t('onboarding.v2WelcomeCta')}
               </Text>
-              <ArrowRight size={18} color="#1a1208" />
+              <ArrowRight size={18} color={ONBOARDING_COLORS.textOnAccent} />
             </Pressable>
           </Animated.View>
         </View>

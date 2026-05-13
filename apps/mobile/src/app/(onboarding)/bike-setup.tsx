@@ -5,10 +5,10 @@ import {
 } from '@motovault/graphql';
 import { MileageUnit, MotorcycleType, RidingGoal } from '@motovault/types';
 import { useQuery } from '@tanstack/react-query';
-import * as Haptics from 'expo-haptics';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { ImpactFeedbackStyle } from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Keyboard,
@@ -33,6 +33,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useOnboardingStore } from '../../stores/onboarding.store';
+import { triggerImpact } from '../../utils/haptics';
 
 const currentYear = new Date().getFullYear();
 
@@ -87,8 +88,12 @@ export default function BikeSetupScreen() {
   const hasMake = !!(selectedMake || (isCustomMake && customMakeName.trim()));
   const canContinue = isValidYear && hasMake;
 
-  // Reset stale state on re-focus (e.g. coming back from paywall)
-  useFocusEffect(useCallback(() => {}, []));
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, {
+      step: 'bike_setup',
+      step_index: 3,
+    });
+  }, []);
 
   // ── Bridge subtitle based on goals ──────────────────────────
   const bridgeSubtitle = useMemo(() => {
@@ -135,9 +140,7 @@ export default function BikeSetupScreen() {
 
   // ── Handlers ────────────────────────────────────────────────
   const handleSelectMake = (make: { makeId: number; makeName: string }) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     setSelectedMake(make);
     setIsCustomMake(false);
     setCustomMakeName('');
@@ -145,9 +148,7 @@ export default function BikeSetupScreen() {
   };
 
   const handleSelectOther = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     setIsCustomMake(true);
     setSelectedMake(null);
     setSelectedModel(null);
@@ -161,17 +162,13 @@ export default function BikeSetupScreen() {
   };
 
   const handleSelectModel = (model: { modelId: number; modelName: string }) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
+    triggerImpact();
     setSelectedModel(model);
   };
 
   const handleContinue = () => {
     if (!canContinue) return;
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(ImpactFeedbackStyle.Medium);
 
     const makeName = activeMakeName ?? '';
     const makeId = isCustomMake ? 0 : (selectedMake?.makeId ?? 0);
@@ -265,17 +262,17 @@ export default function BikeSetupScreen() {
                 marginBottom: 8,
               }}
             >
-              Tell us about{'\n'}
+              {t('onboarding.v2BikeSetupTitle')}{'\n'}
               <Text
                 style={{ fontFamily: 'InstrumentSerif-Italic', color: ONBOARDING_COLORS.warm2 }}
               >
-                your bike.
+                {t('onboarding.v2BikeSetupTitleItalic')}
               </Text>
             </Text>
             <Text
               style={{
                 fontSize: 13.5,
-                color: 'rgba(255,255,255,0.5)',
+                color: ONBOARDING_COLORS.textSoft,
                 lineHeight: 19,
                 maxWidth: 330,
               }}
@@ -318,9 +315,9 @@ export default function BikeSetupScreen() {
                   paddingLeft: 14,
                   paddingRight: 12,
                   borderRadius: 999,
-                  backgroundColor: '#1a1812',
+                  backgroundColor: ONBOARDING_COLORS.surfaceInput,
                   borderWidth: 1,
-                  borderColor: '#2a2520',
+                  borderColor: ONBOARDING_COLORS.borderSubtle,
                 }}
               >
                 <Text
@@ -330,10 +327,10 @@ export default function BikeSetupScreen() {
                     fontWeight: '600',
                     letterSpacing: 1.5,
                     textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.42)',
+                    color: ONBOARDING_COLORS.textLabel,
                   }}
                 >
-                  Year
+                  {t('onboarding.v2BikeSetupYearCompact')}
                 </Text>
                 <TextInput
                   value={year}
@@ -343,7 +340,7 @@ export default function BikeSetupScreen() {
                   style={{
                     width: 52,
                     textAlign: 'center',
-                    color: '#fff',
+                    color: ONBOARDING_COLORS.textWhite,
                     fontWeight: '700',
                     fontSize: 16,
                     letterSpacing: 1,
@@ -355,22 +352,23 @@ export default function BikeSetupScreen() {
               {/* Custom make name input (only for "Other") */}
               {isCustomMake && !customMakeName.trim() && (
                 <View>
-                  <Text style={sectionLabel}>Make name</Text>
+                  <Text style={sectionLabel}>{t('onboarding.v2BikeSetupMakeName')}</Text>
                   <TextInput
                     value={customMakeName}
                     onChangeText={setCustomMakeName}
-                    placeholder="Type your make…"
-                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    placeholder={t('onboarding.v2BikeSetupMakeNamePlaceholder')}
+                    placeholderTextColor={ONBOARDING_COLORS.textDimmed}
                     autoCapitalize="words"
+                    maxLength={50}
                     autoFocus
                     style={{
-                      backgroundColor: '#1a1812',
+                      backgroundColor: ONBOARDING_COLORS.surfaceInput,
                       borderWidth: 1,
-                      borderColor: '#2a2520',
+                      borderColor: ONBOARDING_COLORS.borderSubtle,
                       borderRadius: 14,
                       borderCurve: 'continuous',
                       padding: 14,
-                      color: '#fff',
+                      color: ONBOARDING_COLORS.textWhite,
                       fontSize: 16,
                       fontWeight: '600',
                     }}
@@ -426,14 +424,14 @@ export default function BikeSetupScreen() {
             <Text
               style={{
                 fontSize: 14.5,
-                color: 'rgba(255,255,255,0.55)',
+                color: ONBOARDING_COLORS.textSubtitle,
                 fontWeight: '500',
                 textDecorationLine: 'underline',
-                textDecorationColor: 'rgba(255,255,255,0.2)',
+                textDecorationColor: ONBOARDING_COLORS.underlineSubtle,
                 letterSpacing: -0.1,
               }}
             >
-              I'll add my bike later
+              {t('onboarding.v2BikeSetupSkip')}
             </Text>
           </Pressable>
         </View>
@@ -447,7 +445,7 @@ const sectionLabel = {
   fontWeight: '600' as const,
   letterSpacing: 1.5,
   textTransform: 'uppercase' as const,
-  color: 'rgba(255,255,255,0.42)',
+  color: ONBOARDING_COLORS.textLabel,
   marginBottom: 12,
   paddingLeft: 2,
 };
