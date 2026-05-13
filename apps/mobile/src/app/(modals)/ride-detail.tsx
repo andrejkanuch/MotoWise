@@ -622,13 +622,13 @@ export default function RideDetailScreen() {
                 <ActivityIndicator size="small" color={palette.accent500} />
               </View>
             )}
-            {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 10 && (
+            {activeChart === 'speed' && !waypointsLoading && waypoints.length >= 2 && (
               <RideSpeedChart waypoints={waypoints} system={system} />
             )}
-            {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 10 && (
+            {activeChart === 'elevation' && !waypointsLoading && waypoints.length >= 2 && (
               <RideElevationChart waypoints={waypoints} system={system} />
             )}
-            {activeChart && !waypointsLoading && waypoints.length < 10 && (
+            {activeChart && !waypointsLoading && waypoints.length < 2 && (
               <View
                 style={{
                   backgroundColor: isDark ? palette.surfaceSubtle : palette.neutral100,

@@ -183,6 +183,13 @@ export default function RideHudScreen() {
     const bufferPoints = [...getPointBuffer()];
     const combined = [...allWaypoints, ...bufferPoints];
 
+    // Upload any remaining waypoints that didn't fill a full chunk
+    if (bufferPoints.length > 0) {
+      enqueueOrExecute('uploadWaypoints', {
+        variables: { input: { rideId, waypoints: bufferPoints } },
+      });
+    }
+
     let totalDistance = 0;
     let maxSpeed = 0;
     let speedSum = 0;

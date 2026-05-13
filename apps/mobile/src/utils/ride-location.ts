@@ -253,11 +253,19 @@ function autoEndRide(idleSince: number): void {
   // Encode polyline from stored waypoints before clearing
   flushBufferToMMKV(rideId);
   const chunks = getWaypointChunks(rideId);
-  const allWaypoints = [...chunks.flat(), ...getPointBuffer()];
+  const bufferPoints = [...getPointBuffer()];
+  const allWaypoints = [...chunks.flat(), ...bufferPoints];
   const polyline =
     allWaypoints.length >= 2
       ? encodePolyline(allWaypoints.map((wp) => [wp.latitude, wp.longitude] as [number, number]))
       : null;
+
+  // Upload any remaining waypoints that didn't fill a full chunk
+  if (bufferPoints.length > 0) {
+    enqueueOrExecute('uploadWaypoints', {
+      variables: { input: { rideId, waypoints: bufferPoints } },
+    });
+  }
 
   useRideStore.getState().endRide();
   stopGPSListener();
