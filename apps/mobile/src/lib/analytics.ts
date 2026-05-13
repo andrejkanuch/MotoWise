@@ -188,6 +188,8 @@ export const AnalyticsEvent = {
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',
   HEALTH_REPORT_RETRIED: 'health_report_retried',
+  RECALLS_CHECKED: 'recalls_checked',
+  OEM_SCHEDULE_IMPORTED: 'oem_schedule_imported',
 
   // Rides
   RIDE_STARTED: 'ride_started',
