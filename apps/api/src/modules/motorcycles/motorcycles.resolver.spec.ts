@@ -84,12 +84,15 @@ describe('MotorcyclesResolver', () => {
       autoPopulateForBike: vi.fn(),
     } as unknown as OemSchedulesService;
 
+    const mockSupabase = {} as any;
+
     beforeEach(() => {
       vi.clearAllMocks();
       resolver = new MotorcyclesResolver(
         mockMotorcyclesService,
         mockNhtsaService,
         mockOemSchedulesService,
+        mockSupabase,
       );
     });
 
@@ -105,6 +108,7 @@ describe('MotorcyclesResolver', () => {
 
       expect(result).toEqual(mockMotorcycle);
       expect(mockOemSchedulesService.autoPopulateForBike).toHaveBeenCalledWith(
+        mockSupabase,
         'user-1',
         'moto-1',
         'Honda',

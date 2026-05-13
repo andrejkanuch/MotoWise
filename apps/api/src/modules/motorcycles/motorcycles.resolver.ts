@@ -1,12 +1,14 @@
 import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
+import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { CreateMotorcycleInput } from './dto/create-motorcycle.input';
 import { UpdateMotorcycleInput } from './dto/update-motorcycle.input';
 import { MakeStats } from './models/make-stats.model';
@@ -25,6 +27,7 @@ export class MotorcyclesResolver {
     private readonly motorcyclesService: MotorcyclesService,
     private readonly nhtsaService: NhtsaService,
     private readonly oemSchedulesService: OemSchedulesService,
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
   ) {}
 
   @Query(() => [Motorcycle])
@@ -68,6 +71,7 @@ export class MotorcyclesResolver {
     // Auto-populate OEM maintenance tasks in the background
     try {
       await this.oemSchedulesService.autoPopulateForBike(
+        this.supabase,
         user.id,
         motorcycle.id,
         motorcycle.make,

@@ -23,6 +23,8 @@ const MOTORCYCLE_SELECT =
 @Injectable()
 export class MotorcyclesService {
   private readonly logger = new Logger(MotorcyclesService.name);
+  private makeStatsCache: { data: MakeStats[]; expiresAt: number } | null = null;
+  private static readonly MAKE_STATS_TTL = 900_000; // 15 minutes
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
@@ -289,6 +291,10 @@ export class MotorcyclesService {
    * Results are ranked by rider count descending.
    */
   async getMakeStats(): Promise<MakeStats[]> {
+    if (this.makeStatsCache && Date.now() < this.makeStatsCache.expiresAt) {
+      return this.makeStatsCache.data;
+    }
+
     const { data, error } = await this.adminClient.rpc('get_make_stats');
 
     if (error) {
@@ -296,7 +302,7 @@ export class MotorcyclesService {
       return [];
     }
 
-    return (data ?? []).map(
+    const result = (data ?? []).map(
       (
         row: { make: string; riders: number; distinct_models: number; total_bikes: number },
         index: number,
@@ -308,5 +314,11 @@ export class MotorcyclesService {
         rank: index + 1,
       }),
     );
+
+    this.makeStatsCache = {
+      data: result,
+      expiresAt: Date.now() + MotorcyclesService.MAKE_STATS_TTL,
+    };
+    return result;
   }
 }

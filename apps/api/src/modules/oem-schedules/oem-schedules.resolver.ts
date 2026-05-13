@@ -77,6 +77,7 @@ export class OemSchedulesResolver {
     if (!motorcycle) return 0;
 
     return this.oemSchedulesService.autoPopulateForBike(
+      this.supabase,
       user.id,
       motorcycleId,
       motorcycle.make,
