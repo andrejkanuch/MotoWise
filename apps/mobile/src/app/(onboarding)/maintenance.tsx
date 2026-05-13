@@ -15,9 +15,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withDelay,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TaskCard } from '../../components/onboarding/maintenance/task-card';
@@ -32,7 +30,10 @@ import { useOnboardingStore } from '../../stores/onboarding.store';
 import { triggerImpact } from '../../utils/haptics';
 
 const SWIPE_THRESHOLD = 80;
+const VELOCITY_THRESHOLD = 500;
 const CARD_HEIGHT = 340;
+const EXIT_SPRING = { damping: 20, stiffness: 200, mass: 0.8 };
+const SNAP_BACK_SPRING = { damping: 18, stiffness: 350, mass: 0.6 };
 
 export default function MaintenanceScreen() {
   const { t } = useTranslation();
@@ -88,9 +89,14 @@ export default function MaintenanceScreen() {
       } else {
         setSkipped((s) => [...s, currentTask.id]);
       }
+
+      // Reset position immediately before advancing index —
+      // the new card mounts already at (0,0) because React re-keys it
+      translateX.value = 0;
+      translateY.value = 0;
       setCurrentIdx((i) => i + 1);
     },
-    [currentTask],
+    [currentTask, translateX, translateY],
   );
 
   const panGesture = Gesture.Pan()
@@ -99,32 +105,63 @@ export default function MaintenanceScreen() {
       translateY.value = e.translationY * 0.35;
     })
     .onEnd((e) => {
-      if (e.translationX > SWIPE_THRESHOLD) {
-        translateX.value = withTiming(400, { duration: 300 });
-        translateY.value = withTiming(-60, { duration: 300 });
+      const swipedRight =
+        e.translationX > SWIPE_THRESHOLD || e.velocityX > VELOCITY_THRESHOLD;
+      const swipedLeft =
+        e.translationX < -SWIPE_THRESHOLD || e.velocityX < -VELOCITY_THRESHOLD;
+
+      if (swipedRight) {
+        // Use velocity to determine exit target for natural momentum
+        const exitX = Math.max(400, e.translationX + e.velocityX * 0.3);
+        translateX.value = withSpring(exitX, EXIT_SPRING);
+        translateY.value = withSpring(e.translationY * 0.35 - 40, EXIT_SPRING);
         runOnJS(onSwipeComplete)('right');
-      } else if (e.translationX < -SWIPE_THRESHOLD) {
-        translateX.value = withTiming(-400, { duration: 300 });
-        translateY.value = withTiming(-60, { duration: 300 });
+      } else if (swipedLeft) {
+        const exitX = Math.min(-400, e.translationX + e.velocityX * 0.3);
+        translateX.value = withSpring(exitX, EXIT_SPRING);
+        translateY.value = withSpring(e.translationY * 0.35 - 40, EXIT_SPRING);
         runOnJS(onSwipeComplete)('left');
       } else {
-        translateX.value = withSpring(0, { damping: 15 });
-        translateY.value = withSpring(0, { damping: 15 });
+        translateX.value = withSpring(0, SNAP_BACK_SPRING);
+        translateY.value = withSpring(0, SNAP_BACK_SPRING);
       }
-    })
-    .onFinalize(() => {
-      // Reset for next card after animation (stay on UI thread)
-      translateX.value = withDelay(320, withTiming(0, { duration: 0 }));
-      translateY.value = withDelay(320, withTiming(0, { duration: 0 }));
     });
 
   const topCardStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
-      { rotate: `${interpolate(translateX.value, [-200, 0, 200], [-15, 0, 15])}deg` },
+      { rotate: `${interpolate(translateX.value, [-300, 0, 300], [-18, 0, 18])}deg` },
     ],
+    opacity: interpolate(
+      Math.abs(translateX.value),
+      [0, 300, 500],
+      [1, 1, 0],
+    ),
   }));
+
+  // Background card scales up as top card moves away
+  const nextCardStyle = useAnimatedStyle(() => {
+    const progress = Math.min(Math.abs(translateX.value) / SWIPE_THRESHOLD, 1);
+    return {
+      transform: [
+        { scale: interpolate(progress, [0, 1], [1 - 0.035, 1]) },
+        { translateY: interpolate(progress, [0, 1], [12, 0]) },
+      ],
+      opacity: interpolate(progress, [0, 1], [1 - 0.18, 1]),
+    };
+  });
+
+  const thirdCardStyle = useAnimatedStyle(() => {
+    const progress = Math.min(Math.abs(translateX.value) / SWIPE_THRESHOLD, 1);
+    return {
+      transform: [
+        { scale: interpolate(progress, [0, 1], [1 - 0.07, 1 - 0.035]) },
+        { translateY: interpolate(progress, [0, 1], [24, 12]) },
+      ],
+      opacity: interpolate(progress, [0, 1], [1 - 0.36, 1 - 0.18]),
+    };
+  });
 
   const dragDirection = useDerivedValue(() => {
     if (translateX.value > 30) return 'right' as const;
@@ -133,11 +170,10 @@ export default function MaintenanceScreen() {
   });
 
   const handleButtonSwipe = (direction: 'left' | 'right') => {
-    translateX.value = withTiming(direction === 'right' ? 400 : -400, { duration: 300 });
-    translateY.value = withTiming(-60, { duration: 300 });
-    setTimeout(() => onSwipeComplete(direction), 300);
-    translateX.value = withDelay(320, withTiming(0, { duration: 0 }));
-    translateY.value = withDelay(320, withTiming(0, { duration: 0 }));
+    const exitX = direction === 'right' ? 450 : -450;
+    translateX.value = withSpring(exitX, EXIT_SPRING);
+    translateY.value = withSpring(-50, EXIT_SPRING);
+    onSwipeComplete(direction);
   };
 
   const handleContinue = () => {
@@ -309,26 +345,29 @@ export default function MaintenanceScreen() {
             }}
           >
             <View style={{ width: '100%', height: CARD_HEIGHT, position: 'relative' }}>
-              {/* Background cards */}
-              {tasks.slice(currentIdx + 1, currentIdx + 3).map((task, i) => {
-                const depth = i + 1;
-                return (
-                  <View
-                    key={`bg-${task.id}`}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      transform: [{ scale: 1 - depth * 0.035 }, { translateY: depth * 12 }],
-                      opacity: 1 - depth * 0.18,
-                    }}
-                  >
-                    <TaskCard task={task} brandColor={brandColor} dragDirection={noDrag} />
-                  </View>
-                );
-              })}
+              {/* Background cards — animate as top card moves */}
+              {tasks[currentIdx + 2] && (
+                <Animated.View
+                  key={`bg-${tasks[currentIdx + 2].id}`}
+                  style={[
+                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                    thirdCardStyle,
+                  ]}
+                >
+                  <TaskCard task={tasks[currentIdx + 2]} brandColor={brandColor} dragDirection={noDrag} />
+                </Animated.View>
+              )}
+              {tasks[currentIdx + 1] && (
+                <Animated.View
+                  key={`bg-${tasks[currentIdx + 1].id}`}
+                  style={[
+                    { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+                    nextCardStyle,
+                  ]}
+                >
+                  <TaskCard task={tasks[currentIdx + 1]} brandColor={brandColor} dragDirection={noDrag} />
+                </Animated.View>
+              )}
 
               {/* Top swipeable card */}
               {currentTask && (
