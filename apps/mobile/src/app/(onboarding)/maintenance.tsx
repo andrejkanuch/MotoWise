@@ -151,21 +151,21 @@ export default function MaintenanceScreen() {
     router.push(OB_ROUTE.PAYWALL);
   };
 
-  const handleSkipAll = () => {
+  const handleSkipAll = useCallback(() => {
     setAcceptedOemScheduleIds([]);
     trackEvent(AnalyticsEvent.ONBOARDING_STEP_SKIPPED, {
       step: 'maintenance',
       step_index: 4,
     });
     router.push(OB_ROUTE.PAYWALL);
-  };
+  }, [setAcceptedOemScheduleIds, router]);
 
   // Auto-skip when no bike data or no tasks available
   useEffect(() => {
     if (!make || (tasks.length === 0 && !isLoading)) {
       handleSkipAll();
     }
-  }, [make, tasks.length, isLoading]);
+  }, [make, tasks.length, isLoading, handleSkipAll]);
 
   if (!make || (tasks.length === 0 && !isLoading)) {
     return null;
