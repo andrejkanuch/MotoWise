@@ -1,6 +1,7 @@
 import type { OemSchedulesPreviewQuery } from '@motovault/graphql';
 import { Droplets, Fuel, Gauge, Shield, Sun, Thermometer, Wrench, Zap } from 'lucide-react-native';
 import { Text, View } from 'react-native';
+import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 type OemTask = OemSchedulesPreviewQuery['oemSchedulesPreview'][number];
 
@@ -42,7 +43,7 @@ function formatInterval(task: OemTask): string {
 interface TaskCardProps {
   task: OemTask;
   brandColor: string;
-  dragDirection: 'left' | 'right' | null;
+  dragDirection: SharedValue<'left' | 'right' | null>;
 }
 
 export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
@@ -50,31 +51,43 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
   const Icon = getTaskIcon(task.taskName);
   const interval = formatInterval(task);
 
-  const borderColor =
-    dragDirection === 'right'
-      ? '#4eba6f'
-      : dragDirection === 'left'
-        ? '#C4634A'
-        : 'rgba(255,255,255,0.1)';
+  const borderStyle = useAnimatedStyle(() => ({
+    borderColor:
+      dragDirection.value === 'right'
+        ? '#4eba6f'
+        : dragDirection.value === 'left'
+          ? '#C4634A'
+          : 'rgba(255,255,255,0.1)',
+  }));
+
+  const addStampStyle = useAnimatedStyle(() => ({
+    opacity: dragDirection.value === 'right' ? 1 : 0,
+  }));
+
+  const skipStampStyle = useAnimatedStyle(() => ({
+    opacity: dragDirection.value === 'left' ? 1 : 0,
+  }));
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        borderRadius: 22,
-        borderCurve: 'continuous',
-        overflow: 'hidden',
-        backgroundColor: '#1f1a14',
-        borderWidth: 1.5,
-        borderColor,
-        padding: 20,
-        paddingBottom: 18,
-        justifyContent: 'space-between',
-      }}
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: 22,
+          borderCurve: 'continuous',
+          overflow: 'hidden',
+          backgroundColor: '#1f1a14',
+          borderWidth: 1.5,
+          padding: 20,
+          paddingBottom: 18,
+          justifyContent: 'space-between',
+        },
+        borderStyle,
+      ]}
     >
       {/* Priority badge + OEM label */}
       <View
@@ -197,9 +210,9 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
       )}
 
       {/* Swipe stamps */}
-      {dragDirection === 'right' && (
-        <View
-          style={{
+      <Animated.View
+        style={[
+          {
             position: 'absolute',
             top: 60,
             right: 20,
@@ -210,24 +223,25 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             borderColor: '#4eba6f',
             backgroundColor: 'rgba(0,0,0,0.4)',
             transform: [{ rotate: '-12deg' }],
+          },
+          addStampStyle,
+        ]}
+      >
+        <Text
+          style={{
+            fontFamily: 'GeistMono-Medium',
+            fontWeight: '800',
+            fontSize: 16,
+            letterSpacing: 2,
+            color: '#4eba6f',
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontWeight: '800',
-              fontSize: 16,
-              letterSpacing: 2,
-              color: '#4eba6f',
-            }}
-          >
-            ADD
-          </Text>
-        </View>
-      )}
-      {dragDirection === 'left' && (
-        <View
-          style={{
+          ADD
+        </Text>
+      </Animated.View>
+      <Animated.View
+        style={[
+          {
             position: 'absolute',
             top: 60,
             left: 20,
@@ -238,21 +252,22 @@ export function TaskCard({ task, brandColor, dragDirection }: TaskCardProps) {
             borderColor: '#C4634A',
             backgroundColor: 'rgba(0,0,0,0.4)',
             transform: [{ rotate: '12deg' }],
+          },
+          skipStampStyle,
+        ]}
+      >
+        <Text
+          style={{
+            fontFamily: 'GeistMono-Medium',
+            fontWeight: '800',
+            fontSize: 16,
+            letterSpacing: 2,
+            color: '#C4634A',
           }}
         >
-          <Text
-            style={{
-              fontFamily: 'GeistMono-Medium',
-              fontWeight: '800',
-              fontSize: 16,
-              letterSpacing: 2,
-              color: '#C4634A',
-            }}
-          >
-            SKIP
-          </Text>
-        </View>
-      )}
-    </View>
+          SKIP
+        </Text>
+      </Animated.View>
+    </Animated.View>
   );
 }

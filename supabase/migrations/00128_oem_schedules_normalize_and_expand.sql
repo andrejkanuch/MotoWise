@@ -2,7 +2,13 @@
 -- Removes old 00126 model-specific rows (wrong casing), normalizes
 -- 00022 brand-generic rows to ALL CAPS, re-inserts all models correctly.
 
--- Step 1: Remove old model-specific rows inserted by 00126
+-- Step 1a: Detach maintenance_tasks from model-specific OEM schedules before deleting them
+UPDATE public.maintenance_tasks SET oem_schedule_id = NULL
+  WHERE oem_schedule_id IN (
+    SELECT id FROM public.oem_maintenance_schedules WHERE model IS NOT NULL
+  );
+
+-- Step 1b: Remove old model-specific rows inserted by 00126
 DELETE FROM public.oem_maintenance_schedules WHERE model IS NOT NULL;
 
 -- Step 2: Normalize brand-generic rows and motorcycles table

@@ -20,7 +20,7 @@ export class OemSchedulesService {
       let query = this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .ilike('make', make)
+        .eq('make', make.toUpperCase())
         .eq('model', model);
 
       if (year != null) {
@@ -45,7 +45,7 @@ export class OemSchedulesService {
       const { data, error } = await this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .ilike('make', make)
+        .eq('make', make.toUpperCase())
         .is('model', null)
         .order('sort_order', { ascending: true });
 

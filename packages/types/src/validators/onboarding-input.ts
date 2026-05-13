@@ -45,6 +45,7 @@ export const CompleteOnboardingInputSchema = z.object({
   bikeNickname: z.string().max(50).optional(),
   bikePhotoUrl: z.string().url().max(500).optional(),
   bikeMileageUnit: z.enum(['mi', 'km']).optional(),
+  acceptedOemScheduleIds: z.array(z.string().uuid()).optional(),
   currency: z.enum(currencyValues).optional(),
   fbclid: z.string().max(256).optional(),
   eventId: z.string().uuid().optional(),

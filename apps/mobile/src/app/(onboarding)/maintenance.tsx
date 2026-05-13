@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Check, ChevronLeft, X } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,7 +13,9 @@ import Animated, {
   interpolate,
   runOnJS,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
+  withDelay,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -63,6 +65,7 @@ export default function MaintenanceScreen() {
   // Swipe animation
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
+  const noDrag = useSharedValue<'left' | 'right' | null>(null);
 
   const onSwipeComplete = useCallback(
     (direction: 'left' | 'right') => {
@@ -106,11 +109,9 @@ export default function MaintenanceScreen() {
       }
     })
     .onFinalize(() => {
-      // Reset for next card after animation
-      setTimeout(() => {
-        translateX.value = 0;
-        translateY.value = 0;
-      }, 320);
+      // Reset for next card after animation (stay on UI thread)
+      translateX.value = withDelay(320, withTiming(0, { duration: 0 }));
+      translateY.value = withDelay(320, withTiming(0, { duration: 0 }));
     });
 
   const topCardStyle = useAnimatedStyle(() => ({
@@ -121,17 +122,18 @@ export default function MaintenanceScreen() {
     ],
   }));
 
-  const dragDirection: 'left' | 'right' | null =
-    translateX.value > 30 ? 'right' : translateX.value < -30 ? 'left' : null;
+  const dragDirection = useDerivedValue(() => {
+    if (translateX.value > 30) return 'right' as const;
+    if (translateX.value < -30) return 'left' as const;
+    return null;
+  });
 
   const handleButtonSwipe = (direction: 'left' | 'right') => {
     translateX.value = withTiming(direction === 'right' ? 400 : -400, { duration: 300 });
     translateY.value = withTiming(-60, { duration: 300 });
-    setTimeout(() => onSwipeComplete(direction), 150);
-    setTimeout(() => {
-      translateX.value = 0;
-      translateY.value = 0;
-    }, 320);
+    setTimeout(() => onSwipeComplete(direction), 300);
+    translateX.value = withDelay(320, withTiming(0, { duration: 0 }));
+    translateY.value = withDelay(320, withTiming(0, { duration: 0 }));
   };
 
   const handleContinue = () => {
@@ -158,10 +160,14 @@ export default function MaintenanceScreen() {
     router.push(OB_ROUTE.PAYWALL);
   };
 
-  // If no bike data or no tasks, skip this screen
+  // Auto-skip when no bike data or no tasks available
+  useEffect(() => {
+    if (!make || (tasks.length === 0 && !isLoading)) {
+      handleSkipAll();
+    }
+  }, [make, tasks.length, isLoading]);
+
   if (!make || (tasks.length === 0 && !isLoading)) {
-    // Auto-skip — no OEM data for this make
-    handleSkipAll();
     return null;
   }
 
@@ -317,7 +323,7 @@ export default function MaintenanceScreen() {
                       opacity: 1 - depth * 0.18,
                     }}
                   >
-                    <TaskCard task={task} brandColor={brandColor} dragDirection={null} />
+                    <TaskCard task={task} brandColor={brandColor} dragDirection={noDrag} />
                   </View>
                 );
               })}

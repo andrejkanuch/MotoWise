@@ -282,7 +282,7 @@ export class UsersService {
       };
     });
 
-    const { error } = await this.supabaseAdmin.from('maintenance_tasks').insert(tasksToInsert);
+    const { error } = await this.supabase.from('maintenance_tasks').insert(tasksToInsert);
     if (error) {
       this.logger.error(`Failed to insert accepted OEM tasks: ${error.message}`);
     } else {

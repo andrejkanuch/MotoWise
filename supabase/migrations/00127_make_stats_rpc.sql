@@ -12,6 +12,7 @@ RETURNS TABLE (
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
   SELECT
     -- Normalize NHTSA uppercase to title case for display
@@ -28,5 +29,7 @@ AS $$
   ORDER BY riders DESC, total_bikes DESC;
 $$;
 
--- Allow service-role (admin) to call this function
+-- Restrict access: only service-role (admin) may call this function
+REVOKE EXECUTE ON FUNCTION get_make_stats() FROM public;
+REVOKE EXECUTE ON FUNCTION get_make_stats() FROM anon;
 GRANT EXECUTE ON FUNCTION get_make_stats() TO service_role;
