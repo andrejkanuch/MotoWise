@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: getAppName(),
   slug: 'motowise',
   description: 'AI-powered motorcycle maintenance, diagnostics & expense tracking',
-  version: '3.5.0',
+  version: '3.6.0',
   orientation: 'portrait',
   icon: './src/assets/images/MotoVault.png',
   userInterfaceStyle: 'automatic',

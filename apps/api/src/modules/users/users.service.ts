@@ -16,6 +16,7 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../email/email.service';
 import { MetaEventsService } from '../meta/meta-events.service';
+import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
@@ -74,6 +75,7 @@ export class UsersService {
     private readonly revenueCatService: RevenueCatService,
     private readonly emailService: EmailService,
     private readonly metaEventsService: MetaEventsService,
+    private readonly oemSchedulesService: OemSchedulesService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -198,6 +200,14 @@ export class UsersService {
 
     const user = await this.findById(userId);
 
+    // Import only the OEM maintenance tasks the user accepted during onboarding swipe.
+    // The RPC created the motorcycle — find it and selectively import.
+    if (input.bikeMake && input.acceptedOemScheduleIds?.length) {
+      this.importAcceptedOemTasks(userId, input.acceptedOemScheduleIds).catch((err) => {
+        this.logger.warn(`Failed to import accepted OEM tasks for ${userId}: ${err}`);
+      });
+    }
+
     // Fire Meta CAPI CompleteRegistration — fire and forget, don't block response
     this.metaEventsService
       .sendAppEvent({
@@ -212,6 +222,72 @@ export class UsersService {
       });
 
     return user;
+  }
+
+  /**
+   * After completeOnboarding creates the motorcycle via RPC, find it and
+   * import only the OEM schedules the user accepted during the swipe screen.
+   */
+  private async importAcceptedOemTasks(userId: string, scheduleIds: string[]): Promise<void> {
+    // Find the user's most recently created motorcycle (the one the RPC just made)
+    const { data: bike } = await this.supabaseAdmin
+      .from('motorcycles')
+      .select('id, make, model, year, current_mileage')
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (!bike) {
+      this.logger.warn(`No motorcycle found for user ${userId} after onboarding`);
+      return;
+    }
+
+    // Fetch the matching OEM schedules (same 3-level fallback)
+    const allSchedules = await this.oemSchedulesService.findByMotorcycle(
+      bike.make,
+      bike.model ?? null,
+      bike.year ?? null,
+      null,
+    );
+
+    // Filter to only accepted IDs
+    const accepted = allSchedules.filter((s) => scheduleIds.includes(s.id));
+    if (accepted.length === 0) return;
+
+    const now = new Date();
+    const tasksToInsert = accepted.map((schedule) => {
+      const dueDate = schedule.intervalDays
+        ? new Date(now.getTime() + schedule.intervalDays * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+      const targetMileage = schedule.intervalKm
+        ? (bike.current_mileage ?? 0) + schedule.intervalKm
+        : null;
+
+      return {
+        user_id: userId,
+        motorcycle_id: bike.id,
+        title: schedule.taskName,
+        description: schedule.description ?? null,
+        due_date: dueDate,
+        target_mileage: targetMileage,
+        priority: schedule.priority,
+        status: 'pending',
+        source: 'oem',
+        oem_schedule_id: schedule.id,
+        interval_km: schedule.intervalKm ?? null,
+        interval_days: schedule.intervalDays ?? null,
+        is_recurring: true,
+      };
+    });
+
+    const { error } = await this.supabaseAdmin.from('maintenance_tasks').insert(tasksToInsert);
+    if (error) {
+      this.logger.error(`Failed to insert accepted OEM tasks: ${error.message}`);
+    } else {
+      this.logger.log(`Imported ${tasksToInsert.length} accepted OEM tasks for bike ${bike.id}`);
+    }
   }
 
   async requestDataExport(userId: string, email: string): Promise<DataExportRequest> {

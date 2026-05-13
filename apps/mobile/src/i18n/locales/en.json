@@ -1355,6 +1355,14 @@
     "badge": "What's New",
     "next": "Next",
     "getStarted": "Let's Ride",
+    "v360": {
+      "onboardingTitle": "Redesigned Onboarding",
+      "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
+      "maintenanceTitle": "Maintenance Swipe",
+      "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
+      "bikeSetupTitle": "Brand Hero Setup",
+      "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
+    },
     "v300": {
       "redesignTitle": "Completely Redesigned",
       "redesignDesc": "A warm editorial look across every screen. Cleaner, faster, and built for the road.",

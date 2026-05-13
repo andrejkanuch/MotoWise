@@ -61,6 +61,7 @@ export default function PersonalizingScreen() {
     experienceLevel,
     bikeData,
     ridingGoals,
+    acceptedOemScheduleIds,
     ridingFrequency,
     maintenanceStyle,
     annualRepairSpend,
@@ -147,6 +148,7 @@ export default function PersonalizingScreen() {
           bikeMileageUnit: bikeData.mileageUnit,
           ...(bikeData.nickname && { bikeNickname: bikeData.nickname }),
         }),
+        ...(acceptedOemScheduleIds.length > 0 && { acceptedOemScheduleIds }),
       };
 
       // Clear fbclid after use — it should only be sent once

@@ -198,7 +198,7 @@ export default function BikeSetupScreen() {
       type_auto_detected: !!detectedType,
     });
 
-    router.push(OB_ROUTE.PAYWALL);
+    router.push(OB_ROUTE.MAINTENANCE);
   };
 
   const handleSkip = () => {
@@ -208,7 +208,7 @@ export default function BikeSetupScreen() {
       step_index: 3,
       skipped_section: 'bike_setup',
     });
-    router.push(OB_ROUTE.PAYWALL);
+    router.push(OB_ROUTE.MAINTENANCE);
   };
 
   // ── Stage: make selected vs not ─────────────────────────────
@@ -223,7 +223,13 @@ export default function BikeSetupScreen() {
         behavior={process.env.EXPO_OS === 'ios' ? 'padding' : 'height'}
       >
         {/* Header — tap to dismiss keyboard */}
-        <Pressable onPress={Keyboard.dismiss} style={{ paddingHorizontal: 24, paddingTop: 12 }}>
+        <View
+          onStartShouldSetResponder={() => {
+            Keyboard.dismiss();
+            return false;
+          }}
+          style={{ paddingHorizontal: 24, paddingTop: 12 }}
+        >
           <Pressable
             onPress={() => router.back()}
             hitSlop={12}
@@ -277,7 +283,7 @@ export default function BikeSetupScreen() {
               {bridgeSubtitle}
             </Text>
           </Animated.View>
-        </Pressable>
+        </View>
 
         {/* Scrollable content */}
         <ScrollView

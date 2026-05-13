@@ -1,7 +1,7 @@
 import { palette } from '@motovault/design-system';
 import { AllMaintenanceTasksDocument } from '@motovault/graphql';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { StackActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
@@ -194,15 +194,17 @@ function IslandTabBar({ state, navigation }: BottomTabBarProps) {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             navigation.navigate(route.name, route.params);
-          } else if (isFocused && !event.defaultPrevented) {
-            // Pop to top when tapping already-focused tab (guard against in-flight mutations)
-            const routeState = route.state;
-            if (routeState?.index && routeState.index > 0 && queryClient.isMutating() === 0) {
-              navigation.dispatch({
-                ...StackActions.popToTop(),
-                target: routeState.key,
-              });
-            }
+          } else if (isFocused && !event.defaultPrevented && queryClient.isMutating() === 0) {
+            // Pop nested stack to root when re-tapping the active tab.
+            // Use CommonActions.reset to reliably clear the entire nested stack,
+            // since StackActions.popToTop doesn't reach into nested navigators.
+            navigation.dispatch({
+              ...CommonActions.reset({
+                index: 0,
+                routes: [{ name: route.name }],
+              }),
+              target: state.key,
+            });
           }
         };
 

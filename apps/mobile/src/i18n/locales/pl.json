@@ -1364,6 +1364,14 @@
       "commentsDesc": "Engage with other riders through comments. Share tips, ask questions, and connect.",
       "tripsTitle": "Trip Planning",
       "tripsDesc": "Plan multi-stop motorcycle trips with waypoints. Share your itinerary with riding buddies."
+    },
+    "v360": {
+      "onboardingTitle": "Redesigned Onboarding",
+      "onboardingDesc": "A smoother start — animated experience picker, goal-driven personalization, and real fleet data.",
+      "maintenanceTitle": "Maintenance Swipe",
+      "maintenanceDesc": "Swipe through OEM tasks to build your bike's maintenance plan during setup. Accept what matters, skip the rest.",
+      "bikeSetupTitle": "Brand Hero Setup",
+      "bikeSetupDesc": "See real rider stats, service intervals, and a welcome message when you add your bike."
     }
   },
   "oem": {

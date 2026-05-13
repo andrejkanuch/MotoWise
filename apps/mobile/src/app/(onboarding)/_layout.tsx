@@ -25,6 +25,7 @@ export default function OnboardingLayout() {
       {/* Section B: Personalization & Bike */}
       <Stack.Screen name="goals" options={{ gestureEnabled: true }} />
       <Stack.Screen name="bike-setup" options={{ gestureEnabled: true }} />
+      <Stack.Screen name="maintenance" options={{ gestureEnabled: true }} />
 
       {/* Section C: Conversion & Finalization */}
       <Stack.Screen name="paywall" options={{ gestureEnabled: false }} />

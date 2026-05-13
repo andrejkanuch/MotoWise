@@ -43,8 +43,11 @@ interface OnboardingState {
   weeklySummary: boolean;
   lastServiceDate: LastServiceDate | null;
   currency: Currency | null;
+  /** OEM schedule IDs the user accepted in the maintenance swipe screen */
+  acceptedOemScheduleIds: string[];
   /** V2: tracks last completed screen for resume-after-kill */
   lastCompletedScreen: OnboardingRoute | null;
+  setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
@@ -78,6 +81,7 @@ const initialState = {
   weeklySummary: false,
   lastServiceDate: null as LastServiceDate | null,
   currency: null as Currency | null,
+  acceptedOemScheduleIds: [] as string[],
   lastCompletedScreen: null as OnboardingRoute | null,
 };
 
@@ -92,6 +96,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       setMaintenanceStyle: (style) => set({ maintenanceStyle: style }),
       setLearningFormats: (formats) => set({ learningFormats: formats }),
       setAnnualRepairSpend: (spend) => set({ annualRepairSpend: spend }),
+      setAcceptedOemScheduleIds: (ids) => set({ acceptedOemScheduleIds: ids }),
       setMaintenanceReminders: (enabled) => set({ maintenanceReminders: enabled }),
       setReminderChannel: (channel) => set({ reminderChannel: channel }),
       setSeasonalTips: (enabled) => set({ seasonalTips: enabled }),

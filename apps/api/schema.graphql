@@ -152,6 +152,8 @@ input CompleteMaintenanceTaskInput {
 }
 
 input CompleteOnboardingInput {
+  """OEM schedule IDs the user accepted in the maintenance swipe screen"""
+  acceptedOemScheduleIds: [String!]
   annualRepairSpend: String
   bikeMake: String
   bikeMileage: Int
@@ -1279,6 +1281,7 @@ type Query {
   myShareLinks(motorcycleId: ID!): [ShareLink!]!
   myTrips(after: String, first: Int = 20): TripConnection!
   oemSchedulesForBike(motorcycleId: String!): [OemSchedule!]!
+  oemSchedulesPreview(make: String!, model: String, year: Int): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
 
   """Public saved routes for a user by handle (public_username)"""
