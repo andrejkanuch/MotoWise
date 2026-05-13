@@ -388,9 +388,9 @@ export default function BikeDetailScreen() {
     triggerImpact();
     trackEvent(AnalyticsEvent.OEM_SCHEDULE_IMPORTED, {
       motorcycle_id: id,
-      bike_make: bike?.make,
-      bike_model: bike?.model,
-      bike_year: bike?.year,
+      bike_make: bike?.make ?? '',
+      bike_model: bike?.model ?? '',
+      bike_year: bike?.year ?? 0,
     });
     importOemMutation.mutate();
   };
