@@ -191,12 +191,26 @@ export const AnalyticsEvent = {
   RECALLS_CHECKED: 'recalls_checked',
   OEM_SCHEDULE_IMPORTED: 'oem_schedule_imported',
 
-  // Rides
+  // Rides — lifecycle
   RIDE_STARTED: 'ride_started',
+  RIDE_PAUSED: 'ride_paused',
+  RIDE_RESUMED: 'ride_resumed',
+  RIDE_ENDED: 'ride_ended',
   RIDE_COMPLETED: 'ride_completed',
+  RIDE_ABANDONED: 'ride_abandoned',
   RIDE_SHARED: 'ride_shared',
   RIDE_VIEWED: 'ride_viewed',
   RIDE_DELETED: 'ride_deleted',
+  // Rides — engagement
+  RIDE_HUD_LAYOUT_SWITCHED: 'ride_hud_layout_switched',
+  RIDE_NAME_EDITED: 'ride_name_edited',
+  RIDE_CHART_VIEWED: 'ride_chart_viewed',
+  RIDE_MAP_STYLE_CHANGED: 'ride_map_style_changed',
+  RIDE_BIKE_CHANGED: 'ride_bike_changed',
+  // Rides — history & monetisation
+  RIDES_HISTORY_FILTERED: 'rides_history_filtered',
+  RIDE_UPGRADE_CTA_SHOWN: 'ride_upgrade_cta_shown',
+  RIDE_UPGRADE_CTA_TAPPED: 'ride_upgrade_cta_tapped',
 
   // Routes (discovery)
   ROUTE_VIEWED: 'route_viewed',

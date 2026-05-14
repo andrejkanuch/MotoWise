@@ -86,8 +86,17 @@ export default function StartRideScreen() {
   }, []);
 
   const handleResume = useCallback(() => {
+    const rideId = rideMMKV.getCurrentId();
     startRide();
     startGPSListener(() => {});
+    trackEvent(AnalyticsEvent.RIDE_STARTED, {
+      ride_id: rideId ?? null,
+      has_motorcycle: !!rideMMKV.getMotorcycleId(),
+      motorcycle_id: rideMMKV.getMotorcycleId() ?? null,
+      motorcycle_make: null,
+      hud_layout: rideMMKV.getHudLayout() ?? 'A',
+      is_resumed: true,
+    });
     // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
     router.replace('/(modals)/ride-hud' as any);
   }, [startRide, router]);
@@ -97,6 +106,10 @@ export default function StartRideScreen() {
     if (rideId) {
       enqueueOrExecute('endRide', {
         variables: { input: { rideId, endedAt: new Date().toISOString() } },
+      });
+      trackEvent(AnalyticsEvent.RIDE_ABANDONED, {
+        ride_id: rideId,
+        recovery_reason: 'crash',
       });
     }
     rideMMKV.setCurrentId('');
@@ -137,7 +150,12 @@ export default function StartRideScreen() {
       await startGPSListener(() => {});
 
       trackEvent(AnalyticsEvent.RIDE_STARTED, {
+        ride_id: rideId,
         has_motorcycle: !!selectedBikeId,
+        motorcycle_id: selectedBikeId ?? null,
+        motorcycle_make: selectedBike?.make ?? null,
+        hud_layout: rideMMKV.getHudLayout() ?? 'A',
+        is_resumed: false,
       });
 
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
@@ -400,6 +418,11 @@ export default function StartRideScreen() {
                       onPress={() => {
                         if (process.env.EXPO_OS === 'ios')
                           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        trackEvent(AnalyticsEvent.RIDE_BIKE_CHANGED, {
+                          from_motorcycle_id: selectedBikeId ?? null,
+                          to_motorcycle_id: bike.id,
+                          motorcycle_count: motorcycles.length,
+                        });
                         setSelectedBikeId(bike.id);
                         setShowBikePicker(false);
                       }}

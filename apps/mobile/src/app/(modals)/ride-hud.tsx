@@ -9,6 +9,7 @@ import { View } from 'react-native';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
+import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { useRideStore } from '../../stores/ride.store';
 import { encodePolyline } from '../../utils/ride-heatmap';
 import { distanceMeters, stopGPSListener, toggleBatterySaver } from '../../utils/ride-location';
@@ -72,9 +73,16 @@ export default function RideHudScreen() {
 
   // Layout switching
   const handleLayoutSwitch = useCallback((layout: HudLayout) => {
+    const prev = hudLayout;
     setHudLayout(layout);
     persistLayout(layout);
-  }, []);
+    trackEvent(AnalyticsEvent.RIDE_HUD_LAYOUT_SWITCHED, {
+      ride_id: rideMMKV.getCurrentId() ?? null,
+      from_layout: prev,
+      to_layout: layout,
+      duration_at_switch_s: elapsedRef.current,
+    });
+  }, [hudLayout]);
 
   // Collect sparkline data + live waypoints every ~5 seconds
   useEffect(() => {
@@ -147,11 +155,21 @@ export default function RideHudScreen() {
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
     pauseRide();
     rideMMKV.setTotalPausedMs(totalPausedRef.current);
-  }, [pauseRide]);
+    trackEvent(AnalyticsEvent.RIDE_PAUSED, {
+      ride_id: rideMMKV.getCurrentId() ?? null,
+      duration_at_pause_s: elapsedRef.current,
+      distance_at_pause_m: Math.round(distance),
+    });
+  }, [pauseRide, distance]);
 
   const handleResume = useCallback(() => {
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
+    const pauseDuration = pausedAtRef.current ? Math.round((Date.now() - pausedAtRef.current) / 1000) : 0;
     resumeRide();
+    trackEvent(AnalyticsEvent.RIDE_RESUMED, {
+      ride_id: rideMMKV.getCurrentId() ?? null,
+      pause_duration_s: pauseDuration,
+    });
   }, [resumeRide]);
 
   const handleEndRide = useCallback(() => {
@@ -206,6 +224,20 @@ export default function RideHudScreen() {
 
     endRide();
     stopGPSListener();
+
+    trackEvent(AnalyticsEvent.RIDE_ENDED, {
+      ride_id: rideId,
+      duration_s: elapsedRef.current,
+      distance_m: Math.round(totalDistance),
+      pause_count: totalPausedRef.current > 0 ? 1 : 0,
+      total_pause_duration_s: Math.round(totalPausedRef.current / 1000),
+      night_mode_used: isNightMode,
+      battery_saver_used: isBatterySaver,
+      hud_layout_final: hudLayout,
+      max_speed_kmh: Math.round(maxSpd * 3.6),
+      avg_speed_kmh: Math.round(avgSpeed * 3.6),
+      waypoint_count: combined.length,
+    });
 
     const polyline =
       combined.length >= 2

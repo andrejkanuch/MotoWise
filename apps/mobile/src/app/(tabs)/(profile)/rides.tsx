@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, TrendingUp } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -163,6 +163,7 @@ export default function RidesScreen() {
   const system = useMeasurementSystem();
 
   const [period, setPeriod] = useState<Period>('month');
+  const ctaShownRef = useRef(false);
   const [sortNewest, setSortNewest] = useState(true);
 
   const periodLabelsMap: Record<Period, string> = useMemo(
@@ -441,7 +442,14 @@ export default function RidesScreen() {
           <Pressable
             onPress={() => {
               if (process.env.EXPO_OS === 'ios') triggerImpact();
-              setSortNewest((prev) => !prev);
+              setSortNewest((prev) => {
+                trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
+                  filter_type: 'sort',
+                  value: prev ? 'oldest_first' : 'newest_first',
+                  total_rides: stats.totalRides,
+                });
+                return !prev;
+              });
             }}
             accessibilityRole="button"
             hitSlop={8}
@@ -534,6 +542,13 @@ export default function RidesScreen() {
       );
     }
     if (showUpgradeCta) {
+      if (!ctaShownRef.current) {
+        ctaShownRef.current = true;
+        trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_SHOWN, {
+          ride_count: allEdges.length,
+          cta_location: 'rides_history',
+        });
+      }
       return (
         <Animated.View
           entering={FadeInUp.duration(280)}
@@ -563,13 +578,17 @@ export default function RidesScreen() {
             {t('myRides.unlockDesc', { limit: FREE_TIER_LIMIT })}
           </Text>
           <Pressable
-            onPress={() =>
+            onPress={() => {
+              trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_TAPPED, {
+                ride_count: allEdges.length,
+                cta_location: 'rides_history',
+              });
               presentPaywall({
                 source: 'rides_history',
                 feature: 'subscription',
                 surface: 'rides_history_limit',
-              })
-            }
+              });
+            }}
             accessibilityRole="button"
             accessibilityLabel={t('myRides.upgradePro')}
             style={{
@@ -594,7 +613,7 @@ export default function RidesScreen() {
       );
     }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, theme, t]);
+  }, [isFetchingNextPage, showUpgradeCta, allEdges.length, theme, t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -676,6 +695,11 @@ export default function RidesScreen() {
                 onPress={() => {
                   if (process.env.EXPO_OS === 'ios') triggerImpact();
                   setPeriod(key);
+                  trackEvent(AnalyticsEvent.RIDES_HISTORY_FILTERED, {
+                    filter_type: 'period',
+                    value: key,
+                    total_rides: stats.totalRides,
+                  });
                 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}

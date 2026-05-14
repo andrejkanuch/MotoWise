@@ -229,8 +229,16 @@ export default function RideDetailScreen() {
   }, [rideId, queryClient, router, t]);
 
   const handleCycleMapStyle = useCallback(() => {
-    setMapStyle((prev) => cycleMapStyle(prev));
-  }, []);
+    setMapStyle((prev) => {
+      const next = cycleMapStyle(prev);
+      trackEvent(AnalyticsEvent.RIDE_MAP_STYLE_CHANGED, {
+        ride_id: rideId ?? null,
+        from_style: prev,
+        to_style: next,
+      });
+      return next;
+    });
+  }, [rideId]);
 
   const handleStatTap = useCallback((chart: ChartType) => {
     if (process.env.EXPO_OS === 'ios') {
@@ -242,9 +250,14 @@ export default function RideDetailScreen() {
         return null;
       }
       sheetRef.current?.snapToIndex(2);
+      trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
+        ride_id: rideId ?? null,
+        chart_type: chart,
+        source: 'ride_detail',
+      });
       return chart;
     });
-  }, []);
+  }, [rideId]);
 
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
