@@ -189,17 +189,7 @@ export default function EditBikeScreen() {
       purchasePrice !== init.purchasePrice ||
       vin !== init.vin
     );
-  }, [
-    nickname,
-    year,
-    makeName,
-    modelName,
-    isPrimary,
-    photoUrl,
-    purchasePrice,
-    vin,
-    initialized,
-  ]);
+  }, [nickname, year, makeName, modelName, isPrimary, photoUrl, purchasePrice, vin, initialized]);
 
   // MOT-142: VIN is 17 chars from {A-H,J-N,P-R,0-9} (no I, O, Q)
   const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;

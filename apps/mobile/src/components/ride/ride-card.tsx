@@ -1,11 +1,11 @@
-import { palette } from '@motovault/design-system';
 import type { Ride } from '@motovault/types';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock, Gauge, MapPin, Route } from 'lucide-react-native';
+import { Route } from 'lucide-react-native';
 import { memo } from 'react';
-import { Image, Pressable, Text, useColorScheme, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
+import { useEditorialTheme } from '../../theme/editorial';
 import {
   formatDate,
   formatDistance,
@@ -21,23 +21,13 @@ interface RideCardProps {
 }
 
 export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCardProps) {
-  const isDark = useColorScheme() === 'dark';
+  const { t } = useEditorialTheme();
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
   const avgSpeed = ride.avgSpeedMps ?? 0;
   const rideName = ride.name || ride.bikeName || 'Ride';
-  const bikeName = ride.bikeName || 'Quick Ride';
   const hasMap = !!ride.routeThumbnailUri;
   const system = useMeasurementSystem();
-
-  const cardBg = isDark ? palette.cardDark : palette.white;
-  const cardBorder = isDark ? palette.surfaceElevated : palette.neutral200;
-  const titleColor = isDark ? palette.white : palette.neutral950;
-  const subtitleColor = isDark ? palette.neutral400 : palette.neutral500;
-  const statColor = isDark ? palette.neutral200 : palette.neutral700;
-  const pressedBg = isDark ? palette.neutral800 : palette.neutral100;
-  const placeholderBg = isDark ? palette.surfaceSubtle : palette.neutral100;
-  const placeholderIcon = isDark ? palette.neutral700 : palette.neutral400;
 
   return (
     <Animated.View entering={FadeInUp.delay(index * 50).duration(280)}>
@@ -46,126 +36,99 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
         accessibilityRole="button"
         accessibilityLabel={`${rideName}, ${formatDate(ride.startedAt)}, ${formatDistance(distance, system)}, ${formatDuration(duration)}`}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? pressedBg : cardBg,
-          borderRadius: 20,
+          backgroundColor: t.surface,
+          borderRadius: 16,
           borderCurve: 'continuous',
-          overflow: 'hidden',
           borderWidth: 1,
-          borderColor: cardBorder,
-          opacity: pressed ? 0.9 : 1,
+          borderColor: t.line,
+          padding: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          opacity: pressed ? 0.85 : 1,
         })}
       >
-        {/* Map thumbnail — full width top bleed */}
-        {hasMap ? (
-          <View style={{ height: 120, position: 'relative' }}>
+        {/* Left: Route thumbnail */}
+        <View
+          style={{
+            width: 72,
+            height: 60,
+            borderRadius: 10,
+            borderCurve: 'continuous',
+            overflow: 'hidden',
+          }}
+        >
+          {hasMap ? (
             <Image
               source={{ uri: ride.routeThumbnailUri ?? '' }}
               style={{
-                width: '100%',
-                height: 120,
-                backgroundColor: isDark ? palette.neutral900 : palette.neutral200,
+                width: 72,
+                height: 60,
+                backgroundColor: t.surface2,
               }}
             />
-            {/* Gradient fade to card background */}
+          ) : (
             <LinearGradient
-              colors={['transparent', cardBg]}
+              colors={[t.surface2, t.surface3]}
               style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 48,
+                width: 72,
+                height: 60,
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
-            />
-          </View>
-        ) : (
-          /* No map — subtle placeholder */
-          <View
-            style={{
-              height: 56,
-              backgroundColor: placeholderBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Route size={20} color={placeholderIcon} />
-          </View>
-        )}
+            >
+              <Route size={18} color={t.ink4} />
+            </LinearGradient>
+          )}
+        </View>
 
-        {/* Content */}
-        <View style={{ padding: 16, gap: 8 }}>
-          {/* Title row */}
-          <View
+        {/* Center: Ride info */}
+        <View style={{ flex: 1, gap: 3 }}>
+          <Text
+            numberOfLines={1}
             style={{
-              flexDirection: 'row',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
+              fontSize: 13.5,
+              fontWeight: '600',
+              color: t.ink,
+              letterSpacing: -0.01 * 13.5,
             }}
           >
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text
-                style={{ fontSize: 17, fontWeight: '700', color: titleColor }}
-                numberOfLines={1}
-              >
-                {rideName}
-              </Text>
-              <Text style={{ fontSize: 13, color: subtitleColor }}>
-                {formatRelativeDate(ride.startedAt)} · {bikeName}
-              </Text>
-            </View>
-          </View>
+            {rideName}
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={{
+              fontSize: 11,
+              color: t.ink3,
+            }}
+          >
+            {formatRelativeDate(ride.startedAt)} · {formatDuration(duration)}
+          </Text>
+        </View>
 
-          {/* Stats row */}
-          <View
+        {/* Right: Distance + avg speed */}
+        <View style={{ alignItems: 'flex-end', gap: 2 }}>
+          <Text
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 16,
-              marginTop: 4,
+              fontSize: 18,
+              fontWeight: '700',
+              color: t.ink,
+              fontVariant: ['tabular-nums'],
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <MapPin size={13} color={palette.accent500} />
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: statColor,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDistance(distance, system)}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <Clock size={13} color={palette.accent500} />
-              <Text
-                style={{
-                  fontSize: 14,
-                  fontWeight: '600',
-                  color: statColor,
-                  fontVariant: ['tabular-nums'],
-                }}
-              >
-                {formatDuration(duration)}
-              </Text>
-            </View>
-            {avgSpeed > 0 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                <Gauge size={13} color={palette.accent500} />
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: statColor,
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {formatSpeed(avgSpeed, system)}
-                </Text>
-              </View>
-            )}
-          </View>
+            {formatDistance(distance, system)}
+          </Text>
+          {avgSpeed > 0 && (
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: 'GeistMono',
+                color: t.ink3,
+              }}
+            >
+              {formatSpeed(avgSpeed, system)}
+            </Text>
+          )}
         </View>
       </Pressable>
     </Animated.View>

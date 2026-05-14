@@ -3,12 +3,13 @@ import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@moto
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo } from 'react';
+import { ArrowLeft, TrendingUp } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
 import { RideCard } from '../../../components/ride/ride-card';
 import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
@@ -17,64 +18,140 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { presentPaywall } from '../../../lib/subscription';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
-import { useEditorialTheme } from '../../../theme/editorial';
+import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import {
   distanceUnitLabel,
   formatDuration as fmtDuration,
   formatDistanceValue,
+  speedUnitLabel,
 } from '../../../utils/ride-formatters';
 
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
 
-/** Extract the edge type from the generated MyRidesQuery */
+type Period = 'week' | 'month' | 'year' | 'all';
+const PERIOD_KEYS: Period[] = ['week', 'month', 'year', 'all'];
+
 type RideEdge = MyRidesQuery['myRides']['edges'][number];
 
-/** Compute weekly/monthly/total stats from ride edges */
-function useRideStats(edges: RideEdge[]) {
+function useRideStats(edges: RideEdge[], period: Period) {
   return useMemo(() => {
     const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay());
-    weekStart.setHours(0, 0, 0, 0);
+    let periodStart: Date;
 
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    switch (period) {
+      case 'week': {
+        periodStart = new Date(now);
+        periodStart.setDate(now.getDate() - now.getDay());
+        periodStart.setHours(0, 0, 0, 0);
+        break;
+      }
+      case 'month': {
+        periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      }
+      case 'year': {
+        periodStart = new Date(now.getFullYear(), 0, 1);
+        break;
+      }
+      default:
+        periodStart = new Date(0);
+    }
 
-    let weekDistance = 0;
-    let weekRides = 0;
-    let weekDuration = 0;
-    let monthDistance = 0;
-    let monthRides = 0;
+    let periodDistance = 0;
+    let periodRides = 0;
+    let periodDuration = 0;
+    let periodMaxSpeed = 0;
     let totalDistance = 0;
+
+    // Daily distances for sparkline (last 30 days)
+    const dailyDistances: number[] = new Array(30).fill(0);
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(now.getDate() - 30);
 
     for (const edge of edges) {
       const d = new Date(edge.node.startedAt);
       const dist = edge.node.distanceM ?? 0;
       const dur = edge.node.durationS ?? 0;
+      const maxSpd = edge.node.maxSpeedMps ?? 0;
       totalDistance += dist;
 
-      if (d >= weekStart) {
-        weekDistance += dist;
-        weekRides++;
-        weekDuration += dur;
+      if (d >= periodStart) {
+        periodDistance += dist;
+        periodRides++;
+        periodDuration += dur;
+        if (maxSpd > periodMaxSpeed) periodMaxSpeed = maxSpd;
       }
-      if (d >= monthStart) {
-        monthDistance += dist;
-        monthRides++;
+
+      // Sparkline data
+      if (d >= thirtyDaysAgo) {
+        const dayIndex = Math.floor(
+          (d.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        if (dayIndex >= 0 && dayIndex < 30) {
+          dailyDistances[dayIndex] += dist / 1000; // km
+        }
       }
     }
 
     return {
-      weekDistance,
-      weekRides,
-      weekDuration,
-      monthDistance,
-      monthRides,
+      periodDistance,
+      periodRides,
+      periodDuration,
+      periodMaxSpeed,
       totalDistance,
       totalRides: edges.length,
+      dailyDistances,
     };
-  }, [edges]);
+  }, [edges, period]);
+}
+
+/** Mini sparkline area chart */
+function Sparkline({
+  data,
+  color,
+  height = 48,
+}: {
+  data: number[];
+  color: string;
+  height?: number;
+}) {
+  if (!data || data.length < 2) return null;
+
+  const max = Math.max(...data, 1);
+  const w = 320;
+  const h = height;
+  const padding = 4;
+
+  const points = data.map((v, i) => {
+    const x = padding + (i / (data.length - 1)) * (w - padding * 2);
+    const y = h - padding - (v / max) * (h - padding * 2);
+    return `${x},${y}`;
+  });
+
+  const linePath = `M${points.join(' L')}`;
+  const areaPath = `${linePath} L${w - padding},${h} L${padding},${h} Z`;
+
+  return (
+    <Svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      <Defs>
+        <SvgGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0%" stopColor={color} stopOpacity="0.30" />
+          <Stop offset="100%" stopColor={color} stopOpacity="0" />
+        </SvgGradient>
+      </Defs>
+      <Path d={areaPath} fill="url(#sparkGrad)" />
+      <Path
+        d={linePath}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
 }
 
 export default function RidesScreen() {
@@ -83,12 +160,23 @@ export default function RidesScreen() {
   const { t: theme } = useEditorialTheme();
   const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
+  const system = useMeasurementSystem();
+
+  const [period, setPeriod] = useState<Period>('month');
+
+  const periodLabelsMap: Record<Period, string> = useMemo(
+    () => ({
+      week: t('myRides.week'),
+      month: t('myRides.month'),
+      year: t('myRides.year'),
+      all: t('myRides.all'),
+    }),
+    [t],
+  );
 
   useEffect(() => {
     trackEvent(AnalyticsEvent.RIDES_HISTORY_VIEWED);
   }, []);
-
-  const system = useMeasurementSystem();
 
   const { data: motorcyclesData } = useQuery({
     queryKey: queryKeys.motorcycles.all,
@@ -121,11 +209,11 @@ export default function RidesScreen() {
   );
   const visibleEdges = isPro ? allEdges : allEdges.slice(0, FREE_TIER_LIMIT);
   const showUpgradeCta = !isPro && allEdges.length > FREE_TIER_LIMIT;
-  const stats = useRideStats(allEdges);
+  const stats = useRideStats(allEdges, period);
 
   const handleRidePress = useCallback(
     (rideId: string) => {
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router does not export typed route params for dynamic modals
+      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
       router.push({ pathname: '/(modals)/ride-detail' as const, params: { rideId } } as any);
     },
     [router],
@@ -174,187 +262,190 @@ export default function RidesScreen() {
     [handleRidePress],
   );
 
+  const periodLabel = useMemo(() => {
+    const now = new Date();
+    switch (period) {
+      case 'week':
+        return t('myRides.thisWeek');
+      case 'month':
+        return now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      case 'year':
+        return String(now.getFullYear());
+      default:
+        return t('myRides.allTime');
+    }
+  }, [period, t]);
+
   const renderHeader = useCallback(
     () => (
-      <Animated.View entering={FadeIn.duration(300)} style={{ gap: 16, marginBottom: 16 }}>
-        {/* Stats hero card */}
+      <Animated.View entering={FadeIn.duration(300)} style={{ gap: 12, marginBottom: 16 }}>
+        {/* Hero stat card */}
         <View
           style={{
             backgroundColor: theme.surface,
-            borderRadius: 14,
+            borderRadius: 18,
             borderCurve: 'continuous',
             borderWidth: 1,
             borderColor: theme.line,
             overflow: 'hidden',
           }}
         >
-          <View style={{ padding: 20, gap: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Calendar size={16} color={theme.warm} />
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: theme.ink2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 2.2,
-                }}
-              >
-                This Week
-              </Text>
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: 20 }}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 32,
-                    fontWeight: '200',
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    letterSpacing: -1,
-                  }}
-                >
-                  {formatDistanceValue(stats.weekDistance, system)}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: theme.ink3,
-                  }}
-                >
-                  {distanceUnitLabel(system)}
-                </Text>
-              </View>
-              <View>
-                <Text
-                  style={{
-                    fontSize: 32,
-                    fontWeight: '200',
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    letterSpacing: -1,
-                  }}
-                >
-                  {stats.weekRides}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: theme.ink3,
-                  }}
-                >
-                  ride{stats.weekRides !== 1 ? 's' : ''}
-                </Text>
-              </View>
-              <View>
-                <Text
-                  style={{
-                    fontSize: 32,
-                    fontWeight: '200',
-                    color: theme.ink,
-                    fontVariant: ['tabular-nums'],
-                    letterSpacing: -1,
-                  }}
-                >
-                  {fmtDuration(stats.weekDuration)}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: theme.ink3,
-                  }}
-                >
-                  riding
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Monthly + Total strip */}
-          <View
-            style={{
-              flexDirection: 'row',
-              borderTopWidth: 1,
-              borderTopColor: theme.line,
-            }}
-          >
+          <View style={{ padding: 18, paddingBottom: 14 }}>
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: '700',
+                color: theme.ink3,
+                textTransform: 'uppercase',
+                letterSpacing: 1.6,
+                marginBottom: 4,
+              }}
+            >
+              {periodLabel}
+            </Text>
             <View
               style={{
-                flex: 1,
-                padding: 14,
-                alignItems: 'center',
-                borderRightWidth: 1,
-                borderRightColor: theme.line,
+                flexDirection: 'row',
+                alignItems: 'baseline',
+                gap: 6,
+                marginBottom: 4,
               }}
             >
               <Text
                 style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: theme.ink2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 2.2,
+                  fontSize: 44,
+                  fontWeight: '300',
+                  color: theme.ink,
+                  fontVariant: ['tabular-nums'],
+                  letterSpacing: -1.5,
                 }}
               >
-                THIS MONTH
+                {formatDistanceValue(stats.periodDistance, system)}
               </Text>
               <Text
                 style={{
-                  fontSize: 18,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                  marginTop: 4,
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: theme.ink3,
                 }}
               >
-                {formatDistanceValue(stats.monthDistance, system)} {distanceUnitLabel(system)}
+                {distanceUnitLabel(system)}
               </Text>
             </View>
-            <View style={{ flex: 1, padding: 14, alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontWeight: '700',
-                  color: theme.ink2,
-                  textTransform: 'uppercase',
-                  letterSpacing: 2.2,
-                }}
-              >
-                ALL TIME
-              </Text>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '700',
-                  color: theme.ink,
-                  fontVariant: ['tabular-nums'],
-                  marginTop: 4,
-                }}
-              >
-                {formatDistanceValue(stats.totalDistance, system)} {distanceUnitLabel(system)}
-              </Text>
+            {/* Sparkline */}
+            <View style={{ marginTop: 8 }}>
+              <Sparkline data={stats.dailyDistances} color={theme.warm} height={48} />
             </View>
           </View>
         </View>
 
-        <Text
+        {/* 3 stat tiles */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {[
+            {
+              label: t('myRides.rides'),
+              value: String(stats.periodRides),
+              sub: t('myRides.ofTotal', { count: stats.totalRides }),
+            },
+            {
+              label: t('myRides.moving'),
+              value: fmtDuration(stats.periodDuration),
+              sub: '',
+            },
+            {
+              label: t('myRides.max'),
+              value:
+                stats.periodMaxSpeed > 0
+                  ? `${Math.round(stats.periodMaxSpeed * (system === 'imperial' ? 2.237 : 3.6))}`
+                  : 'NA',
+              sub: stats.periodMaxSpeed > 0 ? speedUnitLabel(system) : '',
+            },
+          ].map((s) => (
+            <View
+              key={s.label}
+              style={{
+                flex: 1,
+                backgroundColor: theme.surface,
+                borderWidth: 1,
+                borderColor: theme.line,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                padding: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 9,
+                  fontWeight: '700',
+                  color: theme.ink3,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1.2,
+                  marginBottom: 6,
+                }}
+              >
+                {s.label}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 22,
+                  fontWeight: '700',
+                  color: theme.ink,
+                  fontVariant: ['tabular-nums'],
+                  letterSpacing: -0.5,
+                  lineHeight: 24,
+                }}
+              >
+                {s.value}
+              </Text>
+              {s.sub ? (
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: theme.ink3,
+                    fontVariant: ['tabular-nums'],
+                    marginTop: 4,
+                  }}
+                >
+                  {s.sub}
+                </Text>
+              ) : null}
+            </View>
+          ))}
+        </View>
+
+        {/* Section header */}
+        <View
           style={{
-            fontSize: 11,
-            fontWeight: '700',
-            color: theme.ink2,
-            textTransform: 'uppercase',
-            letterSpacing: 2.2,
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginTop: 4,
           }}
         >
-          Activity
-        </Text>
+          <Text
+            style={{
+              fontSize: 10,
+              fontWeight: '700',
+              color: theme.ink3,
+              textTransform: 'uppercase',
+              letterSpacing: 1.6,
+            }}
+          >
+            {t('myRides.recentRides')}
+          </Text>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '600',
+              color: theme.warm,
+            }}
+          >
+            {t('myRides.newestFirst')}
+          </Text>
+        </View>
       </Animated.View>
     ),
-    [stats, system, theme],
+    [stats, system, theme, periodLabel, t],
   );
 
   const renderEmpty = useCallback(() => {
@@ -445,14 +536,8 @@ export default function RidesScreen() {
           }}
         >
           <TrendingUp size={24} color={theme.warm} />
-          <Text
-            style={{
-              fontSize: 16,
-              fontWeight: '700',
-              color: theme.ink,
-            }}
-          >
-            Unlock Full History
+          <Text style={{ fontSize: 16, fontWeight: '700', color: theme.ink }}>
+            {t('myRides.unlockTitle')}
           </Text>
           <Text
             style={{
@@ -461,8 +546,7 @@ export default function RidesScreen() {
               textAlign: 'center',
             }}
           >
-            Free accounts show the last {FREE_TIER_LIMIT} rides. Upgrade for unlimited history and
-            stats.
+            {t('myRides.unlockDesc', { limit: FREE_TIER_LIMIT })}
           </Text>
           <Pressable
             onPress={() =>
@@ -473,7 +557,7 @@ export default function RidesScreen() {
               })
             }
             accessibilityRole="button"
-            accessibilityLabel="Upgrade to Pro"
+            accessibilityLabel={t('myRides.upgradePro')}
             style={{
               overflow: 'hidden',
               borderRadius: 14,
@@ -488,7 +572,7 @@ export default function RidesScreen() {
               style={{ paddingHorizontal: 24, paddingVertical: 12 }}
             >
               <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                Upgrade to Pro
+                {t('myRides.upgradePro')}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -496,7 +580,7 @@ export default function RidesScreen() {
       );
     }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, theme]);
+  }, [isFetchingNextPage, showUpgradeCta, theme, t]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -505,58 +589,103 @@ export default function RidesScreen() {
         style={{
           paddingTop: insets.top + 8,
           paddingHorizontal: 20,
-          paddingBottom: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
+          paddingBottom: 8,
         }}
       >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <ArrowLeft size={20} color={theme.ink} />
-        </Pressable>
-        <Text
-          style={{
-            flex: 1,
-            fontSize: 28,
-            fontWeight: '800',
-            color: theme.ink,
-            letterSpacing: -0.5,
-          }}
-        >
-          My Rides
-        </Text>
+        {/* Top row: back + title + count */}
         <View
           style={{
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: 10,
-            borderCurve: 'continuous',
-            backgroundColor: theme.surface2,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 12,
           }}
         >
-          <Text
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={{
-              fontSize: 13,
-              fontWeight: '700',
-              color: theme.warm,
-              fontVariant: ['tabular-nums'],
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              borderCurve: 'continuous',
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.line,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {stats.totalRides} ride{stats.totalRides !== 1 ? 's' : ''}
+            <ArrowLeft size={16} color={theme.ink2} />
+          </Pressable>
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 22,
+              fontWeight: '700',
+              color: theme.ink,
+              letterSpacing: -0.5,
+            }}
+          >
+            {t('myRides.title')}
           </Text>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 10,
+              borderCurve: 'continuous',
+              backgroundColor: tint(theme.warm, 0.1),
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: theme.warm,
+                fontVariant: ['tabular-nums'],
+              }}
+            >
+              {t('myRides.total', { count: stats.totalRides })}
+            </Text>
+          </View>
+        </View>
+
+        {/* Period switcher */}
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {PERIOD_KEYS.map((key) => {
+            const active = period === key;
+            return (
+              <Pressable
+                key={key}
+                onPress={() => {
+                  if (process.env.EXPO_OS === 'ios') triggerImpact();
+                  setPeriod(key);
+                }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                style={{
+                  paddingHorizontal: 13,
+                  paddingVertical: 7,
+                  borderRadius: 999,
+                  backgroundColor: active ? theme.ink : theme.surface,
+                  borderWidth: 1,
+                  borderColor: active ? theme.ink : theme.line,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: active ? theme.bg : theme.ink2,
+                  }}
+                >
+                  {periodLabelsMap[key]}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -571,8 +700,8 @@ export default function RidesScreen() {
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 20,
-            gap: 12,
+            paddingBottom: insets.bottom + 100,
+            gap: 8,
           }}
           ListHeaderComponent={allEdges.length > 0 ? renderHeader : undefined}
           ListEmptyComponent={renderEmpty}

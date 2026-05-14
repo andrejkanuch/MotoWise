@@ -274,7 +274,13 @@ export class RidesService {
   async deleteRide(userId: string, id: string): Promise<boolean> {
     this.logger.log(`deleteRide: userId=${userId}, rideId=${id}`);
 
-    const { data, error } = await this.supabase
+    // Uses supabaseAdmin because the soft-delete UPDATE sets deleted_at,
+    // which makes the new row invisible to SELECT RLS policies
+    // (they require deleted_at IS NULL). PostgreSQL rejects the UPDATE
+    // when the new row fails SELECT visibility — even though the UPDATE
+    // WITH CHECK passes. Ownership is enforced via .eq('user_id', userId)
+    // where userId comes from the authenticated JWT.
+    const { data, error } = await this.supabaseAdmin
       .from('rides')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
@@ -288,7 +294,7 @@ export class RidesService {
     // Idempotent: if the ride is already soft-deleted, treat as success
     // (sync queue retries, duplicate taps, etc.)
     if (error?.code === 'PGRST116') {
-      const { count } = await this.supabase
+      const { count } = await this.supabaseAdmin
         .from('rides')
         .select('id', { count: 'exact', head: true })
         .eq('id', id)

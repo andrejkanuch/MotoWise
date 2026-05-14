@@ -56,8 +56,8 @@ jest.mock('../utils/ride-sync-queue', () => ({
 
 import type { Waypoint } from '@motovault/types';
 import {
-  CHUNK_SIZE,
   appendWaypoint,
+  CHUNK_SIZE,
   clearPointBuffer,
   flushBufferToMMKV,
   getPointBuffer,
