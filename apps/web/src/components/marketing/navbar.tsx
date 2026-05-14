@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Link, usePathname } from '@/i18n/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
@@ -666,7 +665,6 @@ export function Navbar() {
               </a>
             </>
           )}
-          <ThemeToggle />
         </div>
 
         {/* Hamburger (mobile) */}

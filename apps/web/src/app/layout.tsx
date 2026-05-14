@@ -58,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           // biome-ignore lint/security/noDangerouslySetInnerHtml: inline script required to prevent FOUC on theme load
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('motovault-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark');var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=d?'#0a0a0a':'#faf8f6'}catch(e){}})()`,
+            __html: `document.documentElement.classList.add('dark')`,
           }}
         />
         <link rel="dns-prefetch" href="https://tpsoneenbrmdwvzcbifw.supabase.co" />

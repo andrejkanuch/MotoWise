@@ -2,7 +2,6 @@
 
 import { palette } from '@motovault/design-system';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const NAV_LINKS = [
@@ -84,7 +83,6 @@ export function PublicNavbar() {
               Sign in
             </a>
           ) : null}
-          <ThemeToggle />
           <a
             href="https://apps.apple.com/us/app/motovault/id6760291360"
             className="rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors"
@@ -161,10 +159,6 @@ export function PublicNavbar() {
               Sign in
             </a>
           ) : null}
-          <div className="flex items-center gap-2 py-2.5">
-            <ThemeToggle />
-            <span className="text-xs text-[--color-on-surface-muted]">Theme</span>
-          </div>
           <a
             href="https://apps.apple.com/us/app/motovault/id6760291360"
             className="mt-2 block rounded-lg px-4 py-2.5 text-center text-sm font-medium"
