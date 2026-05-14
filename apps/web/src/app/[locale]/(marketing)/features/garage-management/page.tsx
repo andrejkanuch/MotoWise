@@ -288,7 +288,7 @@ export default async function GarageManagementPage({ params }: PageProps) {
                           placeItems: 'center',
                           flexShrink: 0,
                           background: bike.bg,
-                          color: '#000',
+                          color: 'var(--mv-bg)',
                           fontWeight: 600,
                           fontSize: 11,
                           letterSpacing: '-0.02em',

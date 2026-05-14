@@ -1,0 +1,9 @@
+query MakeStats {
+  makeStats {
+    make
+    riders
+    models
+    totalBikes
+    rank
+  }
+}

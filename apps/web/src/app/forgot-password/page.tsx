@@ -47,21 +47,29 @@ export default function ForgotPasswordPage() {
         </Link>
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8">
           <h1 className="text-3xl font-bold text-neutral-50 mb-1">MotoVault</h1>
-          <p className="text-neutral-400 mb-6">Reset Password</p>
+          <p className="text-neutral-400 mb-6">
+            Enter your email and we&apos;ll send a link to reset your password.
+          </p>
 
           {success ? (
             <div className="rounded-xl bg-green-950/50 border border-green-800 p-4">
               <p className="text-sm text-green-400 font-medium">
-                Check your email for a password reset link.
+                We sent a reset link to <strong>{email}</strong>. Check your inbox (and spam
+                folder).
+              </p>
+              <p className="mt-2 text-xs text-neutral-500">
+                Didn&apos;t get it? Wait a minute, then try again.
               </p>
             </div>
           ) : (
             <>
-              {error && (
-                <p id="reset-error" role="alert" className="text-sm text-danger-500 mb-4">
-                  {error}
-                </p>
-              )}
+              <div aria-live="polite" aria-atomic="true">
+                {error && (
+                  <p id="reset-error" role="alert" className="text-sm text-danger-500 mb-4">
+                    {error}
+                  </p>
+                )}
+              </div>
               <form onSubmit={handleReset} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="reset-email" className="text-sm font-medium text-neutral-400">
@@ -83,7 +91,7 @@ export default function ForgotPasswordPage() {
                   disabled={loading}
                   className="w-full rounded-full bg-warm-500 px-6 py-3 font-semibold text-neutral-950 transition-colors hover:bg-warm-400 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Sending...' : 'Reset Password'}
+                  {loading ? 'Sending reset link\u2026' : 'Send reset link'}
                 </button>
               </form>
             </>

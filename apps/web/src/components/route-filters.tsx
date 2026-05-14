@@ -129,6 +129,10 @@ export function RouteFilters({ filters, onChange }: RouteFiltersProps) {
           step={1}
           value={twistScore}
           onChange={(e) => handleTwistScoreChange(Number(e.target.value))}
+          aria-valuemin={1}
+          aria-valuemax={10}
+          aria-valuenow={twistScore}
+          aria-valuetext={twistScore === 1 ? 'Any twist score' : `${twistScore} out of 10`}
           className="w-full accent-primary-500"
         />
         <div className="flex justify-between text-[10px] text-neutral-600">

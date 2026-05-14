@@ -3,7 +3,6 @@ import type {
   Currency,
   ExperienceLevel,
   LastServiceDate,
-  LearningFormat,
   MaintenanceStyle,
   MileageUnit,
   MotorcycleType,
@@ -11,9 +10,18 @@ import type {
   RidingFrequency,
   RidingGoal,
 } from '@motovault/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createMMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { OnboardingRoute } from '../config/onboarding';
+
+const mmkv = createMMKV({ id: 'onboarding-store' });
+
+const mmkvStorage = {
+  getItem: (key: string) => mmkv.getString(key) ?? null,
+  setItem: (key: string, value: string) => mmkv.set(key, value),
+  removeItem: (key: string) => mmkv.remove(key),
+};
 
 interface BikeData {
   year: number;
@@ -33,7 +41,6 @@ interface OnboardingState {
   ridingGoals: RidingGoal[];
   ridingFrequency: RidingFrequency | null;
   maintenanceStyle: MaintenanceStyle | null;
-  learningFormats: LearningFormat[];
   annualRepairSpend: AnnualRepairSpend | null;
   maintenanceReminders: boolean;
   reminderChannel: ReminderChannel | null;
@@ -42,12 +49,16 @@ interface OnboardingState {
   weeklySummary: boolean;
   lastServiceDate: LastServiceDate | null;
   currency: Currency | null;
+  /** OEM schedule IDs the user accepted in the maintenance swipe screen */
+  acceptedOemScheduleIds: string[];
+  /** V2: tracks last completed screen for resume-after-kill */
+  lastCompletedScreen: OnboardingRoute | null;
+  setAcceptedOemScheduleIds: (ids: string[]) => void;
   setExperienceLevel: (level: ExperienceLevel) => void;
   setBikeData: (data: BikeData | null) => void;
   setRidingGoals: (goals: RidingGoal[]) => void;
   setRidingFrequency: (frequency: RidingFrequency) => void;
   setMaintenanceStyle: (style: MaintenanceStyle) => void;
-  setLearningFormats: (formats: LearningFormat[]) => void;
   setAnnualRepairSpend: (spend: AnnualRepairSpend) => void;
   setMaintenanceReminders: (enabled: boolean) => void;
   setReminderChannel: (channel: ReminderChannel) => void;
@@ -56,6 +67,7 @@ interface OnboardingState {
   setWeeklySummary: (enabled: boolean) => void;
   setLastServiceDate: (date: LastServiceDate) => void;
   setCurrency: (currency: Currency) => void;
+  setLastCompletedScreen: (screen: OnboardingRoute) => void;
   reset: () => void;
 }
 
@@ -65,7 +77,6 @@ const initialState = {
   ridingGoals: [] as RidingGoal[],
   ridingFrequency: null as RidingFrequency | null,
   maintenanceStyle: null as MaintenanceStyle | null,
-  learningFormats: [] as LearningFormat[],
   annualRepairSpend: null as AnnualRepairSpend | null,
   maintenanceReminders: true,
   reminderChannel: null as ReminderChannel | null,
@@ -74,6 +85,8 @@ const initialState = {
   weeklySummary: false,
   lastServiceDate: null as LastServiceDate | null,
   currency: null as Currency | null,
+  acceptedOemScheduleIds: [] as string[],
+  lastCompletedScreen: null as OnboardingRoute | null,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -85,8 +98,8 @@ export const useOnboardingStore = create<OnboardingState>()(
       setRidingGoals: (goals) => set({ ridingGoals: goals }),
       setRidingFrequency: (frequency) => set({ ridingFrequency: frequency }),
       setMaintenanceStyle: (style) => set({ maintenanceStyle: style }),
-      setLearningFormats: (formats) => set({ learningFormats: formats }),
       setAnnualRepairSpend: (spend) => set({ annualRepairSpend: spend }),
+      setAcceptedOemScheduleIds: (ids) => set({ acceptedOemScheduleIds: ids }),
       setMaintenanceReminders: (enabled) => set({ maintenanceReminders: enabled }),
       setReminderChannel: (channel) => set({ reminderChannel: channel }),
       setSeasonalTips: (enabled) => set({ seasonalTips: enabled }),
@@ -94,20 +107,21 @@ export const useOnboardingStore = create<OnboardingState>()(
       setWeeklySummary: (enabled) => set({ weeklySummary: enabled }),
       setLastServiceDate: (date) => set({ lastServiceDate: date }),
       setCurrency: (currency) => set({ currency }),
+      setLastCompletedScreen: (screen) => set({ lastCompletedScreen: screen }),
       reset: () => set(store.getInitialState(), true),
     }),
     {
       name: 'onboarding-state',
-      version: 3,
-      storage: createJSONStorage(() => AsyncStorage),
+      version: 5,
+      storage: createJSONStorage(() => mmkvStorage),
       partialize: ({
         setExperienceLevel,
         setBikeData,
         setRidingGoals,
         setRidingFrequency,
         setMaintenanceStyle,
-        setLearningFormats,
         setAnnualRepairSpend,
+        setAcceptedOemScheduleIds,
         setMaintenanceReminders,
         setReminderChannel,
         setSeasonalTips,
@@ -115,6 +129,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         setWeeklySummary,
         setLastServiceDate,
         setCurrency,
+        setLastCompletedScreen,
         reset,
         ...data
       }) => data,
@@ -123,6 +138,20 @@ export const useOnboardingStore = create<OnboardingState>()(
           return initialState as unknown as OnboardingState;
 
         const state = persistedState as Record<string, unknown>;
+
+        // V4: Onboarding redesign — add lastCompletedScreen, handle v1→v2 reset
+        if (version < 4) {
+          // If store has no ridingGoals or is pre-v3, hard reset to clean v2 flow.
+          // This catches users mid-v1-onboarding who would have broken state.
+          // Note: onboardingCompleted lives in auth store, not here — don't check it.
+          const goals = state.ridingGoals as string[] | undefined;
+          if (!goals?.length || version < 3) {
+            return initialState as unknown as OnboardingState;
+          }
+          // Otherwise append missing v4 fields
+          state.lastCompletedScreen = null;
+        }
+
         if (version < 3) {
           state.currency = state.currency ?? null;
         }

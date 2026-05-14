@@ -1,24 +1,29 @@
-import * as Haptics from 'expo-haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ArrowRight } from 'lucide-react-native';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors';
+import { OB_ROUTE } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
+import { triggerImpact } from '../../utils/haptics';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
+  useEffect(() => {
+    trackEvent(AnalyticsEvent.ONBOARDING_STEP_VIEWED, { step: 'welcome' });
+  }, []);
+
   const handleGetStarted = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    triggerImpact(ImpactFeedbackStyle.Medium);
     trackEvent(AnalyticsEvent.ONBOARDING_STARTED);
-    router.push('/(onboarding)/experience');
+    router.push(OB_ROUTE.EXPERIENCE);
   };
 
   return (
@@ -31,20 +36,18 @@ export default function WelcomeScreen() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: '#1a1510',
+          backgroundColor: ONBOARDING_COLORS.background,
         }}
       >
         <Image
-          source={{
-            uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1200&q=80&auto=format&fit=crop',
-          }}
+          source={require('../../assets/images/onboarding-hero.webp')}
           style={{ width: '100%', height: '100%', opacity: 0.65 }}
           contentFit="cover"
           contentPosition="center"
         />
       </View>
 
-      {/* Gradient veil */}
+      {/* Gradient veil — bottom-heavy dark overlay */}
       <LinearGradient
         colors={[
           `${ONBOARDING_COLORS.background}66`,
@@ -91,7 +94,7 @@ export default function WelcomeScreen() {
             style={{
               fontWeight: '600',
               letterSpacing: -0.3,
-              color: '#fff',
+              color: ONBOARDING_COLORS.textWhite,
               fontSize: 15,
             }}
           >
@@ -101,6 +104,7 @@ export default function WelcomeScreen() {
 
         {/* Bottom editorial copy */}
         <View>
+          {/* Tagline */}
           <Animated.Text
             entering={FadeInUp.delay(100).duration(400)}
             style={{
@@ -108,52 +112,56 @@ export default function WelcomeScreen() {
               fontWeight: '600',
               letterSpacing: 2,
               textTransform: 'uppercase',
-              color: '#fff',
-              opacity: 0.7,
+              color: ONBOARDING_COLORS.warm2,
               marginBottom: 18,
             }}
           >
-            The rider's companion
+            {t('onboarding.v2WelcomeTagline')}
           </Animated.Text>
 
+          {/* Headline — "Your rides. / Your bike. / Your journey." */}
           <Animated.View entering={FadeInUp.delay(200).duration(400)}>
             <Text
               style={{
                 fontFamily: 'InstrumentSerif-Regular',
                 fontSize: 56,
                 lineHeight: 57,
-                color: '#fff',
+                color: ONBOARDING_COLORS.textWhite,
                 letterSpacing: -1.1,
                 marginBottom: 18,
               }}
             >
-              Every bike{'\n'}
+              {t('onboarding.v2WelcomeHeadline1')}
+              {'\n'}
+              {t('onboarding.v2WelcomeHeadline2')}
+              {'\n'}
               <Text
                 style={{
                   fontFamily: 'InstrumentSerif-Italic',
                   color: ONBOARDING_COLORS.warm2,
                 }}
               >
-                has a story.
+                {t('onboarding.v2WelcomeHeadline3')}
               </Text>
             </Text>
           </Animated.View>
 
+          {/* Subtitle */}
           <Animated.Text
             entering={FadeInUp.delay(300).duration(400)}
             style={{
               fontSize: 15,
               lineHeight: 22,
-              color: '#fff',
+              color: ONBOARDING_COLORS.textWhite,
               opacity: 0.82,
               maxWidth: 280,
               marginBottom: 32,
             }}
           >
-            Keep your garage, trips, and maintenance in one thoughtfully-made place — built for
-            riders who care.
+            {t('onboarding.v2WelcomeSubtitle')}
           </Animated.Text>
 
+          {/* CTA button */}
           <Animated.View entering={FadeIn.delay(500).duration(300)}>
             <Pressable
               onPress={handleGetStarted}
@@ -175,34 +183,14 @@ export default function WelcomeScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#1a1208',
+                  color: ONBOARDING_COLORS.textOnAccent,
                   letterSpacing: -0.15,
                 }}
               >
-                {t('onboarding.getStarted')}
+                {t('onboarding.v2WelcomeCta')}
               </Text>
-              <ArrowRight size={18} color="#1a1208" />
+              <ArrowRight size={18} color={ONBOARDING_COLORS.textOnAccent} />
             </Pressable>
-
-            <Text
-              style={{
-                textAlign: 'center',
-                marginTop: 16,
-                fontSize: 13,
-                color: '#fff',
-                opacity: 0.7,
-              }}
-            >
-              Have an account?{' '}
-              <Text
-                style={{
-                  color: ONBOARDING_COLORS.warm2,
-                  fontWeight: '600',
-                }}
-              >
-                Sign in
-              </Text>
-            </Text>
           </Animated.View>
         </View>
       </View>

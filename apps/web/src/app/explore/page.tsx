@@ -167,7 +167,13 @@ async function EditorSection() {
 function SectionSkeleton() {
   return (
     <div style={{ padding: '90px 40px', maxWidth: 1320, margin: '0 auto' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: 14,
+        }}
+      >
         {[0, 1, 2, 3].map((i) => (
           <SkeletonCard key={i} />
         ))}

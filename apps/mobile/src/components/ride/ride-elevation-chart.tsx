@@ -54,7 +54,7 @@ export const RideElevationChart = memo(function RideElevationChart({
   system,
 }: RideElevationChartProps) {
   const { width: screenWidth } = useWindowDimensions();
-  const chartWidth = screenWidth - 72;
+  const chartWidth = screenWidth - 140;
   const elevUnit = elevationUnitLabel(system);
   const distUnit = distanceUnitLabel(system);
   const isImperial = system === 'imperial';

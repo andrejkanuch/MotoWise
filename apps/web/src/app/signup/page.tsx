@@ -535,7 +535,7 @@ export default function SignUpPage() {
                       style={{
                         marginTop: 16,
                         fontSize: 13,
-                        color: '#ef4444',
+                        color: 'oklch(0.58 0.22 25)',
                         padding: '10px 14px',
                         background: 'oklch(0.25 0.08 25 / 0.3)',
                         borderRadius: 10,

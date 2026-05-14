@@ -20,9 +20,9 @@ describe('NhtsaService', () => {
   describe('getMakes', () => {
     const apiResponse = {
       Results: [
-        { MakeId: 1, MakeName: 'Zundapp' },
-        { MakeId: 2, MakeName: 'Honda' },
-        { MakeId: 3, MakeName: 'Aprilia' },
+        { MakeId: 1, MakeName: 'ZUNDAPP' },
+        { MakeId: 2, MakeName: 'HONDA' },
+        { MakeId: 3, MakeName: 'APRILIA' },
       ],
     };
 
@@ -52,9 +52,9 @@ describe('NhtsaService', () => {
       const result = await service.getMakes();
 
       expect(globalThis.fetch).toHaveBeenCalledTimes(1);
-      // Popular makes (Aprilia, Honda) should come before non-popular (Zundapp)
+      // Popular makes (APRILIA, HONDA) should come before non-popular (ZUNDAPP)
       const names = result.map((m) => m.makeName);
-      expect(names).toEqual(['Aprilia', 'Honda', 'Zundapp']);
+      expect(names).toEqual(['APRILIA', 'HONDA', 'ZUNDAPP']);
       expect(result[0].isPopular).toBe(true);
       expect(result[1].isPopular).toBe(true);
       expect(result[2].isPopular).toBe(false);

@@ -339,6 +339,13 @@ export default function BikeDetailScreen() {
   const handleCheckRecalls = () => {
     if (!bike) return;
     triggerImpact();
+    trackEvent(AnalyticsEvent.RECALLS_CHECKED, {
+      motorcycle_id: bike.id,
+      bike_make: bike.make,
+      bike_model: bike.model,
+      bike_year: bike.year,
+      has_vin: !!bike.vin,
+    });
     router.push({
       pathname: '/(modals)/recalls',
       params: {
@@ -379,6 +386,12 @@ export default function BikeDetailScreen() {
 
   const handleImportOem = () => {
     triggerImpact();
+    trackEvent(AnalyticsEvent.OEM_SCHEDULE_IMPORTED, {
+      motorcycle_id: id,
+      bike_make: bike?.make ?? '',
+      bike_model: bike?.model ?? '',
+      bike_year: bike?.year ?? 0,
+    });
     importOemMutation.mutate();
   };
 
@@ -417,10 +430,6 @@ export default function BikeDetailScreen() {
     (taskId: string) => setExpandedId((prev) => (prev === taskId ? null : taskId)),
     [],
   );
-
-  const handleMileageUpdate = (newMileage: number) => {
-    updateBikeMutation.mutate({ currentMileage: newMileage });
-  };
 
   // --- Loading / not found states ---
 
@@ -675,9 +684,7 @@ export default function BikeDetailScreen() {
             currentMileage={bike.currentMileage ?? undefined}
             mileageUnit={bike.mileageUnit ?? 'mi'}
             mileageUpdatedAt={bike.mileageUpdatedAt ?? undefined}
-            odometerSyncSource={bike.odometerSyncSource ?? undefined}
             isDark={isDark}
-            onUpdate={handleMileageUpdate}
           />
         </Animated.View>
 
@@ -923,6 +930,12 @@ export default function BikeDetailScreen() {
           <Pressable
             onPress={() => {
               triggerImpact();
+              trackEvent(AnalyticsEvent.HEALTH_REPORT_VIEWED, {
+                motorcycle_id: id,
+                bike_make: bike.make,
+                bike_model: bike.model,
+                bike_year: bike.year,
+              });
               router.push({
                 pathname: '/(tabs)/(garage)/health-report',
                 params: { bikeId: id },

@@ -1,13 +1,16 @@
 import { palette } from '@motovault/design-system';
 import type { LucideIcon } from 'lucide-react-native';
 import {
+  Bike,
   Gauge,
   Map as MapIcon,
   MessageCircle,
   Navigation,
   Paintbrush,
   Route,
+  Sparkles,
   Users,
+  Wrench,
 } from 'lucide-react-native';
 
 export interface WhatsNewSlide {
@@ -28,6 +31,29 @@ export interface WhatsNewRelease {
  * the current app version is shown.
  */
 export const WHATS_NEW_RELEASES = [
+  {
+    version: '3.6.0',
+    slides: [
+      {
+        icon: Sparkles,
+        iconColor: palette.editorialDarkWarm,
+        titleKey: 'whatsNew.v360.onboardingTitle' as const,
+        descriptionKey: 'whatsNew.v360.onboardingDesc' as const,
+      },
+      {
+        icon: Wrench,
+        iconColor: palette.accent400,
+        titleKey: 'whatsNew.v360.maintenanceTitle' as const,
+        descriptionKey: 'whatsNew.v360.maintenanceDesc' as const,
+      },
+      {
+        icon: Bike,
+        iconColor: palette.signature400,
+        titleKey: 'whatsNew.v360.bikeSetupTitle' as const,
+        descriptionKey: 'whatsNew.v360.bikeSetupDesc' as const,
+      },
+    ],
+  },
   {
     version: '3.0.0',
     slides: [

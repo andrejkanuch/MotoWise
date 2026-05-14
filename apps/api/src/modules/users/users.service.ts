@@ -16,6 +16,7 @@ import {
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../email/email.service';
 import { MetaEventsService } from '../meta/meta-events.service';
+import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { RevenueCatService } from '../webhooks/revenuecat.service';
@@ -74,6 +75,7 @@ export class UsersService {
     private readonly revenueCatService: RevenueCatService,
     private readonly emailService: EmailService,
     private readonly metaEventsService: MetaEventsService,
+    private readonly oemSchedulesService: OemSchedulesService,
   ) {}
 
   private mapRow(row: Tables<'users'>): User {
@@ -197,6 +199,40 @@ export class UsersService {
     }
 
     const user = await this.findById(userId);
+
+    // Import only the OEM maintenance tasks the user accepted during onboarding swipe.
+    // The RPC created the motorcycle — find it and selectively import.
+    if (input.bikeMake && input.acceptedOemScheduleIds?.length) {
+      try {
+        // Find the user's most recently created motorcycle (the one the RPC just made)
+        const { data: bike } = await this.supabaseAdmin
+          .from('motorcycles')
+          .select('id, make, model, year, current_mileage')
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (bike) {
+          await this.oemSchedulesService.autoPopulateForBike(
+            this.supabase,
+            userId,
+            bike.id,
+            bike.make,
+            bike.model ?? null,
+            bike.year ?? null,
+            null,
+            bike.current_mileage ?? 0,
+            input.acceptedOemScheduleIds,
+          );
+        } else {
+          this.logger.warn(`No motorcycle found for user ${userId} after onboarding`);
+        }
+      } catch (err) {
+        this.logger.warn(`Failed to import accepted OEM tasks for ${userId}: ${err}`);
+      }
+    }
 
     // Fire Meta CAPI CompleteRegistration — fire and forget, don't block response
     this.metaEventsService

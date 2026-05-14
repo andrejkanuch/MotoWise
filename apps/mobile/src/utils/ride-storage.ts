@@ -14,6 +14,7 @@ export const RIDE_KEYS = {
   TOTAL_AUTO_PAUSED_MS: 'ride.total_auto_paused_ms',
   RECORDING_SUB_STATE: 'ride.recording_sub_state',
   PERMISSION_LEVEL: 'ride.permission_level',
+  HUD_LAYOUT: 'ride.hud_layout',
 } as const;
 
 const waypointChunkKey = (rideId: string, chunkIndex: number) => `ride:${rideId}:wp:${chunkIndex}`;
@@ -62,6 +63,10 @@ export const rideMMKV = {
       | undefined,
   setPermissionLevel: (level: 'full' | 'foreground_only' | 'denied') =>
     rideStorage.set(RIDE_KEYS.PERMISSION_LEVEL, level),
+
+  // HUD layout preference
+  getHudLayout: () => (rideStorage.getString(RIDE_KEYS.HUD_LAYOUT) as 'A' | 'B' | undefined) ?? 'A',
+  setHudLayout: (layout: 'A' | 'B') => rideStorage.set(RIDE_KEYS.HUD_LAYOUT, layout),
 } as const;
 
 // --- In-memory waypoint buffer ---

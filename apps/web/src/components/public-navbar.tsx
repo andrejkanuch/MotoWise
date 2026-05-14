@@ -1,7 +1,8 @@
 'use client';
 
 import { palette } from '@motovault/design-system';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 const NAV_LINKS = [
@@ -13,17 +14,23 @@ export function PublicNavbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const threshold = useRef(80);
+  const scrolledRef = useRef(false);
+
+  const onScroll = useCallback(() => {
+    const y = window.scrollY;
+    if (!scrolledRef.current && y > 80) {
+      scrolledRef.current = true;
+      setScrolled(true);
+    } else if (scrolledRef.current && y < 20) {
+      scrolledRef.current = false;
+      setScrolled(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (!scrolled && y > threshold.current) setScrolled(true);
-      else if (scrolled && y < 20) setScrolled(false);
-    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [scrolled]);
+  }, [onScroll]);
 
   // Check auth state
   useEffect(() => {
@@ -37,7 +44,8 @@ export function PublicNavbar() {
     <header
       className="sticky top-0 z-50 transition-colors duration-200"
       style={{
-        backgroundColor: scrolled || menuOpen ? 'rgba(10,10,10,0.95)' : 'transparent',
+        backgroundColor:
+          scrolled || menuOpen ? 'var(--color-surface, rgba(10,10,10,0.95))' : 'transparent',
         backdropFilter: scrolled || menuOpen ? 'blur(12px)' : 'none',
         WebkitBackdropFilter: scrolled || menuOpen ? 'blur(12px)' : 'none',
       }}
@@ -45,7 +53,7 @@ export function PublicNavbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         {/* Logo */}
         <a href="/" className="flex items-center gap-1.5">
-          <span className="text-lg font-bold tracking-tight text-neutral-50">
+          <span className="text-lg font-bold tracking-tight text-[--color-on-surface]">
             Moto<span style={{ color: palette.signature400 }}>Vault</span>
           </span>
         </a>
@@ -56,7 +64,7 @@ export function PublicNavbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm text-neutral-400 transition-colors hover:text-neutral-100"
+              className="text-sm text-[--color-on-surface-muted] transition-colors hover:text-[--color-on-surface]"
             >
               {link.label}
             </a>
@@ -64,18 +72,19 @@ export function PublicNavbar() {
           {isLoggedIn === true ? (
             <a
               href="/garage"
-              className="text-sm font-medium text-neutral-200 transition-colors hover:text-neutral-50"
+              className="text-sm font-medium text-[--color-on-surface] transition-colors hover:opacity-80"
             >
               My Garage
             </a>
           ) : isLoggedIn === false ? (
             <a
               href="/login"
-              className="text-sm text-neutral-400 transition-colors hover:text-neutral-100"
+              className="text-sm text-[--color-on-surface-muted] transition-colors hover:text-[--color-on-surface]"
             >
               Sign in
             </a>
           ) : null}
+          <ThemeToggle />
           <a
             href="https://apps.apple.com/us/app/motovault/id6760291360"
             className="rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors"
@@ -88,7 +97,7 @@ export function PublicNavbar() {
         {/* Mobile hamburger */}
         <button
           type="button"
-          className="-mr-2 p-3 text-neutral-400 sm:hidden"
+          className="-mr-2 p-3 text-[--color-on-surface-muted] sm:hidden"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
         >
@@ -124,12 +133,12 @@ export function PublicNavbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="border-t border-neutral-800/40 px-4 pb-4 sm:hidden">
+        <div className="border-t border-[--color-border] px-4 pb-4 sm:hidden">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="block py-2.5 text-sm text-neutral-300"
+              className="block py-2.5 text-sm text-[--color-on-surface-muted]"
               onClick={() => setMenuOpen(false)}
             >
               {link.label}
@@ -138,7 +147,7 @@ export function PublicNavbar() {
           {isLoggedIn === true ? (
             <a
               href="/garage"
-              className="block py-2.5 text-sm font-medium text-neutral-200"
+              className="block py-2.5 text-sm font-medium text-[--color-on-surface]"
               onClick={() => setMenuOpen(false)}
             >
               My Garage
@@ -146,12 +155,16 @@ export function PublicNavbar() {
           ) : isLoggedIn === false ? (
             <a
               href="/login"
-              className="block py-2.5 text-sm text-neutral-300"
+              className="block py-2.5 text-sm text-[--color-on-surface-muted]"
               onClick={() => setMenuOpen(false)}
             >
               Sign in
             </a>
           ) : null}
+          <div className="flex items-center gap-2 py-2.5">
+            <ThemeToggle />
+            <span className="text-xs text-[--color-on-surface-muted]">Theme</span>
+          </div>
           <a
             href="https://apps.apple.com/us/app/motovault/id6760291360"
             className="mt-2 block rounded-lg px-4 py-2.5 text-center text-sm font-medium"

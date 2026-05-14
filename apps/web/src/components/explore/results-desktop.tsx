@@ -209,7 +209,7 @@ export function ResultsDesktop({
         style={{
           flex: 1,
           display: 'grid',
-          gridTemplateColumns: '440px 1fr',
+          gridTemplateColumns: 'clamp(320px, 35vw, 440px) 1fr',
           minHeight: 0,
         }}
       >

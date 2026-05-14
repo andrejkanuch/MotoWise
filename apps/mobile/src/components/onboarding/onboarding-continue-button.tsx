@@ -47,14 +47,17 @@ export function OnboardingContinueButton({
         style={{
           fontSize: 16,
           fontWeight: '600',
-          color: disabled ? ONBOARDING_COLORS.textMuted : '#1a1208',
+          color: disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent,
           letterSpacing: -0.15,
         }}
       >
         {label}
       </Text>
       {showIcon ? (
-        <ArrowRight size={18} color={disabled ? ONBOARDING_COLORS.textMuted : '#1a1208'} />
+        <ArrowRight
+          size={18}
+          color={disabled ? ONBOARDING_COLORS.textMuted : ONBOARDING_COLORS.textOnAccent}
+        />
       ) : null}
     </Pressable>
   );

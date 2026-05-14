@@ -12,6 +12,7 @@ import {
 import { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { MakeStats } from './models/make-stats.model';
 import { Motorcycle } from './models/motorcycle.model';
 import { RecallResult } from './models/recall.model';
 import { NhtsaService } from './nhtsa.service';
@@ -22,6 +23,8 @@ const MOTORCYCLE_SELECT =
 @Injectable()
 export class MotorcyclesService {
   private readonly logger = new Logger(MotorcyclesService.name);
+  private makeStatsCache: { data: MakeStats[]; expiresAt: number } | null = null;
+  private static readonly MAKE_STATS_TTL = 900_000; // 15 minutes
 
   constructor(
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
@@ -280,5 +283,42 @@ export class MotorcyclesService {
       odometerLastRideId: row.odometer_last_ride_id ?? undefined,
       createdAt: row.created_at,
     };
+  }
+
+  /**
+   * Aggregate fleet stats per make — riders, models, total bikes.
+   * Uses SUPABASE_ADMIN because this is public aggregate data (no user-scoped RLS).
+   * Results are ranked by rider count descending.
+   */
+  async getMakeStats(): Promise<MakeStats[]> {
+    if (this.makeStatsCache && Date.now() < this.makeStatsCache.expiresAt) {
+      return this.makeStatsCache.data;
+    }
+
+    const { data, error } = await this.adminClient.rpc('get_make_stats');
+
+    if (error) {
+      this.logger.warn(`Failed to fetch make stats: ${error.message}`);
+      return [];
+    }
+
+    const result = (data ?? []).map(
+      (
+        row: { make: string; riders: number; distinct_models: number; total_bikes: number },
+        index: number,
+      ) => ({
+        make: row.make,
+        riders: row.riders,
+        models: row.distinct_models,
+        totalBikes: row.total_bikes,
+        rank: index + 1,
+      }),
+    );
+
+    this.makeStatsCache = {
+      data: result,
+      expiresAt: Date.now() + MotorcyclesService.MAKE_STATS_TTL,
+    };
+    return result;
   }
 }

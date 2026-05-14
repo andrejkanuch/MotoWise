@@ -126,7 +126,7 @@ export function FeaturesGrid() {
         style={{
           marginTop: '96px',
           display: 'grid',
-          gridTemplateColumns: '1fr 420px',
+          gridTemplateColumns: '1fr clamp(320px, 35vw, 420px)',
           gap: '96px',
           alignItems: 'flex-start',
         }}
@@ -277,7 +277,7 @@ export function FeaturesGrid() {
           <div
             style={{
               position: 'relative',
-              width: '360px',
+              width: 'clamp(240px, 50vw, 360px)',
               margin: '0 auto',
               perspective: '2200px',
             }}
@@ -454,7 +454,7 @@ export function FeaturesGrid() {
                   placeItems: 'center',
                   flexShrink: 0,
                   background: 'var(--mv-warm-500)',
-                  color: '#000',
+                  color: 'var(--mv-bg)',
                 }}
               >
                 <svg

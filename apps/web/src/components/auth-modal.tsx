@@ -2,7 +2,8 @@
 
 import { palette } from '@motovault/design-system';
 import { createBrowserClient } from '@supabase/ssr';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useModal } from '@/hooks/use-modal';
 
 interface AuthModalProps {
   open: boolean;
@@ -25,24 +26,12 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    if (open) dialogRef.current?.focus();
-  }, [open]);
+  useModal(open, onClose, dialogRef);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -65,7 +54,8 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
           setError(error.message);
           setLoading(false);
         } else if (data.user && !data.session) {
-          setError('Check your email for a confirmation link, then try again.');
+          setInfo('We sent a confirmation link to your email. Open it to finish signing up.');
+          setError('');
           setLoading(false);
         } else {
           window.location.reload();
@@ -100,18 +90,28 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
       onKeyDown={() => {}}
       role="dialog"
       aria-modal="true"
-      aria-label="Sign in"
+      aria-labelledby="auth-modal-title"
     >
       <div
         ref={dialogRef}
-        className="w-full max-w-sm rounded-xl border p-6"
+        tabIndex={-1}
+        className="w-full max-w-sm rounded-xl border p-6 focus:outline-none"
         style={{ backgroundColor: '#111', borderColor: palette.neutral800 }}
       >
-        <h2 className="text-lg font-semibold text-white">
+        <h2 id="auth-modal-title" className="text-lg font-semibold text-white">
           {mode === 'signin' ? 'Sign in' : 'Create account'} to {action}
         </h2>
 
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        <div aria-live="polite" aria-atomic="true">
+          {error && (
+            <p className="mt-3 text-sm text-red-400" role="alert">
+              {error}
+            </p>
+          )}
+          {info && (
+            <p className="mt-3 rounded-lg bg-green-950/50 p-3 text-sm text-green-400">{info}</p>
+          )}
+        </div>
 
         {/* OAuth */}
         <div className="mt-5 flex flex-col gap-2.5">
@@ -142,30 +142,50 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
 
         {/* Email form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-white/20 focus:outline-none"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-white/20 focus:outline-none"
-          />
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="auth-email" className="text-xs text-neutral-400">
+              Email
+            </label>
+            <input
+              id="auth-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-white/20 focus:outline-none"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="auth-password" className="text-xs text-neutral-400">
+              Password
+            </label>
+            <input
+              id="auth-password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+              minLength={6}
+              className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white placeholder:text-neutral-500 focus:border-white/20 focus:outline-none"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
             className="rounded-lg py-2.5 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: palette.signature500 }}
           >
-            {loading ? 'Loading...' : mode === 'signin' ? 'Sign in' : 'Create account'}
+            {loading
+              ? mode === 'signin'
+                ? 'Signing in\u2026'
+                : 'Creating account\u2026'
+              : mode === 'signin'
+                ? 'Sign in'
+                : 'Create account'}
           </button>
         </form>
 
@@ -178,6 +198,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
                 onClick={() => {
                   setMode('signup');
                   setError('');
+                  setInfo('');
                 }}
                 className="font-medium text-white"
               >
@@ -192,6 +213,7 @@ export function AuthModal({ open, onClose, action = 'continue' }: AuthModalProps
                 onClick={() => {
                   setMode('signin');
                   setError('');
+                  setInfo('');
                 }}
                 className="font-medium text-white"
               >

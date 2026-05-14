@@ -2,6 +2,7 @@
 
 import { palette } from '@motovault/design-system';
 import type { RouteReview } from '@motovault/types';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ReviewSoftWall } from '@/components/review-soft-wall';
 
@@ -129,10 +130,11 @@ function ReviewCard({ review }: { review: RouteReview }) {
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {review.author.avatarUrl ? (
-            // biome-ignore lint/performance/noImgElement: avatar from Supabase storage
-            <img
+            <Image
               src={review.author.avatarUrl}
               alt=""
+              width={32}
+              height={32}
               className="h-8 w-8 rounded-full object-cover"
             />
           ) : (

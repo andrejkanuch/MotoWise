@@ -76,8 +76,6 @@ export default function EditBikeScreen() {
   } | null>(null);
   const [makeSearch, setMakeSearch] = useState('');
   const [modelSearch, setModelSearch] = useState('');
-  const [mileage, setMileage] = useState('');
-  const [mileageUnit, setMileageUnit] = useState<'mi' | 'km'>('mi');
   const [isPrimary, setIsPrimary] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [purchasePrice, setPurchasePrice] = useState('');
@@ -91,8 +89,6 @@ export default function EditBikeScreen() {
     year: '',
     make: '',
     model: '',
-    mileage: '',
-    mileageUnit: 'mi' as string,
     isPrimary: false,
     photoUrl: null as string | null,
     purchasePrice: '',
@@ -136,8 +132,6 @@ export default function EditBikeScreen() {
         year: String(bike.year),
         make: bike.make,
         model: bike.model,
-        mileage: bike.currentMileage != null ? String(bike.currentMileage) : '',
-        mileageUnit: (bike.mileageUnit as string) ?? 'mi',
         isPrimary: bike.isPrimary,
         photoUrl: bike.primaryPhotoUrl ?? null,
         purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : '',
@@ -146,8 +140,6 @@ export default function EditBikeScreen() {
       initialValues.current = vals;
       setNickname(vals.nickname);
       setYear(vals.year);
-      setMileage(vals.mileage);
-      setMileageUnit(vals.mileageUnit as 'mi' | 'km');
       setIsPrimary(vals.isPrimary);
       setPhotoUrl(vals.photoUrl);
       setPurchasePrice(vals.purchasePrice);
@@ -192,26 +184,12 @@ export default function EditBikeScreen() {
       year !== init.year ||
       makeName !== init.make ||
       modelName !== init.model ||
-      mileage !== init.mileage ||
-      mileageUnit !== init.mileageUnit ||
       isPrimary !== init.isPrimary ||
       photoUrl !== init.photoUrl ||
       purchasePrice !== init.purchasePrice ||
       vin !== init.vin
     );
-  }, [
-    nickname,
-    year,
-    makeName,
-    modelName,
-    mileage,
-    mileageUnit,
-    isPrimary,
-    photoUrl,
-    purchasePrice,
-    vin,
-    initialized,
-  ]);
+  }, [nickname, year, makeName, modelName, isPrimary, photoUrl, purchasePrice, vin, initialized]);
 
   // MOT-142: VIN is 17 chars from {A-H,J-N,P-R,0-9} (no I, O, Q)
   const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/;
@@ -250,7 +228,6 @@ export default function EditBikeScreen() {
   const updateMutation = useMutation({
     mutationFn: () => {
       const yearNum = Number.parseInt(year, 10);
-      const mileageNum = mileage.trim() ? Number.parseInt(mileage, 10) : undefined;
       return gqlFetcher(UpdateMotorcycleDocument, {
         id,
         input: {
@@ -259,10 +236,6 @@ export default function EditBikeScreen() {
           make: makeName,
           model: modelName,
           isPrimary,
-          ...(mileageNum != null && !Number.isNaN(mileageNum)
-            ? { currentMileage: mileageNum }
-            : {}),
-          mileageUnit,
           ...(photoUrl !== initialValues.current.photoUrl && photoUrl
             ? { primaryPhotoUrl: photoUrl }
             : {}),
@@ -873,74 +846,6 @@ export default function EditBikeScreen() {
                   {t('garage.noModelsFound', { defaultValue: 'No models found' })}
                 </Text>
               )}
-          </Animated.View>
-
-          {/* ─── Odometer — grouped card ─── */}
-          <Animated.View entering={FadeInDown.delay(125).duration(250)}>
-            <Text style={sectionLabel}>
-              {t('garage.odometerSection', { defaultValue: 'Odometer' })}
-            </Text>
-            <View style={cardStyle}>
-              <View style={rowStyle}>
-                <View style={iconBadge(isDark ? palette.successBgDark : palette.successBgLight)}>
-                  <Gauge size={16} color={palette.success500} strokeWidth={2} />
-                </View>
-                <Text style={rowLabel}>
-                  {t('garage.currentMileage', { defaultValue: 'Mileage' })}
-                </Text>
-                <TextInput
-                  value={mileage}
-                  onChangeText={(text) => setMileage(text.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  placeholder={t('garage.odometerPlaceholder')}
-                  placeholderTextColor={palette.neutral400}
-                  style={inputInRow}
-                />
-                {mileage ? (
-                  <Text style={{ fontSize: 13, color: theme.ink3 }}>{mileageUnit}</Text>
-                ) : null}
-              </View>
-
-              <View style={{ height: 0.5, backgroundColor: separator, marginLeft: 60 }} />
-
-              {/* Unit toggle */}
-              <View style={{ ...rowStyle, gap: 8 }}>
-                {(['mi', 'km'] as const).map((unit) => {
-                  const selected = mileageUnit === unit;
-                  return (
-                    <Pressable
-                      key={unit}
-                      onPress={() => {
-                        triggerImpact();
-                        setMileageUnit(unit);
-                      }}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 10,
-                        borderRadius: 10,
-                        borderCurve: 'continuous',
-                        alignItems: 'center',
-                        backgroundColor: selected ? `${theme.warm}18` : theme.surface2,
-                        borderWidth: selected ? 1 : 0,
-                        borderColor: selected ? theme.warm : 'transparent',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontWeight: selected ? '700' : '500',
-                          color: selected ? theme.warm : theme.ink3,
-                        }}
-                      >
-                        {unit === 'mi'
-                          ? t('garage.miles', { defaultValue: 'Miles' })
-                          : t('garage.kilometers', { defaultValue: 'Kilometers' })}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
           </Animated.View>
 
           {/* ─── Purchase Info — grouped card ─── */}

@@ -31,7 +31,7 @@ export class OemSchedule {
   intervalDays?: number;
 
   @Field(() => GqlMaintenancePriority)
-  priority: string;
+  priority: GqlMaintenancePriority;
 
   @Field({ nullable: true })
   engineType?: string;

@@ -91,7 +91,8 @@ export default function RideSummaryScreen() {
   const { t } = useTranslation();
   const { isDark } = useEditorialTheme();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
-  const [rideName, setRideName] = useState(smartRideName(startedAtMs));
+  const defaultRideName = useMemo(() => smartRideName(startedAtMs), [startedAtMs]);
+  const [rideName, setRideName] = useState(defaultRideName);
   const [isSaving, setIsSaving] = useState(false);
   const [shareToDiscover, setShareToDiscover] = useState(false);
   const [showCelebration, setShowCelebration] = useState(true);
@@ -224,8 +225,12 @@ export default function RideSummaryScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.rides.all });
 
       trackEvent(AnalyticsEvent.RIDE_COMPLETED, {
+        ride_id: rideId,
+        motorcycle_id: motorcycleId || null,
         distance_m: distanceM,
         duration_s: durationS,
+        max_speed_kmh: Math.round(maxSpeedMps * 3.6),
+        avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
         shared_to_discover: shareToDiscover,
       });
       MetaAnalytics.trackLogRide();
@@ -252,7 +257,18 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover, queryClient]);
+  }, [
+    rideId,
+    rideName,
+    router,
+    distanceM,
+    durationS,
+    shareToDiscover,
+    queryClient,
+    motorcycleId,
+    maxSpeedMps,
+    avgSpeedMps,
+  ]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
@@ -516,6 +532,15 @@ export default function RideSummaryScreen() {
               <TextInput
                 value={rideName}
                 onChangeText={setRideName}
+                onBlur={() => {
+                  if (rideName !== defaultRideName) {
+                    trackEvent(AnalyticsEvent.RIDE_NAME_EDITED, {
+                      ride_id: rideId,
+                      name_length: rideName.length,
+                      is_default_name: false,
+                    });
+                  }
+                }}
                 placeholder={t('rideSummary.namePlaceholder')}
                 placeholderTextColor={palette.neutral600}
                 maxLength={100}

@@ -16,6 +16,20 @@ export class OemSchedulesResolver {
     @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
   ) {}
 
+  /**
+   * Preview OEM schedules for a make/model/year combination — used by onboarding
+   * swipe screen before the motorcycle exists in the database.
+   */
+  @Query(() => [OemSchedule], { name: 'oemSchedulesPreview' })
+  @UseGuards(GqlAuthGuard)
+  async oemSchedulesPreview(
+    @Args('make') make: string,
+    @Args('model', { nullable: true }) model?: string,
+    @Args('year', { type: () => Int, nullable: true }) year?: number,
+  ): Promise<OemSchedule[]> {
+    return this.oemSchedulesService.findByMotorcycle(make, model ?? null, year ?? null, null);
+  }
+
   @Query(() => [OemSchedule])
   @UseGuards(GqlAuthGuard)
   async oemSchedulesForBike(
@@ -63,6 +77,7 @@ export class OemSchedulesResolver {
     if (!motorcycle) return 0;
 
     return this.oemSchedulesService.autoPopulateForBike(
+      this.supabase,
       user.id,
       motorcycleId,
       motorcycle.make,

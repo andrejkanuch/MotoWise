@@ -65,6 +65,12 @@ export class CompleteOnboardingInput {
   @Field({ nullable: true })
   currency?: string;
 
+  @Field(() => [String], {
+    nullable: true,
+    description: 'OEM schedule IDs the user accepted in the maintenance swipe screen',
+  })
+  acceptedOemScheduleIds?: string[];
+
   @Field({ nullable: true, description: 'Meta click ID from deep link for CAPI attribution' })
   fbclid?: string;
 

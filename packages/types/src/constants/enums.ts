@@ -99,6 +99,7 @@ export const SubscriptionTier = { FREE: 'free', PRO: 'pro' } as const;
 export type SubscriptionTier = (typeof SubscriptionTier)[keyof typeof SubscriptionTier];
 
 export const RidingGoal = {
+  // V1 goals (kept for backward compatibility)
   LEARN_MAINTENANCE: 'learn_maintenance',
   IMPROVE_RIDING: 'improve_riding',
   TRACK_MAINTENANCE: 'track_maintenance',
@@ -107,6 +108,12 @@ export const RidingGoal = {
   SAFETY: 'safety',
   SAVE_ON_MAINTENANCE: 'save_on_maintenance',
   TRACK_BIKE_HEALTH: 'track_bike_health',
+  // V2 goals (onboarding redesign)
+  TRACK_RIDES: 'track_rides',
+  MANAGE_EXPENSES: 'manage_expenses',
+  DISCOVER_ROUTES: 'discover_routes',
+  MAINTAIN_BIKE: 'maintain_bike',
+  JUST_EXPLORING: 'just_exploring',
 } as const;
 export type RidingGoal = (typeof RidingGoal)[keyof typeof RidingGoal];
 

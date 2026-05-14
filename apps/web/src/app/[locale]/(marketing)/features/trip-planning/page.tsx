@@ -214,10 +214,10 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 />
                 {/* Start waypoint */}
                 <circle cx="80" cy="380" r="7" fill="oklch(0.72 0.2 145)" />
-                <circle cx="80" cy="380" r="3" fill="#000" />
+                <circle cx="80" cy="380" r="3" fill="var(--mv-bg)" />
                 {/* Mid waypoints */}
                 <circle cx="200" cy="280" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="200" cy="280" r="2.5" fill="#000" />
+                <circle cx="200" cy="280" r="2.5" fill="var(--mv-bg)" />
                 <text
                   x="215"
                   y="275"
@@ -229,7 +229,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   FUEL
                 </text>
                 <circle cx="320" cy="220" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="320" cy="220" r="2.5" fill="#000" />
+                <circle cx="320" cy="220" r="2.5" fill="var(--mv-bg)" />
                 <text
                   x="335"
                   y="215"
@@ -241,7 +241,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                   SCENIC
                 </text>
                 <circle cx="430" cy="140" r="6" fill="oklch(0.84 0.15 68)" />
-                <circle cx="430" cy="140" r="2.5" fill="#000" />
+                <circle cx="430" cy="140" r="2.5" fill="var(--mv-bg)" />
                 <text
                   x="445"
                   y="135"
@@ -254,7 +254,7 @@ export default async function TripPlanningPage({ params }: PageProps) {
                 </text>
                 {/* End waypoint */}
                 <circle cx="520" cy="80" r="7" fill="oklch(0.76 0.18 60)" />
-                <circle cx="520" cy="80" r="3" fill="#000" />
+                <circle cx="520" cy="80" r="3" fill="var(--mv-bg)" />
               </svg>
 
               {/* Route info overlay */}

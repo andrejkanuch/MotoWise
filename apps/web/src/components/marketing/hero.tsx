@@ -49,7 +49,11 @@ export function Hero() {
       }}
     >
       {/* Background slideshow */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: -3, overflow: 'hidden' }}>
+      <div
+        aria-hidden="true"
+        role="presentation"
+        style={{ position: 'absolute', inset: 0, zIndex: -3, overflow: 'hidden' }}
+      >
         {HERO_IMAGES.map((src, idx) => (
           <div
             key={src}
@@ -292,7 +296,7 @@ export function Hero() {
         <p
           style={{
             maxWidth: '440px',
-            fontSize: '17px',
+            fontSize: 'clamp(15px, 2.5vw, 17px)',
             lineHeight: 1.5,
             color: 'var(--mv-ink-2)',
             margin: 0,

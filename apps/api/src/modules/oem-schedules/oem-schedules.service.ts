@@ -1,11 +1,20 @@
-import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { GqlMaintenancePriority } from '../../common/enums/graphql-enums';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { OemSchedule } from './models/oem-schedule.model';
 
 @Injectable()
 export class OemSchedulesService {
   private readonly logger = new Logger(OemSchedulesService.name);
+  private readonly previewCache = new Map<string, { data: OemSchedule[]; expiresAt: number }>();
+  private static readonly PREVIEW_TTL = 3_600_000; // 1 hour
 
   constructor(@Inject(SUPABASE_ADMIN) private readonly supabase: SupabaseClient) {}
 
@@ -15,15 +24,24 @@ export class OemSchedulesService {
     year: number | null,
     engineCc: number | null,
   ): Promise<OemSchedule[]> {
-    // Level 1: exact model + year match
+    const cacheKey = `${make}|${model ?? ''}|${year ?? ''}|${engineCc ?? ''}`;
+    const cached = this.previewCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
+    // Level 1: exact model + year match (case-insensitive on make)
     if (model) {
       let query = this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .eq('make', make)
+        .eq('make', make.toUpperCase())
         .eq('model', model);
 
       if (year != null) {
+        if (!Number.isFinite(year)) {
+          throw new BadRequestException('year must be a finite number');
+        }
         query = query
           .or(`year_from.is.null,year_from.lte.${year}`)
           .or(`year_to.is.null,year_to.gte.${year}`);
@@ -36,16 +54,21 @@ export class OemSchedulesService {
       }
 
       if (data && data.length > 0) {
-        return this.filterByEngine(data, engineCc).map((row) => this.mapRow(row));
+        const result = this.filterByEngine(data, engineCc).map((row) => this.mapRow(row));
+        this.previewCache.set(cacheKey, {
+          data: result,
+          expiresAt: Date.now() + OemSchedulesService.PREVIEW_TTL,
+        });
+        return result;
       }
     }
 
-    // Level 2: make-level (model IS NULL)
+    // Level 2: make-level (model IS NULL, case-insensitive on make)
     {
       const { data, error } = await this.supabase
         .from('oem_maintenance_schedules')
         .select('*')
-        .eq('make', make)
+        .eq('make', make.toUpperCase())
         .is('model', null)
         .order('sort_order', { ascending: true });
 
@@ -54,7 +77,12 @@ export class OemSchedulesService {
       }
 
       if (data && data.length > 0) {
-        return this.filterByEngine(data, engineCc).map((row) => this.mapRow(row));
+        const result = this.filterByEngine(data, engineCc).map((row) => this.mapRow(row));
+        this.previewCache.set(cacheKey, {
+          data: result,
+          expiresAt: Date.now() + OemSchedulesService.PREVIEW_TTL,
+        });
+        return result;
       }
     }
 
@@ -71,11 +99,32 @@ export class OemSchedulesService {
         throw new InternalServerErrorException('Failed to fetch OEM schedules');
       }
 
-      return (data ?? []).map((row) => this.mapRow(row));
+      const result = (data ?? []).map((row) => this.mapRow(row));
+      this.previewCache.set(cacheKey, {
+        data: result,
+        expiresAt: Date.now() + OemSchedulesService.PREVIEW_TTL,
+      });
+      return result;
     }
   }
 
+  /**
+   * Auto-populate OEM maintenance tasks for a motorcycle.
+   *
+   * @param supabaseUser  Per-request user client — used for the maintenance_tasks INSERT (RLS enforced)
+   * @param userId        Owner of the motorcycle
+   * @param motorcycleId  Target motorcycle
+   * @param make          Motorcycle make (used for schedule lookup when no filter provided)
+   * @param model         Motorcycle model (used for schedule lookup when no filter provided)
+   * @param year          Motorcycle year (used for schedule lookup when no filter provided)
+   * @param engineCc      Engine displacement (used for schedule lookup when no filter provided)
+   * @param currentMileage Current odometer reading
+   * @param scheduleIdFilter When provided, fetch schedules by primary key instead of the 3-level
+   *                         make/model/year waterfall — used by onboarding where the user already
+   *                         selected specific schedule IDs.
+   */
   async autoPopulateForBike(
+    supabaseUser: SupabaseClient,
     userId: string,
     motorcycleId: string,
     make: string,
@@ -83,12 +132,30 @@ export class OemSchedulesService {
     year: number | null,
     engineCc: number | null,
     currentMileage = 0,
+    scheduleIdFilter?: string[],
   ): Promise<number> {
-    const schedules = await this.findByMotorcycle(make, model, year, engineCc);
+    // Resolve schedules: direct PK lookup when filter provided, otherwise 3-level waterfall
+    let schedules: OemSchedule[];
+    if (scheduleIdFilter && scheduleIdFilter.length > 0) {
+      const { data, error } = await this.supabase
+        .from('oem_maintenance_schedules')
+        .select('*')
+        .in('id', scheduleIdFilter)
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        this.logger.error('Failed to fetch OEM schedules by ID filter', error.message);
+        throw new InternalServerErrorException('Failed to fetch OEM maintenance schedules');
+      }
+
+      schedules = (data ?? []).map((row) => this.mapRow(row));
+    } else {
+      schedules = await this.findByMotorcycle(make, model, year, engineCc);
+    }
 
     if (schedules.length === 0) return 0;
 
-    // Check which oem_schedule_ids already exist for this motorcycle
+    // Check which oem_schedule_ids already exist for this motorcycle (dedup)
     const scheduleIds = schedules.map((s) => s.id);
     const { data: existing } = await this.supabase
       .from('maintenance_tasks')
@@ -126,7 +193,8 @@ export class OemSchedulesService {
 
     if (tasksToInsert.length === 0) return 0;
 
-    const { error } = await this.supabase.from('maintenance_tasks').insert(tasksToInsert);
+    // Use the user-scoped client for the INSERT (RLS enforced)
+    const { error } = await supabaseUser.from('maintenance_tasks').insert(tasksToInsert);
 
     if (error) {
       this.logger.error('Failed to auto-populate maintenance tasks', error.message);
@@ -165,12 +233,22 @@ export class OemSchedulesService {
       description: (row.description as string) ?? undefined,
       intervalKm: (row.interval_km as number) ?? undefined,
       intervalDays: (row.interval_days as number) ?? undefined,
-      priority: row.priority as string,
+      priority: this.validPriority(row.priority as string),
       engineType: (row.engine_type as string) ?? undefined,
       engineCcMin: (row.engine_cc_min as number) ?? undefined,
       engineCcMax: (row.engine_cc_max as number) ?? undefined,
       sortOrder: (row.sort_order as number) ?? 0,
       createdAt: row.created_at as string,
     };
+  }
+
+  private readonly VALID_PRIORITIES = new Set<string>(Object.values(GqlMaintenancePriority));
+
+  private validPriority(value: string): GqlMaintenancePriority {
+    if (this.VALID_PRIORITIES.has(value)) {
+      return value as GqlMaintenancePriority;
+    }
+    this.logger.warn(`Invalid OEM schedule priority "${value}", defaulting to medium`);
+    return GqlMaintenancePriority.medium;
   }
 }

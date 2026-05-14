@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Link, usePathname } from '@/i18n/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 import { LanguageSwitcher } from './language-switcher';
@@ -281,7 +282,7 @@ const S = {
     borderRadius: '999px',
     whiteSpace: 'nowrap' as const,
     background: 'var(--mv-ink)',
-    color: 'oklch(0.15 0.02 55)',
+    color: 'var(--mv-bg)',
     fontWeight: 600,
     fontSize: '13px',
     textDecoration: 'none',
@@ -347,7 +348,7 @@ const S = {
     padding: '14px 32px',
     borderRadius: '999px',
     background: 'var(--mv-ink)',
-    color: 'oklch(0.15 0.02 55)',
+    color: 'var(--mv-bg)',
     fontWeight: 600,
     fontSize: '15px',
     textDecoration: 'none',
@@ -380,6 +381,8 @@ export function Navbar() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const dropdownTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const dropdownTriggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownMenuRef = useRef<HTMLDivElement>(null);
 
   // Check auth state on mount
   useEffect(() => {
@@ -460,6 +463,48 @@ export function Navbar() {
     dropdownTimeoutRef.current = setTimeout(() => setDropdownOpen(false), 80);
   }, []);
 
+  const handleDropdownKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const menu = dropdownMenuRef.current;
+      if (!menu) return;
+      const items = menu.querySelectorAll<HTMLAnchorElement>('[role="menuitem"]');
+      if (!items.length) return;
+      const focused = document.activeElement as HTMLElement;
+      const idx = Array.from(items).indexOf(focused as HTMLAnchorElement);
+
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault();
+          if (!dropdownOpen) {
+            setDropdownOpen(true);
+            requestAnimationFrame(() => items[0]?.focus());
+          } else {
+            items[idx + 1 < items.length ? idx + 1 : 0]?.focus();
+          }
+          break;
+        }
+        case 'ArrowUp': {
+          e.preventDefault();
+          if (dropdownOpen) {
+            items[idx - 1 >= 0 ? idx - 1 : items.length - 1]?.focus();
+          }
+          break;
+        }
+        case 'Escape': {
+          e.preventDefault();
+          setDropdownOpen(false);
+          dropdownTriggerRef.current?.focus();
+          break;
+        }
+        case 'Tab': {
+          setDropdownOpen(false);
+          break;
+        }
+      }
+    },
+    [dropdownOpen],
+  );
+
   return (
     <>
       <nav
@@ -497,10 +542,12 @@ export function Navbar() {
             onMouseLeave={handleDropdownLeave}
             onFocus={handleDropdownEnter}
             onBlur={handleDropdownLeave}
+            onKeyDown={handleDropdownKeyDown}
           >
             {/* Bridge element for hover gap */}
             <div style={S.dropdownBridge} />
             <button
+              ref={dropdownTriggerRef}
               type="button"
               style={{
                 ...S.navLink,
@@ -531,6 +578,7 @@ export function Navbar() {
               </svg>
             </button>
             <div
+              ref={dropdownMenuRef}
               role="menu"
               style={{
                 ...S.dropdownMenu,
@@ -618,6 +666,7 @@ export function Navbar() {
               </a>
             </>
           )}
+          <ThemeToggle />
         </div>
 
         {/* Hamburger (mobile) */}

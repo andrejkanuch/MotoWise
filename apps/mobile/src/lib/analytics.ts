@@ -157,6 +157,7 @@ export const AnalyticsEvent = {
 
   // Onboarding
   ONBOARDING_STARTED: 'onboarding_started',
+  ONBOARDING_STEP_VIEWED: 'onboarding_step_viewed',
   ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
   ONBOARDING_STEP_SKIPPED: 'onboarding_step_skipped',
   ONBOARDING_COMPLETED: 'onboarding_completed',
@@ -187,13 +188,29 @@ export const AnalyticsEvent = {
   HEALTH_REPORT_GENERATED: 'health_report_generated',
   HEALTH_REPORT_DOWNLOADED: 'health_report_downloaded',
   HEALTH_REPORT_RETRIED: 'health_report_retried',
+  RECALLS_CHECKED: 'recalls_checked',
+  OEM_SCHEDULE_IMPORTED: 'oem_schedule_imported',
 
-  // Rides
+  // Rides — lifecycle
   RIDE_STARTED: 'ride_started',
+  RIDE_PAUSED: 'ride_paused',
+  RIDE_RESUMED: 'ride_resumed',
+  RIDE_ENDED: 'ride_ended',
   RIDE_COMPLETED: 'ride_completed',
+  RIDE_ABANDONED: 'ride_abandoned',
   RIDE_SHARED: 'ride_shared',
   RIDE_VIEWED: 'ride_viewed',
   RIDE_DELETED: 'ride_deleted',
+  // Rides — engagement
+  RIDE_HUD_LAYOUT_SWITCHED: 'ride_hud_layout_switched',
+  RIDE_NAME_EDITED: 'ride_name_edited',
+  RIDE_CHART_VIEWED: 'ride_chart_viewed',
+  RIDE_MAP_STYLE_CHANGED: 'ride_map_style_changed',
+  RIDE_BIKE_CHANGED: 'ride_bike_changed',
+  // Rides — history & monetisation
+  RIDES_HISTORY_FILTERED: 'rides_history_filtered',
+  RIDE_UPGRADE_CTA_SHOWN: 'ride_upgrade_cta_shown',
+  RIDE_UPGRADE_CTA_TAPPED: 'ride_upgrade_cta_tapped',
 
   // Routes (discovery)
   ROUTE_VIEWED: 'route_viewed',
@@ -256,6 +273,9 @@ export const AnalyticsEvent = {
   // Navigation
   SCREEN_VIEWED: 'screen_viewed',
   TAB_CHANGED: 'tab_changed',
+
+  // Checklist
+  CHECKLIST_ITEM_COMPLETED: 'checklist_item_completed',
 } as const;
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];

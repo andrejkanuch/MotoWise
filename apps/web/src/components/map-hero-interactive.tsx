@@ -26,7 +26,6 @@ function StaticRoutePreview({ src, className }: { src: string; className: string
         fill
         className="rounded-xl object-cover"
         sizes="(max-width: 1024px) 100vw, 1200px"
-        unoptimized
       />
     </div>
   );

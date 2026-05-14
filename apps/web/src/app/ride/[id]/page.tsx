@@ -56,7 +56,7 @@ export default async function RidePage({ params }: { params: Promise<{ id: strin
           <div className="absolute inset-0 bg-gradient-to-t from-neutral-50 to-transparent" />
         </div>
       ) : (
-        <div className="h-20 w-full bg-gradient-to-br from-[#0a1540] to-[#3366e6]" />
+        <div className="h-20 w-full bg-gradient-to-br from-primary-950 to-primary-500" />
       )}
 
       <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
