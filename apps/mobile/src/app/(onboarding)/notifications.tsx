@@ -18,7 +18,7 @@ import { ONBOARDING_COLORS } from '../../components/onboarding/onboarding-colors
 import { OnboardingProgress } from '../../components/onboarding/onboarding-progress';
 import { OB_ROUTE, TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
-import { requestNotificationPermission, setupNotificationChannels } from '../../lib/notifications';
+import { setupNotificationChannels } from '../../lib/notifications';
 import { triggerImpact } from '../../utils/haptics';
 
 const BENEFITS = [
@@ -175,20 +175,10 @@ export default function NotificationsScreen() {
   const handleEnable = async () => {
     triggerImpact(Haptics.ImpactFeedbackStyle.Medium);
 
-    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    const { status: existing, canAskAgain } = await Notifications.getPermissionsAsync();
 
-    if (status === 'granted') {
-      trackEvent(AnalyticsEvent.ONBOARDING_STEP_COMPLETED, {
-        step: 'notifications',
-        step_index: 6,
-        permission_granted: true,
-        skipped: false,
-      });
-      navigateForward();
-      return;
-    }
-
-    if (!canAskAgain) {
+    // Already denied and can't re-prompt — direct to Settings
+    if (existing === 'denied' && !canAskAgain) {
       Alert.alert(
         t('onboarding.v2NotificationsAlreadyDenied'),
         t('onboarding.v2NotificationsOpenSettings'),
@@ -206,7 +196,12 @@ export default function NotificationsScreen() {
       return;
     }
 
-    const granted = await requestNotificationPermission();
+    // Always call requestPermissionsAsync — shows the system prompt when
+    // status is 'undetermined', and is a no-op when already granted.
+    const { status } = await Notifications.requestPermissionsAsync({
+      ios: { allowAlert: true, allowBadge: true, allowSound: true },
+    });
+    const granted = status === 'granted';
 
     if (granted && Platform.OS === 'android') {
       await setupNotificationChannels();
