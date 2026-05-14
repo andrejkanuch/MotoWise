@@ -51,7 +51,7 @@ export const RideSpeedChart = memo(function RideSpeedChart({
   system,
 }: RideSpeedChartProps) {
   const { width: screenWidth } = useWindowDimensions();
-  const chartWidth = screenWidth - 72;
+  const chartWidth = screenWidth - 140;
   const unit = speedUnitLabel(system);
   const isImperial = system === 'imperial';
   const distUnit = distanceUnitLabel(system);
