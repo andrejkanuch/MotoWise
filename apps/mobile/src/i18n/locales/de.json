@@ -1620,6 +1620,7 @@
     "max": "Max",
     "recentRides": "Letzte Fahrten",
     "newestFirst": "Neueste zuerst ↓",
+    "oldestFirst": "Älteste zuerst ↑",
     "unlockTitle": "Gesamten Verlauf freischalten",
     "unlockDesc": "Kostenlose Konten zeigen die letzten {{limit}} Fahrten. Upgrade für unbegrenzten Verlauf und Statistiken.",
     "upgradePro": "Auf Pro upgraden"

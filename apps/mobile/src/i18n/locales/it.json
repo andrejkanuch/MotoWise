@@ -1620,6 +1620,7 @@
     "max": "Max",
     "recentRides": "Uscite recenti",
     "newestFirst": "Più recenti prima ↓",
+    "oldestFirst": "Meno recenti prima ↑",
     "unlockTitle": "Sblocca lo storico completo",
     "unlockDesc": "Gli account gratuiti mostrano le ultime {{limit}} uscite. Passa a Pro per storico e statistiche illimitati.",
     "upgradePro": "Passa a Pro"

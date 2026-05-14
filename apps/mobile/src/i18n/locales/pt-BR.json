@@ -1620,6 +1620,7 @@
     "max": "Máx",
     "recentRides": "Passeios recentes",
     "newestFirst": "Mais recentes primeiro ↓",
+    "oldestFirst": "Mais antigos primeiro ↑",
     "unlockTitle": "Liberar histórico completo",
     "unlockDesc": "Contas gratuitas mostram os últimos {{limit}} passeios. Faça upgrade para histórico e estatísticas ilimitados.",
     "upgradePro": "Fazer upgrade para Pro"

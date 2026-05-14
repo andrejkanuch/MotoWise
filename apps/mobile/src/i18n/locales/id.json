@@ -1620,6 +1620,7 @@
     "max": "Maks",
     "recentRides": "Perjalanan terbaru",
     "newestFirst": "Terbaru duluan ↓",
+    "oldestFirst": "Terlama duluan ↑",
     "unlockTitle": "Buka riwayat lengkap",
     "unlockDesc": "Akun gratis menampilkan {{limit}} perjalanan terakhir. Upgrade untuk riwayat dan statistik tanpa batas.",
     "upgradePro": "Upgrade ke Pro"

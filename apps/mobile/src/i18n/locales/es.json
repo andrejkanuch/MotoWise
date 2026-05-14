@@ -1620,6 +1620,7 @@
     "max": "Máx",
     "recentRides": "Rutas recientes",
     "newestFirst": "Más recientes primero ↓",
+    "oldestFirst": "Más antiguas primero ↑",
     "unlockTitle": "Desbloquear historial completo",
     "unlockDesc": "Las cuentas gratuitas muestran las últimas {{limit}} rutas. Mejora tu plan para historial y estadísticas ilimitados.",
     "upgradePro": "Mejorar a Pro"

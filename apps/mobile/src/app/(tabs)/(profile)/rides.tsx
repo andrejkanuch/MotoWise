@@ -163,6 +163,7 @@ export default function RidesScreen() {
   const system = useMeasurementSystem();
 
   const [period, setPeriod] = useState<Period>('month');
+  const [sortNewest, setSortNewest] = useState(true);
 
   const periodLabelsMap: Record<Period, string> = useMemo(
     () => ({
@@ -207,7 +208,11 @@ export default function RidesScreen() {
     () => (data?.pages ?? []).flatMap((page) => page?.myRides?.edges ?? []),
     [data?.pages],
   );
-  const visibleEdges = isPro ? allEdges : allEdges.slice(0, FREE_TIER_LIMIT);
+  const sortedEdges = useMemo(
+    () => (sortNewest ? allEdges : [...allEdges].reverse()),
+    [allEdges, sortNewest],
+  );
+  const visibleEdges = isPro ? sortedEdges : sortedEdges.slice(0, FREE_TIER_LIMIT);
   const showUpgradeCta = !isPro && allEdges.length > FREE_TIER_LIMIT;
   const stats = useRideStats(allEdges, period);
 
@@ -433,19 +438,28 @@ export default function RidesScreen() {
           >
             {t('myRides.recentRides')}
           </Text>
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: '600',
-              color: theme.warm,
+          <Pressable
+            onPress={() => {
+              if (process.env.EXPO_OS === 'ios') triggerImpact();
+              setSortNewest((prev) => !prev);
             }}
+            accessibilityRole="button"
+            hitSlop={8}
           >
-            {t('myRides.newestFirst')}
-          </Text>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '600',
+                color: theme.warm,
+              }}
+            >
+              {sortNewest ? t('myRides.newestFirst') : t('myRides.oldestFirst')}
+            </Text>
+          </Pressable>
         </View>
       </Animated.View>
     ),
-    [stats, system, theme, periodLabel, t],
+    [stats, system, theme, periodLabel, t, sortNewest],
   );
 
   const renderEmpty = useCallback(() => {

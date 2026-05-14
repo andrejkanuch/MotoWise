@@ -1620,6 +1620,7 @@
     "max": "Max",
     "recentRides": "Posledné jazdy",
     "newestFirst": "Najnovšie prvé ↓",
+    "oldestFirst": "Najstaršie prvé ↑",
     "unlockTitle": "Odomknúť celú históriu",
     "unlockDesc": "Bezplatné účty zobrazujú posledných {{limit}} jázd. Prejdite na Pro pre neobmedzené štatistiky a históriu.",
     "upgradePro": "Prejsť na Pro"

@@ -1620,6 +1620,7 @@
     "max": "最高",
     "recentRides": "最近のライド",
     "newestFirst": "新しい順 ↓",
+    "oldestFirst": "古い順 ↑",
     "unlockTitle": "全履歴を解除",
     "unlockDesc": "無料アカウントでは最新{{limit}}件のライドが表示されます。無制限の履歴と統計にはProにアップグレードしてください。",
     "upgradePro": "Proにアップグレード"

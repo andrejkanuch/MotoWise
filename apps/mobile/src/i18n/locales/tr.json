@@ -1620,6 +1620,7 @@
     "max": "Maks",
     "recentRides": "Son sürüşler",
     "newestFirst": "En yeniler önce ↓",
+    "oldestFirst": "En eskiler önce ↑",
     "unlockTitle": "Tüm geçmişi aç",
     "unlockDesc": "Ücretsiz hesaplar son {{limit}} sürüşü gösterir. Sınırsız geçmiş ve istatistikler için Pro'ya yükseltin.",
     "upgradePro": "Pro'ya yükselt"

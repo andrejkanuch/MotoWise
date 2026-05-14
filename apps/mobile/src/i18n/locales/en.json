@@ -1528,6 +1528,7 @@
     "max": "Max",
     "recentRides": "Recent rides",
     "newestFirst": "Newest first ↓",
+    "oldestFirst": "Oldest first ↑",
     "unlockTitle": "Unlock Full History",
     "unlockDesc": "Free accounts show the last {{limit}} rides. Upgrade for unlimited history and stats.",
     "upgradePro": "Upgrade to Pro"
