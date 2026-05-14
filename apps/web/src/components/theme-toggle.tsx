@@ -5,6 +5,7 @@
 export function ThemeToggle() {
   return (
     <div
+      role="img"
       aria-label="Dark mode"
       className="flex h-8 w-8 items-center justify-center rounded-full text-[--color-on-surface-muted]"
     >
