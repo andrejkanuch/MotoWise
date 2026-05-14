@@ -166,7 +166,7 @@ export default function StartRideScreen() {
     } finally {
       setIsStarting(false);
     }
-  }, [selectedBikeId, startRide, router, t]);
+  }, [selectedBikeId, selectedBike?.make, startRide, router, t]);
 
   const mileageLabel = useMemo(() => {
     if (!selectedBike) return '';

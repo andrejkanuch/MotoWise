@@ -257,7 +257,18 @@ export default function RideSummaryScreen() {
     } finally {
       setIsSaving(false);
     }
-  }, [rideId, rideName, router, distanceM, durationS, shareToDiscover, queryClient]);
+  }, [
+    rideId,
+    rideName,
+    router,
+    distanceM,
+    durationS,
+    shareToDiscover,
+    queryClient,
+    motorcycleId,
+    maxSpeedMps,
+    avgSpeedMps,
+  ]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [

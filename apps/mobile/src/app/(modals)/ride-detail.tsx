@@ -240,24 +240,27 @@ export default function RideDetailScreen() {
     });
   }, [rideId]);
 
-  const handleStatTap = useCallback((chart: ChartType) => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-    setActiveChart((prev) => {
-      if (prev === chart) {
-        sheetRef.current?.snapToIndex(1);
-        return null;
+  const handleStatTap = useCallback(
+    (chart: ChartType) => {
+      if (process.env.EXPO_OS === 'ios') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
-      sheetRef.current?.snapToIndex(2);
-      trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
-        ride_id: rideId ?? null,
-        chart_type: chart,
-        source: 'ride_detail',
+      setActiveChart((prev) => {
+        if (prev === chart) {
+          sheetRef.current?.snapToIndex(1);
+          return null;
+        }
+        sheetRef.current?.snapToIndex(2);
+        trackEvent(AnalyticsEvent.RIDE_CHART_VIEWED, {
+          ride_id: rideId ?? null,
+          chart_type: chart,
+          source: 'ride_detail',
+        });
+        return chart;
       });
-      return chart;
-    });
-  }, [rideId]);
+    },
+    [rideId],
+  );
 
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (

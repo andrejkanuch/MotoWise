@@ -72,17 +72,20 @@ export default function RideHudScreen() {
   currentSpeedRef.current = currentSpeed;
 
   // Layout switching
-  const handleLayoutSwitch = useCallback((layout: HudLayout) => {
-    const prev = hudLayout;
-    setHudLayout(layout);
-    persistLayout(layout);
-    trackEvent(AnalyticsEvent.RIDE_HUD_LAYOUT_SWITCHED, {
-      ride_id: rideMMKV.getCurrentId() ?? null,
-      from_layout: prev,
-      to_layout: layout,
-      duration_at_switch_s: elapsedRef.current,
-    });
-  }, [hudLayout]);
+  const handleLayoutSwitch = useCallback(
+    (layout: HudLayout) => {
+      const prev = hudLayout;
+      setHudLayout(layout);
+      persistLayout(layout);
+      trackEvent(AnalyticsEvent.RIDE_HUD_LAYOUT_SWITCHED, {
+        ride_id: rideMMKV.getCurrentId() ?? null,
+        from_layout: prev,
+        to_layout: layout,
+        duration_at_switch_s: elapsedRef.current,
+      });
+    },
+    [hudLayout],
+  );
 
   // Collect sparkline data + live waypoints every ~5 seconds
   useEffect(() => {
@@ -164,7 +167,9 @@ export default function RideHudScreen() {
 
   const handleResume = useCallback(() => {
     haptic(Haptics.ImpactFeedbackStyle.Heavy);
-    const pauseDuration = pausedAtRef.current ? Math.round((Date.now() - pausedAtRef.current) / 1000) : 0;
+    const pauseDuration = pausedAtRef.current
+      ? Math.round((Date.now() - pausedAtRef.current) / 1000)
+      : 0;
     resumeRide();
     trackEvent(AnalyticsEvent.RIDE_RESUMED, {
       ride_id: rideMMKV.getCurrentId() ?? null,
@@ -282,7 +287,7 @@ export default function RideHudScreen() {
     };
     // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
     router.replace(summaryRoute as any);
-  }, [endRide, router]);
+  }, [endRide, router, isNightMode, isBatterySaver, hudLayout]);
 
   const handleToggleNight = useCallback(() => {
     haptic();
