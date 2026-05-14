@@ -487,7 +487,6 @@ export default function RideDetailScreen() {
           </Pressable>
         </View>
 
-
         {/* Re-open pill */}
         {isMapFullScreen && (
           <Animated.View
