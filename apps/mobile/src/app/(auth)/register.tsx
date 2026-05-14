@@ -39,7 +39,10 @@ export default function RegisterScreen() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: 'https://motovault.app/auth/callback?redirect=motovault://auth/callback',
+        },
       });
       if (error) {
         Alert.alert(t('common.error'), userFriendlyError(error));

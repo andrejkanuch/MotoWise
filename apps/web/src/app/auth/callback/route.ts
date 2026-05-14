@@ -11,6 +11,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
+  // If redirect points to the mobile app scheme, forward the code
+  // so the mobile Supabase client can exchange it for a session
+  if (redirect?.startsWith('motovault://')) {
+    const mobileUrl = new URL(redirect);
+    mobileUrl.searchParams.set('code', code);
+    return NextResponse.redirect(mobileUrl.toString());
+  }
+
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
@@ -37,7 +45,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  // Redirect back to where the user came from, or fall back to /feed
+  // Redirect within the web app
   const destination = redirect?.startsWith('/') ? redirect : '/garage';
   return NextResponse.redirect(`${origin}${destination}`);
 }

@@ -29,6 +29,7 @@ try {
   // Not available in Expo Go
 }
 
+import * as Linking from 'expo-linking';
 import { Stack, useNavigationContainerRef, usePathname, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { PostHogProvider } from 'posthog-react-native';
@@ -345,6 +346,32 @@ export default function RootLayout() {
 
     return () => subscription.unsubscribe();
   }, [setLoading, setSession]);
+
+  // Handle deep link auth callback (email confirmation / password reset)
+  // When the web intermediary redirects to motovault://auth/callback?code=xxx,
+  // exchange the code for a session in the mobile Supabase client.
+  useEffect(() => {
+    const handleDeepLink = async (url: string) => {
+      const parsed = Linking.parse(url);
+      if (parsed.hostname !== 'auth' || parsed.path !== 'callback') return;
+      const code = parsed.queryParams?.code;
+      if (typeof code !== 'string') return;
+      try {
+        await supabase.auth.exchangeCodeForSession(code);
+      } catch (err) {
+        captureException(err, { source: 'deepLink.exchangeCodeForSession' });
+      }
+    };
+
+    // Handle URL that opened the app (cold start)
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink(url);
+    });
+
+    // Handle URL while app is already open (warm start)
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, []);
 
   // Mark app as ready once auth state is resolved
   useEffect(() => {
