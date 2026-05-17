@@ -55,7 +55,7 @@ export function getCurrencySymbol(currency: Currency): string {
 }
 
 /** Currencies with no decimal subdivision — restrict input to whole numbers. */
-export const ZERO_DECIMAL_CURRENCIES = new Set(['JPY', 'CLP', 'HUF']);
+export const ZERO_DECIMAL_CURRENCIES: Set<Currency> = new Set(['JPY', 'CLP', 'HUF'] as const);
 
 /** Format user input for a currency amount, restricting decimals for zero-decimal currencies. */
 export function formatCurrencyInput(value: string, currency: Currency = 'USD'): string {

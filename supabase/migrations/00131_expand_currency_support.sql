@@ -20,7 +20,25 @@ ALTER TABLE public.expenses ADD CONSTRAINT chk_expenses_currency
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN'
   ));
 
--- 3. Update complete_onboarding function — only the internal allowlist changes
+-- 3. Normalize maintenance_tasks.currency from regex to allowlist (defense-in-depth)
+ALTER TABLE public.maintenance_tasks DROP CONSTRAINT IF EXISTS maintenance_tasks_currency_check;
+ALTER TABLE public.maintenance_tasks ADD CONSTRAINT chk_maintenance_tasks_currency
+  CHECK (currency IS NULL OR currency IN (
+    'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
+    'SEK','NOK','DKK','PLN','TRY',
+    'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN'
+  ));
+
+-- 4. Normalize fuel_logs.currency from regex to allowlist (defense-in-depth)
+ALTER TABLE public.fuel_logs DROP CONSTRAINT IF EXISTS chk_fuel_logs_currency;
+ALTER TABLE public.fuel_logs ADD CONSTRAINT chk_fuel_logs_currency
+  CHECK (currency IS NULL OR currency IN (
+    'USD','EUR','GBP','JPY','CAD','AUD','CHF','INR','BRL','MXN',
+    'SEK','NOK','DKK','PLN','TRY',
+    'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN'
+  ));
+
+-- 5. Update complete_onboarding function — only the internal allowlist changes
 --    Signature is unchanged (18 params, same types) so CREATE OR REPLACE is safe.
 CREATE OR REPLACE FUNCTION public.complete_onboarding(
   p_user_id UUID,
@@ -61,7 +79,7 @@ BEGIN
     'SEK','NOK','DKK','PLN','TRY',
     'RSD','CZK','HUF','RON','BGN','COP','ARS','CLP','PEN'
   ) THEN
-    RAISE EXCEPTION 'Invalid currency: %', p_currency;
+    RAISE EXCEPTION 'Invalid currency: %', left(p_currency, 10);
   END IF;
 
   -- Self-healing: ensure public.users row exists (backfill from auth.users
