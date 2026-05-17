@@ -13,6 +13,16 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
   sendDefaultPii: true,
+  beforeSend(event) {
+    if (
+      event.exception?.values?.some((e) =>
+        e.value?.includes('ResizeObserver loop'),
+      )
+    ) {
+      return null;
+    }
+    return event;
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
