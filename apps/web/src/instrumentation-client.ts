@@ -14,11 +14,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   sendDefaultPii: true,
   beforeSend(event) {
-    if (
-      event.exception?.values?.some((e) =>
-        e.value?.includes('ResizeObserver loop'),
-      )
-    ) {
+    if (event.exception?.values?.some((e) => e.value?.includes('ResizeObserver loop'))) {
       return null;
     }
     return event;
