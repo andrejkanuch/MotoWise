@@ -23,6 +23,15 @@ export const CURRENCY_LIST: CurrencyOption[] = [
   { code: 'DKK', symbol: CURRENCY_SYMBOLS.DKK, name: 'Danish Krone' },
   { code: 'PLN', symbol: CURRENCY_SYMBOLS.PLN, name: 'Polish Zloty' },
   { code: 'TRY', symbol: CURRENCY_SYMBOLS.TRY, name: 'Turkish Lira' },
+  { code: 'RSD', symbol: CURRENCY_SYMBOLS.RSD, name: 'Serbian Dinar' },
+  { code: 'CZK', symbol: CURRENCY_SYMBOLS.CZK, name: 'Czech Koruna' },
+  { code: 'HUF', symbol: CURRENCY_SYMBOLS.HUF, name: 'Hungarian Forint' },
+  { code: 'RON', symbol: CURRENCY_SYMBOLS.RON, name: 'Romanian Leu' },
+  { code: 'BGN', symbol: CURRENCY_SYMBOLS.BGN, name: 'Bulgarian Lev' },
+  { code: 'COP', symbol: CURRENCY_SYMBOLS.COP, name: 'Colombian Peso' },
+  { code: 'ARS', symbol: CURRENCY_SYMBOLS.ARS, name: 'Argentine Peso' },
+  { code: 'CLP', symbol: CURRENCY_SYMBOLS.CLP, name: 'Chilean Peso' },
+  { code: 'PEN', symbol: CURRENCY_SYMBOLS.PEN, name: 'Peruvian Sol' },
 ];
 
 /** Supported currency codes as a Set for quick lookup. */

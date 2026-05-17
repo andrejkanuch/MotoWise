@@ -24,7 +24,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCurrency } from '../../../hooks/use-currency';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
-import { formatCurrencyInput } from '../../../lib/expense-constants';
+import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { incrementTaskCount, maybeRequestReview } from '../../../lib/store-review';
@@ -328,8 +328,8 @@ export default function CompleteTaskScreen() {
               <TextInput
                 value={cost}
                 onChangeText={(val) => setCost(formatCurrencyInput(val, currency))}
-                keyboardType={currency === 'JPY' ? 'number-pad' : 'decimal-pad'}
-                placeholder={currency === 'JPY' ? '0' : '0.00'}
+                keyboardType={ZERO_DECIMAL_CURRENCIES.has(currency) ? 'number-pad' : 'decimal-pad'}
+                placeholder={ZERO_DECIMAL_CURRENCIES.has(currency) ? '0' : '0.00'}
                 placeholderTextColor={palette.neutral400}
                 textAlign="right"
                 style={{

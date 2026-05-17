@@ -1,4 +1,7 @@
 import { z } from 'zod';
+import { Currency } from '../constants/enums';
+
+const currencyValues = Object.values(Currency) as [string, ...string[]];
 
 export const CreateMaintenanceTaskSchema = z.object({
   motorcycleId: z.string().uuid(),
@@ -43,7 +46,7 @@ export const MaintenanceTaskCostSchema = z.object({
   cost: z.number().min(0).optional(),
   partsCost: z.number().min(0).optional(),
   laborCost: z.number().min(0).optional(),
-  currency: z.string().length(3).optional(),
+  currency: z.enum(currencyValues).optional(),
 });
 export type MaintenanceTaskCost = z.infer<typeof MaintenanceTaskCostSchema>;
 
@@ -52,7 +55,7 @@ export const CompleteMaintenanceTaskSchema = z.object({
   cost: z.number().min(0).optional(),
   partsCost: z.number().min(0).optional(),
   laborCost: z.number().min(0).optional(),
-  currency: z.string().length(3).optional(),
+  currency: z.enum(currencyValues).optional(),
 });
 export type CompleteMaintenanceTask = z.infer<typeof CompleteMaintenanceTaskSchema>;
 

@@ -1,3 +1,5 @@
+import { ZERO_DECIMAL_CURRENCIES } from './expense-constants';
+
 export interface PdfBike {
   make: string;
   model: string;
@@ -129,7 +131,7 @@ function formatCost(amount: number, currency = 'USD'): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: ZERO_DECIMAL_CURRENCIES.has(currency) ? 0 : 2,
   }).format(amount);
 }
 

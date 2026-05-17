@@ -17,6 +17,7 @@ import {
   CATEGORY_COLORS,
   CATEGORY_LABELS,
   formatCurrencyInput,
+  ZERO_DECIMAL_CURRENCIES,
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
@@ -218,9 +219,9 @@ export default function AddExpenseScreen() {
           <TextInput
             value={amount}
             onChangeText={(val) => setAmount(formatCurrencyInput(val, currency))}
-            placeholder={currency === 'JPY' ? '0' : '0.00'}
+            placeholder={ZERO_DECIMAL_CURRENCIES.has(currency) ? '0' : '0.00'}
             placeholderTextColor={theme.ink4}
-            keyboardType={currency === 'JPY' ? 'number-pad' : 'decimal-pad'}
+            keyboardType={ZERO_DECIMAL_CURRENCIES.has(currency) ? 'number-pad' : 'decimal-pad'}
             style={{
               flex: 1,
               fontSize: 24,

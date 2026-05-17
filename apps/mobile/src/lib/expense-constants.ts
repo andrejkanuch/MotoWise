@@ -31,7 +31,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
 import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
 
 // Intl.NumberFormat construction is expensive (~0.5-1ms). Cache instances per currency.
-// With max 15 currencies, memory is ~15KB — negligible.
+// With max 24 currencies, memory is ~24KB — negligible.
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
 /** Format a numeric amount with the correct currency symbol and decimal places.
@@ -54,9 +54,12 @@ export function getCurrencySymbol(currency: Currency): string {
   return CURRENCY_SYMBOLS[currency] ?? currency;
 }
 
+/** Currencies with no decimal subdivision — restrict input to whole numbers. */
+export const ZERO_DECIMAL_CURRENCIES = new Set(['JPY', 'CLP']);
+
 /** Format user input for a currency amount, restricting decimals for zero-decimal currencies. */
 export function formatCurrencyInput(value: string, currency: Currency = 'USD'): string {
-  if (currency === 'JPY') {
+  if (ZERO_DECIMAL_CURRENCIES.has(currency)) {
     return value.replace(/[^0-9]/g, '');
   }
   const digits = value.replace(/[^0-9.]/g, '');
