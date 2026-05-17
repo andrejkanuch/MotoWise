@@ -1,5 +1,5 @@
 import { palette } from '@motovault/design-system';
-import { type Currency } from '@motovault/types';
+import type { Currency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Check } from 'lucide-react-native';
