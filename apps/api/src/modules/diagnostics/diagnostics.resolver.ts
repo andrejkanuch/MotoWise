@@ -1,5 +1,5 @@
 import { CreateDiagnosticSchema, FREE_TIER_LIMITS, SubmitDiagnosticSchema } from '@motovault/types';
-import { BadRequestException, ForbiddenException, UseGuards } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Logger, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -17,6 +17,8 @@ import { Diagnostic } from './models/diagnostic.model';
 
 @Resolver(() => Diagnostic)
 export class DiagnosticsResolver {
+  private readonly logger = new Logger(DiagnosticsResolver.name);
+
   constructor(
     private readonly diagnosticsService: DiagnosticsService,
     private readonly diagnosticAiService: DiagnosticAiService,
@@ -55,16 +57,11 @@ export class DiagnosticsResolver {
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,
   ): Promise<Diagnostic> {
-    console.log(
-      '[submitDiagnostic] input received:',
-      JSON.stringify(
-        {
-          ...input,
-          photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
-        },
-        null,
-        2,
-      ),
+    this.logger.log(
+      `[submitDiagnostic] input received: ${JSON.stringify({
+        ...input,
+        photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
+      })}`,
     );
 
     // 0. Server-side monthly diagnostic limit check

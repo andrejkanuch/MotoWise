@@ -6,7 +6,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { AiBudgetService } from './ai-budget.service';
 import { AiBudgetStatus } from './models/ai-budget-status.model';
 
-@Resolver()
+@Resolver(() => AiBudgetStatus)
 export class AiBudgetResolver {
   constructor(private readonly aiBudgetService: AiBudgetService) {}
 

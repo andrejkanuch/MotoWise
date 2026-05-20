@@ -6,7 +6,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { EntitlementsService } from './entitlements.service';
 import { QuotaStatus } from './quota-status.dto';
 
-@Resolver()
+@Resolver(() => QuotaStatus)
 @UseGuards(GqlAuthGuard)
 export class EntitlementsResolver {
   constructor(private readonly entitlementsService: EntitlementsService) {}
