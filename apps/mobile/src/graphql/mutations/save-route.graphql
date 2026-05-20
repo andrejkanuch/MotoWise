@@ -1,4 +1,0 @@
-# @deprecated — Use trip-based equivalent. Kept for backward compatibility with old app builds.
-mutation SaveRoute($routeId: ID!) {
-  saveRouteToCollection(routeId: $routeId)
-}

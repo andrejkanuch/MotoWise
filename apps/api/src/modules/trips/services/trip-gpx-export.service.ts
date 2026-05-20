@@ -11,7 +11,7 @@ import type { AuthUser } from '../../../common/decorators/current-user.decorator
 import { applySlugFilters } from '../../../common/slug-lookup';
 import { EntitlementsService } from '../../entitlements/entitlements.service';
 import { FEATURES } from '../../entitlements/entitlements.types';
-import { GPXExportError, GPXExportSuccess } from '../../routes/dto/gpx-export.dto';
+import { GPXExportError, GPXExportSuccess } from '../dto/gpx-export.dto';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
 
