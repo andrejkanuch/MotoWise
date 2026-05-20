@@ -2,12 +2,10 @@ import {
   CreateGroupRideInputSchema,
   UpdateGroupRideInputSchema,
 } from '@motovault/types/validators';
-import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CreateGroupRideInput } from './dto/create-group-ride.input';
@@ -16,7 +14,6 @@ import { GroupRidesService } from './group-rides.service';
 import { GroupRide, GroupRideConnection } from './models/group-ride.model';
 
 @Resolver(() => GroupRide)
-@UseGuards(GqlAuthGuard)
 export class GroupRidesResolver {
   constructor(private readonly groupRidesService: GroupRidesService) {}
 

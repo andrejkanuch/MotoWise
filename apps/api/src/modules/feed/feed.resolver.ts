@@ -1,14 +1,11 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { FeedService } from './feed.service';
 import { FeedRideConnection } from './models/feed-connection.model';
 import { FeedRide } from './models/feed-ride.model';
 
 @Resolver(() => FeedRide)
-@UseGuards(GqlAuthGuard)
 export class FeedResolver {
   constructor(private readonly feedService: FeedService) {}
 

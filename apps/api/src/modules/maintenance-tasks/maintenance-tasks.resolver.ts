@@ -4,11 +4,10 @@ import {
   CreateMaintenanceTaskSchema,
   UpdateMaintenanceTaskSchema,
 } from '@motovault/types';
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AddTaskPhotoInput } from './dto/add-task-photo.input';
@@ -31,13 +30,11 @@ export class MaintenanceTasksResolver {
   ) {}
 
   @Query(() => [MaintenanceTask])
-  @UseGuards(GqlAuthGuard)
   async allMaintenanceTasks(@CurrentUser() user: AuthUser): Promise<MaintenanceTask[]> {
     return this.maintenanceTasksService.findAllForUser(user.id);
   }
 
   @Query(() => [MaintenanceTask])
-  @UseGuards(GqlAuthGuard)
   async maintenanceTasks(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
@@ -46,7 +43,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Query(() => [MaintenanceTask])
-  @UseGuards(GqlAuthGuard)
   async maintenanceTaskHistory(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
@@ -56,7 +52,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Mutation(() => MaintenanceTask)
-  @UseGuards(GqlAuthGuard)
   async createMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateMaintenanceTaskSchema))
@@ -66,7 +61,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Mutation(() => MaintenanceTask)
-  @UseGuards(GqlAuthGuard)
   async updateMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -77,7 +71,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Mutation(() => CompleteTaskResult)
-  @UseGuards(GqlAuthGuard)
   async completeMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -102,7 +95,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteMaintenanceTask(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -111,7 +103,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Query(() => SpendingSummary)
-  @UseGuards(GqlAuthGuard)
   async spendingSummary(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId') motorcycleId: string,
@@ -122,7 +113,6 @@ export class MaintenanceTasksResolver {
   // ── Photo mutations ─────────────────────────────────────────────
 
   @Mutation(() => TaskPhoto)
-  @UseGuards(GqlAuthGuard)
   async addTaskPhoto(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(AddTaskPhotoSchema)) input: AddTaskPhotoInput,
@@ -136,7 +126,6 @@ export class MaintenanceTasksResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteTaskPhoto(
     @CurrentUser() user: AuthUser,
     @Args('photoId', { type: () => ID }) photoId: string,

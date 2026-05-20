@@ -1,9 +1,8 @@
-import { Inject, UseGuards } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import { OemSchedule } from './models/oem-schedule.model';
@@ -21,7 +20,6 @@ export class OemSchedulesResolver {
    * swipe screen before the motorcycle exists in the database.
    */
   @Query(() => [OemSchedule], { name: 'oemSchedulesPreview' })
-  @UseGuards(GqlAuthGuard)
   async oemSchedulesPreview(
     @Args('make') make: string,
     @Args('model', { nullable: true }) model?: string,
@@ -31,7 +29,6 @@ export class OemSchedulesResolver {
   }
 
   @Query(() => [OemSchedule])
-  @UseGuards(GqlAuthGuard)
   async oemSchedulesForBike(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
@@ -62,7 +59,6 @@ export class OemSchedulesResolver {
    * of newly-created tasks so the UI can show "Imported N tasks".
    */
   @Mutation(() => Int, { name: 'importOemSchedule' })
-  @UseGuards(GqlAuthGuard)
   async importOemSchedule(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,

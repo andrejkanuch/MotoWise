@@ -2,12 +2,11 @@ import {
   CreateRouteReviewInputSchema,
   ShareRideToDiscoverInputSchema,
 } from '@motovault/types/validators';
-import { BadRequestException, UseGuards } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { EntitlementsService } from '../entitlements/entitlements.service';
@@ -26,7 +25,6 @@ import { RoutesService } from './routes.service';
 const ANONYMOUS_REVIEW_LIMIT = 3;
 
 @Resolver(() => Route)
-@UseGuards(GqlAuthGuard)
 export class RoutesResolver {
   constructor(
     private readonly routesService: RoutesService,

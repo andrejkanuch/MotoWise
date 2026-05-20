@@ -1,9 +1,8 @@
-import { Injectable, Logger, Scope, UseGuards } from '@nestjs/common';
+import { Injectable, Logger, Scope } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { IsRouteSavedLoader } from './is-route-saved.loader';
 import { Route, RouteConnection } from './models/route.model';
@@ -15,7 +14,6 @@ import { SavedRoutesService } from './saved-routes.service';
  * from TripsResolver instead. Kept for backward compatibility with old mobile app versions.
  */
 @Resolver(() => Route)
-@UseGuards(GqlAuthGuard)
 @Injectable({ scope: Scope.REQUEST })
 export class SavedRoutesResolver {
   private readonly logger = new Logger(SavedRoutesResolver.name);

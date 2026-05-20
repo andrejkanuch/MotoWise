@@ -1,9 +1,7 @@
 import { FollowRiderInputSchema, UnfollowRiderInputSchema } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { FollowRiderInput, UnfollowRiderInput } from './dto/follow.input';
 import { FollowsService } from './follows.service';
@@ -11,7 +9,6 @@ import { Follow } from './models/follow.model';
 import { FollowConnection } from './models/follow-connection.model';
 
 @Resolver(() => Follow)
-@UseGuards(GqlAuthGuard)
 export class FollowsResolver {
   constructor(private readonly followsService: FollowsService) {}
 

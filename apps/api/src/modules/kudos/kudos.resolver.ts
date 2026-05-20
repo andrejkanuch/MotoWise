@@ -1,15 +1,12 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { KudosService } from './kudos.service';
 import { KudosResult } from './models/kudos.model';
 import { KudosUser } from './models/kudos-user.model';
 
 @Resolver(() => KudosResult)
-@UseGuards(GqlAuthGuard)
 export class KudosResolver {
   constructor(private readonly kudosService: KudosService) {}
 

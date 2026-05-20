@@ -1,13 +1,10 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Float, ID, Query, Resolver } from '@nestjs/graphql';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { FuelStopsService } from './fuel-stops.service';
 import { FuelRangeResult, FuelStop } from './models/fuel-stop.model';
 
 @Resolver(() => FuelStop)
-@UseGuards(GqlAuthGuard)
 export class FuelStopsResolver {
   constructor(private readonly fuelStopsService: FuelStopsService) {}
 

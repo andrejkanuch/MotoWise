@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import type { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
 import { MotorcyclesResolver } from './motorcycles.resolver';
 import type { MotorcyclesService } from './motorcycles.service';
@@ -9,51 +8,25 @@ import type { NhtsaService } from './nhtsa.service';
 describe('MotorcyclesResolver', () => {
   const resolverPrototype = MotorcyclesResolver.prototype;
 
-  const getGuards = (methodName: string) => {
-    const guards = Reflect.getMetadata('__guards__', resolverPrototype[methodName]) ?? [];
-    return guards;
-  };
-
   const isPublic = (methodName: string) => {
     return Reflect.getMetadata(IS_PUBLIC_KEY, resolverPrototype[methodName]) === true;
   };
 
   describe('auth guard audit', () => {
-    it('myMotorcycles should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('myMotorcycles');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('myMotorcycles')).toBe(false);
-    });
+    const protectedMethods = [
+      'myMotorcycles',
+      'motorcycleMakes',
+      'motorcycleModels',
+      'createMotorcycle',
+      'updateMotorcycle',
+      'deleteMotorcycle',
+    ];
 
-    it('motorcycleMakes should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('motorcycleMakes');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('motorcycleMakes')).toBe(false);
-    });
-
-    it('motorcycleModels should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('motorcycleModels');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('motorcycleModels')).toBe(false);
-    });
-
-    it('createMotorcycle should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('createMotorcycle');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('createMotorcycle')).toBe(false);
-    });
-
-    it('updateMotorcycle should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('updateMotorcycle');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('updateMotorcycle')).toBe(false);
-    });
-
-    it('deleteMotorcycle should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('deleteMotorcycle');
-      expect(guards).toContain(GqlAuthGuard);
-      expect(isPublic('deleteMotorcycle')).toBe(false);
-    });
+    for (const method of protectedMethods) {
+      it(`${method} should NOT be @Public()`, () => {
+        expect(isPublic(method)).toBe(false);
+      });
+    }
   });
 
   describe('createMotorcycle behavior', () => {

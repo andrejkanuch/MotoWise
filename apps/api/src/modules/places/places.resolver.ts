@@ -1,7 +1,5 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { BrowseExploreRegionResult } from './models/browse-explore-region-result.model';
 import { BrowsePlace } from './models/browse-place.model';
 import { PlacesService } from './places.service';
@@ -13,7 +11,6 @@ import { PlacesService } from './places.service';
  * hard error. These queries are cheap and read-only — skip rate limits here.
  */
 @Resolver(() => BrowsePlace)
-@UseGuards(GqlAuthGuard)
 export class PlacesResolver {
   constructor(private readonly placesService: PlacesService) {}
 

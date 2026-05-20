@@ -3,11 +3,13 @@ import { join } from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GraphQLModule } from '@nestjs/graphql';
 import { SentryModule } from '@sentry/nestjs/setup';
 import depthLimit from 'graphql-depth-limit';
+import { AllExceptionsFilter } from './common/filters/gql-exception.filter';
+import { GqlAuthGuard } from './common/guards/gql-auth.guard';
 import { CorrelationIdInterceptor } from './common/interceptors/correlation-id.interceptor';
 import { LocaleInterceptor } from './common/interceptors/locale.interceptor';
 import { envSchema } from './config/env.validation';
@@ -113,6 +115,14 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     HealthModule,
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: GqlAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: CorrelationIdInterceptor,

@@ -1,5 +1,6 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { z } from 'zod';
+import { Public } from '../../common/decorators/public.decorator';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { EmailService } from '../email/email.service';
 
@@ -9,6 +10,7 @@ const WaitlistEmailSchema = z
   .transform((v) => v.trim().toLowerCase());
 
 @Resolver(() => Boolean)
+@Public()
 export class WaitlistResolver {
   constructor(private readonly emailService: EmailService) {}
 

@@ -1,9 +1,8 @@
 import { AddExpensePhotoSchema, LogExpenseSchema } from '@motovault/types';
-import { Injectable, Scope, UseGuards } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { Args, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AddExpensePhotoInput } from './dto/add-expense-photo.input';
@@ -24,7 +23,6 @@ export class ExpensesResolver {
   ) {}
 
   @Query(() => ExpenseSummary)
-  @UseGuards(GqlAuthGuard)
   async expenses(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
@@ -34,7 +32,6 @@ export class ExpensesResolver {
   }
 
   @Query(() => ExpenseDashboardSummary)
-  @UseGuards(GqlAuthGuard)
   async expenseDashboard(
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,
     @CurrentUser() user: AuthUser,
@@ -43,7 +40,6 @@ export class ExpensesResolver {
   }
 
   @Query(() => [ExpensePhoto])
-  @UseGuards(GqlAuthGuard)
   async expensePhotos(
     @CurrentUser() user: AuthUser,
     @Args('expenseId', ParseUUIDPipe) expenseId: string,
@@ -52,7 +48,6 @@ export class ExpensesResolver {
   }
 
   @Mutation(() => Expense)
-  @UseGuards(GqlAuthGuard)
   async logExpense(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(LogExpenseSchema)) input: LogExpenseInput,
@@ -61,7 +56,6 @@ export class ExpensesResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteExpense(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -74,7 +68,6 @@ export class ExpensesResolver {
   // ==========================================
 
   @Mutation(() => ExpensePhoto)
-  @UseGuards(GqlAuthGuard)
   async addExpensePhoto(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(AddExpensePhotoSchema))
@@ -89,7 +82,6 @@ export class ExpensesResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteExpensePhoto(
     @CurrentUser() user: AuthUser,
     @Args('photoId', ParseUUIDPipe) photoId: string,
@@ -98,7 +90,6 @@ export class ExpensesResolver {
   }
 
   @ResolveField(() => [ExpensePhoto])
-  @UseGuards(GqlAuthGuard)
   async photos(@Parent() expense: Expense): Promise<ExpensePhoto[]> {
     return this.expensePhotosLoader.load(expense.id);
   }
