@@ -12,7 +12,7 @@ import { PlacesService } from './places.service';
  * RSC + prefetch) and quickly returns 429, which graphql-request surfaces as a
  * hard error. These queries are cheap and read-only — skip rate limits here.
  */
-@Resolver()
+@Resolver(() => BrowsePlace)
 @UseGuards(GqlAuthGuard)
 export class PlacesResolver {
   constructor(private readonly placesService: PlacesService) {}

@@ -6,7 +6,7 @@ import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { FuelStopsService } from './fuel-stops.service';
 import { FuelRangeResult, FuelStop } from './models/fuel-stop.model';
 
-@Resolver()
+@Resolver(() => FuelStop)
 @UseGuards(GqlAuthGuard)
 export class FuelStopsResolver {
   constructor(private readonly fuelStopsService: FuelStopsService) {}

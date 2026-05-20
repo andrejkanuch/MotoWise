@@ -89,23 +89,6 @@ export class MaintenanceTasksService {
     return (data ?? []).map((row) => this.mapRow(row));
   }
 
-  async findById(userId: string, id: string): Promise<MaintenanceTask> {
-    this.logger.debug(`findById: userId=${userId}, taskId=${id}`);
-    const { data, error } = await this.supabase
-      .from('maintenance_tasks')
-      .select('*')
-      .eq('id', id)
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .single();
-
-    if (error || !data) {
-      this.logger.warn(`findById: task not found, id=${id}, error=${error?.message}`);
-      throw new NotFoundException('Maintenance task not found');
-    }
-    return this.mapRow(data);
-  }
-
   async create(
     userId: string,
     input: {

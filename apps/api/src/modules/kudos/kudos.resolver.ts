@@ -8,7 +8,7 @@ import { KudosService } from './kudos.service';
 import { KudosResult } from './models/kudos.model';
 import { KudosUser } from './models/kudos-user.model';
 
-@Resolver()
+@Resolver(() => KudosResult)
 @UseGuards(GqlAuthGuard)
 export class KudosResolver {
   constructor(private readonly kudosService: KudosService) {}
