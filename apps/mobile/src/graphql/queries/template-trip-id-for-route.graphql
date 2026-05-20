@@ -1,3 +1,0 @@
-query TemplateTripIdForRoute($routeId: ID!) {
-  templateTripIdForRoute(routeId: $routeId)
-}

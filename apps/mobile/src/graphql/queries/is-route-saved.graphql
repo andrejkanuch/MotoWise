@@ -1,4 +1,0 @@
-# @deprecated — Use trip-based equivalent. Kept for backward compatibility with old app builds.
-query IsRouteSaved($routeId: ID!) {
-  isRouteSaved(routeId: $routeId)
-}

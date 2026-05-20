@@ -17,7 +17,6 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ContentFlagsModule } from './modules/content-flags/content-flags.module';
 import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
-import { DiscoverTripsModule } from './modules/discover-trips/discover-trips.module';
 import { EmailModule } from './modules/email/email.module';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
@@ -40,7 +39,6 @@ import { QuizzesModule } from './modules/quizzes/quizzes.module';
 import { RedisModule } from './modules/redis/redis.module';
 import { RideSummariesModule } from './modules/ride-summaries/ride-summaries.module';
 import { RidesModule } from './modules/rides/rides.module';
-import { RoutesModule } from './modules/routes/routes.module';
 import { SearchModule } from './modules/search/search.module';
 import { ShareLinksModule } from './modules/share-links/share-links.module';
 import { SponsorshipsModule } from './modules/sponsorships/sponsorships.module';
@@ -82,7 +80,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ArticlesModule,
     QuizzesModule,
     DiagnosticsModule,
-    DiscoverTripsModule,
     ExpensesModule,
     FuelLogsModule,
     FeedModule,
@@ -98,7 +95,6 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     OemSchedulesModule,
     RideSummariesModule,
     RidesModule,
-    RoutesModule,
     SearchModule,
     EntitlementsModule,
     FuelStopsModule,

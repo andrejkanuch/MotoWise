@@ -12,7 +12,15 @@ import {
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
 } from '@motovault/types/validators';
-import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  Scope,
+  UseGuards,
+} from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -20,8 +28,9 @@ import { Public } from '../../common/decorators/public.decorator';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
-import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
-import { RoutesService } from '../routes/routes.service';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_USER } from '../supabase/supabase-user.provider';
+import { GPXExportResult as GPXExportResultUnion } from './dto/gpx-export.dto';
 import { CreateTripInput } from './dto/create-trip.input';
 import { CreateTripReviewInput } from './dto/create-trip-review.input';
 import { CreateTripWithWaypointsInput } from './dto/create-trip-with-waypoints.input';
@@ -53,6 +62,8 @@ import { TripWaypointsService } from './services/trip-waypoints.service';
 @UseGuards(GqlAuthGuard)
 @Injectable({ scope: Scope.REQUEST })
 export class TripsResolver {
+  private readonly logger = new Logger(TripsResolver.name);
+
   constructor(
     private readonly tripLifecycle: TripLifecycleService,
     private readonly tripWaypoints: TripWaypointsService,
@@ -64,7 +75,7 @@ export class TripsResolver {
     private readonly tripGpxExport: TripGpxExportService,
     private readonly tripReviewsLoader: TripReviewsLoader,
     private readonly tripSavedLoader: TripSavedLoader,
-    private readonly routesService: RoutesService,
+    @Inject(SUPABASE_USER) private readonly supabase: SupabaseClient,
   ) {}
 
   // ==========================================
@@ -579,6 +590,14 @@ export class TripsResolver {
     if (feature !== 'offline_routes' && feature !== 'premium_general') {
       throw new BadRequestException('Invalid feature. Must be offline_routes or premium_general');
     }
-    return this.routesService.joinPremiumWaitlist(user.id, feature);
+    const { error } = await this.supabase
+      .from('premium_waitlist')
+      .insert({ user_id: user.id, feature });
+    if (error) {
+      if (error.code === '23505') return true; // Already on waitlist
+      this.logger.error(`joinPremiumWaitlist failed: ${error.message}`);
+      throw new InternalServerErrorException('Failed to join waitlist');
+    }
+    return true;
   }
 }
