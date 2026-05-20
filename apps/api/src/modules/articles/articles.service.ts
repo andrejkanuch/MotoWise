@@ -15,9 +15,7 @@ import { ArticleConnection } from './models/article-connection.model';
 export class ArticlesService {
   private readonly logger = new Logger(ArticlesService.name);
 
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
 
   async search(input: {
     query?: string;
