@@ -96,7 +96,6 @@ const FEATURE_ITEMS = [
 
 const NAV_LINKS = [
   { key: 'explore', href: '/explore' },
-  { key: 'riders', href: '/#proof' },
   { key: 'faq', href: '/#faq' },
   { key: 'pro', href: '/pro' },
 ] as const;
@@ -606,7 +605,7 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Explore, Riders, FAQ, Pro */}
+          {/* Explore, FAQ, Pro */}
           {NAV_LINKS.map((link) => (
             <Link
               key={link.key}

@@ -117,6 +117,7 @@ export default function LoginPage() {
       `}</style>
 
       <div
+        className="auth-grid-root"
         style={{
           minHeight: '100vh',
           display: 'grid',
@@ -915,7 +916,13 @@ export default function LoginPage() {
         @media (max-width: 900px) {
           .auth-grid-root {
             grid-template-columns: 1fr !important;
-            min-height: auto !important;
+          }
+          .auth-grid-root > aside {
+            display: none !important;
+          }
+          .auth-grid-root > main {
+            padding: 24px 20px !important;
+            min-height: 100vh;
           }
         }
       `}</style>
