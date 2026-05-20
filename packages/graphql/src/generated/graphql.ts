@@ -113,13 +113,6 @@ export enum AssistantMessageRole {
   User = 'user'
 }
 
-export type BoundsInput = {
-  neLat: Scalars['Float']['input'];
-  neLng: Scalars['Float']['input'];
-  swLat: Scalars['Float']['input'];
-  swLng: Scalars['Float']['input'];
-};
-
 export type BrowseExploreRegionResult = {
   __typename?: 'BrowseExploreRegionResult';
   country: BrowsePlace;
@@ -250,14 +243,6 @@ export type CreateDiagnosticInput = {
   wizardAnswers?: InputMaybe<Scalars['JSON']['input']>;
 };
 
-export type CreateDiscoverTripReviewInput = {
-  bikeId?: InputMaybe<Scalars['ID']['input']>;
-  conditionTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  discoverTripId: Scalars['ID']['input'];
-  rating: Scalars['Int']['input'];
-  text?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type CreateFlagInput = {
   articleId: Scalars['String']['input'];
   comment: Scalars['String']['input'];
@@ -311,14 +296,6 @@ export type CreateMotorcycleInput = {
   model: Scalars['String']['input'];
   nickname?: InputMaybe<Scalars['String']['input']>;
   year: Scalars['Int']['input'];
-};
-
-export type CreateRouteReviewInput = {
-  bikeId?: InputMaybe<Scalars['ID']['input']>;
-  conditionTags?: InputMaybe<Array<Scalars['String']['input']>>;
-  rating: Scalars['Int']['input'];
-  routeId: Scalars['ID']['input'];
-  text?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateShareLinkInput = {
@@ -410,130 +387,6 @@ export enum DiagnosticSeverity {
   Low = 'low',
   Medium = 'medium'
 }
-
-export type DiscoverRoutesFilterInput = {
-  bikeCategory?: InputMaybe<Scalars['String']['input']>;
-  bounds?: InputMaybe<BoundsInput>;
-  /** ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code */
-  countryCode?: InputMaybe<Scalars['String']['input']>;
-  elevationRanges?: InputMaybe<Array<Scalars['String']['input']>>;
-  highlyRatedOnly?: InputMaybe<Scalars['Boolean']['input']>;
-  lengthRanges?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** Minimum twist score 1-10 (maps to curvature_index thresholds) */
-  minTwistScore?: InputMaybe<Scalars['Int']['input']>;
-  /** When true, only routes flagged as MotoVault editor picks */
-  motovaultPicksOnly?: InputMaybe<Scalars['Boolean']['input']>;
-  nearLat?: InputMaybe<Scalars['Float']['input']>;
-  nearLng?: InputMaybe<Scalars['Float']['input']>;
-  radiusKm?: InputMaybe<Scalars['Float']['input']>;
-  /** Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase */
-  regionCode?: InputMaybe<Scalars['String']['input']>;
-  /** When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort. */
-  sortByRating?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Only routes with surface condition reports within the last N days */
-  surfaceRecency?: InputMaybe<Scalars['Int']['input']>;
-  surfaceTypes?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-export type DiscoverTrip = {
-  __typename?: 'DiscoverTrip';
-  averageRating?: Maybe<Scalars['Float']['output']>;
-  city?: Maybe<Scalars['String']['output']>;
-  cloneCount: Scalars['Int']['output'];
-  contributor: DiscoverTripContributor;
-  countryCode: Scalars['String']['output'];
-  curvatureIndex?: Maybe<Scalars['Float']['output']>;
-  dayCount: Scalars['Int']['output'];
-  description: Scalars['String']['output'];
-  difficulty: TripDifficulty;
-  distanceM?: Maybe<Scalars['Int']['output']>;
-  elevationGainM?: Maybe<Scalars['Int']['output']>;
-  estimatedDurationMinutes?: Maybe<Scalars['Int']['output']>;
-  /** Set when this template was forked from another discover trip */
-  forkedFromDiscoverTripId?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  isFeatured: Scalars['Boolean']['output'];
-  isMotovaultPick: Scalars['Boolean']['output'];
-  polyline?: Maybe<Scalars['String']['output']>;
-  publishedAt: Scalars['String']['output'];
-  regionCode?: Maybe<Scalars['String']['output']>;
-  reviewCount: Scalars['Int']['output'];
-  slug: Scalars['String']['output'];
-  startLat?: Maybe<Scalars['Float']['output']>;
-  startLng?: Maybe<Scalars['Float']['output']>;
-  status: DiscoverTripStatus;
-  surfaceType?: Maybe<SurfaceType>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
-  viewCount: Scalars['Int']['output'];
-  waypoints: Array<DiscoverTripWaypoint>;
-};
-
-export type DiscoverTripConnection = {
-  __typename?: 'DiscoverTripConnection';
-  edges: Array<DiscoverTripEdge>;
-  pageInfo: DiscoverTripPageInfo;
-};
-
-export type DiscoverTripContributor = {
-  __typename?: 'DiscoverTripContributor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id?: Maybe<Scalars['ID']['output']>;
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type DiscoverTripEdge = {
-  __typename?: 'DiscoverTripEdge';
-  cursor: Scalars['String']['output'];
-  node: DiscoverTrip;
-};
-
-export type DiscoverTripPageInfo = {
-  __typename?: 'DiscoverTripPageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-};
-
-export type DiscoverTripReview = {
-  __typename?: 'DiscoverTripReview';
-  bikeId?: Maybe<Scalars['String']['output']>;
-  conditionTags?: Maybe<Array<Scalars['String']['output']>>;
-  createdAt: Scalars['String']['output'];
-  discoverTripId: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  rating: Scalars['Int']['output'];
-  text?: Maybe<Scalars['String']['output']>;
-  userId?: Maybe<Scalars['String']['output']>;
-};
-
-/** Status of a discover trip template. */
-export enum DiscoverTripStatus {
-  Flagged = 'flagged',
-  Hidden = 'hidden',
-  Published = 'published',
-  Unpublished = 'unpublished'
-}
-
-export type DiscoverTripWaypoint = {
-  __typename?: 'DiscoverTripWaypoint';
-  dayIndex: Scalars['Int']['output'];
-  lat: Scalars['Float']['output'];
-  lng: Scalars['Float']['output'];
-  name: Scalars['String']['output'];
-  notes?: Maybe<Scalars['String']['output']>;
-  sortOrder: Scalars['Int']['output'];
-  type: Scalars['String']['output'];
-};
-
-export type DiscoverTripsFilterInput = {
-  country?: InputMaybe<Scalars['String']['input']>;
-  dayCountMax?: InputMaybe<Scalars['Int']['input']>;
-  dayCountMin?: InputMaybe<Scalars['Int']['input']>;
-  difficulty?: InputMaybe<TripDifficulty>;
-  searchText?: InputMaybe<Scalars['String']['input']>;
-  surfaceType?: InputMaybe<SurfaceType>;
-};
 
 export type EndRideInput = {
   autoPausedDurationS?: Scalars['Int']['input'];
@@ -978,11 +831,6 @@ export type ManualBikeInfoInput = {
   year?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type ModerateDiscoverTripInput = {
-  discoverTripId: Scalars['ID']['input'];
-  status: DiscoverTripStatus;
-};
-
 export type MonthlyBucket = {
   __typename?: 'MonthlyBucket';
   fuel: Scalars['Float']['output'];
@@ -1058,21 +906,17 @@ export type Mutation = {
   addWaypoint: TripWaypoint;
   askTripAssistant: TripAssistantMessage;
   cancelGroupRide: Scalars['Boolean']['output'];
-  /** Clones a discover trip into the user's planner. Returns the new trip ID. */
-  cloneDiscoverTrip: Scalars['ID']['output'];
   /** Returns the new trip ID */
   cloneTrip: Scalars['ID']['output'];
   completeMaintenanceTask: CompleteTaskResult;
   completeOnboarding: User;
   createComment: Comment;
   createDiagnostic: Diagnostic;
-  createDiscoverTripReview: DiscoverTripReview;
   createFlag: ContentFlag;
   createFuelLog: FuelLog;
   createGroupRide: GroupRide;
   createMaintenanceTask: MaintenanceTask;
   createMotorcycle: Motorcycle;
-  createRouteReview: RouteReview;
   createShareLink: ShareLink;
   createTrip: Trip;
   createTripReview: TripReview;
@@ -1090,7 +934,6 @@ export type Mutation = {
   deleteTrip: Scalars['Boolean']['output'];
   deleteTripReview: Scalars['Boolean']['output'];
   endRide: EndRideResponse;
-  exportRouteGPX: GpxExportResult;
   /** Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro. */
   exportTripGPX: GpxExportResult;
   flagComment: Scalars['Boolean']['output'];
@@ -1102,8 +945,6 @@ export type Mutation = {
   inviteToTrip: Scalars['Boolean']['output'];
   joinGroupRide: Scalars['Boolean']['output'];
   joinPremiumWaitlist: Scalars['Boolean']['output'];
-  /** @deprecated Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA. */
-  joinPremiumWaitlistLegacy: Scalars['Boolean']['output'];
   joinTrip: Scalars['Boolean']['output'];
   /** Submit email to join waitlist (public, no auth) */
   joinWaitlist: Scalars['Boolean']['output'];
@@ -1111,11 +952,8 @@ export type Mutation = {
   leaveTrip: Scalars['Boolean']['output'];
   logExpense: Expense;
   markArticleRead: LearningProgress;
-  /** Admin only: moderate a discover trip. */
-  moderateDiscoverTrip: DiscoverTrip;
   publishAsTemplate: Trip;
   publishTrip: Trip;
-  publishTripToDiscover: DiscoverTrip;
   regenerateRideSummary: RideSummary;
   removeWaypoint: Scalars['Boolean']['output'];
   reorderWaypoints: Scalars['Boolean']['output'];
@@ -1126,15 +964,11 @@ export type Mutation = {
   respondToTripSuggestion: TripSuggestion;
   revokeShareLink: Scalars['Boolean']['output'];
   rotateTripShareToken: Scalars['String']['output'];
-  /** Save a route to your collection */
-  saveRouteToCollection: Scalars['Boolean']['output'];
   saveTrip: Scalars['Boolean']['output'];
   setTripParticipantRole: Scalars['Boolean']['output'];
   shareRide: Scalars['Boolean']['output'];
   /** Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover. */
   shareRideAsTrip: Trip;
-  /** @deprecated Use shareRideAsTrip mutation on TripsResolver instead. Removal target: 8 weeks post-OTA. */
-  shareRideToDiscover: Route;
   startRide: Ride;
   submitDiagnostic: Diagnostic;
   submitQuiz: QuizAttempt;
@@ -1143,13 +977,9 @@ export type Mutation = {
   trackSponsorshipClick: Scalars['Boolean']['output'];
   trackSponsorshipImpression: Scalars['Boolean']['output'];
   unfollowRider: Scalars['Boolean']['output'];
-  unpublishFromDiscover: Scalars['Boolean']['output'];
   unpublishTemplate: Scalars['Boolean']['output'];
-  /** Remove a saved route from your collection */
-  unsaveRouteFromCollection: Scalars['Boolean']['output'];
   unsaveTrip: Scalars['Boolean']['output'];
   unshareRide: Scalars['Boolean']['output'];
-  unshareRoute: Scalars['Boolean']['output'];
   updateGroupRide: GroupRide;
   updateHandle: User;
   updateMaintenanceTask: MaintenanceTask;
@@ -1190,11 +1020,6 @@ export type MutationCancelGroupRideArgs = {
 };
 
 
-export type MutationCloneDiscoverTripArgs = {
-  discoverTripId: Scalars['ID']['input'];
-};
-
-
 export type MutationCloneTripArgs = {
   tripId: Scalars['ID']['input'];
 };
@@ -1222,11 +1047,6 @@ export type MutationCreateDiagnosticArgs = {
 };
 
 
-export type MutationCreateDiscoverTripReviewArgs = {
-  input: CreateDiscoverTripReviewInput;
-};
-
-
 export type MutationCreateFlagArgs = {
   input: CreateFlagInput;
 };
@@ -1249,11 +1069,6 @@ export type MutationCreateMaintenanceTaskArgs = {
 
 export type MutationCreateMotorcycleArgs = {
   input: CreateMotorcycleInput;
-};
-
-
-export type MutationCreateRouteReviewArgs = {
-  input: CreateRouteReviewInput;
 };
 
 
@@ -1337,11 +1152,6 @@ export type MutationEndRideArgs = {
 };
 
 
-export type MutationExportRouteGpxArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
 export type MutationExportTripGpxArgs = {
   country: Scalars['String']['input'];
   region: Scalars['String']['input'];
@@ -1395,11 +1205,6 @@ export type MutationJoinPremiumWaitlistArgs = {
 };
 
 
-export type MutationJoinPremiumWaitlistLegacyArgs = {
-  feature: Scalars['String']['input'];
-};
-
-
 export type MutationJoinTripArgs = {
   input: JoinTripInput;
 };
@@ -1430,11 +1235,6 @@ export type MutationMarkArticleReadArgs = {
 };
 
 
-export type MutationModerateDiscoverTripArgs = {
-  input: ModerateDiscoverTripInput;
-};
-
-
 export type MutationPublishAsTemplateArgs = {
   tripId: Scalars['ID']['input'];
 };
@@ -1442,11 +1242,6 @@ export type MutationPublishAsTemplateArgs = {
 
 export type MutationPublishTripArgs = {
   tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationPublishTripToDiscoverArgs = {
-  input: PublishTripToDiscoverInput;
 };
 
 
@@ -1491,11 +1286,6 @@ export type MutationRotateTripShareTokenArgs = {
 };
 
 
-export type MutationSaveRouteToCollectionArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
 export type MutationSaveTripArgs = {
   tripId: Scalars['ID']['input'];
 };
@@ -1514,11 +1304,6 @@ export type MutationShareRideArgs = {
 
 export type MutationShareRideAsTripArgs = {
   input: ShareRideAsTripInput;
-};
-
-
-export type MutationShareRideToDiscoverArgs = {
-  input: ShareRideToDiscoverInput;
 };
 
 
@@ -1562,18 +1347,8 @@ export type MutationUnfollowRiderArgs = {
 };
 
 
-export type MutationUnpublishFromDiscoverArgs = {
-  discoverTripId: Scalars['ID']['input'];
-};
-
-
 export type MutationUnpublishTemplateArgs = {
   tripId: Scalars['ID']['input'];
-};
-
-
-export type MutationUnsaveRouteFromCollectionArgs = {
-  routeId: Scalars['ID']['input'];
 };
 
 
@@ -1585,11 +1360,6 @@ export type MutationUnsaveTripArgs = {
 export type MutationUnshareRideArgs = {
   rideId: Scalars['String']['input'];
   sharedWithUserId: Scalars['String']['input'];
-};
-
-
-export type MutationUnshareRouteArgs = {
-  routeId: Scalars['ID']['input'];
 };
 
 
@@ -1744,10 +1514,6 @@ export type PublicRiderProfile = {
   rideStats: PublicRideStats;
 };
 
-export type PublishTripToDiscoverInput = {
-  tripId: Scalars['ID']['input'];
-};
-
 export type Query = {
   __typename?: 'Query';
   aiBudgetStatus: AiBudgetStatus;
@@ -1764,11 +1530,6 @@ export type Query = {
   browseRegionsByCountrySlug: Array<BrowsePlace>;
   diagnosticById?: Maybe<Diagnostic>;
   discoverRiderTrips: TripConnection;
-  /** @deprecated Use discoverTrips query instead. Removal target: 8 weeks post-OTA. */
-  discoverRoutes: RouteConnection;
-  discoverTripById: DiscoverTrip;
-  discoverTripBySlug: DiscoverTrip;
-  discoverTrips: DiscoverTripConnection;
   expenseDashboard: ExpenseDashboardSummary;
   expensePhotos: Array<ExpensePhoto>;
   expenses: ExpenseSummary;
@@ -1784,11 +1545,8 @@ export type Query = {
   getMyHealthReports: Array<HealthReport>;
   getPublicRide: Ride;
   getRiderProfile: PublicRiderProfile;
-  getRouteReviews: RouteReviewConnection;
   getTrips: TripConnection;
   groupRideDetail: GroupRide;
-  /** Check if the authenticated user has saved a specific route */
-  isRouteSaved: Scalars['Boolean']['output'];
   isTripSaved: Scalars['Boolean']['output'];
   kudosList: Array<KudosUser>;
   maintenanceTaskHistory: Array<MaintenanceTask>;
@@ -1808,30 +1566,20 @@ export type Query = {
   oemSchedulesForBike: Array<OemSchedule>;
   oemSchedulesPreview: Array<OemSchedule>;
   popularArticles: Array<Article>;
-  /** Public saved routes for a user by handle (public_username) */
-  publicSavedRoutes: RouteConnection;
   /** Public saved trips for a user by handle (public_username) */
   publicSavedTrips: TripConnection;
   quizByArticle?: Maybe<Quiz>;
   ride: Ride;
   rideFeed: FeedRideConnection;
   rideWaypoints: Array<Waypoint>;
-  /** @deprecated Use discoverTripBySlug query instead. Removal target: 8 weeks post-OTA. */
-  routeBySlug?: Maybe<Route>;
   routeConditions: RouteConditions;
-  /** @deprecated Use discoverTripById query instead. Removal target: 8 weeks post-OTA. */
-  routeDetail: Route;
-  routePathById?: Maybe<RouteCanonicalPath>;
   routeSponsorships: Array<Sponsorship>;
-  /** Paginated list of the authenticated user's saved routes */
-  savedRoutes: RouteConnection;
   savedTrips: TripConnection;
   searchArticles: ArticleConnection;
   searchTypeahead: TypeaheadResult;
   sharedBikeHistory: SharedBikeHistory;
   /** Find similar published trip templates by country + difficulty + duration */
   similarTrips: Array<Trip>;
-  sitemapPublishedRoutes: Array<SitemapRouteEntry>;
   /** Published trip templates for XML sitemap generation */
   sitemapPublishedTrips: Array<SitemapTripEntry>;
   spendingSummary: SpendingSummary;
@@ -1881,32 +1629,6 @@ export type QueryDiagnosticByIdArgs = {
 
 export type QueryDiscoverRiderTripsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryDiscoverRoutesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DiscoverRoutesFilterInput>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryDiscoverTripByIdArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryDiscoverTripBySlugArgs = {
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-};
-
-
-export type QueryDiscoverTripsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filter?: InputMaybe<DiscoverTripsFilterInput>;
   first?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -1988,13 +1710,6 @@ export type QueryGetRiderProfileArgs = {
 };
 
 
-export type QueryGetRouteReviewsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  routeId: Scalars['ID']['input'];
-};
-
-
 export type QueryGetTripsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2003,11 +1718,6 @@ export type QueryGetTripsArgs = {
 
 export type QueryGroupRideDetailArgs = {
   groupRideId: Scalars['ID']['input'];
-};
-
-
-export type QueryIsRouteSavedArgs = {
-  routeId: Scalars['ID']['input'];
 };
 
 
@@ -2080,13 +1790,6 @@ export type QueryPopularArticlesArgs = {
 };
 
 
-export type QueryPublicSavedRoutesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  handle: Scalars['String']['input'];
-};
-
-
 export type QueryPublicSavedTripsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -2116,36 +1819,13 @@ export type QueryRideWaypointsArgs = {
 };
 
 
-export type QueryRouteBySlugArgs = {
-  country: Scalars['String']['input'];
-  region: Scalars['String']['input'];
-  slug: Scalars['String']['input'];
-};
-
-
 export type QueryRouteConditionsArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryRouteDetailArgs = {
-  routeId: Scalars['ID']['input'];
-};
-
-
-export type QueryRoutePathByIdArgs = {
   routeId: Scalars['ID']['input'];
 };
 
 
 export type QueryRouteSponsorshipsArgs = {
   routeId: Scalars['ID']['input'];
-};
-
-
-export type QuerySavedRoutesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2370,106 +2050,10 @@ export type RideSummary = {
   updatedAt: Scalars['String']['output'];
 };
 
-export type Route = {
-  __typename?: 'Route';
-  city?: Maybe<Scalars['String']['output']>;
-  commentCount: Scalars['Int']['output'];
-  contributor: RouteContributor;
-  countryCode?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  curvatureIndex?: Maybe<Scalars['Float']['output']>;
-  description?: Maybe<Scalars['String']['output']>;
-  distanceM: Scalars['Float']['output'];
-  editorialDescription?: Maybe<Scalars['String']['output']>;
-  elevationGainM?: Maybe<Scalars['Float']['output']>;
-  id: Scalars['ID']['output'];
-  isMotovaultPick: Scalars['Boolean']['output'];
-  name?: Maybe<Scalars['String']['output']>;
-  /** Null for anonymous users (requires auth) */
-  polyline?: Maybe<Scalars['String']['output']>;
-  ratingAvg?: Maybe<Scalars['Float']['output']>;
-  ratingCount: Scalars['Int']['output'];
-  regionCode?: Maybe<Scalars['String']['output']>;
-  slug?: Maybe<Scalars['String']['output']>;
-  startLat?: Maybe<Scalars['Float']['output']>;
-  startLng?: Maybe<Scalars['Float']['output']>;
-  status: Scalars['String']['output'];
-  surfaceType?: Maybe<Scalars['String']['output']>;
-  twistPercentile?: Maybe<Scalars['Int']['output']>;
-  twistScore?: Maybe<Scalars['Int']['output']>;
-};
-
-export type RouteCanonicalPath = {
-  __typename?: 'RouteCanonicalPath';
-  countryCode: Scalars['String']['output'];
-  regionCode: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-};
-
 export type RouteConditions = {
   __typename?: 'RouteConditions';
   aggregates: Array<ConditionAggregate>;
   recentReports: Array<SurfaceReport>;
-};
-
-export type RouteConnection = {
-  __typename?: 'RouteConnection';
-  edges: Array<RouteEdge>;
-  pageInfo: RoutePageInfo;
-};
-
-export type RouteContributor = {
-  __typename?: 'RouteContributor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type RouteEdge = {
-  __typename?: 'RouteEdge';
-  cursor: Scalars['String']['output'];
-  node: Route;
-};
-
-export type RoutePageInfo = {
-  __typename?: 'RoutePageInfo';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-};
-
-export type RouteReview = {
-  __typename?: 'RouteReview';
-  author: RouteReviewAuthor;
-  bike?: Maybe<RouteReviewBike>;
-  conditionTags: Array<Scalars['String']['output']>;
-  createdAt: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  rating: Scalars['Int']['output'];
-  text?: Maybe<Scalars['String']['output']>;
-};
-
-export type RouteReviewAuthor = {
-  __typename?: 'RouteReviewAuthor';
-  avatarUrl?: Maybe<Scalars['String']['output']>;
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  publicUsername?: Maybe<Scalars['String']['output']>;
-};
-
-export type RouteReviewBike = {
-  __typename?: 'RouteReviewBike';
-  make: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  year: Scalars['Int']['output'];
-};
-
-export type RouteReviewConnection = {
-  __typename?: 'RouteReviewConnection';
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-  reviews: Array<RouteReview>;
-  totalCount: Scalars['Int']['output'];
 };
 
 export type RouteSuggestion = {
@@ -2506,12 +2090,6 @@ export type ShareLink = {
 };
 
 export type ShareRideAsTripInput = {
-  name?: InputMaybe<Scalars['String']['input']>;
-  rideId: Scalars['ID']['input'];
-  surfaceType?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type ShareRideToDiscoverInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   rideId: Scalars['ID']['input'];
   surfaceType?: InputMaybe<Scalars['String']['input']>;
@@ -2580,14 +2158,6 @@ export type SharedTripWaypoint = {
   periodOfDay?: Maybe<PeriodOfDay>;
   sortOrder: Scalars['Int']['output'];
   type: Scalars['String']['output'];
-};
-
-export type SitemapRouteEntry = {
-  __typename?: 'SitemapRouteEntry';
-  countryCode: Scalars['String']['output'];
-  regionCode: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-  updatedAt: Scalars['String']['output'];
 };
 
 /** Minimal trip data for XML sitemap generation */
@@ -2676,15 +2246,6 @@ export type SurfaceReport = {
   routeId: Scalars['ID']['output'];
   userId: Scalars['ID']['output'];
 };
-
-/** Road surface type for a route or trip. */
-export enum SurfaceType {
-  Mixed = 'mixed',
-  /** Off-road / unpaved surface */
-  OffRoad = 'off_road',
-  Paved = 'paved',
-  Unknown = 'unknown'
-}
 
 export type TaskPhoto = {
   __typename?: 'TaskPhoto';
@@ -2779,14 +2340,6 @@ export type TripConnection = {
   edges: Array<TripEdge>;
   pageInfo: TripPageInfo;
 };
-
-/** Difficulty rating for a trip or discover template. */
-export enum TripDifficulty {
-  Challenging = 'challenging',
-  Easy = 'easy',
-  Expert = 'expert',
-  Moderate = 'moderate'
-}
 
 export type TripEdge = {
   __typename?: 'TripEdge';
@@ -3435,13 +2988,6 @@ export type PublishAsTemplateMutationVariables = Exact<{
 
 export type PublishAsTemplateMutation = { __typename?: 'Mutation', publishAsTemplate: { __typename?: 'Trip', id: string, slug?: string | null, isTemplate: boolean, publishedAt?: string | null, status: string } };
 
-export type PublishTripToDiscoverMutationVariables = Exact<{
-  input: PublishTripToDiscoverInput;
-}>;
-
-
-export type PublishTripToDiscoverMutation = { __typename?: 'Mutation', publishTripToDiscover: { __typename?: 'DiscoverTrip', id: string, slug: string, title: string, status: DiscoverTripStatus } };
-
 export type PublishTripMutationVariables = Exact<{
   tripId: Scalars['ID']['input'];
 }>;
@@ -3525,13 +3071,6 @@ export type ShareRideAsTripMutationVariables = Exact<{
 
 export type ShareRideAsTripMutation = { __typename?: 'Mutation', shareRideAsTrip: { __typename?: 'Trip', id: string, title: string, distanceM?: number | null } };
 
-export type ShareRideToDiscoverMutationVariables = Exact<{
-  input: ShareRideToDiscoverInput;
-}>;
-
-
-export type ShareRideToDiscoverMutation = { __typename?: 'Mutation', shareRideToDiscover: { __typename?: 'Route', id: string, name?: string | null, distanceM: number } };
-
 export type ShareRideMutationVariables = Exact<{
   rideId: Scalars['String']['input'];
   sharedWithUserId: Scalars['String']['input'];
@@ -3574,13 +3113,6 @@ export type UnfollowRiderMutationVariables = Exact<{
 
 
 export type UnfollowRiderMutation = { __typename?: 'Mutation', unfollowRider: boolean };
-
-export type UnpublishFromDiscoverMutationVariables = Exact<{
-  discoverTripId: Scalars['ID']['input'];
-}>;
-
-
-export type UnpublishFromDiscoverMutation = { __typename?: 'Mutation', unpublishFromDiscover: boolean };
 
 export type UnpublishTemplateMutationVariables = Exact<{
   tripId: Scalars['ID']['input'];
@@ -3981,6 +3513,13 @@ export type SpendingSummaryQueryVariables = Exact<{
 
 export type SpendingSummaryQuery = { __typename?: 'Query', spendingSummary: { __typename?: 'SpendingSummary', thisYear: number, allTime: number } };
 
+export type TemplateTripIdForRouteQueryVariables = Exact<{
+  routeId: Scalars['ID']['input'];
+}>;
+
+
+export type TemplateTripIdForRouteQuery = { __typename?: 'Query', templateTripIdForRoute?: string | null };
+
 export type TripByShareTokenQueryVariables = Exact<{
   shareToken: Scalars['String']['input'];
 }>;
@@ -4166,7 +3705,6 @@ export const LeaveTripDocument = {"kind":"Document","definitions":[{"kind":"Oper
 export const LogExpenseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"LogExpense"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"LogExpenseInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logExpense"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"amount"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"currency"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<LogExpenseMutation, LogExpenseMutationVariables>;
 export const MarkArticleReadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MarkArticleRead"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"articleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"markArticleRead"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"articleId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"articleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"articleId"}},{"kind":"Field","name":{"kind":"Name","value":"articleRead"}},{"kind":"Field","name":{"kind":"Name","value":"quizCompleted"}},{"kind":"Field","name":{"kind":"Name","value":"quizBestScore"}},{"kind":"Field","name":{"kind":"Name","value":"firstReadAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastReadAt"}}]}}]}}]} as unknown as DocumentNode<MarkArticleReadMutation, MarkArticleReadMutationVariables>;
 export const PublishAsTemplateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"PublishAsTemplate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publishAsTemplate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"isTemplate"}},{"kind":"Field","name":{"kind":"Name","value":"publishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<PublishAsTemplateMutation, PublishAsTemplateMutationVariables>;
-export const PublishTripToDiscoverDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"PublishTripToDiscover"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PublishTripToDiscoverInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publishTripToDiscover"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<PublishTripToDiscoverMutation, PublishTripToDiscoverMutationVariables>;
 export const PublishTripDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"PublishTrip"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publishTrip"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<PublishTripMutation, PublishTripMutationVariables>;
 export const RegenerateRideSummaryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RegenerateRideSummary"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regenerateRideSummary"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"rideId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"rideId"}},{"kind":"Field","name":{"kind":"Name","value":"summaryText"}},{"kind":"Field","name":{"kind":"Name","value":"generationStatus"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<RegenerateRideSummaryMutation, RegenerateRideSummaryMutationVariables>;
 export const RemoveWaypointDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemoveWaypoint"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"waypointId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removeWaypoint"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"waypointId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"waypointId"}}}]}]}}]} as unknown as DocumentNode<RemoveWaypointMutation, RemoveWaypointMutationVariables>;
@@ -4179,14 +3717,12 @@ export const RotateTripShareTokenDocument = {"kind":"Document","definitions":[{"
 export const SaveTripDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SaveTrip"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"saveTrip"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}]}]}}]} as unknown as DocumentNode<SaveTripMutation, SaveTripMutationVariables>;
 export const SetTripParticipantRoleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetTripParticipantRole"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SetParticipantRoleInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setTripParticipantRole"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SetTripParticipantRoleMutation, SetTripParticipantRoleMutationVariables>;
 export const ShareRideAsTripDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ShareRideAsTrip"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ShareRideAsTripInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"shareRideAsTrip"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}}]}}]}}]} as unknown as DocumentNode<ShareRideAsTripMutation, ShareRideAsTripMutationVariables>;
-export const ShareRideToDiscoverDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ShareRideToDiscover"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ShareRideToDiscoverInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"shareRideToDiscover"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}}]}}]}}]} as unknown as DocumentNode<ShareRideToDiscoverMutation, ShareRideToDiscoverMutationVariables>;
 export const ShareRideDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ShareRide"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sharedWithUserId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"shareRide"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"rideId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}}},{"kind":"Argument","name":{"kind":"Name","value":"sharedWithUserId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sharedWithUserId"}}}]}]}}]} as unknown as DocumentNode<ShareRideMutation, ShareRideMutationVariables>;
 export const StartRideDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartRide"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"StartRideInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startRide"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"startedAt"}},{"kind":"Field","name":{"kind":"Name","value":"motorcycleId"}}]}}]}}]} as unknown as DocumentNode<StartRideMutation, StartRideMutationVariables>;
 export const SubmitDiagnosticDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SubmitDiagnostic"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SubmitDiagnosticInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"submitDiagnostic"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"userId"}},{"kind":"Field","name":{"kind":"Name","value":"motorcycleId"}},{"kind":"Field","name":{"kind":"Name","value":"severity"}},{"kind":"Field","name":{"kind":"Name","value":"confidence"}},{"kind":"Field","name":{"kind":"Name","value":"relatedArticleId"}},{"kind":"Field","name":{"kind":"Name","value":"resultJson"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"photoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<SubmitDiagnosticMutation, SubmitDiagnosticMutationVariables>;
 export const ToggleKudosDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ToggleKudos"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"toggleKudos"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"rideId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasKudos"}},{"kind":"Field","name":{"kind":"Name","value":"kudosCount"}}]}}]}}]} as unknown as DocumentNode<ToggleKudosMutation, ToggleKudosMutationVariables>;
 export const TrackAffiliateClickDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TrackAffiliateClick"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TrackClickInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"trackAffiliateClick"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"partner"}},{"kind":"Field","name":{"kind":"Name","value":"affiliateUrl"}},{"kind":"Field","name":{"kind":"Name","value":"productUrl"}},{"kind":"Field","name":{"kind":"Name","value":"tracked"}}]}}]}}]} as unknown as DocumentNode<TrackAffiliateClickMutation, TrackAffiliateClickMutationVariables>;
 export const UnfollowRiderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnfollowRider"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UnfollowRiderInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unfollowRider"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<UnfollowRiderMutation, UnfollowRiderMutationVariables>;
-export const UnpublishFromDiscoverDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnpublishFromDiscover"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"discoverTripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unpublishFromDiscover"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"discoverTripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"discoverTripId"}}}]}]}}]} as unknown as DocumentNode<UnpublishFromDiscoverMutation, UnpublishFromDiscoverMutationVariables>;
 export const UnpublishTemplateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnpublishTemplate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unpublishTemplate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}]}]}}]} as unknown as DocumentNode<UnpublishTemplateMutation, UnpublishTemplateMutationVariables>;
 export const UnsaveTripDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnsaveTrip"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unsaveTrip"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}]}]}}]} as unknown as DocumentNode<UnsaveTripMutation, UnsaveTripMutationVariables>;
 export const UnshareRideDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnshareRide"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sharedWithUserId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unshareRide"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"rideId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rideId"}}},{"kind":"Argument","name":{"kind":"Name","value":"sharedWithUserId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sharedWithUserId"}}}]}]}}]} as unknown as DocumentNode<UnshareRideMutation, UnshareRideMutationVariables>;
@@ -4242,6 +3778,7 @@ export const SavedTripsDocument = {"kind":"Document","definitions":[{"kind":"Ope
 export const SearchArticlesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchArticles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SearchArticlesInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchArticles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"edges"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"node"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"difficulty"}},{"kind":"Field","name":{"kind":"Name","value":"category"}},{"kind":"Field","name":{"kind":"Name","value":"viewCount"}},{"kind":"Field","name":{"kind":"Name","value":"isSafetyCritical"}},{"kind":"Field","name":{"kind":"Name","value":"generatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"keywords"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}},{"kind":"Field","name":{"kind":"Name","value":"startCursor"}},{"kind":"Field","name":{"kind":"Name","value":"endCursor"}}]}},{"kind":"Field","name":{"kind":"Name","value":"totalCount"}}]}}]}}]} as unknown as DocumentNode<SearchArticlesQuery, SearchArticlesQueryVariables>;
 export const SearchTypeaheadDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SearchTypeahead"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"q"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"searchTypeahead"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"q"},"value":{"kind":"Variable","name":{"kind":"Name","value":"q"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"routes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"places"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"kind"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"population"}}]}}]}}]}}]} as unknown as DocumentNode<SearchTypeaheadQuery, SearchTypeaheadQueryVariables>;
 export const SpendingSummaryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SpendingSummary"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"motorcycleId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"spendingSummary"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"motorcycleId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"motorcycleId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"thisYear"}},{"kind":"Field","name":{"kind":"Name","value":"allTime"}}]}}]}}]} as unknown as DocumentNode<SpendingSummaryQuery, SpendingSummaryQueryVariables>;
+export const TemplateTripIdForRouteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TemplateTripIdForRoute"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"templateTripIdForRoute"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"routeId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"routeId"}}}]}]}}]} as unknown as DocumentNode<TemplateTripIdForRouteQuery, TemplateTripIdForRouteQueryVariables>;
 export const TripByShareTokenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TripByShareToken"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"shareToken"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tripByShareToken"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"shareToken"},"value":{"kind":"Variable","name":{"kind":"Name","value":"shareToken"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"difficulty"}},{"kind":"Field","name":{"kind":"Name","value":"startDate"}},{"kind":"Field","name":{"kind":"Name","value":"endDate"}},{"kind":"Field","name":{"kind":"Name","value":"maxRiders"}},{"kind":"Field","name":{"kind":"Name","value":"participantCount"}},{"kind":"Field","name":{"kind":"Name","value":"coverImageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"waypoints"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"sortOrder"}},{"kind":"Field","name":{"kind":"Name","value":"dayIndex"}},{"kind":"Field","name":{"kind":"Name","value":"periodOfDay"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"lat"}},{"kind":"Field","name":{"kind":"Name","value":"lng"}}]}},{"kind":"Field","name":{"kind":"Name","value":"participants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"anonId"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}}]}}]}}]} as unknown as DocumentNode<TripByShareTokenQuery, TripByShareTokenQueryVariables>;
 export const TripBySlugDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TripBySlug"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"country"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"region"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"slug"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tripBySlug"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"country"},"value":{"kind":"Variable","name":{"kind":"Name","value":"country"}}},{"kind":"Argument","name":{"kind":"Name","value":"region"},"value":{"kind":"Variable","name":{"kind":"Name","value":"region"}}},{"kind":"Argument","name":{"kind":"Name","value":"slug"},"value":{"kind":"Variable","name":{"kind":"Name","value":"slug"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"difficulty"}},{"kind":"Field","name":{"kind":"Name","value":"dayCount"}},{"kind":"Field","name":{"kind":"Name","value":"startDate"}},{"kind":"Field","name":{"kind":"Name","value":"endDate"}},{"kind":"Field","name":{"kind":"Name","value":"maxRiders"}},{"kind":"Field","name":{"kind":"Name","value":"participantCount"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"visibility"}},{"kind":"Field","name":{"kind":"Name","value":"coverImageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"isTemplate"}},{"kind":"Field","name":{"kind":"Name","value":"polyline"}},{"kind":"Field","name":{"kind":"Name","value":"startLat"}},{"kind":"Field","name":{"kind":"Name","value":"startLng"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}},{"kind":"Field","name":{"kind":"Name","value":"elevationGainM"}},{"kind":"Field","name":{"kind":"Name","value":"estimatedDurationMinutes"}},{"kind":"Field","name":{"kind":"Name","value":"surfaceType"}},{"kind":"Field","name":{"kind":"Name","value":"curvatureIndex"}},{"kind":"Field","name":{"kind":"Name","value":"isFeatured"}},{"kind":"Field","name":{"kind":"Name","value":"isMotovaultPick"}},{"kind":"Field","name":{"kind":"Name","value":"viewCount"}},{"kind":"Field","name":{"kind":"Name","value":"cloneCount"}},{"kind":"Field","name":{"kind":"Name","value":"averageRating"}},{"kind":"Field","name":{"kind":"Name","value":"reviewCount"}},{"kind":"Field","name":{"kind":"Name","value":"publishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"isFlagged"}},{"kind":"Field","name":{"kind":"Name","value":"clonedFromTripId"}},{"kind":"Field","name":{"kind":"Name","value":"forkedFromTripId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"organiser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"publicUsername"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"waypoints"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tripId"}},{"kind":"Field","name":{"kind":"Name","value":"sortOrder"}},{"kind":"Field","name":{"kind":"Name","value":"dayIndex"}},{"kind":"Field","name":{"kind":"Name","value":"periodOfDay"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"lat"}},{"kind":"Field","name":{"kind":"Name","value":"lng"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]}}]} as unknown as DocumentNode<TripBySlugQuery, TripBySlugQueryVariables>;
 export const TripDetailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TripDetail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tripDetail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tripId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tripId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"startDate"}},{"kind":"Field","name":{"kind":"Name","value":"endDate"}},{"kind":"Field","name":{"kind":"Name","value":"difficulty"}},{"kind":"Field","name":{"kind":"Name","value":"maxRiders"}},{"kind":"Field","name":{"kind":"Name","value":"participantCount"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"visibility"}},{"kind":"Field","name":{"kind":"Name","value":"coverImageUrl"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"isTemplate"}},{"kind":"Field","name":{"kind":"Name","value":"slug"}},{"kind":"Field","name":{"kind":"Name","value":"polyline"}},{"kind":"Field","name":{"kind":"Name","value":"startLat"}},{"kind":"Field","name":{"kind":"Name","value":"startLng"}},{"kind":"Field","name":{"kind":"Name","value":"countryCode"}},{"kind":"Field","name":{"kind":"Name","value":"regionCode"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"distanceM"}},{"kind":"Field","name":{"kind":"Name","value":"elevationGainM"}},{"kind":"Field","name":{"kind":"Name","value":"estimatedDurationMinutes"}},{"kind":"Field","name":{"kind":"Name","value":"surfaceType"}},{"kind":"Field","name":{"kind":"Name","value":"curvatureIndex"}},{"kind":"Field","name":{"kind":"Name","value":"dayCount"}},{"kind":"Field","name":{"kind":"Name","value":"isFeatured"}},{"kind":"Field","name":{"kind":"Name","value":"isMotovaultPick"}},{"kind":"Field","name":{"kind":"Name","value":"viewCount"}},{"kind":"Field","name":{"kind":"Name","value":"cloneCount"}},{"kind":"Field","name":{"kind":"Name","value":"averageRating"}},{"kind":"Field","name":{"kind":"Name","value":"reviewCount"}},{"kind":"Field","name":{"kind":"Name","value":"publishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"isFlagged"}},{"kind":"Field","name":{"kind":"Name","value":"isSaved"}},{"kind":"Field","name":{"kind":"Name","value":"clonedFromTripId"}},{"kind":"Field","name":{"kind":"Name","value":"forkedFromTripId"}},{"kind":"Field","name":{"kind":"Name","value":"organiser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"publicUsername"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"waypoints"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"tripId"}},{"kind":"Field","name":{"kind":"Name","value":"sortOrder"}},{"kind":"Field","name":{"kind":"Name","value":"dayIndex"}},{"kind":"Field","name":{"kind":"Name","value":"periodOfDay"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"lat"}},{"kind":"Field","name":{"kind":"Name","value":"lng"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}},{"kind":"Field","name":{"kind":"Name","value":"participants"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"publicUsername"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}},{"kind":"Field","name":{"kind":"Name","value":"role"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"bikeId"}},{"kind":"Field","name":{"kind":"Name","value":"joinedAt"}}]}}]}}]}}]} as unknown as DocumentNode<TripDetailQuery, TripDetailQueryVariables>;

@@ -1,7 +1,0 @@
-mutation ShareRideToDiscover($input: ShareRideToDiscoverInput!) {
-  shareRideToDiscover(input: $input) {
-    id
-    name
-    distanceM
-  }
-}

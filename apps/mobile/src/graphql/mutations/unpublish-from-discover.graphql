@@ -1,3 +1,0 @@
-mutation UnpublishFromDiscover($discoverTripId: ID!) {
-  unpublishFromDiscover(discoverTripId: $discoverTripId)
-}

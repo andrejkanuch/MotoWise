@@ -5,7 +5,6 @@ import {
   CreateTripReviewDocument,
   JoinTripDocument,
   LeaveTripDocument,
-  PublishTripToDiscoverDocument,
   SaveTripDocument,
   TripDetailDocument,
   type TripDetailQuery,
@@ -26,7 +25,6 @@ import {
   Calendar,
   CheckCircle,
   ChevronUp,
-  Compass,
   Copy,
   Download,
   EyeOff,
@@ -586,48 +584,6 @@ export default function TripDetailScreen() {
       { text: 'Leave', style: 'destructive', onPress: () => leaveMutation.mutate() },
     ]);
   }, [leaveMutation]);
-
-  const [publishedToDiscover, setPublishedToDiscover] = useState(false);
-
-  const publishToDiscoverMutation = useMutation({
-    mutationFn: () => gqlFetcher(PublishTripToDiscoverDocument, { input: { tripId } }),
-    onSuccess: () => {
-      if (process.env.EXPO_OS === 'ios')
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setPublishedToDiscover(true);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tripTemplates.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
-      queryClient.invalidateQueries({ queryKey: queryKeys.trips.detail(tripId) });
-      Alert.alert(
-        'Published to Discover',
-        'Your trip is now a template that other riders can browse and clone.',
-      );
-    },
-    onError: (err: Error) => {
-      if (err.message?.includes('Quality gate')) {
-        Alert.alert(
-          'Not Ready Yet',
-          'Add at least 2 waypoints, a title, description, and difficulty before publishing.',
-        );
-      } else if (err.message?.includes('already published')) {
-        setPublishedToDiscover(true);
-      } else {
-        Alert.alert('Publish Failed', userFriendlyError(err));
-      }
-    },
-  });
-
-  const handlePublishToDiscover = useCallback(() => {
-    if (process.env.EXPO_OS === 'ios') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Publish to Discover?',
-      'This will create a public template of your trip. Dates, riders, and personal notes are never shared.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Publish', onPress: () => publishToDiscoverMutation.mutate() },
-      ],
-    );
-  }, [publishToDiscoverMutation]);
 
   // ── Template-specific state & mutations ──────────────────────────────
   const isTemplate = trip?.isTemplate === true;
@@ -2094,67 +2050,6 @@ export default function TripDetailScreen() {
                 entering={FadeInUp.delay(150).duration(250)}
                 style={{ gap: 10, marginBottom: 20 }}
               >
-                {/* Publish to Discover — organizer only, when trip has enough content */}
-                {isOrganiser && !publishedToDiscover && waypoints.length >= 2 && (
-                  <Pressable
-                    onPress={handlePublishToDiscover}
-                    disabled={publishToDiscoverMutation.isPending}
-                    accessibilityRole="button"
-                    accessibilityLabel="Publish to Discover"
-                    accessibilityHint="Makes this trip a template other riders can browse and clone"
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: t.warm,
-                    }}
-                  >
-                    {publishToDiscoverMutation.isPending ? (
-                      <ActivityIndicator size="small" color={palette.white} />
-                    ) : (
-                      <>
-                        <Compass size={16} color={palette.white} />
-                        <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                          Publish to Discover
-                        </Text>
-                      </>
-                    )}
-                  </Pressable>
-                )}
-
-                {/* Published indicator */}
-                {isOrganiser && publishedToDiscover && (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      paddingVertical: 14,
-                      borderRadius: 14,
-                      borderCurve: 'continuous',
-                      backgroundColor: t.surface2,
-                      borderWidth: 1,
-                      borderColor: t.line,
-                    }}
-                  >
-                    <CheckCircle size={16} color={t.success} />
-                    <Text
-                      style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: t.success,
-                      }}
-                    >
-                      Published on Discover
-                    </Text>
-                  </View>
-                )}
-
                 {/* Clone — available to anyone viewing someone else's public trip. */}
                 {!isOrganiser && trip.visibility === 'public' && waypoints.length > 0 && (
                   <Pressable
