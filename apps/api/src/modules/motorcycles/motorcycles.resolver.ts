@@ -1,10 +1,9 @@
 import { CreateMotorcycleSchema, UpdateMotorcycleSchema } from '@motovault/types';
-import { Inject, Logger, UseGuards } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { OemSchedulesService } from '../oem-schedules/oem-schedules.service';
@@ -31,19 +30,16 @@ export class MotorcyclesResolver {
   ) {}
 
   @Query(() => [Motorcycle])
-  @UseGuards(GqlAuthGuard)
   async myMotorcycles(@CurrentUser() user: AuthUser): Promise<Motorcycle[]> {
     return this.motorcyclesService.findByUser(user.id);
   }
 
   @Query(() => [MotorcycleMake], { name: 'motorcycleMakes' })
-  @UseGuards(GqlAuthGuard)
   async motorcycleMakes(): Promise<MotorcycleMake[]> {
     return this.nhtsaService.getMakes();
   }
 
   @Query(() => [MotorcycleModelResult], { name: 'motorcycleModels' })
-  @UseGuards(GqlAuthGuard)
   async motorcycleModels(
     @Args('makeId', { type: () => Int }) makeId: number,
     @Args('year', { type: () => Int }) year: number,
@@ -55,13 +51,11 @@ export class MotorcyclesResolver {
     name: 'makeStats',
     description: 'Aggregated fleet stats per motorcycle make (riders, models, total bikes)',
   })
-  @UseGuards(GqlAuthGuard)
   async makeStats(): Promise<MakeStats[]> {
     return this.motorcyclesService.getMakeStats();
   }
 
   @Mutation(() => Motorcycle)
-  @UseGuards(GqlAuthGuard)
   async createMotorcycle(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateMotorcycleSchema)) input: CreateMotorcycleInput,
@@ -88,7 +82,6 @@ export class MotorcyclesResolver {
   }
 
   @Mutation(() => Motorcycle)
-  @UseGuards(GqlAuthGuard)
   async updateMotorcycle(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -98,7 +91,6 @@ export class MotorcyclesResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteMotorcycle(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -108,7 +100,6 @@ export class MotorcyclesResolver {
 
   // MOT-142: Check open NHTSA safety recalls for a motorcycle.
   @Query(() => RecallResult, { name: 'motorcycleRecalls' })
-  @UseGuards(GqlAuthGuard)
   async motorcycleRecalls(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', ParseUUIDPipe) motorcycleId: string,

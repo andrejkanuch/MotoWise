@@ -1,9 +1,7 @@
 import { CreateCommentInputSchema } from '@motovault/types/validators';
-import { UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CommentsService } from './comments.service';
@@ -11,7 +9,6 @@ import { CreateCommentInput } from './dto/create-comment.input';
 import { Comment, CommentConnection } from './models/comment.model';
 
 @Resolver(() => Comment)
-@UseGuards(GqlAuthGuard)
 export class CommentsResolver {
   constructor(private readonly commentsService: CommentsService) {}
 

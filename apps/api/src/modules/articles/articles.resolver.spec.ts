@@ -1,23 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ArticlesResolver } from './articles.resolver';
 
 /**
- * Integration test: verify that all article query/mutation handlers
- * have the correct auth guard configuration.
+ * Guard audit: GqlAuthGuard is registered globally via APP_GUARD.
+ * Verify public queries have @Public() and protected mutations do not.
  */
 describe('ArticlesResolver auth guard audit', () => {
   const resolverPrototype = ArticlesResolver.prototype;
-
-  const getGuards = (methodName: string) => {
-    const guards =
-      Reflect.getMetadata(
-        '__guards__',
-        (resolverPrototype as unknown as Record<string, unknown>)[methodName] as object,
-      ) ?? [];
-    return guards;
-  };
 
   const isPublic = (methodName: string) => {
     return (
@@ -29,29 +19,21 @@ describe('ArticlesResolver auth guard audit', () => {
   };
 
   describe('public queries (intentionally unauthenticated)', () => {
-    it('searchArticles should have GqlAuthGuard and @Public()', () => {
-      const guards = getGuards('searchArticles');
-      expect(guards).toContain(GqlAuthGuard);
+    it('searchArticles should be @Public()', () => {
       expect(isPublic('searchArticles')).toBe(true);
     });
 
-    it('articleBySlug should have GqlAuthGuard and @Public()', () => {
-      const guards = getGuards('articleBySlug');
-      expect(guards).toContain(GqlAuthGuard);
+    it('articleBySlug should be @Public()', () => {
       expect(isPublic('articleBySlug')).toBe(true);
     });
 
-    it('articleBySlugFull should have GqlAuthGuard and @Public()', () => {
-      const guards = getGuards('articleBySlugFull');
-      expect(guards).toContain(GqlAuthGuard);
+    it('articleBySlugFull should be @Public()', () => {
       expect(isPublic('articleBySlugFull')).toBe(true);
     });
   });
 
   describe('protected mutations (authentication required)', () => {
-    it('generateArticle should have GqlAuthGuard without @Public()', () => {
-      const guards = getGuards('generateArticle');
-      expect(guards).toContain(GqlAuthGuard);
+    it('generateArticle should NOT be @Public()', () => {
       expect(isPublic('generateArticle')).toBe(false);
     });
   });

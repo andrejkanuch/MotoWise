@@ -4,12 +4,11 @@ import {
   ModerateDiscoverTripInputSchema,
   PublishTripToDiscoverInputSchema,
 } from '@motovault/types/validators';
-import { ForbiddenException, Logger, UseGuards } from '@nestjs/common';
+import { ForbiddenException, Logger } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { DiscoverTripsService } from './discover-trips.service';
 import { CreateDiscoverTripReviewInput } from './dto/create-discover-trip-review.input';
@@ -28,7 +27,6 @@ import {
  * Kept for backward compatibility with old mobile app versions.
  */
 @Resolver(() => DiscoverTrip)
-@UseGuards(GqlAuthGuard)
 export class DiscoverTripsResolver {
   private readonly logger = new Logger(DiscoverTripsResolver.name);
 

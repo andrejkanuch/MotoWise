@@ -4,12 +4,10 @@ import {
   UpdateProfileInputSchema,
   UpdateUserSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CompleteOnboardingInput } from './dto/complete-onboarding.input';
 import { UpdateHandleInput } from './dto/update-handle.input';
@@ -25,19 +23,16 @@ export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Query(() => User)
-  @UseGuards(GqlAuthGuard)
   async me(@CurrentUser() user: AuthUser): Promise<User> {
     return this.usersService.findById(user.id);
   }
 
   @Query(() => User)
-  @UseGuards(GqlAuthGuard)
   async user(@CurrentUser() authUser: AuthUser): Promise<User> {
     return this.usersService.findById(authUser.id);
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
   async updateUser(
     @CurrentUser() authUser: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateUserSchema)) input: UpdateUserInput,
@@ -46,7 +41,6 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
   async completeOnboarding(
     @CurrentUser() authUser: AuthUser,
     @Args('input', new ZodValidationPipe(CompleteOnboardingInputSchema))
@@ -56,19 +50,16 @@ export class UsersResolver {
   }
 
   @Mutation(() => DataExportRequest)
-  @UseGuards(GqlAuthGuard)
   async requestDataExport(@CurrentUser() authUser: AuthUser): Promise<DataExportRequest> {
     return this.usersService.requestDataExport(authUser.id, authUser.email);
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async deleteAccount(@CurrentUser() authUser: AuthUser): Promise<boolean> {
     return this.usersService.deleteAccount(authUser.id, authUser.email);
   }
 
   @Query(() => PublicRiderProfile)
-  @UseGuards(GqlAuthGuard)
   @Public()
   async getRiderProfile(
     @Args('username') username: string,
@@ -78,7 +69,6 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
   async updateMyProfile(
     @CurrentUser() authUser: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateProfileInputSchema)) input: UpdateProfileInput,
@@ -87,7 +77,6 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
-  @UseGuards(GqlAuthGuard)
   async updateHandle(
     @CurrentUser() authUser: AuthUser,
     @Args('input', new ZodValidationPipe(UpdateHandleInputSchema)) input: UpdateHandleInput,

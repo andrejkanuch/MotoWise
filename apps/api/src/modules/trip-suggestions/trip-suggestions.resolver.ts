@@ -3,11 +3,10 @@ import {
   RespondToTripSuggestionInputSchema,
   SetTripParticipantRoleInputSchema,
 } from '@motovault/types';
-import { ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { ParseUUIDPipe } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
   CreateTripSuggestionInput,
@@ -22,7 +21,6 @@ export class TripSuggestionsResolver {
   constructor(private readonly service: TripSuggestionsService) {}
 
   @Query(() => [TripSuggestion])
-  @UseGuards(GqlAuthGuard)
   async tripSuggestions(
     @Args('tripId', { type: () => ID }, ParseUUIDPipe) tripId: string,
   ): Promise<TripSuggestion[]> {
@@ -31,7 +29,6 @@ export class TripSuggestionsResolver {
   }
 
   @Mutation(() => TripSuggestion)
-  @UseGuards(GqlAuthGuard)
   async createTripSuggestion(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateTripSuggestionInputSchema))
@@ -41,7 +38,6 @@ export class TripSuggestionsResolver {
   }
 
   @Mutation(() => TripSuggestion)
-  @UseGuards(GqlAuthGuard)
   async respondToTripSuggestion(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(RespondToTripSuggestionInputSchema))
@@ -51,7 +47,6 @@ export class TripSuggestionsResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async setTripParticipantRole(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SetTripParticipantRoleInputSchema))

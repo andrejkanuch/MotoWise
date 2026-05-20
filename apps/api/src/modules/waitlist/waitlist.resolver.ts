@@ -1,7 +1,9 @@
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Public } from '../../common/decorators/public.decorator';
 import { EmailService } from '../email/email.service';
 
 @Resolver()
+@Public()
 export class WaitlistResolver {
   constructor(private readonly emailService: EmailService) {}
 

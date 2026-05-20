@@ -2,9 +2,7 @@ import {
   TrackSponsorshipClickInputSchema,
   TrackSponsorshipImpressionInputSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { TrackSponsorshipClickInput } from './dto/track-click.input';
@@ -13,7 +11,6 @@ import { Sponsorship } from './models/sponsorship.model';
 import { SponsorshipsService } from './sponsorships.service';
 
 @Resolver(() => Sponsorship)
-@UseGuards(GqlAuthGuard)
 export class SponsorshipsResolver {
   constructor(private readonly sponsorshipsService: SponsorshipsService) {}
 

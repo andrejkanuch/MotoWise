@@ -12,12 +12,11 @@ import {
   UpdateTripInputSchema,
   UpdateWaypointInputSchema,
 } from '@motovault/types/validators';
-import { BadRequestException, Injectable, Scope, UseGuards } from '@nestjs/common';
+import { BadRequestException, Injectable, Scope } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { GPXExportResult as GPXExportResultUnion } from '../routes/dto/gpx-export.dto';
@@ -50,7 +49,6 @@ import { TripTemplatesService } from './services/trip-templates.service';
 import { TripWaypointsService } from './services/trip-waypoints.service';
 
 @Resolver(() => Trip)
-@UseGuards(GqlAuthGuard)
 @Injectable({ scope: Scope.REQUEST })
 export class TripsResolver {
   constructor(

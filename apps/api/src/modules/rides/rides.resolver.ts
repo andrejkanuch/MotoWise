@@ -4,12 +4,10 @@ import {
   UpdateRideInputSchema,
   UploadWaypointsInputSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { EndRideInput } from './dto/end-ride.input';
@@ -23,7 +21,6 @@ import { Waypoint } from './models/waypoint.model';
 import { RidesService } from './rides.service';
 
 @Resolver(() => Ride)
-@UseGuards(GqlAuthGuard)
 export class RidesResolver {
   constructor(private readonly ridesService: RidesService) {}
 
@@ -84,7 +81,6 @@ export class RidesResolver {
 
   @Query(() => Ride)
   @Public()
-  @UseGuards(GqlAuthGuard)
   async getPublicRide(@Args('id', ParseUUIDPipe) id: string): Promise<Ride> {
     return this.ridesService.getPublicRide(id);
   }
