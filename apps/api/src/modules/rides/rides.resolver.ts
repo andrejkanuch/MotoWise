@@ -4,7 +4,7 @@ import {
   UpdateRideInputSchema,
   UploadWaypointsInputSchema,
 } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
+import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -111,7 +111,7 @@ export class RidesResolver {
     // Validate the enum at the resolver boundary — DTO would be heavier
     // than a 3-value union check here.
     if (!['private', 'unlisted', 'public'].includes(visibility)) {
-      throw new Error(`Invalid visibility: ${visibility}`);
+      throw new BadRequestException(`Invalid visibility: ${visibility}`);
     }
     return this.ridesService.updateRideVisibility(
       user.id,

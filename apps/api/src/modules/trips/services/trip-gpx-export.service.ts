@@ -121,7 +121,7 @@ export class TripGpxExportService {
         });
 
       if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
+        throw new InternalServerErrorException(`Upload failed: ${uploadError.message}`);
       }
 
       const { data: signedData, error: signError } = await this.supabaseAdmin.storage
@@ -129,7 +129,7 @@ export class TripGpxExportService {
         .createSignedUrl(storagePath, 3600);
 
       if (signError || !signedData?.signedUrl) {
-        throw new Error(`Signed URL failed: ${signError?.message}`);
+        throw new InternalServerErrorException(`Signed URL failed: ${signError?.message}`);
       }
 
       const remaining = quota.remaining === -1 ? 'unlimited' : `${quota.remaining - 1}`;

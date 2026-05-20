@@ -1,5 +1,5 @@
 import { GPX_EXPORT_LIMITS } from '@motovault/types';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import { FEATURES, type Feature, GATING_MATRIX, type Tier } from './entitlements.types';
@@ -53,7 +53,7 @@ export class EntitlementsService {
 
     if (countError) {
       this.logger.error(`Failed to count gating events: ${countError.message}`, countError);
-      throw new Error('Failed to count GPX export usage');
+      throw new InternalServerErrorException('Failed to count GPX export usage');
     }
 
     const used = count ?? 0;

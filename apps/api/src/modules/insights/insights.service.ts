@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { GqlInsightType } from '../../common/enums/graphql-enums';
@@ -165,12 +165,12 @@ Return ONLY a JSON array of 3 objects. No markdown, no code fences, just the JSO
 
     const text = response.choices[0]?.message?.content;
     if (!text) {
-      throw new Error('No text response from OpenAI');
+      throw new InternalServerErrorException('No text response from OpenAI');
     }
 
     const parsed = JSON.parse(text.trim());
     if (!Array.isArray(parsed) || parsed.length !== 3) {
-      throw new Error('Expected array of 3 insights');
+      throw new InternalServerErrorException('Expected array of 3 insights');
     }
 
     const validTypes = new Set(['maintenance', 'learning', 'community']);
