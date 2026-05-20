@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
-import { SUPABASE_ANON } from '../supabase/supabase-anon.provider';
 import type { Article } from './models/article.model';
 import { ArticleConnection } from './models/article-connection.model';
 
@@ -16,10 +15,7 @@ import { ArticleConnection } from './models/article-connection.model';
 export class ArticlesService {
   private readonly logger = new Logger(ArticlesService.name);
 
-  constructor(
-    @Inject(SUPABASE_ANON) private readonly anonClient: SupabaseClient,
-    @Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly adminClient: SupabaseClient) {}
 
   async search(input: {
     query?: string;
@@ -29,7 +25,7 @@ export class ArticlesService {
     after?: string;
   }): Promise<ArticleConnection> {
     const limit = input.first ?? 20;
-    let query = this.anonClient
+    let query = this.adminClient
       .from('articles')
       .select(
         'id, slug, title, difficulty, category, view_count, is_safety_critical, generated_at, updated_at',
@@ -76,7 +72,7 @@ export class ArticlesService {
   }
 
   async findBySlug(slug: string): Promise<Article | null> {
-    const { data, error } = await this.anonClient
+    const { data, error } = await this.adminClient
       .from('articles')
       .select('*')
       .eq('slug', slug)
@@ -86,7 +82,7 @@ export class ArticlesService {
     if (error || !data) return null;
 
     // Fire-and-forget view count increment
-    this.anonClient
+    this.adminClient
       .rpc('increment_article_view_count', { p_article_id: data.id })
       .then(({ error: rpcErr }) => {
         if (rpcErr) this.logger.error('Failed to increment view count', rpcErr);
@@ -96,7 +92,7 @@ export class ArticlesService {
   }
 
   async findBySlugFull(slug: string): Promise<Article | null> {
-    const { data, error } = await this.anonClient
+    const { data, error } = await this.adminClient
       .from('articles')
       .select('*')
       .eq('slug', slug)
@@ -106,7 +102,7 @@ export class ArticlesService {
     if (error || !data) return null;
 
     // Fire-and-forget view count increment
-    this.anonClient
+    this.adminClient
       .rpc('increment_article_view_count', { p_article_id: data.id })
       .then(({ error: rpcErr }) => {
         if (rpcErr) this.logger.error('Failed to increment view count', rpcErr);
