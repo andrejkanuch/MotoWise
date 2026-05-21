@@ -34,6 +34,7 @@ interface PostInput {
   scheduled_for: string; // YYYY-MM-DD
   angle: string;
   caption: string;
+  facebook_caption?: string; // FB-tailored caption (falls back to caption if omitted)
   post_prompt: string;
   story_prompt: string;
   screenshot_keys?: string[]; // optional screenshot catalog keys
@@ -140,6 +141,7 @@ async function main(): Promise<void> {
         scheduled_for: p.scheduled_for,
         angle: p.angle,
         caption: p.caption,
+        facebook_caption: p.facebook_caption ?? null,
         post_prompt: p.post_prompt,
         story_prompt: p.story_prompt,
         screenshot_keys: p.screenshot_keys?.length ? p.screenshot_keys : null,

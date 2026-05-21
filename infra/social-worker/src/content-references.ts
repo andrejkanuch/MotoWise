@@ -25,6 +25,8 @@ interface PerformanceLogPost {
   platform: string;
   post_type: string;
   published_at: string;
+  angle?: string;
+  slot?: string;
   classification?: {
     hook_type?: string;
     content_category?: string;
@@ -38,7 +40,9 @@ interface PerformanceLog {
   posts: PerformanceLogPost[];
 }
 
-// Cast the imported JSON to our typed shape. Done once at module load.
+// Shape is guaranteed by scrape-engagement.ts which writes this file.
+// A Zod parse at module load would be safer but adds bundle weight for
+// a build-time-only concern — revisit if the shape diverges.
 const PERFORMANCE_LOG = PERFORMANCE_LOG_RAW as unknown as PerformanceLog;
 
 export { APP_FEATURES_MD, DESIGN_SYSTEM_MD, PERFORMANCE_LOG };

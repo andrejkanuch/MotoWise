@@ -9,12 +9,19 @@ import type { Env } from './env';
 export type SlotName = 'afternoon' | 'evening' | 'night-americas';
 export type QueueStatus = 'ready' | 'publishing' | 'published' | 'failed' | 'skipped';
 
+/** Shared type for platform publish results — used by QueueRow, MarkPublishedInput, and scraper. */
+export interface PostResults {
+  facebook?: { post_id?: string; success: boolean; error?: unknown };
+  instagram?: { media_id?: string; story_id?: string; success: boolean; error?: unknown };
+}
+
 export interface QueueRow {
   id: string;
   slot: SlotName;
   scheduled_for: string; // ISO date (YYYY-MM-DD)
   angle: string;
   caption: string;
+  facebook_caption: string | null;
   post_prompt: string;
   story_prompt: string;
   status: QueueStatus;
@@ -23,8 +30,8 @@ export interface QueueRow {
   published_at: string | null;
   post_image_url: string | null;
   story_image_url: string | null;
-  post_results: unknown;
-  story_results: unknown;
+  post_results: PostResults | null;
+  story_results: PostResults | null;
   error: string | null;
   source: string | null; // 'manual' | 'gemini-autodraft' | null (migration 00090)
   screenshot_keys: string[] | null; // screenshot catalog keys (migration 00104)
@@ -73,8 +80,8 @@ export async function claimNextPost(env: Env, slot: SlotName): Promise<QueueRow 
 export interface MarkPublishedInput {
   post_image_url: string;
   story_image_url: string;
-  post_results: unknown;
-  story_results: unknown;
+  post_results: PostResults;
+  story_results: PostResults;
 }
 
 export async function markPublished(
@@ -182,6 +189,7 @@ export async function insertDraftedRow(
   draft: {
     angle: string;
     caption: string;
+    facebookCaption: string;
     postPrompt: string;
     storyPrompt: string;
     screenshotKeys?: string[];
@@ -198,6 +206,7 @@ export async function insertDraftedRow(
       scheduled_for: today,
       angle: draft.angle,
       caption: draft.caption,
+      facebook_caption: draft.facebookCaption,
       post_prompt: draft.postPrompt,
       story_prompt: draft.storyPrompt,
       screenshot_keys: draft.screenshotKeys?.length ? draft.screenshotKeys : null,
