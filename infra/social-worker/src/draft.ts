@@ -118,6 +118,14 @@ export async function draftPost(
     `Today (UTC): ${new Date().toISOString().slice(0, 10)}`,
     `Recent angles to AVOID (used within last 5 days): ${recentAngles.join(', ') || '(none)'}`,
     '',
+    '## Current engagement crisis (IMPORTANT — shape your output around this)',
+    'Our IG account gets 55K reach/month but only 7 comments and near-zero',
+    'saves per post. The #1 goal of every caption is to provoke a RESPONSE.',
+    'End EVERY post with a specific personal question. Not "thoughts?" but',
+    '"What was YOUR first bike?" or "Drop your cost/km below."',
+    'Posts that open with "MotoVault tracks..." get 0 engagement — NEVER',
+    'lead with the app name. Lead with the rider, their bike, their money.',
+    '',
     '## App features reference',
     APP_FEATURES_MD,
     '',
@@ -130,7 +138,8 @@ export async function draftPost(
     '## Recent posts (for voice/style — avoid repeating these angles)',
     JSON.stringify(recentPosts, null, 2),
     '',
-    'Draft one complete post for this slot now.',
+    'Draft one complete post for this slot now. Remember: CHALLENGE or PAIN',
+    'hook, ONE benefit, end with a specific question riders can answer.',
   ].join('\n');
 
   return callModel(env, PRIMARY_MODEL, userPrompt);
