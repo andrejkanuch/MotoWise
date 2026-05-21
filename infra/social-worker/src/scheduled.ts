@@ -27,6 +27,7 @@ import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   generateImage,
+  generateMockup,
   publishCarousel,
   publishPost,
   publishStory,
@@ -111,12 +112,14 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2a: fetch real app screenshots as base64 if screenshot keys exist.
-    // These are published as carousel slides AFTER the generated atmospheric
-    // image — Gemini can't reliably composite reference images onto phone
-    // screens, so we separate generated art from real UI.
-    // Fetch in parallel for speed.
+    // Step 2: generate all images in parallel — atmospheric hero + screenshot
+    // mockups. Parallelizing is critical: 3 sequential image gen calls take
+    // 30-45s and hit the Cloudflare Worker wall-clock limit, but in parallel
+    // they complete in ~15s (bounded by the slowest single call).
     const screenshotBase64: string[] = [];
+    const rawScreenshots: string[] = [];
+
+    // 2a: fetch raw screenshots from Supabase Storage (in parallel).
     if (row.screenshot_keys?.length) {
       console.log(
         `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
@@ -148,20 +151,27 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
         }),
       );
       for (const b64 of fetched) {
-        if (b64) screenshotBase64.push(b64);
+        if (b64) rawScreenshots.push(b64);
       }
-      console.log(
-        `[scheduled] id=${row.id} loaded ${screenshotBase64.length} screenshot(s) for carousel`,
-      );
+      console.log(`[scheduled] id=${row.id} loaded ${rawScreenshots.length} raw screenshot(s)`);
     }
 
-    // Step 2b: generate ONE atmospheric image at 9:16. When screenshots exist
-    // the prompt instructs Gemini to produce a purely atmospheric scene (no
-    // phone/UI). The 9:16 is reused for both post + story — publishPost
-    // center-crops to 4:5, publishStory uses 9:16 as-is.
-    const image = await generateImage(env, row.story_prompt, '9:16');
-
-    console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine})`);
+    // 2b: generate atmospheric image + mockups in ONE parallel batch.
+    // The atmospheric image (9:16) is used for the hero slide and story.
+    // Each raw screenshot gets wrapped in a phone frame with a styled background.
+    console.log(
+      `[scheduled] id=${row.id} generating images (1 atmospheric + ${rawScreenshots.length} mockup(s)) in parallel`,
+    );
+    const [image, ...mockupResults] = await Promise.all([
+      generateImage(env, row.story_prompt, '9:16'),
+      ...rawScreenshots.map((b64) => generateMockup(env, b64)),
+    ]);
+    for (const mockup of mockupResults) {
+      screenshotBase64.push(mockup);
+    }
+    console.log(
+      `[scheduled] id=${row.id} image (engine=${image.engine}) + ${screenshotBase64.length} mockup(s) ready`,
+    );
 
     // Steps 3–4: publish. Platform-specific captions via the captions map —
     // a single call uploads the image once and publishes to both platforms in

@@ -424,6 +424,52 @@ export async function publishStory(
 }
 
 // ---------------------------------------------------------------------------
+// Screenshot mockup generation
+// ---------------------------------------------------------------------------
+
+const MOCKUP_PROMPT = [
+  'Create a premium marketing mockup image at 4:5 aspect ratio.',
+  'Place this app screenshot on a modern smartphone with thin bezels,',
+  'slightly angled (10-15 degrees) and floating with a subtle shadow.',
+  'Background: dark gradient with warm orange (#D4622E) accent glow',
+  'behind the phone, deep charcoal to black. Add subtle depth-of-field',
+  'blur on the background. The phone screen must display the provided',
+  'screenshot EXACTLY as-is — do not modify, crop, or reinterpret the',
+  'screen content. Premium, clean, minimal — like an App Store feature',
+  'graphic. No hands, no text outside the phone, no other devices.',
+].join(' ');
+
+/**
+ * Generate a styled phone mockup image from a raw app screenshot.
+ * Uses OpenAI gpt-image-2 with the screenshot as input to create
+ * a marketing-quality mockup with phone frame and styled background.
+ *
+ * Falls back to returning the original screenshot if generation fails.
+ */
+export async function generateMockup(env: Env, screenshotBase64: string): Promise<string> {
+  try {
+    const openai = createOpenAI({ apiKey: env.OPENAI_API_KEY });
+    const { image } = await aiGenerateImage({
+      model: openai.image('gpt-image-2'),
+      prompt: MOCKUP_PROMPT,
+      size: '1024x1536',
+      providerOptions: {
+        openai: {
+          quality: 'high',
+          input: [{ type: 'base64', media_type: 'image/png', data: screenshotBase64 }],
+        },
+      },
+    });
+    return image.base64;
+  } catch (err) {
+    console.warn(
+      `[generateMockup] failed: ${err instanceof Error ? err.message : err} — using raw screenshot`,
+    );
+    return screenshotBase64;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Low-level helpers
 // ---------------------------------------------------------------------------
 
