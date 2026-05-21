@@ -28,7 +28,7 @@ import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../../lib/a
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { queryKeys } from '../../../lib/query-keys';
-import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview } from '../../../lib/store-review';
 import { useDiagnosticFlowStore } from '../../../stores/diagnostic-flow.store';
 
 const TOTAL_STEPS = 4;
@@ -187,7 +187,6 @@ export default function NewDiagnosticScreen() {
         has_photo: !!state.photoUri,
         has_wizard_answers: !!hasWizardAnswers,
       });
-      incrementPositiveAction();
       maybeRequestReview();
       queryClient.invalidateQueries({ queryKey: queryKeys.diagnostics.all });
       router.replace(`/(diagnose)/${result.submitDiagnostic.id}` as `/${string}`);

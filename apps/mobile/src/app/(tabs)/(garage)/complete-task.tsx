@@ -27,7 +27,7 @@ import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
+import { maybeRequestReview } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
@@ -111,7 +111,6 @@ export default function CompleteTaskScreen() {
         withSpring(1, { damping: 12, stiffness: 150 }),
       );
 
-      incrementPositiveAction();
       maybeRequestReview();
 
       setTimeout(() => router.back(), 800);

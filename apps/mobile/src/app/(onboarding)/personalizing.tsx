@@ -32,7 +32,7 @@ import { detectCurrency } from '../../lib/locale-detection';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { queryKeys } from '../../lib/query-keys';
-import { incrementPositiveAction, maybeRequestReview } from '../../lib/store-review';
+import { maybeRequestReview } from '../../lib/store-review';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChecklistStore } from '../../stores/checklist.store';
 import { useOnboardingStore } from '../../stores/onboarding.store';
@@ -184,7 +184,6 @@ export default function PersonalizingScreen() {
         accepted_maintenance_count: acceptedOemScheduleIds.length,
       });
       MetaAnalytics.trackCompleteRegistration(eventId);
-      incrementPositiveAction();
       maybeRequestReview();
 
       // Initialize checklist store based on user goals
