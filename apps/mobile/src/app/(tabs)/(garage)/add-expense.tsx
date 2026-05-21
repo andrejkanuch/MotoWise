@@ -21,9 +21,9 @@ import {
 } from '../../../lib/expense-constants';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
-import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const CATEGORIES = [

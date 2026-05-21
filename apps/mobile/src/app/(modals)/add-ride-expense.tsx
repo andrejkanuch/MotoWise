@@ -13,8 +13,8 @@ import { useCurrency } from '../../hooks/use-currency';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
-import { useEditorialTheme } from '../../theme/editorial';
 import { incrementPositiveAction, maybeRequestReview } from '../../lib/store-review';
+import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
