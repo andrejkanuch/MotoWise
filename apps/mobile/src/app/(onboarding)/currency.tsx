@@ -1,7 +1,6 @@
 import { palette } from '@motovault/design-system';
-import { CURRENCY_SYMBOLS, type Currency } from '@motovault/types';
+import type { Currency } from '@motovault/types';
 import * as Haptics from 'expo-haptics';
-import { getLocales } from 'expo-localization';
 import { useRouter } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useState } from 'react';
@@ -12,15 +11,8 @@ import { OnboardingProgress } from '../../components/onboarding/onboarding-progr
 import { TOTAL_SCREENS } from '../../config/onboarding';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { CURRENCY_LIST } from '../../lib/currencies';
+import { detectCurrency } from '../../lib/locale-detection';
 import { useOnboardingStore } from '../../stores/onboarding.store';
-
-function detectCurrency(): Currency {
-  try {
-    const code = getLocales()[0]?.currencyCode;
-    if (code && code in CURRENCY_SYMBOLS) return code as Currency;
-  } catch {}
-  return 'USD';
-}
 
 export default function CurrencyScreen() {
   const router = useRouter();

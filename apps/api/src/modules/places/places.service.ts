@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_USER } from '../supabase/supabase-user.provider';
 import type { BrowsePlace } from './models/browse-place.model';
@@ -71,7 +71,7 @@ export class PlacesService {
 
     if (error) {
       this.logger.error(`browseCountries: ${error.message}`);
-      throw new Error(`browseCountries: ${error.message}`);
+      throw new InternalServerErrorException(`browseCountries: ${error.message}`);
     }
     return (data ?? []).map((r) => this.mapPlace(r as PlaceRow));
   }
@@ -121,7 +121,7 @@ export class PlacesService {
 
     if (error) {
       this.logger.error(`browseRegionsByCountrySlug: ${error.message}`);
-      throw new Error(`browseRegionsByCountrySlug: ${error.message}`);
+      throw new InternalServerErrorException(`browseRegionsByCountrySlug: ${error.message}`);
     }
     return (data ?? []).map((r) => this.mapPlace(r as PlaceRow));
   }

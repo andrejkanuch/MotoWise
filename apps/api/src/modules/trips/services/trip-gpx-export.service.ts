@@ -11,9 +11,9 @@ import type { AuthUser } from '../../../common/decorators/current-user.decorator
 import { applySlugFilters } from '../../../common/slug-lookup';
 import { EntitlementsService } from '../../entitlements/entitlements.service';
 import { FEATURES } from '../../entitlements/entitlements.types';
-import { GPXExportError, GPXExportSuccess } from '../../routes/dto/gpx-export.dto';
 import { SUPABASE_ADMIN } from '../../supabase/supabase-admin.provider';
 import { SUPABASE_USER } from '../../supabase/supabase-user.provider';
+import { GPXExportError, GPXExportSuccess } from '../dto/gpx-export.dto';
 
 @Injectable()
 export class TripGpxExportService {
@@ -121,7 +121,7 @@ export class TripGpxExportService {
         });
 
       if (uploadError) {
-        throw new Error(`Upload failed: ${uploadError.message}`);
+        throw new InternalServerErrorException(`Upload failed: ${uploadError.message}`);
       }
 
       const { data: signedData, error: signError } = await this.supabaseAdmin.storage
@@ -129,7 +129,7 @@ export class TripGpxExportService {
         .createSignedUrl(storagePath, 3600);
 
       if (signError || !signedData?.signedUrl) {
-        throw new Error(`Signed URL failed: ${signError?.message}`);
+        throw new InternalServerErrorException(`Signed URL failed: ${signError?.message}`);
       }
 
       const remaining = quota.remaining === -1 ? 'unlimited' : `${quota.remaining - 1}`;

@@ -1,10 +1,8 @@
 import { CreateShareLinkSchema } from '@motovault/types';
-import { UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { CreateShareLinkInput } from './dto/create-share-link.input';
 import { ShareLink } from './models/share-link.model';
@@ -16,7 +14,6 @@ export class ShareLinksResolver {
   constructor(private readonly shareLinksService: ShareLinksService) {}
 
   @Mutation(() => ShareLink)
-  @UseGuards(GqlAuthGuard)
   async createShareLink(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateShareLinkSchema))
@@ -26,7 +23,6 @@ export class ShareLinksResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async revokeShareLink(
     @CurrentUser() user: AuthUser,
     @Args('linkId', { type: () => ID }) linkId: string,
@@ -35,7 +31,6 @@ export class ShareLinksResolver {
   }
 
   @Query(() => [ShareLink])
-  @UseGuards(GqlAuthGuard)
   async myShareLinks(
     @CurrentUser() user: AuthUser,
     @Args('motorcycleId', { type: () => ID }) motorcycleId: string,

@@ -177,6 +177,15 @@ export const Currency = {
   DKK: 'DKK',
   PLN: 'PLN',
   TRY: 'TRY',
+  RSD: 'RSD',
+  CZK: 'CZK',
+  HUF: 'HUF',
+  RON: 'RON',
+  BGN: 'BGN',
+  COP: 'COP',
+  ARS: 'ARS',
+  CLP: 'CLP',
+  PEN: 'PEN',
 } as const;
 export type Currency = (typeof Currency)[keyof typeof Currency];
 
@@ -197,6 +206,15 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   DKK: 'kr',
   PLN: 'z\u0142',
   TRY: '\u20BA',
+  RSD: 'din.',
+  CZK: 'Kč',
+  HUF: 'Ft',
+  RON: 'lei',
+  BGN: 'лв',
+  COP: '$',
+  ARS: '$',
+  CLP: '$',
+  PEN: 'S/.',
 };
 
 /**

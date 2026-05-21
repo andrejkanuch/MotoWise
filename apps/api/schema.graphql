@@ -1,7 +1,3 @@
-# ------------------------------------------------------
-# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
-# ------------------------------------------------------
-
 input AddExpensePhotoInput {
   expenseId: String!
   fileSizeBytes: Int
@@ -88,13 +84,6 @@ input AskTripAssistantInput {
 enum AssistantMessageRole {
   assistant
   user
-}
-
-input BoundsInput {
-  neLat: Float!
-  neLng: Float!
-  swLat: Float!
-  swLng: Float!
 }
 
 type BrowseExploreRegionResult {
@@ -221,14 +210,6 @@ input CreateDiagnosticInput {
   wizardAnswers: JSON
 }
 
-input CreateDiscoverTripReviewInput {
-  bikeId: ID
-  conditionTags: [String!]
-  discoverTripId: ID!
-  rating: Int!
-  text: String
-}
-
 input CreateFlagInput {
   articleId: String!
   comment: String!
@@ -282,14 +263,6 @@ input CreateMotorcycleInput {
   model: String!
   nickname: String
   year: Int!
-}
-
-input CreateRouteReviewInput {
-  bikeId: ID
-  conditionTags: [String!]
-  rating: Int!
-  routeId: ID!
-  text: String
 }
 
 input CreateShareLinkInput {
@@ -383,136 +356,6 @@ enum DiagnosticSeverity {
   high
   low
   medium
-}
-
-input DiscoverRoutesFilterInput {
-  bikeCategory: String
-  bounds: BoundsInput
-
-  """
-  ISO 3166-1 alpha-2 country (e.g. IT, US); matched against routes.country_code
-  """
-  countryCode: String
-  elevationRanges: [String!]
-  highlyRatedOnly: Boolean
-  lengthRanges: [String!]
-
-  """Minimum twist score 1-10 (maps to curvature_index thresholds)"""
-  minTwistScore: Int
-
-  """When true, only routes flagged as MotoVault editor picks"""
-  motovaultPicksOnly: Boolean
-  nearLat: Float
-  nearLng: Float
-  radiusKm: Float
-
-  """
-  Region code as stored on routes.region_code (e.g. it-bz, us-ca), normalized to lowercase
-  """
-  regionCode: String
-
-  """
-  When true, order by rating (avg desc, then count desc). Cursor pagination (`after`) is not supported with this sort.
-  """
-  sortByRating: Boolean
-
-  """Only routes with surface condition reports within the last N days"""
-  surfaceRecency: Int
-  surfaceTypes: [String!]
-}
-
-type DiscoverTrip {
-  averageRating: Float
-  city: String
-  cloneCount: Int!
-  contributor: DiscoverTripContributor!
-  countryCode: String!
-  curvatureIndex: Float
-  dayCount: Int!
-  description: String!
-  difficulty: TripDifficulty!
-  distanceM: Int
-  elevationGainM: Int
-  estimatedDurationMinutes: Int
-
-  """Set when this template was forked from another discover trip"""
-  forkedFromDiscoverTripId: String
-  id: ID!
-  isFeatured: Boolean!
-  isMotovaultPick: Boolean!
-  polyline: String
-  publishedAt: String!
-  regionCode: String
-  reviewCount: Int!
-  slug: String!
-  startLat: Float
-  startLng: Float
-  status: DiscoverTripStatus!
-  surfaceType: SurfaceType
-  title: String!
-  updatedAt: String!
-  viewCount: Int!
-  waypoints: [DiscoverTripWaypoint!]!
-}
-
-type DiscoverTripConnection {
-  edges: [DiscoverTripEdge!]!
-  pageInfo: DiscoverTripPageInfo!
-}
-
-type DiscoverTripContributor {
-  avatarUrl: String
-  displayName: String!
-  id: ID
-  publicUsername: String
-}
-
-type DiscoverTripEdge {
-  cursor: String!
-  node: DiscoverTrip!
-}
-
-type DiscoverTripPageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-}
-
-type DiscoverTripReview {
-  bikeId: String
-  conditionTags: [String!]
-  createdAt: String!
-  discoverTripId: String!
-  id: ID!
-  rating: Int!
-  text: String
-  userId: String
-}
-
-"""Status of a discover trip template."""
-enum DiscoverTripStatus {
-  flagged
-  hidden
-  published
-  unpublished
-}
-
-type DiscoverTripWaypoint {
-  dayIndex: Int!
-  lat: Float!
-  lng: Float!
-  name: String!
-  notes: String
-  sortOrder: Int!
-  type: String!
-}
-
-input DiscoverTripsFilterInput {
-  country: String
-  dayCountMax: Int
-  dayCountMin: Int
-  difficulty: TripDifficulty
-  searchText: String
-  surfaceType: SurfaceType
 }
 
 input EndRideInput {
@@ -935,11 +778,6 @@ input ManualBikeInfoInput {
   year: Int
 }
 
-input ModerateDiscoverTripInput {
-  discoverTripId: ID!
-  status: DiscoverTripStatus!
-}
-
 type MonthlyBucket {
   fuel: Float!
   gear: Float!
@@ -1011,24 +849,17 @@ type Mutation {
   askTripAssistant(input: AskTripAssistantInput!): TripAssistantMessage!
   cancelGroupRide(groupRideId: ID!): Boolean!
 
-  """
-  Clones a discover trip into the user's planner. Returns the new trip ID.
-  """
-  cloneDiscoverTrip(discoverTripId: ID!): ID!
-
   """Returns the new trip ID"""
   cloneTrip(tripId: ID!): ID!
   completeMaintenanceTask(createNextOccurrence: Boolean, id: String!, input: CompleteMaintenanceTaskInput): CompleteTaskResult!
   completeOnboarding(input: CompleteOnboardingInput!): User!
   createComment(input: CreateCommentInput!): Comment!
   createDiagnostic(input: CreateDiagnosticInput!): Diagnostic!
-  createDiscoverTripReview(input: CreateDiscoverTripReviewInput!): DiscoverTripReview!
   createFlag(input: CreateFlagInput!): ContentFlag!
   createFuelLog(input: CreateFuelLogInput!): FuelLog!
   createGroupRide(input: CreateGroupRideInput!): GroupRide!
   createMaintenanceTask(input: CreateMaintenanceTaskInput!): MaintenanceTask!
   createMotorcycle(input: CreateMotorcycleInput!): Motorcycle!
-  createRouteReview(input: CreateRouteReviewInput!): RouteReview!
   createShareLink(input: CreateShareLinkInput!): ShareLink!
   createTrip(input: CreateTripInput!): Trip!
   createTripReview(input: CreateTripReviewInput!): TripReview!
@@ -1046,7 +877,6 @@ type Mutation {
   deleteTrip(tripId: ID!): Boolean!
   deleteTripReview(reviewId: ID!): Boolean!
   endRide(input: EndRideInput!): EndRideResponse!
-  exportRouteGPX(routeId: ID!): GPXExportResult!
 
   """
   Export a trip template as GPX. Metered for free users (1/month), unlimited for Pro.
@@ -1061,7 +891,6 @@ type Mutation {
   inviteToTrip(invitedUserId: ID!, tripId: ID!): Boolean!
   joinGroupRide(groupRideId: ID!): Boolean!
   joinPremiumWaitlist(feature: String!): Boolean!
-  joinPremiumWaitlistLegacy(feature: String!): Boolean! @deprecated(reason: "Use joinPremiumWaitlist on TripsResolver instead. Removal target: 8 weeks post-OTA.")
   joinTrip(input: JoinTripInput!): Boolean!
 
   """Submit email to join waitlist (public, no auth)"""
@@ -1070,12 +899,8 @@ type Mutation {
   leaveTrip(tripId: ID!): Boolean!
   logExpense(input: LogExpenseInput!): Expense!
   markArticleRead(articleId: String!): LearningProgress!
-
-  """Admin only: moderate a discover trip."""
-  moderateDiscoverTrip(input: ModerateDiscoverTripInput!): DiscoverTrip!
   publishAsTemplate(tripId: ID!): Trip!
   publishTrip(tripId: ID!): Trip!
-  publishTripToDiscover(input: PublishTripToDiscoverInput!): DiscoverTrip!
   regenerateRideSummary(rideId: String!): RideSummary!
   removeWaypoint(waypointId: ID!): Boolean!
   reorderWaypoints(input: ReorderWaypointsInput!): Boolean!
@@ -1086,9 +911,6 @@ type Mutation {
   respondToTripSuggestion(input: RespondToTripSuggestionInput!): TripSuggestion!
   revokeShareLink(linkId: ID!): Boolean!
   rotateTripShareToken(tripId: ID!): String!
-
-  """Save a route to your collection"""
-  saveRouteToCollection(routeId: ID!): Boolean!
   saveTrip(tripId: ID!): Boolean!
   setTripParticipantRole(input: SetParticipantRoleInput!): Boolean!
   shareRide(rideId: String!, sharedWithUserId: String!): Boolean!
@@ -1097,7 +919,6 @@ type Mutation {
   Share a completed ride as a published template trip on Discover. Replaces shareRideToDiscover.
   """
   shareRideAsTrip(input: ShareRideAsTripInput!): Trip!
-  shareRideToDiscover(input: ShareRideToDiscoverInput!): Route! @deprecated(reason: "Use shareRideAsTrip mutation on TripsResolver instead. Removal target: 8 weeks post-OTA.")
   startRide(input: StartRideInput!): Ride!
   submitDiagnostic(input: SubmitDiagnosticInput!): Diagnostic!
   submitQuiz(input: SubmitQuizInput!): QuizAttempt!
@@ -1106,14 +927,9 @@ type Mutation {
   trackSponsorshipClick(input: TrackSponsorshipClickInput!): Boolean!
   trackSponsorshipImpression(input: TrackSponsorshipImpressionInput!): Boolean!
   unfollowRider(input: UnfollowRiderInput!): Boolean!
-  unpublishFromDiscover(discoverTripId: ID!): Boolean!
   unpublishTemplate(tripId: ID!): Boolean!
-
-  """Remove a saved route from your collection"""
-  unsaveRouteFromCollection(routeId: ID!): Boolean!
   unsaveTrip(tripId: ID!): Boolean!
   unshareRide(rideId: String!, sharedWithUserId: String!): Boolean!
-  unshareRoute(routeId: ID!): Boolean!
   updateGroupRide(input: UpdateGroupRideInput!): GroupRide!
   updateHandle(input: UpdateHandleInput!): User!
   updateMaintenanceTask(id: String!, input: UpdateMaintenanceTaskInput!): MaintenanceTask!
@@ -1210,10 +1026,6 @@ type PublicRiderProfile {
   rideStats: PublicRideStats!
 }
 
-input PublishTripToDiscoverInput {
-  tripId: ID!
-}
-
 type Query {
   aiBudgetStatus: AiBudgetStatus!
   allMaintenanceTasks: [MaintenanceTask!]!
@@ -1233,10 +1045,6 @@ type Query {
   browseRegionsByCountrySlug(countrySlug: String!): [BrowsePlace!]!
   diagnosticById(id: String!): Diagnostic
   discoverRiderTrips(after: String, first: Int = 5): TripConnection!
-  discoverRoutes(after: String, filter: DiscoverRoutesFilterInput, first: Int = 20): RouteConnection! @deprecated(reason: "Use discoverTrips query instead. Removal target: 8 weeks post-OTA.")
-  discoverTripById(id: ID!): DiscoverTrip!
-  discoverTripBySlug(country: String!, region: String!, slug: String!): DiscoverTrip!
-  discoverTrips(after: String, filter: DiscoverTripsFilterInput, first: Int = 20): DiscoverTripConnection!
   expenseDashboard(motorcycleId: String!): ExpenseDashboardSummary!
   expensePhotos(expenseId: String!): [ExpensePhoto!]!
   expenses(motorcycleId: String!, year: Int): ExpenseSummary!
@@ -1255,12 +1063,8 @@ type Query {
   getMyHealthReports: [HealthReport!]!
   getPublicRide(id: String!): Ride!
   getRiderProfile(username: String!): PublicRiderProfile!
-  getRouteReviews(after: String, first: Int = 10, routeId: ID!): RouteReviewConnection!
   getTrips(after: String, first: Int = 20): TripConnection!
   groupRideDetail(groupRideId: ID!): GroupRide!
-
-  """Check if the authenticated user has saved a specific route"""
-  isRouteSaved(routeId: ID!): Boolean!
   isTripSaved(tripId: ID!): Boolean!
   kudosList(after: String, first: Int = 20, rideId: String!): [KudosUser!]!
   maintenanceTaskHistory(limit: Int = 100, motorcycleId: String!): [MaintenanceTask!]!
@@ -1284,23 +1088,14 @@ type Query {
   oemSchedulesPreview(make: String!, model: String, year: Int): [OemSchedule!]!
   popularArticles(first: Int! = 10): [Article!]!
 
-  """Public saved routes for a user by handle (public_username)"""
-  publicSavedRoutes(after: String, first: Int = 20, handle: String!): RouteConnection!
-
   """Public saved trips for a user by handle (public_username)"""
   publicSavedTrips(after: String, first: Int = 20, handle: String!): TripConnection!
   quizByArticle(articleId: String!): Quiz
   ride(id: String!): Ride!
   rideFeed(after: String, first: Int = 20): FeedRideConnection!
   rideWaypoints(maxPoints: Int, rideId: String!): [Waypoint!]!
-  routeBySlug(country: String!, region: String!, slug: String!): Route @deprecated(reason: "Use discoverTripBySlug query instead. Removal target: 8 weeks post-OTA.")
   routeConditions(routeId: ID!): RouteConditions!
-  routeDetail(routeId: ID!): Route! @deprecated(reason: "Use discoverTripById query instead. Removal target: 8 weeks post-OTA.")
-  routePathById(routeId: ID!): RouteCanonicalPath
   routeSponsorships(routeId: ID!): [Sponsorship!]!
-
-  """Paginated list of the authenticated user's saved routes"""
-  savedRoutes(after: String, first: Int = 20): RouteConnection!
   savedTrips(after: String, first: Int = 20): TripConnection!
   searchArticles(input: SearchArticlesInput!): ArticleConnection!
   searchTypeahead(limit: Int! = 8, near: LatLngInput, q: String): TypeaheadResult!
@@ -1310,7 +1105,6 @@ type Query {
   Find similar published trip templates by country + difficulty + duration
   """
   similarTrips(country: String!, limit: Int = 6, region: String!, slug: String!): [Trip!]!
-  sitemapPublishedRoutes: [SitemapRouteEntry!]!
 
   """Published trip templates for XML sitemap generation"""
   sitemapPublishedTrips: [SitemapTripEntry!]!
@@ -1460,96 +1254,9 @@ type RideSummary {
   updatedAt: String!
 }
 
-type Route {
-  city: String
-  commentCount: Int!
-  contributor: RouteContributor!
-  countryCode: String
-  createdAt: String!
-  curvatureIndex: Float
-  description: String
-  distanceM: Float!
-  editorialDescription: String
-  elevationGainM: Float
-  id: ID!
-  isMotovaultPick: Boolean!
-  name: String
-
-  """Null for anonymous users (requires auth)"""
-  polyline: String
-  ratingAvg: Float
-  ratingCount: Int!
-  regionCode: String
-  slug: String
-  startLat: Float
-  startLng: Float
-  status: String!
-  surfaceType: String
-  twistPercentile: Int
-  twistScore: Int
-}
-
-type RouteCanonicalPath {
-  countryCode: String!
-  regionCode: String!
-  slug: String!
-}
-
 type RouteConditions {
   aggregates: [ConditionAggregate!]!
   recentReports: [SurfaceReport!]!
-}
-
-type RouteConnection {
-  edges: [RouteEdge!]!
-  pageInfo: RoutePageInfo!
-}
-
-type RouteContributor {
-  avatarUrl: String
-  displayName: String!
-  id: ID!
-  publicUsername: String
-}
-
-type RouteEdge {
-  cursor: String!
-  node: Route!
-}
-
-type RoutePageInfo {
-  endCursor: String
-  hasNextPage: Boolean!
-}
-
-type RouteReview {
-  author: RouteReviewAuthor!
-  bike: RouteReviewBike
-  conditionTags: [String!]!
-  createdAt: String!
-  id: ID!
-  rating: Int!
-  text: String
-}
-
-type RouteReviewAuthor {
-  avatarUrl: String
-  displayName: String!
-  id: ID!
-  publicUsername: String
-}
-
-type RouteReviewBike {
-  make: String!
-  model: String!
-  year: Int!
-}
-
-type RouteReviewConnection {
-  endCursor: String
-  hasNextPage: Boolean!
-  reviews: [RouteReview!]!
-  totalCount: Int!
 }
 
 type RouteSuggestion {
@@ -1584,12 +1291,6 @@ type ShareLink {
 }
 
 input ShareRideAsTripInput {
-  name: String
-  rideId: ID!
-  surfaceType: String
-}
-
-input ShareRideToDiscoverInput {
   name: String
   rideId: ID!
   surfaceType: String
@@ -1652,13 +1353,6 @@ type SharedTripWaypoint {
   periodOfDay: PeriodOfDay
   sortOrder: Int!
   type: String!
-}
-
-type SitemapRouteEntry {
-  countryCode: String!
-  regionCode: String!
-  slug: String!
-  updatedAt: String!
 }
 
 """Minimal trip data for XML sitemap generation"""
@@ -1742,16 +1436,6 @@ type SurfaceReport {
   reportedAt: String!
   routeId: ID!
   userId: ID!
-}
-
-"""Road surface type for a route or trip."""
-enum SurfaceType {
-  mixed
-
-  """Off-road / unpaved surface"""
-  off_road
-  paved
-  unknown
 }
 
 type TaskPhoto {
@@ -1841,14 +1525,6 @@ type TripAssistantMessage {
 type TripConnection {
   edges: [TripEdge!]!
   pageInfo: TripPageInfo!
-}
-
-"""Difficulty rating for a trip or discover template."""
-enum TripDifficulty {
-  challenging
-  easy
-  expert
-  moderate
 }
 
 type TripEdge {

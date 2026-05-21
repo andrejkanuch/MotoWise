@@ -66,6 +66,24 @@ describe('CompleteOnboardingInputSchema', () => {
     const result = CompleteOnboardingInputSchema.parse(validBase);
     expect(result.learningFormats).toEqual([]);
   });
+
+  it('accepts new European currency codes', () => {
+    for (const currency of ['RSD', 'CZK', 'HUF', 'RON', 'BGN']) {
+      const result = CompleteOnboardingInputSchema.parse({ ...validBase, currency });
+      expect(result.currency).toBe(currency);
+    }
+  });
+
+  it('accepts new Americas currency codes', () => {
+    for (const currency of ['COP', 'ARS', 'CLP', 'PEN']) {
+      const result = CompleteOnboardingInputSchema.parse({ ...validBase, currency });
+      expect(result.currency).toBe(currency);
+    }
+  });
+
+  it('rejects unsupported currency codes', () => {
+    expect(() => CompleteOnboardingInputSchema.parse({ ...validBase, currency: 'KWD' })).toThrow();
+  });
 });
 
 describe('MotorcycleMakeSchema', () => {

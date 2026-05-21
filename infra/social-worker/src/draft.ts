@@ -23,6 +23,7 @@ import { SCREENSHOT_CATALOG, screenshotCatalogForPrompt } from './screenshots';
 export interface DraftedPost {
   angle: string;
   caption: string;
+  facebookCaption: string;
   postPrompt: string;
   storyPrompt: string;
   screenshotKeys: string[];
@@ -57,7 +58,14 @@ const draftSchema = z.object({
     .min(40)
     .max(2200)
     .describe(
-      'Full caption. Body 60-280 chars with hook + ONE benefit + ONE CTA. Append 8-15 hashtags after a blank line, ending with #MotoVault.',
+      'Instagram caption. Body 60-280 chars with hook + ONE benefit + ONE CTA (prefer engagement CTAs 3/4 of the time). Append 5-8 hashtags after a blank line, ending with #MotoVault.',
+    ),
+  facebookCaption: z
+    .string()
+    .min(40)
+    .max(2200)
+    .describe(
+      'Facebook caption. Same angle as Instagram but more conversational and descriptive (100-400 char body). Facebook audience is 30-55, prefers more context. Use 3-5 hashtags.',
     ),
   postPrompt: z
     .string()
@@ -110,6 +118,14 @@ export async function draftPost(
     `Today (UTC): ${new Date().toISOString().slice(0, 10)}`,
     `Recent angles to AVOID (used within last 5 days): ${recentAngles.join(', ') || '(none)'}`,
     '',
+    '## Current engagement crisis (IMPORTANT — shape your output around this)',
+    'Our IG account gets 55K reach/month but only 7 comments and near-zero',
+    'saves per post. The #1 goal of every caption is to provoke a RESPONSE.',
+    'End EVERY post with a specific personal question. Not "thoughts?" but',
+    '"What was YOUR first bike?" or "Drop your cost/km below."',
+    'Posts that open with "MotoVault tracks..." get 0 engagement — NEVER',
+    'lead with the app name. Lead with the rider, their bike, their money.',
+    '',
     '## App features reference',
     APP_FEATURES_MD,
     '',
@@ -122,7 +138,8 @@ export async function draftPost(
     '## Recent posts (for voice/style — avoid repeating these angles)',
     JSON.stringify(recentPosts, null, 2),
     '',
-    'Draft one complete post for this slot now.',
+    'Draft one complete post for this slot now. Remember: CHALLENGE or PAIN',
+    'hook, ONE benefit, end with a specific question riders can answer.',
   ].join('\n');
 
   return callModel(env, PRIMARY_MODEL, userPrompt);
@@ -137,7 +154,7 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
       system: DRAFT_SYSTEM_PROMPT,
       prompt: userPrompt,
       output: Output.object({ schema: draftSchema }),
-      temperature: 0.9,
+      temperature: 0.7,
       maxOutputTokens: 2048,
     });
 
@@ -169,6 +186,7 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
     return {
       angle: output.angle,
       caption: output.caption,
+      facebookCaption: output.facebookCaption,
       postPrompt: output.postPrompt,
       storyPrompt,
       screenshotKeys,

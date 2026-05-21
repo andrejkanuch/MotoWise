@@ -1,17 +1,15 @@
-import { ForbiddenException, UseGuards } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { AiBudgetService } from './ai-budget.service';
 import { AiBudgetStatus } from './models/ai-budget-status.model';
 
-@Resolver()
+@Resolver(() => AiBudgetStatus)
 export class AiBudgetResolver {
   constructor(private readonly aiBudgetService: AiBudgetService) {}
 
   @Query(() => AiBudgetStatus)
-  @UseGuards(GqlAuthGuard)
   async aiBudgetStatus(@CurrentUser() user: AuthUser): Promise<AiBudgetStatus> {
     if (user.role !== 'admin') {
       throw new ForbiddenException('Admin access required');
@@ -20,7 +18,6 @@ export class AiBudgetResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
   async resetAiCircuitBreaker(@CurrentUser() user: AuthUser): Promise<boolean> {
     if (user.role !== 'admin') {
       throw new ForbiddenException('Admin access required');

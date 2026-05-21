@@ -150,14 +150,29 @@ describe('Locale Detection', () => {
       expect(detectCurrency()).toBe('USD');
     });
 
-    it('should fallback to USD when currencyCode is null', () => {
+    it('should fallback to EUR when currencyCode is null', () => {
       mockGetLocales.mockReturnValue([{ currencyCode: null, regionCode: 'XX' }]);
-      expect(detectCurrency()).toBe('USD');
+      expect(detectCurrency()).toBe('EUR');
     });
 
-    it('should fallback to USD when locales array is empty', () => {
+    it('should fallback to EUR when locales array is empty', () => {
       mockGetLocales.mockReturnValue([]);
-      expect(detectCurrency()).toBe('USD');
+      expect(detectCurrency()).toBe('EUR');
+    });
+
+    it('should return RSD for Serbian locale (newly supported)', () => {
+      mockGetLocales.mockReturnValue([{ currencyCode: 'RSD', regionCode: 'RS' }]);
+      expect(detectCurrency()).toBe('RSD');
+    });
+
+    it('should return CZK for Czech locale', () => {
+      mockGetLocales.mockReturnValue([{ currencyCode: 'CZK', regionCode: 'CZ' }]);
+      expect(detectCurrency()).toBe('CZK');
+    });
+
+    it('should fallback to EUR for unsupported currency code', () => {
+      mockGetLocales.mockReturnValue([{ currencyCode: 'KWD', regionCode: 'KW' }]);
+      expect(detectCurrency()).toBe('EUR');
     });
   });
 

@@ -1,3 +1,6 @@
+import type { Currency } from '@motovault/types';
+import { formatCurrency } from './expense-constants';
+
 export interface PdfBike {
   make: string;
   model: string;
@@ -124,13 +127,7 @@ function statusLabel(status: string): string {
 }
 
 function formatCost(amount: number, currency = 'USD'): string {
-  // P3-119: Intl.NumberFormat only throws on invalid currency codes, which
-  // can't reach this path — DB-validated currency values flow through.
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatCurrency(amount, currency as Currency);
 }
 
 function renderTaskRow(task: PdfTask, mileageUnit: string): string {

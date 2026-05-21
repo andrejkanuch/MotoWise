@@ -18,12 +18,12 @@
  *
  * Both entrypoints share the same core functions in publish.ts.
  */
+import { z } from 'zod';
 import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   type AspectRatio,
   generateImage,
-  type Platform,
   publishCarousel,
   publishPost,
   publishStory,
@@ -31,13 +31,46 @@ import {
 import { getRecentAngles, type SlotName } from './queue';
 import { CRON_TO_SLOT, runScheduledPost } from './scheduled';
 
+/** Constant-time string comparison to prevent timing attacks on auth keys. */
+function timingSafeEqual(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBuf = enc.encode(a);
+  const bBuf = enc.encode(b);
+  if (aBuf.byteLength !== bBuf.byteLength) return false;
+  return crypto.subtle.timingSafeEqual(aBuf, bBuf);
+}
+
+// -- Zod schemas for HTTP endpoint validation (P2-8) --------------------------
+
+const publishPostSchema = z.object({
+  image_base64: z.string().min(1).max(20_000_000),
+  caption: z.string().min(1).max(2200),
+  platform: z.enum(['instagram', 'facebook', 'both']).optional(),
+});
+
+const publishCarouselSchema = z.object({
+  images_base64: z.array(z.string().min(1).max(20_000_000)).min(2).max(10),
+  caption: z.string().min(1).max(2200),
+  platform: z.enum(['instagram', 'facebook', 'both']).optional(),
+});
+
+const publishStorySchema = z.object({
+  image_base64: z.string().min(1).max(20_000_000),
+  platform: z.enum(['instagram', 'facebook', 'both']).optional(),
+});
+
+const generateImageSchema = z.object({
+  prompt: z.string().min(1).max(2000),
+  aspect_ratio: z.enum(['4:5', '9:16', '1:1']).optional(),
+});
+
 export default {
   // -------------------------------------------------------------------------
   // HTTP entrypoint
   // -------------------------------------------------------------------------
   async fetch(request: Request, env: Env): Promise<Response> {
-    const authKey = request.headers.get('X-Auth-Key');
-    if (authKey !== env.WORKER_AUTH_KEY) {
+    const authKey = request.headers.get('X-Auth-Key') ?? '';
+    if (!timingSafeEqual(authKey, env.WORKER_AUTH_KEY)) {
       return json({ error: 'Unauthorized' }, 401);
     }
 
@@ -49,40 +82,30 @@ export default {
           return json({ ok: true, service: 'motovault-social-api' });
 
         case '/publish-post': {
-          const body = (await request.json()) as {
-            image_base64: string;
-            caption: string;
-            platform?: Platform;
-          };
+          const body = publishPostSchema.parse(await request.json());
           const result = await publishPost(env, body);
           return json(result);
         }
 
         case '/publish-carousel': {
-          const body = (await request.json()) as {
-            images_base64: string[];
-            caption: string;
-            platform?: Platform;
-          };
+          const body = publishCarouselSchema.parse(await request.json());
           const result = await publishCarousel(env, body);
           return json(result);
         }
 
         case '/publish-story': {
-          const body = (await request.json()) as {
-            image_base64: string;
-            platform?: Platform;
-          };
+          const body = publishStorySchema.parse(await request.json());
           const result = await publishStory(env, body);
           return json(result);
         }
 
         case '/generate-image': {
-          const body = (await request.json()) as {
-            prompt: string;
-            aspect_ratio?: AspectRatio;
-          };
-          const result = await generateImage(env, body.prompt, body.aspect_ratio);
+          const body = generateImageSchema.parse(await request.json());
+          const result = await generateImage(
+            env,
+            body.prompt,
+            body.aspect_ratio as AspectRatio | undefined,
+          );
           return json(result);
         }
 
@@ -126,7 +149,14 @@ export default {
           return json({ error: 'Not found' }, 404);
       }
     } catch (err: unknown) {
-      return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
+      // Zod validation errors get a 400 with field-level details.
+      if (err instanceof z.ZodError) {
+        return json({ error: 'Validation failed', issues: err.issues }, 400);
+      }
+      // All other errors: log full details server-side, return generic message.
+      const errorId = crypto.randomUUID();
+      console.error(JSON.stringify({ errorId, error: err instanceof Error ? err.message : err }));
+      return json({ error: 'Internal error', error_id: errorId }, 500);
     }
   },
 

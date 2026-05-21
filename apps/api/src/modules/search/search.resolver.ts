@@ -1,13 +1,10 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Int, Query, Resolver } from '@nestjs/graphql';
 import { Public } from '../../common/decorators/public.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { LatLngInput } from './dto/lat-lng.input';
 import { TypeaheadResult } from './models/typeahead-result.model';
 import { SearchService } from './search.service';
 
 @Resolver()
-@UseGuards(GqlAuthGuard)
 export class SearchResolver {
   constructor(private readonly searchService: SearchService) {}
 

@@ -1,9 +1,8 @@
 import { CreateDiagnosticSchema, FREE_TIER_LIMITS, SubmitDiagnosticSchema } from '@motovault/types';
-import { BadRequestException, ForbiddenException, UseGuards } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import type { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { ParseUUIDPipe } from '../../common/pipes/parse-uuid.pipe';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { MaintenanceTasksService } from '../maintenance-tasks/maintenance-tasks.service';
@@ -17,6 +16,8 @@ import { Diagnostic } from './models/diagnostic.model';
 
 @Resolver(() => Diagnostic)
 export class DiagnosticsResolver {
+  private readonly logger = new Logger(DiagnosticsResolver.name);
+
   constructor(
     private readonly diagnosticsService: DiagnosticsService,
     private readonly diagnosticAiService: DiagnosticAiService,
@@ -26,13 +27,11 @@ export class DiagnosticsResolver {
   ) {}
 
   @Query(() => [Diagnostic])
-  @UseGuards(GqlAuthGuard)
   async myDiagnostics(@CurrentUser() user: AuthUser): Promise<Diagnostic[]> {
     return this.diagnosticsService.findByUser(user.id);
   }
 
   @Query(() => Diagnostic, { nullable: true })
-  @UseGuards(GqlAuthGuard)
   async diagnosticById(
     @CurrentUser() user: AuthUser,
     @Args('id', ParseUUIDPipe) id: string,
@@ -41,7 +40,6 @@ export class DiagnosticsResolver {
   }
 
   @Mutation(() => Diagnostic)
-  @UseGuards(GqlAuthGuard)
   async createDiagnostic(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(CreateDiagnosticSchema)) input: CreateDiagnosticInput,
@@ -50,21 +48,15 @@ export class DiagnosticsResolver {
   }
 
   @Mutation(() => Diagnostic)
-  @UseGuards(GqlAuthGuard)
   async submitDiagnostic(
     @CurrentUser() user: AuthUser,
     @Args('input', new ZodValidationPipe(SubmitDiagnosticSchema)) input: SubmitDiagnosticInput,
   ): Promise<Diagnostic> {
-    console.log(
-      '[submitDiagnostic] input received:',
-      JSON.stringify(
-        {
-          ...input,
-          photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
-        },
-        null,
-        2,
-      ),
+    this.logger.log(
+      `[submitDiagnostic] input received: ${JSON.stringify({
+        ...input,
+        photoBase64: input.photoBase64 ? `[base64 ${input.photoBase64.length} chars]` : undefined,
+      })}`,
     );
 
     // 0. Server-side monthly diagnostic limit check

@@ -25,7 +25,13 @@
  */
 import { draftPost } from './draft';
 import type { Env } from './env';
-import { generateImage, publishCarousel, publishPost, publishStory } from './publish';
+import {
+  generateImage,
+  publishCarousel,
+  publishPost,
+  publishStory,
+  uint8ArrayToBase64,
+} from './publish';
 import {
   claimNextPost,
   getRecentAngles,
@@ -109,34 +115,40 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
     // These are published as carousel slides AFTER the generated atmospheric
     // image — Gemini can't reliably composite reference images onto phone
     // screens, so we separate generated art from real UI.
+    // Fetch in parallel for speed.
     const screenshotBase64: string[] = [];
     if (row.screenshot_keys?.length) {
       console.log(
         `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
       );
-      for (const key of row.screenshot_keys) {
-        const entry = SCREENSHOT_CATALOG[key];
-        if (!entry) {
-          console.warn(`[scheduled] id=${row.id} unknown screenshot key "${key}" — skipping`);
-          continue;
-        }
-        try {
-          const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
-          const screenshotRes = await fetch(screenshotUrl);
-          if (!screenshotRes.ok) {
-            console.warn(
-              `[scheduled] id=${row.id} screenshot "${key}" fetch failed (${screenshotRes.status}) — skipping`,
-            );
-            continue;
+      const fetched = await Promise.all(
+        row.screenshot_keys.map(async (key) => {
+          const entry = SCREENSHOT_CATALOG[key];
+          if (!entry) {
+            console.warn(`[scheduled] id=${row.id} unknown screenshot key "${key}" — skipping`);
+            return null;
           }
-          const arrayBuffer = await screenshotRes.arrayBuffer();
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-          screenshotBase64.push(base64);
-        } catch (err) {
-          console.warn(
-            `[scheduled] id=${row.id} screenshot "${key}" error: ${err instanceof Error ? err.message : err}`,
-          );
-        }
+          try {
+            const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
+            const res = await fetch(screenshotUrl);
+            if (!res.ok) {
+              console.warn(
+                `[scheduled] id=${row.id} screenshot "${key}" fetch failed (${res.status})`,
+              );
+              return null;
+            }
+            const buf = await res.arrayBuffer();
+            return uint8ArrayToBase64(new Uint8Array(buf));
+          } catch (err) {
+            console.warn(
+              `[scheduled] id=${row.id} screenshot "${key}" error: ${err instanceof Error ? err.message : err}`,
+            );
+            return null;
+          }
+        }),
+      );
+      for (const b64 of fetched) {
+        if (b64) screenshotBase64.push(b64);
       }
       console.log(
         `[scheduled] id=${row.id} loaded ${screenshotBase64.length} screenshot(s) for carousel`,
@@ -151,33 +163,39 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
 
     console.log(`[scheduled] id=${row.id} image ready (engine=${image.engine})`);
 
-    // Steps 3–4: publish. When screenshots exist, use a carousel (generated
-    // atmospheric image + real screenshots). Otherwise, single-image post.
-    let postOutcome: { image_url: string; results: Record<string, unknown> };
+    // Steps 3–4: publish. Platform-specific captions via the captions map —
+    // a single call uploads the image once and publishes to both platforms in
+    // parallel. When facebook_caption is null (e.g. manually-seeded rows),
+    // fall back to the shared caption for both platforms.
+    const captions = {
+      instagram: row.caption,
+      facebook: row.facebook_caption ?? row.caption,
+    };
+
+    let postOutcome: { image_url: string; results: import('./queue').PostResults };
     if (screenshotBase64.length > 0) {
       const carouselImages = [image.image_base64, ...screenshotBase64];
       console.log(`[scheduled] id=${row.id} publishing carousel (${carouselImages.length} slides)`);
-      const carouselResult = await publishCarousel(env, {
+
+      const result = await publishCarousel(env, {
         images_base64: carouselImages,
-        caption: row.caption,
-        platform: 'both',
+        captions,
       });
-      postOutcome = {
-        image_url: carouselResult.image_urls[0],
-        results: carouselResult.results,
-      };
+      postOutcome = { image_url: result.image_urls[0], results: result.results };
     } else {
-      const singleResult = await publishPost(env, {
+      const result = await publishPost(env, {
         image_base64: image.image_base64,
-        caption: row.caption,
-        platform: 'both',
+        captions,
       });
-      postOutcome = singleResult;
+      postOutcome = result;
     }
 
+    // Stories have no caption, so no platform-specific text needed — single
+    // 'both' call with link sticker for app store taps.
     const storyOutcome = await publishStory(env, {
       image_base64: image.image_base64,
       platform: 'both',
+      link: 'https://motovault.app/download',
     });
 
     await markPublished(env, row.id, {

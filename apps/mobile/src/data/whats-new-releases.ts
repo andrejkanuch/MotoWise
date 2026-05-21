@@ -32,7 +32,7 @@ export interface WhatsNewRelease {
  */
 export const WHATS_NEW_RELEASES = [
   {
-    version: '3.6.0',
+    version: '3.7.0',
     slides: [
       {
         icon: Sparkles,

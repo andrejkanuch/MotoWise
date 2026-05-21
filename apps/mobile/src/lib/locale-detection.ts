@@ -1,16 +1,19 @@
 import type { Currency } from '@motovault/types';
 import { getLocales } from 'expo-localization';
+import { SUPPORTED_CURRENCIES } from './currencies';
 
 const IMPERIAL_REGIONS = new Set(['US', 'GB', 'LR', 'MM']);
 
 /**
  * Auto-detect currency from device locale.
  * Uses expo-localization (proven on Hermes) instead of Intl.NumberFormat.
- * Falls back to USD if locale data is unavailable.
+ * Falls back to EUR if locale data is unavailable or currency is unsupported.
  */
 export function detectCurrency(): Currency {
   const locale = getLocales()[0];
-  return (locale?.currencyCode as Currency) ?? 'USD';
+  const code = locale?.currencyCode ?? '';
+  if (SUPPORTED_CURRENCIES.has(code as Currency)) return code as Currency;
+  return 'EUR';
 }
 
 /**

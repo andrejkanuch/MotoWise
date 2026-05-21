@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Redis } from '@upstash/redis';
 import { REDIS } from '../redis/redis.constants';
@@ -47,7 +47,7 @@ export class SurfaceReportsService {
 
     if (error) {
       this.logger.error(`Failed to insert surface report: ${error.message}`);
-      throw new Error(error.message);
+      throw new InternalServerErrorException(error.message);
     }
 
     const row = data as SurfaceReportRow;
@@ -77,7 +77,7 @@ export class SurfaceReportsService {
 
     if (error) {
       this.logger.error(`Failed to fetch recent reports: ${error.message}`);
-      throw new Error(error.message);
+      throw new InternalServerErrorException(error.message);
     }
 
     return (data as SurfaceReportRow[]).map((row) => this.mapRow(row));
@@ -107,7 +107,7 @@ export class SurfaceReportsService {
 
     if (error) {
       this.logger.error(`Failed to fetch aggregates: ${error.message}`);
-      throw new Error(error.message);
+      throw new InternalServerErrorException(error.message);
     }
 
     // Count conditions in-memory
