@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
+import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 
@@ -111,6 +112,8 @@ export default function HealthReportScreen() {
         queryKey: queryKeys.healthReports.byMotorcycle(bikeId ?? ''),
       });
       setGenerating(false);
+      incrementPositiveAction();
+      maybeRequestReview();
     },
     onError: () => {
       setGenerating(false);

@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AnalyticsEvent, trackEvent } from '../lib/analytics';
 import { gqlFetcher } from '../lib/graphql-client';
 import { queryKeys } from '../lib/query-keys';
+import { incrementPositiveAction, maybeRequestReview } from '../lib/store-review';
 
 interface TripShareSheetProps {
   tripId: string;
@@ -136,6 +137,8 @@ export function TripShareSheet({ tripId, visible, onClose, tripStatus }: TripSha
     // dismissing the system sheet should not count as a share event.
     if (result.action === Share.sharedAction) {
       trackEvent(AnalyticsEvent.TRIP_SHARED, { trip_id: tripId, method: 'system_share' });
+      incrementPositiveAction();
+      maybeRequestReview();
     }
   }, [shareUrl, tripId]);
 

@@ -23,6 +23,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
+import { incrementPositiveAction, maybeRequestReview } from '../../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
 
 const CATEGORIES = [
@@ -108,6 +109,8 @@ export default function AddExpenseScreen() {
       // The expense id is now available from the mutation result.
       setSavedExpenseId(result.logExpense.id);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      incrementPositiveAction();
+      maybeRequestReview();
     },
     onError: () => {
       Alert.alert(

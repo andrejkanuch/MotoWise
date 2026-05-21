@@ -28,7 +28,7 @@ import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
-import { incrementRideCount, maybeRequestReview } from '../../lib/store-review';
+import { incrementPositiveAction, maybeRequestReview } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import {
@@ -234,7 +234,7 @@ export default function RideSummaryScreen() {
         shared_to_discover: shareToDiscover,
       });
       MetaAnalytics.trackLogRide();
-      incrementRideCount();
+      incrementPositiveAction();
       maybeRequestReview();
 
       // Share to Discover (fire-and-forget, non-blocking)

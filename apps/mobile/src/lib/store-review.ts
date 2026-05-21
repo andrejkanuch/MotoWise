@@ -14,22 +14,14 @@ function getStorage(): MMKV {
   return _storage;
 }
 
-const RIDE_COUNT_KEY = 'review:rideCount';
-const TASK_COUNT_KEY = 'review:taskCount';
+const ACTION_COUNT_KEY = 'review:actionCount';
 const REVIEWED_VERSION_KEY = 'review:version';
+const THRESHOLD = 5;
 
-export function incrementRideCount(): number {
+export function incrementPositiveAction(): void {
   const storage = getStorage();
-  const count = (storage.getNumber(RIDE_COUNT_KEY) ?? 0) + 1;
-  storage.set(RIDE_COUNT_KEY, count);
-  return count;
-}
-
-export function incrementTaskCount(): number {
-  const storage = getStorage();
-  const count = (storage.getNumber(TASK_COUNT_KEY) ?? 0) + 1;
-  storage.set(TASK_COUNT_KEY, count);
-  return count;
+  const count = (storage.getNumber(ACTION_COUNT_KEY) ?? 0) + 1;
+  storage.set(ACTION_COUNT_KEY, count);
 }
 
 export async function maybeRequestReview(): Promise<void> {
@@ -38,11 +30,17 @@ export async function maybeRequestReview(): Promise<void> {
   const currentVersion = Constants.expoConfig?.version ?? '1.0.0';
   if (storage.getString(REVIEWED_VERSION_KEY) === currentVersion) return;
 
-  const rides = storage.getNumber(RIDE_COUNT_KEY) ?? 0;
-  const tasks = storage.getNumber(TASK_COUNT_KEY) ?? 0;
-  if (rides < 3 && tasks < 5) return;
+  const actions = storage.getNumber(ACTION_COUNT_KEY) ?? 0;
+  if (actions < THRESHOLD) return;
 
+  if (!(await StoreReview.isAvailableAsync())) return;
   if (!(await StoreReview.hasAction())) return;
+
+  const { AnalyticsEvent, trackEvent } = require('./analytics');
+  trackEvent(AnalyticsEvent.REVIEW_PROMPTED, {
+    action_count: actions,
+    app_version: currentVersion,
+  });
 
   await StoreReview.requestReview();
   storage.set(REVIEWED_VERSION_KEY, currentVersion);

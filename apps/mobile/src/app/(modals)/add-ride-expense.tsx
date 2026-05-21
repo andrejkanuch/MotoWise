@@ -14,6 +14,7 @@ import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { useEditorialTheme } from '../../theme/editorial';
+import { incrementPositiveAction, maybeRequestReview } from '../../lib/store-review';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
 const CATEGORIES = ['fuel', 'maintenance', 'parts', 'gear'] as const;
@@ -68,6 +69,8 @@ export default function AddExpenseScreen() {
       });
       setSaved(true);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      incrementPositiveAction();
+      maybeRequestReview();
       setTimeout(() => router.back(), 600);
     },
     onError: () => {

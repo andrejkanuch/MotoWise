@@ -30,6 +30,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { detectCurrency } from '../../lib/locale-detection';
 import { MetaAnalytics } from '../../lib/meta-analytics';
+import { incrementPositiveAction, maybeRequestReview } from '../../lib/store-review';
 import { clearStoredFbclid, getStoredFbclid } from '../../lib/meta-attribution';
 import { queryKeys } from '../../lib/query-keys';
 import { useAuthStore } from '../../stores/auth.store';
@@ -183,6 +184,8 @@ export default function PersonalizingScreen() {
         accepted_maintenance_count: acceptedOemScheduleIds.length,
       });
       MetaAnalytics.trackCompleteRegistration(eventId);
+      incrementPositiveAction();
+      maybeRequestReview();
 
       // Initialize checklist store based on user goals
       useChecklistStore.getState().initialize(ridingGoals);

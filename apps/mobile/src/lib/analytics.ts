@@ -168,6 +168,9 @@ export const AnalyticsEvent = {
   DIAGNOSTIC_COMPLETED: 'diagnostic_completed',
   DIAGNOSTIC_LIST_VIEWED: 'diagnostic_list_viewed',
 
+  // Store review
+  REVIEW_PROMPTED: 'review_prompted',
+
   // Feature usage — Learn
   ARTICLE_VIEWED: 'article_viewed',
   ARTICLE_READ: 'article_read',
