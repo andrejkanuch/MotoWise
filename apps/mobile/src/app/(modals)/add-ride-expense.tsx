@@ -13,6 +13,7 @@ import { useCurrency } from '../../hooks/use-currency';
 import { formatCurrencyInput, ZERO_DECIMAL_CURRENCIES } from '../../lib/expense-constants';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
+import { maybeRequestReview } from '../../lib/store-review';
 import { useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 
@@ -68,6 +69,7 @@ export default function AddExpenseScreen() {
       });
       setSaved(true);
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      maybeRequestReview();
       setTimeout(() => router.back(), 600);
     },
     onError: () => {

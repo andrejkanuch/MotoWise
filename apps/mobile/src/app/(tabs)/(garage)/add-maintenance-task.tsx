@@ -14,6 +14,7 @@ import { gqlFetcher } from '../../../lib/graphql-client';
 import { MetaAnalytics } from '../../../lib/meta-analytics';
 import { scheduleMaintenanceReminder } from '../../../lib/notifications';
 import { queryKeys } from '../../../lib/query-keys';
+import { maybeRequestReview } from '../../../lib/store-review';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 
@@ -104,6 +105,7 @@ export default function AddMaintenanceTaskScreen() {
       });
       MetaAnalytics.trackLogMaintenance(title.trim());
       setSaved(true);
+      maybeRequestReview();
       triggerImpact();
       setTimeout(() => router.back(), 600);
     },

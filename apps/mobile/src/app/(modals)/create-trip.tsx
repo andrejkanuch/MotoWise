@@ -57,6 +57,7 @@ import { AnalyticsEvent, trackEvent, trackEventWithSurvey } from '../../lib/anal
 import { gqlFetcher } from '../../lib/graphql-client';
 import { userFriendlyError } from '../../lib/graphql-errors';
 import { queryKeys } from '../../lib/query-keys';
+import { maybeRequestReview } from '../../lib/store-review';
 import { tint, useEditorialTheme } from '../../theme/editorial';
 import {
   cycleMapStyle as cycleMapStyleFn,
@@ -580,6 +581,7 @@ export default function CreateTripScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      maybeRequestReview();
       router.back();
     },
     onError: (error) => {
@@ -608,6 +610,7 @@ export default function CreateTripScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.discoverRiderStrip });
       queryClient.invalidateQueries({ queryKey: queryKeys.trips.my });
+      maybeRequestReview();
       router.back();
     },
     onError: (error) => {

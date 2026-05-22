@@ -44,6 +44,7 @@ import { useCurrency } from '../../../hooks/use-currency';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { pickImage, takePhoto, uploadBikePhoto } from '../../../lib/image-upload';
 import { queryKeys } from '../../../lib/query-keys';
+import { maybeRequestReview } from '../../../lib/store-review';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../../utils/haptics';
@@ -255,6 +256,7 @@ export default function EditBikeScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.maintenanceTasks.all });
       isDirtyRef.current = false;
       triggerNotification(Haptics.NotificationFeedbackType.Success);
+      maybeRequestReview();
       router.back();
     },
   });
