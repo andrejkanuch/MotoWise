@@ -35,9 +35,9 @@ const FALLBACK_MODEL = 'gemini-2.5-flash';
 /** Valid screenshot keys — constrains Gemini to only pick real catalog entries. */
 const VALID_SCREENSHOT_KEYS = Object.keys(SCREENSHOT_CATALOG) as [string, ...string[]];
 
-/** Words that indicate a phone/device in the image prompt — must not appear when screenshots are used. */
+/** Words that indicate a phone/device in the image prompt — must never appear. */
 const DEVICE_WORDS_RE =
-  /\b(smartphone|phone|mockup|device|screen|display(?:ing)|iphone|android|mobile)\b/gi;
+  /\b(smartphone|phone|mockup|device|screen|display(?:ing)|iphone|android|mobile|app\s*(?:screen|ui|interface|view)|tablet|hand(?:set|held))\b/gi;
 
 /** Zod schema for structured output — replaces the hand-rolled JSON schema. */
 const draftSchema = z.object({
@@ -77,13 +77,14 @@ const draftSchema = z.object({
     .min(40)
     .max(1000)
     .describe(
-      '9:16 photorealistic image prompt. 200-400 chars. CRITICAL: When screenshotKeys is non-empty, MUST be purely atmospheric — NO phone, NO device, NO app screen.',
+      '9:16 photorealistic image prompt. 200-400 chars. MUST be purely atmospheric or lifestyle — NO phone, NO device, NO app screen, NO UI. Real screenshots are added separately as carousel slides.',
     ),
   screenshotKeys: z
     .array(z.enum(VALID_SCREENSHOT_KEYS))
+    .min(1)
     .max(2)
     .describe(
-      'Array of 0-2 screenshot catalog keys (must be exact keys from the catalog). When non-empty, worker publishes as carousel. Use [] for purely atmospheric posts.',
+      'Array of 1-2 screenshot catalog keys (must be exact keys from the catalog). ALWAYS include at least 1 screenshot — every post should showcase the real app UI as carousel slides. Pick the screenshot that best matches the angle.',
     ),
   altText: z
     .string()
@@ -166,21 +167,18 @@ async function callModel(env: Env, model: string, userPrompt: string): Promise<D
     // filtering needed.
     const screenshotKeys = output.screenshotKeys;
 
-    // Enforce atmospheric-only when screenshots are present: strip device
-    // words from the story prompt so the image generator doesn't render
-    // fake phone screens alongside the real carousel screenshots.
+    // ALWAYS strip device words from the story prompt — the image generator
+    // must never render phone/app screens regardless of whether screenshots
+    // are present. When screenshotKeys is non-empty the real app UI ships as
+    // carousel slides; when empty the image should still be purely atmospheric.
     let storyPrompt = output.storyPrompt;
-    if (screenshotKeys.length > 0) {
-      const scrubbed = storyPrompt
-        .replace(DEVICE_WORDS_RE, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-      if (scrubbed !== storyPrompt) {
-        console.warn(
-          `[draft] storyPrompt contains device words with screenshots present — scrubbing`,
-        );
-        storyPrompt = scrubbed;
-      }
+    const scrubbed = storyPrompt
+      .replace(DEVICE_WORDS_RE, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (scrubbed !== storyPrompt) {
+      console.warn(`[draft] storyPrompt contains device words — scrubbing`);
+      storyPrompt = scrubbed;
     }
 
     return {
