@@ -27,6 +27,7 @@ import { draftPost } from './draft';
 import type { Env } from './env';
 import {
   generateImage,
+  generatePhoneMockup,
   publishCarousel,
   publishPost,
   publishStory,
@@ -111,15 +112,13 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
   console.log(`[scheduled] slot=${slot} id=${row.id} angle=${row.angle} attempt=${row.attempts}`);
 
   try {
-    // Step 2a: fetch real app screenshots as base64 if screenshot keys exist.
-    // These are published as carousel slides AFTER the generated atmospheric
-    // image — Gemini can't reliably composite reference images onto phone
-    // screens, so we separate generated art from real UI.
-    // Fetch in parallel for speed.
+    // Step 2a: fetch real app screenshots and composite them into phone mockups.
+    // Each screenshot is sent to Gemini to generate a polished 4:5 marketing
+    // image showing the screenshot on a phone mockup against a dark background.
     const screenshotBase64: string[] = [];
     if (row.screenshot_keys?.length) {
       console.log(
-        `[scheduled] id=${row.id} fetching ${row.screenshot_keys.length} screenshot(s): ${row.screenshot_keys.join(', ')}`,
+        `[scheduled] id=${row.id} generating ${row.screenshot_keys.length} phone mockup(s): ${row.screenshot_keys.join(', ')}`,
       );
       const fetched = await Promise.all(
         row.screenshot_keys.map(async (key) => {
@@ -129,6 +128,7 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
             return null;
           }
           try {
+            // Fetch the raw screenshot from Supabase Storage
             const screenshotUrl = `${env.SUPABASE_URL}/storage/v1/object/public/social-media/${entry.storagePath}`;
             const res = await fetch(screenshotUrl);
             if (!res.ok) {
@@ -137,11 +137,15 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
               );
               return null;
             }
-            const buf = await res.arrayBuffer();
-            return uint8ArrayToBase64(new Uint8Array(buf));
+            const rawBase64 = uint8ArrayToBase64(new Uint8Array(await res.arrayBuffer()));
+
+            // Composite into a phone mockup via Gemini
+            const mockupBase64 = await generatePhoneMockup(env, rawBase64);
+            console.log(`[scheduled] id=${row.id} mockup ready for "${key}"`);
+            return mockupBase64;
           } catch (err) {
             console.warn(
-              `[scheduled] id=${row.id} screenshot "${key}" error: ${err instanceof Error ? err.message : err}`,
+              `[scheduled] id=${row.id} mockup "${key}" failed: ${err instanceof Error ? err.message : err}`,
             );
             return null;
           }
@@ -151,7 +155,7 @@ export async function runScheduledPost(env: Env, cron: string): Promise<void> {
         if (b64) screenshotBase64.push(b64);
       }
       console.log(
-        `[scheduled] id=${row.id} loaded ${screenshotBase64.length} screenshot(s) for carousel`,
+        `[scheduled] id=${row.id} ${screenshotBase64.length} mockup(s) ready for carousel`,
       );
     }
 

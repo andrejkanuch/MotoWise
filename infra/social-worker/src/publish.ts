@@ -124,6 +124,82 @@ export async function generateImage(
 }
 
 // ---------------------------------------------------------------------------
+// Phone mockup generation
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a phone mockup image with an app screenshot composited inside.
+ *
+ * Uses OpenAI's image editing API (POST /images/edits) which accepts an input
+ * image and a prompt. We pass the screenshot and ask GPT to place it on a phone
+ * mockup. This bypasses Gemini's geo-restrictions on image generation.
+ *
+ * The screenshot is sent as the input image, and the prompt instructs the model
+ * to create a phone mockup around it.
+ */
+export async function generatePhoneMockup(
+  env: Env,
+  screenshotBase64: string,
+  _modelOverride?: string,
+): Promise<string> {
+  const prompt = [
+    'Create a professional marketing photo showing this mobile app screenshot displayed on a realistic iPhone 15 Pro.',
+    'The phone should be centered, slightly angled (5-10 degrees), on a dark warm gradient background.',
+    'The screenshot must be clearly visible and unmodified on the phone screen.',
+    'Premium Apple product photography style. No text overlays.',
+  ].join(' ');
+
+  // Use OpenAI's /images/edits endpoint directly — it accepts an input image
+  const imageBytes = base64ToUint8Array(screenshotBase64);
+  const blob = new Blob([imageBytes], { type: 'image/png' });
+
+  const formData = new FormData();
+  formData.append('image', blob, 'screenshot.png');
+  formData.append('prompt', prompt);
+  formData.append('model', 'gpt-image-1');
+  formData.append('size', '1024x1024');
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/edits', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      },
+      body: formData,
+      signal: AbortSignal.timeout(60_000),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`OpenAI edits API returned ${res.status}: ${err.slice(0, 200)}`);
+    }
+
+    const data = (await res.json()) as { data?: Array<{ b64_json?: string; url?: string }> };
+    const entry = data.data?.[0];
+    if (!entry) {
+      throw new Error('OpenAI edits API returned no image data');
+    }
+
+    // If we got a URL, fetch it and convert to base64
+    let b64 = entry.b64_json;
+    if (!b64 && entry.url) {
+      const imgRes = await fetch(entry.url);
+      if (!imgRes.ok) throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
+      b64 = uint8ArrayToBase64(new Uint8Array(await imgRes.arrayBuffer()));
+    }
+    if (!b64) {
+      throw new Error('OpenAI edits API returned no usable image');
+    }
+
+    console.log('[mockup] Generated phone mockup via openai-edits');
+    return b64;
+  } catch (err) {
+    console.warn(`[mockup] OpenAI edits failed: ${err instanceof Error ? err.message : err}`);
+    throw new Error(`Phone mockup generation failed: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Publish photo post
 // ---------------------------------------------------------------------------
 
