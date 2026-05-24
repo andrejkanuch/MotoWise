@@ -15,7 +15,6 @@ import {
   Receipt,
   Route,
   Share2,
-  Trash2,
   TrendingUp,
   Wrench,
 } from 'lucide-react-native';
@@ -95,13 +94,100 @@ export default function RideSummaryScreen() {
   const [rideName, setRideName] = useState(defaultRideName);
   const [isSaving, setIsSaving] = useState(false);
   const [shareToDiscover, setShareToDiscover] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(distanceM > 0);
   const mapRef = useRef<MapboxGL.MapView>(null);
 
-  // Auto-dismiss celebration after 2 seconds
+  // Auto-save state
+  const [autoSaveCountdown, setAutoSaveCountdown] = useState(3);
+  const [autoSaveStarted, setAutoSaveStarted] = useState(false);
+  const [savedWithUndo, setSavedWithUndo] = useState(false);
+  const [undoCountdown, setUndoCountdown] = useState(5);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasFiredAutoSaveRef = useRef(false);
+
+  // Refs for values used in timer callbacks
+  const rideNameRef = useRef(rideName);
+  rideNameRef.current = rideName;
+  const shareToDiscoverRef = useRef(shareToDiscover);
+  shareToDiscoverRef.current = shareToDiscover;
+
+  // Track zero-distance shown
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fire once on mount — route params are stable
   useEffect(() => {
+    if (distanceM === 0) {
+      trackEvent(AnalyticsEvent.RIDE_ZERO_DISTANCE_SHOWN, { ride_id: rideId });
+    }
+  }, []);
+
+  // Auto-dismiss celebration after 2.2 seconds (only for distance > 0)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one-shot timer on mount
+  useEffect(() => {
+    if (distanceM === 0) return;
     const timer = setTimeout(() => setShowCelebration(false), 2200);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Start auto-save countdown after celebration dismisses
+  useEffect(() => {
+    if (distanceM === 0) return;
+    if (showCelebration) return;
+    if (autoSaveStarted) return;
+    setAutoSaveStarted(true);
+  }, [showCelebration, distanceM, autoSaveStarted]);
+
+  // Auto-save countdown timer
+  // biome-ignore lint/correctness/useExhaustiveDependencies: timer uses refs for stability — intentional pattern from learnings
+  useEffect(() => {
+    if (!autoSaveStarted || hasFiredAutoSaveRef.current) return;
+
+    autoSaveTimerRef.current = setInterval(() => {
+      setAutoSaveCountdown((prev) => {
+        if (prev <= 1) {
+          if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+          if (!hasFiredAutoSaveRef.current) {
+            hasFiredAutoSaveRef.current = true;
+            performAutoSave();
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+    };
+  }, [autoSaveStarted]);
+
+  // Undo countdown timer
+  useEffect(() => {
+    if (!savedWithUndo) return;
+
+    undoTimerRef.current = setInterval(() => {
+      setUndoCountdown((prev) => {
+        if (prev <= 1) {
+          if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+          trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, { undo_tapped: false });
+          // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+          router.replace('/(tabs)/(profile)' as any);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    };
+  }, [savedWithUndo, router]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+      if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    };
   }, []);
 
   // Build route from stored waypoints
@@ -205,7 +291,7 @@ export default function RideSummaryScreen() {
     }
   }, [distanceM, durationS, system]);
 
-  const handleSave = useCallback(async () => {
+  const performAutoSave = useCallback(async () => {
     setIsSaving(true);
     try {
       triggerNotification(Haptics.NotificationFeedbackType.Success);
@@ -214,7 +300,7 @@ export default function RideSummaryScreen() {
         variables: {
           input: {
             rideId,
-            name: rideName || null,
+            name: rideNameRef.current || null,
           },
         },
       });
@@ -231,17 +317,17 @@ export default function RideSummaryScreen() {
         duration_s: durationS,
         max_speed_kmh: Math.round(maxSpeedMps * 3.6),
         avg_speed_kmh: Math.round(avgSpeedMps * 3.6),
-        shared_to_discover: shareToDiscover,
+        shared_to_discover: shareToDiscoverRef.current,
       });
       MetaAnalytics.trackLogRide();
       maybeRequestReview();
 
       // Share to Discover (fire-and-forget, non-blocking)
-      if (shareToDiscover) {
+      if (shareToDiscoverRef.current) {
         import('@motovault/graphql').then(({ ShareRideAsTripDocument }) => {
           import('../../lib/graphql-client').then(({ gqlFetcher: fetcher }) => {
             fetcher(ShareRideAsTripDocument, {
-              input: { rideId, name: rideName || undefined },
+              input: { rideId, name: rideNameRef.current || undefined },
             }).catch((err: unknown) =>
               console.warn('[RideSummary] Share to Discover failed:', err),
             );
@@ -249,40 +335,68 @@ export default function RideSummaryScreen() {
         });
       }
 
-      // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
-      router.replace('/(tabs)/(profile)' as any);
+      setIsSaving(false);
+      setSavedWithUndo(true);
     } catch (error) {
       console.error('[RideSummary] Save error:', error);
-    } finally {
       setIsSaving(false);
     }
-  }, [
-    rideId,
-    rideName,
-    router,
-    distanceM,
-    durationS,
-    shareToDiscover,
-    queryClient,
-    motorcycleId,
-    maxSpeedMps,
-    avgSpeedMps,
-  ]);
+  }, [rideId, distanceM, durationS, queryClient, motorcycleId, maxSpeedMps, avgSpeedMps]);
+
+  const handleUndo = useCallback(() => {
+    if (undoTimerRef.current) clearInterval(undoTimerRef.current);
+    trackEvent(AnalyticsEvent.RIDE_AUTO_SAVED, { undo_tapped: true });
+    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+    router.replace('/(tabs)/(profile)' as any);
+  }, [router]);
 
   const handleDiscard = useCallback(() => {
+    // Cancel auto-save if running
+    if (autoSaveTimerRef.current) clearInterval(autoSaveTimerRef.current);
+    hasFiredAutoSaveRef.current = true;
+
     Alert.alert('Discard Ride?', 'This ride data will be permanently deleted.', [
-      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Cancel',
+        style: 'cancel',
+        onPress: () => {
+          // Resume auto-save if it was interrupted
+          hasFiredAutoSaveRef.current = false;
+          setAutoSaveStarted(false);
+          setAutoSaveCountdown(3);
+          // Will re-trigger via useEffect
+          setTimeout(() => setAutoSaveStarted(true), 0);
+        },
+      },
       {
         text: 'Discard',
         style: 'destructive',
         onPress: () => {
+          trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
+            ride_id: rideId,
+            distance_m: distanceM,
+            duration_s: durationS,
+            had_waypoints: routeData !== null,
+          });
           clearRideData(rideId);
           // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
           router.replace('/(tabs)/(profile)' as any);
         },
       },
     ]);
-  }, [rideId, router]);
+  }, [rideId, router, distanceM, durationS, routeData]);
+
+  const handleDiscardZeroDistance = useCallback(() => {
+    trackEvent(AnalyticsEvent.RIDE_DISCARDED, {
+      ride_id: rideId,
+      distance_m: 0,
+      duration_s: durationS,
+      had_waypoints: routeData !== null,
+    });
+    clearRideData(rideId);
+    // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+    router.replace('/(tabs)/(profile)' as any);
+  }, [rideId, router, durationS, routeData]);
 
   const handleCycleMapStyle = useCallback(() => {
     setMapStyle((prev) => cycleMapStyleFn(prev));
@@ -297,6 +411,114 @@ export default function RideSummaryScreen() {
     { icon: ArrowDown, label: 'Descent', value: formatElevation(elevationLoss, system) },
   ];
 
+  // --- Zero-distance guidance screen ---
+  if (distanceM === 0) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: palette.surfaceDark,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 32,
+          paddingBottom: insets.bottom + 24,
+        }}
+      >
+        <Animated.View
+          entering={ZoomIn.springify().damping(14)}
+          style={{
+            width: 96,
+            height: 96,
+            borderRadius: 48,
+            borderCurve: 'continuous',
+            backgroundColor: `${palette.signature500}20`,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+          }}
+        >
+          <Compass size={44} color={palette.signature500} />
+        </Animated.View>
+
+        <Animated.Text
+          entering={FadeInUp.delay(150).duration(300)}
+          style={{
+            fontSize: 24,
+            fontWeight: '800',
+            color: palette.white,
+            textAlign: 'center',
+            letterSpacing: -0.5,
+            marginBottom: 12,
+          }}
+        >
+          No Distance Recorded
+        </Animated.Text>
+
+        <Animated.Text
+          entering={FadeInUp.delay(250).duration(300)}
+          style={{
+            fontSize: 15,
+            color: palette.neutral400,
+            textAlign: 'center',
+            lineHeight: 22,
+            marginBottom: 40,
+          }}
+        >
+          GPS needs a clear view of the sky. Make sure location permissions are enabled and try
+          riding outdoors.
+        </Animated.Text>
+
+        <Animated.View
+          entering={FadeIn.delay(400).duration(300)}
+          style={{ width: '100%', gap: 12 }}
+        >
+          <Pressable
+            onPress={() => {
+              triggerImpact();
+              // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
+              router.replace('/(modals)/start-ride' as any);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+            style={({ pressed }) => ({
+              borderRadius: 20,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <LinearGradient
+              colors={[palette.accent400, palette.accent500]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{
+                paddingVertical: 16,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
+                Try Again
+              </Text>
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable
+            onPress={handleDiscardZeroDistance}
+            accessibilityRole="button"
+            accessibilityLabel="Discard ride"
+            style={{ alignItems: 'center', paddingVertical: 14 }}
+          >
+            <Text style={{ fontSize: 15, fontWeight: '600', color: palette.neutral500 }}>
+              Discard
+            </Text>
+          </Pressable>
+        </Animated.View>
+      </View>
+    );
+  }
+
+  // --- Normal ride summary (distance > 0) ---
   return (
     <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
       {/* Celebration overlay */}
@@ -378,8 +600,70 @@ export default function RideSummaryScreen() {
         </View>
       )}
 
+      {/* Saved with undo overlay */}
+      {savedWithUndo && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 200,
+            backgroundColor: palette.surfaceDark,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 20,
+          }}
+        >
+          <Animated.View
+            entering={ZoomIn.springify().damping(12)}
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              borderCurve: 'continuous',
+              backgroundColor: palette.success500,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Check size={36} color={palette.white} strokeWidth={3} />
+          </Animated.View>
+          <Animated.Text
+            entering={FadeInUp.delay(150).duration(300)}
+            style={{
+              fontSize: 22,
+              fontWeight: '800',
+              color: palette.white,
+              letterSpacing: -0.3,
+            }}
+          >
+            Ride saved ✓
+          </Animated.Text>
+          <Animated.View entering={FadeIn.delay(300).duration(300)}>
+            <Pressable
+              onPress={handleUndo}
+              accessibilityRole="button"
+              accessibilityLabel="Undo save"
+              style={({ pressed }) => ({
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 14,
+                borderCurve: 'continuous',
+                backgroundColor: pressed ? palette.surfaceHover : palette.surfaceElevated,
+              })}
+            >
+              <Text style={{ fontSize: 15, fontWeight: '600', color: palette.neutral300 }}>
+                Undo ({undoCountdown}s)
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </View>
+      )}
+
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Map */}
@@ -644,35 +928,6 @@ export default function RideSummaryScreen() {
               </Text>
             </Pressable>
 
-            {/* Action buttons */}
-            <Pressable
-              onPress={handleSave}
-              disabled={isSaving}
-              accessibilityRole="button"
-              accessibilityLabel={isSaving ? 'Saving ride' : 'Save ride'}
-              style={({ pressed }) => ({
-                borderRadius: 20,
-                borderCurve: 'continuous',
-                overflow: 'hidden',
-                opacity: isSaving ? 0.5 : pressed ? 0.85 : 1,
-              })}
-            >
-              <LinearGradient
-                colors={[palette.accent400, palette.accent500]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={{
-                  paddingVertical: 16,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
-                  {isSaving ? 'Saving...' : 'Save Ride'}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-
             {/* Share to Discover toggle */}
             <View
               style={{
@@ -701,26 +956,68 @@ export default function RideSummaryScreen() {
                 thumbColor={palette.white}
               />
             </View>
-
-            {/* Discard option */}
-            <Pressable
-              onPress={handleDiscard}
-              accessibilityRole="button"
-              accessibilityLabel="Discard ride"
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                paddingVertical: 8,
-              }}
-            >
-              <Trash2 size={14} color={palette.neutral500} />
-              <Text style={{ fontSize: 14, color: palette.neutral500 }}>Discard Ride</Text>
-            </Pressable>
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Auto-save bar at bottom */}
+      {autoSaveStarted && !savedWithUndo && !isSaving && (
+        <Animated.View
+          entering={SlideInUp.duration(300)}
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingBottom: insets.bottom + 12,
+            paddingTop: 14,
+            paddingHorizontal: 20,
+            backgroundColor: palette.cardDark,
+            borderTopWidth: 1,
+            borderTopColor: palette.surfaceElevated,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '600', color: palette.neutral300 }}>
+            Auto-saving in {autoSaveCountdown}s...
+          </Text>
+          <Pressable
+            onPress={handleDiscard}
+            accessibilityRole="button"
+            accessibilityLabel="Discard ride"
+            hitSlop={12}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: palette.neutral500 }}>
+              Discard
+            </Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
+      {/* Saving indicator bar */}
+      {isSaving && !savedWithUndo && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingBottom: insets.bottom + 12,
+            paddingTop: 14,
+            paddingHorizontal: 20,
+            backgroundColor: palette.cardDark,
+            borderTopWidth: 1,
+            borderTopColor: palette.surfaceElevated,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '600', color: palette.neutral300 }}>
+            Saving...
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
