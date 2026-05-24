@@ -1,9 +1,8 @@
 import { palette } from '@motovault/design-system';
 import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, TrendingUp } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
@@ -16,8 +15,6 @@ import { useMeasurementSystem } from '../../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../../lib/analytics';
 import { gqlFetcher } from '../../../lib/graphql-client';
 import { queryKeys } from '../../../lib/query-keys';
-import { presentPaywall } from '../../../lib/subscription';
-import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { tint, useEditorialTheme } from '../../../theme/editorial';
 import { triggerImpact } from '../../../utils/haptics';
 import {
@@ -27,7 +24,6 @@ import {
   speedUnitLabel,
 } from '../../../utils/ride-formatters';
 
-const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
 
 type Period = 'week' | 'month' | 'year' | 'all';
@@ -158,12 +154,10 @@ export default function RidesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t: theme } = useEditorialTheme();
-  const isPro = useSubscriptionStore((s) => s.isPro);
   const { t } = useTranslation();
   const system = useMeasurementSystem();
 
   const [period, setPeriod] = useState<Period>('month');
-  const ctaShownRef = useRef(false);
   const [sortNewest, setSortNewest] = useState(true);
 
   const periodLabelsMap: Record<Period, string> = useMemo(
@@ -213,8 +207,6 @@ export default function RidesScreen() {
     () => (sortNewest ? allEdges : [...allEdges].reverse()),
     [allEdges, sortNewest],
   );
-  const visibleEdges = isPro ? sortedEdges : sortedEdges.slice(0, FREE_TIER_LIMIT);
-  const showUpgradeCta = !isPro && allEdges.length > FREE_TIER_LIMIT;
   const stats = useRideStats(allEdges, period);
 
   const handleRidePress = useCallback(
@@ -226,10 +218,10 @@ export default function RidesScreen() {
   );
 
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && isPro) {
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isPro]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: RideEdge; index: number }) => {
@@ -541,79 +533,8 @@ export default function RidesScreen() {
         </View>
       );
     }
-    if (showUpgradeCta) {
-      if (!ctaShownRef.current) {
-        ctaShownRef.current = true;
-        trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_SHOWN, {
-          ride_count: allEdges.length,
-          cta_location: 'rides_history',
-        });
-      }
-      return (
-        <Animated.View
-          entering={FadeInUp.duration(280)}
-          style={{
-            marginTop: 12,
-            backgroundColor: theme.surface,
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            padding: 20,
-            alignItems: 'center',
-            gap: 10,
-            borderWidth: 1,
-            borderColor: theme.line,
-          }}
-        >
-          <TrendingUp size={24} color={theme.warm} />
-          <Text style={{ fontSize: 16, fontWeight: '700', color: theme.ink }}>
-            {t('myRides.unlockTitle')}
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: theme.ink3,
-              textAlign: 'center',
-            }}
-          >
-            {t('myRides.unlockDesc', { limit: FREE_TIER_LIMIT })}
-          </Text>
-          <Pressable
-            onPress={() => {
-              trackEvent(AnalyticsEvent.RIDE_UPGRADE_CTA_TAPPED, {
-                ride_count: allEdges.length,
-                cta_location: 'rides_history',
-              });
-              presentPaywall({
-                source: 'rides_history',
-                feature: 'subscription',
-                surface: 'rides_history_limit',
-              });
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={t('myRides.upgradePro')}
-            style={{
-              overflow: 'hidden',
-              borderRadius: 14,
-              borderCurve: 'continuous',
-              marginTop: 4,
-            }}
-          >
-            <LinearGradient
-              colors={[palette.signature400, palette.signature500]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ paddingHorizontal: 24, paddingVertical: 12 }}
-            >
-              <Text style={{ fontSize: 15, fontWeight: '700', color: palette.white }}>
-                {t('myRides.upgradePro')}
-              </Text>
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
-      );
-    }
     return null;
-  }, [isFetchingNextPage, showUpgradeCta, allEdges.length, theme, t]);
+  }, [isFetchingNextPage, theme]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -733,7 +654,7 @@ export default function RidesScreen() {
         </View>
       ) : (
         <FlatList
-          data={visibleEdges}
+          data={sortedEdges}
           renderItem={renderItem}
           keyExtractor={(item) => item.node.id}
           contentContainerStyle={{
