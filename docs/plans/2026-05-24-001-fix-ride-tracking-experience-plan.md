@@ -1,7 +1,7 @@
 ---
 title: Fix Ride Tracking Experience (P0-P3)
 type: fix
-status: active
+status: completed
 date: 2026-05-24
 deepened: true
 ---
@@ -389,29 +389,29 @@ Show milestone toast on ride-summary screen after save.
 ## Acceptance Criteria
 
 ### P0: First-Ride Experience
-- [ ] GPS readiness indicator shown on start-ride screen with accuracy display
-- [ ] Start button disabled until GPS fix (< 20m accuracy) OR 10s timeout
-- [ ] Minimum ride guard triggers for rides < 30s OR < 50m
-- [ ] First-ride HUD overlay shows coach marks on first ever ride
-- [ ] Zero-distance rides show troubleshooting guidance instead of normal summary
-- [ ] All new states tracked in PostHog with relevant properties
+- [x] GPS readiness indicator shown on start-ride screen with accuracy display
+- [x] Start button disabled until GPS fix (< 20m accuracy) OR 10s timeout
+- [x] Minimum ride guard triggers for rides < 30s OR < 50m
+- [x] First-ride HUD overlay shows coach marks on first ever ride
+- [x] Zero-distance rides show troubleshooting guidance instead of normal summary
+- [x] All new states tracked in PostHog with relevant properties
 
 ### P1: Completion Flow
-- [ ] `RIDE_DISCARDED` event fires with ride context when user discards
-- [ ] Rides auto-save after 3s on summary screen (distance > 0)
-- [ ] 5s undo window after auto-save
-- [ ] Slide-to-start replaces tap-to-start button
-- [ ] Zero-distance rides bypass auto-save (show guidance instead)
+- [x] `RIDE_DISCARDED` event fires with ride context when user discards
+- [x] Rides auto-save after 3s on summary screen (distance > 0)
+- [x] 5s undo window after auto-save
+- [x] Slide-to-start replaces tap-to-start button
+- [x] Zero-distance rides bypass auto-save (show guidance instead)
 
 ### P2: History Enhancement
-- [ ] Personal records banner shows at top of rides history
-- [ ] Period comparison shows delta vs previous period
-- [ ] Ride milestones fire and display toast on ride completion
-- [ ] At least 6 milestone types implemented
+- [x] Personal records banner shows at top of rides history
+- [x] Period comparison shows delta vs previous period
+- [x] Ride milestones fire and display toast on ride completion
+- [x] At least 6 milestone types implemented
 
 ### P3: Defer
-- [ ] No changes to sharing or upgrade CTA
-- [ ] Decision documented in this plan
+- [x] No changes to sharing or upgrade CTA
+- [x] Decision documented in this plan
 
 ## Success Metrics
 
