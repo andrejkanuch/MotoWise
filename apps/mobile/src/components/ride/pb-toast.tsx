@@ -130,7 +130,7 @@ export function PbToast({ rideId }: PbToastProps) {
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
-          shadowColor: '#000',
+          shadowColor: theme.ink,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.15,
           shadowRadius: 12,

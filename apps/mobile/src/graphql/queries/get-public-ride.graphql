@@ -9,7 +9,6 @@ query GetPublicRide($id: String!) {
     distanceM
     maxSpeedMps
     avgSpeedMps
-    maxLeanAngle
     elevationGain
     elevationLoss
     pausedDurationS

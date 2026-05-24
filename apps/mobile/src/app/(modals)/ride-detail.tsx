@@ -303,8 +303,11 @@ export default function RideDetailScreen() {
   const elevationGain = ride.elevationGain ?? 0;
   const pausedDurationS = ride.pausedDurationS ?? 0;
   const pauseCount = pausedDurationS > 0 ? Math.max(1, Math.round(pausedDurationS / 240)) : 0;
-  // Lean angle: cap at 55° (phone IMU noise), display with caveat
-  const maxLeanAngle = ride.maxLeanAngle != null ? Math.min(ride.maxLeanAngle, 55) : null;
+  // Lean angle: cap at 55° (phone IMU noise), display with caveat.
+  // Only available on authenticated rides (not public shares — lean angle policy).
+  const rawLean =
+    'maxLeanAngle' in ride ? (ride as { maxLeanAngle?: number | null }).maxLeanAngle : null;
+  const maxLeanAngle = rawLean != null ? Math.min(rawLean, 55) : null;
 
   const statTiles: {
     icon: typeof Route;

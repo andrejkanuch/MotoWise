@@ -4,6 +4,7 @@ import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
 import type { Last7DaysSummary, LastRideSummary, RideOverview } from './models/ride-overview.model';
 import type { RideRecord } from './models/ride-record.model';
 import { ALL_BIKES_SENTINEL } from './ride-analytics.constants';
+import { computeMovingTimeS } from './ride-analytics.utils';
 
 @Injectable()
 export class RideAnalyticsService {
@@ -35,11 +36,11 @@ export class RideAnalyticsService {
 
     if (!data) return undefined;
 
-    const durationS = Math.max(
-      0,
-      Math.floor((new Date(data.ended_at).getTime() - new Date(data.started_at).getTime()) / 1000) -
-        (data.paused_duration_s ?? 0) -
-        (data.auto_paused_duration_s ?? 0),
+    const durationS = computeMovingTimeS(
+      data.started_at,
+      data.ended_at,
+      data.paused_duration_s ?? 0,
+      data.auto_paused_duration_s ?? 0,
     );
 
     return {

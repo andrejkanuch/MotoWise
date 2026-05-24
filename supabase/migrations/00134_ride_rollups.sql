@@ -58,7 +58,7 @@ CREATE OR REPLACE FUNCTION public._upsert_rollup(
   p_period_start   DATE,
   p_metrics        JSONB
 ) RETURNS VOID
-LANGUAGE sql SECURITY DEFINER AS $$
+LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
   INSERT INTO public.ride_rollups (
     user_id, motorcycle_id, period_kind, period_start,
     ride_count, distance_m, moving_time_s, paused_time_s,
@@ -108,7 +108,7 @@ CREATE OR REPLACE FUNCTION public.record_ride_analytics(
   p_started_at     TIMESTAMPTZ,
   p_ride_metrics   JSONB
 ) RETURNS VOID
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_bike     UUID := COALESCE(p_motorcycle_id, public.all_bikes_sentinel());
   v_sentinel UUID := public.all_bikes_sentinel();
@@ -116,14 +116,16 @@ DECLARE
   v_week     DATE := date_trunc('week', p_started_at AT TIME ZONE 'UTC')::date;
   v_mon      DATE := date_trunc('month', p_started_at AT TIME ZONE 'UTC')::date;
 BEGIN
-  -- 6 upserts: 3 period_kinds × (real bike + sentinel "all bikes")
-  -- When p_motorcycle_id is NULL, v_bike = sentinel, so we write 2 identical
-  -- sentinel rows which collapse via ON CONFLICT (effectively 3 upserts).
-  PERFORM public._upsert_rollup(p_user_id, v_bike,     'day',   v_day,  p_ride_metrics);
+  -- Per-bike upserts (skip if ride has no motorcycle — sentinel handles it below)
+  IF v_bike <> v_sentinel THEN
+    PERFORM public._upsert_rollup(p_user_id, v_bike, 'day',   v_day,  p_ride_metrics);
+    PERFORM public._upsert_rollup(p_user_id, v_bike, 'week',  v_week, p_ride_metrics);
+    PERFORM public._upsert_rollup(p_user_id, v_bike, 'month', v_mon,  p_ride_metrics);
+  END IF;
+
+  -- All-bikes sentinel upserts (always written, exactly once per period)
   PERFORM public._upsert_rollup(p_user_id, v_sentinel, 'day',   v_day,  p_ride_metrics);
-  PERFORM public._upsert_rollup(p_user_id, v_bike,     'week',  v_week, p_ride_metrics);
   PERFORM public._upsert_rollup(p_user_id, v_sentinel, 'week',  v_week, p_ride_metrics);
-  PERFORM public._upsert_rollup(p_user_id, v_bike,     'month', v_mon,  p_ride_metrics);
   PERFORM public._upsert_rollup(p_user_id, v_sentinel, 'month', v_mon,  p_ride_metrics);
 
   -- Idempotency marker — same transaction.
