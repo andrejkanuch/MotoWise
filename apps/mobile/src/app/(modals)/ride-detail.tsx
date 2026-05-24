@@ -33,6 +33,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
+import { shareRide } from '../../components/share/share-ride';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { StatTile } from '../../components/ride/stat-tile';
@@ -195,20 +196,17 @@ export default function RideDetailScreen() {
   }, [ride?.routePolyline]);
 
   const handleShare = useCallback(async () => {
-    if (!ride) return;
+    if (!ride || !rideId) return;
     if (process.env.EXPO_OS === 'ios') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    try {
-      const dist = formatDistance(ride.distanceM ?? 0, system);
-      const dur = formatDuration(ride.durationS ?? 0);
-      await Share.share({
-        message: `${ride.name || 'My Ride'} — ${dist} in ${dur} with MotoVault!`,
-      });
-      trackEvent(AnalyticsEvent.RIDE_SHARED, { ride_id: rideId ?? '' });
-    } catch {
-      // cancelled
-    }
+    await shareRide({
+      rideId,
+      rideName: ride.name,
+      distanceM: ride.distanceM ?? 0,
+      durationS: ride.durationS ?? 0,
+      system,
+    });
   }, [ride, system, rideId]);
 
   const handleDelete = useCallback(() => {
