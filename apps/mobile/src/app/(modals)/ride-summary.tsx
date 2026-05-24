@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp, SlideInUp, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PbToast } from '../../components/ride/pb-toast';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
@@ -721,6 +722,7 @@ export default function RideSummaryScreen() {
           </View>
         </Animated.View>
       </ScrollView>
+      <PbToast rideId={rideId} />
     </View>
   );
 }
