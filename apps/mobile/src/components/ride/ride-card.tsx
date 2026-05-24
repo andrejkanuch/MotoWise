@@ -1,6 +1,6 @@
 import type { Ride } from '@motovault/types';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Route } from 'lucide-react-native';
+import { Route, Trophy } from 'lucide-react-native';
 import { memo } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
@@ -14,13 +14,21 @@ import {
   formatSpeed,
 } from '../../utils/ride-formatters';
 
+const RECORD_LABELS: Record<string, string> = {
+  longest_distance: 'Longest ride',
+  longest_duration: 'Longest duration',
+  top_speed: 'Top speed',
+  max_elevation_gain: 'Most elevation',
+};
+
 interface RideCardProps {
   ride: Ride & { bikeName?: string | null; routeThumbnailUri?: string | null };
   index: number;
   onPress: () => void;
+  recordTypes?: string[];
 }
 
-export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCardProps) {
+export const RideCard = memo(function RideCard({ ride, index, onPress, recordTypes }: RideCardProps) {
   const { t } = useEditorialTheme();
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
@@ -131,6 +139,30 @@ export const RideCard = memo(function RideCard({ ride, index, onPress }: RideCar
           )}
         </View>
       </Pressable>
+      {recordTypes && recordTypes.length > 0 && (
+        <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, marginLeft: 12, flexWrap: 'wrap' }}>
+          {recordTypes.map((rt) => (
+            <View
+              key={rt}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 8,
+                borderCurve: 'continuous',
+                backgroundColor: t.warm + '18',
+              }}
+            >
+              <Trophy size={10} color={t.warm} />
+              <Text style={{ fontSize: 10, fontWeight: '600', color: t.warm }}>
+                {RECORD_LABELS[rt] ?? rt}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     </Animated.View>
   );
 });

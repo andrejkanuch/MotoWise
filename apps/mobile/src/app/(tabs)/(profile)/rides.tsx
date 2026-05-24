@@ -222,6 +222,18 @@ export default function RidesScreen() {
   );
   const stats = useRideStats(allEdges, period);
 
+  // Map rideId → record types for badge display
+  const recordsByRideId = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const rec of overview?.personalRecords ?? []) {
+      if (!rec.rideId) continue;
+      const existing = map.get(rec.rideId) ?? [];
+      existing.push(rec.recordType);
+      map.set(rec.rideId, existing);
+    }
+    return map;
+  }, [overview?.personalRecords]);
+
   const handleRidePress = useCallback(
     (rideId: string) => {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
@@ -267,10 +279,11 @@ export default function RidesScreen() {
           }}
           index={index}
           onPress={() => handleRidePress(node.id)}
+          recordTypes={recordsByRideId.get(node.id)}
         />
       );
     },
-    [handleRidePress],
+    [handleRidePress, recordsByRideId],
   );
 
   const periodLabel = useMemo(() => {
