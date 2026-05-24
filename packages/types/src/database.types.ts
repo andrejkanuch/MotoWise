@@ -624,6 +624,208 @@ export type Database = {
           },
         ]
       }
+      discover_trip_reviews: {
+        Row: {
+          bike_id: string | null
+          condition_tags: Json | null
+          created_at: string
+          discover_trip_id: string
+          id: string
+          rating: number
+          text: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bike_id?: string | null
+          condition_tags?: Json | null
+          created_at?: string
+          discover_trip_id: string
+          id?: string
+          rating: number
+          text?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bike_id?: string | null
+          condition_tags?: Json | null
+          created_at?: string
+          discover_trip_id?: string
+          id?: string
+          rating?: number
+          text?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discover_trip_reviews_bike_id_fkey"
+            columns: ["bike_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trip_reviews_discover_trip_id_fkey"
+            columns: ["discover_trip_id"]
+            isOneToOne: false
+            referencedRelation: "discover_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trip_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trip_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discover_trips: {
+        Row: {
+          average_rating: number | null
+          city: string | null
+          clone_count: number
+          contributor_user_id: string | null
+          country_code: string
+          curvature_index: number | null
+          day_count: number
+          description: string
+          difficulty: string
+          distance_m: number | null
+          elevation_gain_m: number | null
+          estimated_duration_minutes: number | null
+          featured_order: number | null
+          forked_from_discover_trip_id: string | null
+          id: string
+          is_featured: boolean
+          is_motovault_pick: boolean
+          migrated_from_route_id: string | null
+          polyline: string | null
+          published_at: string
+          region_code: string | null
+          review_count: number
+          search_tsv: unknown
+          slug: string
+          source_trip_id: string | null
+          start_lat: number | null
+          start_lng: number | null
+          start_point: unknown
+          status: string
+          surface_type: string | null
+          title: string
+          updated_at: string
+          view_count: number
+          waypoints: Json
+        }
+        Insert: {
+          average_rating?: number | null
+          city?: string | null
+          clone_count?: number
+          contributor_user_id?: string | null
+          country_code: string
+          curvature_index?: number | null
+          day_count?: number
+          description: string
+          difficulty: string
+          distance_m?: number | null
+          elevation_gain_m?: number | null
+          estimated_duration_minutes?: number | null
+          featured_order?: number | null
+          forked_from_discover_trip_id?: string | null
+          id?: string
+          is_featured?: boolean
+          is_motovault_pick?: boolean
+          migrated_from_route_id?: string | null
+          polyline?: string | null
+          published_at?: string
+          region_code?: string | null
+          review_count?: number
+          search_tsv?: unknown
+          slug: string
+          source_trip_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_point?: unknown
+          status?: string
+          surface_type?: string | null
+          title: string
+          updated_at?: string
+          view_count?: number
+          waypoints?: Json
+        }
+        Update: {
+          average_rating?: number | null
+          city?: string | null
+          clone_count?: number
+          contributor_user_id?: string | null
+          country_code?: string
+          curvature_index?: number | null
+          day_count?: number
+          description?: string
+          difficulty?: string
+          distance_m?: number | null
+          elevation_gain_m?: number | null
+          estimated_duration_minutes?: number | null
+          featured_order?: number | null
+          forked_from_discover_trip_id?: string | null
+          id?: string
+          is_featured?: boolean
+          is_motovault_pick?: boolean
+          migrated_from_route_id?: string | null
+          polyline?: string | null
+          published_at?: string
+          region_code?: string | null
+          review_count?: number
+          search_tsv?: unknown
+          slug?: string
+          source_trip_id?: string | null
+          start_lat?: number | null
+          start_lng?: number | null
+          start_point?: unknown
+          status?: string
+          surface_type?: string | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+          waypoints?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discover_trips_contributor_user_id_fkey"
+            columns: ["contributor_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trips_contributor_user_id_fkey"
+            columns: ["contributor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trips_forked_from_discover_trip_id_fkey"
+            columns: ["forked_from_discover_trip_id"]
+            isOneToOne: false
+            referencedRelation: "discover_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discover_trips_source_trip_id_fkey"
+            columns: ["source_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_photos: {
         Row: {
           created_at: string
@@ -1353,6 +1555,7 @@ export type Database = {
           name: string
           population: number | null
           region_code: string | null
+          route_count: number
           search_tsv: unknown
         }
         Insert: {
@@ -1364,6 +1567,7 @@ export type Database = {
           name: string
           population?: number | null
           region_code?: string | null
+          route_count?: number
           search_tsv?: unknown
         }
         Update: {
@@ -1375,6 +1579,7 @@ export type Database = {
           name?: string
           population?: number | null
           region_code?: string | null
+          route_count?: number
           search_tsv?: unknown
         }
         Relationships: []
@@ -1565,6 +1770,142 @@ export type Database = {
           },
           {
             foreignKeyName: "ride_kudos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_records: {
+        Row: {
+          achieved_at: string
+          created_at: string
+          id: string
+          motorcycle_id: string
+          previous_value: number | null
+          record_type: Database["public"]["Enums"]["ride_record_type"]
+          ride_id: string | null
+          unit: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          achieved_at: string
+          created_at?: string
+          id?: string
+          motorcycle_id?: string
+          previous_value?: number | null
+          record_type: Database["public"]["Enums"]["ride_record_type"]
+          ride_id?: string | null
+          unit: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          achieved_at?: string
+          created_at?: string
+          id?: string
+          motorcycle_id?: string
+          previous_value?: number | null
+          record_type?: Database["public"]["Enums"]["ride_record_type"]
+          ride_id?: string | null
+          unit?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_records_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_rollups: {
+        Row: {
+          band_cruise_s: number
+          band_silly_s: number
+          band_spirited_s: number
+          band_urban_s: number
+          computed_at: string
+          distance_m: number
+          elevation_gain_m: number
+          elevation_loss_m: number
+          max_lean_angle: number | null
+          max_speed_mps: number | null
+          motorcycle_id: string
+          moving_time_s: number
+          paused_time_s: number
+          period_kind: Database["public"]["Enums"]["ride_rollup_period"]
+          period_start: string
+          ride_count: number
+          user_id: string
+        }
+        Insert: {
+          band_cruise_s?: number
+          band_silly_s?: number
+          band_spirited_s?: number
+          band_urban_s?: number
+          computed_at?: string
+          distance_m?: number
+          elevation_gain_m?: number
+          elevation_loss_m?: number
+          max_lean_angle?: number | null
+          max_speed_mps?: number | null
+          motorcycle_id: string
+          moving_time_s?: number
+          paused_time_s?: number
+          period_kind: Database["public"]["Enums"]["ride_rollup_period"]
+          period_start: string
+          ride_count?: number
+          user_id: string
+        }
+        Update: {
+          band_cruise_s?: number
+          band_silly_s?: number
+          band_spirited_s?: number
+          band_urban_s?: number
+          computed_at?: string
+          distance_m?: number
+          elevation_gain_m?: number
+          elevation_loss_m?: number
+          max_lean_angle?: number | null
+          max_speed_mps?: number | null
+          motorcycle_id?: string
+          moving_time_s?: number
+          paused_time_s?: number
+          period_kind?: Database["public"]["Enums"]["ride_rollup_period"]
+          period_start?: string
+          ride_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_rollups_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_rollups_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
@@ -2159,6 +2500,7 @@ export type Database = {
           caption: string
           created_at: string
           error: string | null
+          facebook_caption: string | null
           id: string
           last_attempt_at: string | null
           post_image_url: string | null
@@ -2181,6 +2523,7 @@ export type Database = {
           caption: string
           created_at?: string
           error?: string | null
+          facebook_caption?: string | null
           id?: string
           last_attempt_at?: string | null
           post_image_url?: string | null
@@ -2203,6 +2546,7 @@ export type Database = {
           caption?: string
           created_at?: string
           error?: string | null
+          facebook_caption?: string | null
           id?: string
           last_attempt_at?: string | null
           post_image_url?: string | null
@@ -2482,6 +2826,111 @@ export type Database = {
           },
         ]
       }
+      trip_reviews: {
+        Row: {
+          bike_id: string | null
+          condition_tags: Json | null
+          created_at: string
+          id: string
+          rating: number
+          text: string | null
+          trip_id: string
+          user_id: string | null
+        }
+        Insert: {
+          bike_id?: string | null
+          condition_tags?: Json | null
+          created_at?: string
+          id?: string
+          rating: number
+          text?: string | null
+          trip_id: string
+          user_id?: string | null
+        }
+        Update: {
+          bike_id?: string | null
+          condition_tags?: Json | null
+          created_at?: string
+          id?: string
+          rating?: number
+          text?: string | null
+          trip_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_reviews_bike_id_fkey"
+            columns: ["bike_id"]
+            isOneToOne: false
+            referencedRelation: "motorcycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_reviews_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_saves: {
+        Row: {
+          id: string
+          saved_at: string
+          trip_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          saved_at?: string
+          trip_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          saved_at?: string
+          trip_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_saves_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_saves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_saves_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trip_share_tokens: {
         Row: {
           created_at: string
@@ -2517,6 +2966,7 @@ export type Database = {
       trip_suggestions: {
         Row: {
           author_user_id: string
+          country_code: string | null
           created_at: string
           day_index: number | null
           decided_at: string | null
@@ -2529,13 +2979,15 @@ export type Database = {
           name: string
           notes: string | null
           period_of_day: string | null
+          source_url: string | null
           status: string
-          trip_id: string
+          trip_id: string | null
           updated_at: string
           waypoint_id: string | null
         }
         Insert: {
           author_user_id: string
+          country_code?: string | null
           created_at?: string
           day_index?: number | null
           decided_at?: string | null
@@ -2548,13 +3000,15 @@ export type Database = {
           name: string
           notes?: string | null
           period_of_day?: string | null
+          source_url?: string | null
           status?: string
-          trip_id: string
+          trip_id?: string | null
           updated_at?: string
           waypoint_id?: string | null
         }
         Update: {
           author_user_id?: string
+          country_code?: string | null
           created_at?: string
           day_index?: number | null
           decided_at?: string | null
@@ -2567,8 +3021,9 @@ export type Database = {
           name?: string
           notes?: string | null
           period_of_day?: string | null
+          source_url?: string | null
           status?: string
-          trip_id?: string
+          trip_id?: string | null
           updated_at?: string
           waypoint_id?: string | null
         }
@@ -2669,54 +3124,168 @@ export type Database = {
       }
       trips: {
         Row: {
+          average_rating: number | null
+          best_season_months: number[] | null
+          city: string | null
+          clone_count: number
+          cloned_from_discover_trip_id: string | null
+          cloned_from_trip_id: string | null
+          country_code: string | null
           cover_image_url: string | null
           created_at: string
+          curvature_index: number | null
+          dates_pending: boolean
+          day_count: number | null
           description: string
           difficulty: string
+          distance_m: number | null
+          elevation_gain_m: number | null
+          elevation_profile: Json | null
           end_date: string
+          estimated_duration_minutes: number | null
+          forked_from_trip_id: string | null
           id: string
+          is_featured: boolean
+          is_flagged: boolean
+          is_motovault_pick: boolean
+          is_template: boolean
           max_riders: number
+          migrated_from_discover_trip_id: string | null
           organiser_user_id: string
           participant_count: number
+          polyline: string | null
+          published_at: string | null
+          region_code: string | null
+          review_count: number
+          search_tsv: unknown
+          slug: string | null
           start_date: string
+          start_lat: number | null
+          start_lng: number | null
+          start_point: unknown
           status: string
+          surface_type: string | null
           title: string
           updated_at: string
+          view_count: number
           visibility: Database["public"]["Enums"]["content_visibility"]
         }
         Insert: {
+          average_rating?: number | null
+          best_season_months?: number[] | null
+          city?: string | null
+          clone_count?: number
+          cloned_from_discover_trip_id?: string | null
+          cloned_from_trip_id?: string | null
+          country_code?: string | null
           cover_image_url?: string | null
           created_at?: string
+          curvature_index?: number | null
+          dates_pending?: boolean
+          day_count?: number | null
           description: string
           difficulty: string
+          distance_m?: number | null
+          elevation_gain_m?: number | null
+          elevation_profile?: Json | null
           end_date: string
+          estimated_duration_minutes?: number | null
+          forked_from_trip_id?: string | null
           id?: string
+          is_featured?: boolean
+          is_flagged?: boolean
+          is_motovault_pick?: boolean
+          is_template?: boolean
           max_riders?: number
+          migrated_from_discover_trip_id?: string | null
           organiser_user_id: string
           participant_count?: number
+          polyline?: string | null
+          published_at?: string | null
+          region_code?: string | null
+          review_count?: number
+          search_tsv?: unknown
+          slug?: string | null
           start_date: string
+          start_lat?: number | null
+          start_lng?: number | null
+          start_point?: unknown
           status?: string
+          surface_type?: string | null
           title: string
           updated_at?: string
+          view_count?: number
           visibility?: Database["public"]["Enums"]["content_visibility"]
         }
         Update: {
+          average_rating?: number | null
+          best_season_months?: number[] | null
+          city?: string | null
+          clone_count?: number
+          cloned_from_discover_trip_id?: string | null
+          cloned_from_trip_id?: string | null
+          country_code?: string | null
           cover_image_url?: string | null
           created_at?: string
+          curvature_index?: number | null
+          dates_pending?: boolean
+          day_count?: number | null
           description?: string
           difficulty?: string
+          distance_m?: number | null
+          elevation_gain_m?: number | null
+          elevation_profile?: Json | null
           end_date?: string
+          estimated_duration_minutes?: number | null
+          forked_from_trip_id?: string | null
           id?: string
+          is_featured?: boolean
+          is_flagged?: boolean
+          is_motovault_pick?: boolean
+          is_template?: boolean
           max_riders?: number
+          migrated_from_discover_trip_id?: string | null
           organiser_user_id?: string
           participant_count?: number
+          polyline?: string | null
+          published_at?: string | null
+          region_code?: string | null
+          review_count?: number
+          search_tsv?: unknown
+          slug?: string | null
           start_date?: string
+          start_lat?: number | null
+          start_lng?: number | null
+          start_point?: unknown
           status?: string
+          surface_type?: string | null
           title?: string
           updated_at?: string
+          view_count?: number
           visibility?: Database["public"]["Enums"]["content_visibility"]
         }
         Relationships: [
+          {
+            foreignKeyName: "trips_cloned_from_discover_trip_id_fkey"
+            columns: ["cloned_from_discover_trip_id"]
+            isOneToOne: false
+            referencedRelation: "discover_trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_cloned_from_trip_id_fkey"
+            columns: ["cloned_from_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trips_forked_from_trip_id_fkey"
+            columns: ["forked_from_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trips_organiser_user_id_fkey"
             columns: ["organiser_user_id"]
@@ -2739,6 +3308,7 @@ export type Database = {
           feature: string
           id: string
           route_id: string | null
+          trip_id: string | null
           user_id: string
           year_month: string | null
         }
@@ -2747,6 +3317,7 @@ export type Database = {
           feature: string
           id?: string
           route_id?: string | null
+          trip_id?: string | null
           user_id: string
           year_month?: string | null
         }
@@ -2755,6 +3326,7 @@ export type Database = {
           feature?: string
           id?: string
           route_id?: string | null
+          trip_id?: string | null
           user_id?: string
           year_month?: string | null
         }
@@ -2764,6 +3336,13 @@ export type Database = {
             columns: ["route_id"]
             isOneToOne: false
             referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gating_events_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
             referencedColumns: ["id"]
           },
           {
@@ -3060,6 +3639,16 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      _upsert_rollup: {
+        Args: {
+          p_metrics: Json
+          p_motorcycle_id: string
+          p_period_kind: Database["public"]["Enums"]["ride_rollup_period"]
+          p_period_start: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -3098,6 +3687,7 @@ export type Database = {
             }
             Returns: string
           }
+      all_bikes_sentinel: { Args: never; Returns: string }
       auth_uid_check: { Args: never; Returns: string }
       cancel_account_deletion: {
         Args: { p_user_id: string }
@@ -3111,6 +3701,7 @@ export type Database = {
           caption: string
           created_at: string
           error: string | null
+          facebook_caption: string | null
           id: string
           last_attempt_at: string | null
           post_image_url: string | null
@@ -3133,6 +3724,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      clone_discover_trip: {
+        Args: { p_discover_trip_id: string; p_user_id: string }
+        Returns: string
+      }
+      clone_trip_template: {
+        Args: { p_trip_id: string; p_user_id: string }
+        Returns: string
       }
       complete_onboarding: {
         Args: {
@@ -3300,6 +3899,15 @@ export type Database = {
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
       get_daily_ai_spend: { Args: { p_since: string }; Returns: number }
+      get_make_stats: {
+        Args: never
+        Returns: {
+          distinct_models: number
+          make: string
+          riders: number
+          total_bikes: number
+        }[]
+      }
       get_routes_needing_slug: {
         Args: { batch_offset?: number; batch_size?: number }
         Returns: {
@@ -3315,6 +3923,12 @@ export type Database = {
         Args: { p_article_id: string }
         Returns: undefined
       }
+      increment_discover_trip_view: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      increment_trip_clone: { Args: { p_trip_id: string }; Returns: undefined }
+      increment_trip_view: { Args: { p_id: string }; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       join_group_ride: {
         Args: { p_group_ride_id: string; p_user_id: string }
@@ -3400,6 +4014,16 @@ export type Database = {
         Returns: undefined
       }
       purge_soft_deleted_rides: { Args: never; Returns: undefined }
+      record_ride_analytics: {
+        Args: {
+          p_motorcycle_id: string
+          p_ride_id: string
+          p_ride_metrics: Json
+          p_started_at: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       reorder_trip_waypoints: {
         Args: { p_trip_id: string; p_waypoint_ids: string[] }
         Returns: undefined
@@ -4067,6 +4691,18 @@ export type Database = {
         | "dirt_bike"
         | "scooter"
         | "other"
+      ride_record_type:
+        | "longest_distance"
+        | "longest_duration"
+        | "top_speed"
+        | "max_lean"
+        | "max_elevation_gain"
+        | "most_distance_week"
+        | "most_distance_month"
+        | "most_rides_week"
+        | "most_rides_month"
+        | "longest_streak"
+      ride_rollup_period: "day" | "week" | "month"
       sponsorship_status: "active" | "paused" | "deactivated" | "expired"
       surface_condition:
         | "smooth"
@@ -4240,6 +4876,19 @@ export const Constants = {
         "scooter",
         "other",
       ],
+      ride_record_type: [
+        "longest_distance",
+        "longest_duration",
+        "top_speed",
+        "max_lean",
+        "max_elevation_gain",
+        "most_distance_week",
+        "most_distance_month",
+        "most_rides_week",
+        "most_rides_month",
+        "longest_streak",
+      ],
+      ride_rollup_period: ["day", "week", "month"],
       sponsorship_status: ["active", "paused", "deactivated", "expired"],
       surface_condition: [
         "smooth",
