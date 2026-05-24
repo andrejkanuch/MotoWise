@@ -17,12 +17,14 @@ import {
   ChevronUp,
   Clock,
   Gauge,
+  Info,
   Map as MapIcon,
   Mountain,
   Pause,
   Route,
   Share2,
   Trash2,
+  TrendingDown,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -302,6 +304,9 @@ export default function RideDetailScreen() {
   const elevationGain = ride.elevationGain ?? 0;
   const pausedDurationS = ride.pausedDurationS ?? 0;
   const pauseCount = pausedDurationS > 0 ? Math.max(1, Math.round(pausedDurationS / 240)) : 0;
+  // Lean angle: cap at 55° (phone IMU noise), display with caveat
+  const maxLeanAngle = ride.maxLeanAngle != null ? Math.min(ride.maxLeanAngle, 55) : null;
+  const [showLeanTooltip, setShowLeanTooltip] = useState(false);
 
   const statTiles: {
     icon: typeof Route;
@@ -351,6 +356,16 @@ export default function RideDetailScreen() {
       value: pauseCount > 0 ? String(pauseCount) : '0',
       unit: pauseCount > 0 && pausedDurationS > 0 ? `${Math.round(pausedDurationS / 60)}m` : '',
     },
+    ...(maxLeanAngle != null
+      ? [
+          {
+            icon: TrendingDown,
+            label: t('rideDetail.leanAngle'),
+            value: maxLeanAngle >= 55 ? '55°+' : `${Math.round(maxLeanAngle)}°`,
+            unit: '',
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -673,6 +688,45 @@ export default function RideDetailScreen() {
                 );
               })}
             </View>
+
+            {/* Lean angle caveat */}
+            {maxLeanAngle != null && (
+              <Pressable
+                onPress={() => {
+                  setShowLeanTooltip((p) => !p);
+                  trackEvent(AnalyticsEvent.LEAN_ANGLE_TOOLTIP_OPENED, { ride_id: rideId });
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingVertical: 4,
+                }}
+              >
+                <Info size={12} color={theme.ink4} />
+                <Text style={{ fontSize: 10, color: theme.ink4 }}>
+                  {t('rideDetail.leanCaveat')}
+                </Text>
+              </Pressable>
+            )}
+            {showLeanTooltip && (
+              <Animated.View
+                entering={FadeIn.duration(200)}
+                style={{
+                  backgroundColor: theme.surface,
+                  borderWidth: 1,
+                  borderColor: theme.line,
+                  borderRadius: 10,
+                  borderCurve: 'continuous',
+                  padding: 10,
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: theme.ink3, lineHeight: 16 }}>
+                  {t('rideDetail.leanTooltip')}
+                </Text>
+              </Animated.View>
+            )}
 
             {/* Chart */}
             {activeChart && waypointsLoading && (

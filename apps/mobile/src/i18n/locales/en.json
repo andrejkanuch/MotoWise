@@ -1553,7 +1553,10 @@
     "deleteTitle": "Delete Ride?",
     "deleteMessage": "This action cannot be undone.",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Pre-flight",
