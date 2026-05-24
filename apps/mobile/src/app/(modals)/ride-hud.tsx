@@ -7,7 +7,6 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { HudLayoutA } from '../../components/ride/hud-layout-a';
 import { HudLayoutB } from '../../components/ride/hud-layout-b';
 import { type HudLayout, HudLayoutSwitcher } from '../../components/ride/hud-layout-switcher';
@@ -75,41 +74,11 @@ export default function RideHudScreen() {
     null,
   );
 
-  // First-ride onboarding overlay
-  const [showFirstRideOverlay, setShowFirstRideOverlay] = useState(false);
-  const overlayShownAtRef = useRef<number>(0);
-
   const isPaused = status === 'paused';
   const bgColor = isNightMode ? palette.nightBg : palette.neutral950;
 
   const currentSpeedRef = useRef(currentSpeed);
   currentSpeedRef.current = currentSpeed;
-
-  // First-ride overlay logic
-  useEffect(() => {
-    const alreadyDismissed = rideStorage.getString('firstRideOverlayDismissed');
-    if (alreadyDismissed) return;
-
-    const timeout = setTimeout(() => {
-      setShowFirstRideOverlay(true);
-      overlayShownAtRef.current = Date.now();
-      trackEvent(AnalyticsEvent.RIDE_FIRST_OVERLAY_SHOWN, {
-        ride_id: rideMMKV.getCurrentId() ?? null,
-      });
-    }, 1500);
-
-    return () => clearTimeout(timeout);
-  }, []);
-
-  const dismissFirstRideOverlay = useCallback(() => {
-    const timeOnScreen = Date.now() - overlayShownAtRef.current;
-    setShowFirstRideOverlay(false);
-    rideStorage.set('firstRideOverlayDismissed', 'true');
-    trackEvent(AnalyticsEvent.RIDE_FIRST_OVERLAY_DISMISSED, {
-      ride_id: rideMMKV.getCurrentId() ?? null,
-      time_on_screen_ms: timeOnScreen,
-    });
-  }, []);
 
   // Layout switching
   const handleLayoutSwitch = useCallback(
@@ -388,7 +357,7 @@ export default function RideHudScreen() {
 
   const avgSpeedDisplay = elapsedSeconds > 0 && distance > 0 ? distance / elapsedSeconds : 0;
 
-  const showGuardTip = !rideStorage.getString('rideGuardTipShown');
+  const [showGuardTip] = useState(() => !rideStorage.getString('rideGuardTipShown'));
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -547,115 +516,6 @@ export default function RideHudScreen() {
           </View>
         </View>
       </BottomSheet>
-
-      {/* First-Ride Onboarding Overlay */}
-      {showFirstRideOverlay && (
-        <Animated.View
-          entering={FadeIn.duration(300)}
-          exiting={FadeOut.duration(200)}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 100,
-          }}
-        >
-          <Pressable
-            onPress={dismissFirstRideOverlay}
-            style={{
-              flex: 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.7)',
-              justifyContent: 'space-between',
-              paddingVertical: 120,
-              paddingHorizontal: 32,
-            }}
-          >
-            {/* Top callout — Speed */}
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 20,
-                  paddingVertical: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    color: palette.neutral50,
-                    fontSize: 17,
-                    fontWeight: '600',
-                    textAlign: 'center',
-                  }}
-                >
-                  Your current speed
-                </Text>
-              </View>
-            </View>
-
-            {/* Middle callout — Distance */}
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 20,
-                  paddingVertical: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    color: palette.neutral50,
-                    fontSize: 17,
-                    fontWeight: '600',
-                    textAlign: 'center',
-                  }}
-                >
-                  Distance traveled
-                </Text>
-              </View>
-            </View>
-
-            {/* Bottom callout — End button */}
-            <View style={{ alignItems: 'center', gap: 24 }}>
-              <View
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                  borderRadius: 16,
-                  borderCurve: 'continuous',
-                  paddingHorizontal: 20,
-                  paddingVertical: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    color: palette.neutral50,
-                    fontSize: 17,
-                    fontWeight: '600',
-                    textAlign: 'center',
-                  }}
-                >
-                  Tap to end your ride
-                </Text>
-              </View>
-
-              <Text
-                style={{
-                  color: palette.neutral400,
-                  fontSize: 14,
-                  textAlign: 'center',
-                }}
-              >
-                Tap anywhere to dismiss
-              </Text>
-            </View>
-          </Pressable>
-        </Animated.View>
-      )}
     </View>
   );
 }

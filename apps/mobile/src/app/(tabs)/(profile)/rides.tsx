@@ -3,11 +3,11 @@ import { MyMotorcyclesDocument, MyRidesDocument, type MyRidesQuery } from '@moto
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Mountain, Route, Timer, TrendingUp, Trophy, Zap } from 'lucide-react-native';
+import { ArrowLeft, Mountain, Route, Timer, TrendingUp, Zap } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, Stop, LinearGradient as SvgGradient } from 'react-native-svg';
 import { LottieMotorcycle } from '../../../components/LottieMotorcycle';
@@ -29,7 +29,6 @@ import {
   formatSpeed,
   speedUnitLabel,
 } from '../../../utils/ride-formatters';
-import { rideStorage } from '../../../utils/ride-storage';
 
 const FREE_TIER_LIMIT = 10;
 const PAGE_SIZE = 20;
@@ -199,112 +198,6 @@ function usePersonalRecords(edges: RideEdge[]) {
   }, [edges]);
 }
 
-// ─── Milestones ──────────────────────────────────────────────────────────────
-
-const MILESTONES = {
-  first_ride: { name: 'First Ride', description: 'Completed your first real ride' },
-  century: { name: 'Century', description: 'Total distance crossed 100 km' },
-  road_warrior: { name: 'Road Warrior', description: 'Total distance crossed 1,000 km' },
-  speed_demon: { name: 'Speed Demon', description: 'Reached over 100 km/h on a ride' },
-  mountain_goat: { name: 'Mountain Goat', description: 'Climbed over 500m elevation in a ride' },
-  regular: { name: 'Regular Rider', description: '5+ rides in a single week' },
-} as const;
-
-type MilestoneKey = keyof typeof MILESTONES;
-
-const ACHIEVED_MILESTONES_KEY = 'achieved_milestones';
-
-function getAchievedMilestones(): MilestoneKey[] {
-  const raw = rideStorage.getString(ACHIEVED_MILESTONES_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw) as MilestoneKey[];
-  } catch {
-    return [];
-  }
-}
-
-function saveAchievedMilestones(milestones: MilestoneKey[]): void {
-  rideStorage.set(ACHIEVED_MILESTONES_KEY, JSON.stringify(milestones));
-}
-
-function checkMilestones(edges: RideEdge[]): MilestoneKey[] {
-  const achieved: MilestoneKey[] = [];
-  const realRides = edges.filter((e) => (e.node.distanceM ?? 0) > 1000);
-
-  // first_ride: at least one ride > 1km
-  if (realRides.length > 0) achieved.push('first_ride');
-
-  // century & road_warrior: total distance
-  let totalDistance = 0;
-  for (const edge of edges) {
-    totalDistance += edge.node.distanceM ?? 0;
-  }
-  if (totalDistance >= 100_000) achieved.push('century');
-  if (totalDistance >= 1_000_000) achieved.push('road_warrior');
-
-  // speed_demon: any ride with maxSpeed > 100 km/h (27.78 m/s)
-  if (edges.some((e) => (e.node.maxSpeedMps ?? 0) > 27.78)) achieved.push('speed_demon');
-
-  // mountain_goat: any ride with elevation > 500m
-  if (edges.some((e) => (e.node.elevationGain ?? 0) > 500)) achieved.push('mountain_goat');
-
-  // regular: 5+ rides in any single week
-  const weekBuckets: Record<string, number> = {};
-  for (const edge of edges) {
-    const d = new Date(edge.node.startedAt);
-    // ISO week key: year + week number
-    const startOfYear = new Date(d.getFullYear(), 0, 1);
-    const weekNum = Math.ceil(
-      ((d.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24) + startOfYear.getDay() + 1) /
-        7,
-    );
-    const key = `${d.getFullYear()}-W${weekNum}`;
-    weekBuckets[key] = (weekBuckets[key] ?? 0) + 1;
-  }
-  if (Object.values(weekBuckets).some((count) => count >= 5)) achieved.push('regular');
-
-  return achieved;
-}
-
-function useMilestoneChecker(edges: RideEdge[]) {
-  const [newMilestone, setNewMilestone] = useState<MilestoneKey | null>(null);
-  const checkedRef = useRef(false);
-
-  useEffect(() => {
-    if (edges.length === 0 || checkedRef.current) return;
-    checkedRef.current = true;
-
-    const previouslyAchieved = getAchievedMilestones();
-    const currentlyAchieved = checkMilestones(edges);
-    const newOnes = currentlyAchieved.filter((m) => !previouslyAchieved.includes(m));
-
-    if (newOnes.length > 0) {
-      // Save all achieved milestones
-      const allAchieved = [...new Set([...previouslyAchieved, ...currentlyAchieved])];
-      saveAchievedMilestones(allAchieved);
-
-      // Show the first new milestone
-      setNewMilestone(newOnes[0]);
-
-      // Track analytics
-      let totalDistance = 0;
-      for (const edge of edges) totalDistance += edge.node.distanceM ?? 0;
-
-      trackEvent(AnalyticsEvent.RIDE_MILESTONE_ACHIEVED, {
-        milestone_key: newOnes[0],
-        total_rides: edges.length,
-        total_distance_m: totalDistance,
-      });
-
-      // Auto-dismiss after 4s
-      setTimeout(() => setNewMilestone(null), 4000);
-    }
-  }, [edges]);
-
-  return newMilestone;
-}
-
 /** Mini sparkline area chart */
 function Sparkline({
   data,
@@ -416,8 +309,6 @@ export default function RidesScreen() {
   const stats = useRideStats(allEdges, period);
   const periodComparison = usePeriodComparison(allEdges, period);
   const personalRecords = usePersonalRecords(allEdges);
-  const newMilestone = useMilestoneChecker(allEdges);
-
   const handleRidePress = useCallback(
     (rideId: string) => {
       // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
@@ -1127,49 +1018,6 @@ export default function RidesScreen() {
           })}
         </View>
       </View>
-
-      {/* Milestone celebration banner */}
-      {newMilestone ? (
-        <Animated.View
-          entering={FadeInUp.duration(300)}
-          exiting={FadeOut.duration(300)}
-          style={{
-            marginHorizontal: 20,
-            marginBottom: 8,
-            backgroundColor: tint(palette.signature500, 0.15),
-            borderRadius: 14,
-            borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: tint(palette.signature500, 0.3),
-            padding: 14,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              borderCurve: 'continuous',
-              backgroundColor: tint(palette.signature500, 0.2),
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Trophy size={18} color={palette.signature500} />
-          </View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: palette.signature500 }}>
-              {MILESTONES[newMilestone].name}
-            </Text>
-            <Text style={{ fontSize: 12, color: theme.ink2 }}>
-              {MILESTONES[newMilestone].description}
-            </Text>
-          </View>
-        </Animated.View>
-      ) : null}
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
