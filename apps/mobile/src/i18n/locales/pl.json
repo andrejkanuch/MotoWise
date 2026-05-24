@@ -1621,9 +1621,9 @@
     "recentRides": "Ostatnie jazdy",
     "newestFirst": "Najnowsze najpierw ↓",
     "oldestFirst": "Najstarsze najpierw ↑",
-    "unlockTitle": "Odblokuj pełną historię",
-    "unlockDesc": "Darmowe konta pokazują ostatnie {{limit}} jazd. Przejdź na Pro, by mieć nieograniczoną historię i statystyki.",
-    "upgradePro": "Przejdź na Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Brak danych trasy",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Usunąć jazdę?",
     "deleteMessage": "Tej czynności nie można cofnąć.",
     "cancel": "Anuluj",
-    "delete": "Usuń"
+    "delete": "Usuń",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Kontrola przedjazdowa",

@@ -77,9 +77,7 @@ export class RideRollupAggregator {
     // 2) Real-ride filter
     const movingTimeS = Math.max(
       0,
-      Math.floor(
-        (new Date(ride.ended_at).getTime() - new Date(ride.started_at).getTime()) / 1000,
-      ) -
+      Math.floor((new Date(ride.ended_at).getTime() - new Date(ride.started_at).getTime()) / 1000) -
         (ride.paused_duration_s ?? 0) -
         (ride.auto_paused_duration_s ?? 0),
     );
@@ -211,9 +209,7 @@ export class RideRollupAggregator {
     weekDate.setUTCDate(weekDate.getUTCDate() - ((weekDate.getUTCDay() + 6) % 7));
     const week = weekDate.toISOString().split('T')[0];
 
-    const monthDate = new Date(
-      Date.UTC(startedAt.getUTCFullYear(), startedAt.getUTCMonth(), 1),
-    );
+    const monthDate = new Date(Date.UTC(startedAt.getUTCFullYear(), startedAt.getUTCMonth(), 1));
     const month = monthDate.toISOString().split('T')[0];
 
     const periods = [

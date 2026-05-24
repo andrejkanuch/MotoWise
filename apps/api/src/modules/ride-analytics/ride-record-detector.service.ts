@@ -28,9 +28,7 @@ interface RecordCandidate {
 export class RideRecordDetector {
   private readonly logger = new Logger(RideRecordDetector.name);
 
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient) {}
 
   /**
    * Check 5 record types against current bests. Idempotent via unique constraint.
@@ -39,9 +37,7 @@ export class RideRecordDetector {
   async detect(userId: string, ride: RideRow): Promise<void> {
     const movingTimeS = Math.max(
       0,
-      Math.floor(
-        (new Date(ride.ended_at).getTime() - new Date(ride.started_at).getTime()) / 1000,
-      ) -
+      Math.floor((new Date(ride.ended_at).getTime() - new Date(ride.started_at).getTime()) / 1000) -
         (ride.paused_duration_s ?? 0) -
         (ride.auto_paused_duration_s ?? 0),
     );

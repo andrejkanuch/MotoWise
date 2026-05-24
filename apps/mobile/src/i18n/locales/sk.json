@@ -1621,9 +1621,9 @@
     "recentRides": "Posledné jazdy",
     "newestFirst": "Najnovšie prvé ↓",
     "oldestFirst": "Najstaršie prvé ↑",
-    "unlockTitle": "Odomknúť celú históriu",
-    "unlockDesc": "Bezplatné účty zobrazujú posledných {{limit}} jázd. Prejdite na Pro pre neobmedzené štatistiky a históriu.",
-    "upgradePro": "Prejsť na Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Žiadne dáta trasy",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Vymazať jazdu?",
     "deleteMessage": "Túto akciu nie je možné vrátiť späť.",
     "cancel": "Zrušiť",
-    "delete": "Vymazať"
+    "delete": "Vymazať",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Predjazdná kontrola",

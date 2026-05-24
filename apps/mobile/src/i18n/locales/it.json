@@ -1621,9 +1621,9 @@
     "recentRides": "Uscite recenti",
     "newestFirst": "Più recenti prima ↓",
     "oldestFirst": "Meno recenti prima ↑",
-    "unlockTitle": "Sblocca lo storico completo",
-    "unlockDesc": "Gli account gratuiti mostrano le ultime {{limit}} uscite. Passa a Pro per storico e statistiche illimitati.",
-    "upgradePro": "Passa a Pro"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Nessun dato percorso",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Eliminare l'uscita?",
     "deleteMessage": "Questa azione non può essere annullata.",
     "cancel": "Annulla",
-    "delete": "Elimina"
+    "delete": "Elimina",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Pre-partenza",

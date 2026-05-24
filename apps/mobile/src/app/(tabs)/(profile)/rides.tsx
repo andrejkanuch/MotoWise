@@ -2,14 +2,14 @@ import { palette } from '@motovault/design-system';
 import {
   MyMotorcyclesDocument,
   MyRidesDocument,
-  RideOverviewDocument,
   type MyRidesQuery,
+  RideOverviewDocument,
   type RideOverviewQuery,
 } from '@motovault/graphql';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -463,7 +463,8 @@ export default function RidesScreen() {
                   fontVariant: ['tabular-nums'],
                 }}
               >
-                {overview.currentStreak} {overview.currentStreak === 1 ? t('myRides.streakWeek') : t('myRides.streakWeeks')}
+                {overview.currentStreak}{' '}
+                {overview.currentStreak === 1 ? t('myRides.streakWeek') : t('myRides.streakWeeks')}
               </Text>
               <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 2 }}>
                 {t('myRides.streakDesc')}

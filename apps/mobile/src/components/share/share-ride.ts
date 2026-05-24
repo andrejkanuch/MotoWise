@@ -1,7 +1,7 @@
+import type { MeasurementSystem } from '@motovault/types';
 import { Share } from 'react-native';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { formatDistance, formatDuration } from '../../utils/ride-formatters';
-import type { MeasurementSystem } from '@motovault/types';
 
 interface ShareRideParams {
   rideId: string;

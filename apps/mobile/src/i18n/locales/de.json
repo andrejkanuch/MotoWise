@@ -1621,9 +1621,9 @@
     "recentRides": "Letzte Fahrten",
     "newestFirst": "Neueste zuerst ↓",
     "oldestFirst": "Älteste zuerst ↑",
-    "unlockTitle": "Gesamten Verlauf freischalten",
-    "unlockDesc": "Kostenlose Konten zeigen die letzten {{limit}} Fahrten. Upgrade für unbegrenzten Verlauf und Statistiken.",
-    "upgradePro": "Auf Pro upgraden"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Keine Routendaten",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Fahrt löschen?",
     "deleteMessage": "Diese Aktion kann nicht rückgängig gemacht werden.",
     "cancel": "Abbrechen",
-    "delete": "Löschen"
+    "delete": "Löschen",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Vorab-Check",

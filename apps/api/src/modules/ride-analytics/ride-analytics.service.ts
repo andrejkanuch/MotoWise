@@ -1,17 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_ADMIN } from '../supabase/supabase-admin.provider';
-import { ALL_BIKES_SENTINEL } from './ride-analytics.constants';
 import type { Last7DaysSummary, LastRideSummary, RideOverview } from './models/ride-overview.model';
 import type { RideRecord } from './models/ride-record.model';
+import { ALL_BIKES_SENTINEL } from './ride-analytics.constants';
 
 @Injectable()
 export class RideAnalyticsService {
-  private readonly logger = new Logger(RideAnalyticsService.name);
-
-  constructor(
-    @Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient,
-  ) {}
+  constructor(@Inject(SUPABASE_ADMIN) private readonly supabaseAdmin: SupabaseClient) {}
 
   async getRideOverview(userId: string): Promise<RideOverview> {
     const [lastRide, last7Days, currentStreak, personalRecords] = await Promise.all([
@@ -27,7 +23,9 @@ export class RideAnalyticsService {
   private async getLastRide(userId: string): Promise<LastRideSummary | undefined> {
     const { data } = await this.supabaseAdmin
       .from('rides')
-      .select('id, distance_m, started_at, ended_at, max_speed_mps, paused_duration_s, auto_paused_duration_s, motorcycle_id, motorcycles(name)')
+      .select(
+        'id, distance_m, started_at, ended_at, max_speed_mps, paused_duration_s, auto_paused_duration_s, motorcycle_id, motorcycles(name)',
+      )
       .eq('user_id', userId)
       .eq('status', 'completed')
       .is('deleted_at', null)
@@ -39,9 +37,7 @@ export class RideAnalyticsService {
 
     const durationS = Math.max(
       0,
-      Math.floor(
-        (new Date(data.ended_at).getTime() - new Date(data.started_at).getTime()) / 1000,
-      ) -
+      Math.floor((new Date(data.ended_at).getTime() - new Date(data.started_at).getTime()) / 1000) -
         (data.paused_duration_s ?? 0) -
         (data.auto_paused_duration_s ?? 0),
     );
@@ -117,7 +113,7 @@ export class RideAnalyticsService {
     }
 
     // Walk backwards counting consecutive weeks
-    let expectedDate = new Date(mostRecent);
+    const expectedDate = new Date(mostRecent);
     for (const row of data) {
       const rowDate = row.period_start;
       const expected = expectedDate.toISOString().split('T')[0];

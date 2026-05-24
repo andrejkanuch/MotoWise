@@ -28,7 +28,12 @@ interface RideCardProps {
   recordTypes?: string[];
 }
 
-export const RideCard = memo(function RideCard({ ride, index, onPress, recordTypes }: RideCardProps) {
+export const RideCard = memo(function RideCard({
+  ride,
+  index,
+  onPress,
+  recordTypes,
+}: RideCardProps) {
   const { t } = useEditorialTheme();
   const duration = ride.durationS ?? 0;
   const distance = ride.distanceM ?? 0;
@@ -140,7 +145,9 @@ export const RideCard = memo(function RideCard({ ride, index, onPress, recordTyp
         </View>
       </Pressable>
       {recordTypes && recordTypes.length > 0 && (
-        <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, marginLeft: 12, flexWrap: 'wrap' }}>
+        <View
+          style={{ flexDirection: 'row', gap: 6, marginTop: 6, marginLeft: 12, flexWrap: 'wrap' }}
+        >
           {recordTypes.map((rt) => (
             <View
               key={rt}
@@ -152,7 +159,7 @@ export const RideCard = memo(function RideCard({ ride, index, onPress, recordTyp
                 paddingVertical: 3,
                 borderRadius: 8,
                 borderCurve: 'continuous',
-                backgroundColor: t.warm + '18',
+                backgroundColor: `${t.warm}18`,
               }}
             >
               <Trophy size={10} color={t.warm} />

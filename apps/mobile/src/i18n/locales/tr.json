@@ -1621,9 +1621,9 @@
     "recentRides": "Son sürüşler",
     "newestFirst": "En yeniler önce ↓",
     "oldestFirst": "En eskiler önce ↑",
-    "unlockTitle": "Tüm geçmişi aç",
-    "unlockDesc": "Ücretsiz hesaplar son {{limit}} sürüşü gösterir. Sınırsız geçmiş ve istatistikler için Pro'ya yükseltin.",
-    "upgradePro": "Pro'ya yükselt"
+    "streakWeek": "week streak",
+    "streakWeeks": "week streak",
+    "streakDesc": "Consecutive weeks with a ride"
   },
   "rideDetail": {
     "noRouteData": "Rota verisi yok",
@@ -1645,7 +1645,10 @@
     "deleteTitle": "Sürüş silinsin mi?",
     "deleteMessage": "Bu işlem geri alınamaz.",
     "cancel": "İptal",
-    "delete": "Sil"
+    "delete": "Sil",
+    "leanAngle": "Max Lean",
+    "leanCaveat": "Lean angle estimated from phone IMU",
+    "leanTooltip": "Lean angle is estimated from your phone's motion sensors. It is not a precision instrument — actual lean angle may differ depending on phone mount position and road conditions."
   },
   "startRide": {
     "preFlight": "Ön kontrol",

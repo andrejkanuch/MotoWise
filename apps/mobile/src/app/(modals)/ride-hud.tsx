@@ -289,7 +289,7 @@ export default function RideHudScreen() {
     };
     // biome-ignore lint/suspicious/noExplicitAny: expo-router typed route
     router.replace(summaryRoute as any);
-  }, [endRide, router, isNightMode, isBatterySaver, hudLayout]);
+  }, [endRide, router, isNightMode, isBatterySaver, hudLayout, maxLeanAngle]);
 
   const handleToggleNight = useCallback(() => {
     haptic();

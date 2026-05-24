@@ -28,15 +28,15 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, BackHandler, Pressable, Share, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommentList } from '../../components/comments/comment-list';
-import { shareRide } from '../../components/share/share-ride';
 import { RideElevationChart } from '../../components/ride/ride-elevation-chart';
 import { RideSpeedChart } from '../../components/ride/ride-speed-chart';
 import { StatTile } from '../../components/ride/stat-tile';
+import { shareRide } from '../../components/share/share-ride';
 import { useMeasurementSystem } from '../../hooks/use-measurement-system';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
@@ -100,6 +100,7 @@ export default function RideDetailScreen() {
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [activeChart, setActiveChart] = useState<ChartType | null>(null);
   const [isMapFullScreen, setIsMapFullScreen] = useState(false);
+  const [showLeanTooltip, setShowLeanTooltip] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['35%', '60%', '92%'], []);
 
@@ -304,7 +305,6 @@ export default function RideDetailScreen() {
   const pauseCount = pausedDurationS > 0 ? Math.max(1, Math.round(pausedDurationS / 240)) : 0;
   // Lean angle: cap at 55° (phone IMU noise), display with caveat
   const maxLeanAngle = ride.maxLeanAngle != null ? Math.min(ride.maxLeanAngle, 55) : null;
-  const [showLeanTooltip, setShowLeanTooltip] = useState(false);
 
   const statTiles: {
     icon: typeof Route;

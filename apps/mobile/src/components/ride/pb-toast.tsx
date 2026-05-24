@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { Trophy } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutDown } from 'react-native-reanimated';
 import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
@@ -41,8 +41,12 @@ export function PbToast({ rideId }: PbToastProps) {
   });
 
   // Find records that belong to this ride AND have a previous value (not first-ever)
-  const newRecords = (data?.rideOverview?.personalRecords ?? []).filter(
-    (r) => r.rideId === rideId && r.previousValue != null,
+  const newRecords = useMemo(
+    () =>
+      (data?.rideOverview?.personalRecords ?? []).filter(
+        (r) => r.rideId === rideId && r.previousValue != null,
+      ),
+    [data?.rideOverview?.personalRecords, rideId],
   );
 
   useEffect(() => {
@@ -56,11 +60,12 @@ export function PbToast({ rideId }: PbToastProps) {
     }
 
     // Track event
-    if (newRecords.length === 1) {
+    const first = newRecords[0];
+    if (newRecords.length === 1 && first) {
       trackEvent(AnalyticsEvent.PB_TOAST_SEEN, {
-        recordType: newRecords[0].recordType,
-        value: newRecords[0].value,
-        previousValue: newRecords[0].previousValue ?? null,
+        recordType: first.recordType,
+        value: first.value,
+        previousValue: first.previousValue ?? null,
         rideId,
       });
     } else {
@@ -79,7 +84,7 @@ export function PbToast({ rideId }: PbToastProps) {
     return () => {
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     };
-  }, [newRecords.length, rideId]);
+  }, [newRecords, rideId]);
 
   const handleTap = useCallback(() => {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
@@ -138,7 +143,7 @@ export function PbToast({ rideId }: PbToastProps) {
             height: 40,
             borderRadius: 20,
             borderCurve: 'continuous',
-            backgroundColor: theme.warm + '20',
+            backgroundColor: `${theme.warm}20`,
             alignItems: 'center',
             justifyContent: 'center',
           }}

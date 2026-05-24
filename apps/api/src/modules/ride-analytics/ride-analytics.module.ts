@@ -5,7 +5,12 @@ import { RideRecordDetector } from './ride-record-detector.service';
 import { RideRollupAggregator } from './ride-rollup-aggregator.service';
 
 @Module({
-  providers: [RideAnalyticsResolver, RideAnalyticsService, RideRollupAggregator, RideRecordDetector],
+  providers: [
+    RideAnalyticsResolver,
+    RideAnalyticsService,
+    RideRollupAggregator,
+    RideRecordDetector,
+  ],
   exports: [RideAnalyticsService, RideRecordDetector],
 })
 export class RideAnalyticsModule {}
