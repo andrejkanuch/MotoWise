@@ -43,7 +43,13 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { gqlFetcher } from '../../lib/graphql-client';
 import { queryKeys } from '../../lib/query-keys';
 import { tint, useEditorialTheme } from '../../theme/editorial';
-import { type MapStyle, getDefaultMapStyle, MAP_STYLES } from '../../utils/map-styles';
+import {
+  type MapStyle,
+  getDefaultMapStyle,
+  MAP_STYLES,
+  needsHeatmapOverlay,
+  needsTerrain3D,
+} from '../../utils/map-styles';
 import {
   distanceUnitLabel,
   elevationUnitLabel,
@@ -101,7 +107,7 @@ export default function RideDetailScreen() {
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const [showLeanTooltip, setShowLeanTooltip] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
-  const { heatmapGeoJSON } = useRideHeatmapData({ enabled: mapStyle === 'heatmap' });
+  const { heatmapGeoJSON } = useRideHeatmapData({ enabled: needsHeatmapOverlay(mapStyle) });
   const sheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => [100, '45%', '92%'], []);
 
@@ -436,7 +442,7 @@ export default function RideDetailScreen() {
               </MapboxGL.MarkerView>
 
               {/* 3D terrain (when terrain style selected) */}
-              {mapStyle === 'terrain' && (
+              {needsTerrain3D(mapStyle) && (
                 <>
                   <MapboxGL.RasterDemSource
                     id="mapbox-dem"
@@ -467,7 +473,7 @@ export default function RideDetailScreen() {
               )}
 
               {/* Personal heatmap overlay (all rides) */}
-              {mapStyle === 'heatmap' && heatmapGeoJSON && (
+              {needsHeatmapOverlay(mapStyle) && heatmapGeoJSON && (
                 <MapboxGL.ShapeSource id="ride-heatmap-source" shape={heatmapGeoJSON}>
                   <MapboxGL.HeatmapLayer
                     id="ride-heatmap"

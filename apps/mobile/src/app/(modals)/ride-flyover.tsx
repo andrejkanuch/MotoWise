@@ -51,6 +51,35 @@ function formatMmSs(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+/** Decode Google-encoded polyline to [lat, lng] pairs */
+function decodePolyline(encoded: string): [number, number][] {
+  const points: [number, number][] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  while (index < encoded.length) {
+    let shift = 0;
+    let result = 0;
+    let byte: number;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    shift = 0;
+    result = 0;
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    points.push([lat / 1e5, lng / 1e5]);
+  }
+  return points;
+}
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const TOTAL_DURATION_MS = 45_000; // 45 seconds at 1x speed
@@ -82,12 +111,13 @@ export default function RideFlyoverScreen() {
 
   // ─── Data fetching ──────────────────────────────────────────────────────
 
-  const { data: rideData } = useQuery({
+  // Read ride data from existing cache (ride-detail stores it as { viewer, ride })
+  const { data: rideBundle } = useQuery({
     queryKey: queryKeys.rides.detail(rideId ?? ''),
     queryFn: async () => {
       if (!rideId) throw new Error('Missing rideId');
       const r = await gqlFetcher(GetRideDocument, { id: rideId });
-      return r.ride;
+      return { viewer: 'owner' as const, ride: r.ride };
     },
     enabled: !!rideId,
   });
@@ -102,8 +132,33 @@ export default function RideFlyoverScreen() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const ride = rideData as GetRideQuery['ride'] | undefined;
-  const waypoints = (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+  const ride = (rideBundle as { viewer: string; ride: GetRideQuery['ride'] } | undefined)?.ride;
+  const serverWaypoints =
+    (waypointData as GetRideWaypointsQuery | undefined)?.rideWaypoints ?? [];
+
+  // Fall back to decoding route polyline when server waypoints are empty
+  const waypoints = useMemo(() => {
+    if (serverWaypoints.length >= 2) return serverWaypoints;
+    if (!ride?.routePolyline) return [];
+    try {
+      const decoded = decodePolyline(ride.routePolyline);
+      if (decoded.length < 2) return [];
+      // Distribute ride duration evenly across decoded points for stat overlay
+      const totalDurationS = ride.durationS ?? 0;
+      const totalDistanceM = ride.distanceM ?? 0;
+      return decoded.map(([lat, lng], i) => ({
+        recordedAt: '',
+        latitude: lat,
+        longitude: lng,
+        altitude: null as number | null,
+        speedMps: totalDistanceM > 0 && totalDurationS > 0
+          ? totalDistanceM / totalDurationS
+          : 0,
+      }));
+    } catch {
+      return [];
+    }
+  }, [serverWaypoints, ride?.routePolyline, ride?.durationS, ride?.distanceM]);
 
   // ─── Route GeoJSON ────────────────────────────────────────────────────
 
@@ -277,7 +332,7 @@ export default function RideFlyoverScreen() {
 
   // ─── Loading state ────────────────────────────────────────────────────
 
-  if (waypointsLoading || waypoints.length < 2) {
+  if (waypointsLoading) {
     return (
       <View
         style={{
@@ -288,6 +343,40 @@ export default function RideFlyoverScreen() {
         }}
       >
         <ActivityIndicator size="large" color={theme.warm} />
+      </View>
+    );
+  }
+
+  if (waypoints.length < 2) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          paddingHorizontal: 40,
+        }}
+      >
+        <Text style={{ fontSize: 17, fontWeight: '600', color: theme.ink }}>
+          Not enough data
+        </Text>
+        <Text style={{ fontSize: 14, color: theme.ink3, textAlign: 'center' }}>
+          This ride doesn't have enough GPS waypoints for a 3D flyover.
+        </Text>
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            marginTop: 8,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 99,
+            backgroundColor: theme.warm,
+          }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>Go back</Text>
+        </Pressable>
       </View>
     );
   }
