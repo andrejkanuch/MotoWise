@@ -137,16 +137,24 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
     },
   ];
 
+  const auxLabels: Record<string, string> = {
+    ok: t('preFlight.auxOk', { defaultValue: 'OK' }),
+    warn: t('preFlight.auxView', { defaultValue: 'View' }),
+    na: '',
+  };
+
   return (
     <View>
       <Text
         style={{
+          fontFamily: 'GeistMono',
           fontSize: 10,
-          fontWeight: '600',
+          fontWeight: '500',
           color: theme.ink3,
           textTransform: 'uppercase',
-          letterSpacing: 1.2,
-          marginBottom: 8,
+          letterSpacing: 10 * 0.22,
+          marginBottom: 10,
+          paddingHorizontal: 4,
         }}
       >
         {t('preFlight.title')}
@@ -157,63 +165,91 @@ export function PreFlightChecklist({ motorcycleId }: PreFlightChecklistProps) {
           backgroundColor: theme.surface,
           borderWidth: 1,
           borderColor: theme.line,
-          borderRadius: 14,
+          borderRadius: 22,
           borderCurve: 'continuous',
-          paddingHorizontal: 14,
           paddingVertical: 4,
         }}
       >
         {items.map((item, index) => {
-          const Icon = item.icon;
           const isOk = item.status === 'ok';
           const isWarn = item.status === 'warn';
 
           const iconBg = isOk
-            ? tint(theme.success, 0.12)
+            ? tint(theme.success, 0.18)
             : isWarn
-              ? tint(theme.warm, 0.1)
+              ? tint(theme.warm, 0.18)
               : tint(theme.ink3, 0.08);
 
           const iconColor = isOk ? theme.success : isWarn ? theme.warm : theme.ink3;
           const StatusIcon = isOk ? Check : isWarn ? AlertCircle : null;
+          const auxText = auxLabels[item.status] || '';
 
           return (
-            <View
-              key={item.label}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                paddingVertical: 11,
-                borderBottomWidth: index < items.length - 1 ? 1 : 0,
-                borderBottomColor: theme.line2,
-              }}
-            >
+            <View key={item.label} style={{ position: 'relative' }}>
+              {index > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 60,
+                    right: 18,
+                    height: 1,
+                    backgroundColor: theme.line,
+                  }}
+                />
+              )}
               <View
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  borderCurve: 'continuous',
-                  backgroundColor: iconBg,
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  gap: 14,
+                  paddingVertical: 14,
+                  paddingHorizontal: 18,
                 }}
               >
-                {StatusIcon ? (
-                  <StatusIcon size={14} color={iconColor} />
-                ) : (
-                  <Icon size={14} color={iconColor} />
-                )}
-              </View>
+                <View
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9,
+                    borderCurve: 'continuous',
+                    backgroundColor: iconBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {StatusIcon ? (
+                    <StatusIcon size={14} color={iconColor} />
+                  ) : (
+                    <item.icon size={14} color={iconColor} />
+                  )}
+                </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: theme.ink }}>
-                  {item.label}
-                </Text>
-                <Text style={{ fontSize: 11, color: theme.ink3, marginTop: 1 }}>
-                  {item.subtitle}
-                </Text>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: theme.ink, letterSpacing: -15 * 0.012, lineHeight: 15 * 1.2 }}>
+                    {item.label}
+                  </Text>
+                  <Text style={{ fontSize: 12.5, color: theme.ink3, marginTop: 2, letterSpacing: -0.05 }}>
+                    {item.subtitle}
+                  </Text>
+                </View>
+
+                {auxText ? (
+                  <Text
+                    style={{
+                      fontFamily: 'GeistMono',
+                      fontSize: 9.5,
+                      fontWeight: '500',
+                      letterSpacing: 9.5 * 0.16,
+                      textTransform: 'uppercase',
+                      color: isWarn ? theme.warm : theme.ink3,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {auxText}
+                  </Text>
+                ) : null}
               </View>
             </View>
           );

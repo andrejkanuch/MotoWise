@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Wrench,
 } from 'lucide-react-native';
+// NOTE: palette is kept only for speed-gradient colors (speedSlow/Medium/Fast)
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Pressable, ScrollView, Share, Switch, Text, TextInput, View } from 'react-native';
@@ -30,7 +31,7 @@ import { AnalyticsEvent, trackEvent } from '../../lib/analytics';
 import { MetaAnalytics } from '../../lib/meta-analytics';
 import { queryKeys } from '../../lib/query-keys';
 import { maybeRequestReview } from '../../lib/store-review';
-import { useEditorialTheme } from '../../theme/editorial';
+import { tint, useEditorialTheme } from '../../theme/editorial';
 import { triggerImpact, triggerNotification } from '../../utils/haptics';
 import {
   cycleMapStyle as cycleMapStyleFn,
@@ -90,7 +91,7 @@ export default function RideSummaryScreen() {
 
   const queryClient = useQueryClient();
   const { t } = useTranslation();
-  const { isDark } = useEditorialTheme();
+  const { t: theme, isDark } = useEditorialTheme();
   const [mapStyle, setMapStyle] = useState(() => getDefaultMapStyle(isDark));
   const defaultRideName = useMemo(() => smartRideName(startedAtMs), [startedAtMs]);
   const [rideName, setRideName] = useState(defaultRideName);
@@ -299,7 +300,7 @@ export default function RideSummaryScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.surfaceDark }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Celebration overlay */}
       {showCelebration && (
         <View
@@ -310,7 +311,7 @@ export default function RideSummaryScreen() {
             right: 0,
             bottom: 0,
             zIndex: 100,
-            backgroundColor: palette.surfaceDark,
+            backgroundColor: theme.bg,
             alignItems: 'center',
             justifyContent: 'center',
             gap: 20,
@@ -322,19 +323,19 @@ export default function RideSummaryScreen() {
               width: 88,
               height: 88,
               borderRadius: 44,
-              backgroundColor: palette.accent500,
+              backgroundColor: theme.success,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Check size={44} color={palette.white} strokeWidth={3} />
+            <Check size={44} color={theme.ink} strokeWidth={3} />
           </Animated.View>
           <Animated.Text
             entering={FadeInUp.delay(200).duration(300)}
             style={{
               fontSize: 28,
               fontWeight: '800',
-              color: palette.white,
+              color: theme.ink,
               letterSpacing: -0.5,
             }}
           >
@@ -349,29 +350,29 @@ export default function RideSummaryScreen() {
                 style={{
                   fontSize: 24,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: theme.ink,
                   fontVariant: ['tabular-nums'],
                 }}
               >
                 {formatDistance(distanceM, system)}
               </Text>
-              <Text style={{ fontSize: 13, color: palette.neutral400, marginTop: 2 }}>
+              <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 2 }}>
                 Distance
               </Text>
             </View>
-            <View style={{ width: 1, height: 40, backgroundColor: palette.surfaceElevated }} />
+            <View style={{ width: 1, height: 40, backgroundColor: theme.line }} />
             <View style={{ alignItems: 'center' }}>
               <Text
                 style={{
                   fontSize: 24,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: theme.ink,
                   fontVariant: ['tabular-nums'],
                 }}
               >
                 {formatDuration(durationS)}
               </Text>
-              <Text style={{ fontSize: 13, color: palette.neutral400, marginTop: 2 }}>
+              <Text style={{ fontSize: 13, color: theme.ink3, marginTop: 2 }}>
                 Duration
               </Text>
             </View>
@@ -431,9 +432,9 @@ export default function RideSummaryScreen() {
                       width: 16,
                       height: 16,
                       borderRadius: 8,
-                      backgroundColor: palette.success500,
+                      backgroundColor: theme.success,
                       borderWidth: 3,
-                      borderColor: palette.white,
+                      borderColor: theme.ink,
                     }}
                   />
                 </MapboxGL.MarkerView>
@@ -445,9 +446,9 @@ export default function RideSummaryScreen() {
                       width: 16,
                       height: 16,
                       borderRadius: 8,
-                      backgroundColor: palette.signature500,
+                      backgroundColor: theme.warm,
                       borderWidth: 3,
-                      borderColor: palette.white,
+                      borderColor: theme.ink,
                     }}
                   />
                 </MapboxGL.MarkerView>
@@ -457,7 +458,7 @@ export default function RideSummaryScreen() {
 
           {/* Bottom gradient fade into content */}
           <LinearGradient
-            colors={['transparent', palette.surfaceDark]}
+            colors={['transparent', theme.bg]}
             style={{
               position: 'absolute',
               bottom: 0,
@@ -485,12 +486,12 @@ export default function RideSummaryScreen() {
                 height: 44,
                 borderRadius: 22,
                 borderCurve: 'continuous',
-                backgroundColor: palette.surfaceOverlay,
+                backgroundColor: tint(theme.bg, 0.78),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <MapIcon size={18} color={palette.white} />
+              <MapIcon size={18} color={theme.ink} />
             </Pressable>
             <Pressable
               onPress={handleShare}
@@ -501,12 +502,12 @@ export default function RideSummaryScreen() {
                 height: 44,
                 borderRadius: 22,
                 borderCurve: 'continuous',
-                backgroundColor: palette.surfaceOverlay,
+                backgroundColor: tint(theme.bg, 0.78),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Share2 size={18} color={palette.white} />
+              <Share2 size={18} color={theme.ink} />
             </Pressable>
           </View>
         </View>
@@ -518,13 +519,13 @@ export default function RideSummaryScreen() {
         >
           <View
             style={{
-              backgroundColor: palette.cardDark,
+              backgroundColor: theme.surface,
               borderRadius: 24,
               borderCurve: 'continuous',
               padding: 20,
               gap: 20,
               borderWidth: 1,
-              borderColor: palette.surfaceElevated,
+              borderColor: theme.line,
             }}
           >
             {/* Ride name */}
@@ -542,19 +543,19 @@ export default function RideSummaryScreen() {
                   }
                 }}
                 placeholder={t('rideSummary.namePlaceholder')}
-                placeholderTextColor={palette.neutral600}
+                placeholderTextColor={theme.ink4}
                 maxLength={100}
                 accessibilityLabel="Ride name"
                 style={{
-                  backgroundColor: palette.surfaceSubtle,
+                  backgroundColor: theme.surface2,
                   borderRadius: 14,
                   borderCurve: 'continuous',
                   padding: 14,
                   fontSize: 18,
                   fontWeight: '700',
-                  color: palette.white,
+                  color: theme.ink,
                   borderWidth: 1,
-                  borderColor: palette.surfaceElevated,
+                  borderColor: theme.line,
                 }}
               />
             </View>
@@ -567,18 +568,18 @@ export default function RideSummaryScreen() {
                   style={{
                     flexBasis: '47%',
                     flexGrow: 1,
-                    backgroundColor: palette.surfaceSubtle,
+                    backgroundColor: theme.surface2,
                     borderRadius: 16,
                     borderCurve: 'continuous',
                     padding: 14,
                     gap: 6,
                     borderWidth: 1,
-                    borderColor: palette.surfaceElevated,
+                    borderColor: theme.line,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Icon size={14} color={palette.neutral500} />
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: palette.neutral500 }}>
+                    <Icon size={14} color={theme.ink3} />
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.ink3 }}>
                       {label}
                     </Text>
                   </View>
@@ -586,7 +587,7 @@ export default function RideSummaryScreen() {
                     style={{
                       fontSize: 20,
                       fontWeight: '800',
-                      color: palette.white,
+                      color: theme.ink,
                       fontVariant: ['tabular-nums'],
                     }}
                   >
@@ -603,15 +604,15 @@ export default function RideSummaryScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 8,
-                  backgroundColor: palette.successBgDark,
+                  backgroundColor: tint(theme.success, 0.12),
                   borderRadius: 12,
                   borderCurve: 'continuous',
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                 }}
               >
-                <Wrench size={16} color={palette.success500} />
-                <Text style={{ fontSize: 13, color: palette.success500, flex: 1 }}>
+                <Wrench size={16} color={theme.success} />
+                <Text style={{ fontSize: 13, color: theme.success, flex: 1 }}>
                   {formatDistance(distanceM, system)} added to bike odometer
                 </Text>
               </View>
@@ -632,15 +633,15 @@ export default function RideSummaryScreen() {
                 justifyContent: 'center',
                 gap: 8,
                 paddingVertical: 14,
-                backgroundColor: pressed ? palette.surfaceHover : palette.surfaceSubtle,
+                backgroundColor: pressed ? theme.surface3 : theme.surface2,
                 borderRadius: 14,
                 borderCurve: 'continuous',
                 borderWidth: 1,
-                borderColor: palette.surfaceElevated,
+                borderColor: theme.line,
               })}
             >
-              <Receipt size={16} color={palette.neutral400} />
-              <Text style={{ fontSize: 14, fontWeight: '600', color: palette.neutral400 }}>
+              <Receipt size={16} color={theme.ink3} />
+              <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink3 }}>
                 Add Expense (Fuel, Tolls...)
               </Text>
             </Pressable>
@@ -659,7 +660,7 @@ export default function RideSummaryScreen() {
               })}
             >
               <LinearGradient
-                colors={[palette.accent400, palette.accent500]}
+                colors={[theme.success, theme.success]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 style={{
@@ -668,7 +669,7 @@ export default function RideSummaryScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ fontSize: 17, fontWeight: '700', color: palette.white }}>
+                <Text style={{ fontSize: 17, fontWeight: '700', color: theme.ink }}>
                   {isSaving ? 'Saving...' : 'Save Ride'}
                 </Text>
               </LinearGradient>
@@ -685,12 +686,12 @@ export default function RideSummaryScreen() {
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-                <Compass size={18} color={palette.accent500} />
+                <Compass size={18} color={theme.success} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: palette.white }}>
+                  <Text style={{ fontSize: 14, fontWeight: '600', color: theme.ink }}>
                     Share on Discover
                   </Text>
-                  <Text style={{ fontSize: 12, color: palette.neutral400 }}>
+                  <Text style={{ fontSize: 12, color: theme.ink3 }}>
                     Other riders can find and ride this route
                   </Text>
                 </View>
@@ -698,8 +699,8 @@ export default function RideSummaryScreen() {
               <Switch
                 value={shareToDiscover}
                 onValueChange={setShareToDiscover}
-                trackColor={{ false: palette.neutral700, true: palette.accent500 }}
-                thumbColor={palette.white}
+                trackColor={{ false: theme.line2, true: theme.success }}
+                thumbColor={theme.ink}
               />
             </View>
 
@@ -716,8 +717,8 @@ export default function RideSummaryScreen() {
                 paddingVertical: 8,
               }}
             >
-              <Trash2 size={14} color={palette.neutral500} />
-              <Text style={{ fontSize: 14, color: palette.neutral500 }}>Discard Ride</Text>
+              <Trash2 size={14} color={theme.ink3} />
+              <Text style={{ fontSize: 14, color: theme.ink3 }}>Discard Ride</Text>
             </Pressable>
           </View>
         </Animated.View>
